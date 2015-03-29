@@ -45,6 +45,7 @@ DECLARE_DO_FUN(do_skills);
 bool train_stat(int trained, CHAR_DATA *ch);
 void show_groups( int skill, BUFFER *buffer );
 void show_races( int skill, BUFFER *buffer );
+void show_skill_subclasses( int skill, BUFFER *buffer );
 void show_class_skills( CHAR_DATA *ch, const char *argument );
 void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
@@ -2807,6 +2808,7 @@ DEF_DO_FUN(do_showskill)
         show_groups(skill, buffer);
         show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
+        show_skill_subclasses(skill, buffer);
     }
     
     page_to_char(buf_string(buffer), ch);
@@ -2883,6 +2885,21 @@ bool has_race_skill( int skill, int rn )
     return FALSE;
 }
 
+bool has_subclass_skill( int skill, int subclass )
+{
+    int i;
+    const struct subclass_type *sc = &subclass_table[subclass];
+    
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            break;
+        if ( !str_cmp(sc->skills[i], skill_table[skill].name) )
+            return TRUE;
+    }
+    return FALSE;
+}
+
 void show_races( int skill, BUFFER *buffer )
 {
     char buf[MSL];
@@ -2903,6 +2920,26 @@ void show_races( int skill, BUFFER *buffer )
     }
     if ( col % 3 != 0 )
 	add_buf( buffer, "\n\r" );
+}
+
+void show_skill_subclasses( int skill, BUFFER *buffer )
+{
+    char buf[MSL];
+    int subclass, col = 0;
+
+    add_buf( buffer, "\n\rIt is possessed by the following subclasses:\n\r" );
+   
+    for ( subclass = 1; subclass_table[subclass].name != NULL; subclass++ )
+    {
+        if ( !has_subclass_skill(skill, subclass) )
+            continue;
+        sprintf( buf, "%-20s ", subclass_table[subclass].name );
+        add_buf( buffer, buf );
+        if ( ++col % 3 == 0 )
+            add_buf( buffer, "\n\r" );
+    }
+    if ( col % 3 != 0 )
+    add_buf( buffer, "\n\r" );
 }
 
 void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
