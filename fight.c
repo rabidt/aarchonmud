@@ -1936,7 +1936,9 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // riposte - 25% chance regardless of hit or miss
-    if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(25) )
+    // blade barrier stance doubles that
+    int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
+    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
     {
         one_hit(victim, ch, gsn_riposte, FALSE);
         CHECK_RETURN( ch, victim );
@@ -4622,8 +4624,10 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
         chance -= 5;
 
-    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION || ch->stance == STANCE_BLADE_BARRIER )
         chance += 10;
+    else if ( ch->stance == STANCE_BLADE_BARRIER )
+        chance += 20;
     
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
