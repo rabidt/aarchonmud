@@ -3196,6 +3196,8 @@ struct  mastery_group_type
 #define OTRIG_SIT   (aa)
 #define OTRIG_WAKE  (bb)
 #define OTRIG_DRINK (cc)
+#define OTRIG_REST  (dd)
+#define OTRIG_SLEEP (ee)
 
 /*
  * AREAprog definitions
