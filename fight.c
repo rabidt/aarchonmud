@@ -1619,10 +1619,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
         dam = level + dice( 2, 4 );
 
-    /* greater frenzy */
+    /* savage frenzy */
     if ( IS_AFFECTED(ch, AFF_BERSERK) && !is_calm(ch) )
     {
-        int skill = get_skill(ch, gsn_greater_frenzy);
+        int skill = get_skill(ch, gsn_savage_frenzy);
         if ( skill > 0 )
         {
             // greater frenzy is impacted by shield and heavy armor
