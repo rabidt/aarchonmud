@@ -369,6 +369,7 @@ sh_int  gsn_lethal_hands;
 sh_int  gsn_unarmed_parry;
 sh_int  gsn_mystic_infusion;
 sh_int  gsn_rapid_fire;
+sh_int  gsn_precise_shot;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
