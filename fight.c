@@ -1897,14 +1897,15 @@ static bool check_elemental_strike( CHAR_DATA *ch, OBJ_DATA *wield )
     return per_chance(strike_chance);
 }
 
-void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
+void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
     CHECK_RETURN( ch, victim );
+    
+    OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
     
     // elemental strike - separate handling if in elemental blade stance
     if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
     {
-        OBJ_DATA *wield = get_eq_char(victim, WEAR_WIELD);
         if ( check_elemental_strike(ch, wield) )
         {
             // additional mana cost
@@ -1937,6 +1938,14 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
     if ( per_chance(get_skill(victim, gsn_riposte)) && per_chance(25) )
     {
         one_hit(victim, ch, gsn_riposte, FALSE);
+        CHECK_RETURN( ch, victim );
+    }
+    
+    // rapid fire - 10% chance of additional follow-up attack
+    if ( is_normal_hit(dt) && wield && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED)
+        && per_chance(10) && per_chance(get_skill(ch, gsn_rapid_fire)) )
+    {
+        one_hit(ch, victim, dt, secondary);
         CHECK_RETURN( ch, victim );
     }
 }
@@ -2074,7 +2083,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     // Check for parry, dodge, etc. and fade
     if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
     {
-        after_attack(ch, victim, dt, FALSE);
+        after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
     }
         
@@ -2087,7 +2096,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
             handle_arrow_shot( ch, victim, FALSE );
-        after_attack(ch, victim, dt, FALSE);
+        after_attack(ch, victim, dt, FALSE, secondary);
         tail_chain( );
         return FALSE;
     }
@@ -2220,7 +2229,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* if not hit => no follow-up effects.. --Bobble */
     if ( !result )
     {
-        after_attack(ch, victim, dt, FALSE);
+        after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
     }
     
@@ -2254,7 +2263,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             return TRUE;
     }
 
-    after_attack(ch, victim, dt, TRUE);
+    after_attack(ch, victim, dt, TRUE, secondary);
     
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
