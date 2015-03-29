@@ -1296,6 +1296,8 @@ const struct stance_type stances [] =
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
           &gsn_serpent,             TRUE, FALSE,          22 },
+        { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
+            &gsn_blade_barrier,     FALSE, TRUE,          20 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };
