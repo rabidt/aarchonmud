@@ -2095,7 +2095,7 @@ Syntax:
 end
 
 function do_qset(ch, argument)
-    local args=arguments(argument)
+    local args=arguments(argument, true)
 
     if #args<3 then
         do_qset_usage(ch)

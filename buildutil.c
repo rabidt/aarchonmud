@@ -2554,7 +2554,18 @@ DEF_DO_FUN(do_oset)
    
     if ( !str_prefix( arg2, "extra" ) )
     {
-        //obj->extra_flags = value;
+        int flag = flag_lookup(arg3, extra_flags);
+        if ( flag == NO_FLAG )
+        {
+            ptc(ch, "Unknown flag '%s'.\n\r", arg3);
+            return;
+        }
+        if ( !extra_flags[flag].settable )
+        {
+            ptc(ch, "The %s flag cannot be set.\n\r", extra_flags[flag].name);
+            return;
+        }
+        TOGGLE_BIT(obj->extra_flags, flag);
         return;
     }
     

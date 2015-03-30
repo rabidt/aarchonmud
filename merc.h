@@ -1416,7 +1416,7 @@ struct  kill_data
 #define IMM_SOUND               (T)
 #define IMM_SLEEP               (U)
 #define IMM_CHARMPERSON         (V)
-#define IMM_GAZE                (W)
+#define IMM_PETRIFY             (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
 #define IMM_IRON                (Z)
@@ -3208,6 +3208,8 @@ struct  mastery_group_type
 #define OTRIG_SIT   (aa)
 #define OTRIG_WAKE  (bb)
 #define OTRIG_DRINK (cc)
+#define OTRIG_REST  (dd)
+#define OTRIG_SLEEP (ee)
 
 /*
  * AREAprog definitions
@@ -4731,6 +4733,7 @@ void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
 void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CD *    get_player( const char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    get_victim_room( CHAR_DATA *ch, const char *argument );
 CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, const char *argument ) );   
 CD *    get_char_group args( ( CHAR_DATA *ch, const char *argument ) );
@@ -4855,7 +4858,7 @@ int spell_lookup( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );

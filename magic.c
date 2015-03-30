@@ -631,9 +631,9 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             }
             else
             {
-                if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+                if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
                 {
-                    send_to_char( "They aren't here.\n\r", ch );
+                    send_to_char( "You can't find your victim.\n\r", ch );
                     return FALSE;
                 }
             }
@@ -678,7 +678,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             break;
 
         case TAR_CHAR_SELF:
-            if ( arg[0] != '\0' && !is_name( arg, ch->name ) )
+            if ( arg[0] != '\0' && strcmp(arg, "self") && !is_name( arg, ch->name ) )
             {
                 send_to_char( "You cannot cast this spell on another.\n\r", ch );
                 return FALSE;
@@ -738,7 +738,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
 
                 *target = TARGET_CHAR;
             }
-            else if ((victim = get_char_room(ch,arg)) != NULL)
+            else if ((victim = get_victim_room(ch,arg)) != NULL)
             {
                 *target = TARGET_CHAR;
             }
@@ -1582,12 +1582,12 @@ DEF_DO_FUN(do_wish)
 /*
  * Cast spells at targets using a magical object.
  */
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg )
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *argument, bool check )
 {
+    char arg[MAX_INPUT_LENGTH];
     void *vo;
     int target;
     int levelmod;
-    bool cast_self = FALSE;
 
     if ( sn <= 0 )
         return FALSE;
@@ -1610,7 +1610,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
 
     if ( level > 1 )
     {
-        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) )
+        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) && !check )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
         level = level * (900 + levelmod) / 1000;
     }
@@ -1636,27 +1636,22 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
         }
     }
 
-    /* check for self-only spells */
-    if ( !str_cmp(arg, "self") )
-    {
-        cast_self = TRUE;
-        arg = ch->name;
-    }
-
+    target_name = one_argument(argument, arg);
+    
     /* get target */
     if ( !get_spell_target( ch, arg, sn, &target, &vo ) )
         return FALSE;
 
-    if ( cast_self && vo != ch )
-    {
-        if ( target == TARGET_CHAR )
-            vo = (void*) ch;
-        else
-            return FALSE;
-    }
-
+    // check if spell could be cast successfully
+    // that's done via a call to the spell function with check = TRUE
+    // sending appropriate failure message is job of the spell function
+    if ( !(*skill_table[sn].spell_fun)(sn, level, ch, vo, target, TRUE) )
+        return FALSE;
+    
+    if ( check )
+        return TRUE;
+    
     /* execute spell */
-    target_name = arg;
     vo = check_reflection( sn, level, ch, vo, target );
 
     // remove invisibility
