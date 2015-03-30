@@ -774,6 +774,42 @@ DEF_DO_FUN(do_hogtie)
     start_combat(ch, victim);
 }
 
+// checks whether character can let off a shot, returning accuracy < 100 if using offhand weapon
+// accuracy of 0 means can't shoot, error message has been sent
+int get_shot_accuracy( CHAR_DATA *ch )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+    
+    if ( !is_ranged_weapon(wield) && !is_ranged_weapon(offhand) )
+    {    
+        send_to_char( "You need to wield a ranged weapon for that.\n\r", ch );
+        return 0;
+    }
+
+    if ( wield && wield->value[0] == WEAPON_BOW )
+    {
+        OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+        if ( !held || held->item_type != ITEM_ARROWS )
+        {
+            send_to_char( "Without arrows that's not going to work.\n\r", ch );
+            return 0;
+        }
+        return 100;
+    }
+    
+    if ( wield && wield->value[0] == WEAPON_GUN && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
+        return 100;
+    
+    // last chance, try offhand - accuracy is capped at 90%
+    if ( offhand && offhand->value[0] == WEAPON_GUN && !IS_SET(offhand->extra_flags, ITEM_JAMMED) )
+        return 50 + offhand_attack_chance(ch, FALSE) * 2/5;
+        
+    // at this point we must have a gun, and all guns must be jammed
+    send_to_char("Not with a jammed gun.\n\r", ch);
+    return 0;
+}
+
 /* parameters for aiming, must terminate with "" */
 const char* aim_targets[] = { "head", "hand", "foot", "" };
 /* constants must be defined according to aim_targets */
@@ -787,7 +823,7 @@ DEF_DO_FUN(do_aim)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj; 
-    int i, chance;
+    int i, chance, accuracy;
     int aim_target = AIM_NORMAL;
     bool secondgun = FALSE;
 
@@ -836,82 +872,20 @@ DEF_DO_FUN(do_aim)
 
     if ( is_safe(ch,victim) )
         return;
-        
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {    
-        send_to_char( "You need to wield a ranged weapon to aim.\n\r", ch );
+
+    if ( (accuracy = get_shot_accuracy(ch)) == 0 )
         return;
-    }
-
-    if ( get_weapon_sn_new(ch,FALSE) == gsn_bow )
-    {
-        if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
-        {
-            send_to_char( "Without arrows that's not going to work.\n\r", ch );
-            return;
-        }
-    }
-    else
-    {
-        /* If first weapon is not a gun, MAY be able to aim with offhand gun */
-        if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
-        {   
-            /* Nope, offhand weapon is not a gun. */
-            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-            {
-                send_to_char( "You need a ranged weapon to aim.\n\r", ch);
-                return;
-            }
-            else
-            {
-                secondgun = TRUE;
-                obj = get_eq_char(ch, WEAR_SECONDARY);
-                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-                {
-                    send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                    return;
-                }
-            }
-        }
-        /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-        else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
-        {
-            /* Nope, offhand weapon is not a gun. */
-            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-            {
-                send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                return;
-            }
-            else 
-            {   
-                secondgun = TRUE;
-                obj = get_eq_char(ch, WEAR_SECONDARY);
-                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-                {
-                    send_to_char( "Your guns are both jammed.\n\r", ch);
-                    return;
-                }
-            }   
-        }
-    }
-
-    /* At this point, EITHER:
-       obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
-
+    
+    secondgun = accuracy < 100;
+    
     check_killer( ch, victim );
     if ( aim_target == AIM_NORMAL )
         WAIT_STATE( ch, skill_table[gsn_aim].beats * 2/3 );
     else
         WAIT_STATE( ch, skill_table[gsn_aim].beats );
     
-    chance = 50 + get_skill(ch, gsn_aim) / 2;
+    chance = (100 + get_skill(ch, gsn_aim)) * accuracy / 200;
 
-    /* Offhand is naturally weaker, so...
-       with 100% dual gun skill, chance is reduced by 10
-       (more reduction for lower skill, up to 35)        */ 
-    if ( secondgun )
-        chance += get_skill(ch, gsn_dual_gun)/4 - 35;
-    
     if ( !IS_AWAKE(victim) )
         chance = (100 + chance) / 2;
     
@@ -924,6 +898,7 @@ DEF_DO_FUN(do_aim)
             case AIM_NORMAL:
                 break;
             case AIM_HEAD:
+                obj = secondgun ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
                 check_assassinate(ch, victim, obj, 5);
                 break;
             case AIM_HAND:
@@ -1055,7 +1030,7 @@ DEF_DO_FUN(do_snipe)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    int skill;
+    int skill, accuracy;
     bool secondgun = FALSE;
     
     if ((skill = get_skill(ch,gsn_snipe)) < 1)
@@ -1093,69 +1068,22 @@ DEF_DO_FUN(do_snipe)
     if ( is_safe(ch,victim) )
         return;
      
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {
-        send_to_char( "You need to be packing heat to snipe.\n\r", ch );
+    if ( (accuracy = get_shot_accuracy(ch)) == 0 )
         return;
-    }
     
-    /* If first weapon is not a gun, MAY be able to snipe with offhand gun */
-    if (get_weapon_sn_new(ch,FALSE) != gsn_gun )
-    {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You need a gun to snipe.\n\r", ch);
-            return;
-        }
-        else
-        {
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "You can't snipe with a jammed gun.\n\r", ch);
-                 return;
-            }
-        }
-    }
-    /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-    else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
-    {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You can't snipe with a jammed gun.\n\r", ch);
-            return;
-        }
-        else
-        {
-            secondgun = TRUE;
-	    obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "Your guns are both jammed.\n\r", ch);
-                 return;
-            }
-        }
-    }
-
-    /* At this point, EITHER:
-       obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
+    secondgun = accuracy < 100;
+    skill = skill * accuracy / 100;
 
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_snipe].beats );
 
-    /* Offhand is naturally weaker, so...
-       with 100% dual gun skill, chance is reduced by 10
-       (more reduction for lower skill, up to 35)        */ 
-    if ( secondgun )
-        skill += get_skill(ch, gsn_dual_gun)/4 - 35;
-
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
         if ( one_hit(ch, victim, gsn_snipe, secondgun) )
+        {
+            obj = secondgun ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
             check_assassinate(ch, victim, obj, 5);
+        }
         check_jam(ch, 2, secondgun);
         check_improve(ch,gsn_snipe,TRUE,1);
     }
@@ -3602,7 +3530,8 @@ DEF_DO_FUN(do_strafe)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
 	return;
 
-    if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
+    OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+    if ( !held || held->item_type != ITEM_ARROWS )
     {
 	send_to_char( "You need arrows in order to strafe.\n\r", ch );
 	return;
@@ -3644,7 +3573,8 @@ DEF_DO_FUN(do_infectious_arrow)
         return;
     }
 
-    if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )    
+    OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+    if ( !held || held->item_type != ITEM_ARROWS )
     {
         send_to_char( "Without an arrow? LOL, Yeah right.\n\r",ch);
         return;
