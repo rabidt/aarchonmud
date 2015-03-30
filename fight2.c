@@ -155,11 +155,8 @@ DEF_DO_FUN(do_berserk)
 
 DEF_DO_FUN(do_bash)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance_hit, chance_stun, dam, skill;
-    
-    one_argument(argument,arg);
     
     if ( get_skill(ch,gsn_bash) == 0 )
     {   
@@ -167,21 +164,8 @@ DEF_DO_FUN(do_bash)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if (victim->position < POS_FIGHTING)
     {
@@ -263,11 +247,8 @@ DEF_DO_FUN(do_bash)
 
 DEF_DO_FUN(do_dirt)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_dirt)) == 0
         ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_KICK_DIRT)))
@@ -276,22 +257,9 @@ DEF_DO_FUN(do_dirt)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
-    
+
     if (IS_AFFECTED(victim,AFF_BLIND))
     {
         act("$E's already been blinded.",ch,NULL,victim,TO_CHAR);
@@ -372,11 +340,8 @@ DEF_DO_FUN(do_dirt)
 
 DEF_DO_FUN(do_trip)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_trip)) == 0
         ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_TRIP)))
@@ -385,22 +350,8 @@ DEF_DO_FUN(do_trip)
         return;
     }
     
-    
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( is_safe(ch,victim) )
         return;
@@ -823,6 +774,42 @@ DEF_DO_FUN(do_hogtie)
     start_combat(ch, victim);
 }
 
+// checks whether character can let off a shot, returning accuracy < 100 if using offhand weapon
+// accuracy of 0 means can't shoot, error message has been sent
+int get_shot_accuracy( CHAR_DATA *ch )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+    
+    if ( !is_ranged_weapon(wield) && !is_ranged_weapon(offhand) )
+    {    
+        send_to_char( "You need to wield a ranged weapon for that.\n\r", ch );
+        return 0;
+    }
+
+    if ( wield && wield->value[0] == WEAPON_BOW )
+    {
+        OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+        if ( !held || held->item_type != ITEM_ARROWS )
+        {
+            send_to_char( "Without arrows that's not going to work.\n\r", ch );
+            return 0;
+        }
+        return 100;
+    }
+    
+    if ( wield && wield->value[0] == WEAPON_GUN && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
+        return 100;
+    
+    // last chance, try offhand - accuracy is capped at 90%
+    if ( offhand && offhand->value[0] == WEAPON_GUN && !IS_SET(offhand->extra_flags, ITEM_JAMMED) )
+        return 50 + offhand_attack_chance(ch, FALSE) * 2/5;
+        
+    // at this point we must have a gun, and all guns must be jammed
+    send_to_char("Not with a jammed gun.\n\r", ch);
+    return 0;
+}
+
 /* parameters for aiming, must terminate with "" */
 const char* aim_targets[] = { "head", "hand", "foot", "" };
 /* constants must be defined according to aim_targets */
@@ -836,7 +823,7 @@ DEF_DO_FUN(do_aim)
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj; 
-    int i, chance;
+    int i, chance, accuracy;
     int aim_target = AIM_NORMAL;
     bool secondgun = FALSE;
 
@@ -868,21 +855,8 @@ DEF_DO_FUN(do_aim)
                         break;
                 }
 
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("Who are you aiming at?\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, arg)) == NULL )
         return;
-    }
         
     if (victim == ch)
     {
@@ -898,82 +872,20 @@ DEF_DO_FUN(do_aim)
 
     if ( is_safe(ch,victim) )
         return;
-        
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {    
-        send_to_char( "You need to wield a ranged weapon to aim.\n\r", ch );
+
+    if ( (accuracy = get_shot_accuracy(ch)) == 0 )
         return;
-    }
-
-    if ( get_weapon_sn_new(ch,FALSE) == gsn_bow )
-    {
-        if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
-        {
-            send_to_char( "Without arrows that's not going to work.\n\r", ch );
-            return;
-        }
-    }
-    else
-    {
-        /* If first weapon is not a gun, MAY be able to aim with offhand gun */
-        if (get_weapon_sn_new(ch,FALSE) != gsn_gun )                                         
-        {   
-            /* Nope, offhand weapon is not a gun. */
-            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-            {
-                send_to_char( "You need a ranged weapon to aim.\n\r", ch);
-                return;
-            }
-            else
-            {
-                secondgun = TRUE;
-                obj = get_eq_char(ch, WEAR_SECONDARY);
-                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-                {
-                    send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                    return;
-                }
-            }
-        }
-        /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-        else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
-        {
-            /* Nope, offhand weapon is not a gun. */
-            if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-            {
-                send_to_char( "You can't aim with a jammed gun.\n\r", ch);
-                return;
-            }
-            else 
-            {   
-                secondgun = TRUE;
-                obj = get_eq_char(ch, WEAR_SECONDARY);
-                if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-                {
-                    send_to_char( "Your guns are both jammed.\n\r", ch);
-                    return;
-                }
-            }   
-        }
-    }
-
-    /* At this point, EITHER:
-       obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
-
+    
+    secondgun = accuracy < 100;
+    
     check_killer( ch, victim );
     if ( aim_target == AIM_NORMAL )
         WAIT_STATE( ch, skill_table[gsn_aim].beats * 2/3 );
     else
         WAIT_STATE( ch, skill_table[gsn_aim].beats );
     
-    chance = 50 + get_skill(ch, gsn_aim) / 2;
+    chance = (100 + get_skill(ch, gsn_aim)) * accuracy / 200;
 
-    /* Offhand is naturally weaker, so...
-       with 100% dual gun skill, chance is reduced by 10
-       (more reduction for lower skill, up to 35)        */ 
-    if ( secondgun )
-        chance += get_skill(ch, gsn_dual_gun)/4 - 35;
-    
     if ( !IS_AWAKE(victim) )
         chance = (100 + chance) / 2;
     
@@ -986,6 +898,7 @@ DEF_DO_FUN(do_aim)
             case AIM_NORMAL:
                 break;
             case AIM_HEAD:
+                obj = secondgun ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
                 check_assassinate(ch, victim, obj, 5);
                 break;
             case AIM_HAND:
@@ -1137,7 +1050,7 @@ DEF_DO_FUN(do_snipe)
         return;
     } 
      
-    else if ((victim = get_char_room(ch,arg)) == NULL)
+    else if ((victim = get_victim_room(ch,arg)) == NULL)
     {
         send_to_char("They aren't here.\n\r",ch);
         return;
@@ -1150,6 +1063,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     OBJ_DATA *obj;
     int skill = get_skill(ch, gsn_snipe);
+    int accuracy;
     bool secondgun = FALSE;
         
     if ( victim == ch )
@@ -1161,69 +1075,22 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( is_safe(ch,victim) )
         return;
      
-    if ( ( obj = get_eq_char( ch, WEAR_WIELD ) ) == NULL)
-    {
-        send_to_char( "You need to be packing heat to snipe.\n\r", ch );
+    if ( (accuracy = get_shot_accuracy(ch)) == 0 )
         return;
-    }
     
-    /* If first weapon is not a gun, MAY be able to snipe with offhand gun */
-    if (get_weapon_sn_new(ch,FALSE) != gsn_gun )
-    {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You need a gun to snipe.\n\r", ch);
-            return;
-        }
-        else
-        {
-            secondgun = TRUE;
-            obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "You can't snipe with a jammed gun.\n\r", ch);
-                 return;
-            }
-        }
-    }
-    /* First weapon IS a gun, now check if it's jammed .. may have to use offhand gun */
-    else if (IS_SET(obj->extra_flags, ITEM_JAMMED))
-    {
-        /* Nope, offhand weapon is not a gun. */
-        if( get_weapon_sn_new(ch,TRUE) != gsn_gun )
-        {
-            send_to_char( "You can't snipe with a jammed gun.\n\r", ch);
-            return;
-        }
-        else
-        {
-            secondgun = TRUE;
-	    obj = get_eq_char(ch, WEAR_SECONDARY);
-            if( obj != NULL && IS_SET(obj->extra_flags, ITEM_JAMMED) )
-            {
-                 send_to_char( "Your guns are both jammed.\n\r", ch);
-                 return;
-            }
-        }
-    }
-
-    /* At this point, EITHER:
-       obj is the main-hand gun, OR obj is second-hand gun and secondgun = TRUE */
+    secondgun = accuracy < 100;
+    skill = skill * accuracy / 100;
 
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_snipe].beats );
 
-    /* Offhand is naturally weaker, so...
-       with 100% dual gun skill, chance is reduced by 10
-       (more reduction for lower skill, up to 35)        */ 
-    if ( secondgun )
-        skill += get_skill(ch, gsn_dual_gun)/4 - 35;
-
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
         if ( one_hit(ch, victim, gsn_snipe, secondgun) )
+        {
+            obj = secondgun ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
             check_assassinate(ch, victim, obj, 5);
+        }
         check_jam(ch, 2, secondgun);
         check_improve(ch,gsn_snipe,TRUE,1);
     }
@@ -1568,7 +1435,7 @@ DEF_DO_FUN(do_disarm)
     hth = 0;
     
     // allow disarm as a shortcut for tdisarm while out-of-combat
-    if ( !ch->fighting && !get_char_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
+    if ( !ch->fighting && !get_victim_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
     {
         do_disarm_trap( ch, argument );
         return;
@@ -1798,11 +1665,8 @@ void split_attack ( CHAR_DATA *ch, int dt )
 
 DEF_DO_FUN(do_gouge)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_gouge)) == 0)
     {
@@ -1810,20 +1674,8 @@ DEF_DO_FUN(do_gouge)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't in combat!\n\r",ch);
-            return;
-        }
-    }   
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( !can_see_combat( ch, victim) )
     {
@@ -2091,11 +1943,8 @@ DEF_DO_FUN(do_war_cry)
 
 DEF_DO_FUN(do_guard)
 {
-    char arg[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
     int chance;
-    
-    one_argument( argument, arg );
     
     if ( (chance = get_skill(ch,gsn_guard)) == 0)
     {
@@ -2103,20 +1952,8 @@ DEF_DO_FUN(do_guard)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( !can_see_combat( ch, victim ) )
     {
@@ -2352,7 +2189,6 @@ DEF_DO_FUN(do_feint)
 
 DEF_DO_FUN(do_distract)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -2364,22 +2200,8 @@ DEF_DO_FUN(do_distract)
         return;
     }
     
-    one_argument( argument, arg );
-
-    if ( arg[0] == '\0' )
-    {
-        victim = ch->fighting;
-        if (victim ==NULL)
-        {
-            send_to_char ( "Distract who?\n\r", ch);
-            return;
-        }
-    } 
-    else if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -2675,7 +2497,7 @@ DEF_DO_FUN(do_charge)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
 	send_to_char( "They aren't here.\n\r", ch );
 	return;
@@ -2854,11 +2676,8 @@ DEF_DO_FUN(do_round_swing)
 
 DEF_DO_FUN(do_spit)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int chance, dam;
-    
-    one_argument(argument,arg);
     
     if ( (chance = get_skill(ch,gsn_spit)) == 0 )
     {
@@ -2867,22 +2686,8 @@ DEF_DO_FUN(do_spit)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("You spit in utter disgust!!\n\r",ch);
-	    act( "$n spits in utter disgust!!", ch, NULL, NULL, TO_ROOM );
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if (IS_AFFECTED(victim,AFF_BLIND))
     {
@@ -2943,11 +2748,8 @@ DEF_DO_FUN(do_spit)
 
 DEF_DO_FUN(do_choke_hold)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int dam, skill, chance;
-    
-    one_argument(argument,arg);
     
     if ( (skill = get_skill(ch,gsn_choke_hold)) == 0)
     {
@@ -2955,27 +2757,9 @@ DEF_DO_FUN(do_choke_hold)
         return;
     }
     
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
-    if (is_safe(ch,victim))
-    {
-        send_to_char( "You can't choke your opponent in a safe room.\n\r", ch);
-        return;
-    }
- 
     if (ch == victim)
     {
         send_to_char( "You try to choke yourself but just end up looking like a fool.\n\r", ch);
@@ -3078,7 +2862,6 @@ DEF_DO_FUN(do_roundhouse)
 
 DEF_DO_FUN(do_hurl)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -3090,21 +2873,8 @@ DEF_DO_FUN(do_hurl)
         return;
     }
     
-    one_argument( argument, arg );
-    if ( arg[0] == '\0' )
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char ( "Hurl who?\n\r", ch);
-            return;
-        }
-    } 
-    else if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -3172,7 +2942,6 @@ DEF_DO_FUN(do_hurl)
 DEF_DO_FUN(do_mug)
 {
     char buf  [MAX_STRING_LENGTH];
-    char arg1 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     int skill;
     int dam;
@@ -3189,21 +2958,8 @@ DEF_DO_FUN(do_mug)
         return;
     }
 
-    argument = one_argument( argument, arg1 );
-    
-    if ( arg1[0] == '\0' )
-    {
-        if ( ( victim = ch->fighting ) == NULL )
-        {
-            send_to_char( "Mug who?\n\r", ch );
-            return;
-        }
-    }
-    else if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
 
     if ( victim == ch )
     {
@@ -3456,28 +3212,12 @@ DEF_DO_FUN(do_crush)
 
 DEF_DO_FUN(do_blackjack)
 {
-    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     AFFECT_DATA af;
     int chance, dam, chance_stun;
 
-    one_argument( argument, arg );
-    
-    if (arg[0] == '\0')
-    {
-        victim = ch->fighting;
-        if (victim == NULL)
-        {
-            send_to_char("But you aren't fighting anyone!\n\r",ch);
-            return;
-        }
-    }
-    
-    else if ((victim = get_char_room(ch,arg)) == NULL)
-    {
-        send_to_char("They aren't here.\n\r",ch);
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-    }
     
     if ( victim == ch )
     {
@@ -3797,7 +3537,8 @@ DEF_DO_FUN(do_strafe)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
 	return;
 
-    if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )
+    OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+    if ( !held || held->item_type != ITEM_ARROWS )
     {
 	send_to_char( "You need arrows in order to strafe.\n\r", ch );
 	return;
@@ -3839,7 +3580,8 @@ DEF_DO_FUN(do_infectious_arrow)
         return;
     }
 
-    if ( get_eq_char(ch, WEAR_HOLD) == !ITEM_ARROWS )    
+    OBJ_DATA *held = get_eq_char(ch, WEAR_HOLD);
+    if ( !held || held->item_type != ITEM_ARROWS )
     {
         send_to_char( "Without an arrow? LOL, Yeah right.\n\r",ch);
         return;
@@ -4277,7 +4019,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     }
 
   
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
 	send_to_char( "They aren't here.\n\r", ch );
 	return;

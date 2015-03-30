@@ -3928,6 +3928,7 @@ static int CH_set_race (lua_State *LS)
         if ( !race_table[race].pc_race )
             luaL_error(LS, "Not a valid player race: %s", arg);
         ud_ch->race=race;
+        reset_char( ud_ch );
         morph_update( ud_ch );
         return 0;
     }
