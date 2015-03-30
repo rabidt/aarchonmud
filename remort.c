@@ -1064,7 +1064,11 @@ DEF_DO_FUN(do_ascend)
     if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
     {
         ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
+#ifdef TESTER
+        ptc(ch, "We will ignore that for testing though.\n\r");
+#else
         return;
+#endif
     }
     
     if ( strcmp(argument, "confirm") )
