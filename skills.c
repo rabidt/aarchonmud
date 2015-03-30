@@ -1024,7 +1024,7 @@ DEF_DO_FUN(do_spells)
 	char arg[MAX_INPUT_LENGTH];
 	char spell_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
 	char spell_columns[LEVEL_HERO + 1];
-	int sn, level, skill, min_lev = 1, max_lev = LEVEL_HERO, mana, prac;
+	int i, sn, level, skill, min_lev = 1, max_lev = LEVEL_HERO, mana, prac;
 	bool fAll = FALSE, found = FALSE;
 	char buf[MAX_STRING_LENGTH];
 
@@ -1119,6 +1119,35 @@ DEF_DO_FUN(do_spells)
 	}
 	}
 
+    // race skills
+    struct pc_race_type *pc_race = get_morph_pc_race_type(ch);
+    for ( i = 0; i < pc_race->num_skills; i++ )
+    {
+        sn = skill_lookup_exact(pc_race->skills[i]);
+        level = pc_race->skill_level[i];
+        prac = pc_race->skill_percent[i];
+        
+        if ( (fAll || level <= ch->level)
+            && level >= min_lev && level <= max_lev
+            && skill_table[sn].spell_fun != spell_null )
+        {
+            found = TRUE;
+            skill = get_skill(ch, sn);
+            mana = mana_cost(ch, sn, skill);
+            sprintf(buf, "{g%-16s %3dm %3d%%(%3d%%){x ",
+                skill_table[sn].name, mana, prac, skill);
+
+            if ( spell_list[level][0] == '\0' )
+                sprintf(spell_list[level], "\n\rLevel %2d: %s", level, buf);
+            else /* append */
+            {
+                if ( ++spell_columns[level] % 2 == 0 )
+                    strcat(spell_list[level], "\n\r          ");
+                strcat(spell_list[level], buf);
+            }
+        }
+    }
+
 	/* return results */
 
 	if (!found)
@@ -1147,7 +1176,7 @@ DEF_DO_FUN(do_skills)
 	char arg[MAX_INPUT_LENGTH];
 	char skill_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
 	char skill_columns[LEVEL_HERO + 1];
-	int sn, level, prac, min_lev = 1, max_lev = LEVEL_HERO;
+	int i, sn, level, prac, min_lev = 1, max_lev = LEVEL_HERO;
 	bool fAll = FALSE, found = FALSE;
 	char buf[MAX_STRING_LENGTH];
 
@@ -1244,6 +1273,31 @@ DEF_DO_FUN(do_skills)
 		}
 	    }
 	}
+
+    // race skills
+    struct pc_race_type *pc_race = get_morph_pc_race_type(ch);
+    for ( i = 0; i < pc_race->num_skills; i++ )
+    {
+        sn = skill_lookup_exact(pc_race->skills[i]);
+        level = pc_race->skill_level[i];
+        prac = pc_race->skill_percent[i];
+        
+        if ( (fAll || level <= ch->level)
+            && level >= min_lev && level <= max_lev
+            && skill_table[sn].spell_fun == spell_null )
+        {
+            found = TRUE;
+            sprintf(buf, "{g%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, get_skill(ch, sn));
+            if ( skill_list[level][0] == '\0' )
+                sprintf(skill_list[level], "\n\rLevel %2d: %s", level, buf);
+            else /* append */
+            {
+                if ( ++skill_columns[level] % 2 == 0 )
+                    strcat(skill_list[level], "\n\r          ");
+                strcat(skill_list[level], buf);
+            }
+        }
+    }
 
 	/* return results */
 

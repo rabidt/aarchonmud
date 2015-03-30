@@ -365,7 +365,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         send_to_char( "You come out of hiding.\n\r", ch );
     }
    
-    int sneak_skill = get_skill(ch, gsn_sneak) * (200 - get_heavy_armor_penalty(ch)) / 200;
+    int sneak_skill = (100 + get_skill(ch, gsn_sneak)) * (200 - get_heavy_armor_penalty(ch)) / 400;
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
         if ( !IS_AFFECTED(ch, AFF_SNEAK) )
@@ -2130,6 +2130,9 @@ DEF_DO_FUN(do_rest)
 		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
 		 return;
 	  }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_REST) )
+            return;
 	  
 	  ch->on = obj;
    }
@@ -2426,6 +2429,9 @@ DEF_DO_FUN(do_sleep)
 			return;
 		 }
 		 
+         if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SLEEP) )
+            return;
+
 		 ch->on = obj;
 		 if (I_IS_SET(obj->value[2],SLEEP_AT))
 		 {

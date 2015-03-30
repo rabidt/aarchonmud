@@ -201,6 +201,9 @@ void violence_update( void )
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
+        
+        if ( ch->must_extract || ch->in_room == NULL )
+            continue;
 
         // people assisting ch
         check_assist(ch);
@@ -1087,7 +1090,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     affect_strip(victim, gsn_petrify);
 
     // second saving throw to reduce effect to slow
-    if ( saves_physical(victim, NULL, ch->level, DAM_HARM) )
+    if ( IS_SET(victim->imm_flags, IMM_PETRIFY) || saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
         apply_petrify(victim, FALSE);
         act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
@@ -1129,7 +1132,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         return;
     
     // chance to get petrified if not averting gaze
-    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) && !IS_SET(ch->imm_flags,IMM_GAZE) )
+    if ( per_chance(20) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
     {
         act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
         act("You catch $n with your gaze.", ch, NULL, victim, TO_VICT);
@@ -6685,7 +6688,7 @@ DEF_DO_FUN(do_kill)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -6833,7 +6836,7 @@ DEF_DO_FUN(do_murder)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -7104,7 +7107,7 @@ CHAR_DATA* get_combat_victim( CHAR_DATA *ch, const char *argument )
 	return ch->fighting;
     }
 
-    victim = get_char_room( ch, argument ); 
+    victim = get_victim_room( ch, argument );
 
     if ( victim == NULL )
     {
