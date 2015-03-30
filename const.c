@@ -2189,10 +2189,10 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "machinegunner", GUNSLINGER,
-        { "rapid fire", "third attack" },
-        { 10, 50 },
-        { 100, 80 }
+        "terminator", GUNSLINGER,
+        { "rapid fire", "third attack", "bullet rain" },
+        { 10, 50, 70 },
+        { 100, 80, 100 }
     },
     {
         "sniper", GUNSLINGER|RANGER,
@@ -5733,6 +5733,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_rapid_fire, 0, 0, DUR_NONE,
         "", "!rapid fire!", ""
+    },
+
+    {
+        "bullet rain",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bullet_rain, 0, 0, DUR_NONE,
+        "", "!bullet rain!", ""
     },
 
     {

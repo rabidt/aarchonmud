@@ -904,6 +904,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	  || ch->stance==STANCE_TIGER
 	  || ch->stance==STANCE_WENDIGO
 	  || ch->stance==STANCE_BLADE_DANCE
+	  || ch->stance==STANCE_BULLET_RAIN
 	  || ch->stance==STANCE_AMBUSH
 	  || ch->stance==STANCE_RETRIBUTION
 	  || ch->stance==STANCE_PORCUPINE
@@ -1945,11 +1946,15 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // rapid fire - 10% chance of additional follow-up attack
-    if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED)
-        && per_chance(10) && per_chance(get_skill(ch, gsn_rapid_fire)) )
+    if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
-        one_hit(ch, victim, dt, secondary);
-        CHECK_RETURN( ch, victim );
+        bool rapid_fire = per_chance(get_skill(ch, gsn_rapid_fire));
+        bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
+        if ( (rapid_fire && per_chance(10)) || (bullet_rain && per_chance(33)) )
+        {
+            one_hit(ch, victim, dt, secondary);
+            CHECK_RETURN( ch, victim );
+        }
     }
 }
 
@@ -3244,6 +3249,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 dam += (18 + dam) / 3;
             else if ( stance == STANCE_GOBLINCLEAVER )
                 dam = dam * 2/3;
+            else if ( stance == STANCE_BULLET_RAIN )
+                dam = dam * 9/10;
             else if ( stance == STANCE_WENDIGO )
                 dam += 2 + dam/10;
             else if ( stance == STANCE_EEL )
@@ -7042,6 +7049,12 @@ void check_stance(CHAR_DATA *ch)
         if ( !stances[ch->stance].weapon )
         {
             send_to_char("You cant do that stance with a weapon.\n\r", ch);
+            ch->stance = 0;
+            return;
+        }
+        if ( ch->stance == STANCE_BULLET_RAIN && get_weapon_sn(ch) != gsn_gun )
+        {
+            send_to_char("You need a gun to make it rain bullets.\n\r", ch);
             ch->stance = 0;
             return;
         }
