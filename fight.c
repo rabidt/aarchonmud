@@ -1710,6 +1710,11 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 1);
     }
+    
+    // precise shot
+    if ( dt == gsn_snipe || dt == gsn_aim )
+        dam += dam * get_skill(ch, gsn_precise_shot) / 200;
+    
     if ( cfg_const_damroll )
         return dam * 5/6;
     else
