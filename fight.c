@@ -203,6 +203,9 @@ void violence_update( void )
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
+        
+        if ( ch->must_extract || ch->in_room == NULL )
+            continue;
 
         // people assisting ch
         check_assist(ch);
@@ -1419,6 +1422,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -2335,12 +2340,17 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
 
     /* aura of menace */
-    if ( per_chance(50) )
+    if ( per_chance(50) && !IS_AFFECTED(ch, AFF_HEROISM) )
     {
         // chance with one aura is 20%, multiple auras converge towards 50%
         for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
             if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(40) )
+            {
+                act_gag( "Intimidated by $N's aura of menace you fumble your attack!", ch, NULL, opp, TO_CHAR, GAG_MISS );
+                act_gag( "Intimidated by your aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_VICT, GAG_MISS );
+                act_gag( "Intimidated by $N's aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_NOTVICT, GAG_MISS );
                 return FALSE;
+            }
     }
     
     /* automatic chance-to-hit */
@@ -6803,7 +6813,7 @@ DEF_DO_FUN(do_kill)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -6951,7 +6961,7 @@ DEF_DO_FUN(do_murder)
         return;
     }
     
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -7228,7 +7238,7 @@ CHAR_DATA* get_combat_victim( CHAR_DATA *ch, const char *argument )
 	return ch->fighting;
     }
 
-    victim = get_char_room( ch, argument ); 
+    victim = get_victim_room( ch, argument );
 
     if ( victim == NULL )
     {

@@ -2133,6 +2133,9 @@ DEF_DO_FUN(do_rest)
 		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
 		 return;
 	  }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_REST) )
+            return;
 	  
 	  ch->on = obj;
    }
@@ -2429,6 +2432,9 @@ DEF_DO_FUN(do_sleep)
 			return;
 		 }
 		 
+         if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SLEEP) )
+            return;
+
 		 ch->on = obj;
 		 if (I_IS_SET(obj->value[2],SLEEP_AT))
 		 {
