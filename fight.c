@@ -4847,6 +4847,9 @@ bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
     if ( ch->stance == STANCE_TARGET_PRACTICE && number_bits(2) )
         return FALSE;
 
+    if ( per_chance(get_skill(ch, gsn_rapid_fire)) && number_bits(1) )
+        return FALSE;
+
     if ( odds < number_range(1, 1000) )
         return FALSE;
         
