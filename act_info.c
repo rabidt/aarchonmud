@@ -779,14 +779,17 @@ DEF_DO_FUN(do_peek)
 	return;
     }
 
+    WAIT_STATE(ch, skill_table[gsn_peek].beats);
+    
     chance += (ch->level - victim->level) / 2;
     if ( number_percent() > chance )
     {
 	send_to_char( "You failed.\n\r", ch );
+    check_improve(ch,gsn_peek,FALSE,3);
 	return;
     }
 
-    check_improve(ch,gsn_peek,TRUE,4);
+    check_improve(ch,gsn_peek,TRUE,3);
     /* money */
     sprintf( buf, "$N's wallet contains %ld gold and %ld silver coins.", victim->gold, victim->silver );
     act( buf, ch, NULL, victim, TO_CHAR );
@@ -4200,9 +4203,9 @@ DEF_DO_FUN(do_lore)
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
-        check_improve( rch, gsn_lore, 2, TRUE );
+        check_improve( rch, gsn_lore, 3, TRUE );
         if ( weapon )
-            check_improve( rch, gsn_weapons_lore, 2, TRUE );
+            check_improve( rch, gsn_weapons_lore, 3, TRUE );
     }
 }
 
@@ -4290,17 +4293,8 @@ DEF_DO_FUN(do_appraise)
         return;
     }
     
-    /*
-    if (ch->mana < 500/chance)
-    {
-        send_to_char("You are too distracted.\n\r",ch);
-        return;
-    }
-    */
-    
     WAIT_STATE(ch,skill_table[gsn_appraise].beats);
-    check_improve(ch,gsn_appraise,TRUE,2);
-    /*ch->mana -= 500/chance;*/
+    check_improve(ch,gsn_appraise,TRUE,3);
     
     value = obj->cost;
     range = value * (100 - chance)/100;
@@ -4455,7 +4449,7 @@ DEF_DO_FUN(do_disguise)
     if ( number_percent() > skill )
     {
 	send_to_char( "Hmm.. nope. You will still get recognized.\n\r", ch );
-	check_improve( ch, gsn_disguise, FALSE, 1 );
+	check_improve( ch, gsn_disguise, FALSE, 3 );
 	return;
     }
 
@@ -4473,7 +4467,7 @@ DEF_DO_FUN(do_disguise)
     af.bitvector = mob->vnum;
     affect_to_char( ch, &af );
 
-    check_improve( ch, gsn_disguise, TRUE, 1 );
+    check_improve( ch, gsn_disguise, TRUE, 3 );
 }
 
 DEF_DO_FUN(do_stance_list)
