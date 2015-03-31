@@ -145,7 +145,7 @@ local lqtbl={
             end
             return ops
         end ,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     mp={
@@ -158,17 +158,17 @@ local lqtbl={
             end
             return mps
         end,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     mobs={
         getfun=getmoblist,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     objs={
         getfun=getobjlist,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     room={
@@ -181,7 +181,7 @@ local lqtbl={
             end
             return rooms
         end,
-        default_sel="area.name|vnum|name"
+        default_sel={"area.name","vnum","name"}
     },
 
 
@@ -199,7 +199,13 @@ local lqtbl={
             end
             return resets
         end,
-        default_sel="area.name|room.name|room.vnum|command|arg1|arg2|arg3|arg4"
+        default_sel={
+            "area.name",
+            "room.name",
+            "room.vnum",
+            "command",
+            "arg1","arg2","arg3","arg4"
+        }
     },
 
 
@@ -214,7 +220,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     oprog={
@@ -228,7 +234,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     aprog={
@@ -242,7 +248,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     rprog={
@@ -256,7 +262,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     mtrig={
@@ -273,7 +279,13 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="mobproto.vnum|mobproto.shortdescr|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "mobproto.vnum",
+            "mobproto.shortdescr",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
     otrig={
         getfun=function()
@@ -289,7 +301,13 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="objproto.vnum|objproto.shortdescr|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "objproto.vnum",
+            "objproto.shortdescr",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
    
     atrig={
@@ -304,7 +322,12 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="area.name|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "area.name",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
     
     rtrig={
@@ -321,12 +344,18 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="room.vnum|room.name|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "room.vnum",
+            "room.name",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
 
     help={
         getfun=gethelplist,
-        default_sel="level|keywords"
+        default_sel={"level","keywords"}
     }
 
 
@@ -379,34 +408,105 @@ function do_luaquery( ch, argument)
         return
     end
 
-    local typearg=args[1]
-    local columnarg=args[2]
-    local filterarg=args[3]
-    local sortarg=args[4]
-    local widtharg=args[5] and tonumber(args[5])
-    local limitarg=args[6] and tonumber(args[6])
+    local typearg
+    local columnarg
+    local filterarg
+    local sortarg
+    local widtharg
+    local limitarg
 
-    -- what type are we searching ?
-    local lqent=lqtbl[typearg]
-    if lqent then
-        getfun=lqent.getfun
+    local getfun
+    local selection
+    local sorts
+
+    if args[1] == "select" then
+    -- SQL style query
+        local default_sel=false
+
+        local ind=string.find(argument, " from ")
+        if not ind then
+            sendtochar(ch, "expected 'from' keyword\n\r")
+            return
+        end
+
+
+        local slct_list=argument:sub( ("select "):len()+1, ind-1)
+        ch:say(slct_list)
+        if slct_list == "default" then
+            default_sel=true
+        else
+            selection={}
+            for arg in string.gmatch( slct_list, "([^, ]+),?") do
+                ch:say(arg)
+                table.insert(selection, arg)
+            end
+        end
+
+        typearg=string.match( argument:sub(ind+6), "%w+")
+        -- what type are we searching ?
+        local lqent=lqtbl[typearg]
+        if lqent then
+            getfun=lqent.getfun
+        else
+            sendtochar(ch,"Invalid type arg: "..typearg)
+            return
+        end
+        if default_sel then
+            selection=lqent.default_sel
+        end
+
+        local rest_arg=argument:sub(ind+6+typearg:len())
+
+        local whereind=string.find(rest_arg, " where ")
+        local orderbyind=string.find(rest_arg, " order by ")
+        filterarg=whereind and rest_arg:sub(whereind+7, orderbyind) or ""
+        
+        sortarg=orderbyind and rest_arg:sub(orderbyind+10) or ""     
+        for arg in string.gmatch( sortarg, "([^, ]+),?") do
+            sorts=sorts or {}
+            table.insert(sorts, arg)
+        end    
     else
-        sendtochar(ch,"Invalid type arg: "..typearg)
-        return
+    -- "old" style query    
+        typearg=args[1]
+        columnarg=args[2]
+        
+        -- what type are we searching ?
+        local lqent=lqtbl[typearg]
+        if lqent then
+            getfun=lqent.getfun
+        else
+            sendtochar(ch,"Invalid type arg: "..typearg)
+            return
+        end
+
+        -- which columns are we selecting for output ?
+        if not(columnarg) then
+            sendtochar( ch, "Must provide selection argument.\n\r")
+            return
+        elseif columnarg=="" or columnarg=="default" then
+            selection=lqent.default_sel
+        else
+            selection={}
+            for word in columnarg:gmatch("[^|]+") do
+                table.insert(selection, word)
+            end
+        end
+
+
+        filterarg=args[3]
+        sortarg=args[4]
+        if sortarg then
+            sorts={}
+            for srt in sortarg:gmatch("[^|]+") do
+                table.insert(sorts, srt)
+            end
+        end
+        widtharg=args[5] and tonumber(args[5])
+        limitarg=args[6] and tonumber(args[6])
     end
 
-    -- which columns are we selecting for output ?
-    if not(columnarg) then
-        sendtochar( ch, "Must provide selection argument.\n\r")
-        return
-    elseif columnarg=="" or columnarg=="default" then
-        columnarg=lqent.default_sel
-    end
 
-    local selection={}
-    for word in columnarg:gmatch("[^|]+") do
-        table.insert(selection, word)
-    end
 
     -- let's get our result
     local lst=getfun()
@@ -477,11 +577,7 @@ function do_luaquery( ch, argument)
     end
 
     -- now sort
-    if sortarg and not(sortarg=="") then
-        local sorts={}
-        for srt in sortarg:gmatch("[^|]+") do
-            table.insert(sorts, srt)
-        end
+    if sorts then
 
         local fun
         fun=function(a,b,lvl)
