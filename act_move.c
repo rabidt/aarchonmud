@@ -2761,7 +2761,7 @@ DEF_DO_FUN(do_recall)
         if ( (lose = get_skill(victim, gsn_entrapment)) )
 		{
 			skill -= lose/3;
-			check_improve(victim, gsn_entrapment, TRUE, 3);
+			check_improve(victim, gsn_entrapment, TRUE, 1);
 		}
 
 		if (victim->stance == STANCE_AMBUSH)
