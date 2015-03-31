@@ -1856,7 +1856,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     // safety net
     chance_exp = URANGE(0, chance_exp, 10);
     
-    if ( number_bits(chance_exp) )
+    if ( chance_exp && number_bits(chance_exp) )
         return;
     
     if (ch->level < skill_table[sn].skill_level[ch->class]
@@ -1872,7 +1872,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     chance /= skill_table[sn].rating[ch->class];
     chance = URANGE(1, chance, 100);
 
-    if ( per_chance(chance) )
+    if ( !per_chance(chance) )
         return;
 
     // having practiced above 75% decreases chance to learn, same progression as hprac
@@ -1885,7 +1885,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     else
         ptc(ch, "You learn from your mistakes, and your %s skill improves.\n\r", skill_table[sn].name);
 
-    ch->pcdata->learned[sn] += number_range(1,3);
+    ch->pcdata->learned[sn] += 1;
     ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
     gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class]);
 
