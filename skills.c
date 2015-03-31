@@ -1844,7 +1844,8 @@ DEF_DO_FUN(do_groups)
    }
 }
 
-/* checks for skill improvement - max chance with AFF_LEARN is 2 ^ -chance_exp */
+/* checks for skill improvement - max chance without AFF_LEARN is 2 ^ -chance_exp */
+/* default value for chance_exp should be 3 */
 void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
 {
     int chance;
@@ -1853,9 +1854,12 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     if (IS_NPC(ch))
         return;
 
+    if ( IS_AFFECTED(ch, AFF_LEARN) )
+         chance_exp--;
     // safety net
     chance_exp = URANGE(0, chance_exp, 10);
-    
+
+    // base chance, 2 ^ -chance_exp
     if ( chance_exp && number_bits(chance_exp) )
         return;
     
@@ -1865,13 +1869,8 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
         ||  ch->pcdata->learned[sn] == 100)
         return;  /* skill is not known */
 
-    /* check to see if the character has a chance to learn */
+    // int-based chance to fail
     chance = 100 * ch_int_learn(ch) / int_app_learn(MAX_CURRSTAT);
-    if ( IS_AFFECTED(ch, AFF_LEARN) )
-         chance *= 3;
-    chance /= skill_table[sn].rating[ch->class];
-    chance = URANGE(1, chance, 100);
-
     if ( !per_chance(chance) )
         return;
 
