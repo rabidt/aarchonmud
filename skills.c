@@ -49,6 +49,7 @@ void show_class_skills( CHAR_DATA *ch, const char *argument );
 void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
 int get_injury_penalty( CHAR_DATA *ch );
+static int hprac_cost( CHAR_DATA *ch, int sn );
 
 bool is_class_skill( int class, int sn )
 {
@@ -1843,8 +1844,8 @@ DEF_DO_FUN(do_groups)
    }
 }
 
-/* checks for skill improvement */
-void check_improve( CHAR_DATA *ch, int sn, bool success, int multiplier )
+/* checks for skill improvement - max chance with AFF_LEARN is 2 ^ -chance_exp */
+void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
 {
     int chance;
     char buf[100];
@@ -1852,55 +1853,42 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int multiplier )
     if (IS_NPC(ch))
         return;
 
+    // safety net
+    chance_exp = URANGE(0, chance_exp, 10);
+    
+    if ( number_bits(chance_exp) )
+        return;
+    
     if (ch->level < skill_table[sn].skill_level[ch->class]
         ||  skill_table[sn].rating[ch->class] == 0
         ||  ch->pcdata->learned[sn] == 0
         ||  ch->pcdata->learned[sn] == 100)
         return;  /* skill is not known */
 
-    if (multiplier > 0)
-    {
     /* check to see if the character has a chance to learn */
-        chance = 15 * ch_int_learn(ch);
-        chance /= skill_table[sn].rating[ch->class];
-        chance += ch->level;
-        if ( IS_AFFECTED(ch, AFF_LEARN) )
-            chance *= 3;
-        chance /= multiplier;
-        chance = UMAX(chance, 1);
+    chance = 100 * ch_int_learn(ch) / int_app_learn(MAX_CURRSTAT);
+    if ( IS_AFFECTED(ch, AFF_LEARN) )
+         chance *= 3;
+    chance /= skill_table[sn].rating[ch->class];
+    chance = URANGE(1, chance, 100);
 
-        if (number_range(1,3000) > chance)
-            return;
-    }
+    if ( per_chance(chance) )
+        return;
 
-    /* now that the character has a CHANCE to learn, see if they really have */
-
-    if (success)
-    {
-        chance = URANGE(2,100 - ch->pcdata->learned[sn], 98);
-        if (number_percent() < chance)
-        {
-            sprintf(buf,"You have become better at %s!\n\r",
-            skill_table[sn].name);
-            send_to_char(buf,ch);
-            ch->pcdata->learned[sn]++;
-            gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
-        }
-    }
+    // having practiced above 75% decreases chance to learn, same progression as hprac
+    int fail_factor = hprac_cost(ch, sn);
+    if ( number_range(1, fail_factor) != 1 )
+        return;
+    
+    if ( success )
+        ptc(ch, "You have become better at %s!\n\r", skill_table[sn].name);
     else
-    {
-        chance = URANGE(5,ch->pcdata->learned[sn]/2,30);
-        if (number_percent() < chance)
-        {
-            sprintf(buf,
-            "You learn from your mistakes, and your %s skill improves.\n\r",
-            skill_table[sn].name);
-            send_to_char(buf,ch);
-            ch->pcdata->learned[sn] += number_range(1,3);
-            ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
-            gain_exp(ch,2 * skill_table[sn].rating[ch->class]);
-        }
-    }
+        ptc(ch, "You learn from your mistakes, and your %s skill improves.\n\r", skill_table[sn].name);
+
+    ch->pcdata->learned[sn] += number_range(1,3);
+    ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
+    gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class]);
+
     if (ch->pcdata->learned[sn] == 100)
     {
         sprintf(buf,"{RAfter extensive training, you reach maximum proficiency in %s!{x\n\r", skill_table[sn].name);
@@ -2342,6 +2330,13 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 	return URANGE(0,skill,100);
 }
 
+static int hprac_cost( CHAR_DATA *ch, int sn )
+{
+    int adapt = class_table[ch->class].skill_adept;
+    int learned = ch->pcdata->learned[sn];
+    return 1 + UMAX(0, learned - adapt);
+}
+
 // hard practice - above 75%
 DEF_DO_FUN(do_hpractice)
 {
@@ -2359,13 +2354,13 @@ DEF_DO_FUN(do_hpractice)
     }
 
     int sn = skill_lookup(argument);
-    int adapt = class_table[ch->class].skill_adept;
     if ( sn < 0 || IS_NPC(ch) || ch->level < skill_table[sn].skill_level[ch->class] )
     {
         send_to_char( "You can't practice that.\n\r", ch );
         return;
     }
 
+    int adapt = class_table[ch->class].skill_adept;
     int learned = ch->pcdata->learned[sn];
     if ( learned < adapt )
     {
@@ -2378,7 +2373,7 @@ DEF_DO_FUN(do_hpractice)
         return;
     }
     
-    int cost = 1 + (learned - adapt);
+    int cost = hprac_cost(ch, sn);
     if ( ch->practice < cost )
     {
         printf_to_char(ch, "It costs %d practice sessions to improve %s.\n\r", cost, skill_table[sn].name);
