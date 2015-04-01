@@ -4199,13 +4199,26 @@ DEF_DO_FUN(do_lore)
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
         check_improve( rch, gsn_lore, 3, TRUE );
+        {
+            if (rch == ch)
+            {
+                check_improve(ch, gsn_lore, 5, TRUE);
         if ( weapon )
             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+             else
+             {
+                 check_improve( rch, gsn_lore, 3, TRUE );
+                 if ( weapon )
+	             check_improve( rch, gsn_weapons_lore, 3, TRUE );
+             }
+        }
     }
 }
 
@@ -4694,6 +4707,14 @@ DEF_DO_FUN(do_score)
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
+    /* Remort, Ascent, Subclass */
+    sprintf(buf, "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
+        subclass_table[ch->pcdata->subclass].name,
+        ch->pcdata->ascents,
+        ch->pcdata->remorts);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    
 
     /* Age, Hours Played, Married Status */
     sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs        Married: %9s",
@@ -5918,14 +5939,80 @@ DEF_DO_FUN(do_eqhelp)
     
 }
 
+bool can_take_subclass( int class, int subclass )
+{
+    return (subclass_table[subclass].base_classes & (1<<class)) != 0;
+}
 
+static void show_subclass( CHAR_DATA *ch, int sc )
+{
+    int class, i;
+    
+    ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
+    for ( class = 0; class < MAX_CLASS; class++ )
+        if ( can_take_subclass(class, sc) )
+            ptc(ch, " %s", class_table[class].name);
+    ptc(ch, " )\n\r\n\r%-20s  Level  Percent\n\r", "Skill");
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( subclass_table[sc].skills[i] == NULL )
+            break;
+        ptc(ch, "%20s    %3d    %3d%%\n\r",
+            subclass_table[sc].skills[i],
+            subclass_table[sc].skill_level[i],
+            subclass_table[sc].skill_percent[i]
+        );
+    }
+}
 
+DEF_DO_FUN(do_showsubclass)
+{
+    int sc, class;
+    bool found = FALSE;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+        return;
+    }
+    
+    if ( !strcmp(argument, "all") )
+    {
+        for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+        {
+            if ( found )
+                ptc(ch, "\n\r");
+            else
+                found = TRUE;
+            show_subclass(ch, sc);
+        }
+        if ( !found )
+            ptc(ch, "None found.\n\r");
+        return;
+    }
 
+    if ( (sc = subclass_lookup(argument)) > 0 )
+    {
+        show_subclass(ch, sc);
+        return;
+    }
 
-
-
-
-
-
-
-
+    if ( (class = class_lookup(argument)) >= 0 )
+    {
+        for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+            if ( can_take_subclass(class, sc) )
+            {
+                if ( found )
+                    ptc(ch, "\n\r");
+                else
+                    found = TRUE;
+                show_subclass(ch, sc);
+            }
+        if ( !found )
+            ptc(ch, "None found.\n\r");
+        return;
+    }
+    
+    send_to_char("That's not a valid subclass or base class.\n\r", ch);
+    send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+}

@@ -513,6 +513,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
+        bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
+        if ( ch->pcdata->subclass )
+            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
@@ -1629,6 +1632,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
+            KEY( "Ascent", ch->pcdata->ascents, bread_number(buf) );
+            
             break;
             
     case 'B':
@@ -2297,6 +2302,15 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         }
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
+        
+        if ( !str_cmp(word, "Subclass") )
+        {
+            const char *temp = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            free_string(temp);
+            fMatch = TRUE;
+            break;
+        }
         
         break;
         
@@ -3205,8 +3219,7 @@ DEF_DO_FUN(do_finger)
         else if (IS_IMMORTAL(ch))
             sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
         else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
+            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );       
         if( wch->pcdata && wch->pcdata->spouse )
             sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
         else
@@ -3263,6 +3276,19 @@ DEF_DO_FUN(do_finger)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
+    /* ascent and subclass */
+    if ( wch->level <= LEVEL_HERO && wch->pcdata->ascents > 0 )
+    {
+        sprintf(buf, "{D|{x ");
+        sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
+            wch->pcdata->ascents,
+            subclass_table[wch->pcdata->subclass].name);
+        strcat( buf, buf2 );
+        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );        
+    }
+    
     /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
@@ -3278,13 +3304,6 @@ DEF_DO_FUN(do_finger)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3299,6 +3318,13 @@ DEF_DO_FUN(do_finger)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
