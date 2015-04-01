@@ -201,12 +201,12 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
         if ( (*introspect = per_chance(skill)) )
         {
             act("$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM);
-            check_improve(ch, gsn_introspection, TRUE, 8);
+            check_improve(ch, gsn_introspection, TRUE, 3);
         }
         else
         {
             send_to_char("You find nothing meaningful in your introspection.\n\r", ch);
-            check_improve(ch, gsn_introspection, FALSE, 8);
+            check_improve(ch, gsn_introspection, FALSE, 3);
         }
     }
     else
@@ -2453,11 +2453,11 @@ DEF_DO_FUN(do_practice)
 	{
 	      act( "$n thinks over what $e has experienced recently.", ch, NULL, NULL, TO_ROOM);
 	   if ((get_skill(ch,gsn_introspection)) > number_percent ())
-	      check_improve(ch,gsn_introspection,TRUE,8);
+	      check_improve(ch,gsn_introspection,TRUE,3);
 	   else
 	   {
 	      send_to_char("You've learned nothing from your recent experiences.\n\r",ch);
-	      check_improve(ch,gsn_introspection,FALSE,8);
+	      check_improve(ch,gsn_introspection,FALSE,3);
 	      return;
 	   }
 	}
