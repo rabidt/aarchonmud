@@ -60,7 +60,7 @@ void do_stare(CHAR_DATA *ch)
     {
         if (number_percent () < chance)
         {
-            check_improve(ch, gsn_thousand_yard_stare, TRUE, 1);
+            check_improve(ch, gsn_thousand_yard_stare, TRUE, 4);
             act("$n stares off into the distance.", ch, NULL, NULL, TO_ROOM);
             send_to_char("Staring into the distance, you see:\n\r", ch);
             scan_room = ch->in_room;
@@ -81,7 +81,7 @@ void do_stare(CHAR_DATA *ch)
         } else 
         {
             send_to_char("You can't see into the distance.\n\r", ch);
-            check_improve(ch, gsn_thousand_yard_stare, FALSE, 1);
+            check_improve(ch, gsn_thousand_yard_stare, FALSE, 4);
             return;
         }  
     } else
