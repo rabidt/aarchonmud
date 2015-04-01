@@ -28,6 +28,7 @@ DECLARE_DO_FUN(do_stats     );
 DECLARE_DO_FUN(do_etls      );
 DECLARE_DO_FUN(do_board     );
 DECLARE_DO_FUN(do_showrace  );
+DECLARE_DO_FUN(do_showsubclass);
 DECLARE_DO_FUN(do_cmotd     );
 
 extern bool            wizlock;        /* Game is wizlocked        */
@@ -54,6 +55,7 @@ DECLARE_NANNY_FUN(confirm_new_password);
 DECLARE_NANNY_FUN(get_new_race);
 DECLARE_NANNY_FUN(get_new_sex);
 DECLARE_NANNY_FUN(get_new_class);
+DECLARE_NANNY_FUN(get_new_subclass);
 DECLARE_NANNY_FUN(get_alignment);
 DECLARE_NANNY_FUN(default_choice);
 DECLARE_NANNY_FUN(gen_groups);
@@ -281,6 +283,10 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 		    close_socket( d );
 		    return;
 		    
+        case CON_GET_NEW_SUBCLASS:
+            if (get_new_subclass(d, argument)) get_new_race(d, argument);
+            break;
+            
 		case CON_GET_NEW_RACE:
 		    if (get_new_race(d, argument)) roll_stats(d, argument);
 		    break;
@@ -1179,6 +1185,80 @@ DEF_NANNY_FUN(get_new_class)
 	return TRUE;
 }
 
+
+static int nanny_show_subclasses( CHAR_DATA *ch )
+{
+    int sc;
+    int count = 0;
+    
+    ptc(ch, "The following subclasses are available:\n\r[{W");
+    for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+    {
+        if ( can_take_subclass(ch->class, sc) )
+        {
+            ptc(ch, " %s", subclass_table[sc].name);
+            count++;
+        }
+    }
+    ptc(ch, "{x ]\n\r{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+    return count;
+}
+
+DEF_NANNY_FUN(get_new_subclass)
+{
+    int sc;
+    char arg[MAX_STRING_LENGTH];
+    CHAR_DATA *ch = d->character;
+
+    if ( con_state(d) != CON_GET_NEW_SUBCLASS )
+    {
+        ptc(ch, "\n\r");
+        do_help(ch, "subclasses");
+        nanny_show_subclasses(ch);
+
+        set_con_state(d, CON_GET_NEW_SUBCLASS);
+        return FALSE;
+    }
+
+    argument = one_argument(argument, arg);
+    
+    if ( !strcmp(arg, "help") )
+    {
+        if ( argument[0] == '\0' )
+            do_help(ch, "subclasses");
+        else
+            do_showsubclass(ch, argument);
+        ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+        return FALSE;
+    }
+    
+    sc = subclass_lookup(arg);
+
+    if ( sc == 0 )
+    {
+        if ( arg[0] )
+            ptc(ch, "That's not a subclass.\n\r");
+        int count = nanny_show_subclasses(ch);
+        // safety-net
+        if ( count == 0 )
+        {
+            ptc(ch, "\n\r{RNo subclasses available. Moving on.{x\n\r");
+            return TRUE;
+        }
+        return FALSE;
+    }
+    if ( !can_take_subclass(ch->class, sc) )
+    {
+        ptc(ch, "You do not qualify for that subclass.\n\r");
+        nanny_show_subclasses(ch);
+        return FALSE;
+    }
+
+    ch->pcdata->subclass = sc;
+    ptc(ch, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(subclass_table[sc].name), subclass_table[sc].name);
+    
+    return TRUE;
+}
 
 
 DEF_NANNY_FUN(get_alignment)

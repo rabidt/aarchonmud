@@ -161,16 +161,18 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+    return get_skill(ch, gsn_critical) + get_skill(ch, gsn_piercing_blade)
+        + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
-    if ( per_chance(85) )
+    // plus 5% for kensai with piercing blade makes max 20%
+    if ( per_chance(80) )
         return FALSE;
     
-    int chance = critical_chance(ch, secondary) / 3;
+    int chance = critical_chance(ch, secondary) / 4;
     return per_chance(chance);
 }
 
@@ -465,7 +467,6 @@ void special_affect_update(CHAR_DATA *ch)
 
     /* vampire sunburn */
     if ( IS_SET(ch->form, FORM_SUNBURN)
-	 && (!IS_NPC(ch) || ch->pIndexData->vnum == MOB_VNUM_VAMPIRE)
 	 && !IS_AFFECTED(ch, AFF_SHELTER)
 	 // no linkdeads unless fighting
 	 && (IS_NPC(ch) || ch->desc != NULL || ch->fighting != NULL)
@@ -906,6 +907,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	  || ch->stance==STANCE_TIGER
 	  || ch->stance==STANCE_WENDIGO
 	  || ch->stance==STANCE_BLADE_DANCE
+	  || ch->stance==STANCE_BULLET_RAIN
 	  || ch->stance==STANCE_AMBUSH
 	  || ch->stance==STANCE_RETRIBUTION
 	  || ch->stance==STANCE_PORCUPINE
@@ -1420,6 +1422,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1621,6 +1625,21 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
         dam = level + dice( 2, 4 );
 
+    /* savage frenzy */
+    if ( IS_AFFECTED(ch, AFF_BERSERK) && !is_calm(ch) )
+    {
+        int skill = get_skill(ch, gsn_savage_frenzy);
+        if ( skill > 0 )
+        {
+            // greater frenzy is impacted by shield and heavy armor
+            if ( get_eq_char(ch, WEAR_SHIELD) )
+                skill = skill * 2/3;
+            skill = skill * (200 - get_heavy_armor_penalty(ch)) / 200;
+            // base damage is doubled at 100% skill
+            dam += dam * skill / 100;
+        }
+    }
+    
     /* weapon damage */
     if ( wield != NULL )
     {
@@ -1637,6 +1656,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         /* level 90+ bonus */
         if ( !IS_NPC(ch) && level > (LEVEL_HERO - 10) )
             dam += level - (LEVEL_HERO - 10);
+        // lethal hands increase base damage by 20%
+        dam += dam * get_skill(ch, gsn_lethal_hands) / 500;
     }
 
     /* damage roll */
@@ -1653,7 +1674,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
     {
-        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25);
+        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25)
+            + get_skill(ch, gsn_precise_shot) / 4;
         if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
             && !number_bits(2) && per_chance(chance) )
         {
@@ -1687,12 +1709,17 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* anatomy */
     if ( (dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_circle || dt == gsn_slash_throat) && chance(get_skill(ch, gsn_anatomy)) )
     {
-        if ( wield != NULL && wield->value[0] == WEAPON_DAGGER )
+        if ( (wield && wield->value[0] == WEAPON_DAGGER) || (!wield && per_chance(get_skill(ch, gsn_lethal_hands))) )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 200;
         else
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 4);
     }
+    
+    // precise shot
+    if ( dt == gsn_snipe || dt == gsn_aim )
+        dam += dam * get_skill(ch, gsn_precise_shot) / 200;
+    
     if ( cfg_const_damroll )
         return dam * 5/6;
     else
@@ -1865,6 +1892,82 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
+// used by after_attack and stance_after_hit
+static bool check_elemental_strike( CHAR_DATA *ch, OBJ_DATA *wield )
+{
+    if ( !per_chance(get_skill(ch, gsn_elemental_strike)) )
+        return FALSE;
+    
+    int strike_chance = 15;
+    if ( wield != NULL )
+    {
+        if ( wield->value[0] == WEAPON_BOW )
+            strike_chance = 25;
+        else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
+            strike_chance = 20;
+    }
+    return per_chance(strike_chance);
+}
+
+void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
+{
+    CHECK_RETURN( ch, victim );
+    
+    OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
+    
+    // elemental strike - separate handling if in elemental blade stance
+    if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
+    {
+        if ( check_elemental_strike(ch, wield) )
+        {
+            // additional mana cost
+            ch->mana--;
+            int dam = 10 + number_range(ch->level, ch->level*2);
+            // random damtype unless shield is active
+            int strike_dt = -1;
+            if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
+            {
+                if ( is_affected(ch, gsn_immolation) )
+                    strike_dt = DAM_FIRE;
+                else if ( is_affected(ch, gsn_absolute_zero) )
+                    strike_dt = DAM_COLD;
+                else if ( is_affected(ch, gsn_electrocution) )
+                    strike_dt = DAM_LIGHTNING;
+            }
+            if ( strike_dt == -1 )
+                switch( number_range(0,2) )
+                {
+                    case 0: strike_dt = DAM_FIRE; break;
+                    case 1: strike_dt = DAM_COLD; break;
+                    case 2: strike_dt = DAM_LIGHTNING; break;
+                }
+            full_dam(ch, victim, dam, gsn_elemental_strike, strike_dt, TRUE);
+            CHECK_RETURN( ch, victim );
+        }
+    }
+    
+    // riposte - 25% chance regardless of hit or miss
+    // blade barrier stance doubles that
+    int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
+    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
+    {
+        one_hit(victim, ch, gsn_riposte, FALSE);
+        CHECK_RETURN( ch, victim );
+    }
+    
+    // rapid fire - 10% chance of additional follow-up attack
+    if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
+    {
+        bool rapid_fire = per_chance(get_skill(ch, gsn_rapid_fire));
+        bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
+        if ( (rapid_fire && per_chance(10)) || (bullet_rain && per_chance(33)) )
+        {
+            one_hit(ch, victim, dt, secondary);
+            CHECK_RETURN( ch, victim );
+        }
+    }
+}
+
 /*
 * Hit one guy once.
 */
@@ -1968,6 +2071,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     check_killer( ch, victim );
 
+    bool is_spray_attack = (dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto);
+    
     // deal extra damage at the cost of moves
     // the move cost applies whether or not the attack hits
     // that's why we check it here rather than in deal_damage
@@ -1984,7 +2089,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
                 offence_cost = 3;
         }
         // reduced cost for burst/semi-/full-auto
-        if ( dt == gsn_burst || dt == gsn_semiauto || dt == gsn_fullauto )
+        if ( is_spray_attack )
             offence_cost = 2;
         // half cost while not berserking (but less damage later)
         if ( !IS_AFFECTED(ch, AFF_BERSERK) )
@@ -1995,11 +2100,23 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( !start_combat(ch, victim) )
         return FALSE;
     
+    // precise shot offers auto-hit chance
+    bool precise_shot = is_ranged_weapon(wield) && !is_spray_attack
+        && number_bits(3) == 0 && per_chance(get_skill(ch, gsn_precise_shot));
+    
+    if ( precise_shot )
+    {
+        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+    }
+    
     // Check for parry, dodge, etc. and fade
-    if ( is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    if ( !precise_shot && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    {
+        after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
+    }
         
-    if ( !check_hit(ch, victim, dt, dam_type, skill) )
+    if ( !precise_shot && !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
         if (wield != NULL)
@@ -2008,6 +2125,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
             handle_arrow_shot( ch, victim, FALSE );
+        after_attack(ch, victim, dt, FALSE, secondary);
         tail_chain( );
         return FALSE;
     }
@@ -2136,9 +2254,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( stop_attack(ch, victim) )
         return result != 0;
 
+    
     /* if not hit => no follow-up effects.. --Bobble */
     if ( !result )
+    {
+        after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
+    }
     
     /* funky weapons */
     weapon_flag_hit( ch, victim, wield );
@@ -2170,6 +2292,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             return TRUE;
     }
 
+    after_attack(ch, victim, dt, TRUE, secondary);
+    
     /* retribution */
     if ( (victim->stance == STANCE_PORCUPINE 
 	  || victim->stance == STANCE_RETRIBUTION)
@@ -2180,7 +2304,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
 	is_retribute = FALSE;
     }
-    
+
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
@@ -2216,12 +2340,17 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
 
     /* aura of menace */
-    if ( per_chance(50) )
+    if ( per_chance(50) && !IS_AFFECTED(ch, AFF_HEROISM) )
     {
         // chance with one aura is 20%, multiple auras converge towards 50%
         for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
             if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(40) )
+            {
+                act_gag( "Intimidated by $N's aura of menace you fumble your attack!", ch, NULL, opp, TO_CHAR, GAG_MISS );
+                act_gag( "Intimidated by your aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_VICT, GAG_MISS );
+                act_gag( "Intimidated by $N's aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_NOTVICT, GAG_MISS );
                 return FALSE;
+            }
     }
     
     /* automatic chance-to-hit */
@@ -2437,6 +2566,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    break;
 	else
 	    ch->mana -= 1;
+    if ( check_elemental_strike(ch, wield) )
+        dam *= 2;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
@@ -2703,24 +2834,32 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
-    // guns and bows can assassinate via aim or snipe
-    if ( wield == NULL || (wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield)) )
+    // lethal hands skill allows unarmed assassination
+    int skill_unarmed = get_skill(ch, gsn_lethal_hands);
+    if ( !wield && !skill_unarmed )
         return;
-
+    
+    // guns and bows can assassinate via aim or snipe
+    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) )
+        return;
+    
     // assassination mastery increases chance by up to factor 2, depending on victim's health
     int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
     if ( per_chance(dam_taken) && per_chance(mastery_bonus(ch, gsn_assassination, 60, 100)) )
         chance = UMAX(0, chance - 1);
 
     int base_chance = get_skill(ch, gsn_assassination);
+    if ( !wield )
+        base_chance += (100 - base_chance) * skill_unarmed / 100;
+    
     // aim head and snipe can behead without the skill
-    if ( is_ranged_weapon(wield) )
+    if ( wield && is_ranged_weapon(wield) )
         base_chance = (100 + base_chance) / 2;
     
     int extra_chance = 50 + (get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 4;
-    if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+    if ( wield && IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
         chance += 2;
-    if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
+    if ( wield && IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
         extra_chance += 10;
 
     if ( number_bits(chance) == 0
@@ -2737,7 +2876,13 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         }
         else
         {
-            if ( is_ranged_weapon(wield) )
+            if ( !wield )
+            {
+                act("You sneak up behind $N, and snap $S neck!", ch, NULL, victim, TO_CHAR);
+                act("$n sneaks up behind you and snaps your neck!", ch, NULL, victim, TO_VICT);
+                act("$n sneaks up behind $N, and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else if ( is_ranged_weapon(wield) )
             {
                 act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
                 act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
@@ -2802,6 +2947,7 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
 bool is_normal_hit( int dt )
 {
     return (dt >= TYPE_HIT)
+     || (dt == gsn_riposte)
      || (dt == gsn_double_strike)
      || (dt == gsn_strafe)
      || (dt == gsn_round_swing)
@@ -2940,6 +3086,15 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
     return success;
 }
 
+static int get_bulwark_reduction( CHAR_DATA *ch )
+{
+    int skill = get_skill(ch, gsn_bulwark);
+    if ( !skill || !is_calm(ch) )
+        return 0;
+    // reduction is 2/3 of shield block chance
+    return shield_block_chance(ch, FALSE) * skill / 150;
+}
+
 /*
 * Inflict full damage from a hit.
 */
@@ -3021,6 +3176,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         dam -= dam * get_heavy_armor_bonus(victim) / 400;
     }
     
+    // bulwark skill
+    if ( dam > 1 )
+    {
+        // bulwark reduces both damage taken and damage dealt
+        int ch_bw = get_bulwark_reduction(ch) / 2;
+        int victim_bw = get_bulwark_reduction(victim);
+        dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
+    }
+    
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
         dam = 9 * dam / 10;
     
@@ -3100,6 +3264,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 dam += (18 + dam) / 3;
             else if ( stance == STANCE_GOBLINCLEAVER )
                 dam = dam * 2/3;
+            else if ( stance == STANCE_BULLET_RAIN )
+                dam = dam * 9/10;
             else if ( stance == STANCE_WENDIGO )
                 dam += 2 + dam/10;
             else if ( stance == STANCE_EEL )
@@ -3975,8 +4141,8 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         {
             bool clanwar_valid;
             int level_offset = PKILL_RANGE;
-            int ch_power = ch->level + 2 * ch->pcdata->remorts;
-            int victim_power = victim->level + 2 * victim->pcdata->remorts;
+            int ch_power = ch->level + 2 * ch->pcdata->remorts + (ch->pcdata->ascents ? 6 : 0);
+            int victim_power = victim->level + 2 * victim->pcdata->remorts + (victim->pcdata->ascents ? 6 : 0);
             
             clanwar_valid = is_clanwar_opp(ch, victim);
             /* || is_religion_opp(ch, victim); */
@@ -4457,11 +4623,13 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
+    int skill = get_skill(ch, gsn_parry);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
     if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
-        return 0;
+        if ( (skill = get_skill(ch, gsn_unarmed_parry)) == 0 )
+            return 0;
 
     int opponent_adjust = 0;
     if ( opp )
@@ -4470,7 +4638,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
         opponent_adjust = (level_diff + stat_diff/4) / 2;
     }
-    int chance = 10 + (get_skill(ch, gsn_parry) + opponent_adjust) / 4;
+    int chance = 10 + (skill + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )
@@ -4478,8 +4646,10 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
         chance -= 5;
 
-    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION || ch->stance == STANCE_BLADE_BARRIER )
         chance += 10;
+    else if ( ch->stance == STANCE_BLADE_BARRIER )
+        chance += 20;
     
     if ( IS_AFFECTED(ch, AFF_SORE) )
         chance -= 10;
@@ -4700,6 +4870,9 @@ bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
     OBJ_DATA *gun;
     
     if ( ch->stance == STANCE_TARGET_PRACTICE && number_bits(2) )
+        return FALSE;
+
+    if ( per_chance(get_skill(ch, gsn_rapid_fire)) && number_bits(1) )
         return FALSE;
 
     if ( odds < number_range(1, 1000) )
@@ -5677,18 +5850,19 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 /* returns the 'effective strength' of a char */
 int level_power( CHAR_DATA *ch )
 {
-    int pow;
     if ( IS_NPC(ch) )
-	return ch->level;
-    else
-    {
-	pow = ch->level;
-        // remort adjustment
-        pow += ch->pcdata->remorts * (ch->level + 30) / 60;
-	if ( ch->level > 90 )
-	    pow += (ch->level - 90);
-	return pow;
-    }
+        return ch->level;
+    
+    int pow = ch->level + UMAX(0, ch->level - 90);
+    // level adjustment scales with actual level
+    float la_factor = ch->level >= 90 ? 1.0 : (ch->level + 30) / 120.0;
+    // remort adjustment
+    pow += 2 * ch->pcdata->remorts * la_factor;
+    // ascent adjustment
+    if ( ch->pcdata->ascents > 0 )
+        pow += 6 * la_factor;
+    
+    return pow;
 }
 
 // compute baseline xp for character of given level_power killing victim
@@ -6900,6 +7074,12 @@ void check_stance(CHAR_DATA *ch)
         if ( !stances[ch->stance].weapon )
         {
             send_to_char("You cant do that stance with a weapon.\n\r", ch);
+            ch->stance = 0;
+            return;
+        }
+        if ( ch->stance == STANCE_BULLET_RAIN && get_weapon_sn(ch) != gsn_gun )
+        {
+            send_to_char("You need a gun to make it rain bullets.\n\r", ch);
             ch->stance = 0;
             return;
         }

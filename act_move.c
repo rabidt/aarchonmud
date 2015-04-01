@@ -534,7 +534,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             && (!strcmp(fch->hunting, "all") || is_name(fch->hunting, ch->name)) )
         {
             check_improve(fch, gsn_ambush, TRUE, 2);
-            backstab_char( fch, ch );
+            if ( is_ranged_weapon(get_eq_char(fch, WEAR_WIELD)) )
+                snipe_char(fch, ch);
+            else
+                backstab_char(fch, ch);
             if ( fch->fighting == ch )
                 multi_hit(fch, ch, TYPE_UNDEFINED);
             return door;
@@ -2546,6 +2549,8 @@ DEF_DO_FUN(do_sneak)
 DEF_DO_FUN(do_hide)
 {
     AFFECT_DATA af;
+    int hips_skill = get_skill(ch, gsn_hips);
+    bool hips = FALSE;
     
     send_to_char( "You attempt to hide.\n\r", ch );
     
@@ -2582,13 +2587,18 @@ DEF_DO_FUN(do_hide)
 
     if (ch->fighting != NULL)
     {
-        send_to_char("I think your opponent sees you.\n\r",ch);
-        return;
+        if ( hips_skill == 0 || (!room_is_dim(ch->in_room) && !IS_AFFECTED(ch, AFF_SHROUD)) )
+        {
+            send_to_char("I think your opponent sees you.\n\r",ch);
+            return;
+        }
+        hips = TRUE;
     }
     
     WAIT_STATE( ch, skill_table[gsn_hide].beats );
-    if ( number_percent( ) < get_skill(ch,gsn_hide))
+    if ( per_chance(get_skill(ch,gsn_hide)) )
     {
+        // hips: need to apply affect first to get check_see to work
         af.where     = TO_AFFECTS;
         af.type      = gsn_hide;
         af.level     = ch->level; 
@@ -2597,6 +2607,19 @@ DEF_DO_FUN(do_hide)
         af.modifier  = 0;
         af.bitvector = AFF_HIDE;
         affect_to_char( ch, &af );
+        if ( hips )
+        {
+            CHAR_DATA *opp;
+            for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
+                if ( opp->fighting == ch && check_see_combat(opp, ch) )
+                {
+                    act("$N spots you and your attempt to hide fails.", ch, NULL, opp, TO_CHAR);
+                    affect_strip(ch, gsn_hide);
+                    return;
+                }
+            // successful hide-in-plain-sight, end all combat with ch
+            stop_fighting(ch, TRUE);
+        }
         send_to_char("You successfully hide.\n\r",ch); 
         check_improve(ch,gsn_hide,TRUE,3);
     }
