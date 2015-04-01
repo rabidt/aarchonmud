@@ -4203,9 +4203,9 @@ DEF_DO_FUN(do_lore)
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
-        check_improve( rch, gsn_lore, 3, TRUE );
+        check_improve( rch, gsn_lore, TRUE, 3 );
         if ( weapon )
-            check_improve( rch, gsn_weapons_lore, 3, TRUE );
+            check_improve( rch, gsn_weapons_lore, TRUE, 3 );
     }
 }
 
