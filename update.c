@@ -378,7 +378,7 @@ int hit_gain( CHAR_DATA *ch )
 
     gain += gain * (get_skill(ch, gsn_fast_healing) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
     if ( ch->hit < ch->max_hit )
-        check_improve(ch, gsn_fast_healing, TRUE, 20);
+        check_improve(ch, gsn_fast_healing, TRUE, 5);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -426,7 +426,7 @@ int mana_gain( CHAR_DATA *ch )
     {
         gain += gain * (get_skill(ch, gsn_meditation) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
         if ( ch->mana < ch->max_mana )
-            check_improve(ch, gsn_meditation, TRUE, 10);
+            check_improve(ch, gsn_meditation, TRUE, 3);
     }
 
     /* healing ratio */
@@ -464,7 +464,7 @@ int move_gain( CHAR_DATA *ch )
 
     gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < ch->max_move )
-        check_improve(ch, gsn_endurance, TRUE, 20);
+        check_improve(ch, gsn_endurance, TRUE, 5);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -1310,7 +1310,7 @@ void char_update( void )
             af.modifier = -bonus;
             af.bitvector= 0;
             affect_to_char(ch,&af);
-            check_improve( ch, gsn_natural_resistance, TRUE, 10 );
+            check_improve( ch, gsn_natural_resistance, TRUE, 8 );
         } 
 
         /* Check for iron hide */
@@ -1327,7 +1327,7 @@ void char_update( void )
             af.modifier = -bonus;
             af.bitvector=0;
             affect_to_char(ch,&af);
-            check_improve( ch, gsn_iron_hide, TRUE, 10 );
+            check_improve( ch, gsn_iron_hide, TRUE, 8 );
         } 
 
 
@@ -1540,8 +1540,7 @@ void char_update( void )
                     (number_percent() < get_skill(ch, gsn_sustenance)))
             {
                 /* Skip food/drink changes this round due to sustenance. */
-                if (number_bits(5)==0)
-                    check_improve(ch,gsn_sustenance,TRUE,10);        
+                check_improve(ch,gsn_sustenance,TRUE,6);
             }
             else
             {
@@ -2305,11 +2304,11 @@ void aggr_update( void )
                     af.bitvector = AFF_CALM;
                     affect_to_char(ch, &af);
                     forget_attacks( ch );
-                    check_improve(victim,gsn_soothe,TRUE,1);
+                    check_improve(victim,gsn_soothe,TRUE,3);
                     continue;
                 }
                 act( "You fail to soothe $n.", ch, NULL, victim, TO_VICT );
-                check_improve(victim,gsn_soothe,FALSE,1);
+                check_improve(victim,gsn_soothe,FALSE,3);
             }
 
             if ( IS_SET(ch->off_flags, OFF_BACKSTAB) )
@@ -2329,7 +2328,7 @@ void aggr_update( void )
                     act( "You avoid $n!",  ch, NULL, victim, TO_VICT    );
                     act( "$N avoids you!", ch, NULL, victim, TO_CHAR    );
                     act( "$N avoids $n!",  ch, NULL, victim, TO_NOTVICT );
-                    check_improve(victim,gsn_avoidance,TRUE,1);
+                    check_improve(victim,gsn_avoidance,TRUE,3);
                     continue;
                 }
             }

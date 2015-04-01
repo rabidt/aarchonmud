@@ -232,7 +232,7 @@ DEF_DO_FUN(do_craft)
                 crafting->short_descr,
                 cost * 0.01
             );
-            check_improve(ch, gsn_craft, FALSE, 1);
+            check_improve(ch, gsn_craft, FALSE, 2);
         }
         else
         {
@@ -245,7 +245,7 @@ DEF_DO_FUN(do_craft)
                 SET_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
             else
                 REMOVE_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
-            check_improve(ch, gsn_craft, TRUE, 1);
+            check_improve(ch, gsn_craft, TRUE, 2);
         }
         return;
     }
