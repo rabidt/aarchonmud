@@ -2642,8 +2642,43 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    if ( number_bits(9) != 69 )
+    int chance = ch->stance == STANCE_SHADOWCLAW ? 100 : 0;
+    
+    // first check whether we can behead at all - needed for skill improvement check
+    if ( !wield )
+    {
+        if ( ch->stance == STANCE_DEFAULT )
+            chance = get_skill(ch, gsn_razor_claws) / 2;
+        if ( !chance )
+            return;
+    }
+    else
+    {
+        switch ( wield->value[0] )
+        {
+        case WEAPON_EXOTIC: chance = 0; break;
+        case WEAPON_DAGGER:
+        case WEAPON_POLEARM: chance = 1; break;
+        case WEAPON_SWORD: chance = 5; break;
+        case WEAPON_AXE: chance = 25; break;
+        default: return;
+        }
+        chance += get_skill(ch, gsn_beheading) / 2;
+        if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+            chance += 1;
+        if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
+            chance += 5;
+        if ( !chance )
+            return;
+    }
+    
+    // at this stage we have a *chance* to behead, so skill might improve
+    if ( number_bits(9) != 69 || !per_chance(chance) )
+    {
+        if ( wield )
+            check_improve(ch, gsn_beheading, FALSE, 7);
         return;
+    }
     
     // beheading mastery increases behead chance by up to factor 2, depending on victim's health
     int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
@@ -2653,52 +2688,30 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
         return;
 
+
     if ( NPC_ACT(victim, ACT_NOBEHEAD) )
     {
-        act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
-        act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
+        if ( IS_SET(victim->parts, PART_HEAD) )
+        {
+            act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
+        }
         return;
     }
 
     if ( wield == NULL )
     {
-        int skill = get_skill(ch, gsn_razor_claws);
-        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill/2)) || ch->stance == STANCE_SHADOWCLAW )
-        {
-            act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
-            act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
-            act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
-            behead(ch, victim);
-        }
-        return;
+        act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
+        act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
+        act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
     }
-
-    int chance = 0;
-    switch ( wield->value[0] )
-    {
-    case WEAPON_EXOTIC: chance = 0; break;
-    case WEAPON_DAGGER:
-    case WEAPON_POLEARM: chance = 1; break;
-    case WEAPON_SWORD: chance = 5; break;
-    case WEAPON_AXE: chance = 25; break;
-    default: return;
-    }
-   
-    chance += get_skill(ch, gsn_beheading) / 2;
-    if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
-        chance += 1;
-    if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-        chance += 5;
-
-    if ( per_chance(chance) || ch->stance == STANCE_SHADOWCLAW )
+    else
     {
         act("$n's head is separated from his shoulders by $p.", victim,wield,NULL,TO_ROOM);
         act("Your head is separated from your shoulders by $p.", victim,wield,NULL,TO_CHAR);
-        check_improve(ch, gsn_beheading, 0, TRUE);
-        behead(ch, victim);
     }
-    else
-        check_improve(ch, gsn_beheading, 0, FALSE);
+    behead(ch, victim);
+    check_improve(ch, gsn_beheading, TRUE, 0);
 }
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
