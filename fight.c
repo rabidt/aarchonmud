@@ -2013,7 +2013,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
     
     if (sn != -1)
-	check_improve( ch, sn, TRUE, 10 );
+        check_improve(ch, sn, TRUE, 5);
 
     /*
      * Hit.
@@ -4691,7 +4691,7 @@ bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You avoid $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N avoids your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N avoids $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_avoidance,TRUE,5);
+    check_improve(victim,gsn_avoidance,TRUE,1);
     return TRUE;
 }
 
