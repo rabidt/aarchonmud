@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         438
+#define MAX_SKILL         453
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -719,6 +719,7 @@ struct penalty_data
 #define CON_FTP_AUTH            18
 */
 #define CON_LUA_HANDLER         16
+#define CON_GET_NEW_SUBCLASS    17
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -882,6 +883,16 @@ struct  class_type
     sh_int  move_gain;
     const char* base_group;     /* base skills gained       */
     const char* default_group;  /* default skills gained    */
+};
+
+#define MAX_SUBCLASS_SKILL 5
+struct subclass_type
+{
+    const char* name;
+    unsigned long base_classes;
+    const char* skills[MAX_SUBCLASS_SKILL];
+    sh_int skill_level[MAX_SUBCLASS_SKILL];
+    sh_int skill_percent[MAX_SUBCLASS_SKILL];
 };
 
 struct item_type
@@ -1079,6 +1090,7 @@ struct  kill_data
 #define MOB_VNUM_HOLY_APPARITION 12
 #define MOB_VNUM_WATER_ELEMENTAL 13
 #define MOB_VNUM_BEAST           14
+#define MOB_VNUM_SHADOW          15
 
 /* RT ASCII conversions -- used so we can have letters in this file */
 
@@ -1310,8 +1322,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -2643,6 +2655,8 @@ struct  pc_data
     sh_int      customduration;
     const char* customflag;
     sh_int      remorts;
+    sh_int      ascents;
+    sh_int      subclass;
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
@@ -3395,7 +3409,22 @@ extern sh_int  gsn_evasive;
 extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
 extern sh_int  gsn_heavy_armor;
- 
+extern sh_int  gsn_bulwark;
+extern sh_int  gsn_riposte;
+extern sh_int  gsn_blade_barrier;
+extern sh_int  gsn_combat_casting;
+extern sh_int  gsn_elemental_strike;
+extern sh_int  gsn_savage_frenzy;
+extern sh_int  gsn_hips;
+extern sh_int  gsn_shadow_companion;
+extern sh_int  gsn_piercing_blade;
+extern sh_int  gsn_lethal_hands;
+extern sh_int  gsn_unarmed_parry;
+extern sh_int  gsn_mystic_infusion;
+extern sh_int  gsn_rapid_fire;
+extern sh_int  gsn_bullet_rain;
+extern sh_int  gsn_precise_shot;
+
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
 extern sh_int  gsn_wands;
@@ -4040,6 +4069,8 @@ struct stance_type
 #define STANCE_ELEMENTAL_BLADE 44
 #define STANCE_AVERSION 45
 #define STANCE_SERPENT 46
+#define STANCE_BLADE_BARRIER 47
+#define STANCE_BULLET_RAIN 48
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
@@ -4058,6 +4089,7 @@ struct stance_type
 /* warfare.c */
 extern const struct stance_type   stances[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
+extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
 extern  const   struct  item_type   item_table  [];
 extern  const   struct  wiznet_type wiznet_table    [];
@@ -4268,6 +4300,7 @@ void    check_achievement( CHAR_DATA *ch );
 void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
+bool    can_take_subclass( int class, int subclass );
 
 /* act_move.c */
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
@@ -4526,6 +4559,7 @@ bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
+bool    is_calm( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
@@ -4581,6 +4615,7 @@ void    attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 

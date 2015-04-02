@@ -1983,6 +1983,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     char liquid_name[MAX_STRING_LENGTH];
     int mlevel;
     int sector = ch->in_room->sector_type;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     mlevel = URANGE(1, level * 3/4, ch->level);
     sprintf(liquid_name, "water");
@@ -2011,6 +2012,8 @@ DEF_SPELL_FUN(spell_water_elemental)
         send_to_char( "This war does not concern the elemental spirits.\n\r", ch );
         return SR_UNABLE;
     }
+
+    mlevel += beast_skill / 8;
     
     /* Check number of charmees against cha*/ 
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -3492,7 +3495,6 @@ DEF_SPELL_FUN(spell_mirror_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -4053,7 +4055,6 @@ DEF_SPELL_FUN(spell_phantasmal_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;

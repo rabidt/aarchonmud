@@ -1030,11 +1030,8 @@ DEF_DO_FUN(do_snipe)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    OBJ_DATA *obj;
-    int skill, accuracy;
-    bool secondgun = FALSE;
     
-    if ((skill = get_skill(ch,gsn_snipe)) < 1)
+    if ( get_skill(ch,gsn_snipe) < 1)
     {
         send_to_char("You don't know how to snipe.\n\r",ch);
         return;
@@ -1060,12 +1057,22 @@ DEF_DO_FUN(do_snipe)
         return;
     }
 
+    snipe_char(ch, victim);
+}
+
+void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    OBJ_DATA *obj;
+    int skill = get_skill(ch, gsn_snipe);
+    int accuracy;
+    bool secondgun = FALSE;
+        
     if ( victim == ch )
     {
         send_to_char( "You put your gun to your head, but come to your senses just in time.\n\r", ch );
         return;
     }
-     
+ 
     if ( is_safe(ch,victim) )
         return;
      

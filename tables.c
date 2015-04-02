@@ -687,7 +687,7 @@ const struct flag_type room_flags[] =
     {   "donation",     ROOM_DONATION,      TRUE    },
     {   "nowhere",      ROOM_NOWHERE,       TRUE    },
     {   "snare",        ROOM_SNARE,         FALSE   },   
-    {   "blacksmith",   ROOM_BLACKSMITH,    TRUE    },   
+    {   "blacksmith",   ROOM_BLACKSMITH,    FALSE   },   
     {   "peel",         ROOM_PEEL,          FALSE   },   
     {   "jail",         ROOM_JAIL,          TRUE    },   
     {   "no_quest",     ROOM_NO_QUEST,      TRUE    },   
@@ -1298,6 +1298,10 @@ const struct stance_type stances [] =
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
           &gsn_serpent,             TRUE, FALSE,          22 },
+        { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
+            &gsn_blade_barrier,     FALSE, TRUE,          20 },
+        { "bullet rain",      STANCE_BULLET_RAIN,         0,             "",
+            &gsn_bullet_rain,       FALSE, TRUE,          20 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };
