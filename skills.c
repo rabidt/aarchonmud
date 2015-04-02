@@ -1854,8 +1854,20 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     if (IS_NPC(ch))
         return;
 
+    // skills that haven't been used in a while are more likely to go up
+    // this curbs bot-training and benefits rarely used skills / normal usage
+    if ( ch->pcdata->ready2learn[sn] )
+    {
+        //ptc(ch, "You are ready to learn %s.\n\r", skill_table[sn].name);
+        chance_exp = URANGE(0, chance_exp - 2, 3);
+        ch->pcdata->ready2learn[sn] = FALSE;
+    }
+    else
+        chance_exp++;
+        
     if ( IS_AFFECTED(ch, AFF_LEARN) )
          chance_exp--;
+    
     // safety net
     chance_exp = URANGE(0, chance_exp, 10);
 
