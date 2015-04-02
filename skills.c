@@ -45,6 +45,7 @@ DECLARE_DO_FUN(do_skills);
 bool train_stat(int trained, CHAR_DATA *ch);
 void show_groups( int skill, BUFFER *buffer );
 void show_races( int skill, BUFFER *buffer );
+void show_skill_subclasses( int skill, BUFFER *buffer );
 void show_class_skills( CHAR_DATA *ch, const char *argument );
 void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
@@ -640,7 +641,10 @@ static int mastery_points( CHAR_DATA *ch )
 
 static int max_mastery_points( CHAR_DATA *ch )
 {
-    return 30 + 2 * ch->pcdata->remorts;
+    if ( ch->pcdata->ascents > 0 )
+        return 40 + 10 * UMIN(5, ch->pcdata->ascents) + ch->pcdata->remorts;
+    else
+        return 30 + 2 * ch->pcdata->remorts;
 }
 
 static const char* mastery_title( int level )
@@ -1146,6 +1150,42 @@ DEF_DO_FUN(do_spells)
         }
     }
 
+    // subclass skills
+    if ( ch->pcdata->subclass > 0 )
+    {
+        const struct subclass_type *subclass = &subclass_table[ch->pcdata->subclass];
+        for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+        {
+            if ( subclass->skills[i] == NULL )
+                break;
+            
+            if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
+                continue;
+            level = subclass->skill_level[i];
+            prac = subclass->skill_percent[i];
+            
+            if ( (fAll || level <= ch->level)
+                && level >= min_lev && level <= max_lev
+                && skill_table[sn].spell_fun != spell_null )
+            {
+                found = TRUE;
+                skill = get_skill(ch, sn);
+                mana = mana_cost(ch, sn, skill);
+                sprintf(buf, "{B%-16s %3dm %3d%%(%3d%%){x ",
+                    skill_table[sn].name, mana, prac, skill);
+
+                if ( spell_list[level][0] == '\0' )
+                    sprintf(spell_list[level], "\n\rLevel %2d: %s", level, buf);
+                else /* append */
+                {
+                    if ( ++spell_columns[level] % 2 == 0 )
+                        strcat(spell_list[level], "\n\r          ");
+                    strcat(spell_list[level], buf);
+                }
+            }
+        }
+    }
+    
 	/* return results */
 
 	if (!found)
@@ -1297,6 +1337,38 @@ DEF_DO_FUN(do_skills)
         }
     }
 
+    // subclass skills
+    if ( ch->pcdata->subclass > 0 )
+    {
+        const struct subclass_type *subclass = &subclass_table[ch->pcdata->subclass];
+        for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+        {
+            if ( subclass->skills[i] == NULL )
+                break;
+            
+            if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
+                continue;
+            level = subclass->skill_level[i];
+            prac = subclass->skill_percent[i];
+            
+            if ( (fAll || level <= ch->level)
+                && level >= min_lev && level <= max_lev
+                && skill_table[sn].spell_fun == spell_null )
+            {
+                found = TRUE;
+                sprintf(buf, "{B%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, get_skill(ch, sn));
+                if ( skill_list[level][0] == '\0' )
+                    sprintf(skill_list[level], "\n\rLevel %2d: %s", level, buf);
+                else /* append */
+                {
+                    if ( ++skill_columns[level] % 2 == 0 )
+                        strcat(skill_list[level], "\n\r          ");
+                    strcat(skill_list[level], buf);
+                }
+            }
+        }
+    }
+    
 	/* return results */
 
 	if (!found)
@@ -1545,7 +1617,7 @@ void set_level_exp( CHAR_DATA *ch )
 
 int exp_per_level(CHAR_DATA *ch)
 {
-    int rem_add,race_factor;
+    int rem_add,race_factor,asc_add;
 
     if (IS_NPC(ch))
         return 1000;
@@ -1560,7 +1632,9 @@ int exp_per_level(CHAR_DATA *ch)
     race_factor = pc_race_table[ch->race].class_mult[ch->class] +
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
-    return 10 * (race_factor);
+    asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    
+    return 10 * (race_factor) + asc_add;
 }
 
 /* this procedure handles the input parsing for the skill generator */
@@ -2162,6 +2236,25 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
+int get_subclass_skill( CHAR_DATA *ch, int sn )
+{
+    if ( IS_NPC(ch) || !ch->pcdata->subclass )
+        return 0;
+    
+    const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
+
+    int i;
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            return 0;
+        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
+            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+    }
+
+    return 0;
+}
+
 int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
 	int skill;
@@ -2214,6 +2307,9 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	race_skill = get_race_skill( ch, sn );
 	if ( race_skill > 0 )
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
+    int subclass_skill = get_subclass_skill(ch, sn);
+    if ( subclass_skill > 0 )
+        skill = skill * (100 - subclass_skill) / 100 + subclass_skill * 10;
 
     // adjustment for stats below max
 	if (skill)
@@ -2718,6 +2814,7 @@ DEF_DO_FUN(do_showskill)
         show_groups(skill, buffer);
         show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
+        show_skill_subclasses(skill, buffer);
     }
     
     page_to_char(buf_string(buffer), ch);
@@ -2794,6 +2891,21 @@ bool has_race_skill( int skill, int rn )
     return FALSE;
 }
 
+bool has_subclass_skill( int skill, int subclass )
+{
+    int i;
+    const struct subclass_type *sc = &subclass_table[subclass];
+    
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            break;
+        if ( !str_cmp(sc->skills[i], skill_table[skill].name) )
+            return TRUE;
+    }
+    return FALSE;
+}
+
 void show_races( int skill, BUFFER *buffer )
 {
     char buf[MSL];
@@ -2814,6 +2926,26 @@ void show_races( int skill, BUFFER *buffer )
     }
     if ( col % 3 != 0 )
 	add_buf( buffer, "\n\r" );
+}
+
+void show_skill_subclasses( int skill, BUFFER *buffer )
+{
+    char buf[MSL];
+    int subclass, col = 0;
+
+    add_buf( buffer, "\n\rIt is possessed by the following subclasses:\n\r" );
+   
+    for ( subclass = 1; subclass_table[subclass].name != NULL; subclass++ )
+    {
+        if ( !has_subclass_skill(skill, subclass) )
+            continue;
+        sprintf( buf, "%-20s ", subclass_table[subclass].name );
+        add_buf( buffer, buf );
+        if ( ++col % 3 == 0 )
+            add_buf( buffer, "\n\r" );
+    }
+    if ( col % 3 != 0 )
+    add_buf( buffer, "\n\r" );
 }
 
 void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
