@@ -464,7 +464,7 @@ int move_gain( CHAR_DATA *ch )
 
     gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < ch->max_move )
-        check_improve(ch, gsn_endurance, TRUE, 5);
+        check_improve(ch, gsn_endurance, TRUE, 6);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -820,6 +820,20 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
     }
 
     return;
+}
+
+void update_learning( CHAR_DATA *ch )
+{
+    if ( !ch || !ch->pcdata )
+        return;
+    
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        // resets (on average) ever minute while fighting, every 5 minutes while not
+        if ( per_chance(50) && (ch->fighting || per_chance(20)) )
+            ch->pcdata->ready2learn[sn] = TRUE;
+    }
 }
 
 /* some mobiles need to update more often
@@ -1296,6 +1310,9 @@ void char_update( void )
         if (ch->must_extract)
             continue;
 
+        if ( !IS_NPC(ch) )
+            update_learning(ch);
+        
         /* Check for natural resistance */
         affect_strip (ch, gsn_natural_resistance);
         if ( get_skill(ch, gsn_natural_resistance) > 0)
