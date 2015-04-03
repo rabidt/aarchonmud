@@ -428,16 +428,16 @@ char * print_timer_list()
     int unregcnt=0;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
-        if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
-        {
-            bugf("Invalid game_obj in print_timer_list.");
-            continue;
-        } 
-        else if ( tmr->unregistered )
+        if ( tmr->unregistered )
         {
             unregcnt++;
             continue;
         }
+        else if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
+        {
+            bugf("Invalid game_obj in print_timer_list.");
+            continue;
+        } 
         sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->tm_type == TM_CFUNC ? "cfunc" :
