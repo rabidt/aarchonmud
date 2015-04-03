@@ -45,8 +45,8 @@ static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int 
 
 void unregister_timer_node( TIMER_NODE *tmr )
 {
-    if (tmr->unregistered)
-        bugf("unregistering already unregistered timer");
+//    if (tmr->unregistered)
+//        bugf("unregistering already unregistered timer");
     tmr->unregistered=TRUE;
 }
 
