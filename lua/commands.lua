@@ -418,7 +418,7 @@ local function get_tokens(str)
             or (char=="," and not(instring) and not(parenslevel>0)) then
                 table.insert(tokens,token)
                 break
-            elseif char==" " and not(instring) and not(parenslevel>0) then
+            --elseif char==" " and not(instring) and not(parenslevel>0) then
                 -- ignore non literal whitespace
             elseif char=="(" and not(instring) then
                 parenslevel=parenslevel+1
@@ -476,6 +476,7 @@ function do_luaquery( ch, argument)
 
     local getfun
     local selection
+    local aliases={}
     local sorts
 
 
@@ -513,6 +514,15 @@ function do_luaquery( ch, argument)
         end
     end
 
+    -- check for aliases in selection
+    for k,v in pairs(selection) do
+        local start,fin=v:find(" as ")
+        if start then
+            aliases[v:sub(fin+1)]=v:sub(1,start-1)
+            selection[k]=v:sub(fin+1)
+        end
+    end
+
     local rest_arg=argument:sub(ind+(" from "):len()+typearg:len())
 
     local whereind=string.find(rest_arg, " where ")
@@ -546,30 +556,37 @@ function do_luaquery( ch, argument)
 
     -- let's get our result
     local lst=getfun()
+
     local rslt={}
     if not(filterarg=="") then
+        local alias_funcs={}
+        for k,v in pairs(aliases) do
+            alias_funcs[k]=loadstring("return function(x) return "..v.." end")()
+        end
+
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
-            setfenv(vf, 
-                    setmetatable(
-                        {
-                            pairs=pairs
-                        }, 
-                        { 
-                            __index=function(t,k)
-                                if k=="thisarea" then
-                                    return ch.room.area==gobj.area
-                                else
-                                    return gobj[k] 
-                                end
-                            end,
-                            __newindex=function ()
-                                error("Can't set values with luaquery")
-                            end
-                        } 
-                    ) 
-            )
+            local fenv={ pairs=pairs }
+            local mt={ 
+                __index=function(t,k)
+                    if k=="thisarea" then
+                        return ch.room.area==gobj.area
+                    elseif alias_funcs[k] then
+                        return alias_funcs[k](gobj) 
+                    else
+                        return gobj[k] 
+                    end
+                end,
+                __newindex=function ()
+                    error("Can't set values with luaquery")
+                end
+            } 
+            setmetatable(fenv,mt)
+            setfenv(vf, fenv)
+            for k,v in pairs(aliases) do
+                setfenv(alias_funcs[k], fenv)
+            end
             local val=vf()(gobj)
             if val then return true
             else return false end
@@ -587,7 +604,7 @@ function do_luaquery( ch, argument)
     for _,gobj in pairs(rslt) do
         local line={}
         for _,sel in ipairs(selection) do
-            local vf,err=loadstring("return function(x) return "..sel.." end")
+            local vf,err=loadstring("return function(x) return "..(aliases[sel] or sel).." end")
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
                     setmetatable(
