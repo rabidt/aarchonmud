@@ -78,6 +78,7 @@ Selection:
     Determines which fields are shown on output. If * or default then default
     values are used, otherwise fields supplied in a list separated by ',' 
     character.
+    Additionally, the 'x as y' syntax can be used to define an alias. For instance: name:sub(1,10) as shortname,#spells as spellcount.
 
 Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
@@ -87,7 +88,7 @@ Filter (optional):
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
-    as Selection.
+    as Selection, except aliases cannot be declared (but can be referenced)..
 
 Width (optional):
     An integer value which limits the width of the output columns to the given
@@ -99,8 +100,7 @@ Limit (optional):
     bottom results are printed.
 
 Notes: 
-    'x' can be used optionally to qualify fields. 'x' is necessary to invoke
-    methods (see examples).
+    'x' can be used optionally to qualify fields and methods. See examples.
 
     A field must be in the selection in order to be used in sort.
 
@@ -111,7 +111,7 @@ Notes:
     accessible.
 
 Examples:
-    luaq level,vnum,shortdescr,x:extra("glow"),area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,x:extra("glow") width 20
+    luaq level,vnum,shortdescr,extra("glow") as glow,area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,glow width 20
 
     Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
     OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
