@@ -969,7 +969,7 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * 3/2);
     
     if ( improve )
-        check_improve(ch, gsn_dual_wield, TRUE, 10);
+        check_improve(ch, gsn_dual_wield, TRUE, 5);
     
     // dual weapon requires weapons of correct type
     int dual_weapon = 0;
@@ -981,7 +981,7 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
         dual_weapon = dual_weapon * wield_weight / UMAX(wield_weight, second_weight);
         
         if ( improve )
-            check_improve(ch, gsn_dual, TRUE, 8);
+            check_improve(ch, gsn_dual, TRUE, 5);
     }
 
     // combine the two skills, rounding down; also ambidextrous skill comes in here
@@ -1024,7 +1024,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     {
         chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
         if ( improve )
-            check_improve(ch, gsn_wrist_shield, TRUE, 20);
+            check_improve(ch, gsn_wrist_shield, TRUE, 6);
     }
 
     return chance;
@@ -1295,7 +1295,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         if (ch->fighting != NULL)
             do_kick(ch, "");
         ch->wait = chance;
-        check_improve(ch,gsn_kung_fu,TRUE,3);
+        check_improve(ch,gsn_kung_fu,TRUE,5);
 	if ( ch->fighting != victim )
 	    return;
     }
@@ -1337,7 +1337,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if ( number_percent( ) < chance )
     {
         one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_third_attack,TRUE,6);
+        check_improve(ch,gsn_third_attack,TRUE,5);
         if ( ch->fighting != victim )
             return;
     }
@@ -1355,7 +1355,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         && ch->max_hit > 0 && !per_chance(100 * ch->hit / ch->max_hit) )
     {
         one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_ashura,TRUE,3);
+        check_improve(ch,gsn_ashura,TRUE,4);
         if ( ch->fighting != victim )
             return;
         // chance for extra (offhand if possible) attack
@@ -1381,7 +1381,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     }
     
     if ( per_chance(get_heavy_armor_bonus(ch)) )
-        check_improve(ch, gsn_heavy_armor, TRUE, 3);
+        check_improve(ch, gsn_heavy_armor, TRUE, 5);
     
     return;
 }
@@ -1581,7 +1581,7 @@ int get_twohand_penalty( CHAR_DATA *ch, bool improve )
         if ( has_shield )
         {
             if ( improve )
-                check_improve(ch, gsn_wrist_shield, TRUE, 10);
+                check_improve(ch, gsn_wrist_shield, TRUE, 7);
             return get_skill(ch, gsn_wrist_shield) / 6 - 50;
         }
         return 0;
@@ -1596,14 +1596,14 @@ int get_twohand_penalty( CHAR_DATA *ch, bool improve )
     
     int skill = twohanded ? (100 + get_skill(ch, gsn_two_handed)) / 2 : 100;
     if ( improve && twohanded )
-        check_improve(ch, gsn_two_handed, TRUE, 10);
+        check_improve(ch, gsn_two_handed, TRUE, 6);
     
     // wrist shield penalty
     if ( has_shield )
     {
         skill = skill * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
         if ( improve )
-            check_improve(ch, gsn_wrist_shield, TRUE, 10); 
+            check_improve(ch, gsn_wrist_shield, TRUE, 7);
     }
     
     return (skill-100) / 2;
@@ -1665,9 +1665,9 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     {
         // enhanced damage mastery increases bonus damage
         dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + mastery_bonus(ch, gsn_enhanced_damage, 30, 50)) / 300;
-        check_improve (ch, gsn_enhanced_damage, TRUE, 10);
+        check_improve (ch, gsn_enhanced_damage, TRUE, 8);
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
-        check_improve (ch, gsn_brutal_damage, TRUE, 10);
+        check_improve (ch, gsn_brutal_damage, TRUE, 8);
     }
 
     /* special attacks */
@@ -1681,7 +1681,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else if ( victim && victim != ch && victim->fighting && victim->fighting != ch )
     {
         dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
-        check_improve (ch, gsn_flanking, TRUE, 5);
+        check_improve (ch, gsn_flanking, TRUE, 7);
     }
 
     /* anatomy */
@@ -1691,7 +1691,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 200;
         else
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
     }
     if ( cfg_const_damroll )
         return dam * 5/6;
@@ -1828,7 +1828,7 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     bonus += ch->leader->level - ch->level;
 
     if (improve)
-        check_improve( ch->leader, gsn_leadership, TRUE, 14 );
+        check_improve( ch->leader, gsn_leadership, TRUE, 8 );
 
     return bonus / 10;
 }
@@ -2013,7 +2013,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
     
     if (sn != -1)
-	check_improve( ch, sn, TRUE, 10 );
+        check_improve(ch, sn, TRUE, 5);
 
     /*
      * Hit.
@@ -2031,7 +2031,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             bonus_percent += 10 + mastery_bonus(ch, gsn_berserk, 3, 5);
             if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
                 bonus_percent += 10;
-            check_improve(ch, gsn_fervent_rage, TRUE, 10);
+            check_improve(ch, gsn_fervent_rage, TRUE, 7);
         }
         dam += bonus_fixed + dam * bonus_percent/100;
     }
@@ -2050,7 +2050,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 		else
 		    send_to_char("{yYOUR WEAPON IS JAMMED!{x\n\r", ch);
 		dam = 1 + ch->level * get_skill(ch,gsn_pistol_whip) / 100;
-		check_improve (ch, gsn_pistol_whip, TRUE, 4);
+		check_improve (ch, gsn_pistol_whip, TRUE, 5);
 		dt = gsn_pistol_whip;
 	    }
 	}
@@ -2062,7 +2062,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	    if ( number_percent() <= get_skill(ch, gsn_giantfeller) )
 	    {
 		dam += dam * (victim->size - SIZE_MEDIUM) / 10;
-		check_improve( ch, gsn_giantfeller, 10, TRUE );
+		check_improve( ch, gsn_giantfeller, TRUE, 6 );
 	    }
 	    else
 		dam += dam * (victim->size - SIZE_MEDIUM) / 20;
@@ -2124,7 +2124,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     {
         act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
         act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
-        check_improve(ch,gsn_critical,TRUE,4);
+        check_improve(ch,gsn_critical,TRUE,2);
     }
 
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
@@ -2642,8 +2642,43 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    if ( number_bits(9) != 69 )
+    int chance = ch->stance == STANCE_SHADOWCLAW ? 100 : 0;
+    
+    // first check whether we can behead at all - needed for skill improvement check
+    if ( !wield )
+    {
+        if ( ch->stance == STANCE_DEFAULT )
+            chance = get_skill(ch, gsn_razor_claws) / 2;
+        if ( !chance )
+            return;
+    }
+    else
+    {
+        switch ( wield->value[0] )
+        {
+        case WEAPON_EXOTIC: chance = 0; break;
+        case WEAPON_DAGGER:
+        case WEAPON_POLEARM: chance = 1; break;
+        case WEAPON_SWORD: chance = 5; break;
+        case WEAPON_AXE: chance = 25; break;
+        default: return;
+        }
+        chance += get_skill(ch, gsn_beheading) / 2;
+        if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+            chance += 1;
+        if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
+            chance += 5;
+        if ( !chance )
+            return;
+    }
+    
+    // at this stage we have a *chance* to behead, so skill might improve
+    if ( number_bits(9) != 69 || !per_chance(chance) )
+    {
+        if ( wield )
+            check_improve(ch, gsn_beheading, FALSE, 7);
         return;
+    }
     
     // beheading mastery increases behead chance by up to factor 2, depending on victim's health
     int dam_taken = (victim->max_hit - victim->hit) * 100 / victim->max_hit;
@@ -2653,52 +2688,30 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     if (IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT))
         return;
 
+
     if ( NPC_ACT(victim, ACT_NOBEHEAD) )
     {
-        act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
-        act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
+        if ( IS_SET(victim->parts, PART_HEAD) )
+        {
+            act("You try to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_CHAR);
+            act("$n tries to cut $N's head off, but it won't budge!", ch, NULL, victim, TO_ROOM);
+        }
         return;
     }
 
     if ( wield == NULL )
     {
-        int skill = get_skill(ch, gsn_razor_claws);
-        if ( (ch->stance == STANCE_DEFAULT && per_chance(skill/2)) || ch->stance == STANCE_SHADOWCLAW )
-        {
-            act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
-            act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
-            act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
-            behead(ch, victim);
-        }
-        return;
+        act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
+        act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
+        act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
     }
-
-    int chance = 0;
-    switch ( wield->value[0] )
-    {
-    case WEAPON_EXOTIC: chance = 0; break;
-    case WEAPON_DAGGER:
-    case WEAPON_POLEARM: chance = 1; break;
-    case WEAPON_SWORD: chance = 5; break;
-    case WEAPON_AXE: chance = 25; break;
-    default: return;
-    }
-   
-    chance += get_skill(ch, gsn_beheading) / 2;
-    if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
-        chance += 1;
-    if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-        chance += 5;
-
-    if ( per_chance(chance) || ch->stance == STANCE_SHADOWCLAW )
+    else
     {
         act("$n's head is separated from his shoulders by $p.", victim,wield,NULL,TO_ROOM);
         act("Your head is separated from your shoulders by $p.", victim,wield,NULL,TO_CHAR);
-        check_improve(ch, gsn_beheading, 0, TRUE);
-        behead(ch, victim);
     }
-    else
-        check_improve(ch, gsn_beheading, 0, FALSE);
+    behead(ch, victim);
+    check_improve(ch, gsn_beheading, TRUE, 0);
 }
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
@@ -2754,7 +2767,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         }
     }
     else
-        check_improve(ch,gsn_assassination,FALSE,3);
+        check_improve(ch,gsn_assassination,FALSE,4);
 }
 
 /* adjust damage according to imm/res/vuln of ch 
@@ -2936,7 +2949,7 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
         act_gag("You evade $n's spell, reducing its impact.", ch, NULL, victim, TO_VICT, GAG_MISS);
         act_gag("$N evades $n's spell, reducing its impact.", ch, NULL, victim, TO_NOTVICT, GAG_MISS);
     }
-    check_improve(victim, gsn_evasion, success, 5);
+    check_improve(victim, gsn_evasion, success, 3);
     return success;
 }
 
@@ -3285,7 +3298,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 move_loss = absorb;
                 if ( show && !IS_SET(victim->gag, GAG_BLEED) )
                     send_to_char("You cling to life, showing true grit!\n\r", victim);
-                check_improve(victim, gsn_true_grit, TRUE, 1);
+                check_improve(victim, gsn_true_grit, TRUE, 3);
             }
             else
                 check_improve(victim, gsn_true_grit, FALSE, 0);
@@ -4208,7 +4221,7 @@ bool blind_penalty( CHAR_DATA *ch )
     int skill = get_skill( ch, gsn_blindfighting );
     if ( number_percent() < skill/2 )
     {
-	check_improve( ch, gsn_blindfighting, TRUE, 15 );
+	check_improve( ch, gsn_blindfighting, TRUE, 3 );
 	return FALSE;
     }
     return TRUE;
@@ -4255,10 +4268,10 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	if ( number_percent() <= get_skill(ch, gsn_woodland_combat) )
 	{
 	    finesse = TRUE;
-	    check_improve( ch, gsn_woodland_combat, TRUE, 10 );
+	    check_improve( ch, gsn_woodland_combat, TRUE, 6 );
 	}
 	else
-	    check_improve( ch, gsn_woodland_combat, FALSE, 10 );
+	    check_improve( ch, gsn_woodland_combat, FALSE, 6 );
     }
 
     try_avoid = !autohit && (vstance == STANCE_BUNNY || !(finesse && number_bits(1) == 0)) &&
@@ -4371,7 +4384,7 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
             return FALSE;
     }
     else
-        check_improve(ch, gsn_alertness, FALSE, 1);
+        check_improve(ch, gsn_alertness, FALSE, 3);
 
     // might still hit caster by pure chance
     if ( number_range(0, aff->bitvector) == 0 )
@@ -4415,7 +4428,7 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
             return FALSE;
     }
     else
-        check_improve(ch, gsn_alertness, FALSE, 1);
+        check_improve(ch, gsn_alertness, FALSE, 3);
 
     // might still hit caster by pure chance
     if ( number_range(0, aff->bitvector) == 0 )
@@ -4487,7 +4500,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     chance += mastery_bonus(ch, gsn_parry, 3, 5);
     
     if ( improve )
-        check_improve(ch, gsn_parry, TRUE, 15);
+        check_improve(ch, gsn_parry, TRUE, 6);
     
     return URANGE(0, chance, 75);
 }
@@ -4615,12 +4628,15 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
         chance -= chance / 4;
 
     if ( !per_chance(chance) )
+    {
+        check_improve(victim, gsn_duck, FALSE, 6);
         return FALSE;
+    }
     
     act_gag( "You duck $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N ducks your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N ducks $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_duck,TRUE,15);
+    check_improve(victim, gsn_duck, TRUE, 6);
     return TRUE;
 }
 
@@ -4660,7 +4676,7 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You outmaneuver $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N outmaneuvers your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N outmaneuvers $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_mass_combat,TRUE,15);
+    check_improve(victim, gsn_mass_combat, TRUE, 5);
     return TRUE;
 }
 
@@ -4688,7 +4704,7 @@ bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You avoid $n's attack!", ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N avoids your attack!", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N avoids $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
-    check_improve(victim,gsn_avoidance,TRUE,5);
+    check_improve(victim,gsn_avoidance,TRUE,1);
     return TRUE;
 }
 
@@ -4740,9 +4756,9 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
 
     if ( improve )
     {
-        check_improve(ch, gsn_shield_block, TRUE, 15);
+        check_improve(ch, gsn_shield_block, TRUE, 6);
         if ( offhand_occupied )
-            check_improve(ch, gsn_wrist_shield, TRUE, 20);
+            check_improve(ch, gsn_wrist_shield, TRUE, 7);
     }
 
     chance += mastery_bonus(ch, gsn_shield_block, 3, 5);
@@ -4813,7 +4829,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     int skill = get_skill(ch, gsn_dodge);
 
     if ( improve )
-        check_improve( ch, gsn_dodge, TRUE, 15);
+        check_improve( ch, gsn_dodge, TRUE, 6);
 
     if ( get_eq_char(ch, WEAR_WIELD) == NULL
          && get_eq_char(ch, WEAR_SHIELD) == NULL
@@ -4821,7 +4837,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     {
         skill += get_skill(ch, gsn_evasive);
         if (improve)
-            check_improve(ch, gsn_evasive, TRUE, 15);
+            check_improve(ch, gsn_evasive, TRUE, 6);
     }
     
     int opponent_adjust = 0;
@@ -6285,10 +6301,10 @@ DEF_DO_FUN(do_flee)
     {
         // retreat skill allows fleeing regardless of number of exits
         if ( per_chance(get_skill(ch, gsn_retreat))  )
-            check_improve(ch, gsn_retreat, TRUE, 4);
+            check_improve(ch, gsn_retreat, TRUE, 3);
         else
         {
-            check_improve(ch, gsn_retreat, FALSE, 4);
+            check_improve(ch, gsn_retreat, FALSE, 3);
             send_to_char("PANIC! You couldn't escape!\n\r", ch);
             return;
         }
@@ -6367,7 +6383,7 @@ DEF_DO_FUN(do_flee)
                 act("$N jumps in $n's way, blocking $s escape!", ch, NULL, opp, TO_NOTVICT);
             }
             check_improve(opp, gsn_entrapment, TRUE, 1);
-            check_improve(ch, gsn_flee, FALSE, 4);
+            check_improve(ch, gsn_flee, FALSE, 3);
             return;
         }
     }
@@ -6390,11 +6406,11 @@ DEF_DO_FUN(do_flee)
     if ( now_in == was_in )
     {
         send_to_char( "You get turned around and flee back into the room!\n\r", ch );
-        check_improve(ch, gsn_flee, FALSE, 4);
+        check_improve(ch, gsn_flee, FALSE, 3);
         return;
     }
 
-    check_improve(ch, gsn_flee, TRUE, 4);
+    check_improve(ch, gsn_flee, TRUE, 3);
 
     /* char might have been transed by an mprog */
     if ( dir == -1 )
@@ -6478,7 +6494,7 @@ bool check_lasso( CHAR_DATA *victim )
 	    act( "You catch $N!", opp, NULL, victim, TO_CHAR    );
 	    act( "$n catches $N!", opp, NULL, victim, TO_NOTVICT );
 
-	    check_improve(opp,gsn_hogtie,TRUE,2);
+	    check_improve(opp,gsn_hogtie,TRUE,1);
 
 	    destance(victim, get_mastery(opp, gsn_hogtie));
 	    if ( !is_affected(victim, gsn_hogtie) )
@@ -6495,6 +6511,7 @@ bool check_lasso( CHAR_DATA *victim )
 	    WAIT_STATE( victim, 6 );
 	    return TRUE;
 	}
+        check_improve(opp, gsn_hogtie, FALSE, 1);
     }   
     
     return FALSE;
@@ -6572,9 +6589,11 @@ void check_back_leap( CHAR_DATA *victim )
 		act("$n drives $s weapon deep into $N's neck till it snaps!",
 		    opp,NULL,victim,TO_NOTVICT);
 		behead(opp,victim);
-		check_improve(opp,gsn_assassination,TRUE,1);
+		check_improve(opp,gsn_assassination,TRUE,0);
 		return; 
 	    }
+	    else
+            check_improve(opp,gsn_assassination,FALSE,3);
 	}
     
 	/* now the attacks */
@@ -6615,12 +6634,16 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	  act( "You jump in, trying to protect $N.", ch, NULL, victim, TO_CHAR );
 	  act( "$n jumps in, trying to protect you.", ch, NULL, victim, TO_VICT );
 	  act( "$n jumps in, trying to protect $N.", ch, NULL, victim, TO_NOTVICT );
-	  check_improve(ch, gsn_bodyguard, TRUE, 1);
+	  check_improve(ch, gsn_bodyguard, TRUE, 3);
+      check_improve(attacker, gsn_assassination, FALSE, 3);
 	  check_killer(ch, attacker);
 	  return ch;
       }
       else
-	  check_improve(attacker, gsn_assassination, TRUE, 1);
+      {
+        check_improve(ch, gsn_bodyguard, FALSE, 3);
+        check_improve(attacker, gsn_assassination, TRUE, 3);
+      }
   }
   return victim;
 }
@@ -6902,7 +6925,7 @@ void check_stance(CHAR_DATA *ch)
         return;
     }
     
-    check_improve(ch,*(stances[ch->stance].gsn),TRUE,3);
+    check_improve(ch,*(stances[ch->stance].gsn),TRUE,5);
 
     deduct_move_cost(ch, cost);
 
