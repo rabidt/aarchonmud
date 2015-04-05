@@ -123,7 +123,7 @@ DEF_DO_FUN(do_berserk)
         
         send_to_char("Your pulse races as you are consumed by rage!\n\r",ch);
         act("$n gets a wild look in $s eyes.",ch,NULL,NULL,TO_ROOM);
-        check_improve(ch,gsn_berserk,TRUE,2);
+        check_improve(ch,gsn_berserk,TRUE,3);
 
         af.where    = TO_AFFECTS;
         af.type     = gsn_berserk;
@@ -149,7 +149,7 @@ DEF_DO_FUN(do_berserk)
         ch->move -= cost/2;
         
         send_to_char("Your pulse speeds up, but nothing happens.\n\r",ch);
-        check_improve(ch,gsn_berserk,FALSE,2);
+        check_improve(ch,gsn_berserk,FALSE,3);
     }
 }
 
@@ -200,7 +200,7 @@ DEF_DO_FUN(do_bash)
 	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
 	act("You evade $n's bash, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_bash,FALSE,1);
+	check_improve(ch,gsn_bash,FALSE,3);
 	if ( ch->stance != STANCE_RHINO )
         check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
@@ -242,7 +242,7 @@ DEF_DO_FUN(do_bash)
 	full_dam(ch,victim, dam * 3/2, gsn_bash, DAM_PIERCE,TRUE);
     else
 	full_dam(ch,victim, dam, gsn_bash,DAM_BASH,TRUE);
-    check_improve(ch,gsn_bash,TRUE,1);
+    check_improve(ch,gsn_bash,TRUE,3);
 }
 
 DEF_DO_FUN(do_dirt)
@@ -317,7 +317,7 @@ DEF_DO_FUN(do_dirt)
         act("$n kicks dirt in your eyes!",ch,NULL,victim,TO_VICT);
         damage(ch,victim,number_range(2,5),gsn_dirt,DAM_NONE,FALSE);
         send_to_char("You can't see a thing!\n\r",victim);
-        check_improve(ch,gsn_dirt,TRUE,2);
+        check_improve(ch,gsn_dirt,TRUE,3);
         WAIT_STATE(ch,skill_table[gsn_dirt].beats);
         
         af.where    = TO_AFFECTS;
@@ -333,7 +333,7 @@ DEF_DO_FUN(do_dirt)
     else
     {
         damage(ch,victim,0,gsn_dirt,DAM_NONE,TRUE);
-        check_improve(ch,gsn_dirt,FALSE,2);
+        check_improve(ch,gsn_dirt,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_dirt].beats);
     }
 }
@@ -400,7 +400,7 @@ DEF_DO_FUN(do_trip)
 	act("$n trips you and you go down!",ch,NULL,victim,TO_VICT);
 	act("You trip $N and $N goes down!",ch,NULL,victim,TO_CHAR);
 	act("$n trips $N, sending $M to the ground.",ch,NULL,victim,TO_NOTVICT);
-	check_improve(ch,gsn_trip,TRUE,1);
+	check_improve(ch,gsn_trip,TRUE,3);
 	
 	destance(victim, get_mastery(ch, gsn_trip));
 	DAZE_STATE(victim, PULSE_VIOLENCE + victim->size - SIZE_MEDIUM);
@@ -412,7 +412,7 @@ DEF_DO_FUN(do_trip)
     else
     {
 	damage(ch,victim,0,gsn_trip,DAM_BASH,TRUE);
-	check_improve(ch,gsn_trip,FALSE,1);
+	check_improve(ch,gsn_trip,FALSE,3);
     } 
 }
 
@@ -458,7 +458,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     WAIT_STATE( ch, skill_table[gsn_backstab].beats );
     if ( per_chance(chance) || (chance >= 2 && !IS_AWAKE(victim)) )
     {
-        check_improve(ch,gsn_backstab,TRUE,1);
+        check_improve(ch,gsn_backstab,TRUE,2);
 
         bool hit = one_hit(ch, victim, gsn_backstab, FALSE);
         CHECK_RETURN(ch, victim);
@@ -479,7 +479,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         act( "You failed to sneak up on $N.", ch, NULL, victim, TO_CHAR );
         damage( ch, victim, 0, gsn_backstab,DAM_NONE,TRUE);
-        check_improve(ch,gsn_backstab,FALSE,1);
+        check_improve(ch,gsn_backstab,FALSE,2);
     }
 }
 
@@ -523,12 +523,12 @@ DEF_DO_FUN(do_headbutt)
         }
 
         full_dam(ch,victim, dam, gsn_headbutt,dam_type,TRUE);
-        check_improve(ch,gsn_headbutt,TRUE,1);
+        check_improve(ch,gsn_headbutt,TRUE,3);
     }
     else
     {
         damage( ch, victim, 0, gsn_headbutt,DAM_BASH,TRUE);
-        check_improve(ch,gsn_headbutt,FALSE,1);
+        check_improve(ch,gsn_headbutt,FALSE,3);
     }
     return;
 }
@@ -584,7 +584,7 @@ DEF_DO_FUN(do_net)
         act("$n entraps you in a net!",ch,NULL,victim,TO_VICT);
         damage(ch,victim,number_range(2,5),gsn_net,DAM_NONE,FALSE);
         send_to_char("You stumble around in the net!\n\r",victim);
-        check_improve(ch,gsn_net,TRUE,2);
+        check_improve(ch,gsn_net,TRUE,3);
         WAIT_STATE(ch,skill_table[gsn_net].beats);
         WAIT_STATE(victim, PULSE_VIOLENCE); 
         
@@ -601,7 +601,7 @@ DEF_DO_FUN(do_net)
     else
     {
         damage(ch,victim,0,gsn_net,DAM_NONE,TRUE);
-        check_improve(ch,gsn_net,FALSE,2);
+        check_improve(ch,gsn_net,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_net].beats);
     }
 }
@@ -643,11 +643,11 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
         send_to_char("You shoot yourself in the foot!\n\r", ch);
         act( "$n shoots $mself in the foot!", ch, NULL, NULL, TO_ROOM);
         damage(ch, ch, one_hit_damage(ch, ch, sn, first), sn, get_weapon_damtype(first), TRUE);
-        check_improve(ch, sn, FALSE, 2);
+        check_improve(ch, sn, FALSE, 3);
         return;
     }
 
-    check_improve(ch, sn, TRUE, 2);
+    check_improve(ch, sn, TRUE, 3);
     
     // work out number of attacks & chance of jamming
     targeted_attacks = number_range(2,4);
@@ -657,7 +657,7 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
         // plus 1/3 to number of attacks
         targeted_attacks = rand_div(targeted_attacks * 4, 3);
         area_attacks = rand_div(area_attacks * 4, 3);
-        check_improve(ch, gsn_tight_grouping, TRUE, 3);
+        check_improve(ch, gsn_tight_grouping, TRUE, 4);
     }
     jam_chance = (sn == gsn_fullauto ? 4 : sn == gsn_semiauto ? 2 : 1);
 
@@ -919,11 +919,12 @@ DEF_DO_FUN(do_aim)
             }
         }
         check_jam(ch, 1, secondgun);
-        check_improve(ch, gsn_aim, TRUE, 1);
+        check_improve(ch, gsn_aim, TRUE, 3);
     }
     else
     {
         damage( ch, victim, 0, gsn_aim,DAM_NONE,TRUE);
+        check_improve(ch, gsn_aim, FALSE, 3);
     }
         
     return;
@@ -994,7 +995,7 @@ DEF_DO_FUN(do_drunken_fury)
         
         send_to_char("You're drunk and furious!\n\r",ch);
         act("Look out world! $n is drunk and furious!",ch,NULL,NULL,TO_ROOM);
-        check_improve(ch,gsn_drunken_fury,TRUE,2);
+        check_improve(ch,gsn_drunken_fury,TRUE,3);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_drunken_fury;
@@ -1020,7 +1021,7 @@ DEF_DO_FUN(do_drunken_fury)
         ch->move -= cost/2;
         
         send_to_char("You're certainly drunk, but not really furious.\n\r",ch);
-        check_improve(ch,gsn_drunken_fury,FALSE,2);
+        check_improve(ch,gsn_drunken_fury,FALSE,3);
     }
 }
 
@@ -1085,11 +1086,11 @@ DEF_DO_FUN(do_snipe)
             check_assassinate(ch, victim, obj, 5);
         }
         check_jam(ch, 2, secondgun);
-        check_improve(ch,gsn_snipe,TRUE,1);
+        check_improve(ch,gsn_snipe,TRUE,2);
     }
     else
     {
-        check_improve(ch,gsn_snipe,FALSE,1);
+        check_improve(ch,gsn_snipe,FALSE,2);
         damage( ch, victim, 0, gsn_snipe,DAM_NONE,TRUE);
     }
     return;
@@ -1358,14 +1359,14 @@ DEF_DO_FUN(do_rescue)
     if ( number_percent( ) > chance )
     {
         send_to_char( "You fail the rescue.\n\r", ch );
-        check_improve(ch,gsn_rescue,FALSE,1);
+        check_improve(ch,gsn_rescue,FALSE,2);
         return;
     }
     
     act( "You rescue $N!",  ch, NULL, victim, TO_CHAR    );
     act( "$n rescues you!", ch, NULL, victim, TO_VICT    );
     act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
-    check_improve(ch,gsn_rescue,TRUE,1);
+    check_improve(ch,gsn_rescue,TRUE,2);
     
     /* removed to prevent kill-trigger to activate --Bobble
     stop_fighting( fch, FALSE );
@@ -1515,14 +1516,14 @@ DEF_DO_FUN(do_disarm)
         if ( per_chance(chance) )
         {
             disarm( ch, victim, FALSE, get_mastery(ch, gsn_disarm) );
-            check_improve(ch,gsn_disarm,TRUE,1);
+            check_improve(ch,gsn_disarm,TRUE,2);
         }
         else
         {
             act("You fail to disarm $N.",ch,NULL,victim,TO_CHAR);
             act("$n tries to disarm you, but fails.",ch,NULL,victim,TO_VICT);
             act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
-            check_improve(ch,gsn_disarm,FALSE,1);
+            check_improve(ch,gsn_disarm,FALSE,2);
         }
         return;
 }
@@ -1588,7 +1589,7 @@ void split_attack ( CHAR_DATA *ch, int dt )
         if (number_percent() < chance)
         {
             if (get_skill(ch, gsn_dual_wield)==0)
-                check_improve(ch,gsn_second_attack,TRUE,1);
+                check_improve(ch,gsn_second_attack,TRUE,5);
             duals++;
             attacks++;
         }
@@ -1626,7 +1627,7 @@ void split_attack ( CHAR_DATA *ch, int dt )
     if ( number_percent( ) < chance ) 
     {
         attacks +=1;
-        check_improve(ch,gsn_third_attack,TRUE,6);
+        check_improve(ch,gsn_third_attack,TRUE,5);
     }
     
     do {
@@ -1709,7 +1710,7 @@ DEF_DO_FUN(do_gouge)
         act("$n gouges your eyes out!",ch,NULL,victim,TO_VICT);
         damage(ch,victim,number_range(10,30),gsn_gouge,DAM_NONE,FALSE);
         send_to_char("You can't see a thing!\n\r",victim);
-        check_improve(ch,gsn_gouge,TRUE,2);
+        check_improve(ch,gsn_gouge,TRUE,3);
         WAIT_STATE(ch,skill_table[gsn_gouge].beats);
         
         af.where    = TO_AFFECTS;
@@ -1725,7 +1726,7 @@ DEF_DO_FUN(do_gouge)
     else
     {
         damage(ch,victim,0,gsn_gouge,DAM_NONE,TRUE);
-        check_improve(ch,gsn_gouge,FALSE,2);
+        check_improve(ch,gsn_gouge,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_gouge].beats);
     }
 }
@@ -1831,7 +1832,7 @@ DEF_DO_FUN(do_uppercut)
 	dam = martial_damage( ch, victim, gsn_uppercut );
 	dam = number_range( dam, 3*dam );
 
-	check_improve(ch,gsn_uppercut,TRUE,1);
+	check_improve(ch,gsn_uppercut,TRUE,3);
 	
 	chance = skill;
 	chance += (ch->size - victim->size) * 10;
@@ -1854,7 +1855,7 @@ DEF_DO_FUN(do_uppercut)
     else
     {
 	damage( ch, victim, 0, gsn_uppercut, DAM_BASH, TRUE);
-	check_improve(ch,gsn_uppercut,FALSE,1);
+	check_improve(ch,gsn_uppercut,FALSE,3);
     }
 }
 
@@ -1889,14 +1890,14 @@ DEF_DO_FUN(do_war_cry)
         ch->move -= cost/2;
         send_to_char("Your war cry isn't very inspirational.\n\r", ch);
         act("$n embarrasses $mself trying to psych up the troops.", ch, NULL, NULL, TO_ROOM);
-        check_improve(ch, gsn_war_cry, FALSE, 2);
+        check_improve(ch, gsn_war_cry, FALSE, 3);
         return;
     }
         
     ch->move -= cost;
     send_to_char("You scream out a rousing war cry!\n\r",ch);
     act("$n screams a rousing war cry!",ch,NULL,NULL,TO_ROOM);
-    check_improve(ch, gsn_war_cry, TRUE, 2);
+    check_improve(ch, gsn_war_cry, TRUE, 3);
         
     af.where     = TO_AFFECTS;
     af.type      = gsn_war_cry;
@@ -1984,7 +1985,7 @@ DEF_DO_FUN(do_guard)
         act("$n vigilantly guards against your attack.",ch,NULL,victim,TO_VICT);
         act("You vigilantly guard against $N's attack.",ch,NULL,victim,TO_CHAR);
         act("$n vigilantly guards against $N's attack.",ch,NULL,victim,TO_NOTVICT);
-        check_improve(ch,gsn_guard,TRUE,1);
+        check_improve(ch,gsn_guard,TRUE,3);
         WAIT_STATE(ch,skill_table[gsn_guard].beats);
         
         af.where    = TO_AFFECTS;
@@ -2002,7 +2003,7 @@ DEF_DO_FUN(do_guard)
         act("You can't keep track of $N.",ch,NULL,victim,TO_CHAR);
         
         WAIT_STATE(ch,skill_table[gsn_guard].beats*2/3);
-        check_improve(ch,gsn_guard,FALSE,1);
+        check_improve(ch,gsn_guard,FALSE,3);
     } 
     check_killer(ch,victim);
 }
@@ -2065,7 +2066,7 @@ DEF_DO_FUN(do_tumble)
         
         send_to_char("You begin to tumble around avoiding attacks.\n\r",ch);
         act("$n tumbles around avoiding attacks.",ch,NULL,NULL,TO_ROOM);
-        check_improve(ch,gsn_tumbling,TRUE,2);
+        check_improve(ch,gsn_tumbling,TRUE,3);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_tumbling;
@@ -2093,7 +2094,7 @@ DEF_DO_FUN(do_tumble)
         
         act("$n tumbles to the ground painfully.",ch,NULL,NULL,TO_ROOM);
         send_to_char("You tumble to the ground painfully.\n\r",ch);
-        check_improve(ch,gsn_tumbling,FALSE,2);
+        check_improve(ch,gsn_tumbling,FALSE,3);
         DAZE_STATE(ch, PULSE_VIOLENCE);
 
         check_lose_stance(ch);
@@ -2159,14 +2160,14 @@ DEF_DO_FUN(do_feint)
     if ( number_percent( ) > chance)
     {
         send_to_char( "You fail to get away.\n\r", ch );
-        check_improve(ch,gsn_feint,FALSE,1);
+        check_improve(ch,gsn_feint,FALSE,2);
         return;
     }
     
     act( "You feint away from $N!",  ch, NULL, fch, TO_CHAR    );
     act( "$n feints away from you!", ch, NULL, fch, TO_VICT    );
     act( "$n feints away from $N!",  ch, NULL, fch, TO_NOTVICT );
-    check_improve(ch,gsn_feint,TRUE,1);
+    check_improve(ch,gsn_feint,TRUE,2);
     
     stop_fighting( ch, TRUE );
     stop_fighting( fch, TRUE );
@@ -2224,14 +2225,14 @@ DEF_DO_FUN(do_distract)
     if ( number_percent( ) > chance)
     {
         send_to_char( "You fail to create a distraction.\n\r", ch );
-        check_improve(ch,gsn_distract,FALSE,1);
+        check_improve(ch,gsn_distract,FALSE,3);
         return;
     }
     
     act( "You distract $N!",  ch, NULL, victim, TO_CHAR    );
     act( "$n distracts you!", ch, NULL, victim, TO_VICT    );
     act( "$n distracts $N!",  ch, NULL, victim, TO_NOTVICT );
-    check_improve(ch,gsn_distract,TRUE,1);
+    check_improve(ch,gsn_distract,TRUE,3);
     
     check_lose_stance(victim);
 
@@ -2423,7 +2424,7 @@ DEF_DO_FUN(do_shield_bash)
 	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
 	act("You evade $n's shield bash, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_shield_bash,FALSE,1);
+	check_improve(ch,gsn_shield_bash,FALSE,3);
 	set_pos( ch, POS_RESTING );
 	return;
     } 
@@ -2465,7 +2466,7 @@ DEF_DO_FUN(do_shield_bash)
     dam = one_hit_damage(ch, victim, gsn_shield_bash, NULL);
     dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
-    check_improve(ch,gsn_shield_bash,TRUE,1);
+    check_improve(ch,gsn_shield_bash,TRUE,3);
 }
 
 DEF_DO_FUN(do_charge)
@@ -2527,7 +2528,7 @@ DEF_DO_FUN(do_charge)
 	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
 	act("You evade $n's charge, causing $m to fall flat on $s face.",
 	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_charge,FALSE,1);
+	check_improve(ch,gsn_charge,FALSE,2);
 	check_lose_stance(ch);
 	set_pos( ch, POS_RESTING );
 	return;
@@ -2569,7 +2570,7 @@ DEF_DO_FUN(do_charge)
     dam = one_hit_damage(ch, victim, gsn_charge, NULL) * 2;
     dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
     full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
-    check_improve(ch,gsn_charge,TRUE,1);
+    check_improve(ch,gsn_charge,TRUE,2);
 }
 
 DEF_DO_FUN(do_double_strike)
@@ -2653,7 +2654,7 @@ DEF_DO_FUN(do_round_swing)
         send_to_char("You stumble and fall to the ground.\n\r", ch);
         act("$n tries to swing $s weapon but stumbles.", ch, NULL, NULL, TO_ROOM);
         set_pos(ch, POS_RESTING);
-        check_improve(ch, gsn_round_swing, FALSE, 3);
+        check_improve(ch, gsn_round_swing, FALSE, 2);
         return;
     }
 
@@ -2664,7 +2665,7 @@ DEF_DO_FUN(do_round_swing)
 	if ( vch != ch && !is_safe_spell(ch,vch,TRUE))
 	    one_hit( ch, vch, gsn_round_swing, FALSE );
     }
-    check_improve( ch, gsn_round_swing, TRUE, 3 );
+    check_improve( ch, gsn_round_swing, TRUE, 2 );
 }
 
 DEF_DO_FUN(do_spit)
@@ -2717,7 +2718,7 @@ DEF_DO_FUN(do_spit)
         
         damage(ch,victim, dam, gsn_spit,DAM_DROWNING,FALSE);
         send_to_char("You can't see a thing!\n\r",victim);
-        check_improve(ch,gsn_spit,TRUE,2);
+        check_improve(ch,gsn_spit,TRUE,3);
         WAIT_STATE(ch,skill_table[gsn_spit].beats);
         
         af.where    = TO_AFFECTS;
@@ -2734,7 +2735,7 @@ DEF_DO_FUN(do_spit)
     {
         
         damage(ch,victim,0,gsn_spit,DAM_DROWNING,TRUE);
-        check_improve(ch,gsn_spit,FALSE,2);
+        check_improve(ch,gsn_spit,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_spit].beats);
     }
 }
@@ -2781,7 +2782,7 @@ DEF_DO_FUN(do_choke_hold)
         act("You grab $N by the neck and begin to squeeze.",ch,NULL,victim,TO_CHAR);
         act("$n grabs $N by the neck and begins to squeeze.",ch,NULL,victim,TO_NOTVICT);
         
-        check_improve(ch,gsn_choke_hold,TRUE,1);
+        check_improve(ch,gsn_choke_hold,TRUE,3);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_choke_hold;
@@ -2801,7 +2802,7 @@ DEF_DO_FUN(do_choke_hold)
         act("You try to wring $N's neck but fail.",ch,NULL,victim,TO_CHAR);
         /*fail starts fight too -Vodur*/
         damage(ch,victim,0,gsn_choke_hold,DAM_NONE,FALSE);
-        check_improve(ch,gsn_choke_hold,FALSE,1);
+        check_improve(ch,gsn_choke_hold,FALSE,3);
     }
 }
 
@@ -2903,7 +2904,7 @@ DEF_DO_FUN(do_hurl)
         act( "You hurl $N across the room!",  ch, NULL, victim, TO_CHAR    );
         act( "$n hurls you!", ch, NULL, victim, TO_VICT    );
         act( "$n hurls $N across the room!",  ch, NULL, victim, TO_NOTVICT );
-        check_improve(ch,gsn_hurl,TRUE,1);
+        check_improve(ch,gsn_hurl,TRUE,3);
         
         dam = martial_damage( ch, victim, gsn_hurl );
         
@@ -2924,7 +2925,7 @@ DEF_DO_FUN(do_hurl)
     else
     {
         send_to_char( "You fail to hurl your opponent.\n\r", ch );
-        check_improve(ch,gsn_hurl,FALSE,1);
+        check_improve(ch,gsn_hurl,FALSE,3);
         return;
     }
     
@@ -2977,7 +2978,7 @@ DEF_DO_FUN(do_mug)
         dam = martial_damage(ch, victim, gsn_mug);
         
         damage(ch,victim, dam, gsn_mug,DAM_PIERCE,TRUE);
-        check_improve(ch,gsn_mug,TRUE,1);
+        check_improve(ch,gsn_mug,TRUE,3);
         
 	/* no stealing in warfare --Bobble */
 	if ( IS_SET(ch->act, PLR_WAR) )
@@ -3011,7 +3012,7 @@ DEF_DO_FUN(do_mug)
                 adjust_pkgrade( ch, victim, TRUE ); /* True means it's a theft */
             
             send_to_char( buf, ch );
-            check_improve(ch,gsn_mug,TRUE,2);
+            check_improve(ch,gsn_mug,TRUE,3);
             
             if (number_percent() < skill/8)
             {
@@ -3044,7 +3045,7 @@ DEF_DO_FUN(do_mug)
                         if( !IS_NPC(ch) )
                             adjust_pkgrade( ch, victim, TRUE ); /* True means it's a theft */
                     }
-                    check_improve(ch,gsn_mug,TRUE,2);
+                    check_improve(ch,gsn_mug,TRUE,3);
                     return;
                 } /* end obj_found != NULL */
             }  /* end check for chance of stealing items */
@@ -3102,12 +3103,12 @@ DEF_DO_FUN(do_fatal_blow)
             DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
         }
         full_dam(ch, victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
-        check_improve(ch, gsn_fatal_blow, TRUE, 1);
+        check_improve(ch, gsn_fatal_blow, TRUE, 3);
     }
     else
     {
         damage(ch, victim, 0, gsn_fatal_blow, DAM_BASH,TRUE);
-        check_improve(ch,gsn_fatal_blow, FALSE,1);
+        check_improve(ch,gsn_fatal_blow, FALSE,3);
     }
     return;
 }
@@ -3158,7 +3159,7 @@ DEF_DO_FUN(do_intimidate)
 	full_dam( ch, victim, 0, gsn_intimidation, DAM_MENTAL, FALSE );
         return;
     }
-    check_improve( ch, gsn_intimidation, TRUE, 1 );
+    check_improve( ch, gsn_intimidation, TRUE, 2 );
     
     if ( check_dispel(level, victim, skill_lookup("sanctuary")) )
     {
@@ -3256,7 +3257,7 @@ DEF_DO_FUN(do_blackjack)
     {
 	act( "You failed to sneak up on $N.", ch, NULL, victim, TO_CHAR );
         damage( ch, victim, 0, gsn_blackjack, DAM_NONE, TRUE);
-        check_improve(ch,gsn_blackjack,FALSE,1);
+        check_improve(ch,gsn_blackjack,FALSE,2);
 	return;
     }
 
@@ -3266,7 +3267,7 @@ DEF_DO_FUN(do_blackjack)
     {
 	act( "$N staggers but doesn't fall.", ch, NULL, victim, TO_CHAR );
         damage( ch, victim, ch->level, gsn_blackjack, DAM_BASH, TRUE);
-        check_improve(ch,gsn_blackjack,FALSE,1);
+        check_improve(ch,gsn_blackjack,FALSE,2);
 	return;
     }
 
@@ -3704,7 +3705,7 @@ DEF_DO_FUN(do_paroxysm)
     {
         AFFECT_DATA af;
 
-        check_improve(ch,gsn_paroxysm,TRUE,5);
+        check_improve(ch,gsn_paroxysm,TRUE,3);
 
         if ( !one_hit( ch, victim, gsn_paroxysm, FALSE) )
             return;
@@ -4044,7 +4045,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 	act("Your palm quivers but nothing happens!", ch,NULL,victim,TO_CHAR);
 	act("$n misses $s quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
 	act("You evade $n's quivering palm!", ch, NULL, victim, TO_VICT);
-	check_improve(ch,gsn_quivering_palm,FALSE,1);
+	check_improve(ch,gsn_quivering_palm,FALSE,2);
         return;
     } 
         
@@ -4119,7 +4120,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
             
     /* deal damage */
     full_dam(ch, victim, dam, gsn_quivering_palm, DAM_BASH, TRUE);
-    check_improve(ch, gsn_quivering_palm, TRUE, 1);
+    check_improve(ch, gsn_quivering_palm, TRUE, 2);
 
     return;
 }
@@ -4236,7 +4237,7 @@ DEF_DO_FUN(do_smite)
             send_to_char("You feel a brief tingling sensation.\n\r", victim);
     }
 
-    check_improve(ch, gsn_smite, TRUE, 2);
+    check_improve(ch, gsn_smite, TRUE, 3);
 }
 
 DEF_DO_FUN(do_power_attack)

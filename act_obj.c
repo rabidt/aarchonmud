@@ -1240,7 +1240,7 @@ DEF_DO_FUN(do_envenom)
             if (!obj->value[3])
             {
                 obj->value[3] = 1;
-                check_improve(ch,gsn_envenom,TRUE,4);
+                check_improve(ch,gsn_envenom,TRUE,3);
             }
             WAIT_STATE(ch,skill_table[gsn_envenom].beats);
             return;
@@ -1248,7 +1248,7 @@ DEF_DO_FUN(do_envenom)
 
         act("You fail to poison $p.",ch,obj,NULL,TO_CHAR);
         if (!obj->value[3])
-            check_improve(ch,gsn_envenom,FALSE,4);
+            check_improve(ch,gsn_envenom,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_envenom].beats);
         return;
     }
@@ -4182,7 +4182,7 @@ DEF_DO_FUN(do_ignite)
         obj->timer=2;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
 
-        check_improve(ch,gsn_ignite,TRUE,4);
+        check_improve(ch,gsn_ignite,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_ignite].beats);
 
         free_string(obj->owner);
@@ -4203,7 +4203,7 @@ DEF_DO_FUN(do_ignite)
         act( "You try to ignite $p and fail.", ch, obj, NULL, TO_CHAR );
     }
 
-    check_improve(ch,gsn_ignite,FALSE,4);
+    check_improve(ch,gsn_ignite,FALSE,2);
     WAIT_STATE(ch,skill_table[gsn_ignite].beats);
 
     return;
