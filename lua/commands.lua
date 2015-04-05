@@ -50,18 +50,18 @@ end
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-{Cluaquery <type> <selection> [filter] [sort] [width] [limit]
+{Cluaquery [selection] from [type] <where [filter]> <order by [sort]> <width [width]> <limit [limit]>
     {xExecute a query and show results.
 
 Types:
-    area    - AREAs (area_list)
-    op      - OBJPROTOs
-    objs    - OBJs (object_list, live objects)
-    mp      - MOBPROTOs
-    mobs    - CHs (all mobs from char_list)
-    room    - ROOMs
-    reset   - RESETs (includes 'area' and 'room')
-    help    - HELPs
+    area            - AREAs (area_list)
+    objproto or op  - OBJPROTOs
+    objs            - OBJs (object_list, live objects)
+    mobproto or mp  - MOBPROTOs
+    mobs            - CHs (all mobs from char_list)
+    room            - ROOMs
+    reset           - RESETs (includes 'area' and 'room')
+    help            - HELPs
 
     mprog   - PROGs (all mprogs, includes 'area')
     oprog   - PROGS (all oprogs, includes 'area')
@@ -75,8 +75,8 @@ Types:
 
 
 Selection:
-    Determines which fields are shown on output. If '' or default then default
-    values are used, otherwise fields supplied in a list separated by '|' 
+    Determines which fields are shown on output. If * or default then default
+    values are used, otherwise fields supplied in a list separated by ',' 
     character.
 
 Filter (optional):
@@ -111,17 +111,17 @@ Notes:
     accessible.
 
 Examples:
-    luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow") 20
+    luaq level,vnum,shortdescr,x:extra("glow"),area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,x:extra("glow") width 20
 
     Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
     OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
     flag, with each column limited to 20 characters width.
 
-    luaquery mtrig '' 'mobproto.level==90' '' 15
+    luaq * from mtrig where mobproto.level==90 width 15
     Shows default selection for all mprog trigs that are attached to mobs of level 90.
     Results are unsorted but columns are limited to 15 characters.
 
-    luaq reset '' 'command=="M" and arg1==10256'
+    luaq * from reset where command=="M" and arg1==10256
     Show default selection for all resets of mob vnum 10256.
 
 ]])
@@ -360,6 +360,8 @@ local lqtbl={
 
 
 }
+lqtbl.objproto=lqtbl.op
+lqtbl.mobproto=lqtbl.mp
 
 local function luaq_results_con( ch, argument, header, result )
     local ind=1
@@ -387,7 +389,7 @@ local function luaq_results_con( ch, argument, header, result )
             sendtochar( ch, "[n]ext, [q]uit: ")
             local cmd=coroutine.yield()
             
-            if cmd=="n" then
+            if cmd=="n" or cmd=="" then
                 ind=toind+1
                 break
             elseif cmd=="q" then
@@ -400,13 +402,10 @@ local function luaq_results_con( ch, argument, header, result )
 end
 
 function do_luaquery( ch, argument)
-    -- arg checking stuff
-    -- args=arguments(argument, true)
-    
-    --[[if not(args[1]) then
+    if argument=="" or argument=="help" then
         luaquery_usage(ch)
         return
-    end--]]
+    end
 
     local typearg
     local columnarg
@@ -428,14 +427,12 @@ function do_luaquery( ch, argument)
 
 
     local slct_list=argument:sub( 1, ind-1)
-    ch:say(slct_list)
     selection={}
 
 
     local len=slct_list:len()
     local ind=1
     while true do
-        log("meow")
         local token=""
         local instring=false
         local indoubquote=false
@@ -488,13 +485,8 @@ function do_luaquery( ch, argument)
         ind=ind+1
     end
 
-    ch:say("before subs")
-    for k,v in pairs(selection) do
-        ch:say(v)
-    end
 
     typearg=string.match( argument:sub(ind+6), "%w+")
-    ch:say("typearg "..typearg)
     -- what type are we searching ?
     local lqent=lqtbl[typearg]
     if lqent then
@@ -517,22 +509,36 @@ function do_luaquery( ch, argument)
         end
     end
 
-    ch:say("after subs")
-    for k,v in pairs(selection) do
-        ch:say(v)
-    end
-
     local rest_arg=argument:sub(ind+(" from "):len()+typearg:len())
 
     local whereind=string.find(rest_arg, " where ")
     local orderbyind=string.find(rest_arg, " order by ")
-    filterarg=whereind and rest_arg:sub(whereind+7, orderbyind) or ""
+    local widthind=string.find(rest_arg, " width ")
+    local limitind=string.find(rest_arg, " limit ")
+
+    filterarg=whereind and rest_arg:sub(whereind+7, orderbyind or widthind or limitind) or ""
     
-    sortarg=orderbyind and rest_arg:sub(orderbyind+10) or ""     
+    sortarg=orderbyind and rest_arg:sub(orderbyind+10, widthind or limitind) or ""     
     for arg in string.gmatch( sortarg, "([^, ]+),?") do
         sorts=sorts or {}
         table.insert(sorts, arg)
     end    
+
+    if widthind then
+        widtharg=tonumber(rest_arg:sub(widthind+7, limitind))
+        if not widtharg then
+            sendtochar(ch, "width argument must be a number\n\r")
+            return
+        end
+    end
+
+    if limitind then
+        limitarg=tonumber(rest_arg:sub(limitind+7))
+        if not limitarg then
+            sendtochar(ch, "limit argument must be a number\n\r")
+            return
+        end 
+    end
 
 
     -- let's get our result
