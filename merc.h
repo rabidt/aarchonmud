@@ -2625,6 +2625,7 @@ struct  pc_data
     sh_int      highest_level; /* highest level reached during current remort */
     sh_int      condition   [5];
     sh_int      learned     [MAX_SKILL];
+    bool        ready2learn [MAX_SKILL]; /* learn skill more quickly, toggles over time and with usage */
     sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
     sh_int      points;
@@ -5032,8 +5033,7 @@ bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
 int     exp_per_level   args( ( CHAR_DATA *ch ) );
-void    check_improve   args( ( CHAR_DATA *ch, int sn, bool success, 
-					int multiplier ) );
+void    check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp );
 int     group_lookup    args( (const char *name) );
 void    gn_add      args( ( CHAR_DATA *ch, int gn) );
 void    gn_remove   args( ( CHAR_DATA *ch, int gn) );
