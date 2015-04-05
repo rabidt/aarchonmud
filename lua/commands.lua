@@ -60,6 +60,7 @@ Types:
     mobproto or mp  - MOBPROTOs
     mobs            - CHs (all mobs from char_list)
     room            - ROOMs
+    exit            - EXITs (includes 'dir', 'area', and 'room')
     reset           - RESETs (includes 'area' and 'room')
     help            - HELPs
 
@@ -88,7 +89,7 @@ Filter (optional):
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
-    as Selection, except aliases cannot be declared (but can be referenced)..
+    as Selection, except aliases cannot be declared (but can be referenced).
 
 Width (optional):
     An integer value which limits the width of the output columns to the given
@@ -208,7 +209,24 @@ local lqtbl={
         }
     },
 
-
+    exit={
+        getfun=function()
+            local exits={}
+            for _,area in pairs(getarealist()) do
+                for _,room in pairs(area.rooms) do
+                    for _,exit in pairs(room.exits) do
+                        table.insert( exits, 
+                            setmetatable( { ["area"]=area, 
+                                            ["room"]=room,
+                                            ["dir"]=exit  },
+                                          { __index=room[exit]} ) )
+                    end
+                end
+            end
+            return exits
+        end,
+        default_sel={"room.vnum","dir","toroom.vnum"}
+    },
     mprog={
         getfun=function()
             local progs={}
