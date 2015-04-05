@@ -1088,7 +1088,7 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
             }
             else
             {
-                check_improve(ch, sn, FALSE, 2);
+                check_improve(ch, sn, FALSE, 3);
                 return FALSE;
             }
         }
@@ -1339,7 +1339,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
-        check_improve(ch,sn,FALSE,2);
+        check_improve(ch,sn,FALSE,3);
         reduce_mana(ch, mana/2);
         return;
     }
@@ -1722,9 +1722,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
         return dam;
 
     dam += dam * get_focus_bonus(ch) / 100;
-    check_improve(ch, gsn_focus, TRUE, 1);
+    check_improve(ch, gsn_focus, TRUE, 4);
     if ( get_dagger_focus(ch) )
-        check_improve(ch, gsn_dagger_focus, TRUE, 3);
+        check_improve(ch, gsn_dagger_focus, TRUE, 4);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
@@ -1762,7 +1762,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         heal += heal * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
 
         if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
         {
