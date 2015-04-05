@@ -401,12 +401,12 @@ end
 
 function do_luaquery( ch, argument)
     -- arg checking stuff
-    args=arguments(argument, true)
+    -- args=arguments(argument, true)
     
-    if not(args[1]) then
+    --[[if not(args[1]) then
         luaquery_usage(ch)
         return
-    end
+    end--]]
 
     local typearg
     local columnarg
@@ -419,99 +419,126 @@ function do_luaquery( ch, argument)
     local selection
     local sorts
 
-    if args[1] == "select" then
-    -- SQL style query
-        local default_sel=false
 
-        local ind=string.find(argument, " from ")
-        if not ind then
-            sendtochar(ch, "expected 'from' keyword\n\r")
-            return
-        end
-
-
-        local slct_list=argument:sub( ("select "):len()+1, ind-1)
-        ch:say(slct_list)
-        if slct_list == "default" then
-            default_sel=true
-        else
-            selection={}
-            for arg in string.gmatch( slct_list, "([^, ]+),?") do
-                ch:say(arg)
-                table.insert(selection, arg)
-            end
-        end
-
-        typearg=string.match( argument:sub(ind+6), "%w+")
-        -- what type are we searching ?
-        local lqent=lqtbl[typearg]
-        if lqent then
-            getfun=lqent.getfun
-        else
-            sendtochar(ch,"Invalid type arg: "..typearg)
-            return
-        end
-        if default_sel then
-            selection=lqent.default_sel
-        end
-
-        local rest_arg=argument:sub(ind+6+typearg:len())
-
-        local whereind=string.find(rest_arg, " where ")
-        local orderbyind=string.find(rest_arg, " order by ")
-        filterarg=whereind and rest_arg:sub(whereind+7, orderbyind) or ""
-        
-        sortarg=orderbyind and rest_arg:sub(orderbyind+10) or ""     
-        for arg in string.gmatch( sortarg, "([^, ]+),?") do
-            sorts=sorts or {}
-            table.insert(sorts, arg)
-        end    
-    else
-    -- "old" style query    
-        typearg=args[1]
-        columnarg=args[2]
-        
-        -- what type are we searching ?
-        local lqent=lqtbl[typearg]
-        if lqent then
-            getfun=lqent.getfun
-        else
-            sendtochar(ch,"Invalid type arg: "..typearg)
-            return
-        end
-
-        -- which columns are we selecting for output ?
-        if not(columnarg) then
-            sendtochar( ch, "Must provide selection argument.\n\r")
-            return
-        elseif columnarg=="" or columnarg=="default" then
-            selection=lqent.default_sel
-        else
-            selection={}
-            for word in columnarg:gmatch("[^|]+") do
-                table.insert(selection, word)
-            end
-        end
-
-
-        filterarg=args[3]
-        sortarg=args[4]
-        if sortarg then
-            sorts={}
-            for srt in sortarg:gmatch("[^|]+") do
-                table.insert(sorts, srt)
-            end
-        end
-        widtharg=args[5] and tonumber(args[5])
-        limitarg=args[6] and tonumber(args[6])
+    local ind=string.find(argument, " from ")
+    if not ind then
+        sendtochar(ch, "expected 'from' keyword\n\r")
+        return
     end
 
+
+    local slct_list=argument:sub( 1, ind-1)
+    ch:say(slct_list)
+    selection={}
+
+
+    local len=slct_list:len()
+    local ind=1
+    while true do
+        log("meow")
+        local token=""
+        local instring=false
+        local indoubquote=false
+        local insingquote=false
+        local parenslevel=0
+        while true do
+            local char=slct_list:sub(ind,ind)
+            
+            if ind>len 
+            or (char=="," and not(instring) and not(parenslevel>0)) then
+                table.insert(selection,token)
+                break
+            elseif char==" " and not(instring) then
+                -- ignore non literal whitespace
+            elseif char=="(" and not(instring) then
+                parenslevel=parenslevel+1
+                token=token..char
+            elseif char==")" and not(instring) then
+                parenslevel=parenslevel-1
+                token=token..char
+            elseif char=="\"" then
+                if instring then
+                    if indoubquote then
+                        instring=false
+                        doubquote=false
+                    end
+                else 
+                    instring=true
+                    indoubquote=true
+                end
+                token=token..char
+            elseif char=="'" then
+                if instring then
+                    if insingquote then
+                        instring=false
+                        insingquote=false
+                    end
+                else
+                    instring=true
+                    insingquote=true
+                end
+                token=token..char
+            else
+                token=token..char
+            end
+
+            ind=ind+1
+        end
+        if ind>=len then break end
+        ind=ind+1
+    end
+
+    ch:say("before subs")
+    for k,v in pairs(selection) do
+        ch:say(v)
+    end
+
+    typearg=string.match( argument:sub(ind+6), "%w+")
+    ch:say("typearg "..typearg)
+    -- what type are we searching ?
+    local lqent=lqtbl[typearg]
+    if lqent then
+        getfun=lqent.getfun
+    else
+        sendtochar(ch,"Invalid type arg: "..typearg)
+        return
+    end
+
+    -- handle * or default in select list
+    local old_selection=selection
+    selection={}
+    for i,v in ipairs(old_selection) do
+        if v=="*" or v=="default" then
+            for _,field in ipairs(lqent.default_sel) do
+                table.insert(selection, field)
+            end
+        else
+            table.insert(selection,v)
+        end
+    end
+
+    ch:say("after subs")
+    for k,v in pairs(selection) do
+        ch:say(v)
+    end
+
+    local rest_arg=argument:sub(ind+(" from "):len()+typearg:len())
+
+    local whereind=string.find(rest_arg, " where ")
+    local orderbyind=string.find(rest_arg, " order by ")
+    filterarg=whereind and rest_arg:sub(whereind+7, orderbyind) or ""
+    
+    sortarg=orderbyind and rest_arg:sub(orderbyind+10) or ""     
+    for arg in string.gmatch( sortarg, "([^, ]+),?") do
+        sorts=sorts or {}
+        table.insert(sorts, arg)
+    end    
 
 
     -- let's get our result
     local lst=getfun()
     local rslt={}
-    if filterarg then
+    if not(filterarg=="") then
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
