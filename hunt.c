@@ -571,10 +571,10 @@ DEF_DO_FUN(do_hunt)
             if (number_percent () < (chance/4))
             {
                 send_to_char("Someone is hunting you down.\n\r", victim);
-                check_improve(victim, gsn_elude, TRUE, 8);
+                check_improve(victim, gsn_elude, TRUE, 3);
             }
         }
-        else check_improve(victim, gsn_elude, FALSE, 8);
+        else check_improve(victim, gsn_elude, FALSE, 3);
     }
     
    /*
@@ -871,10 +871,10 @@ void hunt_victim( CHAR_DATA *ch )
             if (number_percent () < (eludeskill/4))
             {
                 send_to_char("Someone is hunting you down.\n\r", victim);
-                check_improve(victim, gsn_elude, TRUE, 10);
+                check_improve(victim, gsn_elude, TRUE, 3);
             }
         }
-        else check_improve(victim, gsn_elude, FALSE, 10);
+        else check_improve(victim, gsn_elude, FALSE, 3);
     }
     
     /*
