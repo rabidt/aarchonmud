@@ -78,6 +78,7 @@ Selection:
     Determines which fields are shown on output. If * or default then default
     values are used, otherwise fields supplied in a list separated by ',' 
     character.
+    Additionally, the 'x as y' syntax can be used to define an alias. For instance: name:sub(1,10) as shortname,#spells as spellcount.
 
 Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
@@ -87,7 +88,7 @@ Filter (optional):
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
-    as Selection.
+    as Selection, except aliases cannot be declared (but can be referenced)..
 
 Width (optional):
     An integer value which limits the width of the output columns to the given
@@ -99,8 +100,7 @@ Limit (optional):
     bottom results are printed.
 
 Notes: 
-    'x' can be used optionally to qualify fields. 'x' is necessary to invoke
-    methods (see examples).
+    'x' can be used optionally to qualify fields and methods. See examples.
 
     A field must be in the selection in order to be used in sort.
 
@@ -111,7 +111,7 @@ Notes:
     accessible.
 
 Examples:
-    luaq level,vnum,shortdescr,x:extra("glow"),area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,x:extra("glow") width 20
+    luaq level,vnum,shortdescr,extra("glow") as glow,area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,glow width 20
 
     Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
     OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
@@ -418,7 +418,7 @@ local function get_tokens(str)
             or (char=="," and not(instring) and not(parenslevel>0)) then
                 table.insert(tokens,token)
                 break
-            elseif char==" " and not(instring) and not(parenslevel>0) then
+            --elseif char==" " and not(instring) and not(parenslevel>0) then
                 -- ignore non literal whitespace
             elseif char=="(" and not(instring) then
                 parenslevel=parenslevel+1
@@ -476,6 +476,7 @@ function do_luaquery( ch, argument)
 
     local getfun
     local selection
+    local aliases={}
     local sorts
 
 
@@ -513,6 +514,15 @@ function do_luaquery( ch, argument)
         end
     end
 
+    -- check for aliases in selection
+    for k,v in pairs(selection) do
+        local start,fin=v:find(" as ")
+        if start then
+            aliases[v:sub(fin+1)]=v:sub(1,start-1)
+            selection[k]=v:sub(fin+1)
+        end
+    end
+
     local rest_arg=argument:sub(ind+(" from "):len()+typearg:len())
 
     local whereind=string.find(rest_arg, " where ")
@@ -523,12 +533,16 @@ function do_luaquery( ch, argument)
     filterarg=whereind and rest_arg:sub(whereind+7, orderbyind or widthind or limitind) or ""
     
     if orderbyind then
-        sortarg=rest_arg:sub(orderbyind+10, widthind or limitind)     
+        local last=widthind or limitind
+        last=last and (last-1)
+        sortarg=rest_arg:sub(orderbyind+10, last)     
         sorts=get_tokens(sortarg)
     end
 
     if widthind then
-        widtharg=tonumber(rest_arg:sub(widthind+7, limitind))
+        local last=limitind
+        last=last and (last-1)
+        widtharg=tonumber(rest_arg:sub(widthind+7, last))
         if not widtharg then
             sendtochar(ch, "width argument must be a number\n\r")
             return
@@ -536,7 +550,9 @@ function do_luaquery( ch, argument)
     end
 
     if limitind then
-        limitarg=tonumber(rest_arg:sub(limitind+7))
+        local last
+        last=last and (last-1)
+        limitarg=tonumber(rest_arg:sub(limitind+7, last))
         if not limitarg then
             sendtochar(ch, "limit argument must be a number\n\r")
             return
@@ -546,30 +562,41 @@ function do_luaquery( ch, argument)
 
     -- let's get our result
     local lst=getfun()
+
     local rslt={}
     if not(filterarg=="") then
+        local alias_funcs={}
+        for k,v in pairs(aliases) do
+            alias_funcs[k]=loadstring("return function(x) return "..v.." end")()
+        end
+
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
-            setfenv(vf, 
-                    setmetatable(
-                        {
-                            pairs=pairs
-                        }, 
-                        { 
-                            __index=function(t,k)
-                                if k=="thisarea" then
-                                    return ch.room.area==gobj.area
-                                else
-                                    return gobj[k] 
-                                end
-                            end,
-                            __newindex=function ()
-                                error("Can't set values with luaquery")
-                            end
-                        } 
-                    ) 
-            )
+            local fenv={ pairs=pairs }
+            local mt={ 
+                __index=function(t,k)
+                    if k=="thisarea" then
+                        return ch.room.area==gobj.area
+                    elseif alias_funcs[k] then
+                        return alias_funcs[k](gobj) 
+                    elseif type(gobj[k])=="function" then
+                        return function(...)
+                            return gobj[k](gobj, ...)
+                        end
+                    else
+                        return gobj[k]
+                    end
+                end,
+                __newindex=function ()
+                    error("Can't set values with luaquery")
+                end
+            } 
+            setmetatable(fenv,mt)
+            setfenv(vf, fenv)
+            for k,v in pairs(aliases) do
+                setfenv(alias_funcs[k], fenv)
+            end
             local val=vf()(gobj)
             if val then return true
             else return false end
@@ -587,14 +614,23 @@ function do_luaquery( ch, argument)
     for _,gobj in pairs(rslt) do
         local line={}
         for _,sel in ipairs(selection) do
-            local vf,err=loadstring("return function(x) return "..sel.." end")
+            local vf,err=loadstring("return function(x) return "..(aliases[sel] or sel).." end")
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
                     setmetatable(
                         {
                             pairs=pairs
                         }, 
-                        {   __index=gobj,
+                        {   
+                            __index=function(t,k)
+                                if type(gobj[k])=="function" then
+                                    return function(...)
+                                        return gobj[k](gobj, ...)
+                                    end
+                                else
+                                    return gobj[k]
+                                end
+                            end,
                             __newindex=function () 
                                 error("Can't set values with luaquery") 
                             end
