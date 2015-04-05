@@ -533,12 +533,16 @@ function do_luaquery( ch, argument)
     filterarg=whereind and rest_arg:sub(whereind+7, orderbyind or widthind or limitind) or ""
     
     if orderbyind then
-        sortarg=rest_arg:sub(orderbyind+10, widthind or limitind)     
+        local last=widthind or limitind
+        last=last and (last-1)
+        sortarg=rest_arg:sub(orderbyind+10, last)     
         sorts=get_tokens(sortarg)
     end
 
     if widthind then
-        widtharg=tonumber(rest_arg:sub(widthind+7, limitind))
+        local last=limitind
+        last=last and (last-1)
+        widtharg=tonumber(rest_arg:sub(widthind+7, last))
         if not widtharg then
             sendtochar(ch, "width argument must be a number\n\r")
             return
@@ -546,7 +550,9 @@ function do_luaquery( ch, argument)
     end
 
     if limitind then
-        limitarg=tonumber(rest_arg:sub(limitind+7))
+        local last
+        last=last and (last-1)
+        limitarg=tonumber(rest_arg:sub(limitind+7, last))
         if not limitarg then
             sendtochar(ch, "limit argument must be a number\n\r")
             return
@@ -574,8 +580,12 @@ function do_luaquery( ch, argument)
                         return ch.room.area==gobj.area
                     elseif alias_funcs[k] then
                         return alias_funcs[k](gobj) 
+                    elseif type(gobj[k])=="function" then
+                        return function(...)
+                            return gobj[k](gobj, ...)
+                        end
                     else
-                        return gobj[k] 
+                        return gobj[k]
                     end
                 end,
                 __newindex=function ()
@@ -611,7 +621,16 @@ function do_luaquery( ch, argument)
                         {
                             pairs=pairs
                         }, 
-                        {   __index=gobj,
+                        {   
+                            __index=function(t,k)
+                                if type(gobj[k])=="function" then
+                                    return function(...)
+                                        return gobj[k](gobj, ...)
+                                    end
+                                else
+                                    return gobj[k]
+                                end
+                            end,
                             __newindex=function () 
                                 error("Can't set values with luaquery") 
                             end
