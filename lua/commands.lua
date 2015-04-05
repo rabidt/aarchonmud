@@ -401,36 +401,9 @@ local function luaq_results_con( ch, argument, header, result )
     end
 end
 
-function do_luaquery( ch, argument)
-    if argument=="" or argument=="help" then
-        luaquery_usage(ch)
-        return
-    end
-
-    local typearg
-    local columnarg
-    local filterarg
-    local sortarg
-    local widtharg
-    local limitarg
-
-    local getfun
-    local selection
-    local sorts
-
-
-    local ind=string.find(argument, " from ")
-    if not ind then
-        sendtochar(ch, "expected 'from' keyword\n\r")
-        return
-    end
-
-
-    local slct_list=argument:sub( 1, ind-1)
-    selection={}
-
-
-    local len=slct_list:len()
+local function get_tokens(str)
+    local tokens={}
+    local len=str:len()
     local ind=1
     while true do
         local token=""
@@ -439,13 +412,13 @@ function do_luaquery( ch, argument)
         local insingquote=false
         local parenslevel=0
         while true do
-            local char=slct_list:sub(ind,ind)
+            local char=str:sub(ind,ind)
             
             if ind>len 
             or (char=="," and not(instring) and not(parenslevel>0)) then
-                table.insert(selection,token)
+                table.insert(tokens,token)
                 break
-            elseif char==" " and not(instring) then
+            elseif char==" " and not(instring) and not(parenslevel>0) then
                 -- ignore non literal whitespace
             elseif char=="(" and not(instring) then
                 parenslevel=parenslevel+1
@@ -485,6 +458,37 @@ function do_luaquery( ch, argument)
         ind=ind+1
     end
 
+    return tokens
+end
+
+function do_luaquery( ch, argument)
+    if argument=="" or argument=="help" then
+        luaquery_usage(ch)
+        return
+    end
+
+    local typearg
+    local columnarg
+    local filterarg
+    local sortarg
+    local widtharg
+    local limitarg
+
+    local getfun
+    local selection
+    local sorts
+
+
+    local ind=string.find(argument, " from ")
+    if not ind then
+        sendtochar(ch, "expected 'from' keyword\n\r")
+        return
+    end
+
+
+    local slct_list=argument:sub( 1, ind-1)
+    selection=get_tokens(slct_list)
+
 
     typearg=string.match( argument:sub(ind+6), "%w+")
     -- what type are we searching ?
@@ -518,11 +522,10 @@ function do_luaquery( ch, argument)
 
     filterarg=whereind and rest_arg:sub(whereind+7, orderbyind or widthind or limitind) or ""
     
-    sortarg=orderbyind and rest_arg:sub(orderbyind+10, widthind or limitind) or ""     
-    for arg in string.gmatch( sortarg, "([^, ]+),?") do
-        sorts=sorts or {}
-        table.insert(sorts, arg)
-    end    
+    if orderbyind then
+        sortarg=rest_arg:sub(orderbyind+10, widthind or limitind)     
+        sorts=get_tokens(sortarg)
+    end
 
     if widthind then
         widtharg=tonumber(rest_arg:sub(widthind+7, limitind))
