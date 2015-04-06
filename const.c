@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "shadowblade", THIEF|ASSASSIN|NINJA,
+        { "shadow strike", "shadow body" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
         { "mystic infusion" },
         { 10 },
@@ -5678,6 +5684,28 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_shadow_companion, 0, 0, DUR_NONE,
         "", "shadow companion", ""
+    },
+
+    {
+        "shadow strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_INT, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_strike, 0, 0, DUR_NONE,
+        "", "!shadow strike!", ""
+    },
+
+    {
+        "shadow body",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_body, 0, 0, DUR_NONE,
+        "", "!shadow body!", ""
     },
 
     {
