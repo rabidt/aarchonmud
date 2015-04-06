@@ -4477,7 +4477,8 @@ bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 
     /* attacker */
     if ( IS_AFFECTED(ch, AFF_CHAOS_FADE)
-        && !(ch->stance == STANCE_SHADOWWALK || IS_AFFECTED(ch, AFF_FADE) || NPC_OFF(ch, OFF_FADE)) )
+        && !(ch->stance == STANCE_SHADOWWALK || IS_AFFECTED(ch, AFF_FADE) || NPC_OFF(ch, OFF_FADE))
+        && !per_chance(get_skill(ch, gsn_shadow_strike)) )
         ch_fade = per_chance(15);
     else
         ch_fade = FALSE;
