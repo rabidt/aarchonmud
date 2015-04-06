@@ -365,6 +365,8 @@ sh_int  gsn_elemental_strike;
 sh_int  gsn_savage_frenzy;
 sh_int  gsn_hips;
 sh_int  gsn_shadow_companion;
+sh_int  gsn_shadow_strike;
+sh_int  gsn_shadow_body;
 sh_int  gsn_piercing_blade;
 sh_int  gsn_lethal_hands;
 sh_int  gsn_unarmed_parry;

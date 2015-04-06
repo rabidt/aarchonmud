@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         453
+#define MAX_SKILL         455
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3414,6 +3414,8 @@ extern sh_int  gsn_elemental_strike;
 extern sh_int  gsn_savage_frenzy;
 extern sh_int  gsn_hips;
 extern sh_int  gsn_shadow_companion;
+extern sh_int  gsn_shadow_strike;
+extern sh_int  gsn_shadow_body;
 extern sh_int  gsn_piercing_blade;
 extern sh_int  gsn_lethal_hands;
 extern sh_int  gsn_unarmed_parry;
@@ -4595,6 +4597,7 @@ int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );
 int     offhand_attack_chance( CHAR_DATA *ch, bool improve );
 int     get_twohand_penalty( CHAR_DATA *ch, bool improve );
+int     fade_chance( CHAR_DATA *ch );
 int     dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     shield_block_chance( CHAR_DATA *ch, bool improve );
