@@ -4881,7 +4881,7 @@ int get_spell_damage( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_sn_damage( int sn, int level, CHAR_DATA *ch );
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
-void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
+void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );
 int mastery_adjust_cost( int cost, int mastery );
 int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self );

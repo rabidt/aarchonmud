@@ -635,7 +635,7 @@ DEF_SPELL_FUN(spell_turn_undead)
             if ( !ch->fighting && check_kill_trigger(ch, vch) )
                 return TRUE;
             spell_charm_person(gsn_charm_person, level, ch, (void*)vch, TARGET_CHAR, FALSE);
-            post_spell_process(sn, ch, vch);
+            post_spell_process(sn, level, ch, vch);
         }
         else if (IS_GOOD(ch))
         {   /* Good chars harm undead */
@@ -651,7 +651,7 @@ DEF_SPELL_FUN(spell_turn_undead)
             if ( !ch->fighting && check_kill_trigger(ch, vch) )
                 return TRUE;
             spell_fear(gsn_fear, level, ch, (void*)vch, TARGET_CHAR, FALSE);
-            post_spell_process(sn, ch, vch);
+            post_spell_process(sn, level, ch, vch);
         }
     }
     return TRUE;
@@ -2356,7 +2356,7 @@ DEF_SPELL_FUN(spell_mass_confusion)
             send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
             act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
         }
-        post_spell_process(sn, ch, victim);
+        post_spell_process(sn, level, ch, victim);
     }
 
     return TRUE;

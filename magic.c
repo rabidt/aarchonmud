@@ -1154,7 +1154,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
     }
 }
 
-void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
+void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     // spell triggers
     if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
@@ -1170,20 +1170,21 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
     // mystic infusion heals or harms
     if ( !was_obj_cast && per_chance(get_skill(ch, gsn_mystic_infusion)) )
     {
-        if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
-            && victim->position > POS_SLEEPING && !is_same_group(ch, victim)
-            && has_focus_obj(ch) )
+        int target = skill_table[sn].target;
+        if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF)
+            && victim != ch && victim->in_room == ch->in_room
+            && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
         {
-            int dam = get_sn_damage(sn, ch->level, ch) / 10;
+            int dam = get_sn_damage(sn, ch->level, ch) * 0.2;
             if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
                 dam /= 2;
             deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
         }
-        else if ( skill_table[sn].target == TAR_CHAR_DEFENSIVE
-                || skill_table[sn].target == TAR_OBJ_CHAR_DEF
-                || skill_table[sn].target == TAR_CHAR_SELF )
+        else if ( target == TAR_CHAR_DEFENSIVE
+                || target == TAR_OBJ_CHAR_DEF
+                || target == TAR_CHAR_SELF )
         {
-            int heal = get_sn_heal(sn, ch->level, ch, victim) / 10;
+            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.2;
             if ( victim->hit < victim->max_hit )
             {
                 if ( ch == victim )
@@ -1238,7 +1239,7 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         if ( !success )
             continue;
         
-        post_spell_process(sn, ch, target);
+        post_spell_process(sn, level, ch, target);
     }
 }
 
@@ -1421,7 +1422,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
         if ( target == TARGET_CHAR )
         {
-            post_spell_process(sn, ch, (CHAR_DATA*)vo);
+            post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
             if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
                 chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
         }
@@ -1706,7 +1707,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
     was_obj_cast = FALSE;
 
     if ( success && target == TARGET_CHAR )
-        post_spell_process(sn, ch, (CHAR_DATA*)vo);
+        post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
     
     return success;
 }

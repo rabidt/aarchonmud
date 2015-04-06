@@ -2153,10 +2153,10 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "mystic theurge", CLERIC|TEMPLAR,
-        { "mystic infusion", "focus", "quicken spell" },
-        { 10, 30, 50 },
-        { 100, 75, 75 }
+        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
+        { "mystic infusion" },
+        { 10 },
+        { 100 }
     },
     {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
