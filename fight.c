@@ -3277,6 +3277,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             else if ( victim->stance == STANCE_WENDIGO )
                 dam -= dam / 5;
         }
+        /* shadow strike bonus */
+        if ( per_chance(get_skill(ch, gsn_shadow_strike)) )
+            dam += dam * fade_chance(victim) / 100;
     }
 
     /* religion bonus */
@@ -4447,41 +4450,37 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return FALSE;
 }
 
+int fade_chance( CHAR_DATA *ch )
+{
+    if ( ch->stance == STANCE_SHADOWWALK )
+        return 50;
+    if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_CHAOS_FADE) || NPC_OFF(ch, OFF_FADE) )
+        return 30;
+    if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
+        return 15;
+    return get_skill(ch, gsn_shadow_body) * 0.15;
+}
+
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
 {
     bool ch_fade, victim_fade;
-    int chance;
 
     /* don't fade own attacks */
     if ( victim == ch )
-	return FALSE;
+        return FALSE;
 
     /* victim */
     if ( ch->stance == STANCE_DIMENSIONAL_BLADE )
-	chance = 0;
-    else if ( victim->stance == STANCE_SHADOWWALK )
-	chance = 50;
-    else if ( IS_AFFECTED(victim, AFF_FADE) 
-	      || IS_AFFECTED(victim, AFF_CHAOS_FADE)
-	      || (IS_NPC(victim) && IS_SET(victim->off_flags, OFF_FADE)) )
-	chance = 30;
-    else if ( IS_AFFECTED(victim, AFF_MINOR_FADE ) )
-        chance = 15;
-    else
-	chance = 0;
+        return FALSE;
 
-    victim_fade = ( number_percent() <= chance );
+    victim_fade = per_chance(fade_chance(victim));
 
     /* attacker */
     if ( IS_AFFECTED(ch, AFF_CHAOS_FADE)
-	 && !(ch->stance == STANCE_SHADOWWALK
-	      || IS_AFFECTED(ch, AFF_FADE)
-	      || (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_FADE))) )
-	chance = 15;
+        && !(ch->stance == STANCE_SHADOWWALK || IS_AFFECTED(ch, AFF_FADE) || NPC_OFF(ch, OFF_FADE)) )
+        ch_fade = per_chance(15);
     else
-	chance = 0;
-    
-    ch_fade = ( number_percent() <= chance );
+        ch_fade = FALSE;
 
     /* if none or both fade it's a hit */
     if ( ch_fade == victim_fade )
