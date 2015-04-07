@@ -4621,8 +4621,16 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
     if ( gsn_weapon == gsn_hand_to_hand && !(IS_NPC(ch) && IS_SET(ch->off_flags, OFF_PARRY)) )
-        if ( (skill = get_skill(ch, gsn_unarmed_parry)) == 0 )
+    {
+        int unarmed_skill = get_skill(ch, gsn_unarmed_parry);
+        if ( unarmed_skill == 0 )
             return 0;
+        // against armed opponent, both parry and unarmed parry skills are needed
+        if ( opp && get_weapon_sn(opp) != gsn_hand_to_hand )
+            skill = (skill + unarmed_skill) / 2;
+        else
+            skill = unarmed_skill;
+    }
 
     int opponent_adjust = 0;
     if ( opp )
