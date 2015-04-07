@@ -2153,7 +2153,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "shadowblade", THIEF|ASSASSIN|NINJA,
+        "shadowblade", THIEF|NINJA|ILLUSIONIST,
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
