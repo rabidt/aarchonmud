@@ -2195,6 +2195,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "sacred fist", MONK,
+        { "mantra", "anatomy" },
+        { 30, 50 },
+        { 100, 80 }
+    },
+    {
         "terminator", GUNSLINGER,
         { "rapid fire", "third attack", "bullet rain" },
         { 10, 50, 70 },
