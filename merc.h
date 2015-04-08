@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         455
+#define MAX_SKILL         457
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3423,6 +3423,8 @@ extern sh_int  gsn_mystic_infusion;
 extern sh_int  gsn_rapid_fire;
 extern sh_int  gsn_bullet_rain;
 extern sh_int  gsn_precise_shot;
+extern sh_int  gsn_holy_avenger;
+extern sh_int  gsn_divine_retribution;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4080,6 +4082,11 @@ struct stance_type
 #define MORPH_DRAGON_BLUE     5
 #define MORPH_DRAGON_BLACK    6
 #define MORPH_DRAGON_WHITE    7
+
+/* align constants */
+#define ALIGN_GOOD      1
+#define ALIGN_NEUTRAL   0
+#define ALIGN_EVIL     -1
 
 /*
  * Global constants.

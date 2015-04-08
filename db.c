@@ -374,6 +374,9 @@ sh_int  gsn_mystic_infusion;
 sh_int  gsn_rapid_fire;
 sh_int  gsn_bullet_rain;
 sh_int  gsn_precise_shot;
+sh_int  gsn_holy_avenger;
+sh_int  gsn_divine_retribution;
+
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
