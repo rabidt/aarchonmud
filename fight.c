@@ -1532,6 +1532,16 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     
 }
 
+int get_align_type( CHAR_DATA *ch )
+{
+    if ( IS_GOOD(ch) )
+        return ALIGN_GOOD;
+    else if ( IS_EVIL(ch) )
+        return ALIGN_EVIL;
+    else
+        return ALIGN_NEUTRAL;
+}
+
 int get_weapon_damage( OBJ_DATA *wield )
 {
     int weapon_dam;
@@ -1687,6 +1697,13 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         check_improve (ch, gsn_brutal_damage, TRUE, 10);
     }
 
+    // holy avenger - deal bonus damage against targets of opposing alignment
+    if ( per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
+    {
+        int align_diff = ABS(ch->alignment - victim->alignment);
+        dam += ch->level * align_diff / 4000;
+    }
+    
     /* special attacks */
     if ( dt == gsn_backstab || dt == gsn_back_leap || dt == gsn_snipe ) 
 	dam *= 3; 
@@ -1939,6 +1956,17 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
             full_dam(ch, victim, dam, gsn_elemental_strike, strike_dt, TRUE);
             CHECK_RETURN( ch, victim );
         }
+    }
+    
+    // divine retribution
+    if ( hit && per_chance(get_skill(victim, gsn_divine_retribution))
+        && get_align_type(ch) != get_align_type(victim) )
+    {
+        int align_diff = ABS(ch->alignment - victim->alignment);
+        int dam = victim->level * align_diff / 3000;
+        if ( saves_spell(ch, victim, victim->level, DAM_HOLY) )
+            dam /= 2;
+        full_dam(victim, ch, dam, gsn_divine_retribution, DAM_HOLY, TRUE);
     }
     
     // riposte - 25% chance regardless of hit or miss
@@ -6320,6 +6348,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             || sn == gsn_absolute_zero
             || sn == gsn_epidemic
             || sn == gsn_quirkys_insanity
+            || sn == gsn_divine_retribution
             || sn == gsn_phantasmal_image )
         gag_type = GAG_AURA;
         if ( sn == gsn_dark_reaping )
