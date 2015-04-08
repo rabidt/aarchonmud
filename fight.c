@@ -1701,7 +1701,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     if ( per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
-        dam += ch->level * align_diff / 4000;
+        dam += ch->level * align_diff / 3000;
     }
     
     /* special attacks */
@@ -1963,10 +1963,11 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
-        int dam = victim->level * align_diff / 3000;
-        if ( saves_spell(ch, victim, victim->level, DAM_HOLY) )
+        int dam = victim->level * align_diff / 2000;
+        int damtype = IS_GOOD(victim) ? DAM_HOLY : IS_EVIL(victim) ? DAM_NEGATIVE : DAM_HARM;
+        if ( saves_spell(ch, victim, victim->level, damtype) )
             dam /= 2;
-        full_dam(victim, ch, dam, gsn_divine_retribution, DAM_HOLY, TRUE);
+        full_dam(victim, ch, dam, gsn_divine_retribution, damtype, TRUE);
     }
     
     // riposte - 25% chance regardless of hit or miss
