@@ -5965,7 +5965,7 @@ DEF_DO_FUN(do_showsubclass)
     
     if ( argument[0] == '\0' )
     {
-        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+        send_to_char("Syntax: showsubclass <subclass|class|byclass|all>\n\r", ch);
         return;
     }
     
@@ -5984,6 +5984,23 @@ DEF_DO_FUN(do_showsubclass)
         return;
     }
 
+    if ( !strcmp(argument, "byclass") )
+    {
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            bool first = TRUE;
+            ptc(ch, "%12s:", class_table[class].name);
+            for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+                if ( can_take_subclass(class, sc) )
+                {
+                    ptc(ch, "%s %s", first ? "" : ",", subclass_table[sc].name);
+                    first = FALSE;
+                }
+            ptc(ch, "\n\r");
+        }
+        return;
+    }
+    
     if ( (sc = subclass_lookup(argument)) > 0 )
     {
         show_subclass(ch, sc);
