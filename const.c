@@ -2189,6 +2189,12 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80, 80 }
     },
     {
+        "crusader", PALADIN|TEMPLAR,
+        { "holy avenger", "divine retribution" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
         "shaolin", NINJA|MONK,
         { "lethal hands", "unarmed parry" },
         { 10, 30 },
@@ -5789,6 +5795,28 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_precise_shot, 0, 0, DUR_NONE,
         "", "!precise shot!", ""
+    },
+
+    {
+        "holy avenger",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_STR, STAT_WIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_holy_avenger, 0, 0, DUR_NONE,
+        "", "!holy avenger!", ""
+    },
+
+    {
+        "divine retribution",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_INT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_divine_retribution, 0, 0, DUR_NONE,
+        "divine retribution", "!divine retribution!", ""
     },
 
     {
