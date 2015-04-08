@@ -4493,7 +4493,9 @@ DEF_DO_FUN(do_smite)
         return;
     
     // chance to dispel if fighting opposing alignment
-    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim))) && !number_bits(2) )
+    bool avenger = per_chance(get_skill(ch, gsn_holy_avenger));
+    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim)))
+        && (avenger || !number_bits(2)) )
     {
         int level = ch->level * skill / 100;
         act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
