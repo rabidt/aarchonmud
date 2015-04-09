@@ -2954,7 +2954,7 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
     case(IS_RESISTANT): 
         return dam - dam/4;
     case(IS_VULNERABLE):
-        return dam + dam/3;
+        return dam + dam * (100 + 2*get_skill(ch, gsn_exploit_weakness)) / 300;
     default: 
         return dam;
     }
