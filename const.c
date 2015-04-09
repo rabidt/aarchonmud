@@ -2165,6 +2165,12 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
+        "warpriest", CLERIC,
+        { "heroism", "divine power" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
         { "combat casting", "second attack", "dimensional blade" },
         { 10, 50, 90 },
@@ -5834,6 +5840,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_exploit_weakness, 0, 0, DUR_NONE,
         "", "!exploit weakness!", ""
+    },
+
+    {
+        "divine power",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_LUC,
+        spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
+        NULL, 150, 12, DUR_BRIEF,
+        "", "divine power", ""
     },
 
     {
