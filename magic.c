@@ -63,6 +63,9 @@ char* wear_location_info( int pos );
 int skill_lookup( const char *name )
 {
     int sn;
+    
+    if ( (sn = skill_lookup_exact(name)) >= 0 )
+        return sn;
 
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
@@ -85,6 +88,56 @@ int skill_lookup_exact( const char *name )
         if ( skill_table[sn].name == NULL )
             break;
         if ( !strcmp(name, skill_table[sn].name) )
+            return sn;
+    }
+
+    return -1;
+}
+
+int known_skill_lookup( CHAR_DATA *ch, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+
+    return -1;
+}
+
+int class_skill_lookup( int class, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
             return sn;
     }
 
