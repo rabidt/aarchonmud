@@ -550,7 +550,7 @@ DEF_DO_FUN(do_gain)
             ch->train -= group_cost;
             return;
         }
-        else if ( (sn = skill_lookup(argument)) > 0 )
+        else if ( (sn = class_skill_lookup(ch->class, argument)) > 0 )
         {
             gain_skill(ch, sn, trainer);
             return;
@@ -836,7 +836,7 @@ DEF_DO_FUN(do_master)
 
         return;
     }
-    else if ( (sn = skill_lookup(argument)) > 0 )
+    else if ( (sn = known_skill_lookup(ch, argument)) > 0 )
     {
         int max_mastery = max_mastery_level(ch, sn);
         int current_mastery = ch->pcdata->mastered[sn];
@@ -934,7 +934,8 @@ DEF_DO_FUN(do_skill)
         return;
     }
 
-    if ( (sn = skill_lookup(argument)) < 0 )
+    if ( (sn = class_skill_lookup(ch->class, argument)) < 0
+        && (sn = skill_lookup(argument)) < 0 )
     {
         send_to_char( "That skill doesn't exist.\n\r", ch );
         return;
@@ -2364,7 +2365,7 @@ DEF_DO_FUN(do_hpractice)
         return;
     }
 
-    int sn = skill_lookup(argument);
+    int sn = known_skill_lookup(ch, argument);
     if ( sn < 0 || IS_NPC(ch) || ch->level < skill_table[sn].skill_level[ch->class] )
     {
         send_to_char( "You can't practice that.\n\r", ch );
@@ -2511,7 +2512,7 @@ DEF_DO_FUN(do_practice)
             }
 	}
 	
-	  if ( (sn = skill_lookup(argument)) < 0
+	  if ( (sn = known_skill_lookup(ch, argument)) < 0
 		 || ( !IS_NPC(ch)
 		 &&   (ch->level < skill_table[sn].skill_level[ch->class]
 		 ||    ch->pcdata->learned[sn] < 1 /* skill is not known */
@@ -2881,8 +2882,8 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
         (skill_table[skill].stat_third>=STAT_NONE) ? "none" :
         stat_table[skill_table[skill].stat_third].name);
 
-    if (IS_IMMORTAL(ch))
-        add_buff(buffer, "Skill Number: %d\n\r", skill_lookup(argument));
+    //if (IS_IMMORTAL(ch))
+    //    add_buff(buffer, "Skill Number: %d\n\r", skill_lookup(argument));
     
     add_buff(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
     add_buff(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");
