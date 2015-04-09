@@ -2195,6 +2195,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "slayer", ASSASSIN,
+        { "estimate", "exploit weakness" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
         "shaolin", NINJA|MONK,
         { "lethal hands", "unarmed parry" },
         { 10, 30 },
@@ -5817,6 +5823,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_divine_retribution, 0, 0, DUR_NONE,
         "divine retribution", "!divine retribution!", ""
+    },
+
+    {
+        "exploit weakness",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_exploit_weakness, 0, 0, DUR_NONE,
+        "", "!exploit weakness!", ""
     },
 
     {
