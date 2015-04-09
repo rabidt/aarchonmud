@@ -2398,6 +2398,35 @@ DEF_SPELL_FUN(spell_heroism)
     return TRUE;
 }
 
+DEF_SPELL_FUN(spell_divine_power)
+{
+    SPELL_CHECK_RETURN
+    
+    AFFECT_DATA af;
+    
+    if ( is_affected(ch, sn) )
+    {
+        send_to_char("You are already infused with divine power.\n\r", ch);
+        return SR_AFFECTED;
+    }
+    
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_HITROLL;
+    af.modifier  = 10 + level;
+    af.bitvector = AFF_HASTE;
+    affect_to_char(ch, &af);
+    af.location  = APPLY_DAMROLL;
+    af.bitvector = AFF_GIANT_STRENGTH;
+    affect_to_char(ch, &af);
+    
+    send_to_char( "Your feel infused with divine power.\n\r", ch );
+    
+    return TRUE;
+}
+
 DEF_SPELL_FUN(spell_deaths_door)
 {
     SPELL_CHECK_RETURN
