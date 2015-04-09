@@ -4839,6 +4839,8 @@ int get_duration( int sn, int level );
 int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 int skill_lookup_exact( const char *name );
+int known_skill_lookup( CHAR_DATA *ch, const char *name );
+int class_skill_lookup( int class, const char *name );
 int spell_lookup( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
@@ -5029,6 +5031,7 @@ void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
+bool is_class_skill( int class, int sn );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
