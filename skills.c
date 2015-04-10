@@ -2191,6 +2191,7 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 int pc_get_skill(CHAR_DATA *ch, int sn)
 {
 	int skill,race_skill,i;
+    bool has_skill = FALSE;
 
 	if (sn == -1) /* shorthand for level based skills */
 	{
@@ -2209,13 +2210,20 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	{
 		skill = ch->pcdata->learned[sn];
 		skill = (skill*skill_table[sn].cap[ch->class])/10;
+        has_skill = TRUE;
 	}
 
 	/* adjust for race skill */
 	race_skill = get_race_skill( ch, sn );
 	if ( race_skill > 0 )
+    {
 	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
+        has_skill = TRUE;
+    }
 
+    if ( !has_skill )
+        return 0;
+    
     // adjustment for stats below max
 	if (skill)
 	{
@@ -2231,7 +2239,7 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
 		skill = 9 * skill / 10;
 
-        skill = URANGE(0,skill/10,100);
+        skill = URANGE(1, skill/10, 100);
 
         return skill;
 }
@@ -2281,7 +2289,7 @@ int get_skill(CHAR_DATA *ch, int sn)
     if ( skill > 1 && IS_AFFECTED(ch, AFF_PLAGUE) )
         skill -= 1;
 
-    return skill;
+    return URANGE(1, skill, 100);
 }
 
 /* This is used for returning the practiced % of a skill for a player */
