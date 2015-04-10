@@ -1297,7 +1297,7 @@ const struct stance_type stances [] =
         { "aversion",         STANCE_AVERSION,            0,             "",
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
-          &gsn_serpent,             TRUE, FALSE,          22 },
+          &gsn_serpent,             TRUE, FALSE,          18 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };
