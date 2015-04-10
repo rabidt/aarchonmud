@@ -63,6 +63,9 @@ char* wear_location_info( int pos );
 int skill_lookup( const char *name )
 {
     int sn;
+    
+    if ( (sn = skill_lookup_exact(name)) >= 0 )
+        return sn;
 
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
@@ -88,6 +91,67 @@ int skill_lookup_exact( const char *name )
             return sn;
     }
 
+    return -1;
+}
+
+int known_skill_lookup( CHAR_DATA *ch, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+
+    return -1;
+}
+
+int class_skill_lookup( int class, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
+            return sn;
+    }
+
+    return -1;
+}
+
+int affect_list_lookup( AFFECT_DATA *aff, const char *name )
+{
+    while ( aff )
+    {
+        if ( !str_prefix(name, skill_table[aff->type].name) )
+            return aff->type;
+        aff = aff->next;
+    }
     return -1;
 }
 
@@ -631,9 +695,9 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             }
             else
             {
-                if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+                if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
                 {
-                    send_to_char( "They aren't here.\n\r", ch );
+                    send_to_char( "You can't find your victim.\n\r", ch );
                     return FALSE;
                 }
             }
@@ -678,7 +742,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             break;
 
         case TAR_CHAR_SELF:
-            if ( arg[0] != '\0' && !is_name( arg, ch->name ) )
+            if ( arg[0] != '\0' && strcmp(arg, "self") && !is_name( arg, ch->name ) )
             {
                 send_to_char( "You cannot cast this spell on another.\n\r", ch );
                 return FALSE;
@@ -738,7 +802,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
 
                 *target = TARGET_CHAR;
             }
-            else if ((victim = get_char_room(ch,arg)) != NULL)
+            else if ((victim = get_victim_room(ch,arg)) != NULL)
             {
                 *target = TARGET_CHAR;
             }
@@ -1091,7 +1155,7 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
             }
             else
             {
-                check_improve(ch, sn, FALSE, 2);
+                check_improve(ch, sn, FALSE, 3);
                 return FALSE;
             }
         }
@@ -1374,7 +1438,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
-        check_improve(ch,sn,FALSE,2);
+        check_improve(ch,sn,FALSE,3);
         reduce_mana(ch, mana/2);
         return;
     }
@@ -1617,12 +1681,12 @@ DEF_DO_FUN(do_wish)
 /*
  * Cast spells at targets using a magical object.
  */
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg )
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *argument, bool check )
 {
+    char arg[MAX_INPUT_LENGTH];
     void *vo;
     int target;
     int levelmod;
-    bool cast_self = FALSE;
 
     if ( sn <= 0 )
         return FALSE;
@@ -1645,7 +1709,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
 
     if ( level > 1 )
     {
-        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) )
+        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) && !check )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
         level = level * (900 + levelmod) / 1000;
     }
@@ -1671,27 +1735,22 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
         }
     }
 
-    /* check for self-only spells */
-    if ( !str_cmp(arg, "self") )
-    {
-        cast_self = TRUE;
-        arg = ch->name;
-    }
-
+    target_name = one_argument(argument, arg);
+    
     /* get target */
     if ( !get_spell_target( ch, arg, sn, &target, &vo ) )
         return FALSE;
 
-    if ( cast_self && vo != ch )
-    {
-        if ( target == TARGET_CHAR )
-            vo = (void*) ch;
-        else
-            return FALSE;
-    }
-
+    // check if spell could be cast successfully
+    // that's done via a call to the spell function with check = TRUE
+    // sending appropriate failure message is job of the spell function
+    if ( !(*skill_table[sn].spell_fun)(sn, level, ch, vo, target, TRUE) )
+        return FALSE;
+    
+    if ( check )
+        return TRUE;
+    
     /* execute spell */
-    target_name = arg;
     vo = check_reflection( sn, level, ch, vo, target );
 
     // remove invisibility
@@ -1762,9 +1821,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
         return dam;
 
     dam += dam * get_focus_bonus(ch) / 100;
-    check_improve(ch, gsn_focus, TRUE, 1);
+    check_improve(ch, gsn_focus, TRUE, 4);
     if ( get_dagger_focus(ch) )
-        check_improve(ch, gsn_dagger_focus, TRUE, 3);
+        check_improve(ch, gsn_dagger_focus, TRUE, 4);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
@@ -1802,7 +1861,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         heal += heal * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
 
         if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
         {
@@ -2195,7 +2254,7 @@ DEF_SPELL_FUN(spell_cancellation)
     const char *arg = one_argument( target_name, NULL);
     if ( arg[0] != '\0' )
     {
-        int sn = skill_lookup(arg);
+        int sn = affect_list_lookup(victim->affected, arg);
 
         if ( sn == -1 )
         {

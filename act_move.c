@@ -312,10 +312,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             else if ( per_chance(get_skill(ch, gsn_climbing)) )
             {
                 move -= climb_cost;
-                check_improve(ch,gsn_climbing,TRUE,6);
+                check_improve(ch,gsn_climbing,TRUE,3);
             }
             else
-                check_improve(ch,gsn_climbing,FALSE,6);
+                check_improve(ch,gsn_climbing,FALSE,3);
         }
                     
         int waitpulse = 2 + move / 6;
@@ -598,13 +598,13 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     if ( !per_chance(chance) )
     {
         send_to_char("You paddle around and get nowhere.\n\r", ch);
-        check_improve(ch, gsn_swimming, FALSE, 2);
+        check_improve(ch, gsn_swimming, FALSE, 3);
         if ( inwater == SECT_UNDERWATER )
             check_drown(ch);
         return FALSE;
     }
     else
-        check_improve(ch, gsn_swimming, TRUE, 2);
+        check_improve(ch, gsn_swimming, TRUE, 3);
     
     if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
     {
@@ -1384,7 +1384,7 @@ DEF_DO_FUN(do_estimate)
     WAIT_STATE(ch, skill_table[gsn_estimate].beats);
 
     /* do now so we can just return later */
-    check_improve(ch, gsn_estimate, TRUE, 1);
+    check_improve(ch, gsn_estimate, TRUE, 3);
 	
     /* some simple info */
     sprintf( buf, "%s is %s.\n\r", victim->short_descr, char_look_info(victim) );
@@ -1546,7 +1546,7 @@ DEF_DO_FUN(do_shoot_lock)
         if ( !IS_NPC(ch) && number_percent() > skill )
         {
             send_to_char( "You miss the lock completely.\n\r", ch);
-	        check_improve(ch,gsn_shoot_lock,FALSE,2);
+	        check_improve(ch,gsn_shoot_lock,FALSE,1);
 	        return;
         }  
         
@@ -1577,7 +1577,7 @@ DEF_DO_FUN(do_shoot_lock)
 	    REMOVE_BIT(pexit->exit_info, EX_LOCKED);
 	    send_to_char( "*BLAM!*\n\r", ch );
 	    act( "$n blows away the lock on the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-	    check_improve(ch,gsn_shoot_lock,TRUE,2);
+	    check_improve(ch,gsn_shoot_lock,TRUE,1);
 	  
 	    /* pick the other side */
 	    if ( ( to_room   = pexit->u1.to_room            ) != NULL
@@ -1646,14 +1646,14 @@ DEF_DO_FUN(do_unjam)
 	REMOVE_BIT(obj->extra_flags,ITEM_JAMMED);
 	act("$n unjams $s weapon!",ch,obj,NULL,TO_ROOM);
 	act("You unjam $p.",ch,obj,NULL,TO_CHAR);
-	check_improve(ch,gsn_unjam,TRUE,4);
+	check_improve(ch,gsn_unjam,TRUE,2);
 	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
 	return;
     }
     else
     {
 	act("You fail to unjam $p.",ch,obj,NULL,TO_CHAR);
-	check_improve(ch,gsn_unjam,FALSE,4);
+	check_improve(ch,gsn_unjam,FALSE,2);
 	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
 	return;
     }
@@ -1685,13 +1685,13 @@ DEF_DO_FUN(do_set_snare)
 		    send_to_char("You set up a snare.\n\r", ch);
 		    act("$n sets a snare.", ch, NULL, NULL, TO_ROOM);
 		    SET_BIT( in_room->room_flags, ROOM_SNARE );   
-		    check_improve(ch, gsn_set_snare, TRUE, 2); 
+		    check_improve(ch, gsn_set_snare, TRUE, 3); 
 		}
 	    
 	    else
 		{
 		    send_to_char("Your snare doesn't quite work.\n\r", ch);
-		    check_improve(ch, gsn_set_snare, FALSE, 2); 
+		    check_improve(ch, gsn_set_snare, FALSE, 3); 
 		}
 	    
 	}
@@ -1723,13 +1723,13 @@ DEF_DO_FUN(do_peel)
 		    act("$n drops a banana peel, hope nobody slips.", ch, NULL,
 			NULL, TO_ROOM);
 		    SET_BIT( in_room->room_flags, ROOM_PEEL );
-		    check_improve(ch, gsn_peel, TRUE, 2);
+		    check_improve(ch, gsn_peel, TRUE, 3);
                 }
 	    
 	    else
                 {
 		    send_to_char("The peel sticks to your hand.\n\r", ch);
-		    check_improve(ch, gsn_peel, FALSE, 2);
+		    check_improve(ch, gsn_peel, FALSE, 3);
                 }
 	    
 	}
@@ -1839,7 +1839,7 @@ DEF_DO_FUN(do_pick)
             if ( number_percent() > skill )
             {
                 send_to_char( "You failed.\n\r", ch);
-                check_improve(ch,gsn_pick_lock,FALSE,2);
+                check_improve(ch,gsn_pick_lock,FALSE,1);
                 WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
@@ -1847,7 +1847,7 @@ DEF_DO_FUN(do_pick)
             I_REMOVE_BIT(obj->value[1],EX_LOCKED);
             act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
             act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-            check_improve(ch,gsn_pick_lock,TRUE,2);
+            check_improve(ch,gsn_pick_lock,TRUE,1);
             WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
@@ -1887,7 +1887,7 @@ DEF_DO_FUN(do_pick)
             if ( number_percent() > skill )
             {
                 send_to_char( "You failed.\n\r", ch);
-                check_improve(ch,gsn_pick_lock,FALSE,2);
+                check_improve(ch,gsn_pick_lock,FALSE,1);
                 WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
@@ -1896,7 +1896,7 @@ DEF_DO_FUN(do_pick)
         I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
         act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
         act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-        check_improve(ch,gsn_pick_lock,TRUE,2);
+        check_improve(ch,gsn_pick_lock,TRUE,1);
         WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
         return;
     }
@@ -1941,7 +1941,7 @@ DEF_DO_FUN(do_pick)
         if (  number_percent() > skill )
         {
             send_to_char( "You failed.\n\r", ch);
-            check_improve(ch,gsn_pick_lock,FALSE,2);
+            check_improve(ch,gsn_pick_lock,FALSE,1);
             WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
@@ -1950,7 +1950,7 @@ DEF_DO_FUN(do_pick)
         send_to_char( "*Click*\n\r", ch );
         act( "$n picks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
         WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
-        check_improve(ch,gsn_pick_lock,TRUE,2);
+        check_improve(ch,gsn_pick_lock,TRUE,1);
         
         /* pick the other side */
         if ( ( to_room   = pexit->u1.to_room            ) != NULL
@@ -2133,6 +2133,9 @@ DEF_DO_FUN(do_rest)
 		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
 		 return;
 	  }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_REST) )
+            return;
 	  
 	  ch->on = obj;
    }
@@ -2429,6 +2432,9 @@ DEF_DO_FUN(do_sleep)
 			return;
 		 }
 		 
+         if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SLEEP) )
+            return;
+
 		 ch->on = obj;
 		 if (I_IS_SET(obj->value[2],SLEEP_AT))
 		 {
@@ -2778,7 +2784,7 @@ DEF_DO_FUN(do_recall)
         if ( (lose = get_skill(victim, gsn_entrapment)) )
 		{
 			skill -= lose/3;
-			check_improve(victim, gsn_entrapment, TRUE, 10);
+			check_improve(victim, gsn_entrapment, TRUE, 1);
 		}
 
 		if (victim->stance == STANCE_AMBUSH)
