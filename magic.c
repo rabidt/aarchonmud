@@ -144,6 +144,17 @@ int class_skill_lookup( int class, const char *name )
     return -1;
 }
 
+int affect_list_lookup( AFFECT_DATA *aff, const char *name )
+{
+    while ( aff )
+    {
+        if ( !str_prefix(name, skill_table[aff->type].name) )
+            return aff->type;
+        aff = aff->next;
+    }
+    return -1;
+}
+
 /*
  * Lookup a spell by name.
  */
@@ -2208,7 +2219,7 @@ DEF_SPELL_FUN(spell_cancellation)
     const char *arg = one_argument( target_name, NULL);
     if ( arg[0] != '\0' )
     {
-        int sn = skill_lookup(arg);
+        int sn = affect_list_lookup(victim->affected, arg);
 
         if ( sn == -1 )
         {
