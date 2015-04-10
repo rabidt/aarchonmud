@@ -2129,7 +2129,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     // precise shot offers auto-hit chance
     bool precise_shot = is_ranged_weapon(wield) && !is_spray_attack
-        && number_bits(3) == 0 && per_chance(get_skill(ch, gsn_precise_shot));
+        && (dt == gsn_snipe || dt == gsn_aim || number_bits(3) == 0)
+        && per_chance(get_skill(ch, gsn_precise_shot));
     
     if ( precise_shot )
     {
