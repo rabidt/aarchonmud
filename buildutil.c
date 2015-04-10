@@ -1276,11 +1276,11 @@ DEF_DO_FUN(do_vnum)
 	do_ofind(ch,argument);
 }
 
-/* find mprog with given substring */
-DEF_DO_FUN(do_mpfind)
+/* find prog with given substring */
+DEF_DO_FUN(do_progfind)
 {
     char buf[MAX_STRING_LENGTH];
-    PROG_CODE *mprog;
+    PROG_CODE *prog;
     int i;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
@@ -1291,17 +1291,61 @@ DEF_DO_FUN(do_mpfind)
 
     if ( argument[0] == '\0' )
     {
-	send_to_char( "Syntax: mpfind <substring>\n\r", ch );
-	return;
+        send_to_char( "Syntax: progfind <substring>\n\r", ch );
+        return;
     }
 
+    send_to_char( "\n\rMPROG:\n\r", ch );
     for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
-	if ( (mprog = get_mprog_index(i)) != NULL ) 
-	    if ( strstr(mprog->code, argument) )
-	    {
-		sprintf( buf, "[%5d] %s\n\r", mprog->vnum, first_line(mprog->code) );
-		send_to_char( buf, ch );
-	    }
+    {
+        if ( (prog = get_mprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rOPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_oprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rAPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_aprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rRPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_rprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
 }
 
 /* find links into or out of an area */
@@ -2554,7 +2598,18 @@ DEF_DO_FUN(do_oset)
    
     if ( !str_prefix( arg2, "extra" ) )
     {
-        //obj->extra_flags = value;
+        int flag = flag_lookup(arg3, extra_flags);
+        if ( flag == NO_FLAG )
+        {
+            ptc(ch, "Unknown flag '%s'.\n\r", arg3);
+            return;
+        }
+        if ( !extra_flags[flag].settable )
+        {
+            ptc(ch, "The %s flag cannot be set.\n\r", extra_flags[flag].name);
+            return;
+        }
+        TOGGLE_BIT(obj->extra_flags, flag);
         return;
     }
     

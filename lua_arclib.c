@@ -3441,6 +3441,36 @@ static int CH_set_acpcnt (lua_State *LS)
     return 0;
 }
 
+static int CH_set_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 120 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 120");
+    }
+    
+    ud_ch->wait=val;
+
+    return 0;
+}
+
+static int CH_set_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 10 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 10");
+    }
+    
+    ud_ch->stop=val;
+
+    return 0;
+}
+
 static int CH_get_hitroll (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -3947,6 +3977,20 @@ static int CH_get_fighting (lua_State *LS)
         return 1;
 }
 
+static int CH_get_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->wait);
+    return 1;
+}
+
+static int CH_get_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->stop);
+    return 1;
+}
+
 static int CH_get_heshe (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4436,6 +4480,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(isfollow, 0),
     CHGET(isactive, 0),
     CHGET(fighting, 0),
+    CHGET(stopcount, 0),
+    CHGET(waitcount, 0),
     CHGET(heshe, 0),
     CHGET(himher, 0),
     CHGET(hisher, 0),
@@ -4498,6 +4544,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 5),
     CHSET(cha, 5),
     CHSET(luc, 5),
+    CHSET(stopcount, 5),
+    CHSET(waitcount, 5),
     CHSET(acpcnt, 5),
     CHSET(acbase, 5),
     CHSET(hrpcnt, 5),

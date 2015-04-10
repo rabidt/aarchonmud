@@ -251,7 +251,7 @@ DECLARE_DO_FUN( do_memory   );
 DECLARE_DO_FUN( do_merge    );
 DECLARE_DO_FUN( do_mfind    );
 DECLARE_DO_FUN( do_mindflay );
-DECLARE_DO_FUN( do_mpfind   );
+DECLARE_DO_FUN( do_progfind   );
 DECLARE_DO_FUN( do_mload    );
 DECLARE_DO_FUN( do_morph    );
 DECLARE_DO_FUN( do_mortlag  );

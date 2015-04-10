@@ -564,6 +564,8 @@ const struct flag_type oprog_flags[] =
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
     {   "sit",          OTRIG_SIT,       TRUE    },
+    {   "rest",         OTRIG_REST,      TRUE    },
+    {   "sleep",        OTRIG_SLEEP,     TRUE    },
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
@@ -1295,7 +1297,7 @@ const struct stance_type stances [] =
         { "aversion",         STANCE_AVERSION,            0,             "",
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
-          &gsn_serpent,             TRUE, FALSE,          22 },
+          &gsn_serpent,             TRUE, FALSE,          18 },
         { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
             &gsn_blade_barrier,     FALSE, TRUE,          20 },
         { "bullet rain",      STANCE_BULLET_RAIN,         0,             "",
