@@ -3025,13 +3025,18 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int armor_absorb = number_range(0, armor/50);
         if ( armor_absorb > dam/2 )
             armor_absorb = dam/2;
+        if ( ch->stance == STANCE_DIMENSIONAL_BLADE )
+            armor_absorb /= 2;
         dam -= armor_absorb;
     }
     
     if ( dam > 1 )
     {
         // heavy armor reduces all damage taken by up to 25%
-        dam -= dam * get_heavy_armor_bonus(victim) / 400;
+        int heavy_bonus = get_heavy_armor_bonus(victim);
+        if ( is_normal_hit(dt) && ch->stance == STANCE_DIMENSIONAL_BLADE )
+            heavy_bonus /= 2;
+        dam -= dam * heavy_bonus / 400;
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
