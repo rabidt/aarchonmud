@@ -4269,3 +4269,69 @@ DEF_SPELL_FUN(spell_replenish)
     return TRUE;
 }
  
+DEF_SPELL_FUN(spell_shadow_companion)
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+
+    if ( IS_SET(ch->act, PLR_WAR) )
+    {
+        send_to_char("This is not a shadow war.\n\r", ch);
+        return SR_UNABLE;
+    }
+
+    if ( ch->pet != NULL )
+    {
+        send_to_char("You already control a pet.\n\r", ch);
+        return SR_UNABLE;
+    }
+    
+    // must be in shadowy area for this to work
+    if ( !room_is_dim(ch->in_room) )
+    {
+        send_to_char("There's not enough shadows around here.\n\r", ch);
+        return SR_UNABLE;
+    }
+
+    if ( (mobIndex = get_mob_index(MOB_VNUM_SHADOW)) == NULL )
+    {
+        ptc(ch, "BUG: Missing shadow mob (vnum %d).\n\r", MOB_VNUM_SHADOW);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+
+    mob = create_mobile(mobIndex);
+
+    mlevel = URANGE(1, level * 4/5, ch->level);
+    set_mob_level(mob, mlevel);
+
+    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+
+    char_to_room(mob, ch->in_room);
+
+    send_to_char("A shadow materializes and starts following you around.\n\r", ch);
+    act("A shadow materializes and follows $n.", ch, NULL, NULL, TO_ROOM);
+
+    add_follower(mob, ch);
+    mob->leader = ch;
+    
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_shadow_companion;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char(mob, &af);
+    
+    SET_BIT(mob->act, ACT_PET);
+    ch->pet = mob;
+
+    return TRUE;
+}
