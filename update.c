@@ -1666,7 +1666,7 @@ void char_update( void )
         if ( !IS_NPC(ch) )
         {
             check_beast_mastery( ch );
-            check_shadow_companion(ch);
+            //check_shadow_companion(ch);
         }
     }
 
@@ -3006,6 +3006,7 @@ void check_beast_mastery( CHAR_DATA *ch )
 }
 
 // chance to summon shadow companion pet
+/*
 void check_shadow_companion( CHAR_DATA *ch )
 {
     AFFECT_DATA af;
@@ -3071,6 +3072,7 @@ void check_shadow_companion( CHAR_DATA *ch )
 
     return;
 }
+*/
 
 void msdp_update( void )
 {
