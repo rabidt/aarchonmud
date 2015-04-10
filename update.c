@@ -885,14 +885,14 @@ void mobile_update( void )
     {
         ch_next = ch->next;
 
-        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) || IS_AFFECTED(ch, AFF_PETRIFIED) )
+        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) )
             continue;
 
         if (ch->in_room->area->empty && !IS_SET(ch->act,ACT_UPDATE_ALWAYS))
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->wait == 0 )
+        if ( ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
         {
             if ( ch->fighting && is_wimpy(ch) )
             {
@@ -930,27 +930,27 @@ void mobile_update( void )
                 ch->silver += base_wealth * number_range(1,20)/50000;
             }
         }
+
+        /* Delay */
+        if ( HAS_TRIGGER(ch, TRIG_DELAY) && ch->mprog_delay > 0 )
+        {
+            if ( --ch->mprog_delay <= 0 )
+            {
+                mp_percent_trigger(ch, NULL, NULL,0, NULL,0, TRIG_DELAY);
+                continue;
+            }
+        } 
         /*
-         * Check triggers only if mobile still in default position
+         * Check random triggers only if mobile still in default position
          */
         if ( ch->position == ch->pIndexData->default_pos )
         {
-            /* Delay */
-            if ( HAS_TRIGGER( ch, TRIG_DELAY) 
-                    &&   ch->mprog_delay > 0 )
-            {
-                if ( --ch->mprog_delay <= 0 )
-                {
-                    mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_DELAY );
-                    continue;
-                }
-            } 
             if ( HAS_TRIGGER( ch, TRIG_RANDOM) )
             {
                 if( mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_RANDOM ) )
                     continue;
             }
-        } else if ( ch->position == POS_RESTING && ch->wait == 0 )
+        } else if ( ch->position == POS_RESTING && ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
         {
             do_stand(ch, "");
             WAIT_STATE(ch, PULSE_VIOLENCE/2);
