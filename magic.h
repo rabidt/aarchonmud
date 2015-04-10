@@ -229,6 +229,7 @@ DECLARE_SPELL_FUN( spell_phantasmal_image );
 DECLARE_SPELL_FUN( spell_shroud_of_darkness );
 DECLARE_SPELL_FUN( spell_minor_fade     );  
 DECLARE_SPELL_FUN( spell_divine_power );
+DECLARE_SPELL_FUN( spell_shadow_companion );
 
 /**
  * constants for easy changing of spell result "failure" handling

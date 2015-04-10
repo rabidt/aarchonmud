@@ -5705,8 +5705,8 @@ struct  skill_type
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_CHA, STAT_INT, STAT_LUC,
-        spell_null, TAR_IGNORE, POS_FIGHTING,
-        &gsn_shadow_companion, 0, 0, DUR_NONE,
+        spell_shadow_companion, TAR_IGNORE, POS_STANDING,
+        &gsn_shadow_companion, 200, 24, DUR_NONE,
         "", "shadow companion", ""
     },
 
