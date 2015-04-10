@@ -813,7 +813,7 @@ DEF_SPELL_FUN(spell_animate_dead)
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_ZOMBIE)))==NULL) 
         return FALSE;
     
-    check_improve( ch, gsn_puppetry, TRUE, 1 );
+    check_improve( ch, gsn_puppetry, TRUE, 4 );
     
     if ( number_percent() <= puppet_skill )
     {
@@ -896,7 +896,7 @@ DEF_SPELL_FUN(spell_ghost_chant)
     if ( (mob = create_mobile(get_mob_index(MOB_VNUM_SPIRIT))) == NULL ) 
         return FALSE;
     
-    check_improve( ch, gsn_puppetry, TRUE, 1 );
+    check_improve( ch, gsn_puppetry, TRUE, 4 );
     
     if ( per_chance(puppet_skill) )
     {
@@ -1159,7 +1159,7 @@ DEF_SPELL_FUN(spell_restoration)
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         factor += factor * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
     }
     if ( ch != victim )
         factor += factor / 3;

@@ -2637,6 +2637,7 @@ struct  pc_data
     sh_int      highest_level; /* highest level reached during current remort */
     sh_int      condition   [5];
     sh_int      learned     [MAX_SKILL];
+    bool        ready2learn [MAX_SKILL]; /* learn skill more quickly, toggles over time and with usage */
     sh_int      mastered    [MAX_SKILL];
     bool        group_known [MAX_GROUP];
     sh_int      points;
@@ -3210,6 +3211,8 @@ struct  mastery_group_type
 #define OTRIG_SIT   (aa)
 #define OTRIG_WAKE  (bb)
 #define OTRIG_DRINK (cc)
+#define OTRIG_REST  (dd)
+#define OTRIG_SLEEP (ee)
 
 /*
  * AREAprog definitions
@@ -4761,6 +4764,7 @@ void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
 void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CD *    get_player( const char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    get_victim_room( CHAR_DATA *ch, const char *argument );
 CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, const char *argument ) );   
 CD *    get_char_group args( ( CHAR_DATA *ch, const char *argument ) );
@@ -4881,11 +4885,14 @@ int get_duration( int sn, int level );
 int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 int skill_lookup_exact( const char *name );
+int known_skill_lookup( CHAR_DATA *ch, const char *name );
+int class_skill_lookup( int class, const char *name );
+int affect_list_lookup( AFFECT_DATA *aff, const char *name );
 int spell_lookup( const char *name );
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg );
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
 bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
@@ -5071,12 +5078,12 @@ void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
+bool is_class_skill( int class, int sn );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
 int     exp_per_level   args( ( CHAR_DATA *ch ) );
-void    check_improve   args( ( CHAR_DATA *ch, int sn, bool success, 
-					int multiplier ) );
+void    check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp );
 int     group_lookup    args( (const char *name) );
 void    gn_add      args( ( CHAR_DATA *ch, int gn) );
 void    gn_remove   args( ( CHAR_DATA *ch, int gn) );
