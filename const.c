@@ -5707,7 +5707,7 @@ struct  skill_type
         STAT_CHA, STAT_INT, STAT_LUC,
         spell_shadow_companion, TAR_IGNORE, POS_STANDING,
         &gsn_shadow_companion, 200, 24, DUR_NONE,
-        "", "shadow companion", ""
+        "", "!shadow companion!", ""
     },
 
     {
@@ -5850,7 +5850,7 @@ struct  skill_type
         STAT_CHA, STAT_WIS, STAT_LUC,
         spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
         NULL, 150, 12, DUR_BRIEF,
-        "", "divine power", ""
+        "", "Your god's power leaves you.", ""
     },
 
     {
