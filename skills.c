@@ -2301,9 +2301,12 @@ int pc_get_skill(CHAR_DATA *ch, int sn)
 		skill = 0;
 	else
 	{
-		skill = ch->pcdata->learned[sn];
-		skill = (skill*skill_table[sn].cap[ch->class])/10;
-        has_skill = TRUE;
+        skill = ch->pcdata->learned[sn];
+        if ( skill > 0 )
+        {
+            skill = (skill*skill_table[sn].cap[ch->class])/10;
+            has_skill = TRUE;
+        }
 	}
 
 	/* adjust for race skill */
