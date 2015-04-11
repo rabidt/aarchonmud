@@ -2618,6 +2618,7 @@ DEF_DO_FUN(do_hide)
                     return;
                 }
             // successful hide-in-plain-sight, end all combat with ch
+            act("$n vanishes into the shadows.", ch, NULL, NULL, TO_ROOM);
             stop_fighting(ch, TRUE);
         }
         send_to_char("You successfully hide.\n\r",ch); 
