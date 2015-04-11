@@ -1929,6 +1929,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     CHECK_RETURN( ch, victim );
     
     OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
+    bool twohanded = wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
     
     // elemental strike - separate handling if in elemental blade stance
     if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
@@ -1962,7 +1963,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // divine retribution
-    if ( hit && per_chance(get_skill(victim, gsn_divine_retribution))
+    if ( hit && check_skill(victim, gsn_divine_retribution)
         && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
@@ -1985,12 +1986,25 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // rapid fire - 10% chance of additional follow-up attack
     if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
-        bool rapid_fire = per_chance(get_skill(ch, gsn_rapid_fire));
+        bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && per_chance(10)) || (bullet_rain && per_chance(33)) )
         {
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
+        }
+    }
+    
+    // massive swing - chance to hit secondary targets
+    if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
+    {
+        int chance = (twohanded ? 50 : 30) + ch->size * 10;
+        CHAR_DATA *opp, *next;
+        for ( opp = ch->in_room->people; opp; opp = next )
+        {
+            next = opp->next_in_room;
+            if ( opp != victim && opp->fighting && is_same_group(opp->fighting, ch) && per_chance(chance) )
+                one_hit(ch, opp, gsn_massive_swing, secondary);
         }
     }
 }
@@ -2987,6 +3001,7 @@ bool is_normal_hit( int dt )
      || (dt == gsn_double_strike)
      || (dt == gsn_strafe)
      || (dt == gsn_round_swing)
+     || (dt == gsn_massive_swing)
      || (dt == gsn_burst)
      || (dt == gsn_fullauto)
      || (dt == gsn_semiauto)
@@ -3334,6 +3349,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             dam += dam * fade_chance(victim) / 100;
             dam += dam * fade_chance(ch) / 250;
         }
+        /* massive swing penalty */
+        if ( dt == gsn_massive_swing )
+            dam /= 2;
     }
 
     /* religion bonus */
