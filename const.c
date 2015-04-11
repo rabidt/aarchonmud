@@ -2141,6 +2141,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "warhulk", WARRIOR|GLADIATOR,
+        { "goblincleaver", "massive swing" },
+        { 10, 50 },
+        { 100, 100 }
+    },
+    {
         "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
         { "riposte", "blade barrier" },
         { 30, 50 },
@@ -5642,6 +5648,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_bulwark, 0, 0, DUR_NONE,
         "", "!bulwark!", ""
+    },
+
+    {
+        "massive swing",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_AGI, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_massive_swing, 0, 0, DUR_NONE,
+        "massive swing", "!massive swing!", ""
     },
 
     {

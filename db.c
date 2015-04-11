@@ -358,6 +358,7 @@ sh_int  gsn_evasion;
 sh_int  gsn_evasive;
 sh_int  gsn_heavy_armor;
 sh_int  gsn_bulwark;
+sh_int  gsn_massive_swing;
 sh_int  gsn_riposte;
 sh_int  gsn_blade_barrier;
 sh_int  gsn_combat_casting;
