@@ -1043,7 +1043,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -1415,7 +1415,8 @@ void char_update( void )
                     SET_AFFECT( ch, AFF_HIDE );
             }
             
-            if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE) && !IS_AFFECTED(ch, AFF_INVISIBLE))
+            if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE)
+                && !IS_AFFECTED(ch, AFF_INVISIBLE) && IS_AFFECTED(ch, AFF_SNEAK) )
             {
                 SET_AFFECT(ch, AFF_INVISIBLE);
                 send_to_char("You turn invisible once more.\n\r", ch);
@@ -2531,6 +2532,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
