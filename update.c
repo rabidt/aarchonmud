@@ -72,6 +72,7 @@ ROOM_INDEX_DATA *find_jail_room(void);
 void    msdp_update args( ( void ) );
 void create_haunt( CHAR_DATA *ch );
 void check_beast_mastery( CHAR_DATA *ch );
+void check_shadow_companion( CHAR_DATA *ch );
 void validate_all();
 void check_clan_align( CHAR_DATA *gch );
 void check_equipment_align( CHAR_DATA *gch );
@@ -160,30 +161,16 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain_base)
+void gain_exp( CHAR_DATA *ch, int gain)
 {
     char buf[MAX_STRING_LENGTH];
-    int gain;
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
         return;
 
-    if ( IS_SET(ch->act,PLR_NOEXP) && gain_base > 0 )
+    if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
-
-    if ( cfg_enable_exp_mult && gain_base > 0)
-    {
-        gain=(int)(gain_base * cfg_exp_mult);
-        if ( cfg_show_exp_mult  )
-        {
-            ptc(ch, "There's currently an exp bonus of %d%%!\n\r", (int)((cfg_exp_mult*100)-99.5));
-        }
-    }
-    else
-    {
-        gain=gain_base;
-    }
 
     field = UMAX((ch_wis_field(ch)*gain)/100,0);
     gain-=field;
@@ -204,7 +191,14 @@ void gain_exp( CHAR_DATA *ch, int gain_base)
     }
 
     ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
+    update_pc_level(ch);
+}
 
+
+void update_pc_level( CHAR_DATA *ch )
+{
+    char buf[MAX_STRING_LENGTH];
+    
     if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
             && ch->level >= LEVEL_UNAUTHED )
     {
@@ -385,7 +379,7 @@ int hit_gain( CHAR_DATA *ch )
 
     gain += gain * (get_skill(ch, gsn_fast_healing) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
     if ( ch->hit < ch->max_hit )
-        check_improve(ch, gsn_fast_healing, TRUE, 20);
+        check_improve(ch, gsn_fast_healing, TRUE, 5);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -433,7 +427,7 @@ int mana_gain( CHAR_DATA *ch )
     {
         gain += gain * (get_skill(ch, gsn_meditation) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
         if ( ch->mana < ch->max_mana )
-            check_improve(ch, gsn_meditation, TRUE, 10);
+            check_improve(ch, gsn_meditation, TRUE, 3);
     }
 
     /* healing ratio */
@@ -471,7 +465,7 @@ int move_gain( CHAR_DATA *ch )
 
     gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < ch->max_move )
-        check_improve(ch, gsn_endurance, TRUE, 20);
+        check_improve(ch, gsn_endurance, TRUE, 6);
 
     /* healing ratio */
     ratio = ch->in_room->heal_rate;
@@ -774,19 +768,26 @@ int move_gain( CHAR_DATA *ch )
 }
 */
 
+bool starvation_immune( CHAR_DATA *ch )
+{
+    return IS_NPC(ch) || NOT_AUTHED(ch) || IS_HERO(ch) || IS_SET(ch->form, FORM_CONSTRUCT) || IS_AFFECTED(ch, AFF_ROOTS);
+}
+
 void gain_condition( CHAR_DATA *ch, int iCond, int value )
 {
     int condition;
 
-    if ( value == 0 || IS_NPC(ch) || (IS_HERO(ch) && iCond!=COND_DRUNK)
-            || NOT_AUTHED(ch) || IS_SET(ch->form, FORM_CONSTRUCT))
+    if ( value == 0 || IS_NPC(ch) )
         return;
 
-    condition               = ch->pcdata->condition[iCond];
-    if (condition == -1)
+    if ( (condition = ch->pcdata->condition[iCond]) < 0 )
         return;
-    ch->pcdata->condition[iCond]    = URANGE( 0, condition + value, 72 );
 
+    if ( starvation_immune(ch) && (iCond == COND_HUNGER || iCond == COND_THIRST) && value < 0 )
+        return;
+    
+    ch->pcdata->condition[iCond] = URANGE( 0, condition + value, 72 );
+    
     if ( ch->pcdata->condition[iCond] == 0 )
     {
         switch ( iCond )
@@ -796,7 +797,7 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
                 break;
 
             case COND_THIRST:
-                send_to_char( "You are dessicated.\n\r", ch );
+                send_to_char( "You are desiccated.\n\r", ch );
                 break;
 
             case COND_DRUNK:
@@ -820,6 +821,20 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
     }
 
     return;
+}
+
+void update_learning( CHAR_DATA *ch )
+{
+    if ( !ch || !ch->pcdata )
+        return;
+    
+    int sn;
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        // resets (on average) ever minute while fighting, every 5 minutes while not
+        if ( per_chance(50) && (ch->fighting || per_chance(20)) )
+            ch->pcdata->ready2learn[sn] = TRUE;
+    }
 }
 
 /* some mobiles need to update more often
@@ -871,14 +886,14 @@ void mobile_update( void )
     {
         ch_next = ch->next;
 
-        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) || IS_AFFECTED(ch, AFF_PETRIFIED) )
+        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) )
             continue;
 
         if (ch->in_room->area->empty && !IS_SET(ch->act,ACT_UPDATE_ALWAYS))
             continue;
 
         /* Examine call for special procedure */
-        if ( ch->wait == 0 )
+        if ( ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
         {
             if ( ch->fighting && is_wimpy(ch) )
             {
@@ -916,27 +931,27 @@ void mobile_update( void )
                 ch->silver += base_wealth * number_range(1,20)/50000;
             }
         }
+
+        /* Delay */
+        if ( HAS_TRIGGER(ch, TRIG_DELAY) && ch->mprog_delay > 0 )
+        {
+            if ( --ch->mprog_delay <= 0 )
+            {
+                mp_percent_trigger(ch, NULL, NULL,0, NULL,0, TRIG_DELAY);
+                continue;
+            }
+        } 
         /*
-         * Check triggers only if mobile still in default position
+         * Check random triggers only if mobile still in default position
          */
         if ( ch->position == ch->pIndexData->default_pos )
         {
-            /* Delay */
-            if ( HAS_TRIGGER( ch, TRIG_DELAY) 
-                    &&   ch->mprog_delay > 0 )
-            {
-                if ( --ch->mprog_delay <= 0 )
-                {
-                    mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_DELAY );
-                    continue;
-                }
-            } 
             if ( HAS_TRIGGER( ch, TRIG_RANDOM) )
             {
                 if( mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_RANDOM ) )
                     continue;
             }
-        } else if ( ch->position == POS_RESTING && ch->wait == 0 )
+        } else if ( ch->position == POS_RESTING && ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
         {
             do_stand(ch, "");
             WAIT_STATE(ch, PULSE_VIOLENCE/2);
@@ -1073,7 +1088,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_LIGHT;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if (d->connected == CON_PLAYING)
                     {
@@ -1091,7 +1106,7 @@ void weather_update( void )
             weather_info.sunlight = SUN_SET;
             for (d=descriptor_list; d!=NULL; d=d->next)
                 if (d->character && (d->character->race == race_werewolf)
-                        && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+                        && (IS_PLAYING(d->connected)))
                 {
                     if ( d->connected == CON_PLAYING )
                     {
@@ -1296,6 +1311,9 @@ void char_update( void )
         if (ch->must_extract)
             continue;
 
+        if ( !IS_NPC(ch) )
+            update_learning(ch);
+        
         /* Check for natural resistance */
         affect_strip (ch, gsn_natural_resistance);
         if ( get_skill(ch, gsn_natural_resistance) > 0)
@@ -1310,7 +1328,7 @@ void char_update( void )
             af.modifier = -bonus;
             af.bitvector= 0;
             affect_to_char(ch,&af);
-            check_improve( ch, gsn_natural_resistance, TRUE, 10 );
+            check_improve( ch, gsn_natural_resistance, TRUE, 8 );
         } 
 
         /* Check for iron hide */
@@ -1327,7 +1345,7 @@ void char_update( void )
             af.modifier = -bonus;
             af.bitvector=0;
             affect_to_char(ch,&af);
-            check_improve( ch, gsn_iron_hide, TRUE, 10 );
+            check_improve( ch, gsn_iron_hide, TRUE, 8 );
         } 
 
 
@@ -1478,7 +1496,7 @@ void char_update( void )
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
-                gain_condition( ch, COND_DEEP_SLEEP, -(ch->pcdata->condition[COND_DEEP_SLEEP]));
+                ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
         }
 
         if ( !IS_NPC(ch) && ch->level < LEVEL_IMMORTAL )
@@ -1541,15 +1559,14 @@ void char_update( void )
                     (number_percent() < get_skill(ch, gsn_sustenance)))
             {
                 /* Skip food/drink changes this round due to sustenance. */
-                if (number_bits(5)==0)
-                    check_improve(ch,gsn_sustenance,TRUE,10);        
+                check_improve(ch,gsn_sustenance,TRUE,6);
             }
             else
             {
                 gain_condition( ch, COND_FULL, (ch->size > SIZE_MEDIUM) ? -2 : -1 );
                 gain_condition( ch, COND_DRUNK,  -1 );
 
-                if ( !IS_AFFECTED(ch, AFF_ROOTS) )
+                if ( !starvation_immune(ch) )
                 {
                     gain_condition( ch, COND_THIRST, 
                             IS_AFFECTED(ch, AFF_BREATHE_WATER) ? 
@@ -1597,13 +1614,14 @@ void char_update( void )
                         }
                     }
 
-                    if( ch->pcdata->prayer_request )
-                    {
-                        ch->pcdata->prayer_request->ticks--;
-                        if( ch->pcdata->prayer_request->ticks == 0 )
-                            grant_prayer(ch);
-                    }
                 }
+            }
+            
+            if ( ch->pcdata->prayer_request )
+            {
+                ch->pcdata->prayer_request->ticks--;
+                if ( ch->pcdata->prayer_request->ticks == 0 )
+                    grant_prayer(ch);
             }
         }
 
@@ -1663,8 +1681,10 @@ void char_update( void )
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
         if ( !IS_NPC(ch) )
+        {
             check_beast_mastery( ch );
-
+            //check_shadow_companion(ch);
+        }
     }
 
     return;
@@ -2305,11 +2325,11 @@ void aggr_update( void )
                     af.bitvector = AFF_CALM;
                     affect_to_char(ch, &af);
                     forget_attacks( ch );
-                    check_improve(victim,gsn_soothe,TRUE,1);
+                    check_improve(victim,gsn_soothe,TRUE,3);
                     continue;
                 }
                 act( "You fail to soothe $n.", ch, NULL, victim, TO_VICT );
-                check_improve(victim,gsn_soothe,FALSE,1);
+                check_improve(victim,gsn_soothe,FALSE,3);
             }
 
             if ( IS_SET(ch->off_flags, OFF_BACKSTAB) )
@@ -2329,7 +2349,7 @@ void aggr_update( void )
                     act( "You avoid $n!",  ch, NULL, victim, TO_VICT    );
                     act( "$N avoids you!", ch, NULL, victim, TO_CHAR    );
                     act( "$N avoids $n!",  ch, NULL, victim, TO_NOTVICT );
-                    check_improve(victim,gsn_avoidance,TRUE,1);
+                    check_improve(victim,gsn_avoidance,TRUE,3);
                     continue;
                 }
             }
@@ -3002,6 +3022,75 @@ void check_beast_mastery( CHAR_DATA *ch )
     return;
 }
 
+// chance to summon shadow companion pet
+/*
+void check_shadow_companion( CHAR_DATA *ch )
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+    int skill = get_skill(ch, gsn_shadow_companion);
+
+    if ( !per_chance(skill) )
+        return;
+
+    // safety net
+    if ( ch->in_room == NULL )
+        return;
+
+    // must be in shadowy area for this to work
+    if ( !room_is_dim(ch->in_room) )
+        return;
+
+    // must be playing and not in warfare
+    if ( IS_SET(ch->act, PLR_WAR) || ch->desc == NULL || !IS_PLAYING(ch->desc->connected) )
+        return;
+
+    // only a chance to happen each tick, less likely during combat
+    if ( number_bits(2) || (ch->fighting != NULL && number_bits(2)) )
+        return;
+
+    // must not have a pet already, and must accept them
+    if ( ch->pet != NULL || IS_SET(ch->act, PLR_NOFOLLOW) )
+        return;
+
+    if ( (mobIndex = get_mob_index(MOB_VNUM_SHADOW)) == NULL )
+        return;
+
+    mob = create_mobile(mobIndex);
+
+    mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
+    mlevel = URANGE(1, mlevel, ch->level);
+    set_mob_level( mob, mlevel );
+
+    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+
+    char_to_room( mob, ch->in_room );
+
+    send_to_char( "A shadow materializes and starts following you around.\n\r", ch );
+    act( "A shadow materializes and follows $n.", ch, NULL, NULL, TO_ROOM );
+
+    add_follower( mob, ch );
+    mob->leader = ch;
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_shadow_companion;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char( mob, &af );
+    SET_BIT(mob->act, ACT_PET);
+    ch->pet = mob;
+
+    return;
+}
+*/
+
 void msdp_update( void )
 {
     DESCRIPTOR_DATA *d;
@@ -3009,7 +3098,7 @@ void msdp_update( void )
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-    if ( d->character && d->connected == CON_PLAYING && !IS_NPC(d->character) )
+    if ( d->character && IS_PLAYING(d->connected) && !IS_NPC(d->character) )
         {
             char buf[MAX_STRING_LENGTH];
             CHAR_DATA *pOpponent = d->character->fighting;

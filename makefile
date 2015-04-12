@@ -9,7 +9,7 @@ C_FLAGS =  -ggdb -rdynamic -m32 -Wall $(PROF) $(NOCRYPT) -DMKTIME=$(MKTIME) -DBR
 L_FLAGS =  $(PROF) -m32 -llua -ldl
 
 O_FILES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
-     alchemy.o alias.o auth.o ban.o bit.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
+     alchemy.o alias.o auth.o ban.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
      enchant.o effects.o fight.o fight2.o flags.o handler.o healer.o hunt.o \
      interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o penalty.o pipe.o quest.o \

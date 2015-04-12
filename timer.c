@@ -17,6 +17,7 @@
 #define TM_UNDEFINED 0
 #define TM_PROG      1
 #define TM_LUAFUNC   2
+#define TM_CFUNC     3
 
 /* hide the struct implementation,
    we only want to manipulate nodes
@@ -24,26 +25,42 @@
 struct timer_node
 {
     struct timer_node *next;
-    struct timer_node *prev;
     int tm_type;
     void *game_obj;
+    void (*func)(void); /* pointer for C function */
     int go_type;
     int current; /* current val that gets decremented each second */
     bool unregistered; /* to mark for deletion */
+    bool deleted; /* for debug stuff */
     const char *tag; /* used for unique tags in lua */
 };
 
 
-TIMER_NODE *first_timer=NULL;
+static TIMER_NODE *first_timer=NULL;
 
 static void add_timer( TIMER_NODE *tmr);
-static void remove_timer( TIMER_NODE *tmr );
 static void free_timer_node( TIMER_NODE *tmr);
-static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int max, const char *tag );
+static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int tm_type, int max, const char *tag );
+
+
+void unregister_timer_node( TIMER_NODE *tmr )
+{
+//    if (tmr->unregistered)
+//        bugf("unregistering already unregistered timer");
+    tmr->unregistered=TRUE;
+}
+
+TIMER_NODE * register_c_timer( int value, TIMER_CFUN func)
+{
+    TIMER_NODE *tmr=new_timer_node( NULL, func, GO_TYPE_UNDEFINED, TM_CFUNC, value, NULL );
+    add_timer(tmr);
+
+    return tmr;
+}
 
 TIMER_NODE * register_lua_timer( int value, const char *tag)
 {
-    TIMER_NODE *tmr=new_timer_node( NULL , GO_TYPE_UNDEFINED, TM_LUAFUNC, value, tag );
+    TIMER_NODE *tmr=new_timer_node( NULL, NULL, GO_TYPE_UNDEFINED, TM_LUAFUNC, value, tag );
     add_timer(tmr);
     
     return tmr;
@@ -58,12 +75,12 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
         {
             return FALSE;
         }
-        remove_timer(tmr);
+        unregister_timer_node(tmr);
         return TRUE;
     }
     else if (!strcmp(tag, "*"))
     {
-        remove_timer(tmr);
+        unregister_timer_node(tmr);
         return TRUE;
     }
     else if ( !tmr->tag )
@@ -72,7 +89,7 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
     }
     else if ( !strcmp( tag, tmr->tag) )
     {
-        remove_timer(tmr);
+        unregister_timer_node(tmr);
         return TRUE;
     }
 
@@ -80,7 +97,7 @@ bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 {
     if (!valid_CH( ch ))
@@ -99,7 +116,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)ch, GO_TYPE_CH, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)ch, NULL, GO_TYPE_CH, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -110,7 +127,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
 {
     if ( obj->otrig_timer)
@@ -119,7 +136,7 @@ TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)obj, GO_TYPE_OBJ, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)obj, NULL, GO_TYPE_OBJ, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -130,7 +147,7 @@ TIMER_NODE * register_obj_timer( OBJ_DATA *obj, int max )
 }
 
 /* register on the list and also return a pointer to the node
-   in the form of void */
+*/
 TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
 {
     if ( area->atrig_timer)
@@ -139,7 +156,7 @@ TIMER_NODE * register_area_timer( AREA_DATA *area, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)area, GO_TYPE_AREA, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)area, NULL, GO_TYPE_AREA, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -157,7 +174,7 @@ TIMER_NODE * register_room_timer( ROOM_INDEX_DATA *room, int max )
         return NULL;
     }
 
-    TIMER_NODE *tmr=new_timer_node( (void *)room, GO_TYPE_ROOM, TM_PROG, max, NULL);
+    TIMER_NODE *tmr=new_timer_node( (void *)room, NULL, GO_TYPE_ROOM, TM_PROG, max, NULL);
 
     add_timer(tmr);
 
@@ -169,24 +186,8 @@ TIMER_NODE * register_room_timer( ROOM_INDEX_DATA *room, int max )
 
 static void add_timer( TIMER_NODE *tmr)
 {
-    if (first_timer)
-        first_timer->prev=tmr;
     tmr->next=first_timer;
     first_timer=tmr;
-
-}
-
-static void remove_timer( TIMER_NODE *tmr )
-{
-    if ( tmr->prev)
-        tmr->prev->next=tmr->next;
-    if ( tmr->next)
-        tmr->next->prev=tmr->prev;
-    if ( tmr==first_timer )
-        first_timer=tmr->next;
-
-    free_timer_node(tmr);
-    return;
 }
 
 void unregister_ch_timer( CHAR_DATA *ch )
@@ -196,9 +197,9 @@ void unregister_ch_timer( CHAR_DATA *ch )
         /* doesn't have one */
         return;
     }
-    TIMER_NODE *tmr=(TIMER_NODE *)ch->trig_timer;
+    TIMER_NODE *tmr=ch->trig_timer;
 
-    tmr->unregistered=TRUE; /* queue it for removal next update */ 
+    unregister_timer_node(tmr);
     ch->trig_timer=NULL;
     return;
 }
@@ -212,7 +213,7 @@ void unregister_obj_timer( OBJ_DATA *obj )
     }
     TIMER_NODE *tmr=obj->otrig_timer;
 
-    tmr->unregistered=TRUE; /* queue it for removal next update */
+    unregister_timer_node(tmr);
     obj->otrig_timer=NULL;
     return;
 }
@@ -220,67 +221,112 @@ void unregister_obj_timer( OBJ_DATA *obj )
 static void free_timer_node( TIMER_NODE *tmr)
 {
     free_string(tmr->tag);
+
+    /* debuggg */
+    tmr->tag=NULL;
+    tmr->next=NULL;
+
+    tmr->deleted=TRUE;
+    /* debuggg */
     free_mem(tmr, sizeof(TIMER_NODE));
 }
 
-static TIMER_NODE *new_timer_node( void *gobj, int go_type, int tm_type, int seconds, const char *tag )
+static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int tm_type, int seconds, const char *tag )
 {
     TIMER_NODE *new=alloc_mem(sizeof(TIMER_NODE));
     new->next=NULL;
-    new->prev=NULL;
     new->tm_type=tm_type;
     new->game_obj=gobj;
+    new->func=func;
     new->go_type=go_type;
     new->current=seconds;
     new->unregistered=FALSE;
+    new->deleted=FALSE;
     new->tag=str_dup(tag);
     return new;
 }
 
+/* see if everything that should have a running timer does have a running timer */
+static void timer_debug()
+{
+    CHAR_DATA *ch;
+    OBJ_DATA *obj;
+    AREA_DATA *area;
+    //ROOM_INDEX_DATA *room;
+
+    for ( ch=char_list ; ch ; ch=ch->next )
+    {
+        if (!IS_NPC(ch))
+            continue;
+
+        if (HAS_TRIGGER(ch, TRIG_TIMER) && !ch->must_extract && !ch->trig_timer)
+        {
+            bugf("timer_debug: no timer running for mob %d, re-initializing", 
+                    ch->pIndexData->vnum ); 
+            mprog_timer_init(ch);
+        }
+    }
+
+    for ( obj=object_list ; obj ; obj=obj->next )
+    {
+        if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->must_extract && !obj->otrig_timer)
+        {
+            bugf("timer_debug: no timer running for obj %d, re-initializing",
+                    obj->pIndexData->vnum );
+            oprog_timer_init(obj);
+        }
+    }
+
+    for ( area=area_first ; area ; area=area->next )
+    {
+        if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
+        {
+            bugf("timer_debug: no timer running for area %s, re-initializing",
+                    area->name );
+            aprog_timer_init(area);
+        }
+    }
+
+    /* let's not do rooms for now */
+}
+
 /* Should be called every second */
-/* need to solve the problem of gobj destruction and unregistering
-   screwing up loop iteration and crashing mud */
-/* what happens when tmr_next is destroyed by current tmr */
-/* condition 1
-   tmr_next gobj is destroyed by prog of tmr
-   tmr_next is unregistered and destroyed but we are still
-   pointing to it
-   how do we prevent this happening?
-   set tmr-next AFTER the prog processes but before we destroy tmr
-
-   but what if tmr gobj was destroyed during the prog?
-   we could set tmr next at the top of the loop but also
-   re-set it after the prog just in case
-
-   this would work in cases where only tmr_next was destroyed
-   or only tmr was destroyed, but what if both were destroyed?
-
-   we probably need to unregister timers outside of progs
-   ( similar to must_extract ) to avoid all of these shenanigans.
-   simply set the must_extract bit. if we destroyed something
-   we already looped past, we grab it on the next timer_update.
-   if we destroyed something not looped yet, we just cleanly
-   unregister/free it when its turn is up */
-
 void timer_update()
 {
-    TIMER_NODE *tmr, *tmr_next;
+    TIMER_NODE *tmr, *tmr_next, *tmr_prev;
     CHAR_DATA *ch;
     OBJ_DATA *obj;
     AREA_DATA *area;
     ROOM_INDEX_DATA *room;
 
+    tmr_prev=NULL;
     for (tmr=first_timer ; tmr ; tmr=tmr_next)
     {
         tmr_next=tmr->next;
+
+        if (tmr->deleted)
+        {
+            bugf("Deleted timer in timer list!!!");
+            return;
+        }
 
         if ( tmr->unregistered )
         {
             /* it was unregistered since the last update
                we need to kill it cleanly */
-            remove_timer( tmr );
+            if (tmr == first_timer)
+            {
+                first_timer=tmr_next;
+            }
+            else
+            {
+                tmr_prev->next = tmr_next;
+            }
+            free_timer_node(tmr);
+
             continue;
         }
+        tmr_prev=tmr;
 
         tmr->current-=1;
         if (tmr->current <= 0)
@@ -347,22 +393,30 @@ void timer_update()
 
                         default:
                             bugf("Invalid type in timer update: %d.", tmr->go_type);
-                            remove_timer(tmr);
+                            unregister_timer_node(tmr);
                             return;
                     }
                     break;
                 case TM_LUAFUNC:
                     run_delayed_function(tmr);
                     break;
+                case TM_CFUNC:
+                    tmr->func();
+                    break;
                 default:
                     bugf("Invalid timer type: %d", tmr->tm_type);
-                    remove_timer(tmr);
+                    unregister_timer_node(tmr);
                     return;
             }
-            /* it fired, kill it */
-            remove_timer( tmr );
+            /* it fired, make sure it's unregistered */
+            if (!tmr->unregistered)
+                unregister_timer_node(tmr);
         }
     }
+
+    /* DEBUGGGGGG */
+    timer_debug();
+    /* DEBUGGGGGG */
 }
 
 char * print_timer_list()
@@ -371,15 +425,22 @@ char * print_timer_list()
     TIMER_NODE *tmr;
     strcpy(buf, "");
     int i=1;
+    int unregcnt=0;
     for ( tmr=first_timer; tmr; tmr=tmr->next )
     {
-        if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
+        if ( tmr->unregistered )
+        {
+            unregcnt++;
+            continue;
+        }
+        else if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
         {
             bugf("Invalid game_obj in print_timer_list.");
             continue;
         } 
         sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
+            tmr->tm_type == TM_CFUNC ? "cfunc" :
             tmr->go_type == GO_TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
             tmr->go_type == GO_TYPE_OBJ ? ((OBJ_DATA *)(tmr->game_obj))->name :
             tmr->go_type == GO_TYPE_AREA ? ((AREA_DATA *)(tmr->game_obj))->name :
@@ -390,6 +451,7 @@ char * print_timer_list()
         i++;
     }
     strcat( buf, "\n\r");
+    sprintf(buf, "%s\n\rUnregistered timers (pending removal): %d\n\r", buf, unregcnt);
     return buf;
 
 }

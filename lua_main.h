@@ -13,6 +13,7 @@
 #define RUNDELAY_VNUM -1
 #define LOADSCRIPT_VNUM 0
 #define MAX_LUA_SECURITY 9
+#define SEC_NOSCRIPT 99
 double genrand(void);
 
 int L_delay( lua_State *LS);
@@ -28,4 +29,13 @@ extern lua_State *g_mud_LS;
 extern bool       g_LuaScriptInProgress;
 int               g_ScriptSecurity;
 int               g_LoopCheckCounter;
+
+void new_ref( LUAREF *ref);
+void free_ref( LUAREF *ref );
+
+void save_ref( lua_State *LS, int index, LUAREF *ref );
+void release_ref( lua_State *LS, LUAREF *ref );
+void push_ref( lua_State *LS, LUAREF ref );
+bool is_set_ref( LUAREF ref );
+
 #endif

@@ -2107,7 +2107,137 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	}
 };
 
+/* class constants for subclass table */
+#define WARRIOR     (1<<0)
+#define THIEF       (1<<1)
+#define CLERIC      (1<<2)
+#define MAGE        (1<<3)
+#define GLADIATOR   (1<<4)
+#define SAMURAI     (1<<5)
+#define PALADIN     (1<<6)
+#define ASSASSIN    (1<<7)
+#define NINJA       (1<<8)
+#define MONK        (1<<9)
+#define TEMPLAR     (1<<10)
+#define ILLUSIONIST (1<<11)
+#define GUNSLINGER  (1<<12)
+#define RANGER      (1<<13)
+#define NECROMANCER (1<<14)
 
+const struct subclass_type subclass_table[] =
+{
+    /*
+    const char* name;
+    unsigned long base_classes;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
+    */
+    { "None" }, // subclass=0 means no subclass
+    {
+        "juggernaut", WARRIOR,
+        { "true grit", "bulwark" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
+        { "riposte", "blade barrier" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "shadowdancer", THIEF|ASSASSIN|NINJA,
+        { "hide in plain sight", "shadow companion" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "shadowblade", THIEF|NINJA|ILLUSIONIST,
+        { "shadow strike", "shadow body" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
+        { "mystic infusion" },
+        { 10 },
+        { 100 }
+    },
+    {
+        "warpriest", CLERIC,
+        { "heroism", "divine power" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "warmage", MAGE|ILLUSIONIST|NECROMANCER,
+        { "combat casting", "second attack", "dimensional blade" },
+        { 10, 50, 90 },
+        { 100, 80, 80 }
+    },
+    {
+        "berserker", GLADIATOR,
+        { "savage frenzy" },
+        { 30 },
+        { 100 }
+    },
+    {
+        "kensai", SAMURAI|NINJA,
+        { "piercing blade", "beheading" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "stormlord", SAMURAI|RANGER,
+        { "elemental strike", "immolation", "electrocution", "absolute zero" },
+        { 10, 40, 41, 42 },
+        { 100, 80, 80, 80 }
+    },
+    {
+        "crusader", PALADIN|TEMPLAR,
+        { "holy avenger", "divine retribution" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "slayer", ASSASSIN,
+        { "estimate", "exploit weakness" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "shaolin", NINJA|MONK,
+        { "lethal hands", "unarmed parry" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "sacred fist", MONK,
+        { "mantra", "anatomy" },
+        { 30, 50 },
+        { 100, 80 }
+    },
+    {
+        "terminator", GUNSLINGER,
+        { "rapid fire", "third attack", "bullet rain" },
+        { 10, 50, 70 },
+        { 100, 80, 100 }
+    },
+    {
+        "sniper", GUNSLINGER|RANGER,
+        { "precise shot", "ambush" },
+        { 10, 60 },
+        { 100, 100 }
+    },
+    {
+        "beastmaster", RANGER,
+        { "beast mastery", "water elemental" },
+        { 10, 90 },
+        { 100, 90 }
+    },
+    { NULL }
+};
 
 /*
  * Titles.
@@ -4329,7 +4459,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_teleport,     TAR_CHAR_SELF,      POS_FIGHTING,
+	spell_teleport,     TAR_IGNORE,      POS_FIGHTING,
 	NULL,              35, 12, DUR_NONE,
 	"",         "!Teleport!",       ""
 	},
@@ -5493,9 +5623,240 @@ struct  skill_type
     },
 
     {
+        "heavy armor",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 6,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_heavy_armor, 0, 0, DUR_NONE,
+        "", "!Heavy Armor!", ""
+    },
+
+    {
+        "bulwark",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bulwark, 0, 0, DUR_NONE,
+        "", "!bulwark!", ""
+    },
+
+    {
+        "riposte",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_riposte, 0, 0, DUR_NONE,
+        "riposte", "!riposte!", ""
+    },
+
+    {
+        "blade barrier",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_STR,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_blade_barrier, 0, 0, DUR_NONE,
+        "", "!blade barrier!", ""
+    },
+
+    {
+        "combat casting",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_combat_casting, 0, 0, DUR_NONE,
+        "", "!combat_casting!", ""
+    },
+
+    {
+        "elemental strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_elemental_strike, 0, 0, DUR_NONE,
+        "elemental strike", "!elemental strike!", ""
+    },
+
+    {
+        "savage frenzy",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_VIT, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_savage_frenzy, 0, 0, DUR_NONE,
+        "", "!savage frenzy!", ""
+    },
+
+    {
+        "shadow companion",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_LUC,
+        spell_shadow_companion, TAR_IGNORE, POS_STANDING,
+        &gsn_shadow_companion, 200, 24, DUR_NONE,
+        "", "shadow companion", ""
+    },
+
+    {
+        "shadow strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_INT, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_strike, 0, 0, DUR_NONE,
+        "", "!shadow strike!", ""
+    },
+
+    {
+        "shadow body",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_body, 0, 0, DUR_NONE,
+        "", "!shadow body!", ""
+    },
+
+    {
+        "piercing blade",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_piercing_blade, 0, 0, DUR_NONE,
+        "", "!piercing blade!", ""
+    },
+
+    {
+        "lethal hands",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_lethal_hands, 0, 0, DUR_NONE,
+        "", "!lethal hands!", ""
+    },
+
+    {
+        "unarmed parry",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_unarmed_parry, 0, 0, DUR_NONE,
+        "", "!unarmed parry!", ""
+    },
+
+    {
+        "mystic infusion",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_WIS, STAT_INT, STAT_CHA,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_mystic_infusion, 0, 0, DUR_NONE,
+        "mystic infusion", "!mystic infusion!", ""
+    },
+
+    {
+        "rapid fire",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_rapid_fire, 0, 0, DUR_NONE,
+        "", "!rapid fire!", ""
+    },
+
+    {
+        "bullet rain",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bullet_rain, 0, 0, DUR_NONE,
+        "", "!bullet rain!", ""
+    },
+
+    {
+        "precise shot",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_WIS, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_precise_shot, 0, 0, DUR_NONE,
+        "", "!precise shot!", ""
+    },
+
+    {
+        "holy avenger",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_STR, STAT_WIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_holy_avenger, 0, 0, DUR_NONE,
+        "", "!holy avenger!", ""
+    },
+
+    {
+        "divine retribution",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_INT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_divine_retribution, 0, 0, DUR_NONE,
+        "divine retribution", "!divine retribution!", ""
+    },
+
+    {
+        "exploit weakness",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_exploit_weakness, 0, 0, DUR_NONE,
+        "", "!exploit weakness!", ""
+    },
+
+    {
+        "divine power",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_LUC,
+        spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
+        NULL, 150, 12, DUR_BRIEF,
+        "", "divine power", ""
+    },
+
+    {
         "leadership",  
         {  30, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 4,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -5832,6 +6193,17 @@ struct  skill_type
 		&gsn_hide,          0, 12, DUR_SPECIAL,
 		"",         "You come out of hiding.",       ""
 	},
+
+    {
+        "hide in plain sight",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_LUC, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_hips, 0, 0, DUR_NONE,
+        "", "!hide in plain sight!", ""
+    },
 
 	{
 	"sneak",  

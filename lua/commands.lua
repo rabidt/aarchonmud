@@ -47,25 +47,22 @@ end
 -- end luareset section
 
 -- luaquery section
-local query_results={}
-
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-{Cluaquery <type> <selection> [filter] [sort] [width] [limit]
-    {xExecute a query and show first page of results.
-{Cluaquery next
-    {xShow the next page of results.
+{Cluaquery [selection] from [type] <where [filter]> <order by [sort]> <width [width]> <limit [limit]>
+    {xExecute a query and show results.
 
 Types:
-    area    - AREAs (area_list)
-    op      - OBJPROTOs
-    objs    - OBJs (object_list, live objects)
-    mp      - MOBPROTOs
-    mobs    - CHs (all mobs from char_list)
-    room    - ROOMs
-    reset   - RESETs (includes 'area' and 'room')
-    help    - HELPs
+    area            - AREAs (area_list)
+    objproto or op  - OBJPROTOs
+    objs            - OBJs (object_list, live objects)
+    mobproto or mp  - MOBPROTOs
+    mobs            - CHs (all mobs from char_list)
+    room            - ROOMs
+    exit            - EXITs (includes 'dir', 'area', and 'room')
+    reset           - RESETs (includes 'area' and 'room')
+    help            - HELPs
 
     mprog   - PROGs (all mprogs, includes 'area')
     oprog   - PROGS (all oprogs, includes 'area')
@@ -79,9 +76,10 @@ Types:
 
 
 Selection:
-    Determines which fields are shown on output. If '' or default then default
-    values are used, otherwise fields supplied in a list separated by '|' 
+    Determines which fields are shown on output. If * or default then default
+    values are used, otherwise fields supplied in a list separated by ',' 
     character.
+    Additionally, the 'x as y' syntax can be used to define an alias. For instance: name:sub(1,10) as shortname,#spells as spellcount.
 
 Filter (optional):
     Expression used to filter which results are shown. Argument is a statement 
@@ -91,7 +89,7 @@ Filter (optional):
 
 Sort (optional):
     One or more values determining the sort order of the output. Format is same
-    as Selection.
+    as Selection, except aliases cannot be declared (but can be referenced).
 
 Width (optional):
     An integer value which limits the width of the output columns to the given
@@ -103,8 +101,7 @@ Limit (optional):
     bottom results are printed.
 
 Notes: 
-    'x' can be used optionally to qualify fields. 'x' is necessary to invoke
-    methods (see examples).
+    'x' can be used optionally to qualify fields and methods. See examples.
 
     A field must be in the selection in order to be used in sort.
 
@@ -115,17 +112,17 @@ Notes:
     accessible.
 
 Examples:
-    luaquery op level|vnum|shortdescr|x:extra("glow")|area.name 'otype=="weapon" and x:weaponflag("flaming")' level|x:extra("glow") 20
+    luaq level,vnum,shortdescr,extra("glow") as glow,area.name from op where otype=="weapon" and x:weaponflag("flaming") order by level,glow width 20
 
     Shows level, vnum, shortdescr, glow flag (true/false), and area.name for all
     OBJPROTOs that are weapons with flaming wflag. Sorted by level then by glow
     flag, with each column limited to 20 characters width.
 
-    luaquery mtrig '' 'mobproto.level==90' '' 15
+    luaq * from mtrig where mobproto.level==90 width 15
     Shows default selection for all mprog trigs that are attached to mobs of level 90.
     Results are unsorted but columns are limited to 15 characters.
 
-    luaq reset '' 'command=="M" and arg1==10256'
+    luaq * from reset where command=="M" and arg1==10256
     Show default selection for all resets of mob vnum 10256.
 
 ]])
@@ -149,7 +146,7 @@ local lqtbl={
             end
             return ops
         end ,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     mp={
@@ -162,17 +159,17 @@ local lqtbl={
             end
             return mps
         end,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     mobs={
         getfun=getmoblist,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     objs={
         getfun=getobjlist,
-        default_sel="vnum|level|shortdescr"
+        default_sel={"vnum","level","shortdescr"}
     },
 
     room={
@@ -185,7 +182,7 @@ local lqtbl={
             end
             return rooms
         end,
-        default_sel="area.name|vnum|name"
+        default_sel={"area.name","vnum","name"}
     },
 
 
@@ -203,10 +200,33 @@ local lqtbl={
             end
             return resets
         end,
-        default_sel="area.name|room.name|room.vnum|command|arg1|arg2|arg3|arg4"
+        default_sel={
+            "area.name",
+            "room.name",
+            "room.vnum",
+            "command",
+            "arg1","arg2","arg3","arg4"
+        }
     },
 
-
+    exit={
+        getfun=function()
+            local exits={}
+            for _,area in pairs(getarealist()) do
+                for _,room in pairs(area.rooms) do
+                    for _,exit in pairs(room.exits) do
+                        table.insert( exits, 
+                            setmetatable( { ["area"]=area, 
+                                            ["room"]=room,
+                                            ["dir"]=exit  },
+                                          { __index=room[exit]} ) )
+                    end
+                end
+            end
+            return exits
+        end,
+        default_sel={"room.vnum","dir","toroom.vnum"}
+    },
     mprog={
         getfun=function()
             local progs={}
@@ -218,7 +238,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     oprog={
@@ -232,7 +252,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     aprog={
@@ -246,7 +266,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     rprog={
@@ -260,7 +280,7 @@ local lqtbl={
             end
             return progs
         end,
-        default_sel="vnum"
+        default_sel={"vnum"}
     },
 
     mtrig={
@@ -277,7 +297,13 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="mobproto.vnum|mobproto.shortdescr|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "mobproto.vnum",
+            "mobproto.shortdescr",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
     otrig={
         getfun=function()
@@ -293,7 +319,13 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="objproto.vnum|objproto.shortdescr|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "objproto.vnum",
+            "objproto.shortdescr",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
    
     atrig={
@@ -308,7 +340,12 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="area.name|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "area.name",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
     
     rtrig={
@@ -325,72 +362,154 @@ local lqtbl={
             end
             return trigs
         end,
-        default_sel="room.vnum|room.name|trigtype|trigphrase|prog.vnum"
+        default_sel={
+            "room.vnum",
+            "room.name",
+            "trigtype",
+            "trigphrase",
+            "prog.vnum"
+        }
     },
 
     help={
         getfun=gethelplist,
-        default_sel="level|keywords"
+        default_sel={"level","keywords"}
     }
 
 
 }
+lqtbl.objproto=lqtbl.op
+lqtbl.mobproto=lqtbl.mp
 
-local function show_next_results( ch )
-    if not(query_results[ch.name]) then return end
-
-    local res=query_results[ch.name]
-
-    local ind=res.index
+local function luaq_results_con( ch, argument, header, result )
+    local ind=1
     local scroll=(ch.scroll == 0 ) and 100 or ch.scroll
-    local toind=math.min(ind+scroll-4, res.total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+    local total=#result
 
-    local out={}
-    table.insert(out, "Query: "..res.query)
-    table.insert(out, res.header)
-    for i=ind,toind do
-        table.insert(out, res.results[i] )
+    sendtochar(ch, "Query: "..argument.."\n\r")
+    while true do
+        local toind=math.min(ind+scroll-3, total ) -- -2 is normal, -3 for extra line at bottom, -4 for query at top
+        local out={}
+        table.insert(out, header)
+        for i=ind,toind do
+            table.insert(out, result[i] )
+        end
+
+        table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, total) )
+
+        sendtochar( ch, table.concat( out, "\n\r").."\n\r")
+        
+        if toind==total then
+            return
+        end
+        
+        while true do
+            sendtochar( ch, "[n]ext, [q]uit: ")
+            local cmd=coroutine.yield()
+            
+            if cmd=="n" or cmd=="" then
+                ind=toind+1
+                break
+            elseif cmd=="q" then
+                return
+            else 
+                sendtochar( ch, "\n\rInvalid: "..cmd.."\n\r")
+            end
+        end
     end
-
-    table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, res.total) )
-
-    if toind==res.total then
-        query_results[ch.name]=nil
-    else
-        res.index=toind+1
-    end
-
-    pagetochar( ch, table.concat( out, "\n\r").."\n\r")
 end
 
-local luaq_nav=
-{
-    ["next"]=function( ch )
-        show_next_results( ch )
+local function get_tokens(str)
+    local tokens={}
+    local len=str:len()
+    local ind=1
+    while true do
+        local token=""
+        local instring=false
+        local indoubquote=false
+        local insingquote=false
+        local parenslevel=0
+        while true do
+            local char=str:sub(ind,ind)
+            
+            if ind>len 
+            or (char=="," and not(instring) and not(parenslevel>0)) then
+                table.insert(tokens,token)
+                break
+            --elseif char==" " and not(instring) and not(parenslevel>0) then
+                -- ignore non literal whitespace
+            elseif char=="(" and not(instring) then
+                parenslevel=parenslevel+1
+                token=token..char
+            elseif char==")" and not(instring) then
+                parenslevel=parenslevel-1
+                token=token..char
+            elseif char=="\"" then
+                if instring then
+                    if indoubquote then
+                        instring=false
+                        doubquote=false
+                    end
+                else 
+                    instring=true
+                    indoubquote=true
+                end
+                token=token..char
+            elseif char=="'" then
+                if instring then
+                    if insingquote then
+                        instring=false
+                        insingquote=false
+                    end
+                else
+                    instring=true
+                    insingquote=true
+                end
+                token=token..char
+            else
+                token=token..char
+            end
+
+            ind=ind+1
+        end
+        if ind>=len then break end
+        ind=ind+1
     end
-}
+
+    return tokens
+end
 
 function do_luaquery( ch, argument)
-    -- arg checking stuff
-    args=arguments(argument, true)
-    
-    if not(args[1]) then
+    if argument=="" or argument=="help" then
         luaquery_usage(ch)
         return
     end
 
-    if luaq_nav[args[1]] then
-        luaq_nav[args[1]]( ch )
+    local typearg
+    local columnarg
+    local filterarg
+    local sortarg
+    local widtharg
+    local limitarg
+
+    local getfun
+    local selection
+    local aliases={}
+    local sorts
+
+
+    local ind=string.find(argument, " from ")
+    if not ind then
+        sendtochar(ch, "expected 'from' keyword\n\r")
         return
     end
 
-    local typearg=args[1]
-    local columnarg=args[2]
-    local filterarg=args[3]
-    local sortarg=args[4]
-    local widtharg=args[5] and tonumber(args[5])
-    local limitarg=args[6] and tonumber(args[6])
 
+    local slct_list=argument:sub( 1, ind-1)
+    selection=get_tokens(slct_list)
+
+
+    typearg=string.match( argument:sub(ind+6), "%w+")
     -- what type are we searching ?
     local lqent=lqtbl[typearg]
     if lqent then
@@ -400,45 +519,102 @@ function do_luaquery( ch, argument)
         return
     end
 
-    -- which columns are we selecting for output ?
-    if not(columnarg) then
-        sendtochar( ch, "Must provide selection argument.\n\r")
-        return
-    elseif columnarg=="" or columnarg=="default" then
-        columnarg=lqent.default_sel
+    -- handle * or default in select list
+    local old_selection=selection
+    selection={}
+    for i,v in ipairs(old_selection) do
+        if v=="*" or v=="default" then
+            for _,field in ipairs(lqent.default_sel) do
+                table.insert(selection, field)
+            end
+        else
+            table.insert(selection,v)
+        end
     end
 
-    local selection={}
-    for word in columnarg:gmatch("[^|]+") do
-        table.insert(selection, word)
+    -- check for aliases in selection
+    for k,v in pairs(selection) do
+        local start,fin=v:find(" as ")
+        if start then
+            aliases[v:sub(fin+1)]=v:sub(1,start-1)
+            selection[k]=v:sub(fin+1)
+        end
     end
+
+    local rest_arg=argument:sub(ind+(" from "):len()+typearg:len())
+
+    local whereind=string.find(rest_arg, " where ")
+    local orderbyind=string.find(rest_arg, " order by ")
+    local widthind=string.find(rest_arg, " width ")
+    local limitind=string.find(rest_arg, " limit ")
+
+    filterarg=whereind and rest_arg:sub(whereind+7, orderbyind or widthind or limitind) or ""
+    
+    if orderbyind then
+        local last=widthind or limitind
+        last=last and (last-1)
+        sortarg=rest_arg:sub(orderbyind+10, last)     
+        sorts=get_tokens(sortarg)
+    end
+
+    if widthind then
+        local last=limitind
+        last=last and (last-1)
+        widtharg=tonumber(rest_arg:sub(widthind+7, last))
+        if not widtharg then
+            sendtochar(ch, "width argument must be a number\n\r")
+            return
+        end
+    end
+
+    if limitind then
+        local last
+        last=last and (last-1)
+        limitarg=tonumber(rest_arg:sub(limitind+7, last))
+        if not limitarg then
+            sendtochar(ch, "limit argument must be a number\n\r")
+            return
+        end 
+    end
+
 
     -- let's get our result
     local lst=getfun()
+
     local rslt={}
-    if filterarg then
+    if not(filterarg=="") then
+        local alias_funcs={}
+        for k,v in pairs(aliases) do
+            alias_funcs[k]=loadstring("return function(x) return "..v.." end")()
+        end
+
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
-            setfenv(vf, 
-                    setmetatable(
-                        {
-                            pairs=pairs
-                        }, 
-                        { 
-                            __index=function(t,k)
-                                if k=="thisarea" then
-                                    return ch.room.area==gobj.area
-                                else
-                                    return gobj[k] 
-                                end
-                            end,
-                            __newindex=function ()
-                                error("Can't set values with luaquery")
-                            end
-                        } 
-                    ) 
-            )
+            local fenv={ pairs=pairs }
+            local mt={ 
+                __index=function(t,k)
+                    if k=="thisarea" then
+                        return ch.room.area==gobj.area
+                    elseif alias_funcs[k] then
+                        return alias_funcs[k](gobj) 
+                    elseif type(gobj[k])=="function" then
+                        return function(...)
+                            return gobj[k](gobj, ...)
+                        end
+                    else
+                        return gobj[k]
+                    end
+                end,
+                __newindex=function ()
+                    error("Can't set values with luaquery")
+                end
+            } 
+            setmetatable(fenv,mt)
+            setfenv(vf, fenv)
+            for k,v in pairs(aliases) do
+                setfenv(alias_funcs[k], fenv)
+            end
             local val=vf()(gobj)
             if val then return true
             else return false end
@@ -456,14 +632,23 @@ function do_luaquery( ch, argument)
     for _,gobj in pairs(rslt) do
         local line={}
         for _,sel in ipairs(selection) do
-            local vf,err=loadstring("return function(x) return "..sel.." end")
+            local vf,err=loadstring("return function(x) return "..(aliases[sel] or sel).." end")
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
                     setmetatable(
                         {
                             pairs=pairs
                         }, 
-                        {   __index=gobj,
+                        {   
+                            __index=function(t,k)
+                                if type(gobj[k])=="function" then
+                                    return function(...)
+                                        return gobj[k](gobj, ...)
+                                    end
+                                else
+                                    return gobj[k]
+                                end
+                            end,
                             __newindex=function () 
                                 error("Can't set values with luaquery") 
                             end
@@ -482,11 +667,7 @@ function do_luaquery( ch, argument)
     end
 
     -- now sort
-    if sortarg and not(sortarg=="") then
-        local sorts={}
-        for srt in sortarg:gmatch("[^|]+") do
-            table.insert(sorts, srt)
-        end
+    if sorts then
 
         local fun
         fun=function(a,b,lvl)
@@ -602,17 +783,11 @@ function do_luaquery( ch, argument)
                 "|"..ln.."|")
     end
 
-    -- stick in in query_results table for browsing
-    query_results[ch.name]=
-    {
-        query=argument,
-        index=1,
-        total=#printing,
-        header=hdr,
-        results=printing
-    }
-
-    show_next_results( ch )
+    start_con_handler( ch.descriptor, luaq_results_con, 
+            ch,
+            argument, 
+            hdr,
+            printing)
 
 end
 -- end luaquery section
@@ -986,10 +1161,13 @@ local function alist_usage( ch )
 [[
 Syntax:  alist
          alist [column name] <ingame>
+         alist unused
          alist find [text]
 
 
 'alist' with no argument shows all areas, sorted by area vnum.
+
+'alist unused' shows which vnum ranges are unused.
 
 With a column name argument, the list is sorted by the given column name.
 'ingame' is used as an optional 3rd argument to show only in game areas.
@@ -1026,6 +1204,27 @@ function do_alist( ch, argument )
             end
             return false
         end
+    elseif args[1]=="unused" then
+        local alist=getarealist()
+        table.sort(alist, function(a,b) return a.minvnum<b.minvnum end)
+
+        -- assume no gap at the beginning (vnum 1)
+        sendtochar(ch, " Min   -  Max   [    count   ]\n\r")
+        sendtochar(ch, ("-"):rep(80).."\n\r")
+        for i,area in ipairs(alist) do
+            local area_next=alist[i+1]
+            if not(area_next) then break end
+
+            local gap=area_next.minvnum-area.maxvnum-1
+            if gap>0 then
+                sendtochar(ch, string.format("%6s - %6s [%6s vnums]\n\r",
+                            area.maxvnum+1,
+                            area_next.minvnum-1,
+                            gap))
+            end
+        end
+
+        return
     else
         for k,v in pairs(alist_col) do
             if v==args[1] then
@@ -1777,6 +1976,7 @@ local function luahelp_usage( ch )
 Syntax: 
     luahelp <section>
     luahelp <section> <get|set|meth>
+    luahelp dump <section> -- Dump for pasting to dokuwiki
 
 Examples:
     luahelp ch
@@ -1793,6 +1993,8 @@ local function nextrowcolor()
     return rowtoggle and 'w' or 'D'
 end
 
+local SEC_NOSCRIPT=99
+
 local function luahelp_dump( ch, args )
     if args[1]=="glob" or args[1]=="global" then
         local out={}
@@ -1801,10 +2003,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Function^Security^\n\r")
         for i,v in ipairs(g) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.lib and (v.lib..":"..v.name) or v.name,
                         v.lib and (v.lib.."."..v.name) or v.name,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
 
@@ -1822,11 +2024,11 @@ local function luahelp_dump( ch, args )
         local props={}
         for k,v in pairs(t.get) do
             props[v.field]=props[v.field] or {}
-            props[v.field].get=v.security
+            props[v.field].get=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         for k,v in pairs(t.set) do
             props[v.field]=props[v.field] or {}
-            props[v.field].set=v.security
+            props[v.field].set=v.security == SEC_NOSCRIPT and 'X' or v.security
         end
         local out={}
 
@@ -1850,10 +2052,10 @@ local function luahelp_dump( ch, args )
         table.insert( out, "^Method^Security^\n\r")
         for k,v in pairs(t.method) do
             table.insert( out, string.format(
-                        "| [[.%s|%s]] | %d |\n\r",
+                        "| [[.%s|%s]] | %s |\n\r",
                         v.field,
                         v.field,
-                        v.security)
+                        v.security == SEC_NOSCRIPT and 'X' or v.security)
             )
         end
         table.insert( out, "</sortable>\n\r")
@@ -1883,19 +2085,22 @@ function do_luahelp( ch, argument )
     end
 
     if args[1] == "global" or args[1] == "glob" then
+        local show_all= (args[2]=="all")
         local out={}
         
         table.insert(out, "GLOBAL functions\n\r" )
         local g=getglobals()
         for i,v in ipairs(g) do
+            if not(v.security==SEC_NOSCRIPT) or show_all then
             table.insert( out, string.format(
-                    "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
+                    "{%s[%s] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                     nextrowcolor(),
                     v.security,
                     v.lib and (v.lib.."."..v.name) or v.name,
                     "global",
                     v.lib and (v.lib..":"..v.name) or v.name)
             )
+            end
         end
 
         pagetochar( ch, table.concat(out) ) 
@@ -1909,11 +2114,23 @@ function do_luahelp( ch, argument )
             return
         end
         
-        local subsect=args[2]
+        local subsect
+        local show_all
+
+        if args[2] then
+            if args[2]=="all" then
+                -- no subsect
+                show_all=true
+            else
+                subsect=args[2]
+                show_all=(args[3]=="all")
+            end
+        end
 
         if not(subsect) or subsect=="get" then
             table.insert( out, "\n\rGET properties\n\r")
             for i,v in ipairs(t.get) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1922,12 +2139,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end            
 
         if not(subsect) or subsect=="set" then
             table.insert( out, "\n\rSET properties\n\r")
             for i,v in ipairs(t.set) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1936,12 +2155,14 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
 
         if not(subsect) or subsect=="meth" then
             table.insert( out, "\n\rMETHODS\n\r")
             for i,v in ipairs(t.method) do
+                if not(v.security==SEC_NOSCRIPT) or show_all then
                 table.insert( out, string.format(
                             "{%s[%d] %-40s - \t<a href=\"http://rooflez.com/dokuwiki/doku.php?id=lua:%s:%s\">Reference\t</a>{x\n\r",
                             nextrowcolor(),
@@ -1950,6 +2171,7 @@ function do_luahelp( ch, argument )
                             args[1],
                             v.field)
                 )
+                end
             end
         end
  
@@ -1959,3 +2181,147 @@ function do_luahelp( ch, argument )
 end
 
 -- end luahelp section
+
+-- do_achievements_boss section
+local boss_table
+
+function update_bossachv_table()
+    boss_table={}
+    for _,area in pairs(getarealist()) do
+        for _,mp in pairs(area.mobprotos) do
+            if mp.bossachv then
+                table.insert(boss_table, mp)
+            end
+        end
+    end
+
+    table.sort( boss_table, function(a,b) 
+            return a.area.minlevel < b.area.minlevel 
+    end )
+end
+
+function do_achievements_boss( ch, victim)
+    local plr={}
+    for k,v in pairs(victim.bossachvs) do
+        plr[v.vnum] = v.timestamp
+    end
+
+    if not(boss_table) then update_bossachv_table() end
+
+    local columns={}
+    local nummobs=#boss_table
+    local numrows=math.ceil(nummobs/2)
+    
+    for i,v in pairs(boss_table) do
+        local row
+        row=i%numrows
+        if row==0 then row=numrows end
+
+        columns[row]=columns[row] or "{G|{x"
+        columns[row]=string.format("%s{w%4s %s{x %s{G|{x",
+                columns[row],
+                i..".",
+                util.format_color_string(getmobproto(v.vnum).shortdescr, 20),
+                util.format_color_string(
+                    (plr[v.vnum] and os.date("{y%x{x", plr[v.vnum]) or "{DLocked{x"),
+                    9))
+        
+
+    end
+
+    local total=#boss_table
+    local unlocked=#victim.bossachvs
+    local locked=total-unlocked
+    pagetochar( ch, "{WBoss Achievements for "..victim.name..
+            "\n\r{w----------------------------\n\r"..
+            table.concat( columns, "\n\r").."\n\r"..
+            "\n\r{wTotal Achievements: "..total..", Total Unlocked: "..unlocked..", Total Locked: "..locked.."\n\r"..
+            "{x(Use 'achievement boss rewards' to see rewards table.)\n\r"
+    )
+end
+
+function do_achievements_boss_reward( ch )
+    if not(boss_table) then update_bossachv_table() end
+
+    sendtochar( ch, ("{w%-40s {W%5s{G| {W%5s{G| {W%5s{G| {W%5s{x\n\r"):format(
+                "Boss", "QP", "Exp", "Gold", "AchP"))
+    sendtochar( ch, ("-"):rep(80).."\n\r")
+    for i,v in ipairs(boss_table) do
+        sendtochar(ch, ("{w%s {y%5d{G| {c%5d{G| {y%5d{G| {c%5d{x\n\r"):format(
+                    util.format_color_string(v.shortdescr, 40),
+                    v.bossachv.qp,
+                    v.bossachv.exp,
+                    v.bossachv.gold,
+                    v.bossachv.achp))
+    end 
+        
+end
+-- end do_achievements_boss section
+
+-- do_qset section
+local function do_qset_usage( ch )
+    sendtochar( ch, [[
+Syntax:
+  For regular qsets:
+    qset [player] [id] [value] [timer] [limit]
+
+    Example:
+    qset astark 31404 3
+
+  For lua setval:
+    qset [player] [setval] [value]
+
+    Use value of 'nil' to clear.
+
+    Examples:
+    qset astark blah123 true
+    qset astark blah123 nil
+]])
+    return
+end
+
+function do_qset(ch, argument)
+    local args=arguments(argument, true)
+
+    if #args<3 then
+        do_qset_usage(ch)
+        return
+    end 
+        
+    local vic=getpc(args[1])
+    if not vic then
+        sendtochar( ch, "No such player: "..args[1].."\n\r")
+        return
+    end
+
+    -- if arg2 is number, it's a qset, otherwise it's setval
+    if tonumber(args[2]) then
+        ch:qset(vic, unpack(args,2))
+        sendtochar( ch, "You have successfully changed "..vic.name.."'s qstatus.\n\r")
+        return
+    else
+        -- make sure we save the right types
+        local val
+
+        if tonumber(args[3]) then
+            val=tonumber(args[3])
+        elseif args[3]=="true" then
+            val=true
+        elseif args[3]=="false" then
+            val=false
+        elseif args[3]=="nil" then
+            val=nil
+        else
+            val=args[3]
+        end
+
+        vic:setval(args[2], val, true)
+
+        sendtochar( ch, string.format("Setval complete on %s.\n\r%s set to %s (type %s)\n\r", 
+                    vic.name, 
+                    args[2], 
+                    tostring(vic:getval(args[2])), 
+                    type(vic:getval(args[2]))))
+    end
+end
+-- end do_qset section

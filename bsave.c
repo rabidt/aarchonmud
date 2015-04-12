@@ -513,6 +513,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
+        bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
+        if ( ch->pcdata->subclass )
+            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
@@ -726,6 +729,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 		bprintf(buf, "-1 -1\n" );
 	}
 
+    /* boss achievements */
+    struct boss_achieve_record *rec;
+    for ( rec = ch->pcdata->boss_achievements ; rec; rec=rec->next )
+    {
+        bprintf( buf, "BAch %d %d\n", rec->vnum, rec->timestamp );
+    }
+
 
         /* write alias */
         for (pos = 0; pos < MAX_ALIAS; pos++)
@@ -841,6 +851,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "WarReligionKills %d\n", ch->pcdata->religion_kills );
     bprintf( buf, "WarReligionWon %d\n", ch->pcdata->religion_won );
     bprintf( buf, "WarReligionLost %d\n", ch->pcdata->religion_lost );
+    bprintf( buf, "WarDuelKills %d\n", ch->pcdata->duel_kills );
+    bprintf( buf, "WarDuelWon %d\n", ch->pcdata->duel_won );
+    bprintf( buf, "WarDuelLost %d\n", ch->pcdata->duel_lost );
     bprintf( buf, "MobKills %d\n", ch->pcdata->mob_kills );
     bprintf( buf, "MobDeaths %d\n", ch->pcdata->mob_deaths );
     bprintf( buf, "QuestsFailed %d\n", ch->pcdata->quest_failed );
@@ -1307,6 +1320,10 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
             }
         }
 
+    // copy verbatim settings from char to descriptor
+    if ( d->pProtocol )
+        d->pProtocol->verbatim = IS_SET(ch->act, PLR_COLOUR_VERBATIM);
+        
     /* record obj count to track vanishing eq bug */
     if ( !char_only )
         logpf("mem_load_char_obj: %s carries %d objects", ch->name, count_objects(ch->carrying));
@@ -1537,10 +1554,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = ch->affected;
-                ch->affected    = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                ch->affected = affect_insert(ch->affected, paf);
                 fMatch = TRUE;
                 break;
             }
@@ -1616,9 +1632,23 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
+            KEY( "Ascent", ch->pcdata->ascents, bread_number(buf) );
+            
             break;
             
     case 'B':
+        if (!str_cmp(word, "BAch" ) )
+        {
+            BOSSREC * rec = alloc_BOSSREC();
+            rec->vnum=bread_number(buf);
+            rec->timestamp=bread_number(buf);
+
+            rec->next = ch->pcdata->boss_achievements;
+            ch->pcdata->boss_achievements = rec;
+            fMatch = TRUE;
+            break;
+        }
+
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
         KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
@@ -2273,6 +2303,15 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
         
+        if ( !str_cmp(word, "Subclass") )
+        {
+            const char *temp = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            free_string(temp);
+            fMatch = TRUE;
+            break;
+        }
+        
         break;
         
     case 'T':
@@ -2339,6 +2378,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "WarReligionKills",ch->pcdata->religion_kills, bread_number( buf ) );
         KEY( "WarReligionWon",ch->pcdata->religion_won,     bread_number( buf ) );
         KEY( "WarReligionLost",ch->pcdata->religion_lost,   bread_number( buf ) );
+        KEY( "WarDuelKills", ch->pcdata->duel_kills,        bread_number( buf ) );
+        KEY( "WarDuelWon", ch->pcdata->duel_won,            bread_number( buf ) );
+        KEY( "WarDuelLost", ch->pcdata->duel_lost,          bread_number( buf ) );
 
 	if ( !str_cmp( word, "WarTotalKills" ) )
 	{
@@ -3235,6 +3277,19 @@ DEF_DO_FUN(do_finger)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
+    /* ascent and subclass */
+    if ( wch->level <= LEVEL_HERO && wch->pcdata->ascents > 0 )
+    {
+        sprintf(buf, "{D|{x ");
+        sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
+            wch->pcdata->ascents,
+            subclass_table[wch->pcdata->subclass].name);
+        strcat( buf, buf2 );
+        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );        
+    }
+    
     /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
@@ -3332,12 +3387,17 @@ DEF_DO_FUN(do_finger)
 		wch->pcdata->quest_failed, wch->pcdata->gender_won, wch->pcdata->gender_lost, wch->pcdata->gender_kills );
 	add_buf( output, buf );
 
+    sprintf( buf,
+        "{D|{x                         {D|{x        {DDuel Wars: | %4d | %4d | %5d |{x\n\r",
+        wch->pcdata->duel_won, wch->pcdata->duel_lost, wch->pcdata->duel_kills);
+    add_buf( output, buf );
+
 	sprintf(buf,
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
             wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 /
             (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success),
-	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won,
-	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost,
+	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won + wch->pcdata->duel_won,
+	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost + wch->pcdata->duel_lost,
 	    wch->pcdata->war_kills );
         add_buf( output, buf );
         

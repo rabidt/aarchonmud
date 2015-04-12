@@ -453,7 +453,7 @@ DEF_DO_FUN(do_tattoo)
     }
     else if ( !strcmp(arg1, "buy") )
     {
-	if ( (loc = flag_value(wear_loc_flags, arg2)) == NO_FLAG
+	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
 	     || !is_tattoo_loc(loc) )
 	{
 	    send_to_char( "That's not a valid location.\n\r", ch );
@@ -496,7 +496,7 @@ DEF_DO_FUN(do_tattoo)
     }
     else if ( !strcmp(arg1, "remove") )
     {
-	if ( (loc = flag_value(wear_loc_flags, arg2)) == NO_FLAG
+	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
 	     || !is_tattoo_loc(loc) )
 	{
 	    send_to_char( "That's not a valid location.\n\r", ch );

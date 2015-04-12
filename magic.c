@@ -63,6 +63,9 @@ char* wear_location_info( int pos );
 int skill_lookup( const char *name )
 {
     int sn;
+    
+    if ( (sn = skill_lookup_exact(name)) >= 0 )
+        return sn;
 
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
@@ -88,6 +91,67 @@ int skill_lookup_exact( const char *name )
             return sn;
     }
 
+    return -1;
+}
+
+int known_skill_lookup( CHAR_DATA *ch, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && get_skill(ch, sn) > 0 )
+            return sn;
+    }
+
+    return -1;
+}
+
+int class_skill_lookup( int class, const char *name )
+{
+    int sn;
+
+    // exact match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !strcmp(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
+            return sn;
+    }
+    
+    // prefix match
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !str_prefix(name, skill_table[sn].name) && is_class_skill(class, sn) > 0 )
+            return sn;
+    }
+
+    return -1;
+}
+
+int affect_list_lookup( AFFECT_DATA *aff, const char *name )
+{
+    while ( aff )
+    {
+        if ( !str_prefix(name, skill_table[aff->type].name) )
+            return aff->type;
+        aff = aff->next;
+    }
     return -1;
 }
 
@@ -631,9 +695,9 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             }
             else
             {
-                if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+                if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
                 {
-                    send_to_char( "They aren't here.\n\r", ch );
+                    send_to_char( "You can't find your victim.\n\r", ch );
                     return FALSE;
                 }
             }
@@ -678,7 +742,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             break;
 
         case TAR_CHAR_SELF:
-            if ( arg[0] != '\0' && !is_name( arg, ch->name ) )
+            if ( arg[0] != '\0' && strcmp(arg, "self") && !is_name( arg, ch->name ) )
             {
                 send_to_char( "You cannot cast this spell on another.\n\r", ch );
                 return FALSE;
@@ -738,7 +802,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
 
                 *target = TARGET_CHAR;
             }
-            else if ((victim = get_char_room(ch,arg)) != NULL)
+            else if ((victim = get_victim_room(ch,arg)) != NULL)
             {
                 *target = TARGET_CHAR;
             }
@@ -951,6 +1015,9 @@ bool check_concentration( CHAR_DATA *ch )
     if ( !ch->in_room )
         return FALSE;
     
+    if ( per_chance(get_skill(ch, gsn_combat_casting)) )
+        return TRUE;
+    
     ch_roll = number_range(0, concentration_power(ch));
     for ( att = ch->in_room->people; att; att = att->next_in_room )
     {
@@ -1088,7 +1155,7 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
             }
             else
             {
-                check_improve(ch, sn, FALSE, 2);
+                check_improve(ch, sn, FALSE, 3);
                 return FALSE;
             }
         }
@@ -1151,7 +1218,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
     }
 }
 
-void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
+void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     // spell triggers
     if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
@@ -1162,6 +1229,38 @@ void post_spell_process( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
          && !is_same_group(ch, victim) )
     {
         set_fighting(victim, ch);
+    }
+    
+    // mystic infusion heals or harms
+    if ( !was_obj_cast && per_chance(get_skill(ch, gsn_mystic_infusion)) )
+    {
+        int target = skill_table[sn].target;
+        if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF)
+            && victim != ch && victim->in_room == ch->in_room
+            && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
+        {
+            int dam = get_sn_damage(sn, ch->level, ch) * 0.2;
+            if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
+                dam /= 2;
+            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
+        }
+        else if ( target == TAR_CHAR_DEFENSIVE
+                || target == TAR_OBJ_CHAR_DEF
+                || target == TAR_CHAR_SELF )
+        {
+            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.2;
+            if ( victim->hit < victim->max_hit )
+            {
+                if ( ch == victim )
+                    ptc(ch, "Your mystic infusion restores some of your health.\n\r");
+                else
+                {
+                    act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
+                    act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+                }
+                victim->hit += UMIN(victim->max_hit - victim->hit, heal);
+            }
+        }
     }
 }
 
@@ -1204,7 +1303,7 @@ void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         if ( !success )
             continue;
         
-        post_spell_process(sn, ch, target);
+        post_spell_process(sn, level, ch, target);
     }
 }
 
@@ -1335,10 +1434,11 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
+            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
-        check_improve(ch,sn,FALSE,2);
+        check_improve(ch,sn,FALSE,3);
         reduce_mana(ch, mana/2);
         return;
     }
@@ -1386,7 +1486,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
         if ( target == TARGET_CHAR )
         {
-            post_spell_process(sn, ch, (CHAR_DATA*)vo);
+            post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
             if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
                 chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
         }
@@ -1581,12 +1681,12 @@ DEF_DO_FUN(do_wish)
 /*
  * Cast spells at targets using a magical object.
  */
-bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg )
+bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *argument, bool check )
 {
+    char arg[MAX_INPUT_LENGTH];
     void *vo;
     int target;
     int levelmod;
-    bool cast_self = FALSE;
 
     if ( sn <= 0 )
         return FALSE;
@@ -1609,7 +1709,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
 
     if ( level > 1 )
     {
-        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) )
+        if ( (levelmod = get_skill(ch, gsn_arcane_lore)) && !check )
             check_improve(ch, gsn_arcane_lore, TRUE, 3);
         level = level * (900 + levelmod) / 1000;
     }
@@ -1635,27 +1735,22 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
         }
     }
 
-    /* check for self-only spells */
-    if ( !str_cmp(arg, "self") )
-    {
-        cast_self = TRUE;
-        arg = ch->name;
-    }
-
+    target_name = one_argument(argument, arg);
+    
     /* get target */
     if ( !get_spell_target( ch, arg, sn, &target, &vo ) )
         return FALSE;
 
-    if ( cast_self && vo != ch )
-    {
-        if ( target == TARGET_CHAR )
-            vo = (void*) ch;
-        else
-            return FALSE;
-    }
-
+    // check if spell could be cast successfully
+    // that's done via a call to the spell function with check = TRUE
+    // sending appropriate failure message is job of the spell function
+    if ( !(*skill_table[sn].spell_fun)(sn, level, ch, vo, target, TRUE) )
+        return FALSE;
+    
+    if ( check )
+        return TRUE;
+    
     /* execute spell */
-    target_name = arg;
     vo = check_reflection( sn, level, ch, vo, target );
 
     // remove invisibility
@@ -1671,7 +1766,7 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
     was_obj_cast = FALSE;
 
     if ( success && target == TARGET_CHAR )
-        post_spell_process(sn, ch, (CHAR_DATA*)vo);
+        post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
     
     return success;
 }
@@ -1726,9 +1821,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
         return dam;
 
     dam += dam * get_focus_bonus(ch) / 100;
-    check_improve(ch, gsn_focus, TRUE, 1);
+    check_improve(ch, gsn_focus, TRUE, 4);
     if ( get_dagger_focus(ch) )
-        check_improve(ch, gsn_dagger_focus, TRUE, 3);
+        check_improve(ch, gsn_dagger_focus, TRUE, 4);
 
     if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
     {
@@ -1766,7 +1861,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         heal += heal * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
 
         if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
         {
@@ -2100,7 +2195,7 @@ DEF_SPELL_FUN(spell_calm)
     if ( !conflict )
     {
         send_to_char("Things seem pretty calm already.\n\r", ch);
-        return SR_TARGET;
+        return TRUE;
     }
     
     conflict = FALSE;
@@ -2159,7 +2254,7 @@ DEF_SPELL_FUN(spell_cancellation)
     const char *arg = one_argument( target_name, NULL);
     if ( arg[0] != '\0' )
     {
-        int sn = skill_lookup(arg);
+        int sn = affect_list_lookup(victim->affected, arg);
 
         if ( sn == -1 )
         {
@@ -2357,6 +2452,7 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( IS_AFFECTED(victim, AFF_CHARM)
             || IS_AFFECTED(ch, AFF_CHARM)
             || IS_SET(victim->imm_flags, IMM_CHARM)
+            || IS_SET(victim->imm_flags, IMM_CHARMPERSON)
             || IS_IMMORTAL(victim) )
     {
         act( "You can't charm $N.", ch, NULL, victim, TO_CHAR );
@@ -4218,6 +4314,7 @@ DEF_SPELL_FUN(spell_identify)
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
     int pos;
+    int ac = 0;
 
     if ( (ch->level+10) < obj->level)
     {
@@ -4289,8 +4386,8 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "Has %d charges of level %d",
-                    obj->value[2], obj->value[0] );
+            sprintf( buf, "Has %d/%d charges of level %d",
+                    obj->value[2], obj->value[1], obj->value[0] );
             send_to_char( buf, ch );
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
@@ -4358,12 +4455,13 @@ DEF_SPELL_FUN(spell_identify)
                     continue;
                 char *wear = wear_location_info(pos);
                 if ( wear )
+                {
                     printf_to_char(ch, "%s\n\r", wear);
+                    ac = predict_obj_ac(obj, pos);
+                }
             }
-            sprintf( buf, 
-                    "Armor class is %d.\n\r", 
-                    obj->value[0]);
-            send_to_char( buf, ch );
+            if ( ac )
+                printf_to_char(ch, "Armor class is %d.\n\r", ac );
             break;
 
         case ITEM_LIGHT:
@@ -5055,7 +5153,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
 DEF_SPELL_FUN(spell_recharge)
 {
     OBJ_DATA *obj = (OBJ_DATA *) vo;
-    int chance, percent;
+    int charges, cost;
 
     if (obj->item_type != ITEM_WAND && obj->item_type != ITEM_STAFF)
     {
@@ -5063,66 +5161,42 @@ DEF_SPELL_FUN(spell_recharge)
         return SR_TARGET;
     }
 
-    if (obj->value[3] >= 3 * level / 2)
+    if (obj->value[0] >= level)
     {
         send_to_char("Your skills are not great enough for that.\n\r",ch);
         return SR_UNABLE;
     }
 
-    if (obj->value[1] == 0)
+    if (obj->value[1] <= 1)
     {
-        send_to_char("That item has already been recharged once.\n\r",ch);
+        send_to_char("That item cannot be recharged anymore.\n\r", ch);
         return SR_UNABLE;
     }
 
-    SPELL_CHECK_RETURN
+    charges = (obj->value[1] - 1) - obj->value[2];
+
+    if ( charges < 1 )
+    {
+        send_to_char("That item cannot be recharged further.\n\r", ch);
+        return SR_UNABLE;
+    }
     
-    chance = 40 + 2 * level;
-
-    chance -= obj->value[3]; /* harder to do high-level spells */
-    chance -= (obj->value[1] - obj->value[2]) *
-        (obj->value[1] - obj->value[2]);
-
-    chance = UMAX(level/2,chance);
-
-    percent = number_percent();
-
-    if (percent < chance / 2)
+    cost = spell_obj_cost(obj->value[0], spell_base_cost(obj->value[3])) * charges / (obj->item_type == ITEM_WAND ? 8 : 16);
+    if ( !has_money(ch, cost) )
     {
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_ROOM);
-        obj->value[2] = UMAX(obj->value[1],obj->value[2]);
-        obj->value[1] = 0;
+        ptc(ch, "It costs %.2f gold to recharge %s.\n\r", cost/100.0, obj->short_descr);
+        return SR_UNABLE;
     }
-    else if (percent <= chance)
-    {
-        int chargeback,chargemax;
+    
+    SPELL_CHECK_RETURN
 
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-        act("$p glows softly.",ch,obj,NULL,TO_CHAR);
-
-        chargemax = obj->value[1] - obj->value[2];
-
-        if (chargemax > 0)
-            chargeback = UMAX(1,chargemax * percent / 100);
-        else
-            chargeback = 0;
-
-        obj->value[2] += chargeback;
-        obj->value[1] = 0;
-    }
-    else if (percent <= UMIN(95, 3 * chance / 2))
-    {
-        send_to_char("Nothing seems to happen.\n\r",ch);
-        if (obj->value[1] > 1)
-            obj->value[1]--;
-    }
-    else /* whoops! */
-    {
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_CHAR);
-        act("$p glows brightly and explodes!",ch,obj,NULL,TO_ROOM);
-        extract_obj(obj);
-    }
+    deduct_cost(ch, cost);
+    ptc(ch, "You use up materials worth %.2f gold to restore %d charge%s to %s.\n\r",
+        cost/100.0, charges, charges == 1 ? "" : "s", obj->short_descr);
+    act("$p glows softly.", ch, obj, NULL, TO_ROOM);
+    obj->value[2] += charges;
+    // max number of charges is reduced by 1 with each recharge
+    obj->value[1] -= 1;
     return TRUE;
 }
 
@@ -5353,6 +5427,12 @@ DEF_SPELL_FUN(spell_sleep)
         return SR_IMMUNE;
     }
 
+    if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+    {
+        act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+        return SR_IMMUNE;
+    }
+
     if ( saves_spell(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
@@ -5566,43 +5646,49 @@ DEF_SPELL_FUN(spell_summon)
 
 DEF_SPELL_FUN(spell_teleport)
 {
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
     ROOM_INDEX_DATA *pRoomIndex;
     OBJ_DATA *stone;
 
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
 
-    SPELL_CHECK_RETURN
-    
-    if ( victim->in_room == NULL
-            || IS_SET(victim->in_room->room_flags, ROOM_NO_RECALL)
-            || IS_TAG(ch)
-            || ( victim != ch && IS_SET(victim->imm_flags,IMM_SUMMON))
-            || ( !IS_NPC(ch) && victim->fighting != NULL )
-            || ( victim != ch
-                && ( saves_spell(victim, ch, level - 5, DAM_OTHER))))
+    if ( !strcmp(target_name, "locate") )
     {
-        send_to_char( "You failed.\n\r", ch );
+        SPELL_CHECK_RETURN
+        show_portal_names(ch);
         return TRUE;
     }
 
-    stone = get_eq_char(ch,WEAR_HOLD);
-
-    pRoomIndex = get_random_room(victim);
-
-    if ( pRoomIndex == NULL 
+    if ( target_name[0] == '\0' )
+    {
+        SPELL_CHECK_RETURN
+        pRoomIndex = get_random_room(ch);
+        
+        if ( pRoomIndex == NULL 
             || !is_room_ingame(pRoomIndex)
-            || !can_see_room(ch,pRoomIndex) 
+            || !can_see_room(ch, pRoomIndex) 
             /* Teleport wasn't working because the IS_SET check was missing - Astark 1-7-13 */
-            || !can_move_room(victim, pRoomIndex, FALSE)
+            || !can_move_room(ch, pRoomIndex, FALSE)
             || IS_SET(pRoomIndex->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(pRoomIndex->room_flags, ROOM_JAIL))
-    {
-        send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
-        return TRUE;
+        {
+            send_to_char( "The room begins to fade from around you, but then it slowly returns.\n\r", ch );
+            return TRUE;
+        }
     }
-
+    else
+    {
+        if ( (pRoomIndex = get_portal_room(target_name)) == NULL
+            || !can_see_room(ch, pRoomIndex)
+            || !is_room_ingame(pRoomIndex) )
+        {
+            send_to_char( "Teleport destination unknown.\n\r", ch );
+            return SR_TARGET;
+        }
+        SPELL_CHECK_RETURN
+    }    
+    
+    stone = get_eq_char(ch,WEAR_HOLD);
 
     if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
     {
@@ -5621,14 +5707,22 @@ DEF_SPELL_FUN(spell_teleport)
         }
     }
 
-    if (victim != ch)
-        send_to_char("You have been teleported!\n\r",victim);
+    act("$n vanishes!", ch, NULL, NULL, TO_ROOM);
+    char_from_room(ch);
+    char_to_room(ch, pRoomIndex);
+    act("$n abruptly appears from out of nowhere.", ch, NULL, NULL, TO_ROOM);
+    do_look(ch, "auto");
 
-    act( "$n vanishes!", victim, NULL, NULL, TO_ROOM );
-    char_from_room( victim );
-    char_to_room( victim, pRoomIndex );
-    act( "$n abruptly appears from out of nowhere.", victim, NULL, NULL, TO_ROOM );
-    do_look( victim, "auto" );
+    CHAR_DATA *pet = ch->pet;
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, pRoomIndex, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
+    
     return TRUE;
 }
 
@@ -5723,6 +5817,7 @@ DEF_SPELL_FUN(spell_weaken)
 DEF_SPELL_FUN(spell_word_of_recall)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
+    CHAR_DATA *pet = victim->pet;
     ROOM_INDEX_DATA *location;
     int chance;
 
@@ -5803,17 +5898,22 @@ DEF_SPELL_FUN(spell_word_of_recall)
     }
 
     // misgate chance when cursed but not normally
-    location = room_with_misgate(victim, location, 0);
+    ROOM_INDEX_DATA *victim_location = room_with_misgate(victim, location, 0);
     
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
-    char_to_room(victim,location);
+    char_to_room(victim, victim_location);
     act("$n appears in the room.",victim,NULL,NULL,TO_ROOM);
     do_look(victim,"auto");
 
-    /* -Rim 2/22/99 */
-    if (victim->pet != NULL)
-        do_recall(victim->pet,"");
+    if ( pet != NULL && can_cast_transport(pet) )
+    {
+        ROOM_INDEX_DATA *pet_location = room_with_misgate(pet, location, 0);
+        act("$n disappears.", pet, NULL, NULL, TO_ROOM);
+        char_from_room(pet);
+        char_to_room(pet, pet_location);
+        act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
     
     return TRUE;
 }
@@ -5854,7 +5954,7 @@ DEF_SPELL_FUN(spell_high_explosive)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * cha / 40;
+    return ch->level * (200 + cha) / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

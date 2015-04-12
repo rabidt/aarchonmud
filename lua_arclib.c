@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <string.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -33,6 +33,8 @@ LUA_OBJ_TYPE *type_list [] =
     &RTRIG_type,
     &HELP_type,
     &DESCRIPTOR_type,
+    &BOSSACHV_type,
+    &BOSSREC_type,
     NULL
 };
 
@@ -111,7 +113,6 @@ typedef struct lua_prop_type
 #define ENDPTABLE {NULL, NULL, 0, 0}
 
 /* global section */
-#define SEC_NOSCRIPT -1
 typedef struct glob_type
 {
     const char *lib;
@@ -364,6 +365,25 @@ static int glob_gtransfer (lua_State *LS)
     return 1;
 }
 
+static int glob_gecho (lua_State *LS)
+{
+    DESCRIPTOR_DATA *d;
+    const char *argument=check_fstring( LS, 1, MIL );
+
+    for ( d=descriptor_list; d; d=d->next )
+    {
+        if ( IS_PLAYING(d->connected ) )
+        {
+            if ( IS_IMMORTAL(d->character) )
+                send_to_char( "gecho> ", d->character );
+            send_to_char( argument, d->character );
+            send_to_char( "\n\r", d->character );
+        }
+    }
+
+    return 0;
+}
+
 static int glob_sendtochar (lua_State *LS)
 {
     CHAR_DATA *ch=check_CH(LS,1);
@@ -541,6 +561,16 @@ static int glob_mudconfig (lua_State *LS)
     return 0;
 }
 
+static int glob_start_con_handler( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "start_con_handler");
+    lua_insert( LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS);
+}
+
 static int glob_getglobals (lua_State *LS)
 {
     int i;
@@ -549,7 +579,7 @@ static int glob_getglobals (lua_State *LS)
 
     for ( i=0 ; glob_table[i].name ; i++ )
     {
-        if ( glob_table[i].status == STS_ACTIVE && glob_table[i].security != SEC_NOSCRIPT )
+        if ( glob_table[i].status == STS_ACTIVE )
         {
             lua_newtable( LS );
             
@@ -569,6 +599,59 @@ static int glob_getglobals (lua_State *LS)
         }
     }
     return 1;
+}
+
+static int glob_forceget (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *get=type->get_table;
+    int i;
+
+    for (i=0 ; get[i].field ; i++ )
+    {
+        if ( !strcmp(get[i].field, arg) )
+        {
+            return (get[i].func)(LS);
+        }
+    }
+
+    luaL_error( LS, "Can't get field '%s' for type %s.", arg, type->type_name);
+    return 0;
+}
+
+static int glob_forceset (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *set=type->set_table;
+    int i;
+
+    for (i=0 ; set[i].field ; i++ )
+    {
+        if ( !strcmp(set[i].field, arg) )
+        {
+            lua_pushcfunction( LS, set[i].func );
+            lua_insert( LS, 1 );
+            lua_call(LS, 2, 0);
+            return 0;
+        }
+    }
+
+    luaL_error( LS, "Can't set field '%s' for type %s.", arg, type->type_name);
+    return 0;
 }
 
 static int glob_getluatype (lua_State *LS)
@@ -677,6 +760,19 @@ static int glob_log (lua_State *LS)
 static int glob_hour (lua_State *LS)
 {
     lua_pushnumber( LS, time_info.hour );
+    return 1;
+}
+
+static int glob_gettime (lua_State *LS)
+{
+    char buf[MSL];
+    struct timeval t;
+    gettimeofday( &t, NULL);
+
+    sprintf(buf, "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
+    lua_pushstring( LS, buf);
+   
+    lua_pushnumber( LS, lua_tonumber( LS, -1 ) );
     return 1;
 }
 
@@ -1112,6 +1208,7 @@ static int glob_arguments ( lua_State *LS)
 GLOB_TYPE glob_table[] =
 {
     GFUN(hour,          0),
+    GFUN(gettime,       0),
     GFUN(getroom,       0),
     GFUN(randnum,       0),
     GFUN(rand,          0),
@@ -1127,7 +1224,9 @@ GLOB_TYPE glob_table[] =
     GFUN(sendtochar,    0),
     GFUN(echoat,        0),
     GFUN(echoaround,    0),
+    GFUN(gecho,         0),
     GFUN(pagetochar,    0),
+    GFUN( arguments,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
     GFUN(getobjlist,    9),
@@ -1140,6 +1239,9 @@ GLOB_TYPE glob_table[] =
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
+    GFUN(start_con_handler, 9),
+    GFUN(forceget,      SEC_NOSCRIPT),
+    GFUN(forceset,      SEC_NOSCRIPT),
     GFUN(getluatype,    SEC_NOSCRIPT),
     GFUN(getglobals,    SEC_NOSCRIPT),
 #ifdef TESTER
@@ -1181,7 +1283,6 @@ GLOB_TYPE glob_table[] =
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
     
-    GFUN( arguments,        SEC_NOSCRIPT ),
     ENDGTABLE
 };
 
@@ -1492,6 +1593,31 @@ static int set_flag( lua_State *LS,
     return 0;
 }
 
+static int set_iflag( lua_State *LS,
+        const char *funcname,
+        const struct flag_type *flagtbl,
+        int *intvar)
+{
+    const char *argument = check_string( LS, 2, MIL);
+    bool set = TRUE;
+    if (!lua_isnone( LS, 3 ) )
+    {
+        set=lua_toboolean(LS,3);
+    }
+
+    int flag=flag_lookup( argument, flagtbl);
+    if ( flag == NO_FLAG )
+        return luaL_error(LS, "'%s' invalid flag for %s", argument, funcname);
+
+    if ( set )
+        I_SET_BIT( *intvar, flag);
+    else
+        I_REMOVE_BIT( *intvar, flag);
+
+    return 0;
+}
+        
+
 static int check_tflag_iflag( lua_State *LS, 
         const char *funcname, 
         const struct flag_type *flagtbl, 
@@ -1772,7 +1898,7 @@ OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
 OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
 
 OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
-        flag_stat_string(damage_type, ud_obj->value[2]) )
+        flag_bit_name(damage_type, ud_obj->value[2]) )
 
 OBJVGT( spelllevel,  
     switch(ud_obj->item_type)
@@ -1897,7 +2023,7 @@ OBJVGT( spells,
 OBJVGETINT( ac, ITEM_ARMOR, 0 )
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
-        flag_stat_string( weapon_class, ud_obj->value[0] ) )
+        flag_bit_name(weapon_class, ud_obj->value[0]) )
 
 OBJVGETINT( numdice, ITEM_WEAPON, 1 )
 
@@ -1906,7 +2032,7 @@ OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 
 OBJVGETSTR( damtype, ITEM_WEAPON, 
-        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) )
+        flag_bit_name(damage_type, attack_table[ud_obj->value[3]].damage) )
 
 OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
 
@@ -2044,7 +2170,7 @@ OBJVM( apply,
     for (pAf=ud_obj->affected ; pAf ; pAf=pAf->next)
     {
         if ( !strcmp(
-                flag_stat_string( apply_flags, pAf->location ),
+                flag_bit_name(apply_flags, pAf->location),
                 type ) )
         {
             lua_pushinteger( LS, pAf->modifier );
@@ -2282,12 +2408,6 @@ static int CH_asound (lua_State *LS)
 {
     do_mpasound( check_CH(LS, 1), check_fstring( LS, 2, MIL));
     return 0; 
-}
-
-static int CH_gecho (lua_State *LS)
-{
-    do_mpgecho( check_CH(LS, 1), check_fstring( LS, 2, MIL));
-    return 0;
 }
 
 static int CH_zecho (lua_State *LS)
@@ -3321,6 +3441,36 @@ static int CH_set_acpcnt (lua_State *LS)
     return 0;
 }
 
+static int CH_set_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 120 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 120");
+    }
+    
+    ud_ch->wait=val;
+
+    return 0;
+}
+
+static int CH_set_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 10 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 10");
+    }
+    
+    ud_ch->stop=val;
+
+    return 0;
+}
+
 static int CH_get_hitroll (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -3439,7 +3589,7 @@ static int CH_get_damtype (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     lua_pushstring( LS,
-            flag_stat_string( damage_type, attack_table[ud_ch->dam_type].damage) );
+            flag_bit_name(damage_type, attack_table[ud_ch->dam_type].damage) );
     return 1;
 }
 
@@ -3828,6 +3978,20 @@ static int CH_get_fighting (lua_State *LS)
         return 1;
 }
 
+static int CH_get_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->wait);
+    return 1;
+}
+
+static int CH_get_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->stop);
+    return 1;
+}
+
 static int CH_get_heshe (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4031,6 +4195,24 @@ static int CH_get_mobdeaths( lua_State *LS)
     return 1;
 }
 
+static int CH_get_bossachvs( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't get bossachvs on NPCs.");
+
+    BOSSREC *rec;
+    int index=1;
+    lua_newtable(LS);
+
+    for ( rec=ud_ch->pcdata->boss_achievements ; rec; rec=rec->next)
+    {
+        if (push_BOSSREC(LS, rec))
+            lua_rawseti(LS, -2, index++);
+    }
+
+    return 1;
+}
+
 static int CH_get_vnum( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4152,6 +4334,28 @@ static int CH_get_pet (lua_State *LS)
         return 0;
 }
 
+static int CH_get_master (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( IS_AFFECTED(ud_ch, AFF_CHARM) 
+            && ud_ch->master 
+            && push_CH(LS, ud_ch->master) )
+        return 1;
+    else
+        return 0;
+}
+
+static int CH_get_leader (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if ( ud_ch->leader && push_CH(LS, ud_ch->leader) )
+        return 1;
+    else
+        return 0;
+}
+
 static int CH_set_pet (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4213,6 +4417,21 @@ static int CH_get_affects ( lua_State *LS )
     return 1;
 }
 
+static int CH_get_descriptor( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (ud_ch->desc)
+    {
+        if ( push_DESCRIPTOR(LS, ud_ch->desc) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4262,6 +4481,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(isfollow, 0),
     CHGET(isactive, 0),
     CHGET(fighting, 0),
+    CHGET(stopcount, 0),
+    CHGET(waitcount, 0),
     CHGET(heshe, 0),
     CHGET(himher, 0),
     CHGET(hisher, 0),
@@ -4271,6 +4492,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(stance, 0),
     CHGET(description, 0),
     CHGET(pet, 0),
+    CHGET(master, 0),
+    CHGET(leader, 0),
     CHGET(affects, 0),
     CHGET(scroll, 0),
     CHGET(id, 0 ),
@@ -4286,6 +4509,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(bank, 0),
     CHGET(mobkills, 0),
     CHGET(mobdeaths, 0),
+    CHGET(descriptor, 0),
+    CHGET(bossachvs, 0),
     /* NPC only */
     CHGET(vnum, 0),
     CHGET(proto,0),
@@ -4320,6 +4545,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 5),
     CHSET(cha, 5),
     CHSET(luc, 5),
+    CHSET(stopcount, 5),
+    CHSET(waitcount, 5),
     CHSET(acpcnt, 5),
     CHSET(acbase, 5),
     CHSET(hrpcnt, 5),
@@ -4364,7 +4591,6 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(mdo, 1),
     CHMETH(tell, 1),
     CHMETH(asound, 1),
-    CHMETH(gecho, 1),
     CHMETH(zecho, 1),
     CHMETH(kill, 1),
     CHMETH(assist, 1),
@@ -4421,6 +4647,17 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_setexitflag( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_PORTAL)
+        return luaL_error(LS, "setexitflag for portal only");
+
+    return set_iflag( LS, "exit_flags", exit_flags, &ud_obj->value[1] );
+}
+    
+
 static int OBJ_rvnum ( lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -4679,6 +4916,16 @@ static int OBJ_tprint ( lua_State *LS)
 
 }
 
+static int OBJ_setweaponflag( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS, 1);
+    
+    if (ud_obj->item_type != ITEM_WEAPON)
+        return luaL_error(LS, "setweaponflag for weapon only");
+
+    return set_iflag( LS, "weapon_type2", weapon_type2, &ud_obj->value[4]);
+}
+
 static int OBJ_get_name (lua_State *LS)
 {
     lua_pushstring( LS,
@@ -4833,7 +5080,7 @@ static int OBJ_set_weight (lua_State *LS)
 static int OBJ_get_wearlocation (lua_State *LS)
 {
     lua_pushstring( LS,
-            flag_stat_string(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
+            flag_bit_name(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
     return 1;
 }
 
@@ -4995,6 +5242,25 @@ static int OBJ_get_affects ( lua_State *LS)
     return 1;
 }
 
+static int OBJ_set_attacktype ( lua_State *LS)
+{
+    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
+    const char *attack_arg = check_string(LS, 2, MIL);
+    int attack; 
+
+    if (ud_obj->item_type != ITEM_WEAPON )
+        return luaL_error(LS, "attacktype for weapon only.");
+
+    attack=attack_exact_lookup(attack_arg);
+    if ( attack == -1 )
+        return luaL_error(LS, "No such attack type '%s'",
+                attack_arg );
+
+    ud_obj->value[3]=attack;
+
+    return 0;
+}
+
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
     OBJGET(name, 0),
@@ -5105,6 +5371,7 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
     OBJSET(weight, 5),
     OBJSET(room, 5),
     OBJSET(carriedby, 5),
+    OBJSET(attacktype, 5),
        
     ENDPTABLE
 };
@@ -5134,6 +5401,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     
     /* portal only */
     OBJMETH(exitflag, 0),
+    OBJMETH(setexitflag, 1),
     OBJMETH(portalflag, 0),
 
     /* furniture only */
@@ -5141,6 +5409,7 @@ static const LUA_PROP_TYPE OBJ_method_table [] =
     
     /* weapon only */
     OBJMETH(weaponflag, 0),
+    OBJMETH(setweaponflag, 5),
     
     /* container only */
     OBJMETH(containerflag, 0),
@@ -5256,6 +5525,19 @@ static int AREA_flag( lua_State *LS)
     return check_flag( LS, "area", area_flags, ud_area->area_flags );
 }
 
+static int AREA_reset( lua_State *LS)
+{
+    AREA_DATA *ud_area = check_AREA(LS,1);
+    reset_area(ud_area);
+    return 0;
+}
+
+static int AREA_purge( lua_State *LS)
+{
+    purge_area( check_AREA(LS,1) );
+    return 0;
+}
+
 static int AREA_echo( lua_State *LS)
 {
     AREA_DATA *ud_area = check_AREA(LS, 1);
@@ -5264,7 +5546,7 @@ static int AREA_echo( lua_State *LS)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        if ( IS_PLAYING(d->connected) )
         {
             if ( !d->character->in_room )
                 continue;
@@ -5608,6 +5890,8 @@ static const LUA_PROP_TYPE AREA_method_table [] =
 {
     AREAMETH(flag, 0),
     AREAMETH(echo, 1),
+    AREAMETH(reset, 5),
+    AREAMETH(purge, 5),
     AREAMETH(loadprog, 1),
     AREAMETH(loadscript, 1),
     AREAMETH(loadstring, 1),
@@ -5685,6 +5969,18 @@ static int ROOM_flag( lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room = check_ROOM(LS, 1);
     return check_flag( LS, "room", room_flags, ud_room->room_flags );
+}
+
+static int ROOM_reset( lua_State *LS)
+{
+    reset_room( check_ROOM(LS,1) );
+    return 0;
+}
+
+static int ROOM_purge( lua_State *LS)
+{
+    purge_room( check_ROOM(LS,1) );
+    return 0;
 }
 
 static int ROOM_echo( lua_State *LS)
@@ -6050,6 +6346,8 @@ static const LUA_PROP_TYPE ROOM_set_table [] =
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
     ROOMMETH(flag, 0),
+    ROOMMETH(reset, 5),
+    ROOMMETH(purge, 5),
     ROOMMETH(oload, 1),
     ROOMMETH(mload, 1),
     ROOMMETH(echo, 1),
@@ -6605,8 +6903,8 @@ MPGETINT( drpcnt, ud_mobp->damage_percent,"" ,"");
 MPGETINT( acpcnt, ud_mobp->ac_percent,"" ,"");
 MPGETINT( savepcnt, ud_mobp->saves_percent,"" ,"");
 MPGETSTR( damtype, attack_table[ud_mobp->dam_type].name,"" ,"");
-MPGETSTR( startpos, flag_stat_string( position_flags, ud_mobp->start_pos ),"" ,"");
-MPGETSTR( defaultpos, flag_stat_string( position_flags, ud_mobp->default_pos ),"" ,"");
+MPGETSTR( startpos, flag_bit_name(position_flags, ud_mobp->start_pos),"" ,"");
+MPGETSTR( defaultpos, flag_bit_name(position_flags, ud_mobp->default_pos),"" ,"");
 MPGETSTR( sex,
     ud_mobp->sex == SEX_NEUTRAL ? "neutral" :
     ud_mobp->sex == SEX_MALE    ? "male" :
@@ -6615,7 +6913,7 @@ MPGETSTR( sex,
     NULL,"" ,"");
 MPGETSTR( race, race_table[ud_mobp->race].name,"" ,"");
 MPGETINT( wealthpcnt, ud_mobp->wealth_percent,"" ,"");
-MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ),"" ,"");
+MPGETSTR( size, flag_bit_name(size_flags, ud_mobp->size),"" ,"");
 MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
@@ -6658,6 +6956,20 @@ static int MOBPROTO_get_shop ( lua_State *LS)
     else
         return 0;
 }
+
+static int MOBPROTO_get_bossachv ( lua_State *LS)
+{
+    MOB_INDEX_DATA *ud_mid=check_MOBPROTO( LS, 1);
+    if ( ud_mid->boss_achieve )
+    {
+        if ( push_BOSSACHV(LS, ud_mid->boss_achieve) )
+            return 1;
+        else
+            return 0;
+    }
+    else
+        return 0;
+}
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
@@ -6687,6 +6999,7 @@ static const LUA_PROP_TYPE MOBPROTO_get_table [] =
     MPGET( ingame, 0),
     MPGET( mtrigs, 0),
     MPGET( shop, 0),
+    MPGET( bossachv, 0),
     MPGET( count,0),
     ENDPTABLE
 };
@@ -6737,7 +7050,7 @@ static int SHOP_buytype ( lua_State *LS )
             if (ud_shop->buy_type[i] != 0)
             {
                 lua_pushstring( LS,
-                        flag_stat_string( type_flags, ud_shop->buy_type[i]));
+                        flag_bit_name(type_flags, ud_shop->buy_type[i]));
                 lua_rawseti( LS, -2, index++);
             }
         }
@@ -6793,7 +7106,7 @@ static int AFFECT_get_where ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_types, ud_af->where ) );
+            flag_bit_name(apply_types, ud_af->where) );
     return 1;
 }
 
@@ -6819,7 +7132,7 @@ static int AFFECT_get_location ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_flags, ud_af->location ) );
+            flag_bit_name(apply_flags, ud_af->location) );
     return 1;
 }
 
@@ -7018,7 +7331,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     }
 
     lua_pushstring( LS,
-            flag_stat_string(
+            flag_bit_name(
                 tbl,
                 ((PROG_LIST *) type->check( LS, 1 ) )->trig_type ) );
     return 1;
@@ -7145,14 +7458,95 @@ static int DESCRIPTOR_get_character( lua_State *LS )
         return 0;
 }
 
+static int DESCRIPTOR_get_constate( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    int state=con_state(ud_d);
+
+    const char *name = name_lookup( state, con_states );
+
+    if (!name)
+    {
+        bugf( "Unrecognized con state: %d", state );
+        lua_pushstring( LS, "ERROR" );
+    }
+    else
+    {
+        lua_pushstring( LS, name );
+    }
+    return 1;
+}
+
+static int DESCRIPTOR_set_constate( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    const char *name=check_string(LS, 2, MIL);
+
+    int state=flag_lookup( name, con_states );
+
+    if ( state == -1 )
+        return luaL_error( LS, "No such constate: %s", name );
+
+    if (!is_settable(state, con_states))
+        return luaL_error( LS, "constate cannot be set to %s", name );
+
+    set_con_state( ud_d, state );
+    return 0;
+}
+
+static int DESCRIPTOR_get_inbuf( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    lua_pushstring( LS, ud_d->inbuf);
+    return 1;
+}
+
+static int DESCRIPTOR_set_inbuf( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+    const char *arg=check_string( LS, 2, MAX_PROTOCOL_BUFFER );
+
+    strcpy( ud_d->inbuf, arg );
+    return 0;
+}
+
+static int DESCRIPTOR_get_conhandler( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    if (!is_set_ref(ud_d->conhandler))
+        return 0;
+
+    push_ref( LS, ud_d->conhandler); 
+    return 1;
+}
+
+static int DESCRIPTOR_set_conhandler( lua_State *LS )
+{
+    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
+
+    if (is_set_ref(ud_d->conhandler))
+        release_ref( LS, &ud_d->conhandler);
+
+    save_ref( LS, 2, &ud_d->conhandler);
+    return 0;
+}
+
 static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
 {
     GETP( DESCRIPTOR, character, 0 ),
+    GETP( DESCRIPTOR, constate, SEC_NOSCRIPT ),
+    GETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT ),
+    GETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT ),
     ENDPTABLE
 };
 
 static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
 {
+    SETP( DESCRIPTOR, constate, SEC_NOSCRIPT),
+    SETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT),
+    SETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT),
     ENDPTABLE
 };
 
@@ -7162,6 +7556,84 @@ static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 };
 /* end DESCRIPTOR section */
 
+/* BOSSACHV section */
+static int BOSSACHV_get_qp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->quest_reward);
+    return 1;
+}
+
+static int BOSSACHV_get_exp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->exp_reward);
+    return 1;
+}
+static int BOSSACHV_get_gold( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->gold_reward);
+    return 1;
+}
+static int BOSSACHV_get_achp( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            check_BOSSACHV( LS, 1 )->ach_reward);
+    return 1;
+}
+
+static const LUA_PROP_TYPE BOSSACHV_get_table [] =
+{
+    GETP( BOSSACHV, qp, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, exp, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, gold, SEC_NOSCRIPT ),
+    GETP( BOSSACHV, achp, SEC_NOSCRIPT ), 
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSACHV_method_table [] =
+{
+    ENDPTABLE
+};
+/* end BOSSACHV section */
+
+/* BOSSREC section */
+
+static int BOSSREC_get_vnum( lua_State *LS )
+{
+    lua_pushinteger( LS, check_BOSSREC(LS,1)->vnum);
+    return 1;
+} 
+
+static int BOSSREC_get_timestamp( lua_State *LS )
+{
+    lua_pushinteger( LS, check_BOSSREC(LS,1)->timestamp);
+    return 1;
+}
+
+static const LUA_PROP_TYPE BOSSREC_get_table [] =
+{
+    GETP( BOSSREC, vnum, 0),
+    GETP( BOSSREC, timestamp, 0),
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSREC_set_table [] =
+{
+    ENDPTABLE
+};
+
+static const LUA_PROP_TYPE BOSSREC_method_table [] =
+{
+    ENDPTABLE
+};
+/* end BOSSREC section */
 
 void type_init( lua_State *LS)
 {
@@ -7485,6 +7957,7 @@ DECLARETYPE( MOBPROTO, MOB_INDEX_DATA );
 DECLARETYPE( SHOP, SHOP_DATA );
 DECLARETYPE( AFFECT, AFFECT_DATA );
 DECLARETYPE( PROG, PROG_CODE );
+
 DECLARETRIG( MTRIG, PROG_LIST );
 DECLARETRIG( OTRIG, PROG_LIST );
 DECLARETRIG( ATRIG, PROG_LIST );
@@ -7492,3 +7965,5 @@ DECLARETRIG( RTRIG, PROG_LIST );
 
 DECLARETYPE( HELP, HELP_DATA );
 DECLARETYPE( DESCRIPTOR, DESCRIPTOR_DATA );
+DECLARETYPE( BOSSACHV, BOSSACHV );
+DECLARETYPE( BOSSREC, BOSSREC );
