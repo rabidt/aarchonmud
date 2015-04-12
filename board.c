@@ -309,7 +309,7 @@ void finish_note (BOARD_DATA *board, NOTE_DATA *note)
 /* Show one note to a character */
 static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
 {
-   char buf[4*MAX_STRING_LENGTH];
+   char buf[10*MAX_STRING_LENGTH];
    BUFFER *output;
    
    output = new_buf();
@@ -325,7 +325,7 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
       num, note->sender, note->subject,
       note->date,
       note->to_list,
-      note->text);
+      parse_url(note->text));
 
     add_buf(output, buf);
   
@@ -632,9 +632,9 @@ static void do_nwrite (CHAR_DATA *ch, const char *argument)
          ctime(&ch->pcdata->in_progress->expire),
          ch->pcdata->in_progress->subject);
       
-      send_to_char ("\n\rEnter text. Type {+END{x or {+.q{x to finish, {+.h{x for help.\n\r", ch);
+      send_to_char ("\n\rEnter text. Type {+END{x, {+@{x, or {+.q{x to finish, {+.h{x for help.\n\r", ch);
       send_to_char ( note_line, ch );
-      send_to_char (ch->pcdata->in_progress->text, ch);
+      page_to_char (ch->pcdata->in_progress->text, ch);
       
       ch->desc->connected = CON_NOTE_TEXT;		            
       
@@ -1233,148 +1233,229 @@ void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument)
       
       /* note that ctime returns XXX\n so we only need to add an \r */
       
-      send_to_char ("\n\rEnter text. Type {+END{x or {+.q{x to finish, {+.h{x for help.\n\r", ch );
+      send_to_char ("\n\rEnter text. Type {+END{x, {+@{x, or {+.q{x to finish, {+.h{x for help.\n\r", ch );
       send_to_char( note_line, ch );
       
       d->connected = CON_NOTE_TEXT;
 }
 
-
-
 void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
 {
-   CHAR_DATA *ch = d->character;
-   char buf[MAX_STRING_LENGTH];
-   char letter[4*MAX_STRING_LENGTH];
-   char xbuf[MAX_NOTE_TEXT];
-   
-   if (!ch->pcdata->in_progress)
-   {
-      d->connected = CON_PLAYING;
-      bug ("board: In CON_NOTE_TEXT, but no note in progress",0);
-      return;
-   }
-   
-   /* First, check for EndOfNote marker */
-   
-   strcpy (buf, argument);
-   if (!str_cmp(buf, ".q") || !str_cmp(buf, "END") || !str_cmp(buf, "~"))
-   {
-      printf_to_char (ch, "\n\r\n\r%s\n\r", szFinishPrompt);
-      d->connected = CON_NOTE_FINISH;
-      return;
-   }
-   
-   smash_tilde (buf); /* smash it now */
-   
-   /* This bit of code is based on string_add() from Ivan's OLC 1.6. -BC */
-   if (buf[0] == '.' )
-   {
-      char arg1 [MAX_INPUT_LENGTH];
-      char arg2 [MAX_INPUT_LENGTH];
-      char arg3 [MAX_INPUT_LENGTH];
-      const char *buffer;
-      
-      buffer = one_argument( buf, arg1 );
-      buffer = first_arg( buffer, arg2, FALSE );
-      buffer = first_arg( buffer, arg3, FALSE );
-      
-      
-      if ( !str_cmp( arg1, ".h" ) )
-      {
-         send_to_char("{+Editor functions:{x\n\r"
-            "  {y.h{x - {+Display this help.{x\n\r"
-            "  {y.q{x - {+Stop writing and abort or post note.{x\n\r"
-            "  {y.d{x - {+Delete last line.{x\n\r"
-            "  {y.s{x - {+Show note so far.{x\n\r"
-            "  {y.r{x - {+Replace first occurrence of 'string1' with 'string2'.{x\n\r"
-            "  {y.p{x - {+Pause - stop writing for a moment.{x\n\r",ch);
-         return;
-      }
-      
-      if ( !str_cmp( arg1, ".p" ) )
-      {
-         d->connected = CON_PLAYING;
-         send_to_char("{+Pausing note in progress.  Type 'NOTE WRITE' to continue.\n\r{x",ch);
-         return;
-      }
-      
-      if ( !str_cmp( arg1, ".r" ) )
-      {
-         if ( arg2[0] == '\0' )
-         {
-            send_to_char("{+Usage{x:  .r \"{rold string{x\" \"{gnew string{x\"\n\r", ch );
-            return;
-         }
-    
-         ch->pcdata->in_progress->text = string_replace_ext( ch->pcdata->in_progress->text, arg2, arg3,
-		       xbuf, MAX_NOTE_TEXT);
+    CHAR_DATA *ch = d->character;
+    char letter[4*MAX_STRING_LENGTH];
+    char xbuf[MAX_NOTE_TEXT];
+    char line[MAX_PROTOCOL_BUFFER]; // same size as d->inbuf
 
-         printf_to_char( ch, "'%s' has been replaced with '%s'.\n\r", arg2, arg3 );
-         return;
-      }
-      
-      if ( !str_cmp( arg1, ".s" ) )
-      {
-         if (ch->pcdata->in_progress->text == NULL)
-         {
-            send_to_char("You haven't written a thing!\n\r",ch);
-            return;
-         }
-         
-         send_to_char ("{gText of your note so far:{x\n\r",ch);
-	 send_to_char( note_line, ch );
-         
-         send_to_char( ch->pcdata->in_progress->text, ch );
-         return;
-      }
-      
-      if ( !str_cmp( arg1, ".d" ) )
-      {
-         if (ch->pcdata->in_progress->text == NULL)
-         {
-            send_to_char("You haven't written a thing!\n\r",ch);
-            return;
-         }
+    if (!ch->pcdata->in_progress)
+    {
+        d->connected = CON_PLAYING;
+        bug ("board: In CON_NOTE_TEXT, but no note in progress",0);
+        return;
+    }
 
-         ch->pcdata->in_progress->text = del_last_line_ext(ch->pcdata->in_progress->text, xbuf);
-         printf_to_char( ch, "Line deleted.\n\r", arg2, arg3 );
-         return;
-      }
-      
-   }
-   
-   /* Text has been received.  Copy to temp buffer, 
-      add a new line, and copy back. */
-   if (ch->pcdata->in_progress->text)
-   {
-      strcpy (letter, ch->pcdata->in_progress->text);
-      free_string (ch->pcdata->in_progress->text);
-      ch->pcdata->in_progress->text = NULL; /* be sure we don't free it twice */
-   }
-   else
-      strcpy (letter, "");
-   
-   /* Check for overflow */
-   
-   if ((strlen(letter) + strlen (buf)) > MAX_NOTE_TEXT)
-   { /* Note too long, take appropriate steps */
-      send_to_char ("Note too long!\n\r", ch);
-      free_note (ch->pcdata->in_progress);
-      ch->pcdata->in_progress = NULL;			/* important */
-      d->connected = CON_PLAYING;
-      return;			
-   }
+    int line_ind=0;
+    int buf_ind=0;
+    int shift_ind=0;
 
-   if (strlen_color(buf) > MAX_LINE_LENGTH)
-      send_to_char ("Line exceeds 80 characters. It has been wrapped.\n\r",ch);
+    for ( buf_ind=0; d->inbuf[buf_ind] != '\0'; )
+    {
+        /* grab the first line */
+        line_ind=0;
+        bool noline=FALSE;
+        while (TRUE)
+        {
+            char c=d->inbuf[buf_ind];
+            if (c=='\r' || c=='\n')
+            {
+                /* finish off the line */
+                bool got_n = FALSE, got_r=FALSE;
 
-   /* Add new line to the buffer */   
-   strcat (letter, force_wrap(buf));
-   strcat (letter, "\n\r");
-   
-   /* allocate dynamically */		
-   ch->pcdata->in_progress->text = str_dup (letter);
+                for (;d->inbuf[buf_ind] == '\r' || d->inbuf[buf_ind] == '\n';buf_ind++)
+                {
+                    if (d->inbuf[buf_ind] == '\r' && got_r++)
+                        break; /*while*/
+
+                    else if (d->inbuf[buf_ind] == '\n' && got_n++)
+                        break; /*while*/
+                }
+
+                shift_ind=buf_ind;
+
+                line[line_ind]='\0';
+                break; /*while*/
+            }
+            else if (c=='\0')
+            {
+                noline=TRUE;
+                line[line_ind++]='\0';
+                buf_ind++;
+                break; /*while*/
+            }
+            else
+            {
+                line[line_ind++]=c;
+                buf_ind++;
+            }
+        }
+
+        if (noline)
+            break; /*for*/
+
+        /* first check for paging */
+        if ( d->showstr_point )
+        {
+            show_string( d, line );
+            continue;
+        }
+
+        /* does it match any commands? if so, process them */
+        /* check for EndOfNote marker */
+        if (!str_cmp(line, ".q") || 
+                !str_cmp(line, "END") || 
+                !str_cmp(line, "@") ||
+                !str_cmp(line, "~"))
+        {
+            printf_to_char (ch, "\n\r\n\r%s\n\r", szFinishPrompt);
+            d->connected = CON_NOTE_FINISH;
+            break; /*for*/
+        }
+
+        smash_tilde (line); /* smash it now */
+        /* This bit of code is based on string_add() from Ivan's OLC 1.6. -BC */
+        if (line[0] == '.' )
+        {
+            char arg1 [MAX_INPUT_LENGTH];
+            char arg2 [MAX_INPUT_LENGTH];
+            char arg3 [MAX_INPUT_LENGTH];
+            const char *buffer;
+
+            buffer = one_argument( line, arg1 );
+            buffer = first_arg( buffer, arg2, FALSE );
+            buffer = first_arg( buffer, arg3, FALSE );
+
+            if ( !str_cmp( arg1, ".h" ) )
+            {
+                send_to_char("{+Editor functions:{x\n\r"
+                        "  {y.h{x - {+Display this help.{x\n\r"
+                        "  {y.q{x - {+Stop writing and abort or post note.{x\n\r"
+                        "  {y.d{x - {+Delete last line.{x\n\r"
+                        "  {y.c{x - {+Clear the note text.{x\n\r"
+                        "  {y.s{x - {+Show note so far.{x\n\r"
+                        "  {y.r{x - {+Replace first occurrence of 'string1' with 'string2'.{x\n\r"
+                        "  {y.p{x - {+Pause - stop writing for a moment.{x\n\r",ch);
+                continue;
+            }
+
+            if ( !str_cmp( arg1, ".p" ) )
+            {
+                d->connected = CON_PLAYING;
+                send_to_char("{+Pausing note in progress.  Type 'NOTE WRITE' to continue.\n\r{x",ch);
+                break; /*for*/
+            }
+
+            if ( !str_cmp( arg1, ".r" ) )
+            {
+                if ( arg2[0] == '\0' )
+                {
+                    send_to_char("{+Usage{x:  .r \"{rold string{x\" \"{gnew string{x\"\n\r", ch );
+                    continue; /*for*/
+                }
+
+                if ( !ch->pcdata->in_progress->text )
+                {
+                    ptc( ch, "You haven't written a thing!\n\r");
+                    continue; /*for*/
+                }
+
+                ch->pcdata->in_progress->text = string_replace_ext( ch->pcdata->in_progress->text, arg2, arg3,
+                        xbuf, MAX_NOTE_TEXT);
+
+                printf_to_char( ch, "'%s' has been replaced with '%s'.\n\r", arg2, arg3 );
+                continue; /*for*/
+            }
+
+            if ( !str_cmp( arg1, ".s" ) )
+            {
+                if (ch->pcdata->in_progress->text == NULL)
+                {
+                    send_to_char("You haven't written a thing!\n\r",ch);
+                    continue; /*for*/
+                }
+
+                send_to_char ("{gText of your note so far:{x\n\r",ch);
+                send_to_char( note_line, ch );
+
+                page_to_char( ch->pcdata->in_progress->text, ch );
+                continue; /*for*/
+            }
+
+            if ( !str_cmp( arg1, ".d" ) )
+            {
+                if (ch->pcdata->in_progress->text == NULL)
+                {
+                    send_to_char("You haven't written a thing!\n\r",ch);
+                    continue; /*for*/
+                }
+
+                ch->pcdata->in_progress->text = del_last_line_ext(ch->pcdata->in_progress->text, xbuf);
+                printf_to_char( ch, "Line deleted.\n\r", arg2, arg3 );
+                continue; /*for*/
+            }
+
+            if ( !str_cmp( arg1, ".c") )
+            {
+                if (ch->pcdata->in_progress->text == NULL)
+                {
+                    send_to_char("You haven't written a thing!\n\r",ch);
+                    continue; /*for*/
+                }
+
+                free_string(ch->pcdata->in_progress->text);
+                ch->pcdata->in_progress->text = NULL;
+                ptc( ch, "Note cleared.\n\r");
+                continue; /*for*/
+            }
+        }
+
+        /* Normal text has been received.  Copy to temp buffer, 
+           add a new line, and copy back. */
+        if (ch->pcdata->in_progress->text)
+        {
+            strcpy (letter, ch->pcdata->in_progress->text);
+            free_string (ch->pcdata->in_progress->text);
+            ch->pcdata->in_progress->text = NULL; /* be sure we don't free it twice */
+        }
+        else
+            strcpy (letter, "");
+
+        /* Check for overflow */
+
+        if ((strlen(letter) + strlen (line)) > MAX_NOTE_TEXT)
+        { /* Note too long, take appropriate steps */
+            send_to_char ("Note too long!\n\r", ch);
+            free_note (ch->pcdata->in_progress);
+            ch->pcdata->in_progress = NULL;			/* important */
+            d->connected = CON_PLAYING;
+            return;			
+        }
+
+        if (strlen_color(line) > MAX_LINE_LENGTH)
+            send_to_char ("Line exceeds 80 characters. It has been wrapped.\n\r",ch);
+
+        /* Add new line to the buffer */   
+        strcat (letter, force_wrap(line));
+        strcat (letter, "\n\r");
+
+        /* allocate dynamically */		
+        ch->pcdata->in_progress->text = str_dup (letter);
+    }
+
+    /* we need to shift the d->inbuf appropriately */
+    /* similar to read_from_buffer */
+    int j;
+    for ( j = 0; ( d->inbuf[j] = d->inbuf[shift_ind+j] ) != '\0'; j++ )
+        ;
+    return;
 }
 
 void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument)
@@ -1473,7 +1554,7 @@ void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
               continue;
       }
 
-	  if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	  if ((IS_PLAYING(d->connected) )
       && !NOT_AUTHED(recip)
 	  && !IS_SET(recip->comm,COMM_NOINFO)
 	  && !IS_SET(recip->comm,COMM_QUIET) )

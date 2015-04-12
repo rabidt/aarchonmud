@@ -356,6 +356,27 @@ sh_int  gsn_swimming;
 sh_int  gsn_alertness;
 sh_int  gsn_evasion;
 sh_int  gsn_evasive;
+sh_int  gsn_heavy_armor;
+sh_int  gsn_bulwark;
+sh_int  gsn_riposte;
+sh_int  gsn_blade_barrier;
+sh_int  gsn_combat_casting;
+sh_int  gsn_elemental_strike;
+sh_int  gsn_savage_frenzy;
+sh_int  gsn_hips;
+sh_int  gsn_shadow_companion;
+sh_int  gsn_shadow_strike;
+sh_int  gsn_shadow_body;
+sh_int  gsn_piercing_blade;
+sh_int  gsn_lethal_hands;
+sh_int  gsn_unarmed_parry;
+sh_int  gsn_mystic_infusion;
+sh_int  gsn_rapid_fire;
+sh_int  gsn_bullet_rain;
+sh_int  gsn_precise_shot;
+sh_int  gsn_holy_avenger;
+sh_int  gsn_divine_retribution;
+sh_int  gsn_exploit_weakness;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
@@ -556,6 +577,7 @@ void    load_objects    args( ( FILE *fp ) );
 void    load_resets args( ( FILE *fp ) );
 void    load_rooms  args( ( FILE *fp ) );
 void    load_shops  args( ( FILE *fp ) );
+void    load_bossachievements args( ( FILE *fp ) );
 void    load_specials   args( ( FILE *fp ) );
 void    load_notes  args( ( void ) );
 void    load_bans   args( ( void ) );
@@ -931,6 +953,7 @@ void load_area_file( FILE *fp, bool clone )
 	else if ( !str_cmp( word, "RESETS"   ) ) load_resets  (fpArea);
 	else if ( !str_cmp( word, "ROOMS"    ) ) load_rooms   (fpArea);
 	else if ( !str_cmp( word, "SHOPS"    ) ) load_shops   (fpArea);
+    else if ( !str_cmp( word, "BOSSACHV" ) ) load_bossachievements(fpArea);
 	else if ( !str_cmp( word, "SPECIALS" ) ) load_specials(fpArea);
 	else if ( !str_cmp( word, "VER"      ) ) 
 	    area_version = fread_number ( fpArea );
@@ -1726,7 +1749,31 @@ void load_rooms( FILE *fp )
     return;
 }
 
+void load_bossachievements( FILE *fp )
+{
+    BOSSACHV *pBoss=NULL;
 
+    for ( ; ; )
+    {
+        MOB_INDEX_DATA *pMobIndex;
+        int vnum=fread_number(fp);
+
+        if ( vnum==0 ) /* end of section */
+            break;
+
+        pBoss = alloc_BOSSACHV();
+        
+        pBoss->exp_reward = fread_number(fp);
+        pBoss->gold_reward = fread_number(fp);
+        pBoss->quest_reward = fread_number(fp);
+        pBoss->ach_reward = fread_number(fp);
+
+        pMobIndex=get_mob_index(vnum);
+        pMobIndex->boss_achieve = pBoss;
+    }
+
+    return;
+}
 
 /*
 * Snarf a shop section.
@@ -3220,6 +3267,9 @@ int spell_base_cost( int sn )
 
     if ( skill_table[sn].minimum_position < POS_STANDING )
 	power /= 2;
+    
+    if ( skill_table[sn].target == TAR_CHAR_SELF )
+        power *= 5;
 
     return (int)sqrt( power );
 }
@@ -3340,10 +3390,16 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 	{
 	    int base = spell_base_cost( obj->value[3] );
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        // -1 charges means random amount up to max
+        if ( obj->value[2] < 0 )
+            obj->value[2] = number_range(0, obj->value[1]);
+        obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
+        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_WAND )
-		obj->cost /= 2;
-	    if ( obj->item_type == ITEM_STAFF )
 		obj->cost /= 4;
+	    if ( obj->item_type == ITEM_STAFF )
+		obj->cost /= 8;
 	}
         break;
         
@@ -3372,6 +3428,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 		base += spell_base_cost(obj->value[i]);
 	    }
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_POTION )
 		obj->cost /= 2;
 	    else if ( obj->item_type == ITEM_SCROLL )

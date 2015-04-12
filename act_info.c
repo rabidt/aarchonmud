@@ -144,6 +144,7 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
     if ( obj->timer == -1                 )   strcat( buf, "(Preserved) " );
     
     if ( fShort )
@@ -778,14 +779,17 @@ DEF_DO_FUN(do_peek)
 	return;
     }
 
+    WAIT_STATE(ch, skill_table[gsn_peek].beats);
+    
     chance += (ch->level - victim->level) / 2;
     if ( number_percent() > chance )
     {
 	send_to_char( "You failed.\n\r", ch );
+    check_improve(ch,gsn_peek,FALSE,3);
 	return;
     }
 
-    check_improve(ch,gsn_peek,TRUE,4);
+    check_improve(ch,gsn_peek,TRUE,3);
     /* money */
     sprintf( buf, "$N's wallet contains %ld gold and %ld silver coins.", victim->gold, victim->silver );
     act( buf, ch, NULL, victim, TO_CHAR );
@@ -1012,9 +1016,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_NOEXP))
-        send_to_char("noexp          ON     You will gain experience points.\n\r",ch);
+        send_to_char("noexp          ON     You won't gain experience points.\n\r",ch);
     else
-        send_to_char("noexp          OFF    You won't gain experience points.\n\r",ch);
+        send_to_char("noexp          OFF    You will gain experience points.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOFOLLOW))
         send_to_char("nofollow       ON     Players cannot follow you.\n\r",ch);
@@ -1022,9 +1026,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nofollow       OFF    Players can follow you.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOHELP))
-        send_to_char("nohelp         ON     You will receive help messages.\n\r",ch);
+        send_to_char("nohelp         ON     You won't receive help messages.\n\r",ch);
     else
-        send_to_char("nohelp         OFF    You won't receive help messages.\n\r",ch);
+        send_to_char("nohelp         OFF    You will receive help messages.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOLOCATE))
         send_to_char("nolocate       ON     Players cannot locate you with hunt / farsight.\n\r",ch);
@@ -1032,9 +1036,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("noloot         ON     Players can loot items from corpses you own.\n\r",ch);
+        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
     else 
-        send_to_char("noloot         OFF    Players cannot loot items from corpses you own.\n\r",ch);
+        send_to_char("noloot         ON     Players cannot loot items from corpses you own.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSUMMON))
         send_to_char("nosummon       ON     Players cannot gate to or summon you.\n\r",ch);
@@ -2041,6 +2045,7 @@ DEF_DO_FUN(do_examine)
 	break;
 
         case ITEM_ARMOR:
+            ptc(ch, "It is %s armor.\n\r", IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) ? "heavy" : "light");
 	strcpy(buf, "It looks like it could be ");
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
@@ -2522,8 +2527,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 		
 		/* small hack :) */
 		if (ch->desc != NULL
-		    && ch->desc->connected != CON_PLAYING 
-		    && !IS_WRITING_NOTE(ch->desc->connected) 
+		    && !(IS_PLAYING(ch->desc->connected)) 
 		    && ch->desc->connected != CON_GEN_GROUPS)
 		    break;
 	    }
@@ -2648,7 +2652,7 @@ DEF_DO_FUN(do_whois)
     {
         CHAR_DATA *wch;
         
-        if ( !(d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) )
+        if ( !(IS_PLAYING(d->connected)) )
             continue;
         
         wch = ( d->original != NULL ) ? d->original : d->character;
@@ -3109,7 +3113,7 @@ DEF_DO_FUN(do_equipment)
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
-    if (!IS_SET(ch->act, PLR_NOHELP) && ch->level <= 90)
+    if ( !IS_SET(ch->act, PLR_NOHELP) )
     {
         send_to_char("\n\r", ch);
         do_eqhelp(ch,"");
@@ -3247,7 +3251,7 @@ DEF_DO_FUN(do_where)
         found = FALSE;
         for ( d = descriptor_list; d; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+            if ( (IS_PLAYING(d->connected))
 		 && ( victim = d->character ) != NULL
 		 &&   !IS_NPC(victim)
 		 &&   victim->in_room != NULL
@@ -3743,6 +3747,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
     int c, pos;
+    int ac = 0;
 
     sprintf( buf, "%s is %s %s with properties %s.", obj->short_descr,
         aan(item_name(obj->item_type)), item_name(obj->item_type), extra_bits_name(obj->extra_flags) );
@@ -3808,8 +3813,8 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             
     case ITEM_WAND: 
     case ITEM_STAFF: 
-        sprintf( buf, "It has %d charges of level %d",
-            obj->value[2], obj->value[0] );
+        sprintf( buf, "It can hold %d charges of level %d",
+            obj->value[1], obj->value[0] );
         
         if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
         {
@@ -3888,14 +3893,16 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
                 continue;
             const char *wear = wear_location_info(pos);
             if ( wear )
+            {
                 do_say(ch, wear);
+                ac = predict_obj_ac(obj, pos);
+            }
         }
-
-        sprintf( buf, 
-            "It provides an armor class of %d.", 
-            obj->value[0]);
-        do_say(ch, buf);
-            
+        if ( ac > 0 )
+        {
+            sprintf( buf, "It provides an armor class of %d.", ac );
+            do_say(ch, buf);
+        }
         break;
    }
 }
@@ -3906,6 +3913,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     char buf[MAX_STRING_LENGTH];
     int c;
     int pos;
+    int ac = 0;
 
     sprintf( buf, "The %s is %s.",
 	     item_name(obj->item_type),
@@ -3972,8 +3980,8 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             
     case ITEM_WAND: 
     case ITEM_STAFF: 
-        sprintf( buf, "It has %d charges of level %d",
-            obj->value[2], obj->value[0] );
+        sprintf( buf, "It can hold %d charges of level %d",
+            obj->value[1], obj->value[0] );
         
         if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
         {
@@ -4052,15 +4060,17 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
                 continue;
             const char *wear = wear_location_info(pos);
             if ( wear )
+            {
                 do_say(ch, wear);
+                ac = predict_obj_index_ac(obj, pos);
+            }
         }
-
-        sprintf( buf, 
-            "It provides an armor class of %d.", 
-            obj->value[0] );
-        do_say(ch, buf);
-            
-            break;
+        if ( ac > 0 )
+        {
+            sprintf( buf, "It provides an armor class of %d.", ac );
+            do_say(ch, buf);
+        }
+        break;
    }
 }
 
@@ -4193,9 +4203,9 @@ DEF_DO_FUN(do_lore)
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
             continue;
-        check_improve( rch, gsn_lore, 2, TRUE );
+        check_improve( rch, gsn_lore, TRUE, 3 );
         if ( weapon )
-            check_improve( rch, gsn_weapons_lore, 2, TRUE );
+            check_improve( rch, gsn_weapons_lore, TRUE, 3 );
     }
 }
 
@@ -4283,17 +4293,8 @@ DEF_DO_FUN(do_appraise)
         return;
     }
     
-    /*
-    if (ch->mana < 500/chance)
-    {
-        send_to_char("You are too distracted.\n\r",ch);
-        return;
-    }
-    */
-    
     WAIT_STATE(ch,skill_table[gsn_appraise].beats);
-    check_improve(ch,gsn_appraise,TRUE,2);
-    /*ch->mana -= 500/chance;*/
+    check_improve(ch,gsn_appraise,TRUE,3);
     
     value = obj->cost;
     range = value * (100 - chance)/100;
@@ -4448,7 +4449,7 @@ DEF_DO_FUN(do_disguise)
     if ( number_percent() > skill )
     {
 	send_to_char( "Hmm.. nope. You will still get recognized.\n\r", ch );
-	check_improve( ch, gsn_disguise, FALSE, 1 );
+	check_improve( ch, gsn_disguise, FALSE, 3 );
 	return;
     }
 
@@ -4466,7 +4467,7 @@ DEF_DO_FUN(do_disguise)
     af.bitvector = mob->vnum;
     affect_to_char( ch, &af );
 
-    check_improve( ch, gsn_disguise, TRUE, 1 );
+    check_improve( ch, gsn_disguise, TRUE, 3 );
 }
 
 DEF_DO_FUN(do_stance_list)
@@ -4489,7 +4490,7 @@ DEF_DO_FUN(do_stance_list)
                 stance_cost(ch, i),
                 stances[i].weapon ? "w" : " ",
                 stances[i].martial ? "m" : " ",
-                flag_stat_string(damage_type, stances[i].type));
+                flag_bit_name(damage_type, stances[i].type));
         send_to_char( buf, ch );
     }
 }
@@ -4693,6 +4694,14 @@ DEF_DO_FUN(do_score)
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
+    /* Remort, Ascent, Subclass */
+    sprintf(buf, "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
+        subclass_table[ch->pcdata->subclass].name,
+        ch->pcdata->ascents,
+        ch->pcdata->remorts);
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    
 
     /* Age, Hours Played, Married Status */
     sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs        Married: %9s",
@@ -4833,7 +4842,7 @@ DEF_DO_FUN(do_score)
     {
         sprintf(buf, "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
             hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "     yes" : "    None",
-            thirst == 0 ? "{Rdessicated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
+            thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
@@ -5138,9 +5147,14 @@ DEF_DO_FUN(do_percentages)
     add_buf(output, "{D|{x\n\r");
     
     int crit = critical_chance(ch, FALSE);
-    if ( crit )
+    int heavy_bonus = get_heavy_armor_bonus(ch);
+    if ( crit || heavy_bonus )
     {
-        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%", crit / 20.0);
+        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%     {cHeavy Armor:{x %3d%%      {cHeavy Penalty:{x  %3d%%",
+            crit / 20.0,
+            heavy_bonus,
+            get_heavy_armor_penalty(ch)
+        );
         add_buf(output, "{D|{x\n\r");
     }
     
@@ -5305,18 +5319,17 @@ msl_string achievement_display [] =
         "Hard Qsts"
 };
 
-
 DEF_DO_FUN(do_achievements)
 {
-	if ( IS_NPC(ch) )
-		return;
+    if ( IS_NPC(ch) )
+        return;
 
-	if (!strcmp( argument, "rewards") )
-	{
-		print_ach_rewards(ch);
-		return;
-	}
-	
+    if (!strcmp( argument, "rewards") )
+    {
+        print_ach_rewards(ch);
+        return;
+    }
+
     char buf[MAX_STRING_LENGTH];
     int i;
     CHAR_DATA *victim;
@@ -5327,19 +5340,48 @@ DEF_DO_FUN(do_achievements)
     int ltotal = 0;
     int utotal = 0;
 
+    bool boss=FALSE;
+
     col = 0;
 
     output = new_buf();
 
-    if (argument[0] == '\0')
+    if (argument[0] == '\0' )
     {
-	victim = ch;
+        victim = ch;
+    }
+    else if (!str_cmp(argument, "boss"))
+    {
+        do_achievements_boss( ch, ch );
+        return;
     }
     else
     {
-    	d = new_descriptor();
-    
-        if ( !load_char_obj(d, argument, TRUE) )
+        char arg1[MIL];
+        char arg2[MIL];
+        char *vicarg;
+
+        argument=one_argument( argument, arg1);
+        argument=one_argument( argument, arg2);
+        if (!str_cmp(arg1, "boss"))
+        {
+            boss=TRUE;
+            vicarg=arg2;
+
+            if (!str_cmp( arg2, "rewards"))
+            {
+                do_achievements_boss_reward( ch );
+                return;
+            }
+        }
+        else
+        {
+            vicarg=arg1;
+        }
+
+        d = new_descriptor();
+
+        if ( !load_char_obj(d, vicarg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             /* load_char_obj still loads "default" character
@@ -5361,42 +5403,50 @@ DEF_DO_FUN(do_achievements)
         return;
     }
 
-    sprintf(buf, "\n\r");
-    add_buf(output,buf);
-    sprintf(buf, "{WAchievements for %s\n\r", victim->name);
-    add_buf(output,buf);
-    add_buf(output,"{w----------------------------\n\r");
-    for (i = 0; achievement_table[i].bit_vector != 0; i++)
+    if (boss)
     {
-  	sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
-	add_buf(output, buf);
-        totalach += 1;
-
-	if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
-        {
-            add_buf(output,"{yAchvd{x");
-            utotal += 1;
-        }
-        else
-        {
-            add_buf(output,"{DLockd{x");
-            ltotal += 1;
-        }
-	col +=1;
-	if ( col % 3 == 0 )
-    	  add_buf(output, "\n\r");
-	else
-	  add_buf(output, " | ");
-
+        do_achievements_boss( ch, victim);
     }
-    if ( col % 3 != 0 )
-      add_buf(output, "\n\r");
+    else
+    {
+        sprintf(buf, "\n\r");
+        add_buf(output,buf);
+        sprintf(buf, "{WAchievements for %s\n\r", victim->name);
+        add_buf(output,buf);
+        add_buf(output,"{w----------------------------\n\r");
+        for (i = 0; achievement_table[i].bit_vector != 0; i++)
+        {
+            sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
+            add_buf(output, buf);
+            totalach += 1;
 
-    sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
-    add_buf(output,buf);
-	add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
+            if (IS_SET(victim->pcdata->achievements, achievement_table[i].bit_vector))
+            {
+                add_buf(output,"{yAchvd{x");
+                utotal += 1;
+            }
+            else
+            {
+                add_buf(output,"{DLockd{x");
+                ltotal += 1;
+            }
+            col +=1;
+            if ( col % 3 == 0 )
+                add_buf(output, "\n\r");
+            else
+                add_buf(output, " | ");
+
+        }
+        if ( col % 3 != 0 )
+            add_buf(output, "\n\r");
+
+        sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
+        add_buf(output,buf);
+        add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
+        add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
+        page_to_char(buf_string(output),ch);
+        free_buf(output);
+    }
 
     /* if not self, need to free stuff */
     if ( d )
@@ -5437,7 +5487,71 @@ void print_ach_rewards(CHAR_DATA *ch)
 
 }
 
+/* Give achievement to all PC group members in the room.
+   Final hit may be from NPC */
+void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( !IS_NPC( victim ) )
+        return;
 
+    BOSSACHV *ach = victim->pIndexData->boss_achieve;
+    if ( !ach )
+        return;
+
+    BOSSREC *rec;
+    CHAR_DATA *plr, *plr_next;
+
+
+    /* achievement for all PC group members in the room */
+    for ( plr=ch->in_room->people; plr; plr=plr_next )
+    {
+        plr_next=plr->next_in_room;
+
+        if ( IS_NPC(plr) || !is_same_group( plr, ch ) )
+            continue;
+
+        /* check if already has it */
+        bool found=FALSE;
+        for ( rec = plr->pcdata->boss_achievements; rec; rec=rec->next )
+        {
+            if ( rec->vnum == victim->pIndexData->vnum )
+            {
+                found=TRUE;
+                break;
+            }
+        }
+        if ( found )
+            continue;
+
+        /* give the achievement */
+        rec = alloc_BOSSREC();
+        rec->vnum = victim->pIndexData->vnum;
+        rec->timestamp = current_time; 
+
+        rec->next = plr->pcdata->boss_achievements;
+        plr->pcdata->boss_achievements = rec;
+
+        /* do the rewards */
+        plr->pcdata->questpoints += ach->quest_reward;
+        plr->pcdata->bank += ach->gold_reward;
+        gain_exp(plr, ach->exp_reward);
+        plr->pcdata->achpoints += ach->ach_reward;
+
+        printf_to_char(plr, "--------------------------------------\n\r");
+        printf_to_char(plr, "{wBoss Achievement unlocked{x.\n\r");
+        send_to_char( "{wYour reward{x:\n\r",plr);
+        if ( ach->gold_reward>0)
+            printf_to_char(plr, "%6d gold\n\r", ach->gold_reward );
+        if ( ach->quest_reward>0)
+            printf_to_char(plr, "%6d quest points\n\r", ach->quest_reward);
+        if (ach->exp_reward>0)
+            printf_to_char(plr, "%6d experience points\n\r", ach->exp_reward);
+        if (ach->ach_reward>0)
+            printf_to_char(plr, "%6d achievement points\n\r", ach->ach_reward );
+    }
+
+    return;
+}
 
 /* For achievement rewards... This gets called at certain times (level up, quest complete, etc. )--Vodur / Astark 3/19/12 */
 
@@ -5477,7 +5591,7 @@ void check_achievement( CHAR_DATA *ch )
 		current = ch->pcdata->war_kills;
 		break;
 	    case ACHV_WWIN:
-		current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won;
+		current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won + ch->pcdata->duel_won;
 		break;
 	    case ACHV_BEHEAD:
 		current = ch->pcdata->behead_cnt;
@@ -5579,7 +5693,7 @@ DEF_DO_FUN(do_count)
     	return;
 
     for ( d = descriptor_list; d != NULL; d = d->next )
-        if ( d->connected == CON_PLAYING && can_see( ch, d->character ) )
+        if ( IS_PLAYING(d->connected) && can_see( ch, d->character ) )
 	    count++;
 
     max_on = UMAX(count,max_on);
@@ -5792,7 +5906,11 @@ DEF_DO_FUN(do_eqhelp)
     if (get_skill(ch,gsn_focus) < 1 && get_eq_char(ch,WEAR_HOLD) != NULL)
         printf_to_char(ch,"{yYou are using a held item without the focus skill.{x\n\r");
 
- 
+    /* Held item provides no focus if shield is worn */
+    
+    if ( get_eq_char(ch,WEAR_SHIELD) != NULL && get_eq_char(ch,WEAR_HOLD) != NULL )
+        printf_to_char(ch, "{yYou are holding an item while wearing a shield.{x\n\r");
+    
     /* Wrist shield too ... */
 
     if ((get_skill(ch,gsn_wrist_shield) < 1 && get_eq_char(ch,WEAR_SHIELD) != NULL) 
@@ -5808,14 +5926,97 @@ DEF_DO_FUN(do_eqhelp)
     
 }
 
+bool can_take_subclass( int class, int subclass )
+{
+    return (subclass_table[subclass].base_classes & (1<<class)) != 0;
+}
 
+static void show_subclass( CHAR_DATA *ch, int sc )
+{
+    int class, i;
+    
+    ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
+    for ( class = 0; class < MAX_CLASS; class++ )
+        if ( can_take_subclass(class, sc) )
+            ptc(ch, " %s", class_table[class].name);
+    ptc(ch, " )\n\r\n\r%-20s  Level  Percent\n\r", "Skill");
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( subclass_table[sc].skills[i] == NULL )
+            break;
+        ptc(ch, "%20s    %3d    %3d%%\n\r",
+            subclass_table[sc].skills[i],
+            subclass_table[sc].skill_level[i],
+            subclass_table[sc].skill_percent[i]
+        );
+    }
+}
 
+DEF_DO_FUN(do_showsubclass)
+{
+    int sc, class;
+    bool found = FALSE;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: showsubclass <subclass|class|byclass|all>\n\r", ch);
+        return;
+    }
+    
+    if ( !strcmp(argument, "all") )
+    {
+        for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+        {
+            if ( found )
+                ptc(ch, "\n\r");
+            else
+                found = TRUE;
+            show_subclass(ch, sc);
+        }
+        if ( !found )
+            ptc(ch, "None found.\n\r");
+        return;
+    }
 
+    if ( !strcmp(argument, "byclass") )
+    {
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            bool first = TRUE;
+            ptc(ch, "%12s:", class_table[class].name);
+            for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+                if ( can_take_subclass(class, sc) )
+                {
+                    ptc(ch, "%s %s", first ? "" : ",", subclass_table[sc].name);
+                    first = FALSE;
+                }
+            ptc(ch, "\n\r");
+        }
+        return;
+    }
+    
+    if ( (sc = subclass_lookup(argument)) > 0 )
+    {
+        show_subclass(ch, sc);
+        return;
+    }
 
-
-
-
-
-
-
-
+    if ( (class = class_lookup(argument)) >= 0 )
+    {
+        for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+            if ( can_take_subclass(class, sc) )
+            {
+                if ( found )
+                    ptc(ch, "\n\r");
+                else
+                    found = TRUE;
+                show_subclass(ch, sc);
+            }
+        if ( !found )
+            ptc(ch, "None found.\n\r");
+        return;
+    }
+    
+    send_to_char("That's not a valid subclass or base class.\n\r", ch);
+    send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+}

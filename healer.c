@@ -277,6 +277,7 @@ struct spell_cost
 static SPELL_COST arcane_cost[] =
 {
     { "sanctuary", 200 },
+    { "damned blade", 150 },
     { "haste", 100 },
     { "fly", 50 },
     { "protection magic", 50 },
@@ -376,8 +377,8 @@ DEF_DO_FUN(do_spellup)
                 bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
                 return;
             }
-            skill_table[sn].spell_fun(sn, 70, mob, ch, TARGET_CHAR, FALSE);
+            skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
         }
     else
-        skill_table[sn].spell_fun(sn, 80, mob, ch, TARGET_CHAR, FALSE);
+        skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
 }
