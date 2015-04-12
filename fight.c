@@ -2382,12 +2382,17 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
 
     /* aura of menace */
-    if ( per_chance(50) )
+    if ( per_chance(50) && !IS_AFFECTED(ch, AFF_HEROISM) )
     {
         // chance with one aura is 20%, multiple auras converge towards 50%
         for ( opp = ch->in_room->people; opp; opp = opp->next_in_room )
             if ( opp != ch && is_same_group(opp, victim) && check_skill(opp, gsn_aura_of_menace) && per_chance(40) )
+            {
+                act_gag( "Intimidated by $N's aura of menace you fumble your attack!", ch, NULL, opp, TO_CHAR, GAG_MISS );
+                act_gag( "Intimidated by your aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_VICT, GAG_MISS );
+                act_gag( "Intimidated by $N's aura of menace $n fumbles $s attack!", ch, NULL, opp, TO_NOTVICT, GAG_MISS );
                 return FALSE;
+            }
     }
     
     /* automatic chance-to-hit */
