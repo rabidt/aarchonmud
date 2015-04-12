@@ -528,8 +528,7 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
     /* some affects are hard to dispel */
     if ( (sn == gsn_prot_magic && number_bits(1))
             || (sn == gsn_reflection && number_bits(1))
-            || (sn == gsn_deaths_door && number_bits(2))
-            || (sn == gsn_cursed_wound && number_bits(2)) )
+            || (sn == gsn_deaths_door && number_bits(2)) )
         return FALSE;
 
     /* tomb rot makes negative effects harder to dispel */
