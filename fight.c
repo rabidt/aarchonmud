@@ -6243,7 +6243,7 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
             if ( dam < 1 )
             { 
                 *vs = "miss"; *vp = "misses";
-                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake )
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake || dt == gsn_mummy_slam )
                     gag_type = GAG_MISS;
             }
             else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }
