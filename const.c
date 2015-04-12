@@ -803,10 +803,10 @@ struct align_type align_table [] =
     },
     
     {
-    "hag", TRUE,
+    "mummy", TRUE,
     {}, {}, {},
-    {}, {RES_POISON,RES_DISEASE,RES_DROWNING}, {VULN_HOLY},
-    {A,H,M,V,jj}, {A,B,C,D,E,F,G,H,I,J,K}
+    {}, {RES_POISON,RES_DISEASE,RES_NEGATIVE}, {VULN_FIRE,VULN_HOLY},
+    {A,H,I,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
     },
     
     {
@@ -1825,15 +1825,15 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_LARGE, SEX_BOTH, 10
         },
         
-        { 
-          "hag", "Hag   ",
-          { 315, 310, 310, 300, 315, 315, 310, 305, 310, 305, 310, 300, 310, 305, 300 },
-          5, { "cursed wound", "mimic", "alchemy", "soreness", "heal" },
-          {1, 10, 20, 30, 40}, {100, 100, 95, 90, 80},
-          {  75,  75,  75,  70,  70,      95,  95,  90,  90,  90 },
-          { 145, 145, 145, 140, 140,     155, 155, 150, 150, 150 },
-          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
-          SIZE_MEDIUM, SEX_FEMALE, 10
+        {
+            "mummy", "Mummy ",
+            { 310, 310, 300, 305, 310, 310, 315, 310, 310, 310, 305, 305, 310, 310, 300 },
+            3, { "cursed wound", "mummy slam", "epidemic" },
+            {1, 20, 40}, {100, 100, 80},
+            {  80,  80,  80,  80,  80,      80,  80,  80,  80,  80 },
+            { 150, 150, 150, 145, 145,     150, 150, 150, 145, 145 },
+            {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+            SIZE_MEDIUM, SEX_BOTH, 10
         },
         
         { 
@@ -7841,6 +7841,17 @@ struct  skill_type
     &gsn_cursed_wound, 0, 0, DUR_NONE,
     "cursed wound", "Your wounds can be healed again.",  ""
     },    
+    
+    {
+    "mummy slam",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_DEX, STAT_VIT,
+    spell_null,    TAR_IGNORE,     POS_FIGHTING,
+    &gsn_mummy_slam, 0, 0, DUR_NONE,
+    "slam", "!mummy slam!",  ""
+    },
     
     {
     "custom_affect",
