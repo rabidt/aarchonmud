@@ -3154,8 +3154,7 @@ static int get_bulwark_reduction( CHAR_DATA *ch )
     int skill = get_skill(ch, gsn_bulwark);
     if ( !skill || !is_calm(ch) )
         return 0;
-    // reduction is 2/3 of shield block chance
-    return shield_block_chance(ch, FALSE) * skill / 150;
+    return shield_block_chance(ch, FALSE) * skill / 100;
 }
 
 /*
@@ -3248,9 +3247,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 )
     {
         // bulwark reduces both damage taken and damage dealt
-        int ch_bw = get_bulwark_reduction(ch) / 2;
-        int victim_bw = get_bulwark_reduction(victim);
-        dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
+        // incoming spell damage is partially reduced, outgoing not at all
+        if ( dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
+            dam -= dam * get_bulwark_reduction(victim) / 200; 
+        else
+        {
+            int ch_bw = get_bulwark_reduction(ch) / 2;
+            int victim_bw = get_bulwark_reduction(victim);
+            dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
+        }
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
