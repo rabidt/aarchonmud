@@ -371,7 +371,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( mprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(mprog_flags, trig_type) );
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
@@ -397,7 +397,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
-        g_ScriptSecurity=0; /*just in case*/
+        g_ScriptSecurity=SEC_NOSCRIPT; /*just in case*/
     }
 }
 
@@ -462,7 +462,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -489,7 +489,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     {
         g_LuaScriptInProgress=FALSE;
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
     }
     return result;
 }
@@ -544,7 +544,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -569,7 +569,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     }
     return result;
@@ -645,7 +645,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( rprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(rprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -670,7 +670,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
-        g_ScriptSecurity=0; /* just in case */
+        g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
         lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
     }
     return result;

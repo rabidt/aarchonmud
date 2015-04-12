@@ -206,7 +206,7 @@ void cold_effect(void *vo, int level, int dam, int target)
 	if (!IS_NPC(victim))
         {
 		gain_condition(victim,COND_HUNGER,-dam/20);
-     /* Added this here so that you can't be dessicated from having the
+     /* Added this here so that you can't be desiccated from having the
         warmth sucked out of you, but be too full to eat. - Astark 1-6-13 */
                 gain_condition(victim,COND_FULL,-dam/20);
         }
@@ -317,7 +317,7 @@ void fire_effect(void *vo, int level, int dam, int target)
 	if (!IS_NPC(victim))
         {
 		gain_condition(victim,COND_THIRST,-dam/20);
-     /* Added this here so that you can't be dessicated from having the
+     /* Added this here so that you can't be desiccated from having the
         warmth sucked out of you, but be too full to eat. - Astark 1-6-13 */
                 gain_condition(victim,COND_FULL,-dam/20);
         }

@@ -65,7 +65,7 @@ DEF_DO_FUN(do_forget)
     {
         CHAR_DATA *wch;
         
-        if (d->connected != CON_PLAYING || !can_see(ch,d->character))
+        if (!IS_PLAYING(d->connected) || !can_see(ch,d->character))
             continue;
         
         wch = ( d->original != NULL ) ? d->original : d->character;

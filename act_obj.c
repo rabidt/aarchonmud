@@ -1240,7 +1240,7 @@ DEF_DO_FUN(do_envenom)
             if (!obj->value[3])
             {
                 obj->value[3] = 1;
-                check_improve(ch,gsn_envenom,TRUE,4);
+                check_improve(ch,gsn_envenom,TRUE,3);
             }
             WAIT_STATE(ch,skill_table[gsn_envenom].beats);
             return;
@@ -1248,7 +1248,7 @@ DEF_DO_FUN(do_envenom)
 
         act("You fail to poison $p.",ch,obj,NULL,TO_CHAR);
         if (!obj->value[3])
-            check_improve(ch,gsn_envenom,FALSE,4);
+            check_improve(ch,gsn_envenom,FALSE,3);
         WAIT_STATE(ch,skill_table[gsn_envenom].beats);
         return;
     }
@@ -1642,6 +1642,9 @@ DEF_DO_FUN(do_drink)
         return;
     }
 
+    if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_DRINK) )
+        return;
+
     act( "You drink $T from $p.",
             ch, obj, liq_table[liquid].liq_name, TO_CHAR );
     act( "$n drinks $T from $p.",
@@ -1782,10 +1785,10 @@ DEF_DO_FUN(do_eat)
             break;
 
         case ITEM_PILL:
-            obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self" );
-            obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self" );
+            obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self", FALSE );
+            obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self", FALSE );
             break;
     }
 
@@ -2485,10 +2488,10 @@ DEF_DO_FUN(do_quaff)
     act( "$n quaffs $p.", ch, obj, NULL, TO_ROOM );
     act( "You quaff $p.", ch, obj, NULL ,TO_CHAR );
 
-    obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self" );
-    obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self" );
+    obj_cast_spell( obj->value[1], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[2], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[3], obj->value[0], ch, obj, "self", FALSE );
+    obj_cast_spell( obj->value[4], obj->value[0], ch, obj, "self", FALSE );
 
     extract_obj( obj );
     return;
@@ -2498,6 +2501,7 @@ DEF_DO_FUN(do_recite)
 {
     char arg1[MAX_INPUT_LENGTH];
     OBJ_DATA *scroll;
+    int i;
 
     argument = one_argument( argument, arg1 );
 
@@ -2538,6 +2542,13 @@ DEF_DO_FUN(do_recite)
         send_to_char( "You come out of hiding.\n\r", ch );
     }
 
+    // we only fire the scroll if all of the spells would be valid casts
+    for ( i = 1; i < 5; i++ )
+    {
+        if ( scroll->value[i] > 0 && !obj_cast_spell(scroll->value[i], scroll->value[0], ch, scroll, argument, TRUE) )
+            return;
+    }
+    
     act( "$n recites $p.", ch, scroll, NULL, TO_ROOM );
     act( "You recite $p.", ch, scroll, NULL, TO_CHAR );
 
@@ -2549,25 +2560,16 @@ DEF_DO_FUN(do_recite)
     }
     else
     {
-        bool success=FALSE;
-        if ( obj_cast_spell( scroll->value[1], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[2], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[3], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        if ( obj_cast_spell( scroll->value[4], scroll->value[0], ch, scroll, argument ) )
-            success=TRUE;
-        /*if it didn't go, probably typoed the target argument, no reason to
-          kill the scroll or to check_improve -Vodur*/
-        if ( success )
+        for ( i = 1; i < 5; i++ )
         {
-            extract_obj( scroll );
-            check_improve(ch,gsn_scrolls,TRUE,2);
+            if ( scroll->value[i] > 0 )
+                obj_cast_spell(scroll->value[i], scroll->value[0], ch, scroll, argument, FALSE);
         }
+        extract_obj(scroll);
+        check_improve(ch, gsn_scrolls, TRUE, 2);
     }
 
-    WAIT_STATE( ch, skill_table[gsn_scrolls].beats );
+    WAIT_STATE( ch, 2*PULSE_VIOLENCE );
     return;
 }
 
@@ -2600,6 +2602,15 @@ DEF_DO_FUN(do_brandish)
         return;
     }
 
+    if ( staff->value[2] <= 0 )
+    {
+        act( "$p has no more charges remaining.", ch, staff, NULL, TO_CHAR );
+        return;
+    }
+    
+    if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument, TRUE) )
+        return;
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2621,13 +2632,14 @@ DEF_DO_FUN(do_brandish)
         else 
         {
             // unsuccessful cast (e.g. invalid target) does not use up charge
-            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument) )
+            if ( !obj_cast_spell(staff->value[3], staff->value[0], ch, staff, argument, FALSE) )
                 return;
             check_improve(ch,gsn_staves,TRUE,2);
+            --staff->value[2];
         }
     }
 
-    if ( --staff->value[2] <= 0 )
+    if ( staff->value[2] <= 0 && staff->value[1] <= 1 )
     {
         act( "$n's $p blazes bright and is gone.", ch, staff, NULL, TO_ROOM );
         act( "Your $p blazes bright and is gone.", ch, staff, NULL, TO_CHAR );
@@ -2667,6 +2679,15 @@ DEF_DO_FUN(do_zap)
         return;
     }
 
+    if ( wand->value[2] <= 0 )
+    {
+        act( "$p has no more charges remaining.", ch, wand, NULL, TO_CHAR );
+        return;
+    }
+    
+    if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument, TRUE) )
+        return;
+    
     if ( IS_AFFECTED(ch, AFF_HIDE) && !IS_AFFECTED(ch, AFF_SNEAK) )
     {
         affect_strip( ch, gsn_hide );
@@ -2691,13 +2712,14 @@ DEF_DO_FUN(do_zap)
         else
         {
             // unsuccessful cast (e.g. invalid target) does not use up charge
-            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument) )
+            if ( !obj_cast_spell(wand->value[3], wand->value[0], ch, wand, argument, FALSE) )
                 return;
             check_improve(ch,gsn_wands,TRUE,2);
+            --wand->value[2];
         }
     }
 
-    if ( --wand->value[2] <= 0 )
+    if ( wand->value[2] <= 0 && wand->value[1] <= 1 )
     {
         act( "$n's $p explodes into fragments.", ch, wand, NULL, TO_ROOM );
         act( "Your $p explodes into fragments.", ch, wand, NULL, TO_CHAR );
@@ -4160,7 +4182,7 @@ DEF_DO_FUN(do_ignite)
         obj->timer=2;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
 
-        check_improve(ch,gsn_ignite,TRUE,4);
+        check_improve(ch,gsn_ignite,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_ignite].beats);
 
         free_string(obj->owner);
@@ -4181,7 +4203,7 @@ DEF_DO_FUN(do_ignite)
         act( "You try to ignite $p and fail.", ch, obj, NULL, TO_CHAR );
     }
 
-    check_improve(ch,gsn_ignite,FALSE,4);
+    check_improve(ch,gsn_ignite,FALSE,2);
     WAIT_STATE(ch,skill_table[gsn_ignite].beats);
 
     return;

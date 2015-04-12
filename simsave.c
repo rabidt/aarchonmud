@@ -272,11 +272,10 @@ bool ready_to_save( CHAR_DATA *ch )
     if ( ch->desc == NULL )
 	return TRUE;
 
-    if ( ch->desc->connected == CON_PLAYING
-	 || IS_WRITING_NOTE(ch->desc->connected) )
-	return TRUE;
+    if ( IS_PLAYING(ch->desc->connected) ) 
+        return TRUE;
     else
-	return FALSE;
+        return FALSE;
 }
 
 bool pfile_exists( const char *name )

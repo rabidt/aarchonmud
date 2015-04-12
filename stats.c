@@ -411,6 +411,8 @@ int get_hitroll( CHAR_DATA *ch )
     }
     hitroll += (modified_level(ch) + 10) * attack_factor/100;
 
+    hitroll = hitroll * (400 - get_heavy_armor_penalty(ch)) / 400;
+    
     return hitroll;
 }
 
