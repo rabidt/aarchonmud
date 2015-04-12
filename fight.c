@@ -1318,6 +1318,13 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
     
+    if ( check_skill(ch, gsn_mummy_slam) )
+    {
+        mummy_slam(ch, victim);
+        if ( ch->fighting != victim )
+            return;
+    }
+    
     chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
     
     if (IS_AFFECTED(ch,AFF_SLOW))

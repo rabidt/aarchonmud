@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         460
+#define MAX_SKILL         461
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3380,6 +3380,7 @@ extern sh_int  gsn_lightning_breath;
 extern sh_int  gsn_craft;
 extern sh_int  gsn_crush;
 extern sh_int  gsn_cursed_wound;
+extern sh_int  gsn_mummy_slam;
 extern sh_int  gsn_bash;
 extern sh_int  gsn_berserk;
 extern sh_int  gsn_dirt;
@@ -4630,6 +4631,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );
@@ -4920,7 +4922,8 @@ bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
 
 /* magic2.c */
-void decompose_update( CHAR_DATA *ch, int min_duration );
+void start_decompose( CHAR_DATA *ch, int level );
+void decompose_update( CHAR_DATA *ch, int level );
 
 /* marry.c */
 void check_spouse( CHAR_DATA *ch );
