@@ -817,13 +817,6 @@ struct align_type align_table [] =
     },
     
     {
-    "quickling", TRUE,
-    {}, {AFF_HASTE,AFF_INVISIBLE}, {},
-    {}, {}, {VULN_BASH},
-    {A,C,H,M,N}, {A,B,C,D,E,F,G,H,I,J,K}
-    },
-    
-    {
     "warforged", TRUE,
     {}, {}, {},
     {}, {RES_WEAPON}, {},
