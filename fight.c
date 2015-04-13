@@ -1318,6 +1318,13 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
     
+    if ( check_skill(ch, gsn_mummy_slam) )
+    {
+        mummy_slam(ch, victim);
+        if ( ch->fighting != victim )
+            return;
+    }
+    
     chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
     
     if (IS_AFFECTED(ch,AFF_SLOW))
@@ -1931,6 +1938,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     CHECK_RETURN( ch, victim );
     
     OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
+    bool twohanded = wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
     
     // elemental strike - separate handling if in elemental blade stance
     if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
@@ -1964,7 +1972,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // divine retribution
-    if ( hit && per_chance(get_skill(victim, gsn_divine_retribution))
+    if ( hit && check_skill(victim, gsn_divine_retribution)
         && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
@@ -1987,12 +1995,25 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // rapid fire - 10% chance of additional follow-up attack
     if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
-        bool rapid_fire = per_chance(get_skill(ch, gsn_rapid_fire));
+        bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && per_chance(10)) || (bullet_rain && per_chance(33)) )
         {
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
+        }
+    }
+    
+    // massive swing - chance to hit secondary targets
+    if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
+    {
+        int chance = (twohanded ? 50 : 30) + ch->size * 10;
+        CHAR_DATA *opp, *next;
+        for ( opp = ch->in_room->people; opp; opp = next )
+        {
+            next = opp->next_in_room;
+            if ( opp != victim && opp->fighting && is_same_group(opp->fighting, ch) && per_chance(chance) )
+                one_hit(ch, opp, gsn_massive_swing, secondary);
         }
     }
 }
@@ -2994,6 +3015,7 @@ bool is_normal_hit( int dt )
      || (dt == gsn_double_strike)
      || (dt == gsn_strafe)
      || (dt == gsn_round_swing)
+     || (dt == gsn_massive_swing)
      || (dt == gsn_burst)
      || (dt == gsn_fullauto)
      || (dt == gsn_semiauto)
@@ -3134,8 +3156,7 @@ static int get_bulwark_reduction( CHAR_DATA *ch )
     int skill = get_skill(ch, gsn_bulwark);
     if ( !skill || !is_calm(ch) )
         return 0;
-    // reduction is 2/3 of shield block chance
-    return shield_block_chance(ch, FALSE) * skill / 150;
+    return shield_block_chance(ch, FALSE) * skill / 100;
 }
 
 /*
@@ -3228,9 +3249,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 )
     {
         // bulwark reduces both damage taken and damage dealt
-        int ch_bw = get_bulwark_reduction(ch) / 2;
-        int victim_bw = get_bulwark_reduction(victim);
-        dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
+        // incoming spell damage is partially reduced, outgoing not at all
+        if ( dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
+            dam -= dam * get_bulwark_reduction(victim) / 200; 
+        else
+        {
+            int ch_bw = get_bulwark_reduction(ch) / 2;
+            int victim_bw = get_bulwark_reduction(victim);
+            dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
+        }
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
@@ -3341,6 +3368,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             dam += dam * fade_chance(victim) / 100;
             dam += dam * fade_chance(ch) / 250;
         }
+        /* massive swing penalty */
+        if ( dt == gsn_massive_swing )
+            dam /= 2;
     }
 
     /* religion bonus */
@@ -6215,7 +6245,7 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
             if ( dam < 1 )
             { 
                 *vs = "miss"; *vp = "misses";
-                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake )
+                if ( is_normal_hit(dt) || dt == gsn_bite || dt == gsn_chop || dt == gsn_kick || dt == gsn_rake || dt == gsn_mummy_slam )
                     gag_type = GAG_MISS;
             }
             else if ( dam <   2 ) { *vs = "{mbother{ ";  *vp = "{mbothers{ "; }

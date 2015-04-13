@@ -3106,7 +3106,6 @@ DEF_SPELL_FUN(spell_decompose)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    AFFECT_DATA af;
     
     if ( saves_spell(victim, ch, level, DAM_HARM) )
     {
@@ -3124,30 +3123,36 @@ DEF_SPELL_FUN(spell_decompose)
     {    
         send_to_char("You feel an intense pain in your body.\n\r",victim);
         act("$n jerks in sudden pain.",victim,0,0,TO_ROOM);
-        
-        af.where = TO_AFFECTS;
-        af.level = level;
-        af.duration = get_duration(sn, level);
-        af.type = sn;
-        af.bitvector = 0;
-        af.modifier = -10;
-
-        /* start out with -10 on all 4 stats */
-        /* affects will get worse over time, handled in special_affect_update */
-        af.location = APPLY_STR;
-        affect_to_char(victim,&af);
-        af.location = APPLY_AGI;
-        affect_to_char(victim,&af);
-        af.location = APPLY_DEX;
-        affect_to_char(victim,&af);
-        af.location = APPLY_INT;
-        affect_to_char(victim,&af);
+        start_decompose(victim, level);
     }
     
     /* a bit damage won't harm anyone ;) */
     dam = get_sn_damage( sn, level, ch );
     full_dam( ch, victim, dam, sn, DAM_HARM, TRUE );
     return TRUE;
+}
+
+void start_decompose( CHAR_DATA *ch, int level )
+{
+    AFFECT_DATA af;
+    
+    af.where = TO_AFFECTS;
+    af.level = level;
+    af.duration = get_duration(gsn_decompose, level);
+    af.type = gsn_decompose;
+    af.bitvector = 0;
+    af.modifier = -10;
+
+    /* start out with -10 on all 4 stats */
+    /* affects will get worse over time, handled in special_affect_update */
+    af.location = APPLY_STR;
+    affect_to_char(ch, &af);
+    af.location = APPLY_AGI;
+    affect_to_char(ch, &af);
+    af.location = APPLY_DEX;
+    affect_to_char(ch, &af);
+    af.location = APPLY_INT;
+    affect_to_char(ch, &af);
 }
 
 void decompose_update( CHAR_DATA *ch, int level )
