@@ -3392,6 +3392,35 @@ void rake_char( CHAR_DATA *ch, CHAR_DATA *victim)
         full_dam(ch, victim, 0, gsn_rake, DAM_SLASH, TRUE);
 }
 
+// make one mummy slam attack
+void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int skill = get_skill(ch, gsn_mummy_slam);
+
+    if ( check_hit(ch, victim, gsn_mummy_slam, DAM_BASH, skill) )
+    {
+        int dam = martial_damage(ch, victim, gsn_mummy_slam);
+        full_dam(ch, victim, dam, gsn_mummy_slam, DAM_BASH, TRUE);
+        // mummy rot, i.e., decompose
+        int level = ch->level;
+        if ( !saves_spell(victim, ch, level, DAM_HARM) )
+        {
+            if ( is_affected(victim, gsn_decompose) )
+            {
+                decompose_update(victim, level);
+            }
+            else
+            {
+                act("You contract mummy rot!", victim, NULL, NULL, TO_CHAR);
+                act("$n is infected with mummy rot!", victim, NULL, NULL, TO_ROOM);
+                start_decompose(victim, level);
+            }
+        }
+    }
+    else
+        full_dam(ch, victim, 0, gsn_mummy_slam, DAM_BASH, TRUE);
+}
+
 DEF_DO_FUN(do_puncture)
 {
     AFFECT_DATA af;
