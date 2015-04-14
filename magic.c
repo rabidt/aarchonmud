@@ -363,6 +363,14 @@ bool is_offensive( int sn )
         || target == TAR_IGNORE_OFF;
 }
 
+bool is_malediction( int sn )
+{
+    if ( !strcmp(skill_table[sn].name, "energy drain") )
+        return TRUE;
+    
+    return is_offensive(sn) && skill_table[sn].duration != DUR_NONE;
+}
+
 int get_save(CHAR_DATA *ch, bool physical)
 {
     int saves = ch->saving_throw;
@@ -408,6 +416,9 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
+    
+    if ( IS_AFFECTED(victim, AFF_CURSE) && per_chance(5) )
+        return FALSE;
 
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -465,6 +476,9 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
+
+    if ( IS_AFFECTED(victim, AFF_CURSE) && per_chance(5) )
+        return FALSE;
 
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) && per_chance(50) )
         return TRUE;
@@ -1390,6 +1404,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
     level = mastery_adjust_level(level, get_mastery(ch, sn));
+    if ( is_malediction(sn) )
+        level += level * get_skill(ch, gsn_arcane_defiling) / 400;
     
     // check if spell could be cast successfully
     // that's done via a call to the spell function with check = TRUE
