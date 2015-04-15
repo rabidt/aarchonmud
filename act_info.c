@@ -2198,7 +2198,7 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
            /* More information for players regarding maledictions - Astark */
             if (is_mental(paf->type))
                 printf_to_char( to_ch, "Mental : {M%-15s{x", skill_table[paf->type].name );
-            else if (paf->type == gsn_curse || paf->type == gsn_tomb_rot )
+            else if ( is_curse(paf->type) )
                 printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
             else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
                 printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );

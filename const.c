@@ -2183,6 +2183,12 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80 }
     },
     {
+        "warlock", MAGE|NECROMANCER,
+        { "eldritch blast", "eldritch curse", "shadowwalk" },
+        { 10, 30, 50 },
+        { 100, 100, 80 }
+    },
+    {
         "berserker", GLADIATOR,
         { "savage frenzy" },
         { 30 },
@@ -5874,6 +5880,28 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_arcane_defiling, 0, 0, DUR_NONE,
         "", "!arcane defiling!", ""
+    },
+
+    {
+        "eldritch blast",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_eldritch_blast, 0, 12, DUR_NONE,
+        "eldritch blast", "!eldritch blast!", ""
+    },
+
+    {
+        "eldritch curse",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_eldritch_curse, 0, 0, DUR_BRIEF,
+        "", "Your eldritch affliction subsides.", ""
     },
 
     {
