@@ -98,6 +98,7 @@ DECLARE_DO_FUN( do_bash     );
 DECLARE_DO_FUN( do_berserk  );
 DECLARE_DO_FUN( do_bitch    );
 DECLARE_DO_FUN( do_bite     );
+DECLARE_DO_FUN( do_blast    );
 DECLARE_DO_FUN( do_blue     );
 DECLARE_DO_FUN( do_board    );
 DECLARE_DO_FUN( do_bounty   );
