@@ -4425,3 +4425,59 @@ DEF_DO_FUN(do_gaze)
     if ( per_chance(skill) )
         check_petrify(ch, victim);
 }
+
+DEF_DO_FUN(do_blast)
+{
+    CHAR_DATA *victim;
+    AFFECT_DATA af;
+    int skill = get_skill(ch, gsn_eldritch_blast);
+
+    if ( skill == 0 )
+    {
+        send_to_char("You don't know how to channel raw eldritch power.\n\r", ch);
+        return;
+    }
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    if ( is_safe(ch, victim) )
+        return;
+
+    // ok, it's happening
+    WAIT_STATE(ch, skill_table[gsn_eldritch_blast].beats);
+    
+    if ( !per_chance(skill) )
+    {
+        send_to_char("You lose control of the eldritch power surging through you.\n\r", ch);
+        return;
+    }
+    
+    check_killer(ch, victim);
+    start_combat(ch, victim);
+    
+    int dam = dice(2,4) + ch->level + ch->mana / 50;
+    dam += dam * get_focus_bonus(ch) / 100;
+    
+    bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);
+    
+    if ( saved || IS_AFFECTED(victim, AFF_SANCTUARY) )
+        dam /= 2;
+    direct_damage(ch, victim, dam, gsn_eldritch_blast);
+    
+    // eldritch curse
+    if ( !saved && check_skill(ch, gsn_eldritch_curse) )
+    {
+        af.where     = TO_VULN;
+        af.type      = gsn_eldritch_curse;
+        af.level     = ch->level;
+        af.duration  = get_duration(gsn_eldritch_curse, ch->level);
+        af.location  = APPLY_SAVES;
+        af.modifier  = dice(2,4);
+        af.bitvector = VULN_MAGIC;
+        affect_join(victim, &af);
+        
+        act("You are afflicted with an eldritch curse!", victim, NULL, NULL, TO_CHAR);
+        act("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM);
+    }
+}

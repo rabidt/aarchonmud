@@ -589,10 +589,10 @@ bool can_dispel(int sn)
         return FALSE;
 
     /* some spells have special cures */
-    if ( sn == gsn_curse || sn == gsn_tomb_rot
-            || sn == gsn_poison
-            || sn == gsn_plague || sn == gsn_necrosis
-            || sn == gsn_blindness || sn == gsn_fire_breath )
+    if ( is_curse(sn)
+        || is_blindness(sn)
+        || sn == gsn_poison
+        || sn == gsn_plague || sn == gsn_necrosis )
         return FALSE;
 
     /*
@@ -2805,6 +2805,14 @@ bool is_blindness( int sn )
         || sn == gsn_dirt
         || sn == gsn_spit
         || sn == gsn_gouge;
+}
+
+bool is_curse( int sn )
+{
+    return sn == gsn_curse
+        || sn == gsn_tomb_rot
+        || sn == gsn_cursed_wound
+        || sn == gsn_eldritch_curse;
 }
 
 DEF_SPELL_FUN(spell_cure_mental)
@@ -5250,7 +5258,8 @@ DEF_SPELL_FUN(spell_remove_curse)
     
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    char buf[MSL]; 
+    char buf[MSL];
+    int curse;
 
     /* do object cases first */
     if (target == TARGET_OBJ)
@@ -5287,17 +5296,27 @@ DEF_SPELL_FUN(spell_remove_curse)
 
     /* characters */
     victim = (CHAR_DATA *) vo;
-   
-    bool success = check_dispel(level, victim, gsn_curse)
-        || check_dispel(level, victim, gsn_tomb_rot)
-        || check_dispel(level, victim, gsn_cursed_wound);
+    
+    bool is_cursed = FALSE;
+    bool success = FALSE;
+    
+    for ( curse = 0; curse < MAX_SKILL; curse++ )
+        if ( is_curse(curse) )
+        {
+            if ( check_dispel(level, victim, curse) )
+            {
+                success = TRUE;
+                break;
+            }
+            is_cursed = TRUE;
+        }
     if ( success )
     {
         send_to_char("You feel better.\n\r",victim);
         act("$n looks more relaxed.",victim,NULL,NULL,TO_ROOM);
         return TRUE;
     }
-    if ( is_affected(victim, gsn_curse) || is_affected(victim, gsn_tomb_rot) || is_affected(victim, gsn_cursed_wound) )
+    if ( is_cursed )
     {
         act("You failed to remove the curse on $N.",ch,NULL,victim,TO_CHAR);
         return TRUE;
