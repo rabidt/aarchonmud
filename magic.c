@@ -1028,7 +1028,7 @@ bool check_concentration( CHAR_DATA *ch )
     if ( !ch->in_room )
         return FALSE;
     
-    if ( per_chance(get_skill(ch, gsn_combat_casting)) )
+    if ( check_skill(ch, gsn_combat_casting) )
         return TRUE;
     
     ch_roll = number_range(0, concentration_power(ch));
@@ -1449,7 +1449,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
-            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
+            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2) && !check_skill(ch, gsn_combat_casting))
             || (concentrate && !check_concentration(ch)) )
     {
         send_to_char( "You lost your concentration.\n\r", ch );
@@ -1851,6 +1851,20 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     return dam * number_range(90, 110) / 100;
 }
 
+int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
+{
+    int edge = get_skill(ch, gsn_warmage_edge);
+    int bonus = ch->level * edge / 100;
+
+    // adjust for casting time
+    int cast_time = skill_table[sn].beats;
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
+        cast_time /= 2;
+    bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
+
+    return bonus;
+}
+
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
 {
     int dam;
@@ -1859,8 +1873,10 @@ int get_sn_damage( int sn, int level, CHAR_DATA *ch )
         return 0;
 
     dam = get_spell_damage( skill_table[sn].min_mana, skill_table[sn].beats, level );
+    dam = adjust_spell_damage(dam, ch);
+    dam += get_spell_bonus_damage(ch, sn);
 
-    return adjust_spell_damage(dam, ch);
+    return dam;
 }
 
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )

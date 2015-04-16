@@ -50,6 +50,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
   dam = get_spell_damage( skill_table[sn].min_mana + cost,
 			  skill_table[sn].beats, level );
   dam = adjust_spell_damage( dam, ch );
+  dam += get_spell_bonus_damage(ch, sn);
 
   if (multi_target)
   {
