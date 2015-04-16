@@ -4399,11 +4399,13 @@ DEF_DO_FUN(do_gaze)
         return;
     }
 
+    /*
     if ( !can_see_combat(victim, ch) )
     {
         send_to_char("They cannot see you.\n\r", ch);
         return;
     }
+    */
 
     if ( IS_AFFECTED(victim, AFF_PETRIFIED) )
     {
