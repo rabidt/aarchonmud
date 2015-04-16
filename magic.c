@@ -5317,7 +5317,7 @@ DEF_SPELL_FUN(spell_remove_curse)
     bool success = FALSE;
     
     for ( curse = 0; curse < MAX_SKILL; curse++ )
-        if ( is_curse(curse) )
+        if ( is_curse(curse) && is_affected(victim, curse) )
         {
             if ( check_dispel(level, victim, curse) )
             {
