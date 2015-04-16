@@ -2178,9 +2178,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "warmage", MAGE|ILLUSIONIST|NECROMANCER,
-        { "combat casting", "second attack", "dimensional blade" },
-        { 10, 50, 90 },
-        { 100, 80, 80 }
+        { "combat casting", "warmage edge" },
+        { 10, 30 },
+        { 100, 100 }
     },
     {
         "warlock", MAGE|NECROMANCER,
@@ -5704,6 +5704,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_combat_casting, 0, 0, DUR_NONE,
         "", "!combat_casting!", ""
+    },
+
+    {
+        "warmage edge",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_warmage_edge, 0, 0, DUR_NONE,
+        "", "!warmage_edge!", ""
     },
 
     {

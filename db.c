@@ -363,6 +363,7 @@ sh_int  gsn_massive_swing;
 sh_int  gsn_riposte;
 sh_int  gsn_blade_barrier;
 sh_int  gsn_combat_casting;
+sh_int  gsn_warmage_edge;
 sh_int  gsn_elemental_strike;
 sh_int  gsn_savage_frenzy;
 sh_int  gsn_hips;
