@@ -1635,6 +1635,14 @@ int get_twohand_penalty( CHAR_DATA *ch, bool improve )
     return (skill-100) / 2;
 }
 
+static bool has_combat_advantage( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    return victim->fighting != ch
+        || victim->position < POS_FIGHTING
+        || !can_attack(victim)
+        || (!can_see_combat(victim, ch) && !check_skill(victim, gsn_blindfighting));
+}
+
 /* returns the damage ch deals with one hit */
 int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
@@ -1729,7 +1737,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else if ( dt == gsn_parry )
 	dam /= 2;
     // flanking
-    else if ( victim && victim != ch && victim->fighting && victim->fighting != ch )
+    else if ( victim && victim != ch && has_combat_advantage(ch, victim) )
     {
         dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
         check_improve (ch, gsn_flanking, TRUE, 7);
