@@ -1,8 +1,10 @@
-local changelog_table
+changelog_table = changelog_table or {}
 local PAGE_SIZE=30
 local function add_change( chg )
     --table.insert( changelog_table, chg )
     --table.sort( changelog_table, function(a,b) return a.date<b.date end)
+    -- We don't want to insert then sort to prevent reordering of entries 
+    -- with identical dates
     local ind 
     for i=1,#changelog_table do
         if changelog_table[i].date > chg.date then
@@ -52,7 +54,7 @@ local function handle_changelog_con( d )
                 -- Set the default author
                 change.author=d.character.name
                 sendtochar( d.character,
-                        ("Enter author: [%s]"):format( change.author))
+                        ("Enter author name(s) delimited by forward slash, e.g Bill/Bob: [%s]"):format( change.author))
                 return
             end
 
@@ -125,24 +127,34 @@ local function show_change_entry( ch, i )
             ent.desc))
 end
 
-local function show_change_page( ch, pagenum )
+local function show_change_page( ch, pagenum, indices )
     local start,fin
+    local lastind=indices and #indices or #changelog_table
 
     start = 1 + ((pagenum-1) * PAGE_SIZE)
-    fin = math.min(start-1+PAGE_SIZE, #changelog_table)
+    fin = math.min(start-1+PAGE_SIZE, lastind)
 
     sendtochar( ch, "Page "..pagenum.."\n\r")
-    for i=start,fin do
-        show_change_entry( ch, i )
+    
+    if indices then
+    -- Only show some indices
+        for i=start,fin do
+            show_change_entry( ch, indices[i])
+        end
+    else
+        for i=start,fin do
+            show_change_entry( ch, i )
+        end
     end
                 
 end
 
-local function changelog_browse_con( d )
+local function changelog_browse_con( d, indices )
     local cmd
     local pagenum=1
+    local lastpage=math.ceil((indices and #indices or #changelog_table)/PAGE_SIZE)
     while true do
-        show_change_page( d.character, pagenum )  
+        show_change_page( d.character, pagenum, indices )  
         sendtochar( d.character,
             "[q]uit, [n]ext, [p]rev, [f]irst, [l]ast, or #\n\r")
         
@@ -154,7 +166,7 @@ local function changelog_browse_con( d )
         elseif cmd=="n" then
             -- next page
             local newnum=pagenum+1
-            if newnum<1 or newnum>math.ceil(#changelog_table/PAGE_SIZE) then
+            if newnum<1 or newnum>lastpage then
                 sendtochar(d.character, "Already at last page.\n\r")
             else
                 pagenum=newnum
@@ -171,10 +183,10 @@ local function changelog_browse_con( d )
             pagenum=1
         elseif cmd=="l" then
             -- last page
-            pagenum=math.ceil(#changelog_table/PAGE_SIZE)
+            pagenum=lastpage
         elseif tonumber(cmd) then
             local newnum=tonumber(cmd)
-            if newnum<1 or newnum>math.ceil(#changelog_table/PAGE_SIZE) then
+            if newnum<1 or newnum>lastpage then
                 sendtochar(d.character, "No such page.\n\r")
             else
                 pagenum=newnum
@@ -213,8 +225,12 @@ end
 
 local function changelog_usage( ch )
     sendtochar( ch, [[
-changelog show            -- Show 30 most recent changes.
-changelog browse          -- Browse changes page by page.
+changelog show              -- Show 30 most recent changes.
+changelog browse            -- Browse changes page by page.
+changelog find [text]       -- Show all entries that contain the given text.
+changelog pattern [pattern] -- Show all entries that match the given pattern 
+                               (lua pattern matching).
+changelog author [name]     -- Show all entries from the given author.
 ]])
     if ch.level>=108 then
         sendtochar( ch, [[
@@ -256,7 +272,65 @@ function do_changelog( ch, argument )
     elseif args[1]=="browse" then
         start_con_handler( ch.descriptor, changelog_browse_con, ch.descriptor)
         return 
+    elseif args[1]=="find" then
+        -- find argument comprises the rest of the argument
+        local text=argument:sub(("find "):len()+1)
+        local result_indices={}
+        for k,v in pairs(changelog_table) do
+            if string.find(v.desc, text, 1, true) then
+                table.insert(result_indices, k)
+            end
+        end
+        
+        if #result_indices<1 then
+            sendtochar(ch, "No results found.\n\r")
+            return
+        end
+        start_con_handler( ch.descriptor, 
+                changelog_browse_con, 
+                ch.descriptor, 
+                result_indices)
+        return
+    elseif args[1]=="pattern" then
+        local text=argument:sub(("pattern "):len()+1)
+        local result_indices={}
+        for k,v in pairs(changelog_table) do
+            if string.find(v.desc, text) then
+                table.insert(result_indices, k)
+            end
+        end
 
+        if #result_indices<1 then
+            sendtochar(ch, "No results found.\n\r")
+            return
+        end
+        start_con_handler( ch.descriptor, 
+                changelog_browse_con, 
+                ch.descriptor, 
+                result_indices)
+        return
+    elseif args[1]=="author" then
+        local target=args[2]:lower()
+        local result_indices={}
+        for k,v in pairs(changelog_table) do
+            for auth in string.gmatch(v.author, "%a+") do
+                if auth:lower()==target then
+                    table.insert(result_indices, k)
+                    break -- on the off chance the same author is listed twice on the same entry
+                end
+            end
+        end
+
+        if #result_indices<1 then
+            sendtochar(ch, "No results found.\n\r")
+            return
+        end
+
+        start_con_handler( ch.descriptor, 
+                changelog_browse_con, 
+                ch.descriptor, 
+                result_indices)
+        return 
     elseif args[1]=="remove" then
         local num=args[2] and tonumber(args[2])
         if not num then

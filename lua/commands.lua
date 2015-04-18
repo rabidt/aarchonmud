@@ -6,7 +6,8 @@ local reset_table =
 --    "arclib",
 --    "scripting",
 --    "utilities",
-    "leaderboard"
+    "leaderboard",
+    "changelog"
 }
 
 local function luareset_usage( ch )
