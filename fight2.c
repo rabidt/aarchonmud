@@ -3401,6 +3401,10 @@ void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int dam = martial_damage(ch, victim, gsn_mummy_slam);
         full_dam(ch, victim, dam, gsn_mummy_slam, DAM_BASH, TRUE);
+        
+        if ( stop_attack(ch, victim) )
+            return;
+        
         // mummy rot, i.e., decompose
         int level = ch->level;
         if ( !saves_spell(victim, ch, level, DAM_HARM) )
