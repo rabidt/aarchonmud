@@ -134,7 +134,11 @@ sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
 sh_int  gsn_bite;
+sh_int  gsn_acid_breath;
 sh_int  gsn_fire_breath;
+sh_int  gsn_frost_breath;
+sh_int  gsn_gas_breath;
+sh_int  gsn_lightning_breath;
 sh_int  gsn_melee;
 sh_int  gsn_brawl;
 sh_int  gsn_guard;
@@ -143,6 +147,7 @@ sh_int  gsn_leg_sweep;
 sh_int  gsn_endurance;
 sh_int  gsn_uppercut;
 sh_int  gsn_war_cry;
+sh_int  gsn_draconic_breath;
 sh_int  gsn_dual_wield;
 sh_int  gsn_dual_dagger;
 sh_int  gsn_dual_sword;
@@ -265,6 +270,8 @@ sh_int  gsn_whip;
 
 sh_int  gsn_crush;
 sh_int  gsn_craft;
+sh_int  gsn_cursed_wound;
+sh_int  gsn_mummy_slam;
 sh_int  gsn_bash;
 sh_int  gsn_beheading;
 sh_int  gsn_berserk;
@@ -275,6 +282,7 @@ sh_int  gsn_assassination;
 sh_int  gsn_fatal_blow;
 sh_int  gsn_brutal_damage;
 sh_int  gsn_razor_claws;
+sh_int  gsn_rake;
 sh_int  gsn_fervent_rage;
 sh_int  gsn_fervent_rage_cooldown;
 sh_int  gsn_paroxysm;
@@ -349,6 +357,32 @@ sh_int  gsn_swimming;
 sh_int  gsn_alertness;
 sh_int  gsn_evasion;
 sh_int  gsn_evasive;
+sh_int  gsn_heavy_armor;
+sh_int  gsn_bulwark;
+sh_int  gsn_massive_swing;
+sh_int  gsn_riposte;
+sh_int  gsn_blade_barrier;
+sh_int  gsn_combat_casting;
+sh_int  gsn_warmage_edge;
+sh_int  gsn_elemental_strike;
+sh_int  gsn_savage_frenzy;
+sh_int  gsn_hips;
+sh_int  gsn_shadow_companion;
+sh_int  gsn_shadow_strike;
+sh_int  gsn_shadow_body;
+sh_int  gsn_piercing_blade;
+sh_int  gsn_lethal_hands;
+sh_int  gsn_unarmed_parry;
+sh_int  gsn_mystic_infusion;
+sh_int  gsn_rapid_fire;
+sh_int  gsn_bullet_rain;
+sh_int  gsn_precise_shot;
+sh_int  gsn_holy_avenger;
+sh_int  gsn_divine_retribution;
+sh_int  gsn_exploit_weakness;
+sh_int  gsn_arcane_defiling;
+sh_int  gsn_eldritch_blast;
+sh_int  gsn_eldritch_curse;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
@@ -403,6 +437,7 @@ sh_int  gsn_shan_ya;
 sh_int  gsn_dark_reaping;
 sh_int  gsn_inspiring_song;
 sh_int  gsn_ambidextrous;
+sh_int  gsn_aura_of_menace;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */
@@ -445,6 +480,7 @@ sh_int race_doppelganger;
 sh_int race_naga;
 sh_int race_vampire;
 sh_int race_rakshasa;
+sh_int race_dragonborn;
 
 
 /* channel slot numbers */
@@ -655,6 +691,7 @@ void boot_db()
     race_naga = race_lookup("naga");
     race_vampire = race_lookup("vampire");
     race_rakshasa = race_lookup("rakshasa");
+    race_dragonborn = race_lookup("dragonborn");
     
     /*
     * Assign gsn's for skills which have them.
@@ -678,7 +715,7 @@ void boot_db()
                 pc_race_table[i].skill_gsns[j] = sn;
             }
 	/* morph races */
-        for ( i = 0; i < MAX_MORPH_RACE; i++)
+        for ( i = 0; morph_pc_race_table[i].name; i++)
             for (j=0; j < morph_pc_race_table[i].num_skills; j++)
             {
                 sn = skill_lookup_exact(morph_pc_race_table[i].skills[j]);
@@ -2998,15 +3035,23 @@ void purge_room( ROOM_INDEX_DATA *pRoom )
     for ( victim = pRoom->people; victim != NULL; victim = vnext )
     {
         vnext = victim->next_in_room;
-        if ( IS_NPC(victim) && !IS_SET(victim->act,ACT_NOPURGE))
+        if ( IS_NPC(victim) && !IS_SET(victim->act, ACT_NOPURGE) )
+        {
+            act("$n vanishes.", victim, NULL, NULL, TO_ROOM);
             extract_char( victim, TRUE );
+        }
     }
     
     for ( obj = pRoom->contents; obj != NULL; obj = obj_next )
     {
         obj_next = obj->next_content;
         if ( !IS_OBJ_STAT(obj,ITEM_NOPURGE) )
+        {
+            char buf[MSL];
+            sprintf(buf, "%s vanishes.\n\r", obj->short_descr);
+            recho(buf, pRoom);
             extract_obj( obj );
+        }
     }
     
     return;
@@ -3239,6 +3284,9 @@ int spell_base_cost( int sn )
 
     if ( skill_table[sn].minimum_position < POS_STANDING )
 	power /= 2;
+    
+    if ( skill_table[sn].target == TAR_CHAR_SELF )
+        power *= 5;
 
     return (int)sqrt( power );
 }
@@ -3359,10 +3407,16 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 	{
 	    int base = spell_base_cost( obj->value[3] );
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        // -1 charges means random amount up to max
+        if ( obj->value[2] < 0 )
+            obj->value[2] = number_range(0, obj->value[1]);
+        obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
+        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_WAND )
-		obj->cost /= 2;
-	    if ( obj->item_type == ITEM_STAFF )
 		obj->cost /= 4;
+	    if ( obj->item_type == ITEM_STAFF )
+		obj->cost /= 8;
 	}
         break;
         
@@ -3391,6 +3445,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
 		base += spell_base_cost(obj->value[i]);
 	    }
 	    obj->cost = spell_obj_cost( obj->value[0], base );
+        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+            obj->cost *= 1.5;
 	    if ( obj->item_type == ITEM_POTION )
 		obj->cost /= 2;
 	    else if ( obj->item_type == ITEM_SCROLL )

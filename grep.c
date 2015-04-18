@@ -279,7 +279,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 		send_to_char( "What type do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(type_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, type_flags)) == NO_FLAG )
 	    {
 		send_to_char( "Please specify a valid item type.\n\r", ch );
 		return NULL;
@@ -370,7 +370,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 		send_to_char( "What affect do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(apply_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, apply_flags)) == NO_FLAG )
 	    {
 		send_to_char( "That affect doesn't exist.\n\r", ch );
 		return NULL;
@@ -384,7 +384,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 		send_to_char( "What extra stat do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(extra_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, extra_flags)) == NO_FLAG )
 	    {
 		send_to_char( "That extra stat doesn't exist.\n\r", ch );
 		return NULL;
@@ -1878,7 +1878,7 @@ bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg )
 	if ( aff->location == loc )
 	{
 	    sprintf( msg, "%d %s", aff->modifier,
-		     flag_stat_string(apply_flags, aff->location) );
+		     flag_bit_name(apply_flags, aff->location) );
 	    return TRUE;
 	}
     return FALSE;

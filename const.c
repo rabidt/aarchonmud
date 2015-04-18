@@ -739,10 +739,10 @@ struct align_type align_table [] =
 
 //9
     {
-    "revenant",        TRUE,
-    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
-    {},      {RES_NEGATIVE,RES_POISON,RES_DISEASE}, {VULN_HOLY},
-    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
+    "ettin",        TRUE,
+    {},      {},   {},
+    {},      {RES_MENTAL}, {},
+    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
     },
 
     {
@@ -753,10 +753,10 @@ struct align_type align_table [] =
     },
 
     {
-    "rakshasa",        TRUE,
-    {},      {AFF_PROTECT_MAGIC},   {},
-    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
-    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    "gorgon",        TRUE,
+    {},      {},   {},
+    {},      {}, {},
+    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
     },
 
     {
@@ -767,27 +767,62 @@ struct align_type align_table [] =
     },
 
     {
-    "gorgon",        TRUE,
-    {},      {},   {},
-    {},      {}, {},
-    {A,C,H,M},    {A,B,C,D,E,F,G,H,I,J,K,V}
+    "rakshasa",        TRUE,
+    {},      {AFF_PROTECT_MAGIC},   {},
+    {},      {RES_WEAPON,RES_MAGIC}, {VULN_PIERCE,VULN_HOLY},
+    {A,C,H,M},      {A,B,C,D,E,F,G,H,I,J,K,U,V}
     },
 
     {
-    "ettin",        TRUE,
-    {},      {},   {},
-    {},      {RES_MENTAL}, {},
-    {A,C,H,M,mm},    {A,B,C,D,E,F,G,H,I,J,K}
+    "revenant",        TRUE,
+    {},      {AFF_DARK_VISION, AFF_DEATHS_DOOR},   {},
+    {},      {RES_NEGATIVE,RES_POISON,RES_DISEASE}, {VULN_HOLY},
+    {A,H,I,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K}
     },
 
 //10
-	{
-	"behemoth",        TRUE,
-	{},      {AFF_DARK_VISION},   {},
-	{},      {RES_COLD}, {VULN_MENTAL},
-	{A,H,M,V,ee},    {A,B,C,D,E,F,G,H,I,J,K,U,V}
-	},
+    {
+    "archon", TRUE,
+    {}, {AFF_FLYING,AFF_PROTECT_EVIL}, {},
+    {}, {RES_HOLY}, {VULN_NEGATIVE},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "behemoth", TRUE,
+    {}, {AFF_DARK_VISION}, {},
+    {}, {RES_COLD}, {VULN_MENTAL},
+    {A,H,M,V}, {A,B,C,D,E,F,G,H,I,J,K,U,V}
+    },
 
+    {
+    "dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL}, {},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+    
+    {
+    "mummy", TRUE,
+    {}, {}, {},
+    {}, {RES_POISON,RES_DISEASE,RES_NEGATIVE}, {VULN_FIRE,VULN_HOLY},
+    {A,H,I,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "quickling", TRUE,
+    {}, {AFF_HASTE,AFF_INVISIBLE}, {},
+    {}, {}, {VULN_BASH},
+    {A,C,H,M,N}, {A,B,C,D,E,F,G,H,I,J,K}
+    },
+    
+    {
+    "warforged", TRUE,
+    {}, {}, {},
+    {}, {RES_WEAPON}, {},
+    {H,J,M,cc,nn},   {A,B,C,G,H,I,J,K}
+    },
+    
 /* NPC RACES */
 {
 	"bat",          FALSE,
@@ -1689,15 +1724,15 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
    
 // R9
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
-        { 
-          "revenant",   "Revena",
-          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
-          4, { "fast healing", "dark reaping", "true grit", "animate dead" },
-          {1, 10, 30, 50}, {100, 100, 80, 60},
-          {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
-          { 150, 155, 145, 140, 145,     140, 145, 150, 140, 140 },
-          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
-          SIZE_MEDIUM, SEX_BOTH, 9
+        {
+          "ettin",   "Ettin ",
+          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
+          4, { "ambidextrous", "double strike", "second attack", "third attack" },
+          {10, 20, 40, 60}, {100, 100, 33, 33},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
+          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
+          SIZE_HUGE, SEX_BOTH, 9
         },
 
         { 
@@ -1708,6 +1743,28 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           {  60,  60,  65,  70,  65,      70,  70,  60,  65,  65 },
           { 140, 140, 145, 150, 145,     150, 150, 140, 145, 145 },
           {   3,   3,   4,   5,   4,       5,   5,   3,   4,   4 },
+          SIZE_LARGE, SEX_BOTH, 9
+        },
+
+        {
+          "gorgon",   "Gorgon",
+          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
+          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
+          {1, 10, 20, 30, 50}, {100, 100, 80, 80, 75},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
+          SIZE_MEDIUM, SEX_FEMALE, 9
+        },
+
+        { 
+          "lillend",   "Lillen",
+          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
+          3, { "inspiring song", "charm person", "cure serious" },
+          {10, 20, 30}, {100, 90, 80},
+          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
+          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
+          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
           SIZE_LARGE, SEX_BOTH, 9
         },
 
@@ -1723,51 +1780,83 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
         { 
-          "lillend",   "Lillen",
-          { 290, 285, 285, 285, 290, 290, 290, 290, 285, 290, 285, 285, 290, 285, 290 },
-          3, { "inspiring song", "charm person", "cure serious" },
-          {10, 20, 30}, {100, 90, 80},
-          {  60,  60,  60,  60,  60,      60,  60,  60,  60,  60 },
-          { 145, 145, 150, 145, 145,     145, 145, 140, 155, 145 },
-          {   4,   4,   4,   4,   4,       4,   4,   3,   5,   4 },
-          SIZE_LARGE, SEX_BOTH, 9
-        },
-
-        {
-          "gorgon",   "Gorgon",
-          { 290, 285, 285, 290, 290, 290, 290, 280, 285, 290, 290, 285, 285, 280, 290 },
-          5, { "venom bite", "petrifying gaze", "sticks to snakes", "maul", "alertness" },
-          {1, 10, 20, 30, 50}, {100, 100, 80, 80, 75},
-          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
-          { 135, 145, 145, 145, 145,     145, 145, 145, 145, 145 },
-          {   4,   4,   4,   4,   4,       4,   4,   4,   4,   4 },
-          SIZE_MEDIUM, SEX_FEMALE, 9
-        },
-
-        {
-          "ettin",   "Ettin ",
-          { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290 },
-          4, { "ambidextrous", "double strike", "second attack", "third attack" },
-          {10, 20, 40, 60}, {100, 100, 33, 33},
-          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
-          { 155, 150, 145, 140, 150,     145, 145, 140, 135, 145 },
-          {   5,   5,   4,   3,   5,       4,   4,   3,   3,   4 },
-          SIZE_HUGE, SEX_BOTH, 9
+          "revenant",   "Revena",
+          { 290, 290, 285, 285, 285, 290, 290, 290, 290, 290, 285, 290, 285, 290, 280 },
+          4, { "fast healing", "dark reaping", "true grit", "animate dead" },
+          {1, 10, 30, 50}, {100, 100, 80, 60},
+          {  75,  85,  65,  55,  65,      55,  65,  80,  50,  55 },
+          { 150, 155, 145, 140, 145,     140, 145, 150, 140, 140 },
+          {   4,   5,   4,   4,   4,       4,   4,   4,   3,   4 },
+          SIZE_MEDIUM, SEX_BOTH, 9
         },
 
 // R10
          /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+        {
+          "archon", "Archon",
+          { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310 },
+          4, { "bless", "smite", "sanctuary", "aura of menace" },
+          {1, 10, 30, 50}, {100, 100, 100, 100},
+          {  70,  70,  70,  70,  70,      60,  60,  60,  60,  60 },
+          { 150, 150, 150, 150, 150,     150, 155, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_MEDIUM, SEX_BOTH, 10
+        },
+        
         { 
           "behemoth",   "Behemo",
           { 305, 305, 315, 315, 305, 310, 310, 305, 305, 315, 310, 315, 305, 305, 315 },
-          4, { "razor claws", "berserk", "brutal damage", "hunt" },
-          {1,10,60,80},{100,100,100,80},
+          4, { "rake", "razor claws", "brutal damage", "hunt" },
+          {1,20,40,80},{100,100,100,80},
           {  95,  95,  95,  90,  90,      30,  30,  50,  50,  50 },
           { 165, 155, 155, 150, 150,     140, 140, 150, 150, 150 },  
           {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
           SIZE_HUGE, SEX_BOTH, 10
-        }
+        },
 
+        { 
+          "dragonborn",   "Dragon",
+          { 310, 315, 310, 305, 310, 310, 310, 315, 315, 310, 310, 310, 310, 310, 315 },
+          2, { "regeneration", "draconic breath" },
+          {1,30},{100,100},
+          {  75,  70,  70,  65,  65,      70,  70,  70,  75,  70 },
+          { 155, 150, 150, 145, 145,     150, 150, 150, 155, 150 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
+        },
+        
+        {
+            "mummy", "Mummy ",
+            { 310, 310, 300, 305, 310, 310, 315, 310, 310, 310, 305, 305, 310, 310, 300 },
+            3, { "cursed wound", "mummy slam", "epidemic" },
+            {1, 20, 40}, {100, 100, 80},
+            {  80,  80,  80,  80,  80,      80,  80,  80,  80,  80 },
+            { 150, 150, 150, 145, 145,     150, 150, 150, 145, 145 },
+            {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+            SIZE_MEDIUM, SEX_BOTH, 10
+        },
+        
+        { 
+          "quickling", "Quickl",
+          { 305, 300, 310, 315, 305, 305, 310, 305, 305, 310, 310, 310, 305, 305, 315 },
+          5, { "quick draw", "goblincleaver", "flanking", "second attack", "third attack" },
+          {10, 20, 30, 40, 50}, {100, 90, 60, 60, 60},
+          {  40,  50,  80,  90,  90,      70,  70,  50,  70,  90 },
+          { 135, 140, 155, 160, 160,     150, 150, 140, 150, 160 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_SMALL, SEX_BOTH, 10
+        },
+        
+        { 
+          "warforged", "Warfor",
+          { 300, 310, 310, 315, 300, 305, 305, 310, 310, 310, 310, 315, 310, 310, 315 },
+          5, { "endurance", "shield block", "shield bash", "charge", "wrist shield" },
+          {1, 10, 20, 30, 50}, {100, 100, 100, 100, 80},
+          {  70,  70,  70,  70,  70,      70,  70,  70,  70,  70 },
+          { 145, 145, 140, 140, 140,     135, 135, 150, 135, 135 },
+          {   0,   0,   0,   0,   0,       0,   0,   0,   0,   0 },
+          SIZE_LARGE, SEX_BOTH, 10
+        }
 };
 
 /* special race_types and pc_race_types for morphing --Bobble */
@@ -1793,6 +1882,41 @@ struct race_type morph_race_table[] =
 	{},      {},      {},
 	{A,H,M,V},    {A,B,C,D,E,F,G,H,I,J,K}
 	},
+
+    {
+    "red dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_FIRE}, {VULN_COLD},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "green dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_POISON}, {VULN_DISEASE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "blue dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_LIGHTNING}, {VULN_ACID},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "black dragonborn", TRUE,
+    {}, {AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_ACID}, {VULN_LIGHTNING},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
+
+    {
+    "white dragonborn", TRUE,
+    {}, { AFF_DETECT_MAGIC}, {},
+    {}, {RES_PIERCE,RES_CHARM,RES_MENTAL, RES_COLD}, {VULN_FIRE},
+    {A,H,M,V,Z,cc}, {A,B,C,D,E,F,G,H,I,J,K,X}
+    },
 
 	{
 	  NULL, TRUE, {}, {}, {}, {}, {}, {}, {}, {}
@@ -1832,7 +1956,9 @@ struct pc_race_type morph_pc_race_table[] =
 	{ },
 	{ },
 	SIZE_MEDIUM, SEX_BOTH, 4
-    }
+    },
+    
+    { NULL }
 };
 
 
@@ -1981,7 +2107,155 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	}
 };
 
+/* class constants for subclass table */
+#define WARRIOR     (1<<0)
+#define THIEF       (1<<1)
+#define CLERIC      (1<<2)
+#define MAGE        (1<<3)
+#define GLADIATOR   (1<<4)
+#define SAMURAI     (1<<5)
+#define PALADIN     (1<<6)
+#define ASSASSIN    (1<<7)
+#define NINJA       (1<<8)
+#define MONK        (1<<9)
+#define TEMPLAR     (1<<10)
+#define ILLUSIONIST (1<<11)
+#define GUNSLINGER  (1<<12)
+#define RANGER      (1<<13)
+#define NECROMANCER (1<<14)
 
+const struct subclass_type subclass_table[] =
+{
+    /*
+    const char* name;
+    unsigned long base_classes;
+    const char* skills[5];
+    sh_int skill_level[5];
+    sh_int skill_percent[5];
+    */
+    { "None" }, // subclass=0 means no subclass
+    {
+        "juggernaut", WARRIOR,
+        { "true grit", "bulwark" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "warhulk", WARRIOR|GLADIATOR,
+        { "goblincleaver", "massive swing" },
+        { 10, 50 },
+        { 100, 100 }
+    },
+    {
+        "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
+        { "riposte", "blade barrier" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "shadowdancer", THIEF|ASSASSIN|NINJA,
+        { "hide in plain sight", "shadow companion" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "shadowblade", THIEF|NINJA|ILLUSIONIST,
+        { "shadow strike", "shadow body" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
+        { "mystic infusion" },
+        { 10 },
+        { 100 }
+    },
+    {
+        "warpriest", CLERIC,
+        { "heroism", "divine power" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "warmage", MAGE|ILLUSIONIST|NECROMANCER,
+        { "combat casting", "warmage edge" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "warlock", MAGE|NECROMANCER,
+        { "eldritch blast", "eldritch curse", "shadowwalk" },
+        { 10, 30, 50 },
+        { 100, 100, 80 }
+    },
+    {
+        "berserker", GLADIATOR,
+        { "savage frenzy" },
+        { 30 },
+        { 100 }
+    },
+    {
+        "kensai", SAMURAI|NINJA,
+        { "piercing blade", "beheading" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "stormlord", SAMURAI|RANGER,
+        { "elemental strike", "immolation", "electrocution", "absolute zero" },
+        { 10, 40, 41, 42 },
+        { 100, 80, 80, 80 }
+    },
+    {
+        "crusader", PALADIN|TEMPLAR,
+        { "holy avenger", "divine retribution" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "slayer", ASSASSIN,
+        { "estimate", "exploit weakness" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "shaolin", NINJA|MONK,
+        { "lethal hands", "unarmed parry" },
+        { 10, 30 },
+        { 100, 100 }
+    },
+    {
+        "sacred fist", MONK,
+        { "mantra", "anatomy" },
+        { 30, 50 },
+        { 100, 80 }
+    },
+    {
+        "terminator", GUNSLINGER,
+        { "rapid fire", "third attack", "bullet rain" },
+        { 10, 50, 70 },
+        { 100, 80, 100 }
+    },
+    {
+        "sniper", GUNSLINGER|RANGER,
+        { "precise shot", "ambush" },
+        { 10, 60 },
+        { 100, 100 }
+    },
+    {
+        "beastmaster", RANGER,
+        { "beast mastery", "water elemental" },
+        { 10, 90 },
+        { 100, 90 }
+    },
+    {
+        "defiler", NECROMANCER,
+        { "arcane defiling", "inquisition" },
+        { 10, 30 },
+        { 100, 80 }
+    },
+    { NULL }
+};
 
 /*
  * Titles.
@@ -2519,7 +2793,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_acid_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-	NULL,              18,    4, DUR_NONE,
+	&gsn_acid_breath, 18, 4, DUR_NONE,
 	"blast of acid",    "!Acid Breath!",    ""
 	},
 
@@ -3380,7 +3654,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_frost_breath, TAR_IGNORE_OFF, POS_FIGHTING,
-	NULL,             14,    4, DUR_NONE,
+	&gsn_frost_breath, 14, 4, DUR_NONE,
 	"blast of frost",   "!Frost Breath!",   ""
 	},
 
@@ -3391,7 +3665,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_gas_breath,   TAR_IGNORE_OFF,     POS_FIGHTING,
-	NULL,             20,    4, DUR_NONE,
+	&gsn_gas_breath, 20, 4, DUR_NONE,
 	"blast of gas",     "!Gas Breath!",     ""
 	},
 
@@ -3648,7 +3922,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
-	NULL,             16,    4, DUR_NONE,
+	&gsn_lightning_breath, 16, 4, DUR_NONE,
 	"blast of lightning",   "!Lightning Breath!",   ""
 	},
 
@@ -4203,7 +4477,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_teleport,     TAR_CHAR_SELF,      POS_FIGHTING,
+	spell_teleport,     TAR_IGNORE,      POS_FIGHTING,
 	NULL,              35, 12, DUR_NONE,
 	"",         "!Teleport!",       ""
 	},
@@ -4479,6 +4753,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_ambidextrous,  0, 0, DUR_NONE,
     "", "!ambidextrous!", ""
+    },
+
+    {
+    "aura of menace",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_aura_of_menace,  0, 0, DUR_NONE,
+    "", "!aura of menace!", ""
     },
 
 /*
@@ -4934,17 +5219,28 @@ struct  skill_type
 		"",                     "!Brutal Damage!",    ""
 	},
 
-	{
-	"razor claws", 
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {
+    "razor claws", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-		spell_null,             TAR_IGNORE,             POS_FIGHTING,
-		&gsn_razor_claws,           0,     0, DUR_NONE,
-		"rake",                     "!Razor Claws!",    ""
-	},
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_razor_claws, 0, 0, DUR_NONE,
+    "", "!Razor Claws!", ""
+    },
 
+    {
+    "rake", 
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_STR, STAT_VIT,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_rake, 0, 18, DUR_NONE,
+    "rake", "!Rake!",    ""
+    },
+    
 	{
 	"dual wield",
 	{  5, 102, 102, 102,  1,  5, 102, 37, 102, 102, 102, 102, 102, 10, 102 },
@@ -5345,9 +5641,295 @@ struct  skill_type
     },
 
     {
+        "heavy armor",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 6,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_heavy_armor, 0, 0, DUR_NONE,
+        "", "!Heavy Armor!", ""
+    },
+
+    {
+        "bulwark",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_CON, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bulwark, 0, 0, DUR_NONE,
+        "", "!bulwark!", ""
+    },
+
+    {
+        "massive swing",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_AGI, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_massive_swing, 0, 0, DUR_NONE,
+        "massive swing", "!massive swing!", ""
+    },
+
+    {
+        "riposte",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_riposte, 0, 0, DUR_NONE,
+        "riposte", "!riposte!", ""
+    },
+
+    {
+        "blade barrier",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_STR,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_blade_barrier, 0, 0, DUR_NONE,
+        "", "!blade barrier!", ""
+    },
+
+    {
+        "combat casting",  
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_combat_casting, 0, 0, DUR_NONE,
+        "", "!combat_casting!", ""
+    },
+
+    {
+        "warmage edge",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_warmage_edge, 0, 0, DUR_NONE,
+        "", "!warmage_edge!", ""
+    },
+
+    {
+        "elemental strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_elemental_strike, 0, 0, DUR_NONE,
+        "elemental strike", "!elemental strike!", ""
+    },
+
+    {
+        "savage frenzy",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_VIT, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_savage_frenzy, 0, 0, DUR_NONE,
+        "", "!savage frenzy!", ""
+    },
+
+    {
+        "shadow companion",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_LUC,
+        spell_shadow_companion, TAR_IGNORE, POS_STANDING,
+        &gsn_shadow_companion, 200, 24, DUR_NONE,
+        "", "!shadow companion!", ""
+    },
+
+    {
+        "shadow strike",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_INT, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_strike, 0, 0, DUR_NONE,
+        "", "!shadow strike!", ""
+    },
+
+    {
+        "shadow body",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shadow_body, 0, 0, DUR_NONE,
+        "", "!shadow body!", ""
+    },
+
+    {
+        "piercing blade",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_STR, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_piercing_blade, 0, 0, DUR_NONE,
+        "", "!piercing blade!", ""
+    },
+
+    {
+        "lethal hands",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_lethal_hands, 0, 0, DUR_NONE,
+        "", "!lethal hands!", ""
+    },
+
+    {
+        "unarmed parry",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DIS, STAT_STR, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_unarmed_parry, 0, 0, DUR_NONE,
+        "", "!unarmed parry!", ""
+    },
+
+    {
+        "mystic infusion",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_WIS, STAT_INT, STAT_CHA,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_mystic_infusion, 0, 0, DUR_NONE,
+        "mystic infusion", "!mystic infusion!", ""
+    },
+
+    {
+        "rapid fire",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_rapid_fire, 0, 0, DUR_NONE,
+        "", "!rapid fire!", ""
+    },
+
+    {
+        "bullet rain",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_LUC, STAT_DEX, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bullet_rain, 0, 0, DUR_NONE,
+        "", "!bullet rain!", ""
+    },
+
+    {
+        "precise shot",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_WIS, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_precise_shot, 0, 0, DUR_NONE,
+        "", "!precise shot!", ""
+    },
+
+    {
+        "holy avenger",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_STR, STAT_WIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_holy_avenger, 0, 0, DUR_NONE,
+        "", "!holy avenger!", ""
+    },
+
+    {
+        "divine retribution",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_INT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_divine_retribution, 0, 0, DUR_NONE,
+        "divine retribution", "!divine retribution!", ""
+    },
+
+    {
+        "exploit weakness",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_exploit_weakness, 0, 0, DUR_NONE,
+        "", "!exploit weakness!", ""
+    },
+
+    {
+        "arcane defiling",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_INT, STAT_WIS, STAT_CHA,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_arcane_defiling, 0, 0, DUR_NONE,
+        "", "!arcane defiling!", ""
+    },
+
+    {
+        "eldritch blast",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_eldritch_blast, 0, 12, DUR_NONE,
+        "eldritch blast", "!eldritch blast!", ""
+    },
+
+    {
+        "eldritch curse",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_CON,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
+        &gsn_eldritch_curse, 0, 0, DUR_BRIEF,
+        "", "Your eldritch affliction subsides.", ""
+    },
+
+    {
+        "divine power",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_LUC,
+        spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
+        NULL, 150, 12, DUR_BRIEF,
+        "", "Your god's power leaves you.", ""
+    },
+
+    {
         "leadership",  
         {  30, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 0,
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 10, 4,
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -5684,6 +6266,17 @@ struct  skill_type
 		&gsn_hide,          0, 12, DUR_SPECIAL,
 		"",         "You come out of hiding.",       ""
 	},
+
+    {
+        "hide in plain sight",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_AGI, STAT_LUC, STAT_DIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_hips, 0, 0, DUR_NONE,
+        "", "!hide in plain sight!", ""
+    },
 
 	{
 	"sneak",  
@@ -7283,6 +7876,39 @@ struct  skill_type
 	"charge",         "!charge!",  ""
 	},
 
+    {
+    "draconic breath",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_VIT, STAT_CON, STAT_INT,
+    spell_null,    TAR_IGNORE,     POS_STANDING,
+    &gsn_draconic_breath, 0, 12, DUR_NONE,
+    "dragon breath", "Your breath attack is ready for use again.",  ""
+    },    
+    
+    {
+    "cursed wound",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_INT, STAT_DEX, STAT_STR,
+    spell_null,    TAR_IGNORE_OFF,     POS_STANDING,
+    &gsn_cursed_wound, 0, 0, DUR_NONE,
+    "cursed wound", "Your wounds can be healed again.",  ""
+    },    
+    
+    {
+    "mummy slam",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_DEX, STAT_VIT,
+    spell_null,    TAR_IGNORE,     POS_FIGHTING,
+    &gsn_mummy_slam, 0, 0, DUR_NONE,
+    "slam", "!mummy slam!",  ""
+    },
+    
     {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },

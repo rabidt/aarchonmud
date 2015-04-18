@@ -56,6 +56,7 @@
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
+#include "timer.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -1700,7 +1701,7 @@ void stop_idling( CHAR_DATA *ch )
 {
 
     if ( ch == NULL || ch->desc == NULL
-            || (ch->desc->connected != CON_PLAYING && !IS_WRITING_NOTE(ch->desc->connected)) )
+            || (!IS_PLAYING(ch->desc->connected)) )
         return;
 
     /* Removed before implementation because the testers didn't like it...
@@ -2180,7 +2181,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         buf[0]   = UPPER(buf[0]);
         pbuff    = buffer;
         colourconv( pbuff, buf, to );
-        if (to->desc && (to->desc->connected == CON_PLAYING || IS_WRITING_NOTE(to->desc->connected)))
+        if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
             show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
@@ -2193,6 +2194,16 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     return;
 }
 
+void recho( const char *msg, ROOM_INDEX_DATA *room )
+{
+    CHAR_DATA * ch;
+    
+    if ( !room || !room->people )
+        return;
+
+    for ( ch = room->people; ch; ch = ch->next_in_room )
+        send_to_char(msg, ch);
+}
 
 int colour( char type, CHAR_DATA *ch, char *string )
 {
@@ -2783,7 +2794,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
  *  http://pip.dknet.dk/~pip1773
  *  Changed into a ROM patch after seeing the 100th request for it :)
  */
-DEF_DO_FUN(do_copyover)
+static void copyover_mud( const char *argument )
 {
     FILE *fp;
     DESCRIPTOR_DATA *d, *d_next;
@@ -2791,13 +2802,14 @@ DEF_DO_FUN(do_copyover)
     char arg0[50], arg1[10], arg2[10], arg3[10];
     extern int control; /* db.c */
 
+
     fp = fopen (COPYOVER_FILE, "w");
 
     if (!fp)
     {
-        send_to_char ("Copyover file not writeable, aborted.\n\r",ch);
+        bugf("Copyover file not writeable, aborted.");
         logpf ("Could not write to copyover file: %s", COPYOVER_FILE);
-        log_error ("do_copyover:fopen");
+        log_error ("copyover_mud:fopen");
         return;
     }
 
@@ -2833,7 +2845,7 @@ DEF_DO_FUN(do_copyover)
         CHAR_DATA * och = CH (d);
         d_next = d->next; /* We delete from the list , so need to save this */
 
-        if (!d->character || (d->connected > CON_PLAYING && !IS_WRITING_NOTE(d->connected))) /* drop those logging on */
+        if (!d->character || (!IS_PLAYING(d->connected) )) /* drop those logging on */
         {
             write_to_descriptor (d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r", 0);
             close_socket (d); /* throw'em out */
@@ -2855,13 +2867,120 @@ DEF_DO_FUN(do_copyover)
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
-    logpf( "do_copyover: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
+    logpf( "copyover_mud: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 
     /* Failed - sucessful exec will not return */
 
-    log_error ("do_copyover: execl");
-    send_to_char ("Copyover FAILED!\n\r",ch);
+    log_error ("copyover_mud: execl");
+    bugf("Copyover FAILED!");
+}
+
+static TIMER_NODE *copyover_timer=NULL;
+static int copyover_countdown=0;
+
+void handle_copyover_timer()
+{
+    copyover_timer=NULL;
+    
+    if (copyover_countdown<1)
+    {
+        copyover_mud("");
+        return;
+    }
+    
+    /* gecho the stuff */
+    DESCRIPTOR_DATA *d;
+    for ( d=descriptor_list; d; d=d->next )
+    {
+        if ( IS_PLAYING(d->connected ) )
+        {
+            ptc( d->character, "{R!!!{WA copyover will occur in %d seconds{R!!!{x\n\r", copyover_countdown);
+        }
+    }  
+  
+    int delay;
+    if (copyover_countdown <= 3)
+    {
+        delay = 1;
+    }
+    else if (copyover_countdown <=10)
+    {
+        /* target 3 seconds */
+        delay = copyover_countdown-3;
+    }
+    else if (copyover_countdown <= 30)
+    {
+        /* target 10 seconds */
+        delay = copyover_countdown-10;
+    }
+    else if (copyover_countdown <= 60)
+    {
+        /* target 30 seconds */
+        delay = copyover_countdown-30;
+    }
+    else if (copyover_countdown <= 120)
+    {
+        /* target 60 seconds */
+        delay = copyover_countdown-60;
+    }
+    else
+    {
+        /* target 120 seconds */
+        delay = copyover_countdown-120;
+    }
+
+    copyover_countdown -= delay;
+    copyover_timer = register_c_timer( delay, handle_copyover_timer);
+    return;
+}
+
+DEF_DO_FUN( do_copyover )
+{
+    if (argument[0]=='\0')
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to copyover?\n\r",
+            bin_info_string);
+
+        confirm_yes_no( ch->desc,
+            do_copyover,
+            "confirm",
+            NULL,
+            NULL);
+        return;
+    }
+    else if (!strcmp(argument, "confirm"))
+    {
+        copyover_mud("");
+        return;
+    }
+    else if (!strcmp(argument, "cancel"))
+    {
+        if (!copyover_timer)
+        {
+            send_to_char( "There is no pending copyover.\n\r", ch );
+            return;
+        }
+
+        unregister_timer_node( copyover_timer );
+        copyover_timer=NULL;
+
+        DESCRIPTOR_DATA *d;
+        for ( d=descriptor_list; d; d=d->next )
+        {
+            if ( IS_PLAYING(d->connected ) )
+            {
+                ptc( d->character, "{R!!!{WThe copyover has been cancelled{R!!!{x\n\r");
+            }
+        }
+        
+    }
+    else if (is_number(argument))
+    {
+        copyover_countdown=atoi(argument);
+        handle_copyover_timer();
+        return;
+    }
 }
 
 /* Recover from a copyover - load players */
@@ -3062,7 +3181,6 @@ void write_last_command ()
 void nasty_signal_handler (int no)
 {
     static bool log_done = FALSE;
-    CHAR_DATA *ch;
 
     if ( log_done )
         return;
@@ -3089,8 +3207,7 @@ void nasty_signal_handler (int no)
         /* wait for forked process to exit */
         waitpid(forkpid, NULL, 0);
         /* try to catch things with a copyover */
-        if ( (ch=create_mobile(get_mob_index(2))) != NULL )
-            do_copyover ( ch, "system error: trying to recover with copyover" );
+        copyover_mud ( "system error: trying to recover with copyover" );
         exit(0);
     }
     else

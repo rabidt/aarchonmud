@@ -964,7 +964,7 @@ DEF_DO_FUN(do_invite)
 
         for ( d = descriptor_list; d; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+            if ( (IS_PLAYING(d->connected))
                 && ( victim = d->character ) != NULL
                 &&   !IS_NPC(victim)
                 &&   victim->in_room != NULL

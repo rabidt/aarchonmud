@@ -372,7 +372,7 @@ static int glob_gecho (lua_State *LS)
 
     for ( d=descriptor_list; d; d=d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        if ( IS_PLAYING(d->connected ) )
         {
             if ( IS_IMMORTAL(d->character) )
                 send_to_char( "gecho> ", d->character );
@@ -561,6 +561,16 @@ static int glob_mudconfig (lua_State *LS)
     return 0;
 }
 
+static int glob_start_con_handler( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal( LS, "start_con_handler");
+    lua_insert( LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS);
+}
+
 static int glob_getglobals (lua_State *LS)
 {
     int i;
@@ -589,6 +599,59 @@ static int glob_getglobals (lua_State *LS)
         }
     }
     return 1;
+}
+
+static int glob_forceget (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *get=type->get_table;
+    int i;
+
+    for (i=0 ; get[i].field ; i++ )
+    {
+        if ( !strcmp(get[i].field, arg) )
+        {
+            return (get[i].func)(LS);
+        }
+    }
+
+    luaL_error( LS, "Can't get field '%s' for type %s.", arg, type->type_name);
+    return 0;
+}
+
+static int glob_forceset (lua_State *LS)
+{
+    lua_getmetatable( LS, 1);
+    lua_getfield( LS, -1, "TYPE");
+    LUA_OBJ_TYPE *type=lua_touserdata( LS, -1 );
+    lua_pop( LS, 2 );
+    const char *arg=check_string( LS, 2, MIL);
+    lua_remove( LS, 2 );
+
+    
+    const LUA_PROP_TYPE *set=type->set_table;
+    int i;
+
+    for (i=0 ; set[i].field ; i++ )
+    {
+        if ( !strcmp(set[i].field, arg) )
+        {
+            lua_pushcfunction( LS, set[i].func );
+            lua_insert( LS, 1 );
+            lua_call(LS, 2, 0);
+            return 0;
+        }
+    }
+
+    luaL_error( LS, "Can't set field '%s' for type %s.", arg, type->type_name);
+    return 0;
 }
 
 static int glob_getluatype (lua_State *LS)
@@ -1163,6 +1226,7 @@ GLOB_TYPE glob_table[] =
     GFUN(echoaround,    0),
     GFUN(gecho,         0),
     GFUN(pagetochar,    0),
+    GFUN( arguments,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
     GFUN(getobjlist,    9),
@@ -1175,6 +1239,9 @@ GLOB_TYPE glob_table[] =
     GFUN(dammessage,    0),
     GFUN(clearloopcount,9),
     GFUN(mudconfig,     9),
+    GFUN(start_con_handler, 9),
+    GFUN(forceget,      SEC_NOSCRIPT),
+    GFUN(forceset,      SEC_NOSCRIPT),
     GFUN(getluatype,    SEC_NOSCRIPT),
     GFUN(getglobals,    SEC_NOSCRIPT),
 #ifdef TESTER
@@ -1216,7 +1283,6 @@ GLOB_TYPE glob_table[] =
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
     
-    GFUN( arguments,        SEC_NOSCRIPT ),
     ENDGTABLE
 };
 
@@ -1832,7 +1898,7 @@ OBJVGETINT( arrowcount, ITEM_ARROWS, 0 )
 OBJVGETINT( arrowdamage, ITEM_ARROWS, 1 )
 
 OBJVGETSTR( arrowdamtype, ITEM_ARROWS, 
-        flag_stat_string(damage_type, ud_obj->value[2]) )
+        flag_bit_name(damage_type, ud_obj->value[2]) )
 
 OBJVGT( spelllevel,  
     switch(ud_obj->item_type)
@@ -1957,7 +2023,7 @@ OBJVGT( spells,
 OBJVGETINT( ac, ITEM_ARMOR, 0 )
 
 OBJVGETSTR( weapontype, ITEM_WEAPON,
-        flag_stat_string( weapon_class, ud_obj->value[0] ) )
+        flag_bit_name(weapon_class, ud_obj->value[0]) )
 
 OBJVGETINT( numdice, ITEM_WEAPON, 1 )
 
@@ -1966,7 +2032,7 @@ OBJVGETINT( dicetype, ITEM_WEAPON, 2 )
 OBJVGETSTR( attacktype, ITEM_WEAPON, attack_table[ud_obj->value[3]].name )
 
 OBJVGETSTR( damtype, ITEM_WEAPON, 
-        flag_stat_string( damage_type, attack_table[ud_obj->value[3]].damage) )
+        flag_bit_name(damage_type, attack_table[ud_obj->value[3]].damage) )
 
 OBJVGETSTR( damnoun, ITEM_WEAPON, attack_table[ud_obj->value[3]].noun )
 
@@ -2104,7 +2170,7 @@ OBJVM( apply,
     for (pAf=ud_obj->affected ; pAf ; pAf=pAf->next)
     {
         if ( !strcmp(
-                flag_stat_string( apply_flags, pAf->location ),
+                flag_bit_name(apply_flags, pAf->location),
                 type ) )
         {
             lua_pushinteger( LS, pAf->modifier );
@@ -3375,6 +3441,36 @@ static int CH_set_acpcnt (lua_State *LS)
     return 0;
 }
 
+static int CH_set_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 120 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 120");
+    }
+    
+    ud_ch->wait=val;
+
+    return 0;
+}
+
+static int CH_set_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 0 || val > 10 )
+    {
+        return luaL_error( LS, "Valid stopcount range is 0 to 10");
+    }
+    
+    ud_ch->stop=val;
+
+    return 0;
+}
+
 static int CH_get_hitroll (lua_State *LS)
 {
     lua_pushinteger( LS,
@@ -3493,7 +3589,7 @@ static int CH_get_damtype (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
     lua_pushstring( LS,
-            flag_stat_string( damage_type, attack_table[ud_ch->dam_type].damage) );
+            flag_bit_name(damage_type, attack_table[ud_ch->dam_type].damage) );
     return 1;
 }
 
@@ -3862,6 +3958,7 @@ static int CH_set_race (lua_State *LS)
         if ( !race_table[race].pc_race )
             luaL_error(LS, "Not a valid player race: %s", arg);
         ud_ch->race=race;
+        reset_char( ud_ch );
         morph_update( ud_ch );
         return 0;
     }
@@ -3879,6 +3976,20 @@ static int CH_get_fighting (lua_State *LS)
         return 0;
     else
         return 1;
+}
+
+static int CH_get_waitcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->wait);
+    return 1;
+}
+
+static int CH_get_stopcount (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    lua_pushinteger(LS, ud_ch->stop);
+    return 1;
 }
 
 static int CH_get_heshe (lua_State *LS)
@@ -4370,6 +4481,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(isfollow, 0),
     CHGET(isactive, 0),
     CHGET(fighting, 0),
+    CHGET(stopcount, 0),
+    CHGET(waitcount, 0),
     CHGET(heshe, 0),
     CHGET(himher, 0),
     CHGET(hisher, 0),
@@ -4432,6 +4545,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(dis, 5),
     CHSET(cha, 5),
     CHSET(luc, 5),
+    CHSET(stopcount, 5),
+    CHSET(waitcount, 5),
     CHSET(acpcnt, 5),
     CHSET(acbase, 5),
     CHSET(hrpcnt, 5),
@@ -4965,7 +5080,7 @@ static int OBJ_set_weight (lua_State *LS)
 static int OBJ_get_wearlocation (lua_State *LS)
 {
     lua_pushstring( LS,
-            flag_stat_string(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
+            flag_bit_name(wear_loc_flags,(check_OBJ(LS,1))->wear_loc) );
     return 1;
 }
 
@@ -5431,7 +5546,7 @@ static int AREA_echo( lua_State *LS)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+        if ( IS_PLAYING(d->connected) )
         {
             if ( !d->character->in_room )
                 continue;
@@ -6788,8 +6903,8 @@ MPGETINT( drpcnt, ud_mobp->damage_percent,"" ,"");
 MPGETINT( acpcnt, ud_mobp->ac_percent,"" ,"");
 MPGETINT( savepcnt, ud_mobp->saves_percent,"" ,"");
 MPGETSTR( damtype, attack_table[ud_mobp->dam_type].name,"" ,"");
-MPGETSTR( startpos, flag_stat_string( position_flags, ud_mobp->start_pos ),"" ,"");
-MPGETSTR( defaultpos, flag_stat_string( position_flags, ud_mobp->default_pos ),"" ,"");
+MPGETSTR( startpos, flag_bit_name(position_flags, ud_mobp->start_pos),"" ,"");
+MPGETSTR( defaultpos, flag_bit_name(position_flags, ud_mobp->default_pos),"" ,"");
 MPGETSTR( sex,
     ud_mobp->sex == SEX_NEUTRAL ? "neutral" :
     ud_mobp->sex == SEX_MALE    ? "male" :
@@ -6798,7 +6913,7 @@ MPGETSTR( sex,
     NULL,"" ,"");
 MPGETSTR( race, race_table[ud_mobp->race].name,"" ,"");
 MPGETINT( wealthpcnt, ud_mobp->wealth_percent,"" ,"");
-MPGETSTR( size, flag_stat_string( size_flags, ud_mobp->size ),"" ,"");
+MPGETSTR( size, flag_bit_name(size_flags, ud_mobp->size),"" ,"");
 MPGETSTR( stance, stances[ud_mobp->stance].name,
     "Mob's default stance." ,
     "See 'stances' table.");
@@ -6935,7 +7050,7 @@ static int SHOP_buytype ( lua_State *LS )
             if (ud_shop->buy_type[i] != 0)
             {
                 lua_pushstring( LS,
-                        flag_stat_string( type_flags, ud_shop->buy_type[i]));
+                        flag_bit_name(type_flags, ud_shop->buy_type[i]));
                 lua_rawseti( LS, -2, index++);
             }
         }
@@ -6991,7 +7106,7 @@ static int AFFECT_get_where ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_types, ud_af->where ) );
+            flag_bit_name(apply_types, ud_af->where) );
     return 1;
 }
 
@@ -7017,7 +7132,7 @@ static int AFFECT_get_location ( lua_State *LS )
     AFFECT_DATA *ud_af=check_AFFECT(LS,1);
 
     lua_pushstring( LS,
-            flag_stat_string( apply_flags, ud_af->location ) );
+            flag_bit_name(apply_flags, ud_af->location) );
     return 1;
 }
 
@@ -7216,7 +7331,7 @@ static int TRIG_get_trigtype ( lua_State *LS )
     }
 
     lua_pushstring( LS,
-            flag_stat_string(
+            flag_bit_name(
                 tbl,
                 ((PROG_LIST *) type->check( LS, 1 ) )->trig_type ) );
     return 1;
