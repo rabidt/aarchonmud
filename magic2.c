@@ -635,7 +635,7 @@ DEF_SPELL_FUN(spell_turn_undead)
             if ( !ch->fighting && check_kill_trigger(ch, vch) )
                 return TRUE;
             spell_charm_person(gsn_charm_person, level, ch, (void*)vch, TARGET_CHAR, FALSE);
-            post_spell_process(sn, ch, vch);
+            post_spell_process(sn, level, ch, vch);
         }
         else if (IS_GOOD(ch))
         {   /* Good chars harm undead */
@@ -651,7 +651,7 @@ DEF_SPELL_FUN(spell_turn_undead)
             if ( !ch->fighting && check_kill_trigger(ch, vch) )
                 return TRUE;
             spell_fear(gsn_fear, level, ch, (void*)vch, TARGET_CHAR, FALSE);
-            post_spell_process(sn, ch, vch);
+            post_spell_process(sn, level, ch, vch);
         }
     }
     return TRUE;
@@ -813,7 +813,7 @@ DEF_SPELL_FUN(spell_animate_dead)
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_ZOMBIE)))==NULL) 
         return FALSE;
     
-    check_improve( ch, gsn_puppetry, TRUE, 1 );
+    check_improve( ch, gsn_puppetry, TRUE, 4 );
     
     if ( number_percent() <= puppet_skill )
     {
@@ -896,7 +896,7 @@ DEF_SPELL_FUN(spell_ghost_chant)
     if ( (mob = create_mobile(get_mob_index(MOB_VNUM_SPIRIT))) == NULL ) 
         return FALSE;
     
-    check_improve( ch, gsn_puppetry, TRUE, 1 );
+    check_improve( ch, gsn_puppetry, TRUE, 4 );
     
     if ( per_chance(puppet_skill) )
     {
@@ -1159,7 +1159,7 @@ DEF_SPELL_FUN(spell_restoration)
     {
         int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
         factor += factor * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 1);
+        check_improve(ch, gsn_anatomy, TRUE, 4);
     }
     if ( ch != victim )
         factor += factor / 3;
@@ -1871,6 +1871,7 @@ DEF_SPELL_FUN(spell_entangle)
         return TRUE;
     }
     
+    af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
@@ -1982,6 +1983,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     char liquid_name[MAX_STRING_LENGTH];
     int mlevel;
     int sector = ch->in_room->sector_type;
+    int beast_skill = get_skill(ch, gsn_beast_mastery);
     
     mlevel = URANGE(1, level * 3/4, ch->level);
     sprintf(liquid_name, "water");
@@ -2010,6 +2012,8 @@ DEF_SPELL_FUN(spell_water_elemental)
         send_to_char( "This war does not concern the elemental spirits.\n\r", ch );
         return SR_UNABLE;
     }
+
+    mlevel += beast_skill / 8;
     
     /* Check number of charmees against cha*/ 
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -2352,7 +2356,7 @@ DEF_SPELL_FUN(spell_mass_confusion)
             send_to_char("{MY{bo{Cu{Gr {%{yw{Ro{mr{Bl{Cd{x {gi{Ys {%{ra{Ml{Bi{cv{Ge{x {yw{Ri{Mt{bh{%{wcolors{x{C?{x\n\r",victim);
             act("$n giggles like $e lost $s mind.", victim,NULL,NULL,TO_ROOM);
         }
-        post_spell_process(sn, ch, victim);
+        post_spell_process(sn, level, ch, victim);
     }
 
     return TRUE;
@@ -2390,6 +2394,35 @@ DEF_SPELL_FUN(spell_heroism)
     affect_to_char( victim, &af );
     
     send_to_char( "You feel your god's energy surge through you.\n\r", victim );
+    
+    return TRUE;
+}
+
+DEF_SPELL_FUN(spell_divine_power)
+{
+    SPELL_CHECK_RETURN
+    
+    AFFECT_DATA af;
+    
+    if ( is_affected(ch, sn) )
+    {
+        send_to_char("You are already infused with divine power.\n\r", ch);
+        return SR_AFFECTED;
+    }
+    
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_HITROLL;
+    af.modifier  = 10 + level;
+    af.bitvector = AFF_HASTE;
+    affect_to_char(ch, &af);
+    af.location  = APPLY_DAMROLL;
+    af.bitvector = AFF_GIANT_STRENGTH;
+    affect_to_char(ch, &af);
+    
+    send_to_char( "Your feel infused with divine power.\n\r", ch );
     
     return TRUE;
 }
@@ -3073,7 +3106,6 @@ DEF_SPELL_FUN(spell_decompose)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    AFFECT_DATA af;
     
     if ( saves_spell(victim, ch, level, DAM_HARM) )
     {
@@ -3091,30 +3123,36 @@ DEF_SPELL_FUN(spell_decompose)
     {    
         send_to_char("You feel an intense pain in your body.\n\r",victim);
         act("$n jerks in sudden pain.",victim,0,0,TO_ROOM);
-        
-        af.where = TO_AFFECTS;
-        af.level = level;
-        af.duration = get_duration(sn, level);
-        af.type = sn;
-        af.bitvector = 0;
-        af.modifier = -10;
-
-        /* start out with -10 on all 4 stats */
-        /* affects will get worse over time, handled in special_affect_update */
-        af.location = APPLY_STR;
-        affect_to_char(victim,&af);
-        af.location = APPLY_AGI;
-        affect_to_char(victim,&af);
-        af.location = APPLY_DEX;
-        affect_to_char(victim,&af);
-        af.location = APPLY_INT;
-        affect_to_char(victim,&af);
+        start_decompose(victim, level);
     }
     
     /* a bit damage won't harm anyone ;) */
     dam = get_sn_damage( sn, level, ch );
     full_dam( ch, victim, dam, sn, DAM_HARM, TRUE );
     return TRUE;
+}
+
+void start_decompose( CHAR_DATA *ch, int level )
+{
+    AFFECT_DATA af;
+    
+    af.where = TO_AFFECTS;
+    af.level = level;
+    af.duration = get_duration(gsn_decompose, level);
+    af.type = gsn_decompose;
+    af.bitvector = 0;
+    af.modifier = -10;
+
+    /* start out with -10 on all 4 stats */
+    /* affects will get worse over time, handled in special_affect_update */
+    af.location = APPLY_STR;
+    affect_to_char(ch, &af);
+    af.location = APPLY_AGI;
+    affect_to_char(ch, &af);
+    af.location = APPLY_DEX;
+    affect_to_char(ch, &af);
+    af.location = APPLY_INT;
+    affect_to_char(ch, &af);
 }
 
 void decompose_update( CHAR_DATA *ch, int level )
@@ -4236,3 +4274,69 @@ DEF_SPELL_FUN(spell_replenish)
     return TRUE;
 }
  
+DEF_SPELL_FUN(spell_shadow_companion)
+{
+    AFFECT_DATA af;
+    CHAR_DATA *mob;
+    MOB_INDEX_DATA *mobIndex;
+    char buf[MAX_STRING_LENGTH];
+    int mlevel;
+
+    if ( IS_SET(ch->act, PLR_WAR) )
+    {
+        send_to_char("This is not a shadow war.\n\r", ch);
+        return SR_UNABLE;
+    }
+
+    if ( ch->pet != NULL )
+    {
+        send_to_char("You already control a pet.\n\r", ch);
+        return SR_UNABLE;
+    }
+    
+    // must be in shadowy area for this to work
+    if ( !room_is_dim(ch->in_room) )
+    {
+        send_to_char("There's not enough shadows around here.\n\r", ch);
+        return SR_UNABLE;
+    }
+
+    if ( (mobIndex = get_mob_index(MOB_VNUM_SHADOW)) == NULL )
+    {
+        ptc(ch, "BUG: Missing shadow mob (vnum %d).\n\r", MOB_VNUM_SHADOW);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+
+    mob = create_mobile(mobIndex);
+
+    mlevel = URANGE(1, level * 4/5, ch->level);
+    set_mob_level(mob, mlevel);
+
+    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    free_string(mob->description);
+    mob->description = str_dup(buf);
+
+    char_to_room(mob, ch->in_room);
+
+    send_to_char("A shadow materializes and starts following you around.\n\r", ch);
+    act("A shadow materializes and follows $n.", ch, NULL, NULL, TO_ROOM);
+
+    add_follower(mob, ch);
+    mob->leader = ch;
+    
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_shadow_companion;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = 0;
+    af.modifier  = 0;
+    af.bitvector = AFF_CHARM;
+    affect_to_char(mob, &af);
+    
+    SET_BIT(mob->act, ACT_PET);
+    ch->pet = mob;
+
+    return TRUE;
+}

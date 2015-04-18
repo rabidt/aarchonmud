@@ -372,6 +372,8 @@ int get_ac( CHAR_DATA *ch )
 
     if ( IS_SET(ch->parts, PART_SCALES) )
         ac -= level / 2;
+    if ( IS_SET(ch->form, FORM_ARMORED) )
+        ac -= level * 10;
     
     // level-based bonus
     if ( IS_NPC(ch) )
@@ -409,6 +411,8 @@ int get_hitroll( CHAR_DATA *ch )
     }
     hitroll += (modified_level(ch) + 10) * attack_factor/100;
 
+    hitroll = hitroll * (400 - get_heavy_armor_penalty(ch)) / 400;
+    
     return hitroll;
 }
 
@@ -1084,6 +1088,7 @@ DEF_DO_FUN(do_showrace)
     SFORM( FORM_CONDUCTIVE );
     SFORM( FORM_CONSTRICT );
     SFORM( FORM_MULTI_HEADED );
+    SFORM( FORM_ARMORED );
 #undef SFORM
 
     if ( !flag_is_empty(special_forms) )
@@ -1801,6 +1806,9 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch )
 	else
 	    return &morph_race_table[MORPH_WOLFMAN];
     }
+    
+    if ( ch->race == race_dragonborn && ch->pcdata->morph_race > 0 )
+        return &morph_race_table[ch->pcdata->morph_race];
     
     return &race_table[ch->race];
 }

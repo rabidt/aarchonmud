@@ -17,6 +17,36 @@ bool       g_LuaScriptInProgress=FALSE;
 int        g_ScriptSecurity=SEC_NOSCRIPT;
 int        g_LoopCheckCounter;
 
+
+/* keep these as LUAREFS for ease of use on the C side */
+static LUAREF TABLE_INSERT;
+static LUAREF TABLE_CONCAT;
+static LUAREF STRING_FORMAT;
+
+void register_LUAREFS( lua_State *LS)
+{
+    /* initialize the variables */
+    new_ref( &TABLE_INSERT );
+    new_ref( &TABLE_CONCAT );
+    new_ref( &STRING_FORMAT );
+
+    /* put stuff in the refs */
+    lua_getglobal( LS, "table" );
+
+    lua_getfield( LS, -1, "insert" );
+    save_ref( LS, -1, &TABLE_INSERT );
+    lua_pop( LS, 1 ); /* insert */
+
+    lua_getfield( LS, -1, "concat" );
+    save_ref( LS, -1, &TABLE_CONCAT );
+    lua_pop( LS, 2 ); /* concat and table */
+
+    lua_getglobal( LS, "string" );
+    lua_getfield( LS, -1, "format" );
+    save_ref( LS, -1, &STRING_FORMAT );
+    lua_pop( LS, 2 ); /* string and format */
+}
+
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
@@ -127,10 +157,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
     if ( (narg>1))
     {
-        lua_getglobal( LS, "string");
-        lua_getfield( LS, -1, "format");
-        /* kill string table */
-        lua_remove( LS, -2);
+        push_ref( LS, STRING_FORMAT );
         lua_insert( LS, index );
         lua_call( LS, narg, 1);
     }
@@ -645,6 +672,7 @@ static int RegisterLuaRoutines (lua_State *LS)
 
     register_globals ( LS );
     sorted_ctable_init( LS );
+    register_LUAREFS( LS );
 
     return 0;
 
@@ -1414,6 +1442,66 @@ bool is_set_ref( LUAREF ref )
 
 /* end LUAREF section */
 
+/* string buffer section */
+
+BUFFER *new_buf()
+{
+    BUFFER *buffer=alloc_mem(sizeof(BUFFER));
+    new_ref( &buffer->table ); 
+    new_ref( &buffer->string );
+
+    lua_newtable( g_mud_LS );
+    save_ref( g_mud_LS, -1, &buffer->table );    
+    lua_pop( g_mud_LS, 1 );
+    return buffer;
+}
+
+void free_buf(BUFFER *buffer)
+{
+    free_ref( &buffer->table );
+    free_ref( &buffer->string );
+    free_mem( buffer, sizeof(BUFFER) );
+}
+
+bool add_buf(BUFFER *buffer, const char *string)
+{
+    if (!is_set_ref( buffer->table ))
+    {
+        bugf("add_buf called with no ref");
+        return FALSE;
+    }
+
+    push_ref( g_mud_LS, TABLE_INSERT );
+    push_ref( g_mud_LS, buffer->table );
+    lua_pushstring( g_mud_LS, string ); 
+    lua_call( g_mud_LS, 2, 0 );
+
+    return TRUE;
+}
+
+void clear_buf(BUFFER *buffer)
+{
+    release_ref( g_mud_LS, &buffer->table );
+    lua_newtable( g_mud_LS );
+    save_ref( g_mud_LS, -1, &buffer->table );
+    lua_pop( g_mud_LS, 1 );
+}
+
+const char *buf_string(BUFFER *buffer)
+{
+    push_ref( g_mud_LS, TABLE_CONCAT );
+    push_ref( g_mud_LS, buffer->table );
+    lua_call( g_mud_LS, 1, 1 );
+
+    /* save the ref to guarantee the string is valid as
+       long as the BUFFER is alive */
+    save_ref( g_mud_LS, -1, &buffer->string ); 
+    const char *rtn=luaL_checkstring( g_mud_LS, -1 );
+    lua_pop( g_mud_LS, 1 );
+    return rtn;
+}
+/* end string buffer section*/
+
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
 {
     lua_getglobal( g_mud_LS, "lua_con_handler" );
@@ -1426,4 +1514,112 @@ void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
         lua_pop( g_mud_LS, 1);
     }
 
+}
+
+static int L_DO_FUN_caller( lua_State *LS )
+{
+    DO_FUN *fun=lua_touserdata( LS, 1 );
+    CHAR_DATA *ch=check_CH( LS, 2 );
+    const char *arg=check_string( LS, 3, MIL );
+    fun(ch, arg);
+    return 0;
+}
+
+/*  confirm_yes_no()
+
+    Have the player confirm an action.
+    
+    If provided, yes/no callbacks are called upon selection of Y or n by
+    the player.  These callbacks must have DO_FUN signature.
+
+    If yes_argument/no_argument are provided, they are used as the 'argument'
+    parameter to the respective callback, otherwise an empty string is used.
+    
+    Example using original do_fun as callback:
+
+    DEF_DO_FUN( test1 )
+    {
+        if (strcmp(argument, "confirm"))
+        {
+            send_to_char( "Are you sure you want to do it?\n\r", ch);
+            confirm_yes_no( ch->desc, do_test1, "confirm", NULL, NULL);
+            return;
+        }
+
+        send_to_char( ch, "You did it!\n\r");
+    }
+
+
+    Example using separate callback function:
+
+    DEF_DO_FUN( test1_confirm )
+    {
+        ptc( ch, "You did it!\n\rHere's your argument: %s\n\r", argument);
+        return;
+    }
+
+    DEF_DO_FUN( test1 )
+    {
+        send_to_char( "Are you sure you want to do it?\n\r", ch);
+        // forward original argument onto the callback
+        confirm_yes_no( ch->desc, do_test1_confirm, argument, NULL, NULL);
+        return;
+    }
+
+*/
+void confirm_yes_no( DESCRIPTOR_DATA *d,
+        DO_FUN yes_callback, 
+        const char *yes_argument,
+        DO_FUN no_callback,
+        const char *no_argument)
+{
+    lua_getglobal( g_mud_LS, "confirm_yes_no");
+
+    lua_pushcfunction( g_mud_LS, L_DO_FUN_caller);
+
+    push_DESCRIPTOR( g_mud_LS, d );
+
+    if (yes_callback)
+    {
+        lua_pushlightuserdata( g_mud_LS, yes_callback);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (yes_argument)
+    {
+        lua_pushstring( g_mud_LS, yes_argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (no_callback)
+    {
+        lua_pushlightuserdata( g_mud_LS, no_callback);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (no_argument)
+    {
+        lua_pushstring( g_mud_LS, no_argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS);
+    }
+
+    if (CallLuaWithTraceBack( g_mud_LS, 6, 0) )
+    {
+        bugf("Error with confirm_yes_no:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+    return;
 }

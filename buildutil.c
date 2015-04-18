@@ -642,7 +642,7 @@ DEF_DO_FUN(do_ostat)
 		can_see(ch,obj->carried_by) ? obj->carried_by->name
 					: "someone",
 	obj->wear_loc,
-    flag_stat_string( wear_loc_flags, obj->wear_loc)  );
+    flag_bit_name(wear_loc_flags, obj->wear_loc) );
 	send_to_char( buf, ch );
 
     sprintf( buf, "Clan: %s ClanRank: %d\n\r", 
@@ -1047,17 +1047,15 @@ DEF_DO_FUN(do_mstat)
 	    send_to_char( buf, ch );
 	}
 
-	sprintf( buf,
-	"Lv: %d  Class: %s  Align: %d  Gold: %ld  Silver: %ld  Exp: %d\n\r",
-	victim->level,       
-	IS_NPC(victim) ? "mobile" : class_table[victim->class].name,            
-	victim->alignment,
-	victim->gold, victim->silver, victim->exp );
-	send_to_char( buf, ch );
+    ptc(ch, "Lvl: %d  Class: %s  Subclass: %s  Exp: %d\n\r",
+        victim->level,       
+        IS_NPC(victim) ? "mobile" : class_table[victim->class].name,
+        IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass].name);
 
-	sprintf(buf,"Armor: %d\n\r",
-		GET_AC(victim));
-	send_to_char(buf,ch);
+    ptc(ch, "Align: %d  Gold: %ld  Silver: %ld\n\r",
+        victim->alignment, victim->gold, victim->silver, victim->exp );
+
+    ptc(ch, "Armor: %d  Heavy Armor: %d\n\r", GET_AC(victim), victim->heavy_armor);
 
 	sprintf( buf, 
 	"Hit: %d  Dam: %d  Saves: %d  Physical: %d  Size: %s  Position: %s\n\r",
@@ -1278,11 +1276,11 @@ DEF_DO_FUN(do_vnum)
 	do_ofind(ch,argument);
 }
 
-/* find mprog with given substring */
-DEF_DO_FUN(do_mpfind)
+/* find prog with given substring */
+DEF_DO_FUN(do_progfind)
 {
     char buf[MAX_STRING_LENGTH];
-    PROG_CODE *mprog;
+    PROG_CODE *prog;
     int i;
 
     if (!IS_BUILDER(ch, ch->in_room->area))
@@ -1293,17 +1291,61 @@ DEF_DO_FUN(do_mpfind)
 
     if ( argument[0] == '\0' )
     {
-	send_to_char( "Syntax: mpfind <substring>\n\r", ch );
-	return;
+        send_to_char( "Syntax: progfind <substring>\n\r", ch );
+        return;
     }
 
+    send_to_char( "\n\rMPROG:\n\r", ch );
     for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
-	if ( (mprog = get_mprog_index(i)) != NULL ) 
-	    if ( strstr(mprog->code, argument) )
-	    {
-		sprintf( buf, "[%5d] %s\n\r", mprog->vnum, first_line(mprog->code) );
-		send_to_char( buf, ch );
-	    }
+    {
+        if ( (prog = get_mprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rOPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_oprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rAPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_aprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
+    
+    send_to_char( "\n\rRPROG:\n\r", ch );
+    for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
+    {
+        if ( (prog = get_rprog_index(i)) != NULL ) 
+        {
+            if ( strstr(prog->code, argument) )
+            {
+                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                send_to_char_new( buf, ch, TRUE );
+            }
+        }
+    }
 }
 
 /* find links into or out of an area */
@@ -1590,7 +1632,7 @@ DEF_DO_FUN(do_mwhere)
 	for (d = descriptor_list; d != NULL; d = d->next)
 	{
 		if (d->character != NULL 
-                && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+                && (IS_PLAYING(d->connected))
 		&&  d->character->in_room != NULL && can_see(ch,d->character)
 		&&  can_see_room(ch,d->character->in_room))
 		{
@@ -1838,6 +1880,38 @@ MSETFUN ( class )
 }
 
 
+MSETFUN ( subclass )
+{
+    if ( !str_prefix(arg3, "None") )
+    {
+        victim->pcdata->subclass = 0;
+        return TRUE;
+    }
+    
+    int subclass = subclass_lookup(arg3);
+    
+    if ( subclass == 0 )
+    {
+        char buf[MAX_STRING_LENGTH];
+       
+        strcpy( buf, "Possible subclasses are: " );
+        for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
+        {
+            if ( subclass > 0 )
+                strcat( buf, " " );
+            strcat( buf, subclass_table[subclass].name );
+        }
+        strcat(buf, ".\n\r");
+       
+        send_to_char(buf, ch);
+        return FALSE;
+    }
+   
+    victim->pcdata->subclass = subclass;
+    return TRUE;
+}
+
+
 MSETFUN( race )
 {
     int race;
@@ -1857,7 +1931,14 @@ MSETFUN( race )
     }
     
     victim->race = race;
-    morph_update(victim);
+    if ( victim->pcdata )
+    {
+        victim->pcdata->morph_race = 0;
+        victim->pcdata->morph_time = 0;
+        morph_update(victim);
+    }
+    reset_char(victim);
+    
     return TRUE;
 }
 
@@ -2283,6 +2364,12 @@ MSETFUN( remorts )
     return TRUE;
 }
 
+MSETFUN( ascents )
+{
+    victim->pcdata->ascents = UMAX(0, value);
+    return TRUE;
+}
+
 struct
 {
     const char *field;
@@ -2301,6 +2388,7 @@ struct
     {"cha",       MSETANY,      mset_cha},
     {"luc",       MSETANY,      mset_luc},
     {"class",     MSETPCONLY,   mset_class},
+    {"subclass",  MSETPCONLY,   mset_subclass},
     {"race",      MSETPCONLY,   mset_race},
     {"sex",       MSETANY,      mset_sex},
     {"group",     MSETNPCONLY,  mset_group},
@@ -2331,6 +2419,7 @@ struct
     {"ptitle",    MSETPCONLY,   mset_ptitle},
     {"namecolor", MSETPCONLY,   mset_namecolor},
     {"remorts",   MSETPCONLY,   mset_remorts},
+    {"ascents",   MSETPCONLY,   mset_ascents},
     {NULL,        MSETNONE,     NULL}
 };
    
@@ -2509,7 +2598,18 @@ DEF_DO_FUN(do_oset)
    
     if ( !str_prefix( arg2, "extra" ) )
     {
-        //obj->extra_flags = value;
+        int flag = flag_lookup(arg3, extra_flags);
+        if ( flag == NO_FLAG )
+        {
+            ptc(ch, "Unknown flag '%s'.\n\r", arg3);
+            return;
+        }
+        if ( !extra_flags[flag].settable )
+        {
+            ptc(ch, "The %s flag cannot be set.\n\r", extra_flags[flag].name);
+            return;
+        }
+        TOGGLE_BIT(obj->extra_flags, flag);
         return;
     }
     

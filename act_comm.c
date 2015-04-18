@@ -392,7 +392,7 @@ const char *parse_url( const char *argument )
              || ( url=strstr(argument, "www."    ) ) ) )
     return argument;
     
-    static char rtn[MSL*2];
+    static char rtn[MSL*10];
     int rtnIndex;
 
     for ( rtnIndex=0 ; ; argument++)
@@ -403,7 +403,7 @@ const char *parse_url( const char *argument )
             rtnIndex+=strlen(open);
 
             char *cptr;
-            for (cptr=url; *cptr != ' ' && *cptr !='\0' ; cptr++)
+            for (cptr=url; *cptr != ' ' && *cptr !='\0' && *cptr !='\n' && *cptr !='\r'; cptr++)
             {
                 rtn[rtnIndex++]=*cptr;
             }
@@ -523,7 +523,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
             
             victim = d->original ? d->original : d->character;
             
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) || d->connected == CON_LUA_HANDLER) &&
+            if ( (IS_PLAYING(d->connected)) &&
                 d->character != ch &&
                 !IS_SET(victim->comm,chan->offbit) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
@@ -627,7 +627,7 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
         if (ch && !NOT_AUTHED(ch) && NOT_AUTHED(victim))
             continue;
         
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             !IS_SET(victim->comm,COMM_NOINFO) &&
             !IS_SET(victim->comm,COMM_QUIET) )
         {
@@ -734,7 +734,7 @@ DEF_DO_FUN(do_clantalk)
     sprintf(buf,"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             d->character != ch && !IS_NPC(d->character) &&
             is_same_clan(ch,d->character) &&
             clan_table[d->character->clan].rank_list[d->character->pcdata->clan_rank].can_use_clantalk &&
@@ -831,7 +831,7 @@ DEF_DO_FUN(do_religion_talk)
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
 	     d->character != ch && !IS_NPC(d->character) &&
 	     get_religion(d->character) == rel &&
 	     is_religion_member(d->character) &&
@@ -899,7 +899,7 @@ DEF_DO_FUN(do_info)
             {
                 victim = d->original ? d->original : d->character;
                 
-                if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+                if ((IS_PLAYING(d->connected)) &&
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
@@ -1080,7 +1080,7 @@ DEF_DO_FUN(do_shout)
         
         victim = d->original ? d->original : d->character;
         
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ((IS_PLAYING(d->connected)) &&
             d->character != ch &&
             !IS_SET(victim->comm, COMM_SHOUTSOFF) &&
             !IS_SET(victim->comm, COMM_QUIET) &&
@@ -1349,7 +1349,7 @@ DEF_DO_FUN(do_yell)
     nt_act("{uYou yell {U'$t{U'{x",ch,argument,NULL,TO_CHAR);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+        if ((IS_PLAYING(d->connected))
             &&   d->character != ch
             &&   d->character->in_room != NULL
             &&   d->character->in_room->area == ch->in_room->area
@@ -3323,16 +3323,21 @@ DEF_DO_FUN(do_gag)
 
 DEF_DO_FUN(do_try)
 {
-  if (IS_NPC(ch))
-      return;
+    if (IS_NPC(ch))
+        return;
 
-  if (argument[0] == '\0')
-    send_to_char("Try to do what?\n\r", ch);
-  else
-    if (!mp_try_trigger(argument, ch) 
-            && !op_try_trigger(argument, ch)
-            && !rp_try_trigger(argument, ch) )
-      send_to_char("That didn't work.\n\r", ch);
+    if (argument[0] == '\0')
+        send_to_char("Try to do what?\n\r", ch);
+    else
+    {
+        bool found=FALSE;
+        found = mp_try_trigger(argument, ch);
+        found = op_try_trigger(argument, ch) | found;
+        found = rp_try_trigger(argument, ch) | found;
+
+        if (!found)
+            send_to_char("That didn't work.\n\r", ch);
+    }
 
 }
 

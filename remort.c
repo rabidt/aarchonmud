@@ -583,8 +583,7 @@ void remort_update()
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 ch = d->original ? d->original : d->character;
-                if ((d->connected == CON_PLAYING
-                    || IS_WRITING_NOTE(d->connected))
+                if ((IS_PLAYING(d->connected)) 
                     && !str_cmp(ch->name, chamber_list[j]->name))
                 {
                     found = TRUE;
@@ -873,7 +872,12 @@ void remort_begin(CHAR_DATA *ch)
     }
     
     if (ch->desc != NULL)
-        ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    {
+        if ( ch->pcdata->ascents > 0 )
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
+        else
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    }
     else
     {
         do_quit(ch, "");
@@ -1052,5 +1056,42 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     remort_begin(ch);
 } 
 
+DEF_DO_FUN(do_ascend)
+{
+    if ( IS_NPC(ch) )
+        return;
 
+#ifndef TESTER
+    ptc(ch, "Ascension system coming late 2015. Stay tuned.\n\r");
+    return;
+#endif
+    
+    if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
+    {
+        ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
+#ifdef TESTER
+        ptc(ch, "We will ignore that for testing though.\n\r");
+#else
+        return;
+#endif
+    }
+    
+    if ( strcmp(argument, "confirm") )
+    {
+        send_to_char("To ascend, type <ascend confirm>.\n\r", ch);
+        send_to_char("WARNING: Doing so will cause you to be reborn as a remort 0 character!\n\r", ch);
+        return;
+    }
 
+    if ( ch->carrying != NULL )
+    {
+        send_to_char("You must leave all posessions behind.\n\r", ch);
+        return;
+    }
+    
+    logpf("Ascending %s.", ch->name);
+    ch->pcdata->remorts = 0;
+    ch->pcdata->ascents += 1;
+    
+    remort_begin(ch);
+}

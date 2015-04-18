@@ -56,7 +56,7 @@ OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool ex
 OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact );
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
 
@@ -449,6 +449,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
     
     ch->armor       = 100;
+    ch->heavy_armor = 0;
     
     ch->hitroll     = 0;
     ch->damroll     = 0;
@@ -462,6 +463,7 @@ void reset_char(CHAR_DATA *ch)
         if (obj == NULL)
             continue;
         ch->armor -= apply_ac( obj, loc );
+        ch->heavy_armor += apply_heavy_armor(obj, loc);
         
             for ( af = obj->pIndexData->affected; af != NULL; af = af->next )
                 add_apply(ch, af->modifier, af->location);
@@ -500,6 +502,16 @@ void reset_char(CHAR_DATA *ch)
     {
         ch->pcdata->condition[COND_THIRST] = -1;
         ch->pcdata->condition[COND_HUNGER] = -1;
+    }
+    
+    // ensure dragonborn have a bloodline
+    if ( ch->race == race_dragonborn && ch->pcdata->morph_race == 0 )
+    {
+        int morph_race = number_range(MORPH_DRAGON_RED, MORPH_DRAGON_WHITE);
+        logpf("resetting morph race for %s to %s", ch->name, morph_race_table[morph_race].name);
+        ch->pcdata->morph_race = morph_race;
+        ch->pcdata->morph_time = -1;
+        morph_update(ch);
     }
 }
 
@@ -1741,41 +1753,121 @@ void obj_from_char( OBJ_DATA *obj )
     return;
 }
 
+int wear_to_itemwear( int iWear )
+{
+    switch ( iWear )
+    {
+        default:            return 0;
+        case WEAR_FINGER_L:
+        case WEAR_FINGER_R: return ITEM_WEAR_FINGER;
+        case WEAR_NECK_1:
+        case WEAR_NECK_2:   return ITEM_WEAR_NECK;
+        case WEAR_TORSO:    return ITEM_WEAR_TORSO;
+        case WEAR_HEAD:     return ITEM_WEAR_HEAD;
+        case WEAR_LEGS:     return ITEM_WEAR_LEGS;
+        case WEAR_FEET:     return ITEM_WEAR_FEET;
+        case WEAR_HANDS:    return ITEM_WEAR_HANDS;
+        case WEAR_ARMS:     return ITEM_WEAR_ARMS;
+        case WEAR_SHIELD:   return ITEM_WEAR_SHIELD;
+        case WEAR_ABOUT:    return ITEM_WEAR_ABOUT;
+        case WEAR_WAIST:    return ITEM_WEAR_WAIST;
+        case WEAR_WRIST_L:
+        case WEAR_WRIST_R:  return ITEM_WEAR_WRIST;
+        case WEAR_SECONDARY:
+        case WEAR_WIELD:    return ITEM_WIELD;
+        case WEAR_HOLD:     return ITEM_HOLD;
+        case WEAR_FLOAT:    return ITEM_WEAR_FLOAT;
+    }
+}
 
+int itemwear_ac_factor( int itemWear )
+{
+    // total of 25
+    switch ( itemWear )
+    {
+        default:                return 0;
+        case ITEM_WEAR_TORSO:   return 3;
+        case ITEM_WEAR_HEAD:    return 2;
+        case ITEM_WEAR_LEGS:    return 2;
+        case ITEM_WEAR_FEET:    return 2;
+        case ITEM_WEAR_HANDS:   return 2;
+        case ITEM_WEAR_ARMS:    return 2;
+        case ITEM_WEAR_NECK:    return 1;//x2
+        case ITEM_WEAR_ABOUT:   return 2;
+        case ITEM_WEAR_WAIST:   return 2;
+        case ITEM_WEAR_WRIST:   return 2;//x2
+        case ITEM_WEAR_FINGER:  return 1;//x2
+    }
+}
+
+int first_itemwear( OBJ_DATA *obj )
+{
+    int pos;
+    for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+    {
+        if( !IS_SET(obj->wear_flags, pos) || pos == ITEM_TAKE || pos == ITEM_TRANSLUCENT || pos == ITEM_NO_SAC )
+            continue;
+        return pos;
+    }
+    return 0;
+}
+
+int predict_obj_ac( OBJ_DATA *obj, int itemWear )
+{
+    if ( obj->item_type != ITEM_ARMOR )
+        return 0;
+    
+    int ac = obj->value[0] * itemwear_ac_factor(itemWear);
+    
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
+        ac *= 2;
+    
+    return ac;
+}
+
+int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear )
+{
+    if ( obj->item_type != ITEM_ARMOR )
+        return 0;
+    
+    int ac = obj->value[0] * itemwear_ac_factor(itemWear);
+    
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
+        ac *= 2;
+    
+    return ac;
+}
 
 /*
  * Find the ac value of an obj, including position effect.
  */
 int apply_ac( OBJ_DATA *obj, int iWear )
 {
-    if ( obj->item_type != ITEM_ARMOR )
-        return 0;
-    
-    switch ( iWear )
-    {
-    case WEAR_TORSO:   return 3 * obj->value[0];
-    case WEAR_HEAD:    return 2 * obj->value[0];
-    case WEAR_LEGS:    return 2 * obj->value[0];
-    case WEAR_FEET:    return     obj->value[0];
-    case WEAR_HANDS:   return     obj->value[0];
-    case WEAR_ARMS:    return     obj->value[0];
-    case WEAR_SHIELD:  return     obj->value[0];
-    case WEAR_NECK_1:  return     obj->value[0];
-    case WEAR_NECK_2:  return     obj->value[0];
-    case WEAR_ABOUT:   return 2 * obj->value[0];
-    case WEAR_WAIST:   return     obj->value[0];
-    case WEAR_WRIST_L: return     obj->value[0];
-    case WEAR_WRIST_R: return     obj->value[0];
-    case WEAR_HOLD:    return     obj->value[0];
-    case WEAR_FINGER_L: return    obj->value[0];
-    case WEAR_FINGER_R: return    obj->value[0];
-    case WEAR_FLOAT:   return     obj->value[0];
-    }
-    
-    return 0;
+    return predict_obj_ac(obj, wear_to_itemwear(iWear));
 }
 
+int apply_heavy_armor( OBJ_DATA *obj, int iWear )
+{
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
+        return itemwear_ac_factor(wear_to_itemwear(iWear));
+    else
+        return 0;
+}
 
+// returns heavy armor bonus as percentage of max
+int get_heavy_armor_bonus( CHAR_DATA *ch )
+{
+    return ch->heavy_armor * 4;
+}
+
+// returns heavy armor penalty as percentage of max
+int get_heavy_armor_penalty( CHAR_DATA *ch )
+{
+    int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 30, 50);
+    if ( IS_SET(ch->form, FORM_ARMORED) )
+        skill += 30;
+    return get_heavy_armor_bonus(ch) * (300 - skill) / 300;
+}
 
 /*
  * Find a piece of eq on a character.
@@ -1853,6 +1945,7 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
     
     // add item armor / affects
     ch->armor -= apply_ac( obj, iWear );
+    ch->heavy_armor += apply_heavy_armor(obj, iWear);
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location != APPLY_SPELL_AFFECT )
@@ -1907,6 +2000,7 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
 
     // add item armor / affects
     ch->armor += apply_ac( obj, iWear );
+    ch->heavy_armor -= apply_heavy_armor(obj, iWear);
     
     for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
         if ( paf->location == APPLY_SPELL_AFFECT )
@@ -2457,10 +2551,11 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
 
     unregister_ch_timer( ch );
 
-    nuke_pets(ch);
-
     if ( fPull )
+    {
+        nuke_pets(ch);
         die_follower( ch, false );
+    }
 
     stop_fighting( ch, TRUE );
 
@@ -2510,7 +2605,7 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     {
         if ( wch->reply == ch )
             wch->reply = NULL;
-        if ( ch->mprog_target == wch )
+        if ( wch->mprog_target == ch )
             wch->mprog_target = NULL;
     }
 
@@ -2593,7 +2688,7 @@ CHAR_DATA* get_player( const char *name )
 
     /* match exact name */
     for ( d = descriptor_list; d != NULL; d = d->next )
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
 	{
 	    ch = original_char( d->character );
 
@@ -2622,9 +2717,20 @@ CHAR_DATA *get_char_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
-    rch = get_char_room_new( ch, argument, TRUE );
+    rch = get_char_room_new( ch, argument, TRUE, FALSE );
     if ( rch == NULL )
-	rch = get_char_room_new( ch, argument, FALSE );
+	rch = get_char_room_new( ch, argument, FALSE, FALSE );
+
+    return rch;
+}
+
+CHAR_DATA *get_victim_room( CHAR_DATA *ch, const char *argument )
+{
+    CHAR_DATA *rch;
+
+    rch = get_char_room_new( ch, argument, TRUE, TRUE );
+    if ( rch == NULL )
+        rch = get_char_room_new( ch, argument, FALSE, TRUE );
 
     return rch;
 }
@@ -2638,7 +2744,7 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -2657,6 +2763,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact )
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( /*!can_see( ch, rch )*/ !check_see_target( ch, rch )
+            || (as_victim && is_same_group(ch, rch))
 	     || !is_ch_name(arg, rch, exact, ch) )
             continue;
 
@@ -3248,6 +3355,10 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     }
 }
 
+bool has_money( CHAR_DATA *ch, int cost )
+{
+    return ch->silver + ch->gold * 100 >= cost;
+}
 
 int money_weight( int silver, int gold )
 {
@@ -3385,6 +3496,30 @@ bool room_is_dark( ROOM_INDEX_DATA *pRoomIndex )
         return TRUE;
     
     return FALSE;
+}
+
+bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
+{
+    if (!pRoomIndex)
+        return FALSE;
+    
+    if ( IS_SET(pRoomIndex->room_flags, ROOM_DARK) )
+        return TRUE;
+    
+    if ( pRoomIndex->sector_type == SECT_INSIDE
+        || pRoomIndex->sector_type == SECT_CITY )
+        return FALSE;
+    
+    if ( IS_SET(pRoomIndex->room_flags, ROOM_INDOORS)
+        || pRoomIndex->sector_type == SECT_UNDERGROUND
+        || pRoomIndex->sector_type == SECT_UNDERWATER )
+        return TRUE;
+    
+    // we are outdoors in natural surroundings
+    if ( weather_info.sunlight == SUN_LIGHT )
+        return FALSE;
+    
+    return TRUE;
 }
 
 bool room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex )
@@ -3586,17 +3721,6 @@ bool can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
     return can_see_new(ch, victim, TRUE) != SEE_CANT;
 }
 
-/* True if room would be dark if lights were removed */
-bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
-{
-    bool is_dim;
-    int buf = pRoomIndex->light;
-    pRoomIndex->light = 0;
-    is_dim = room_is_dark(pRoomIndex);
-    pRoomIndex->light = buf;
-    return is_dim;
-}
-
 #define LIGHT_DARK     0
 #define LIGHT_NORMAL   1
 #define LIGHT_GLOW     2
@@ -3655,12 +3779,16 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     if (see_state == SEE_CANT)
         return FALSE;
     
-    if (!IS_AFFECTED(victim, AFF_HIDE) || victim->fighting != NULL)
+    if ( !IS_AFFECTED(victim, AFF_HIDE) )
         return TRUE;
     
     if ( is_same_group(ch, victim) )
 	return TRUE;
 
+    // heavy armor penalty grants auto-chance to be spotted
+    if ( per_chance(get_heavy_armor_penalty(victim)/2) )
+        return TRUE;
+    
     /* victim is hidden, check if char spots it, resisted roll */
     
     roll_ch = (ch->level + 

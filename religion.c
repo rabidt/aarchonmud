@@ -2573,7 +2573,7 @@ DEF_DO_FUN(do_god)
     */
 
     for ( d = descriptor_list; d != NULL; d = d->next )
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
 	{
 	    victim = original_char( d->character );
 

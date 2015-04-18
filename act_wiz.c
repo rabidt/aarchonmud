@@ -145,7 +145,7 @@ void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, lon
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        bool playing = d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected);
+        bool playing = IS_PLAYING(d->connected);
         if ( !playing || !d->character || d->character == ch )
             continue;
         bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
@@ -426,7 +426,7 @@ DEF_DO_FUN(do_echo)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) ) 
+        if ( IS_PLAYING(d->connected) ) 
         {
             if (get_trust(d->character) >= get_trust(ch))
                 send_to_char( "global> ",d->character);
@@ -453,7 +453,7 @@ DEF_DO_FUN(do_recho)
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&   d->character->in_room == ch->in_room )
         {
             if (get_trust(d->character) >= get_trust(ch))
@@ -478,7 +478,7 @@ DEF_DO_FUN(do_zecho)
     
     for (d = descriptor_list; d; d = d->next)
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&  d->character->in_room != NULL && ch->in_room != NULL
             &&  d->character->in_room->area == ch->in_room->area)
         {
@@ -541,7 +541,7 @@ DEF_DO_FUN(do_transfer)
     {
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+            if ( (IS_PLAYING(d->connected)) 
                 &&   d->character != ch
                 &&   d->character->in_room != NULL
                 &&   can_see( ch, d->character ) )
@@ -741,6 +741,19 @@ DEF_DO_FUN(do_reboot)
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
     
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to reboot?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_reboot,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+
     if (ch->invis_level < LEVEL_HERO)
     {
         sprintf( buf, "Reboot by %s.", ch->name );
@@ -773,7 +786,20 @@ DEF_DO_FUN(do_shutdown)
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    
+   
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to shutdown?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_shutdown,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+ 
     if (ch->invis_level < LEVEL_HERO)
         sprintf( buf, "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );
@@ -1286,43 +1312,24 @@ DEF_DO_FUN(do_purge)
     char arg[MAX_INPUT_LENGTH];
     char buf[100];
     CHAR_DATA *victim;
-    OBJ_DATA *obj;
     DESCRIPTOR_DATA *d;
     
     one_argument( argument, arg );
     
     if ( arg[0] == '\0' || !strcmp(arg, "room") )
     {
-        /* 'purge' */
-        CHAR_DATA *vnext;
-        OBJ_DATA  *obj_next;
-        
-        for ( victim = ch->in_room->people; victim != NULL; victim = vnext )
-        {
-            vnext = victim->next_in_room;
-            if ( IS_NPC(victim) && !IS_SET(victim->act,ACT_NOPURGE) 
-                && victim != ch /* safety precaution */ )
-                extract_char( victim, TRUE );
-        }
-        
-        for ( obj = ch->in_room->contents; obj != NULL; obj = obj_next )
-        {
-            obj_next = obj->next_content;
-            if (!IS_OBJ_STAT(obj,ITEM_NOPURGE))
-                extract_obj( obj );
-        }
-        
-        act( "$n purges the room!", ch, NULL, NULL, TO_ROOM);
-        send_to_char( "Ok.\n\r", ch );
+        act("$n purges the room!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the room.\n\r", ch);
+        purge_room(ch->in_room);
         return;
     }
     
     if ( !strcmp(arg, "area") )
     {
-	purge_area( ch->in_room->area );
-        act( "$n purges the area!", ch, NULL, NULL, TO_ROOM);
-	send_to_char( "You purge the area.\n\r", ch );
-	return;
+        act("$n purges the area!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the area.\n\r", ch);
+        purge_area(ch->in_room->area);
+        return;
     }
 
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
@@ -1336,13 +1343,13 @@ DEF_DO_FUN(do_purge)
         
         if (ch == victim)
         {
-            send_to_char("Ho ho ho.\n\r",ch);
+            send_to_char("Purging yourself? You'd end up in Purgatory!\n\r", ch);
             return;
         }
         
         if (get_trust(ch) <= get_trust(victim))
         {
-            send_to_char("Maybe that wasn't a good idea...\n\r",ch);
+            act("Your trust is not high enough to purge $N.", ch, NULL, victim, TO_CHAR);
             sprintf(buf,"%s tried to purge you!\n\r",ch->name);
             send_to_char(buf,victim);
             return;
@@ -1350,8 +1357,7 @@ DEF_DO_FUN(do_purge)
         
         act("$n disintegrates $N.",ch,0,victim,TO_NOTVICT);
         
-        if (victim->level > 1)
-            quit_save_char_obj( victim );
+        quit_save_char_obj(victim);
         d = victim->desc;
         extract_char( victim, TRUE );
         if ( d != NULL )
@@ -1360,6 +1366,7 @@ DEF_DO_FUN(do_purge)
         return;
     }
     
+    act( "You purge $N.", ch, NULL, victim, TO_CHAR );
     act( "$n purges $N.", ch, NULL, victim, TO_NOTVICT );
     extract_char( victim, TRUE );
     return;
@@ -3242,7 +3249,7 @@ static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
         ptc(ch, "%-20s %-20s %-20s\n\r",
                 tbl[i].name,
                 tbl[i].noun,
-                flag_stat_string( damage_type, tbl[i].damage) );
+                flag_bit_name(damage_type, tbl[i].damage) );
     }
 }
 
@@ -3281,7 +3288,7 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
     {
         ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
                 tbl[i].name,
-                flag_stat_string( damage_type, tbl[i].type),
+                flag_bit_name(damage_type, tbl[i].type),
                 tbl[i].verb,
                 tbl[i].martial ? "YES" : "no",
                 tbl[i].weapon ? "YES" : "no",
