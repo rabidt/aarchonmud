@@ -1312,43 +1312,24 @@ DEF_DO_FUN(do_purge)
     char arg[MAX_INPUT_LENGTH];
     char buf[100];
     CHAR_DATA *victim;
-    OBJ_DATA *obj;
     DESCRIPTOR_DATA *d;
     
     one_argument( argument, arg );
     
     if ( arg[0] == '\0' || !strcmp(arg, "room") )
     {
-        /* 'purge' */
-        CHAR_DATA *vnext;
-        OBJ_DATA  *obj_next;
-        
-        for ( victim = ch->in_room->people; victim != NULL; victim = vnext )
-        {
-            vnext = victim->next_in_room;
-            if ( IS_NPC(victim) && !IS_SET(victim->act,ACT_NOPURGE) 
-                && victim != ch /* safety precaution */ )
-                extract_char( victim, TRUE );
-        }
-        
-        for ( obj = ch->in_room->contents; obj != NULL; obj = obj_next )
-        {
-            obj_next = obj->next_content;
-            if (!IS_OBJ_STAT(obj,ITEM_NOPURGE))
-                extract_obj( obj );
-        }
-        
-        act( "$n purges the room!", ch, NULL, NULL, TO_ROOM);
-        send_to_char( "Ok.\n\r", ch );
+        act("$n purges the room!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the room.\n\r", ch);
+        purge_room(ch->in_room);
         return;
     }
     
     if ( !strcmp(arg, "area") )
     {
-	purge_area( ch->in_room->area );
-        act( "$n purges the area!", ch, NULL, NULL, TO_ROOM);
-	send_to_char( "You purge the area.\n\r", ch );
-	return;
+        act("$n purges the area!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the area.\n\r", ch);
+        purge_area(ch->in_room->area);
+        return;
     }
 
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
@@ -1362,13 +1343,13 @@ DEF_DO_FUN(do_purge)
         
         if (ch == victim)
         {
-            send_to_char("Ho ho ho.\n\r",ch);
+            send_to_char("Purging yourself? You'd end up in Purgatory!\n\r", ch);
             return;
         }
         
         if (get_trust(ch) <= get_trust(victim))
         {
-            send_to_char("Maybe that wasn't a good idea...\n\r",ch);
+            act("Your trust is not high enough to purge $N.", ch, NULL, victim, TO_CHAR);
             sprintf(buf,"%s tried to purge you!\n\r",ch->name);
             send_to_char(buf,victim);
             return;
@@ -1376,8 +1357,7 @@ DEF_DO_FUN(do_purge)
         
         act("$n disintegrates $N.",ch,0,victim,TO_NOTVICT);
         
-        if (victim->level > 1)
-            quit_save_char_obj( victim );
+        quit_save_char_obj(victim);
         d = victim->desc;
         extract_char( victim, TRUE );
         if ( d != NULL )
@@ -1386,6 +1366,7 @@ DEF_DO_FUN(do_purge)
         return;
     }
     
+    act( "You purge $N.", ch, NULL, victim, TO_CHAR );
     act( "$n purges $N.", ch, NULL, victim, TO_NOTVICT );
     extract_char( victim, TRUE );
     return;

@@ -2194,6 +2194,16 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     return;
 }
 
+void recho( const char *msg, ROOM_INDEX_DATA *room )
+{
+    CHAR_DATA * ch;
+    
+    if ( !room || !room->people )
+        return;
+
+    for ( ch = room->people; ch; ch = ch->next_in_room )
+        send_to_char(msg, ch);
+}
 
 int colour( char type, CHAR_DATA *ch, char *string )
 {

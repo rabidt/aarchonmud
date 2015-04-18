@@ -3032,15 +3032,23 @@ void purge_room( ROOM_INDEX_DATA *pRoom )
     for ( victim = pRoom->people; victim != NULL; victim = vnext )
     {
         vnext = victim->next_in_room;
-        if ( IS_NPC(victim) && !IS_SET(victim->act,ACT_NOPURGE))
+        if ( IS_NPC(victim) && !IS_SET(victim->act, ACT_NOPURGE) )
+        {
+            act("$n vanishes.", victim, NULL, NULL, TO_ROOM);
             extract_char( victim, TRUE );
+        }
     }
     
     for ( obj = pRoom->contents; obj != NULL; obj = obj_next )
     {
         obj_next = obj->next_content;
         if ( !IS_OBJ_STAT(obj,ITEM_NOPURGE) )
+        {
+            char buf[MSL];
+            sprintf(buf, "%s vanishes.\n\r", obj->short_descr);
+            recho(buf, pRoom);
             extract_obj( obj );
+        }
     }
     
     return;
