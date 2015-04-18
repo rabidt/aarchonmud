@@ -371,7 +371,7 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( mprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(mprog_flags, trig_type) );
 
 
     /* some snazzy stuff to prevent crashes and other bad things*/
@@ -462,7 +462,7 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( oprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(oprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -544,7 +544,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( aprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(aprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -645,7 +645,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     else lua_pushnil(g_mud_LS);
 
     /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_stat_string( rprog_flags, trig_type) );
+    lua_pushstring ( g_mud_LS, flag_bit_name(rprog_flags, trig_type) );
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;

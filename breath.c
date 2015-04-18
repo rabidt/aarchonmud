@@ -50,6 +50,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
   dam = get_spell_damage( skill_table[sn].min_mana + cost,
 			  skill_table[sn].beats, level );
   dam = adjust_spell_damage( dam, ch );
+  dam += get_spell_bonus_damage(ch, sn);
 
   if (multi_target)
   {
@@ -350,4 +351,139 @@ void curse_effect( void *vo, int level, int dam, int target )
 }
 
 
+/******** draconic breath for PC races - similar but different **********/
 
+static int deduct_draconic_breath_cost( CHAR_DATA *ch )
+{
+    int mana_reserved = ch->max_mana * ch->calm / 100;
+    int move_reserved = ch->max_move * ch->calm / 100;
+    int mana_cost = (ch->mana > mana_reserved ? 1 + (ch->mana - mana_reserved) / 100 : 0);
+    int move_cost = (ch->move > move_reserved ? 1 + (ch->move - move_reserved) / 100 : 0);
+    
+    ch->mana -= mana_cost;
+    ch->move -= move_cost;
+    
+    return mana_cost + move_cost;
+}
+
+static void proto_draconic_breath( int sn, int cost, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type, EFFECT_FUN *effect_fun, bool multi_target )
+{
+    CHAR_DATA *vch, *vch_next;
+    
+    int level = ch->level;
+    int dam = get_spell_damage(cost, PULSE_VIOLENCE, level);
+    // half normal focus bonus applies - it's not really a spell, but it does draw on mana
+    dam += dam * get_focus_bonus(ch) / 200;
+    if ( ch->level >= LEVEL_MIN_HERO )
+        dam += dam * (10 + ch->level - LEVEL_MIN_HERO) / 100;
+    
+    if ( multi_target )
+    {
+        /* effect to room */
+        (*effect_fun)(ch->in_room, level, dam, TARGET_ROOM);
+
+        /* damage and effect to people in room */
+        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+        {
+            vch_next = vch->next_in_room;
+        
+            if ( is_safe_spell(ch, vch, vch != victim) || !is_opponent(ch, vch) )
+                continue;
+            
+            int vch_dam = dam * (vch == victim ? (1 + AREA_SPELL_FACTOR) / 2 : AREA_SPELL_FACTOR);
+            if ( saves_spell(vch, ch, level, dam_type) )
+                vch_dam /= 2;
+            (*effect_fun)(vch, level, vch_dam, TARGET_CHAR);
+            full_dam(ch, vch, vch_dam, sn, dam_type, TRUE);
+        }
+    }
+    else /* single target */
+    {
+        if ( saves_spell(victim, ch, level, dam_type) )
+            dam /= 2;
+        (*effect_fun)(victim, level, dam, TARGET_CHAR);
+        full_dam(ch, victim, dam, sn, dam_type, TRUE);
+    }
+}
+
+void check_draconic_breath( CHAR_DATA *ch )
+{
+    // requires draconic breath skill - low skill means longer wait
+    int skill = get_skill(ch, gsn_draconic_breath);
+    if ( !skill || !per_chance(skill) )
+        return;
+    
+    // can only breathe once every 1d4 rounds
+    // we track this via a draconic breath affect
+    AFFECT_DATA *paf = affect_find(ch->affected, gsn_draconic_breath);
+    if ( paf != NULL )
+    {
+        if ( paf->modifier <= 0 )
+            affect_remove(ch, paf);
+        else
+        {
+            // APPLY_NONE, so it's safe to update affect directly
+            paf->modifier--;
+            return;
+        }
+    }
+    
+    // ensure we have a victim
+    CHAR_DATA *victim = ch->fighting;
+    if ( !victim )
+        return;
+
+    // draconic breath costs mana/moves
+    // but like tempest, it is more efficient
+    int cost = 2 * deduct_draconic_breath_cost(ch);
+    if ( cost <= 0 )
+        return;
+    
+    // 1d4 rounds till next breath
+    int wait = number_range(0,3);
+    if ( wait > 0 )
+    {
+        AFFECT_DATA af = {};
+        af.where        = TO_AFFECTS;
+        af.type         = gsn_draconic_breath;
+        af.level        = ch->level;
+        af.duration     = 1;
+        af.location     = APPLY_NONE;
+        af.modifier     = wait;
+        af.bitvector    = 0;
+        affect_to_char(ch, &af);
+    }
+        
+    // bloodline determines type of breath
+    switch ( ch->pcdata->morph_race )
+    {
+        default:
+        case MORPH_DRAGON_RED:
+            act("$n breathes forth a cone of fire.", ch, NULL, NULL, TO_ROOM);
+            act("You breathe forth a cone of fire.", ch, NULL, NULL, TO_CHAR);
+            proto_draconic_breath(gsn_fire_breath, cost, ch, victim, DAM_FIRE, &fire_effect, TRUE);
+            break;
+        case MORPH_DRAGON_GREEN:
+            act("$n breathes out a cloud of poisonous gas!", ch, NULL, NULL, TO_ROOM);
+            act("You breathe out a cloud of poisonous gas.", ch, NULL, NULL, TO_CHAR);
+            proto_draconic_breath(gsn_gas_breath, cost, ch, victim, DAM_POISON, &poison_effect, TRUE);
+            break;
+        case MORPH_DRAGON_BLUE:
+            act("$n breathes a blast of lightning at $N.", ch, NULL, victim, TO_NOTVICT);
+            act("$n breathes a blast of lightning at you!", ch, NULL, victim, TO_VICT);
+            act("You breathe a blast of lightning at $N.", ch, NULL, victim, TO_CHAR);
+            proto_draconic_breath(gsn_lightning_breath, cost, ch, victim, DAM_LIGHTNING, &shock_effect, FALSE);
+            break;
+        case MORPH_DRAGON_BLACK:
+            act("$n spits acid at $N.", ch, NULL, victim, TO_NOTVICT);
+            act("$n spits a stream of corrosive acid at you.", ch, NULL, victim, TO_VICT);
+            act("You spit acid at $N.", ch, NULL, victim, TO_CHAR);
+            proto_draconic_breath(gsn_acid_breath, cost, ch, victim, DAM_ACID, &acid_effect, FALSE);
+            break;
+        case MORPH_DRAGON_WHITE:
+            act("$n breathes out a freezing cone of frost!", ch, NULL, NULL, TO_ROOM);
+            act("You breathe out a cone of frost.", ch, NULL, NULL, TO_CHAR);
+            proto_draconic_breath(gsn_frost_breath, cost, ch, victim, DAM_POISON, &cold_effect, TRUE);
+            break;
+    }
+}

@@ -394,7 +394,7 @@ const struct flag_type imm_flags[] =
 	{   "sound",        T,  TRUE    },
         {   "sleep",        U,  TRUE    },
         {   "charmperson",  V,  TRUE    },
-        {   "gaze",         W,  TRUE    },
+        {   "petrify",      W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
 	{   "iron",         Z,  TRUE    },
@@ -440,6 +440,7 @@ const struct flag_type form_flags[] =
     {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
     {   "constrict",    FORM_CONSTRICT,     TRUE    },
     {   "multi-headed", FORM_MULTI_HEADED,  TRUE    },
+    {   "armored",      FORM_ARMORED,       TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -563,6 +564,8 @@ const struct flag_type oprog_flags[] =
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
     {   "sit",          OTRIG_SIT,       TRUE    },
+    {   "rest",         OTRIG_REST,      TRUE    },
+    {   "sleep",        OTRIG_SLEEP,     TRUE    },
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
@@ -793,6 +796,7 @@ const struct flag_type extra_flags[] =
 	{   "remort",       ITEM_REMORT,        TRUE    }, 
 	{   "trapped",      ITEM_TRAPPED,       TRUE    },
 	{   "easy_drop",    ITEM_EASY_DROP,     TRUE    },
+    {   "heavy",        ITEM_HEAVY_ARMOR,   TRUE    },
 	{   "allow_warrior",       ITEM_ALLOW_WARRIOR        , TRUE },
 	{   "allow_thief",         ITEM_ALLOW_THIEF          , TRUE },
 	{   "allow_cleric",        ITEM_ALLOW_CLERIC         , TRUE },
@@ -1253,7 +1257,7 @@ const struct stance_type stances [] =
 	{ "kamikaze",         STANCE_KAMIKAZE,            0,             "", 
 		&gsn_kamikaze,             FALSE, TRUE,  25 },
 	{ "showdown",         STANCE_SHOWDOWN,            0,             "", 
-		&gsn_showdown,             FALSE, TRUE,  4  },
+		&gsn_showdown,             FALSE, TRUE,  6  },
 	{ "target practice",  STANCE_TARGET_PRACTICE,     0,             "", 
 		&gsn_target_practice,      FALSE, TRUE,  15 },
 	{ "jihad",            STANCE_JIHAD,               0,             "", 
@@ -1293,7 +1297,11 @@ const struct stance_type stances [] =
         { "aversion",         STANCE_AVERSION,            0,             "",
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
-          &gsn_serpent,             TRUE, FALSE,          22 },
+          &gsn_serpent,             TRUE, FALSE,          18 },
+        { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
+            &gsn_blade_barrier,     FALSE, TRUE,          20 },
+        { "bullet rain",      STANCE_BULLET_RAIN,         0,             "",
+            &gsn_bullet_rain,       FALSE, TRUE,          20 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };

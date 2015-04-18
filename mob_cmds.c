@@ -559,7 +559,7 @@ DEF_DO_FUN(do_mpgecho)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
  	{
 	    if ( IS_IMMORTAL(d->character) )
 		send_to_char( "Mob echo> ", d->character );
@@ -590,7 +590,7 @@ DEF_DO_FUN(do_mpzecho)
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	if ( (IS_PLAYING(d->connected))
 	&&   d->character->in_room != NULL 
 	&&   d->character->in_room->area == ch->in_room->area )
  	{
@@ -1229,7 +1229,7 @@ DEF_DO_FUN(do_mptransfer)
         for ( d = descriptor_list; d; d = d->next )
         {
             if (   !d->character 
-                || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected))
+                || !(IS_PLAYING(d->connected))
                 || !can_see(ch, d->character)
                 || ch->in_room->area != d->character->in_room->area 
                 || d->character->level == 1 )
@@ -1736,7 +1736,7 @@ DEF_DO_FUN(do_mpremove)
 	bug ( "MpRemove: Invalid object from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	*/
-	int loc = flag_value(wear_loc_flags, arg);
+	int loc = flag_lookup(arg, wear_loc_flags);
 	if ( loc == NO_FLAG )
 	{
 	    bug ( "MpRemove: Invalid wear-location from vnum %d.", 
@@ -2183,7 +2183,7 @@ DEF_DO_FUN(do_mpact)
 	one_argument( argument, arg1 );
     }
 
-    if ( (value = flag_value(act_flags, arg1)) == NO_FLAG )
+    if ( (value = flag_lookup(arg1, act_flags)) == NO_FLAG )
     {
 	bugf( "do_mpact: unknown flag <%s> from mob %d",
 	      argument, ch->pIndexData->vnum );
