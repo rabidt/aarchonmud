@@ -4132,11 +4132,36 @@ DEF_DO_FUN(do_withdraw)
 /* Explosives ala Rimbol.  Original idea from Wurm. */
 DEF_DO_FUN(do_ignite)
 {
-    char arg[MAX_INPUT_LENGTH];
+    char arg[MIL], arg2[MIL];
     OBJ_DATA *obj;
     int skill, chance;
+    int max_timer = 2 + mastery_bonus(ch, gsn_ignite, 2, 3);
+    int timer = max_timer;
 
-    one_argument( argument, arg );
+    argument = one_argument( argument, arg );
+    argument = one_argument( argument, arg2 );
+
+    if ( !strcmp(arg, "?") )
+    {
+        send_to_char("Syntax: ignite [obj] [timer]\n\r", ch);
+        return;
+    }
+    
+    // figure out parameters, position alone is not enough
+    if ( is_number(arg) )
+    {
+        timer = atoi(arg);
+        arg[0] = '\0';
+    }
+    else if ( is_number(arg2) )
+        timer = atoi(arg2);
+    
+    if ( timer < 0 || timer > max_timer )
+    {
+        ptc(ch, "You can only set timers between 0 and %d.\n\r", max_timer);
+        return;
+    }
+    
     if ( arg[0] == '\0' )
     {
         // try to find unlit explosive
@@ -4186,7 +4211,7 @@ DEF_DO_FUN(do_ignite)
     {
         act( "$n ignites $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_ROOM );
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
-        obj->timer = 2 + mastery_bonus(ch, gsn_ignite, 2, 3);
+        obj->timer = 1 + timer;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
 
         check_improve(ch,gsn_ignite,TRUE,2);
