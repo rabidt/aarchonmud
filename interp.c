@@ -483,6 +483,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "helper",     do_helper,  POS_DEAD,    0, LOG_ALWAYS, 1, FALSE, FALSE },
     { "guiconfig",  do_guiconfig, POS_DEAD,  0, LOG_NORMAL, 1, FALSE, FALSE },
 
+    { "changelog",  do_changelog, POS_DEAD,  0, LOG_NORMAL, 1, FALSE, FALSE },
+
     /* Freeze Tag */
     { "ftag",       do_ftag, POS_SLEEPING,  L8, LOG_NORMAL, 1, FALSE, FALSE },
     { "tag",        do_tag, POS_RESTING,  0,  LOG_NORMAL, 1, FALSE, FALSE },

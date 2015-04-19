@@ -577,6 +577,7 @@ DECLARE_DO_FUN( do_rforce       );
 
 DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif
@@ -603,3 +604,4 @@ DECLARE_DO_FUN( do_findreset);
 DECLARE_DO_FUN( do_diagnostic);
 DECLARE_DO_FUN( do_path);
 DECLARE_DO_FUN( do_guiconfig);
+DECLARE_DO_FUN( do_changelog);
