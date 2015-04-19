@@ -4186,7 +4186,7 @@ DEF_DO_FUN(do_ignite)
     {
         act( "$n ignites $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_ROOM );
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
-        obj->timer=2;
+        obj->timer = 2 + mastery_bonus(ch, gsn_ignite, 2, 3);
         SET_BIT(obj->extra_flags, ITEM_GLOW);
 
         check_improve(ch,gsn_ignite,TRUE,2);

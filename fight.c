@@ -3212,10 +3212,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         
         check_killer(ch, victim);
-        if ( !start_combat(ch, victim) )
-            return FALSE;
-        
-        if ( victim->position > POS_STUNNED )
+        if ( start_combat(ch, victim) && victim->position > POS_STUNNED )
         {
             if ( IS_NPC(ch)
                 &&   IS_NPC(victim)
@@ -5249,6 +5246,9 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
         affect_strip_flag( ch, AFF_SLEEP );
     if ( ch->position == POS_SLEEPING )
 	set_pos( ch, POS_RESTING );
+    
+    if ( ch->in_room == NULL || victim->in_room == NULL || ch->in_room != victim->in_room )
+        return;
     
     ch->fighting = victim;
 
