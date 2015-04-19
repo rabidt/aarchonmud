@@ -3189,7 +3189,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     int stance = ch->stance;
     int diff;
     
-    if ( stop_attack(ch, victim) )
+    if ( stop_damage(ch, victim) )
         return FALSE;
     
     if ( is_safe(ch, victim) )
@@ -3233,7 +3233,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     } /* if ( ch != victim ) */
 
     /* another safety-net */
-    if ( stop_attack(ch, victim) )
+    if ( stop_damage(ch, victim) )
         return FALSE;
 
    /*
@@ -3302,11 +3302,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( dam > 1 && dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
+    if ( dam > 1 && dt > 0 && dt < TYPE_HIT )
     {
-        if ( victim->stance == STANCE_ARCANA )
+        if ( IS_SPELL(dt) && victim->stance == STANCE_ARCANA )
             dam -= dam/3;
-        if ( check_evasion(ch, victim, dt, show) )
+        if ( (IS_SPELL(dt) || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
             dam -= dam/2;
     }
 
@@ -5363,6 +5363,17 @@ bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim )
 	|| ch->in_room != victim->in_room
 	|| IS_DEAD(ch)
 	|| IS_DEAD(victim);
+}
+
+/* returns wether damage should be canceled - remote damage is ok */
+bool stop_damage( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    return ch == NULL
+    || victim == NULL
+    || ch->in_room == NULL
+    || victim->in_room == NULL
+    || IS_DEAD(ch)
+    || IS_DEAD(victim);
 }
 
 /*

@@ -4196,6 +4196,7 @@ DEF_DO_FUN(do_ignite)
         free_string(obj->owner);
         obj->owner = str_dup(ch->name);
         explode(obj);
+        extract_obj(obj);
     }
     else
     {
