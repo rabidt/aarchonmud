@@ -120,13 +120,72 @@ Save change? [Y/n]
     return
 end
 
-local function show_change_entry( ch, i )
+local function getlines(text, length)
+    local len=text:len()
+    if len<=length then
+        return { text }
+    end
+    local lines={}
+
+    local startind=1
+    local endind
+    
+    repeat
+        while text:sub(startind, startind)==" " do
+            startind=startind+1
+        end
+        
+        if startind>len then break end
+
+        endind=math.min(len, startind-1+length)
+
+        while endind>startind 
+        and not(endind>=len)
+        and not(text:sub(endind+1,endind+1) == " ") do
+            endind=endind-1
+        end
+
+        table.insert(lines, text:sub(startind,endind))
+        startind=endind+1
+    until startind>len
+
+    return lines
+
+end
+
+local function getindexcolor( index )
+    if index%2 == 0 then
+        return "{y"
+    else
+        return "{c"
+    end
+end
+
+local function show_change_entry( ch, i, color)
     local ent=changelog_table[i]
-    sendtochar( ch, ("%4d. %s {G%-10s{x %s\n\r"):format(
-            i,
-            os.date("%Y/%m/%d",ent.date),
-            ent.author,
-            ent.desc))
+    local indent=29
+    local textwidth=80-indent
+    local desc=ent.desc
+    local len=desc:len()
+
+    local lines=getlines(desc, textwidth)
+
+
+    for lineInd,v in ipairs(lines) do
+        if lineInd==1 then
+            sendtochar( ch, ("%s%5d. %s %-10s "):format(
+                    color,
+                    i,
+                    os.date("%Y/%m/%d", ent.date),
+                    ent.author))
+
+        else
+            sendtochar( ch, (" "):rep(indent))
+        end
+
+        sendtochar(ch, v.."\n\r")
+    end
+    sendtochar(ch, "{x")
 end
 
 local function show_change_page( ch, pagenum, indices )
@@ -136,16 +195,14 @@ local function show_change_page( ch, pagenum, indices )
     start = 1 + ((pagenum-1) * PAGE_SIZE)
     fin = math.min(start-1+PAGE_SIZE, lastind)
 
-    sendtochar( ch, "Page "..pagenum.."\n\r")
-    
     if indices then
     -- Only show some indices
         for i=start,fin do
-            show_change_entry( ch, indices[i])
+            show_change_entry( ch, indices[i], getindexcolor(i))
         end
     else
         for i=start,fin do
-            show_change_entry( ch, i )
+            show_change_entry( ch, i, getindexcolor(i))
         end
     end
                 
@@ -155,9 +212,14 @@ local function changelog_browse_con( d, indices )
     local cmd
     local pagenum=1
     local lastpage=math.ceil((indices and #indices or #changelog_table)/PAGE_SIZE)
+    local show=true
+
     while true do
-        sendtochar( d.character, "Page "..pagenum.."/"..lastpage.."\n\r")
-        show_change_page( d.character, pagenum, indices )  
+        if show then
+            sendtochar( d.character, "Page "..pagenum.."/"..lastpage.."\n\r")
+            show_change_page( d.character, pagenum, indices )  
+        end
+        show=true
         sendtochar( d.character,
             "[q]uit, [n]ext, [p]rev, [f]irst, [l]ast, or #\n\r")
         
@@ -171,6 +233,7 @@ local function changelog_browse_con( d, indices )
             local newnum=pagenum+1
             if newnum<1 or newnum>lastpage then
                 sendtochar(d.character, "Already at last page.\n\r")
+                show=false
             else
                 pagenum=newnum
             end
@@ -178,19 +241,34 @@ local function changelog_browse_con( d, indices )
             -- previous page
             if pagenum<2 then
                 sendtochar(d.character, "Already at first page.\n\r")
+                show=false
             else
                 pagenum=pagenum-1
             end
         elseif cmd=="f" then
             -- first page
-            pagenum=1
+            if pagenum==1 then
+                sendtochar(d.character, "Already at first page.\n\r")
+                show=false
+            else
+                pagenum=1
+            end
         elseif cmd=="l" then
             -- last page
-            pagenum=lastpage
+            if pagenum==lastpage then
+                sendtochar(d.character, "Already at last page.\n\r")
+                show=false
+            else
+                pagenum=lastpage
+            end
         elseif tonumber(cmd) then
             local newnum=tonumber(cmd)
             if newnum<1 or newnum>lastpage then
                 sendtochar(d.character, "No such page.\n\r")
+                show=false
+            elseif pagenum==newnum then
+                sendtochar(d.character, "Already at page "..newnum..".\n\r")
+                show=false
             else
                 pagenum=newnum
             end
@@ -206,7 +284,7 @@ local function changelog_remove_con( d, ind )
         return
     end
 
-    show_change_entry( d.character, ind)
+    show_change_entry( d.character, ind, getindexcolor(ind))
     sendtochar( d.character, "Delete this entry? 'Y' to confirm.\n\r")
 
     cmd=coroutine.yield()
@@ -273,7 +351,7 @@ function do_changelog( ch, argument )
         end
 
         for i=start,fin do
-            show_change_entry( ch, i)
+            show_change_entry( ch, i, getindexcolor(i))
         end
         return
 
