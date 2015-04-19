@@ -6496,7 +6496,7 @@ struct  skill_type
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_STANDING,
 		&gsn_ignite,            0,  12, DUR_NONE,
-		"",         "!Ignite!", ""
+		"explosion",         "!Ignite!", ""
 	},
 
 	{               

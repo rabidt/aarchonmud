@@ -4134,7 +4134,7 @@ DEF_DO_FUN(do_ignite)
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
-    int skill;
+    int skill, chance;
 
     one_argument( argument, arg );
     if ( arg[0] == '\0' )
@@ -4155,12 +4155,6 @@ DEF_DO_FUN(do_ignite)
         return;
     }
 
-    if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE))
-    {
-        send_to_char( "You can't ignite explosives in a safe room.\n\r", ch);
-        return;
-    }
-
     if ( obj->timer > 0 )
     {
         send_to_char( "That item has already been ignited!\n\r", ch);
@@ -4175,7 +4169,11 @@ DEF_DO_FUN(do_ignite)
         return;
     }
 
-    if ( number_percent() < skill )
+    // level of bomb determines ease of use
+    chance = skill * (100 + ch->level) / 100 - obj->level;
+    chance = URANGE(5, chance, 95);
+
+    if ( per_chance(chance) )
     {
         act( "$n ignites $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_ROOM );
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
@@ -4195,6 +4193,8 @@ DEF_DO_FUN(do_ignite)
     {
         act( "$n tries to ignite $p and a spark flies into the gunpowder!", ch, obj, NULL, TO_ROOM );
         act( "You try to ignite $p and a spark flies into the gunpowder!", ch, obj, NULL, TO_CHAR );
+        free_string(obj->owner);
+        obj->owner = str_dup(ch->name);
         explode(obj);
     }
     else
