@@ -156,6 +156,7 @@ local function changelog_browse_con( d, indices )
     local pagenum=1
     local lastpage=math.ceil((indices and #indices or #changelog_table)/PAGE_SIZE)
     while true do
+        sendtochar( d.character, "Page "..pagenum.."/"..lastpage.."\n\r")
         show_change_page( d.character, pagenum, indices )  
         sendtochar( d.character,
             "[q]uit, [n]ext, [p]rev, [f]irst, [l]ast, or #\n\r")
@@ -228,6 +229,7 @@ end
 local function changelog_usage( ch )
     sendtochar( ch, [[
 changelog show              -- Show 30 most recent changes.
+changelog show [page]       -- Show a specific page of changes.
 changelog browse            -- Browse changes page by page.
 changelog find [text]       -- Show all entries that contain the given text.
 changelog pattern [pattern] -- Show all entries that match the given pattern 
@@ -236,6 +238,7 @@ changelog author [name]     -- Show all entries from the given author.
 ]])
     if ch.level>=108 then
         sendtochar( ch, [[
+
 changelog add             -- Add a change.
 changelog remove [#index] -- Remove a change
 ]])
@@ -254,11 +257,14 @@ function do_changelog( ch, argument )
         local start
         local fin
         if page then
-            if page<1 or page>math.ceil(ttl/PAGE_SIZE) then
+            local lastpage=math.ceil(ttl/PAGE_SIZE)
+
+            if page<1 or page>lastpage then
                 sendtochar(ch, "Invalid page number.\n\r")
                 return
             end
-
+            
+            sendtochar( ch, "Page "..page.."/"..lastpage.."\n\r") 
             show_change_page( ch, page)
             return
         else
@@ -279,7 +285,7 @@ function do_changelog( ch, argument )
         local text=argument:sub(("find "):len()+1)
         local result_indices={}
         for k,v in pairs(changelog_table) do
-            if string.find(v.desc, text, 1, true) then
+            if string.find(v.desc:lower(), text:lower(), 1, true) then
                 table.insert(result_indices, k)
             end
         end
