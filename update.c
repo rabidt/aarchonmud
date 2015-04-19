@@ -2109,7 +2109,7 @@ void obj_update( void )
                         message = "$p sputters a little and dies out.";
                     else
                     {
-                        message = "$p explodes violently, throwing you to the floor!";
+                        message = NULL;
                         explode(obj);
                     }
                     break;
@@ -2135,23 +2135,19 @@ void obj_update( void )
                                       break;
             }
 
-        if ( obj->carried_by != NULL )
+        if ( message != NULL )
         {
-            if (IS_NPC(obj->carried_by) 
-                    &&  obj->carried_by->pIndexData->pShop != NULL)
-                obj->carried_by->silver += obj->cost/5;
-            else
+            if ( obj->carried_by != NULL )
             {
-                act( message, obj->carried_by, obj, NULL, TO_CHAR );
-                if ( obj->wear_loc == WEAR_FLOAT)
-                    act(message,obj->carried_by,obj,NULL,TO_ROOM);
+                act(message, obj->carried_by, obj, NULL, TO_CHAR);
+                if ( obj->wear_loc == WEAR_FLOAT )
+                    act(message, obj->carried_by, obj, NULL, TO_ROOM);
             }
-        }
-        else if ( obj->in_room != NULL
-                && ( rch = obj->in_room->people ) != NULL )
-        {
-            act( message, rch, obj, NULL, TO_ROOM );
-            act( message, rch, obj, NULL, TO_CHAR );
+            else if ( obj->in_room != NULL && (rch = obj->in_room->people) != NULL )
+            {
+                act(message, rch, obj, NULL, TO_ROOM);
+                act(message, rch, obj, NULL, TO_CHAR);
+            }
         }
 
         /* make sure items won't get lost in remort due to corpse crumbling */
@@ -2569,10 +2565,14 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
     bool lethal = ch->in_room == victim->in_room;
     
-    if ( saves_spell(victim, NULL, ch->level, DAM_BASH) )
+    if ( saves_spell(victim, NULL, dam/10, DAM_BASH) )
         dam /= 2;
     else
+    {
+        send_to_char("You are thrown to the floor by the force of the explosion!\n\r", victim);
         set_pos(victim, POS_RESTING);
+        destance(victim, 0);
+    }
     
     deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
 }
@@ -2580,7 +2580,7 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 /* Explosives by Rimbol.  Original idea from Wurm codebase. */
 void explode(OBJ_DATA *obj)
 {
-    OBJ_DATA *original_obj = NULL;
+    OBJ_DATA *original_obj = obj;
     CHAR_DATA *rch, *victim = NULL;
     CHAR_DATA *owner = NULL;
     ROOM_INDEX_DATA *room;
@@ -2607,7 +2607,6 @@ void explode(OBJ_DATA *obj)
     {
         contained = TRUE;
         dam /= 2;
-        original_obj = obj;
         while (obj->in_obj)
             obj = obj->in_obj;
     }
@@ -2632,10 +2631,11 @@ void explode(OBJ_DATA *obj)
     else
     {
         if ( contained )
-        {
             sprintf(buf, "%s explodes inside %s!  Some of the blast is absorbed.", original_obj->short_descr, obj->short_descr);
-            recho(buf, room);
-        }
+        else
+            sprintf(buf, "%s explodes violently!", original_obj->short_descr);
+        
+        recho(buf, room);
         dam *= 0.5 * AREA_SPELL_FACTOR;
     }
     
