@@ -1207,6 +1207,40 @@ DEF_DO_FUN(do_luahelp)
     }
 }
 
+DEF_DO_FUN(do_changelog)
+{
+    lua_getglobal(g_mud_LS, "do_changelog");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf("Error with do_changelog:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+void save_changelog()
+{
+    lua_getglobal( g_mud_LS, "save_changelog");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with save_changelog:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }  
+}
+
+void load_changelog()
+{
+    lua_getglobal( g_mud_LS, "load_changelog");
+    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
+    {
+        bugf ( "Error with load_changelog:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
 /* sorted ctable section */
 void make_skill_table( lua_State *LS )
 {
