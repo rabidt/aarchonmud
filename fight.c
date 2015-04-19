@@ -6356,9 +6356,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         }
         else
         {
-            sprintf( buf1, "$n %s $N%c",  vp, punct );
-            sprintf( buf2, "You %s $N%s%c", vs, chmeter, punct );
-            sprintf( buf3, "$n %s you%s%c", vp, victmeter, punct );
+            sprintf( buf1, "$N %s $n%c",  vp, punct );
+            sprintf( buf2, "You %s $n%s%c", vs, chmeter, punct );
+            sprintf( buf3, "$N %s you%s%c", vp, victmeter, punct );
         }
     }
     else
@@ -6389,9 +6389,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             } 
             else
             {
-                sprintf(buf1,"$N is unaffected by $n's %s!",attack);
-                sprintf(buf2,"$N is unaffected by your %s!",attack);
-                sprintf(buf3,"$n's %s is powerless against you.",attack);
+                sprintf(buf1,"$n is unaffected by $N's %s!",attack);
+                sprintf(buf2,"$n is unaffected by your %s!",attack);
+                sprintf(buf3,"$N's %s is powerless against you.",attack);
             }
         }
         else
@@ -6403,9 +6403,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             }
             else
             {
-                sprintf( buf1, "$n's %s %s $N%c",  attack, vp, punct );
-                sprintf( buf2, "Your %s %s $N%s%c",  attack, vp, chmeter, punct );
-                sprintf( buf3, "$n's %s %s you%s%c", attack, vp, victmeter, punct );
+                sprintf( buf1, "$N's %s %s $n%c",  attack, vp, punct );
+                sprintf( buf2, "Your %s %s $n%s%c",  attack, vp, chmeter, punct );
+                sprintf( buf3, "$N's %s %s you%s%c", attack, vp, victmeter, punct );
             }
         }
     }
@@ -6444,9 +6444,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     }
     else
     {
-        act_gag( buf1, ch, NULL, victim, TO_NOTVICT, gag_type);
-        act_gag( buf2, ch, NULL, victim, TO_CHAR, gag_type);
-        act_gag( buf3, ch, NULL, victim, TO_VICT, gag_type);
+        act_gag( buf1, victim, NULL, ch, TO_NOTVICT, gag_type);
+        act_gag( buf2, victim, NULL, ch, TO_VICT, gag_type);
+        act_gag( buf3, victim, NULL, ch, TO_CHAR, gag_type);
     }
     
 #ifdef DEBUG_DAMTYPE
