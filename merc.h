@@ -4592,6 +4592,7 @@ void    set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger );
 bool    is_opponent( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
@@ -5254,6 +5255,7 @@ void    change_align    args( (CHAR_DATA *ch, int change_by) );
 void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
+void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );
