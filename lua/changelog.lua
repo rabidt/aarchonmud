@@ -1,5 +1,7 @@
 changelog_table = changelog_table or {}
 local PAGE_SIZE=30
+local disable_save=false
+
 local function add_change( chg )
     --table.insert( changelog_table, chg )
     --table.sort( changelog_table, function(a,b) return a.date<b.date end)
@@ -353,6 +355,20 @@ function do_changelog( ch, argument )
             sendtochar( ch, "Not implemented yet.\n\r")
             return
         end 
+
+        --[[ temporary for debug stuff
+        if args[1]=="nosave" then
+            disable_save=not(disable_save)
+            sendtochar( ch, "Saving disabled: "..tostring(disable_save).."\n\r")
+            return
+        end
+
+        if args[1]=="reload" then
+            load_changelog()
+            sendtochar( ch, "Changelog force reloaded from file.")
+            return
+        end
+        -- end debug --]]
     end
 
     changelog_usage(ch)
@@ -369,7 +385,10 @@ function load_changelog()
     if tmp then changelog_table=tmp end
 end
 
+
 function save_changelog()
+    if disable_save then return end
+
     local f=io.open("changelog_table.lua", "w")
     out,saved=serialize.save("changelog_table", changelog_table)
     f:write(out)
