@@ -752,6 +752,9 @@ void boot_db()
     log_string( "Lua init.");
     open_lua();
 
+    log_string( "Load changelog." );
+    load_changelog();
+
     log_string( "Loading leaderboards" );
     load_lboards();
 
