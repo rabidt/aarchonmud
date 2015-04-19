@@ -2568,6 +2568,12 @@ void update_handler( void )
 void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
     bool lethal = ch->in_room == victim->in_room;
+    
+    if ( saves_spell(victim, NULL, ch->level, DAM_BASH) )
+        dam /= 2;
+    else
+        set_pos(victim, POS_RESTING);
+    
     deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
 }
 
@@ -2621,7 +2627,6 @@ void explode(OBJ_DATA *obj)
             act("$p explodes in $n's hands!", obj->carried_by, obj, NULL, TO_ROOM);
         }
         deal_bomb_damage(owner, victim, dam);
-        set_pos(victim, POS_RESTING);
         return;
     }
     else
@@ -2643,9 +2648,7 @@ void explode(OBJ_DATA *obj)
     {
         if ( is_safe_spell(owner, rch, FALSE) )
             continue;
-
         deal_bomb_damage(owner, rch, dam);
-        set_pos(rch, POS_RESTING);
     }
 }
 
