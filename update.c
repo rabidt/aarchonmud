@@ -2565,6 +2565,12 @@ void update_handler( void )
     return;
 }
 
+void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
+{
+    bool lethal = ch->in_room == victim->in_room;
+    deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
+}
+
 /* Explosives by Rimbol.  Original idea from Wurm codebase. */
 void explode(OBJ_DATA *obj)
 {
@@ -2614,7 +2620,7 @@ void explode(OBJ_DATA *obj)
             act("$p explodes in your hands!", obj->carried_by, obj, NULL, TO_CHAR);
             act("$p explodes in $n's hands!", obj->carried_by, obj, NULL, TO_ROOM);
         }
-        direct_damage(owner, victim, dam, gsn_ignite);
+        deal_bomb_damage(owner, victim, dam);
         set_pos(victim, POS_RESTING);
         return;
     }
@@ -2635,12 +2641,10 @@ void explode(OBJ_DATA *obj)
     // now the damage
     for ( rch = room->people; rch; rch = rch->next_in_room )
     {
-        // prevent indirect pkill, but allow in warfare
-        if ( is_always_safe(owner, rch) && !PLR_ACT(rch, PLR_WAR) )
+        if ( is_safe_spell(owner, rch, FALSE) )
             continue;
 
-        // direct damage works even if attacker and victim are in different rooms
-        direct_damage(owner, rch, dam, gsn_ignite);
+        deal_bomb_damage(owner, rch, dam);
         set_pos(rch, POS_RESTING);
     }
 }
