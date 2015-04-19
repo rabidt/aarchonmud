@@ -3081,6 +3081,9 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     dam = URANGE( 0, dam, victim->hit - 1 );
     victim->hit -= dam;
 
+    check_killer(ch, victim);
+    if ( ch->in_room == victim->in_room )
+        start_combat(ch, victim);
     remember_attack(victim, ch, dam);
 
     if ( dam > 0 )

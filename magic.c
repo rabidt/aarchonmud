@@ -2664,7 +2664,10 @@ DEF_SPELL_FUN(spell_create_bomb)
     act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
     act( "You create $p.", ch, bomb, NULL, TO_CHAR );
     bomb->timer = -1;
-    bomb->value[0] = UMAX(1, level/10) + 3;
+    // #dice
+    bomb->value[0] = 25 + level * 3/4;
+    // type of dice
+    bomb->value[1] = 20;
     bomb->level = level;
     obj_to_char(bomb,ch);
     
