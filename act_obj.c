@@ -4139,26 +4139,35 @@ DEF_DO_FUN(do_ignite)
     one_argument( argument, arg );
     if ( arg[0] == '\0' )
     {
-        send_to_char( "Ignite what?\n\r", ch );
-        return;
+        // try to find unlit explosive
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer <= 0 )
+                break;
+        if ( obj == NULL )
+        {
+            send_to_char("You carry no unlit explosives.\n\r", ch);
+            return;
+        }
     }
-
-    if ( ( obj = get_obj_carry( ch, arg, ch ) ) == NULL )
+    else
     {
-        send_to_char( "You do not have that item.\n\r", ch );
-        return;
-    }
+        if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+        {
+            send_to_char("You do not have that item.\n\r", ch);
+            return;
+        }
 
-    if ( obj->item_type != ITEM_EXPLOSIVE)
-    {
-        send_to_char( "You cannot set this to expode!\n\r", ch );
-        return;
-    }
+        if ( obj->item_type != ITEM_EXPLOSIVE)
+        {
+            send_to_char("You cannot set this to expode!\n\r", ch);
+            return;
+        }
 
-    if ( obj->timer > 0 )
-    {
-        send_to_char( "That item has already been ignited!\n\r", ch);
-        return;
+        if ( obj->timer > 0 )
+        {
+            send_to_char("That item has already been ignited!\n\r", ch);
+            return;
+        }
     }
 
     skill = get_skill(ch, gsn_ignite);

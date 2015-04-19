@@ -2665,7 +2665,7 @@ DEF_SPELL_FUN(spell_create_bomb)
     act( "You create $p.", ch, bomb, NULL, TO_CHAR );
     bomb->timer = -1;
     // #dice
-    bomb->value[0] = 25 + level * 3/4;
+    bomb->value[0] = 2 * (25 + level * 3/4);
     // type of dice
     bomb->value[1] = 20;
     bomb->level = level;
