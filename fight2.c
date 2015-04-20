@@ -906,9 +906,18 @@ DEF_DO_FUN(do_aim)
                     disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
                 break;
             case AIM_FOOT:
-                act("Your bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
-                act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
-                act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                if ( get_weapon_sn(ch) == gsn_bow )
+                {
+                    act("Your arrow hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
+                    act("$n's arrow hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
+                    act("$n's arrow hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                }
+                else
+                {
+                    act("Your bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
+                    act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
+                    act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                }
                 WAIT_STATE( victim, 2*PULSE_VIOLENCE );
                 victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
                 if( number_bits(1) )
