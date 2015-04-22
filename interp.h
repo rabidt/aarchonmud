@@ -101,6 +101,7 @@ DECLARE_DO_FUN( do_bite     );
 DECLARE_DO_FUN( do_blast    );
 DECLARE_DO_FUN( do_blue     );
 DECLARE_DO_FUN( do_board    );
+DECLARE_DO_FUN( do_bomb     );
 DECLARE_DO_FUN( do_bounty   );
 DECLARE_DO_FUN( do_brandish );
 DECLARE_DO_FUN( do_brawl    );

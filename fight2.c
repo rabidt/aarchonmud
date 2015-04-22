@@ -4496,3 +4496,36 @@ DEF_DO_FUN(do_blast)
         act("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM);
     }
 }
+
+DEF_DO_FUN(do_bomb)
+{
+    CHAR_DATA *victim;
+    OBJ_DATA *obj;
+    int dam;
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    if ( is_safe(ch, victim) )
+        return;
+    
+    // find bomb
+    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+        if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer > 0 )
+            break;
+    if ( obj == NULL )
+    {
+        send_to_char("You carry no lit explosives.\n\r", ch);
+        return;
+    }
+
+    WAIT_STATE(ch, PULSE_VIOLENCE);
+    
+    dam = dice(obj->value[0], obj->value[1]);
+    act("You throw $p at $N.", ch, obj, victim, TO_CHAR);
+    act("$n throws $p at you.", ch, obj, victim, TO_VICT);
+    act("$n throws $p at $N.", ch, obj, victim, TO_NOTVICT);
+    extract_obj(obj);
+    
+    deal_bomb_damage(ch, victim, dam);
+}

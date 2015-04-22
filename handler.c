@@ -2686,6 +2686,9 @@ CHAR_DATA* get_player( const char *name )
     DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;
 
+    if ( name == NULL )
+        return NULL;
+    
     /* match exact name */
     for ( d = descriptor_list; d != NULL; d = d->next )
 	if ( IS_PLAYING(d->connected) )
