@@ -4132,39 +4132,67 @@ DEF_DO_FUN(do_withdraw)
 /* Explosives ala Rimbol.  Original idea from Wurm. */
 DEF_DO_FUN(do_ignite)
 {
-    char arg[MAX_INPUT_LENGTH];
+    char arg[MIL], arg2[MIL];
     OBJ_DATA *obj;
-    int skill;
+    int skill, chance;
+    int max_timer = 2 + mastery_bonus(ch, gsn_ignite, 2, 3);
+    int timer = max_timer;
 
-    one_argument( argument, arg );
+    argument = one_argument( argument, arg );
+    argument = one_argument( argument, arg2 );
+
+    if ( !strcmp(arg, "?") )
+    {
+        send_to_char("Syntax: ignite [obj] [timer]\n\r", ch);
+        return;
+    }
+    
+    // figure out parameters, position alone is not enough
+    if ( is_number(arg) )
+    {
+        timer = atoi(arg);
+        arg[0] = '\0';
+    }
+    else if ( is_number(arg2) )
+        timer = atoi(arg2);
+    
+    if ( timer < 0 || timer > max_timer )
+    {
+        ptc(ch, "You can only set timers between 0 and %d.\n\r", max_timer);
+        return;
+    }
+    
     if ( arg[0] == '\0' )
     {
-        send_to_char( "Ignite what?\n\r", ch );
-        return;
+        // try to find unlit explosive
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer <= 0 )
+                break;
+        if ( obj == NULL )
+        {
+            send_to_char("You carry no unlit explosives.\n\r", ch);
+            return;
+        }
     }
-
-    if ( ( obj = get_obj_carry( ch, arg, ch ) ) == NULL )
+    else
     {
-        send_to_char( "You do not have that item.\n\r", ch );
-        return;
-    }
+        if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+        {
+            send_to_char("You do not have that item.\n\r", ch);
+            return;
+        }
 
-    if ( obj->item_type != ITEM_EXPLOSIVE)
-    {
-        send_to_char( "You cannot set this to expode!\n\r", ch );
-        return;
-    }
+        if ( obj->item_type != ITEM_EXPLOSIVE)
+        {
+            send_to_char("You cannot set this to expode!\n\r", ch);
+            return;
+        }
 
-    if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE))
-    {
-        send_to_char( "You can't ignite explosives in a safe room.\n\r", ch);
-        return;
-    }
-
-    if ( obj->timer > 0 )
-    {
-        send_to_char( "That item has already been ignited!\n\r", ch);
-        return;
+        if ( obj->timer > 0 )
+        {
+            send_to_char("That item has already been ignited!\n\r", ch);
+            return;
+        }
     }
 
     skill = get_skill(ch, gsn_ignite);
@@ -4175,11 +4203,15 @@ DEF_DO_FUN(do_ignite)
         return;
     }
 
-    if ( number_percent() < skill )
+    // level of bomb determines ease of use
+    chance = skill * (100 + ch->level) / 100 - obj->level;
+    chance = URANGE(5, chance, 95);
+
+    if ( per_chance(chance) )
     {
         act( "$n ignites $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_ROOM );
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
-        obj->timer=2;
+        obj->timer = 1 + timer;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
 
         check_improve(ch,gsn_ignite,TRUE,2);
@@ -4195,7 +4227,10 @@ DEF_DO_FUN(do_ignite)
     {
         act( "$n tries to ignite $p and a spark flies into the gunpowder!", ch, obj, NULL, TO_ROOM );
         act( "You try to ignite $p and a spark flies into the gunpowder!", ch, obj, NULL, TO_CHAR );
+        free_string(obj->owner);
+        obj->owner = str_dup(ch->name);
         explode(obj);
+        extract_obj(obj);
     }
     else
     {

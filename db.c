@@ -3048,7 +3048,7 @@ void purge_room( ROOM_INDEX_DATA *pRoom )
         if ( !IS_OBJ_STAT(obj,ITEM_NOPURGE) )
         {
             char buf[MSL];
-            sprintf(buf, "%s vanishes.\n\r", obj->short_descr);
+            sprintf(buf, "%s vanishes.", obj->short_descr);
             recho(buf, pRoom);
             extract_obj( obj );
         }
