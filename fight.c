@@ -3081,6 +3081,9 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     dam = URANGE( 0, dam, victim->hit - 1 );
     victim->hit -= dam;
 
+    check_killer(ch, victim);
+    if ( ch->in_room == victim->in_room )
+        start_combat(ch, victim);
     remember_attack(victim, ch, dam);
 
     if ( dam > 0 )
@@ -3186,7 +3189,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     int stance = ch->stance;
     int diff;
     
-    if ( stop_attack(ch, victim) )
+    if ( stop_damage(ch, victim) )
         return FALSE;
     
     if ( is_safe(ch, victim) )
@@ -3209,10 +3212,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         
         check_killer(ch, victim);
-        if ( !start_combat(ch, victim) )
-            return FALSE;
-        
-        if ( victim->position > POS_STUNNED )
+        if ( start_combat(ch, victim) && victim->position > POS_STUNNED )
         {
             if ( IS_NPC(ch)
                 &&   IS_NPC(victim)
@@ -3230,7 +3230,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     } /* if ( ch != victim ) */
 
     /* another safety-net */
-    if ( stop_attack(ch, victim) )
+    if ( stop_damage(ch, victim) )
         return FALSE;
 
    /*
@@ -3299,11 +3299,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( dam > 1 && dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
+    if ( dam > 1 && dt > 0 && dt < TYPE_HIT )
     {
-        if ( victim->stance == STANCE_ARCANA )
+        if ( IS_SPELL(dt) && victim->stance == STANCE_ARCANA )
             dam -= dam/3;
-        if ( check_evasion(ch, victim, dt, show) )
+        if ( (IS_SPELL(dt) || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
             dam -= dam/2;
     }
 
@@ -5247,6 +5247,9 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
     if ( ch->position == POS_SLEEPING )
 	set_pos( ch, POS_RESTING );
     
+    if ( ch->in_room == NULL || victim->in_room == NULL || ch->in_room != victim->in_room )
+        return;
+    
     ch->fighting = victim;
 
     if ( kill_trigger && check_kill_trigger(ch, victim) )
@@ -5360,6 +5363,17 @@ bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim )
 	|| ch->in_room != victim->in_room
 	|| IS_DEAD(ch)
 	|| IS_DEAD(victim);
+}
+
+/* returns wether damage should be canceled - remote damage is ok */
+bool stop_damage( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    return ch == NULL
+    || victim == NULL
+    || ch->in_room == NULL
+    || victim->in_room == NULL
+    || IS_DEAD(ch)
+    || IS_DEAD(victim);
 }
 
 /*
@@ -6353,9 +6367,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         }
         else
         {
-            sprintf( buf1, "$n %s $N%c",  vp, punct );
-            sprintf( buf2, "You %s $N%s%c", vs, chmeter, punct );
-            sprintf( buf3, "$n %s you%s%c", vp, victmeter, punct );
+            sprintf( buf1, "$N %s $n%c",  vp, punct );
+            sprintf( buf2, "You %s $n%s%c", vs, chmeter, punct );
+            sprintf( buf3, "$N %s you%s%c", vp, victmeter, punct );
         }
     }
     else
@@ -6386,9 +6400,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             } 
             else
             {
-                sprintf(buf1,"$N is unaffected by $n's %s!",attack);
-                sprintf(buf2,"$N is unaffected by your %s!",attack);
-                sprintf(buf3,"$n's %s is powerless against you.",attack);
+                sprintf(buf1,"$n is unaffected by $N's %s!",attack);
+                sprintf(buf2,"$n is unaffected by your %s!",attack);
+                sprintf(buf3,"$N's %s is powerless against you.",attack);
             }
         }
         else
@@ -6400,9 +6414,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             }
             else
             {
-                sprintf( buf1, "$n's %s %s $N%c",  attack, vp, punct );
-                sprintf( buf2, "Your %s %s $N%s%c",  attack, vp, chmeter, punct );
-                sprintf( buf3, "$n's %s %s you%s%c", attack, vp, victmeter, punct );
+                sprintf( buf1, "$N's %s %s $n%c",  attack, vp, punct );
+                sprintf( buf2, "Your %s %s $n%s%c",  attack, vp, chmeter, punct );
+                sprintf( buf3, "$N's %s %s you%s%c", attack, vp, victmeter, punct );
             }
         }
     }
@@ -6441,9 +6455,9 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     }
     else
     {
-        act_gag( buf1, ch, NULL, victim, TO_NOTVICT, gag_type);
-        act_gag( buf2, ch, NULL, victim, TO_CHAR, gag_type);
-        act_gag( buf3, ch, NULL, victim, TO_VICT, gag_type);
+        act_gag( buf1, victim, NULL, ch, TO_NOTVICT, gag_type);
+        act_gag( buf2, victim, NULL, ch, TO_VICT, gag_type);
+        act_gag( buf3, victim, NULL, ch, TO_CHAR, gag_type);
     }
     
 #ifdef DEBUG_DAMTYPE

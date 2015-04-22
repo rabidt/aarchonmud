@@ -2109,7 +2109,7 @@ void obj_update( void )
                         message = "$p sputters a little and dies out.";
                     else
                     {
-                        message = "$p explodes violently, throwing you to the floor!";
+                        message = NULL;
                         explode(obj);
                     }
                     break;
@@ -2135,23 +2135,19 @@ void obj_update( void )
                                       break;
             }
 
-        if ( obj->carried_by != NULL )
+        if ( message != NULL )
         {
-            if (IS_NPC(obj->carried_by) 
-                    &&  obj->carried_by->pIndexData->pShop != NULL)
-                obj->carried_by->silver += obj->cost/5;
-            else
+            if ( obj->carried_by != NULL )
             {
-                act( message, obj->carried_by, obj, NULL, TO_CHAR );
-                if ( obj->wear_loc == WEAR_FLOAT)
-                    act(message,obj->carried_by,obj,NULL,TO_ROOM);
+                act(message, obj->carried_by, obj, NULL, TO_CHAR);
+                if ( obj->wear_loc == WEAR_FLOAT )
+                    act(message, obj->carried_by, obj, NULL, TO_ROOM);
             }
-        }
-        else if ( obj->in_room != NULL
-                && ( rch = obj->in_room->people ) != NULL )
-        {
-            act( message, rch, obj, NULL, TO_ROOM );
-            act( message, rch, obj, NULL, TO_CHAR );
+            else if ( obj->in_room != NULL && (rch = obj->in_room->people) != NULL )
+            {
+                act(message, rch, obj, NULL, TO_ROOM);
+                act(message, rch, obj, NULL, TO_CHAR);
+            }
         }
 
         /* make sure items won't get lost in remort due to corpse crumbling */
@@ -2565,146 +2561,94 @@ void update_handler( void )
     return;
 }
 
+void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
+{
+    bool lethal = ch->in_room == victim->in_room;
+    
+    if ( saves_spell(victim, NULL, dam/10, DAM_BASH) )
+        dam /= 2;
+    else
+    {
+        send_to_char("You are thrown to the floor by the force of the explosion!\n\r", victim);
+        set_pos(victim, POS_RESTING);
+        destance(victim, 0);
+    }
+    
+    deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
+}
+
 /* Explosives by Rimbol.  Original idea from Wurm codebase. */
 void explode(OBJ_DATA *obj)
 {
-    OBJ_DATA *original_obj = NULL;
-    CHAR_DATA *to = NULL;
+    OBJ_DATA *original_obj = obj;
+    CHAR_DATA *rch, *victim = NULL;
+    CHAR_DATA *owner = NULL;
     ROOM_INDEX_DATA *room;
-    int relative = 0;
-    int absolute = 0;
+    char buf[MSL];
     long int dam;
     bool contained = FALSE;
 
-    if (get_obj_room(obj) == NULL )
+    if ( (room = get_obj_room(obj)) == NULL )
     {
         bugf( "explode: no room for %d", obj->pIndexData->vnum);
         return;
     }
-    if (IS_SET((get_obj_room(obj))->room_flags, ROOM_SAFE)
-            || IS_SET((get_obj_room(obj))->room_flags, ROOM_LAW))
+    // need to have an owner to damage anyone
+    if ( (owner = get_player(obj->owner)) == NULL )
+    {
+        sprintf(buf, "%s explodes harmlessly.", obj->short_descr);
+        recho(buf, room);
         return;
+    }
+    
+    dam = dice(obj->value[0], obj->value[1]);
 
-    relative = URANGE(1, obj->value[0], 20);
-    absolute = URANGE(1, obj->value[1], 20);
-
-    if (obj->in_obj)
+    if ( obj->in_obj )
     {
         contained = TRUE;
-        original_obj = obj;
+        dam /= 2;
+        while (obj->in_obj)
+            obj = obj->in_obj;
     }
-
-    while (obj->in_obj)
-        obj = obj->in_obj;
-
-    if ( obj->carried_by != NULL )
+    
+    recho("=== KA-BOOOOM!!! ===", room);
+    
+    if ( (victim = obj->carried_by) != NULL )
     {
-        act( "=== KA-BOOOOM!!! ===", obj->carried_by, NULL, NULL, TO_CHAR );
-
-        if (contained)
+        if ( contained )
         {
-            act( "$p explodes in your hands!  Some of the blast is absorbed by $P.",
-                    obj->carried_by, original_obj, obj, TO_CHAR );
-            act( "$p explodes in $n's hands!  Some of the blast is absorbed by $P.",
-                    obj->carried_by, original_obj, obj, TO_ROOM );
+            act("$p explodes in your hands!  Some of the blast is absorbed by $P.", obj->carried_by, original_obj, obj, TO_CHAR);
+            act("$p explodes in $n's hands!  Some of the blast is absorbed by $P.", obj->carried_by, original_obj, obj, TO_ROOM);
         }
         else
         {
-            act( "$p explodes in your hands!", obj->carried_by, obj, NULL, TO_CHAR );
-            act( "$p explodes in $n's hands!", obj->carried_by, obj, NULL, TO_ROOM );  
+            act("$p explodes in your hands!", obj->carried_by, obj, NULL, TO_CHAR);
+            act("$p explodes in $n's hands!", obj->carried_by, obj, NULL, TO_ROOM);
         }
-
-        relative += 2;
-
-        dam = (int)((obj->carried_by->max_hit * .01) * relative)
-            + number_range((long)(absolute / 4), (long)absolute);
-
-        if (contained)
-            dam -= dam / 4;
-
-        to=obj->carried_by;
-        if (!IS_IMMORTAL(to) && !(IS_NPC(to) && to->pIndexData->pShop))
-        {
-            if (IS_NPC(to))
-            {
-                if (HAS_TRIGGER( to, TRIG_EXBOMB))
-                {
-                    affect_strip_flag(to, AFF_SLEEP);
-                    set_pos( to, POS_STANDING );
-                    mp_percent_trigger( to, to, obj, ACT_ARG_OBJ, NULL,0, TRIG_EXBOMB );
-                } 
-                else if (obj->owner && str_cmp(obj->owner, to->name)
-                        && !IS_SET(to->act, ACT_WIMPY))
-                {
-                    free_string(to->hunting);
-                    to->hunting = str_dup(obj->owner);
-                }
-            }
-
-            if (contained)
-                fire_effect(original_obj->in_obj, obj->level, obj->level * 2 , TARGET_OBJ);
-            else
-                fire_effect(to, obj->level, dam/5, TARGET_CHAR);
-
-            dam = (dam * 3000) / (dam + 3000);
-            damage( to, to, dam, 0, DAM_OTHER, FALSE);
-        }
+        deal_bomb_damage(owner, victim, dam);
+        return;
     }
-
-    if ( obj->carried_by == NULL )
+    else
     {
-        if ( (room = get_obj_room(obj)) )
-            to = room->people;
-
-        if (to)
-        {
-            /* no explosions in safe rooms -- safety net */
-            if ( IS_SET(room->room_flags, ROOM_SAFE) )
-            {
-                act( "$p sparks a bit, then fades.", to, original_obj, NULL, TO_ALL );
-                return;
-            }
-
-            act("=== KA-BOOOOM!!! ===", to, NULL, NULL, TO_ALL);
-
-            if (contained)
-            {
-                act( "$p explodes inside $P!  Some of the blast is absorbed.", to,
-                        original_obj, obj, TO_ALL );
-                fire_effect(original_obj->in_obj, obj->level * 3, obj->level * 2 , TARGET_OBJ);
-            }
-        }
-
-        while ( to != NULL )
-        {
-            dam = (long)((to->max_hit * .01) * relative) 
-                + number_range((long)(absolute / 4), (long)absolute);
-
-            if (contained)
-                dam -= dam / 4;
-
-            if (!IS_IMMORTAL(to) && !(IS_NPC(to) && to->pIndexData->pShop))
-            {
-                if (IS_NPC(to))
-                {
-                    if (HAS_TRIGGER( to, TRIG_EXBOMB))
-                    {
-                        affect_strip_flag(to, AFF_SLEEP);
-                        set_pos( to, POS_STANDING );
-                        mp_percent_trigger( to, to, obj,ACT_ARG_OBJ, NULL,0, TRIG_EXBOMB );
-                    } 
-                    else if (obj->owner && str_cmp(obj->owner, to->name)
-                            && !IS_SET(to->act, ACT_WIMPY))
-                    {
-                        free_string(to->hunting);
-                        to->hunting = str_dup(obj->owner);
-                    }
-                }
-                dam = (dam * 3000) / (dam + 3000);
-                damage( to, to, dam, 0, DAM_OTHER, FALSE);
-            }
-            to = to->next_in_room;
-        }
+        if ( contained )
+            sprintf(buf, "%s explodes inside %s!  Some of the blast is absorbed.", original_obj->short_descr, obj->short_descr);
+        else
+            sprintf(buf, "%s explodes violently!", original_obj->short_descr);
+        
+        recho(buf, room);
+        dam *= 0.5 * AREA_SPELL_FACTOR;
+    }
+    
+    // no damage in safe rooms
+    if ( IS_SET(room->room_flags, ROOM_SAFE) )
+        return;
+    
+    // now the damage
+    for ( rch = room->people; rch; rch = rch->next_in_room )
+    {
+        if ( is_safe_spell(owner, rch, FALSE) )
+            continue;
+        deal_bomb_damage(owner, rch, dam);
     }
 }
 
