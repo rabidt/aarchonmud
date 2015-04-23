@@ -223,6 +223,7 @@ const   struct  cmd_type    cmd_table   [] =
     */
     { "afk",        do_afk,     POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "answer",     do_answer,  POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "board",      do_board,   POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     { "deaf",       do_deaf,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "emote",      do_emote,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "info",       do_info,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -413,7 +414,6 @@ const   struct  cmd_type    cmd_table   [] =
     */
     { "achievements",     do_achievements,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "ascend",     do_ascend,  POS_STANDING,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
-    { "board",      do_board,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "clanwar",    do_clanwar, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "consent",    do_consent, POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE },
     { "marry",      do_marry,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
