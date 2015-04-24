@@ -1037,9 +1037,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
-    else 
         send_to_char("noloot         ON     Players cannot loot items from corpses you own.\n\r",ch);
+    else 
+        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSUMMON))
         send_to_char("nosummon       ON     Players cannot gate to or summon you.\n\r",ch);
