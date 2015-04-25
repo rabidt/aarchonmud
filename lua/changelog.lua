@@ -155,9 +155,9 @@ end
 
 local function getindexcolor( index )
     if index%2 == 0 then
-        return "{y"
+        return "{+"
     else
-        return "{c"
+        return "{x"
     end
 end
 
@@ -313,6 +313,7 @@ changelog find [text]       -- Show all entries that contain the given text.
 changelog pattern [pattern] -- Show all entries that match the given pattern 
                                (lua pattern matching).
 changelog author [name]     -- Show all entries from the given author.
+changelog authors           -- List all changelog authors.
 ]])
     if ch.level>=108 then
         sendtochar( ch, [[
@@ -397,6 +398,10 @@ function do_changelog( ch, argument )
         return
     elseif args[1]=="author" then
         local target=args[2]:lower()
+        if not target then
+            sendtochar(ch, "You have to provide an author name!\n\r")
+            return
+        end
         local result_indices={}
         for k,v in pairs(changelog_table) do
             for auth in string.gmatch(v.author, "%a+") do
@@ -417,6 +422,29 @@ function do_changelog( ch, argument )
                 ch.descriptor, 
                 result_indices)
         return 
+    elseif args[1]=="authors" then
+        local authors={}
+        for k,v in pairs(changelog_table) do
+            for auth in string.gmatch(v.author, "[^/]+") do
+                authors[auth]=true
+            end
+        end
+
+        local array={}
+        for k,v in pairs(authors) do
+            table.insert(array, k)
+        end
+
+        table.sort(array)
+
+        local out={}
+        for i,v in ipairs(array) do
+            table.insert(out, string.format("%3d. %s\n\r", i, v))
+        end
+
+        pagetochar( ch, table.concat(out))
+
+        return
     elseif args[1]=="remove" then
         local num=args[2] and tonumber(args[2])
         if not num then
