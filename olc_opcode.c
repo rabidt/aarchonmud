@@ -292,6 +292,12 @@ OPEDIT (opedit_delete)
         }
     }
 
+    if (is_being_edited(pOcode))
+    {
+        send_to_char( "Can't delete oprog, it is being edited.\n\r", ch );
+        return FALSE;
+    }
+
     /* if we got here, we're good to delete */
     PROG_CODE *curr, *last=NULL;
     for ( curr=oprog_list ; curr ; curr=curr->next )
