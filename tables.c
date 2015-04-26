@@ -156,7 +156,7 @@ const struct size_type size_table[] =
 };
 
 
-bool is_settable( int flag, struct flag_type *flag_table )
+bool is_settable( int flag, const struct flag_type *flag_table )
 {
     int i;
 
@@ -207,10 +207,11 @@ const struct flag_type act_flags[] =
 	{   "noexp",       ACT_NOEXP,      TRUE    },
 	{   "nomimic",      ACT_NOMIMIC,     TRUE    },
 	{   "hard_quest",   ACT_HARD_QUEST,    TRUE    },
-        {   "staggered",    ACT_STAGGERED,   TRUE    },
-        {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
-        {   "noweapon",     ACT_NOWEAPON,    TRUE    },
-        {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "staggered",    ACT_STAGGERED,   TRUE    },
+    {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
+    {   "noweapon",     ACT_NOWEAPON,    TRUE    },
+    {   "traveller",    ACT_TRAVELLER,   TRUE    },
+    {   "achievement",  ACT_ACHIEVEMENT, TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
@@ -246,6 +247,7 @@ const struct flag_type plr_flags[] =
     {   "nocancel",     PLR_NOCANCEL,   FALSE   },
     {   "nolocate",     PLR_NOLOCATE,   FALSE   },
     {   "noaccept",     PLR_NOACCEPT,   FALSE   },
+    {   "nosurrender",  PLR_NOSURR,     FALSE   },
     {   "roleplay",     PLR_RP,         TRUE    },
     {   "inactive_helper", PLR_INACTIVE_HELPER, TRUE },
     {   "noexp",        PLR_NOEXP,      FALSE   },
@@ -359,7 +361,9 @@ const struct flag_type off_flags[] =
 	{   "assist_players",   S,  TRUE    },
 	{   "assist_guard",     T,  TRUE    },
 	{   "assist_vnum",      U,  TRUE    },
-	{   "hunt",		X,  TRUE    },
+    {   "distract",         V,  FALSE   },
+    {   "entrap",           W,  TRUE    },
+    {   "hunt",             X,  TRUE    },
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
     {   "petrify",          cc, TRUE    },
@@ -388,6 +392,9 @@ const struct flag_type imm_flags[] =
 	{   "disease",      Q,  TRUE    },
 	{   "drowning",     R,  TRUE    },
 	{   "sound",        T,  TRUE    },
+        {   "sleep",        U,  TRUE    },
+        {   "charmperson",  V,  TRUE    },
+        {   "petrify",      W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
 	{   "iron",         Z,  TRUE    },
@@ -433,6 +440,7 @@ const struct flag_type form_flags[] =
     {   "conductive",   FORM_CONDUCTIVE,    TRUE    },
     {   "constrict",    FORM_CONSTRICT,     TRUE    },
     {   "multi-headed", FORM_MULTI_HEADED,  TRUE    },
+    {   "armored",      FORM_ARMORED,       TRUE    },
 	{   NULL,           0,          0   }
 };
 
@@ -488,7 +496,8 @@ const struct flag_type comm_flags[] =
 	{   "show_affects", COMM_SHOW_AFFECTS,  TRUE    },
 	{   "show_worth",   COMM_SHOW_WORTH,    TRUE    },  /*06/07/98*/
 	{   "show_attrib",  COMM_SHOW_ATTRIB,   TRUE    },  /*06/07/98*/
-    {   "show_percent", COMM_SHOW_PERCENT,  TRUE    },
+        {   "show_percent", COMM_SHOW_PERCENT,  TRUE    },
+        {   "show_statbars",COMM_SHOW_STATBARS, TRUE    },
 	{   "nogratz",      COMM_NOGRATZ,       TRUE    },  
 	{   "afk",          COMM_AFK,           TRUE    },
 	{   NULL,           0,          0   }
@@ -532,6 +541,7 @@ const struct flag_type oprog_flags[] =
     {   "give",         OTRIG_GIVE,      TRUE    },
     {   "drop",         OTRIG_DROP,      TRUE    },
     {   "eat",          OTRIG_EAT,       TRUE    },
+    {   "drink",        OTRIG_DRINK,     TRUE    },
     {   "sacrifice",    OTRIG_SACRIFICE, TRUE    },
     {   "wear",         OTRIG_WEAR,      TRUE    },
     {   "remove",       OTRIG_REMOVE,    TRUE    },
@@ -553,6 +563,10 @@ const struct flag_type oprog_flags[] =
     {   "quaff",        OTRIG_QUAFF,     TRUE    },
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
+    {   "sit",          OTRIG_SIT,       TRUE    },
+    {   "rest",         OTRIG_REST,      TRUE    },
+    {   "sleep",        OTRIG_SLEEP,     TRUE    },
+    {   "wake",         OTRIG_WAKE,      TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -570,6 +584,8 @@ const struct flag_type aprog_flags[] =
     {   "recall",       ATRIG_RECALL,    TRUE    },
     {   "call",         ATRIG_CALL,      FALSE   },
     {   "timer",        ATRIG_TIMER,     TRUE    },
+    {   "death",        ATRIG_DEATH,     TRUE    },
+    {   "connect",      ATRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -587,6 +603,7 @@ const struct flag_type rprog_flags[] =
     {   "look",         RTRIG_LOOK,      TRUE    },
     {   "try",          RTRIG_TRY,       TRUE    },
     {   "command",      RTRIG_COMMAND,   TRUE    },
+    {   "connect",      RTRIG_CONNECT,   TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -779,6 +796,7 @@ const struct flag_type extra_flags[] =
 	{   "remort",       ITEM_REMORT,        TRUE    }, 
 	{   "trapped",      ITEM_TRAPPED,       TRUE    },
 	{   "easy_drop",    ITEM_EASY_DROP,     TRUE    },
+    {   "heavy",        ITEM_HEAVY_ARMOR,   TRUE    },
 	{   "allow_warrior",       ITEM_ALLOW_WARRIOR        , TRUE },
 	{   "allow_thief",         ITEM_ALLOW_THIEF          , TRUE },
 	{   "allow_cleric",        ITEM_ALLOW_CLERIC         , TRUE },
@@ -842,6 +860,7 @@ const struct flag_type wear_flags[] =
 const struct flag_type apply_flags[] =
 {
     {   "none",             APPLY_NONE,     TRUE    },
+    {   "level",            APPLY_LEVEL,    TRUE    },
     {   "strength",         APPLY_STR,      TRUE    },
     {   "constitution",     APPLY_CON,      TRUE    },
     {   "vitality",         APPLY_VIT,      TRUE    },
@@ -942,18 +961,6 @@ const struct flag_type container_flags[] =
 /*****************************************************************************
 					  ROM - specific tables:
  ****************************************************************************/
-
-
-
-
-const struct flag_type ac_type[] =
-{
-	{   "pierce",        AC_PIERCE,            TRUE    },
-	{   "bash",          AC_BASH,              TRUE    },
-	{   "slash",         AC_SLASH,             TRUE    },
-	{   "exotic",        AC_EXOTIC,            TRUE    },
-	{   NULL,              0,                    0       }
-};
 
 
 const struct flag_type size_flags[] =
@@ -1158,6 +1165,43 @@ const   struct  bit_type    bitvector_type  []  =
 	{   weapon_type2,   "weapon"    }
 };
 
+const struct flag_type con_states [] =
+{
+    { "playing",              CON_PLAYING,              TRUE },
+    { "get_name",             CON_GET_NAME,             FALSE },
+    { "get_old_password",     CON_GET_OLD_PASSWORD,     FALSE },
+    { "confirm_new_name",     CON_CONFIRM_NEW_NAME,     FALSE },
+    { "confirm_new_password", CON_CONFIRM_NEW_PASSWORD, FALSE },
+    { "get_new_race",         CON_GET_NEW_RACE,         FALSE },
+    { "get_new_sex",          CON_GET_NEW_SEX,          FALSE },
+    { "get_new_class",        CON_GET_NEW_CLASS,        FALSE },
+    { "get_alignment",        CON_GET_ALIGNMENT,        FALSE },
+    { "default_choice",       CON_DEFAULT_CHOICE,       FALSE },
+    { "gen_groups",           CON_GEN_GROUPS,           FALSE },
+    { "pick_weapon",          CON_PICK_WEAPON,          FALSE },
+    { "read_imotd",           CON_READ_IMOTD,           FALSE },
+    { "break_connect",        CON_BREAK_CONNECT,        FALSE },
+    { "get_creation_mode",    CON_GET_CREATION_MODE,    FALSE },
+    { "roll_stats",           CON_ROLL_STATS,           FALSE },
+    { "get_stat_priority",    CON_GET_STAT_PRIORITY,    FALSE },
+    { "copyover_recover",     CON_COPYOVER_RECOVER,     FALSE },
+    { "note_to",              CON_NOTE_TO,              FALSE },
+    { "note_subject",         CON_NOTE_SUBJECT,         FALSE },
+    { "note_expire",          CON_NOTE_EXPIRE,          FALSE },
+    { "note_text",            CON_NOTE_TEXT,            FALSE },
+    { "note_finish",          CON_NOTE_FINISH,          FALSE },
+    { "penalty_severity",     CON_PENALTY_SEVERITY,     FALSE },
+    { "penalty_confirm",      CON_PENALTY_CONFIRM,      FALSE },
+    { "penalty_hours",        CON_PENALTY_HOURS,        FALSE },
+    { "penalty_points",       CON_PENALTY_POINTS,       FALSE },
+    { "penalty_penlist",      CON_PENALTY_PENLIST,      FALSE },
+    { "penalty_finish",       CON_PENALTY_FINISH,       FALSE },
+    { "get_colour",           CON_GET_COLOUR,           FALSE },
+    { "lua_handler",          CON_LUA_HANDLER,          TRUE  },
+    { "closed",               CON_CLOSED,               FALSE },
+    { NULL, 0, TRUE }
+};
+
 const struct stance_type stances [] =
 {
 	{ "default",          STANCE_DEFAULT,             DAM_BASH,      "punch",
@@ -1213,9 +1257,9 @@ const struct stance_type stances [] =
 	{ "kamikaze",         STANCE_KAMIKAZE,            0,             "", 
 		&gsn_kamikaze,             FALSE, TRUE,  25 },
 	{ "showdown",         STANCE_SHOWDOWN,            0,             "", 
-		&gsn_showdown,             FALSE, TRUE,  2  },
+		&gsn_showdown,             FALSE, TRUE,  6  },
 	{ "target practice",  STANCE_TARGET_PRACTICE,     0,             "", 
-		&gsn_target_practice,      FALSE, TRUE,  6  },
+		&gsn_target_practice,      FALSE, TRUE,  15 },
 	{ "jihad",            STANCE_JIHAD,               0,             "", 
 		&gsn_jihad,                FALSE, TRUE,  10 },
 	{ "vampire hunting",  STANCE_VAMPIRE_HUNTING,     0,             "", 
@@ -1253,7 +1297,11 @@ const struct stance_type stances [] =
         { "aversion",         STANCE_AVERSION,            0,             "",
           &gsn_aversion,            FALSE, TRUE,          12 },
         { "serpent",          STANCE_SERPENT,             DAM_DROWNING,  "flooding",
-          &gsn_serpent,             TRUE, FALSE,          22 },
+          &gsn_serpent,             TRUE, FALSE,          18 },
+        { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
+            &gsn_blade_barrier,     FALSE, TRUE,          20 },
+        { "bullet rain",      STANCE_BULLET_RAIN,         0,             "",
+            &gsn_bullet_rain,       FALSE, TRUE,          20 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };
@@ -1269,7 +1317,8 @@ const char* spell_target_names[] =
     "obj_char_offensive",
     "visible_char_offensive",
     "char_neutral",
-    "ignore_offensive"
+    "ignore_offensive",
+    "ignore_obj"
 };
 
 const char* spell_duration_names[] =
@@ -1477,7 +1526,7 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_QHCOMP,    100,  50,  250,   250,    50,       0,   ACHIEVE_QHCOMP_4},
     { ACHV_QHCOMP,    250,  75,  500,   250,   100,       0,   ACHIEVE_QHCOMP_5},
     { ACHV_QHCOMP,    500, 100,  750,   250,   250,       0,   ACHIEVE_QHCOMP_6},
-    { NULL,             0,   0,    0,     0,     0,       0,                  0}
+    { 0,                0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
 /* TOTAL FOR ALL ACHIEVE: 4821,39200,444660,      5220,  NA,               */
@@ -1518,13 +1567,6 @@ msl_string achievement_display [] =
 #define ACHV_EXPLORED   13
 #define ACHV_TATT       14
 */
-const struct flag_type togg_flags[] =
-{
-  { "oldscore",		TOGG_OLDSCORE,	TRUE },
-  { "oldfinger",	TOGG_OLDFINGER,	TRUE },
-  { "statbars",         TOGG_STATBARS,  TRUE },
-  { NULL,		0,		0    }
-};
 
 const CHANNEL public_channel_table[] =
 {
@@ -1541,5 +1583,5 @@ const CHANNEL public_channel_table[] =
 	{&sn_newbie,	"Newbie",	"[Newbie]:",	"[Newbie]:",	'n',	'N',	COMM_NONEWBIE,		0,	NULL},
 	{&sn_immtalk,	"Immtalk",	"immtalk",	"immtalks",	'i',	'I',	COMM_NOWIZ,		0,	check_immtalk},
 	{&sn_savantalk,	"Savantalk",	"savant",	"savants",	'7',	'8',	COMM_NOSAVANT,		0,	check_savant},
-	NULL,
+    {NULL}
 };

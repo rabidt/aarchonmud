@@ -4,7 +4,6 @@
 Written by Clayton Richey (Odoth/Vodur) <clayton.richey@gmail.com>
 for Aarchon MUD
 (aarchonmud.com:7000).
-Version date: 1/31/2013
 **************************************************************/
 
 #include <sys/types.h>
@@ -12,6 +11,7 @@ Version date: 1/31/2013
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include <lua.h>
 #include <lauxlib.h>
 #include "merc.h"
@@ -19,11 +19,17 @@ Version date: 1/31/2013
 #include "lua_main.h"
 
 
+/* local functions */
+void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries );
+void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries );
+void playback_clear( COMM_HISTORY *history );
+
 #define MAX_COMM_HISTORY 300
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
-#define DEFAULT_RESULTS 35
+#define DEFAULT_RESULTS 30
 
-#define MAX_PERS_HISTORY 50 
+#define MAX_PERS_HISTORY 100 
+#define DEFAULT_PERS 30
 
 
 /* declare the actual structures we will use*/
@@ -84,7 +90,7 @@ void pers_history_free(PERS_HISTORY *history)
 	free_mem(history, sizeof(PERS_HISTORY) );
 }
 
-void log_pers( PERS_HISTORY *history, char *text )
+void log_pers( PERS_HISTORY *history, const char *text )
 {
 	PERS_ENTRY *entry=pers_entry_new();
 	char time[MSL];
@@ -155,7 +161,7 @@ void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry )
     }
 }
 
-void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
+void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
 {
     char buf[MSL];
 
@@ -164,9 +170,7 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
 	
     entry->text = str_dup(text) ;
     entry->channel = channel;
-    entry->timestamp= str_dup(ctime( &current_time ));
-    /*have to add the EOL to timestamp or it won't have one, weird*/
-    entry->timestamp[strlen(entry->timestamp)-1] = '\0';
+    entry->timestamp = trim_realloc(str_dup(ctime(&current_time)));
 
     if (!IS_NPC(ch))
       sprintf(buf,"%s%s", ch->pcdata->pre_title,ch->name);
@@ -205,13 +209,12 @@ void log_chan(CHAR_DATA * ch, char * text , sh_int channel)
 		
 }
 
-void do_playback(CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_playback)
 {
     
     if ( IS_NPC(ch) )
 		return;
 	
-    BUFFER *output;
     char arg[MSL];
     sh_int arg_number;
     bool immortal=IS_IMMORTAL(ch);
@@ -264,50 +267,55 @@ void do_playback(CHAR_DATA *ch, char * argument)
 		return;
 	}
 	
-	
-	if (phistory)
-	{
-		playback_pers( ch, phistory);
-		return;
-	}
-	else if (!history)
-	{
-		bugf("history and phistory NULL in do_playback");
-		return;
-	}
-	
 	/* if we're here, it's a COMM_HISTORY, not PERS_HISTORY, check for 2nd arg */
 	argument=one_argument( argument, arg );
 	
 	if ( arg[0] == '\0' )
 	{
-		playback_to_char( ch, history, DEFAULT_RESULTS);
-		return;
+        if (phistory)
+        {
+            playback_pers( ch, phistory, ch->lines == 0 ? DEFAULT_PERS : ch->lines );
+            return;
+        }
+        else
+        {
+		    playback_to_char( ch, history, ch->lines == 0 ? DEFAULT_RESULTS : ch->lines );
+		    return;
+        }
 	}
-	if (is_number(arg))
-	{
-        	arg_number = atoi(arg);
-	        if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
-        	{
-			printf_to_char(ch, "Argument should be a number from 1 to %d.\n\r",MAX_COMM_HISTORY);
-            		return;
-        	}
-        	else
-		{
-			playback_to_char( ch, history, arg_number );
-			return;
-		}
-    	}
-	else if (!strcmp(arg, "clear") && immortal )
-	{
-		playback_clear( history );
-		return;
-	}
-	else
-	{
-		send_to_char("Invalid syntax.\n\r",ch);
-		return;
-	}
+    if (is_number(arg))
+    {
+        arg_number = atoi(arg);
+        if (arg_number > MAX_COMM_HISTORY || arg_number < 1)
+        {
+            printf_to_char(ch, "Argument should be a number from 1 to %d.\n\r",
+                    phistory ? MAX_PERS_HISTORY : MAX_COMM_HISTORY);
+            return;
+        }
+        else
+        {
+            if (phistory)
+            {
+                playback_pers( ch, phistory, arg_number);
+                return;
+            }
+            else
+            {
+                playback_to_char( ch, history, arg_number );
+                return;
+            }
+        }
+    }
+    else if (!strcmp(arg, "clear") && immortal && history )
+    {
+        playback_clear( history );
+        return;
+    }
+    else
+    {
+        send_to_char("Invalid syntax.\n\r",ch);
+        return;
+    }
 }     
 
 void playback_clear( COMM_HISTORY *history)
@@ -405,7 +413,7 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
     free_buf(output);
 }
 
-void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history)
+void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries)
 {
 	if (history==NULL)
 	{	
@@ -417,11 +425,18 @@ void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history)
 		
 	PERS_ENTRY *entry;
 	
-	for ( entry=history->tail ; entry != NULL ; entry=entry->prev )
+    entry=history->tail;
+    if ( history->size > entries )
+    {
+       int i;
+       for ( i = history->size - entries ; i>0 ; i-- )
+           entry=entry->prev; /* just fast forwarding */
+    }
+
+	for ( ; entry != NULL ; entry=entry->prev )
 	{
 		send_to_char(  entry->text, ch );
 	}
-
 }
 
 void push_comm_history( lua_State *LS, COMM_HISTORY *history )
@@ -466,7 +481,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
 
     for ( i=1 ; i<=n ; i++ )
     {
-        lua_rawgeti( LS, 1, i );
+        lua_rawgeti( LS, -1, i );
 
         if ( lua_isnil( LS, -1 ) )
         {
@@ -488,7 +503,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
         int sn;
         for ( sn=0 ; public_channel_table[sn].name ; sn++ )
         {
-            if ( !strcmp("chan", public_channel_table[sn].name) )
+            if ( !strcmp( chan, public_channel_table[sn].name) )
             {
                 en->channel=sn;
                 break;
@@ -518,6 +533,7 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
         add_to_comm_history( history, en );
         lua_pop( LS, 1 );
     }
+    lua_pop( LS, 1 );
 }
 static int L_save_comm_histories( lua_State *LS )
 {
@@ -529,6 +545,11 @@ static int L_save_comm_histories( lua_State *LS )
     lua_getglobal( LS, "save_comm" );
     lua_pushliteral( LS, "immtalk_history" );
     push_comm_history( LS, &immtalk_history );
+    lua_call( LS, 2, 0 );
+
+    lua_getglobal( LS, "save_comm" );
+    lua_pushliteral( LS, "savant_history" );
+    push_comm_history( LS, &savant_history );
     lua_call( LS, 2, 0 );
 
     return 0;
@@ -546,6 +567,11 @@ static int L_load_comm_histories( lua_State *LS )
     lua_call( LS, 1, 1 );
     load_comm_history( LS, &immtalk_history );
 
+    lua_getglobal( LS, "load_comm" );
+    lua_pushliteral( LS, "savant_history" );
+    lua_call( LS, 1, 1 );
+    load_comm_history( LS, &savant_history );
+
     return 0;
 } 
 void save_comm_histories()
@@ -555,7 +581,7 @@ void save_comm_histories()
     {
         bugf ( "Error with L_save_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 
@@ -566,7 +592,7 @@ void load_comm_histories()
     {
         bugf ( "Error with L_load_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
-        return -1;
+        return;
     }
 }
 

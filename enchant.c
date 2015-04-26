@@ -8,52 +8,107 @@
 #include <time.h>
 #include "merc.h"
 
+struct enchantment_type
+{
+    int apply;
+    int physical_chance;
+    int mental_chance;
+    int delta;
+};
 
-void enchant_obj( OBJ_DATA *obj, int ops );
-void enchant_obj_stat( OBJ_DATA *obj, int ops );
-void enchant_obj_roll( OBJ_DATA *obj, int ops );
-void enchant_obj_max( OBJ_DATA *obj, int ops );
-void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
+const struct enchantment_type enchantment_table[] =
+{
+    { APPLY_STR, 40, 0, 4 },
+    { APPLY_CON, 40, 0, 4 },
+    { APPLY_VIT, 40, 0, 4 },
+    { APPLY_AGI, 40, 0, 4 },
+    { APPLY_DEX, 40, 0, 4 },
+    { APPLY_INT, 0, 40, 4 },
+    { APPLY_WIS, 0, 40, 4 },
+    { APPLY_DIS, 0, 40, 4 },
+    { APPLY_CHA, 0, 40, 4 },
+    { APPLY_LUC, 0, 40, 4 },
+    { APPLY_HIT, 100, 100, 10 },
+    { APPLY_MANA, 0, 100, 10 },
+    { APPLY_MOVE, 100, 0, 10 },
+    { APPLY_HITROLL, 100, 0, 1 },
+    { APPLY_DAMROLL, 100, 0, 1 },
+    { APPLY_AC, 50, 50, -10 },
+    { APPLY_SAVES, 40, 60, -1 },
+    {}
+};
+
+// returns random apply value based on rand_type
+int get_random_apply( int rand_type )
+{
+    int i, total_chance = 0;
+    int apply = APPLY_HIT; // just some default, should always get overwritten
+
+    for ( i = 0; enchantment_table[i].apply; i++ )
+    {
+        // get relative chance to select this apply
+        int chance;
+        switch ( rand_type )
+        {
+            case ITEM_RANDOM_PHYSICAL:
+                chance = enchantment_table[i].physical_chance;
+                break;
+            case ITEM_RANDOM_CASTER:
+                chance = enchantment_table[i].mental_chance;
+                break;
+            default:
+                chance = enchantment_table[i].physical_chance + enchantment_table[i].mental_chance;
+        }
+        // check
+        if ( chance > 0 )
+        {
+            total_chance += chance;
+            if ( number_range(1, total_chance) <= chance )
+                apply = enchantment_table[i].apply;
+        }
+    }
+    return apply;
+}
+
+// returns 1 OP worth of given apply
+int get_delta( int apply )
+{
+    int i;
+    for ( i = 0; enchantment_table[i].apply; i++ )
+        if ( enchantment_table[i].apply == apply )
+            return enchantment_table[i].delta;
+    return 0;
+}
+
+// chance for adding an additional enchantment (for enchant weapon/armor spell)
+int get_enchant_chance( OBJ_DATA *obj, int level )
+{
+    int ops_left = get_obj_spec(obj) - get_obj_ops(obj);
+    int level_diff = level - obj->level;
+    int chance = 50 + (level_diff > 0 ? level_diff/4 : level_diff);
+    chance += 5 * ops_left;
+    return URANGE(1, chance, 99);
+}
 
 /* get ops added by an enchantment
  * 0 indicates failure, -1, -2, .. indicate extreme failure
  */
 int get_enchant_ops( OBJ_DATA *obj, int level )
 {
-    AFFECT_DATA *aff;
-    int ops_left, fail, vnum;
-
-    /* no enchanting of quest eq etc. */
-    if ( obj == NULL
-	 || IS_OBJ_STAT(obj, ITEM_STICKY) )
-	return 0;
-
-    /* no enchanting of objects which add special effects */
-    for ( aff = obj->pIndexData->affected; aff != NULL; aff = aff->next )
-	if ( aff->bitvector != 0 )
-	    return 0;
-
-    /* ops below spec */
-    ops_left = get_obj_spec( obj ) - get_obj_ops( obj );
-    if ( IS_OBJ_STAT(obj, ITEM_BLESS) )
-	ops_left += 1;
-    /* check for artificially created items => harder to enchant */
-    if ( obj->pIndexData->vnum == OBJ_VNUM_SIVA_WEAPON )
-	ops_left -= 5;
+    int ops_left, fail;
 
     /* check for failure */
-    fail = 50 + UMAX(0, obj->level - level);
-    fail -= 5 * ops_left;
-    fail = URANGE(1, fail, 99);
-    if ( chance(fail) )
+    fail = get_enchant_chance(obj, level);
+    if ( !per_chance(fail) )
     {
-	fail = 0;
-	while ( number_bits(2) == 0 )
-	    fail--;
-	return fail;
+        fail = 0;
+        while ( number_bits(2) == 0 )
+            fail--;
+        return fail;
     }
 
     /* ok, successful enchant */
+    ops_left = get_obj_spec(obj) - get_obj_ops(obj);
     ops_left = UMAX( 0, ops_left );
     return ops_left/2 + 1;
 }
@@ -61,194 +116,92 @@ int get_enchant_ops( OBJ_DATA *obj, int level )
 /* enchants 'random' flagged objects */
 void check_enchant_obj( OBJ_DATA *obj )
 {
-    if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) 
+    if ( obj == NULL )
+        return;
+    if ( !IS_OBJ_STAT(obj, ITEM_RANDOM) 
       && !IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL) 
       && !IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
-	return;
+        return;
 
+    int ops_left = get_obj_spec(obj) - get_obj_ops(obj);
+    
     if (IS_OBJ_STAT(obj, ITEM_RANDOM))
     {
         REMOVE_BIT( obj->extra_flags, ITEM_RANDOM );
-        enchant_obj( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+        // chance to be physically or mentally oriented
+        switch ( number_range(1,4) )
+        {
+            case 1:
+                enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL, AFFDUR_INFINITE );
+                break;
+            case 2:
+                enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER, AFFDUR_INFINITE );
+                break;
+            default:
+                enchant_obj( obj, ops_left, ITEM_RANDOM, AFFDUR_INFINITE );
+                break;
+        }
     }
     else if (IS_OBJ_STAT(obj, ITEM_RANDOM_PHYSICAL))
     {
         REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_PHYSICAL );
-        craft_obj_physical( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+        enchant_obj( obj, ops_left, ITEM_RANDOM_PHYSICAL, AFFDUR_INFINITE );
     }
     else if (IS_OBJ_STAT(obj, ITEM_RANDOM_CASTER))
     {
         REMOVE_BIT( obj->extra_flags, ITEM_RANDOM_CASTER );
-        craft_obj_caster( obj, get_obj_spec(obj) - get_obj_ops(obj) );
+        enchant_obj( obj, ops_left, ITEM_RANDOM_CASTER, AFFDUR_INFINITE );
     }
     else
-        bugf("check_enchant_obj failed on obj : %d", obj->pIndexData->vnum);    
-
+        bugf("check_enchant_obj failed on obj : %d", obj->pIndexData->vnum);
 }
 
-void enchant_obj( OBJ_DATA *obj, int ops )
+// to ensure we don't exceed stat hardcap
+int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
 {
-    AFFECT_DATA aff;
-    int add;
-
-    if ( obj == NULL || ops <= 0 )
-	return;
-
-    /* stats */
-    add = number_range( 0, ops );
-    add = number_range( 0, add );
-    enchant_obj_stat( obj, add );
-    ops -= add;
-    /* rolls */
-    add = number_range( 0, ops );
-    enchant_obj_roll( obj, add );
-    ops -= add;
-    /* remaining to max stats */
-    enchant_obj_max( obj, ops );
+    AFFECT_DATA *aff;
+    int bonus = 0;
+    // base stats
+    for ( aff = obj->pIndexData->affected; aff != NULL; aff = aff->next )
+        if ( aff->location == APPLY_STATS || aff->location == stat )
+            bonus += aff->modifier;
+    // enchanted stats
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( aff->location == APPLY_STATS || aff->location == stat )
+            bonus += aff->modifier;
+    return bonus;
 }
 
-/* add str, con, .. */
-void enchant_obj_stat( OBJ_DATA *obj, int ops )
+void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
 {
     AFFECT_DATA af;
-    int add, total, max;
-    
+
+    if ( obj == NULL )
+        return;
+
     af.where        = TO_OBJECT;
     af.type         = 0;
     af.level        = 0;
-    af.duration     = -1;
+    af.duration     = duration;
     af.bitvector    = 0;
     af.detect_level = 0;
-
-    total = ops * 4;
     
-    while ( total > 0 )
+    while ( ops > 0 )
     {
-	/* modifier */
-	if ( total < 4 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 10, total );
-	    add = number_range( 2, max );
-	}
-	af.modifier = add;
-
-	/* location */
-	switch ( number_range(0, 9) )
-	{
-	case 0: af.location = APPLY_STR; break;
-	case 1: af.location = APPLY_CON; break;
-	case 2: af.location = APPLY_VIT; break;
-	case 3: af.location = APPLY_AGI; break;
-	case 4: af.location = APPLY_DEX; break;
-	case 5: af.location = APPLY_INT; break;
-	case 6: af.location = APPLY_WIS; break;
-	case 7: af.location = APPLY_DIS; break;
-	case 8: af.location = APPLY_CHA; break;
-	case 9: af.location = APPLY_LUC; break;
-	}
-
-	add_enchant_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-/* add hit, dam, ac, saves */
-void enchant_obj_roll( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max, choice;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	max = UMIN( 5, total );
-	add = number_range( 1, max );
-	af.modifier = add;
-	
-	/* location */
-	switch ( obj->item_type )
-	{
-	default:
-	    choice = number_range(0,3); break;
-	case ITEM_WEAPON:
-	    choice = number_range(0,1); break;
-	case ITEM_ARMOR:
-	    if ( number_bits(1) )
-		choice = number_range(2,3);
-	    else
-		choice = number_range(0,3);
-	}
-	/* translate location & adjust modifier */
-	switch( choice )
-	{
-	default: return;
-	case 0: af.location = APPLY_HITROLL; break;
-	case 1: af.location = APPLY_DAMROLL; break;
-	case 2:
-	    af.location = APPLY_SAVES;
-	    af.modifier *= -1;
-	    break;
-	case 3:
-	    af.location = APPLY_AC; 
-	    af.modifier *= -10;
-	}
-		
-	add_enchant_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-/* add hp, mana, move */
-void enchant_obj_max( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops * 10;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	if ( total < 20 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 50, total );
-	    add = number_range( 10, max );
-	}
-	af.modifier = add;
-
-	/* location */
-	switch ( number_range(0, 2) )
-	{
-	case 0: af.location = APPLY_HIT; break;
-	case 1: af.location = APPLY_MANA; break;
-	case 2: af.location = APPLY_MOVE; break;
-	}
-
-	add_enchant_affect( obj, &af );
-	
-	total -= add;
+        int apply = get_random_apply(rand_type);
+        int delta = get_delta(apply);
+        // ensure we don't exceed hardcaps
+        if ( is_affect_cap_hard(apply) && (get_obj_stat_bonus(obj, apply) + delta) > get_affect_cap(apply, obj->level) )
+            continue;
+        // find existing affect, chance to abort if none found => reduced spread
+        AFFECT_DATA *old_affect = affect_find_location(obj->affected, af.type, apply, duration);
+        if ( !old_affect && number_bits(2) )
+            continue;
+        // add the apply
+        af.location = apply;
+        af.modifier = delta;
+        add_enchant_affect(obj, &af);
+        ops--;
     }
 }
 
@@ -257,17 +210,152 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
     AFFECT_DATA *obj_aff;
 
     if ( obj == NULL || aff == NULL )
-	return;
+        return;
 
     /* search for matching affect already on object */
-    for ( obj_aff = obj->affected; obj_aff != NULL; obj_aff = obj_aff->next )
-	if ( obj_aff->location == aff->location
-	     && obj_aff->duration == aff->duration )
-	    break;
+    obj_aff = affect_find_location(obj->affected, aff->type, aff->location, aff->duration);
 
     /* found matching affect on object? */
     if ( obj_aff != NULL )
-	obj_aff->modifier += aff->modifier;
+    {
+        obj_aff->modifier += aff->modifier;
+        // max duration in case of non-negative durations
+        obj_aff->duration = UMAX(obj_aff->duration, aff->duration);
+    }
     else
-	affect_to_obj( obj, aff );
+        affect_to_obj( obj, aff );
+}
+
+void disenchant_obj( OBJ_DATA *obj )
+{
+    AFFECT_DATA *paf = obj->affected, *paf_prev = NULL;
+    while ( paf )
+    {
+        if ( paf->duration == AFFDUR_DISENCHANTABLE )
+        {
+            if ( paf_prev )
+            {
+                paf_prev->next = paf->next;
+                free_affect(paf);
+                paf = paf_prev->next;
+            }
+            else // first affect
+            {
+                obj->affected = paf->next;
+                free_affect(paf);
+                paf = obj->affected;
+            }
+        }
+        else
+        {
+            paf_prev = paf;
+            paf = paf_prev->next;
+        }
+    }
+    if ( !IS_SET(obj->pIndexData->extra_flags, ITEM_MAGIC) )
+        REMOVE_BIT(obj->extra_flags, ITEM_MAGIC);
+}
+
+// cost in gold of enchantment (for enchant weapon/armor spell)
+int get_enchant_cost( OBJ_DATA *obj )
+{
+    int current_ops = get_obj_ops(obj);
+    if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        current_ops += get_translucency_spec_penalty(obj->level);
+    return 100 + current_ops * current_ops;
+}
+
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check )
+{
+    int cost, result, rand_type;
+
+    if ( obj->wear_loc != -1 )
+    {
+        send_to_char("The item must be carried to be enchanted.\n\r", ch);
+        return FALSE;
+    }
+
+    // get enchantment type, physical or mental
+    if ( !strcmp(arg, "physical") )
+        rand_type = ITEM_RANDOM_PHYSICAL;
+    else if ( !strcmp(arg, "mental") )
+        rand_type = ITEM_RANDOM_CASTER;
+    else if ( !strcmp(arg, "") )
+        rand_type = ITEM_RANDOM;
+    else if ( !strcmp(arg, "analyze") )
+    {
+        if ( check )
+            return TRUE;
+        int ops = get_obj_ops_by_duration(obj, AFFDUR_DISENCHANTABLE);
+        int chance = get_enchant_chance(obj, level);
+        cost = get_enchant_cost(obj);
+        ptc(ch, "%s currently has %d enchantments on it.\n\r", obj->short_descr, ops);
+        ptc(ch, "The next enchantment costs %d gold, and has a %d%% chance of success.\n\r", cost, chance);
+        return TRUE;
+    }
+    else if ( !strcmp(arg, "disenchant") )
+    {
+        if ( check )
+            return TRUE;
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_CHAR);
+        act("$p glows brightly, then fades.", ch, obj, NULL,TO_ROOM);
+        disenchant_obj(obj);
+        return TRUE;
+    }
+    else
+    {
+        ptc(ch, "'%s' is not a valid enchantment option. Select physical, mental, analyze or disenchant.\n\r", arg);
+        return FALSE;
+    }
+    
+    cost = get_enchant_cost(obj);
+    if ( (ch->gold + ch->silver/100) < cost )
+    {
+        ptc(ch, "Enchanting %s requires material components worth %d gold.\n\r", obj->short_descr, cost);
+        return FALSE;
+    }
+
+    if ( check )
+        return TRUE;
+    
+    result = get_enchant_ops(obj, level);
+    
+    if ( result == 0 )  /* failed, no bad result, no components used up */
+    {
+        send_to_char("Nothing seemed to happen.\n\r",ch);
+        return TRUE;
+    }
+    
+    ptc(ch, "You invest material components worth %d gold.\n\r", cost);
+    deduct_cost(ch, cost*100);
+
+    if ( result == -1 )  /* failed, components are consumed */
+    {
+        send_to_char("Your spell components are used up with no effect.\n\r",ch);
+        return TRUE;
+    }
+    
+    if ( result <= -2 ) /* item disenchanted */
+    {
+        act("$p glows brightly, then fades...oops.",ch,obj,NULL,TO_CHAR);
+        act("$p glows brightly, then fades.",ch,obj,NULL,TO_ROOM);
+        disenchant_obj(obj);
+        return TRUE;
+    }
+
+    if ( result == 1 )  /* success! */
+    {
+        act("$p shimmers with a gold aura.",ch,obj,NULL,TO_CHAR);
+        act("$p shimmers with a gold aura.",ch,obj,NULL,TO_ROOM);
+    }
+    else  /* exceptional enchant */
+    {
+        act("$p glows a brilliant gold!",ch,obj,NULL,TO_CHAR);
+        act("$p glows a brilliant gold!",ch,obj,NULL,TO_ROOM);
+    }
+
+    /* now add the enchantments */ 
+    SET_BIT(obj->extra_flags, ITEM_MAGIC);
+    enchant_obj(obj, result, rand_type, AFFDUR_DISENCHANTABLE);
+    return TRUE;
 }

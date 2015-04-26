@@ -40,9 +40,10 @@
 #include "merc.h"
 #include "mob_cmds.h"
 #include "tables.h"
+#include "lua_main.h"
 
 DECLARE_DO_FUN( do_look );
-bool is_r_number( char *arg );
+DECLARE_DO_FUN( do_peace );
 
 /*
  * Command table.
@@ -88,7 +89,7 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "",	          0,               ""       }
 };
 
-void do_mob( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mob)
 {
     /*
      * Security check!
@@ -104,11 +105,11 @@ void do_mob( CHAR_DATA *ch, char *argument )
  * Mob command interpreter. Implemented separately for security and speed
  * reasons. A trivial hack of interpret()
  */
-void mob_interpret( CHAR_DATA *ch, char *argument )
+void mob_interpret( CHAR_DATA *ch, const char *argument )
 {
     char buf[MAX_STRING_LENGTH], command[MAX_INPUT_LENGTH];
     int cmd;
-    char *org_arg = argument;
+    //const char *org_arg = argument;
 
     argument = one_argument( argument, command );
 
@@ -203,7 +204,7 @@ void act_non_wizi(const char *format, CHAR_DATA *ch,
 /*
  * Find a target char or object for an mprog - search in area first
  */
-CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument )
+CHAR_DATA* get_mp_char( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *victim = get_char_area( ch, argument );
 
@@ -216,7 +217,7 @@ CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument )
 	return get_char_world(ch, argument);
 }
 
-OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument )
+OBJ_DATA* get_mp_obj( CHAR_DATA *ch, const char *argument )
 {
     OBJ_DATA *victim = get_obj_area( ch, argument );
 
@@ -229,9 +230,7 @@ OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument )
 	return get_obj_world(ch, argument);
 }
 
-ROOM_INDEX_DATA* find_location_new( CHAR_DATA *ch, char *arg, bool area );
-
-ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg )
+ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, const char *arg )
 {
     ROOM_INDEX_DATA *room;
 
@@ -255,13 +254,13 @@ ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg )
  */
 
 /* returns weather arg is a normal or relative vnum */
-bool is_r_number( char *arg )
+bool is_r_number( const char *arg )
 {
     char arg1[MIL];
 
     if ( arg == NULL || arg[0] == '\0' )
     {
-	bugf( "is_r_number: invalig argument" );
+        bugf( "is_r_number: invalid argument" );
     }
 
     if ( is_number(arg) )
@@ -272,7 +271,7 @@ bool is_r_number( char *arg )
 }
 
 /* converts normal or relative vnums */
-int r_atoi( CHAR_DATA *ch, char *arg )
+int r_atoi( CHAR_DATA *ch, const char *arg )
 {
     AREA_DATA *area;
     char arg1[MIL];
@@ -306,7 +305,7 @@ int r_atoi( CHAR_DATA *ch, char *arg )
     return area->min_vnum + nr;
 }
 
-int r_atoi_obj( OBJ_DATA *obj, char *arg )
+int r_atoi_obj( OBJ_DATA *obj, const char *arg )
 {
     AREA_DATA *area;
     char arg1[MIL];
@@ -342,7 +341,7 @@ int r_atoi_obj( OBJ_DATA *obj, char *arg )
  *
  * Syntax: mpstat [name]
  */
-void do_mpstat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpstat)
 {
     char        arg[ MAX_STRING_LENGTH  ];
     PROG_LIST  *mprg;
@@ -412,7 +411,7 @@ void do_mpstat( CHAR_DATA *ch, char *argument )
  *
  * Syntax: rpdump [vnum]
  */
-void do_rpdump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rpdump)
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
@@ -445,7 +444,7 @@ void do_rpdump( CHAR_DATA *ch, char *argument )
  *
  * Syntax: apdump [vnum]
  */
-void do_apdump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_apdump)
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
@@ -478,7 +477,7 @@ void do_apdump( CHAR_DATA *ch, char *argument )
  *
  * Syntax: opdump [vnum]
  */
-void do_opdump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_opdump)
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
@@ -511,7 +510,7 @@ void do_opdump( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mpdump [vnum]
  */
-void do_mpdump( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpdump)
 {
    char buf[ MAX_INPUT_LENGTH ];
    char arg2[MIL];
@@ -547,7 +546,7 @@ void do_mpdump( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob gecho [string]
  */
-void do_mpgecho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpgecho)
 {
     DESCRIPTOR_DATA *d;
 
@@ -560,7 +559,7 @@ void do_mpgecho( CHAR_DATA *ch, char *argument )
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) )
+	if ( IS_PLAYING(d->connected) )
  	{
 	    if ( IS_IMMORTAL(d->character) )
 		send_to_char( "Mob echo> ", d->character );
@@ -575,7 +574,7 @@ void do_mpgecho( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob zecho [string]
  */
-void do_mpzecho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpzecho)
 {
     DESCRIPTOR_DATA *d;
 
@@ -591,7 +590,7 @@ void do_mpzecho( CHAR_DATA *ch, char *argument )
 
     for ( d = descriptor_list; d; d = d->next )
     {
-	if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+	if ( (IS_PLAYING(d->connected))
 	&&   d->character->in_room != NULL 
 	&&   d->character->in_room->area == ch->in_room->area )
  	{
@@ -608,7 +607,7 @@ void do_mpzecho( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob asound [string]
  */
-void do_mpasound( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpasound)
 {
 
     ROOM_INDEX_DATA *was_in_room;
@@ -663,7 +662,7 @@ void mpkill( CHAR_DATA *ch, CHAR_DATA *victim )
     return;
 }
 
-void do_mpkill( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpkill)
 {
     char      arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
@@ -693,7 +692,7 @@ void mpassist( CHAR_DATA *ch, CHAR_DATA *victim)
     return;
 } 
 
-void do_mpassist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpassist)
 {
     char      arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
@@ -718,7 +717,7 @@ void do_mpassist( CHAR_DATA *ch, char *argument )
  * Syntax: mob junk [item]
  */
 
-void do_mpjunk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpjunk)
 {
     char      arg[ MAX_INPUT_LENGTH ];
     OBJ_DATA *obj;
@@ -763,12 +762,12 @@ void do_mpjunk( CHAR_DATA *ch, char *argument )
  * Syntax: mob echoaround [victim] [string]
  */
 
-void mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, char *txt )
+void mpechoaround( CHAR_DATA *ch, CHAR_DATA *vic, const char *txt )
 {
     act_non_wizi( txt, ch, NULL, vic, TO_NOTVICT );
 }
 
-void do_mpechoaround( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpechoaround)
 {
     char       arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
@@ -789,12 +788,12 @@ void do_mpechoaround( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob echoat [victim] [string]
  */
-void mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, char *argument)
+void mpechoat( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 {
     act_non_wizi( argument, ch, NULL, victim, TO_VICT );
 }
 
-void do_mpechoat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpechoat)
 {
     char       arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
@@ -815,7 +814,7 @@ void do_mpechoat( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mpecho [string]
  */
-void do_mpecho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpecho)
 {
     if ( argument[0] == '\0' )
 	return;
@@ -827,7 +826,7 @@ void do_mpecho( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob mload [vnum]
  */
-CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
+CHAR_DATA * mpmload( CHAR_DATA *ch, const char *argument )
 {
     char            arg[ MAX_INPUT_LENGTH ];
     MOB_INDEX_DATA *pMobIndex;
@@ -853,7 +852,7 @@ CHAR_DATA * mpmload( CHAR_DATA *ch, char *argument )
     return victim;
 }
 
-void do_mpmload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpmload)
 {
     mpmload( ch, argument);
 }
@@ -864,7 +863,7 @@ void do_mpmload( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob oload [vnum] [level] {R|W}
  */
-void do_mpoload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpoload)
 {
     char arg1[ MAX_INPUT_LENGTH ];
     char arg2[ MAX_INPUT_LENGTH ];
@@ -950,7 +949,7 @@ void do_mpoload( CHAR_DATA *ch, char *argument )
  *
  * syntax mob purge {target}
  */
-void do_mppurge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mppurge)
 {
     char       arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim;
@@ -1007,7 +1006,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
             sprintf( buf, "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
                 IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
-                ch->in_room->vnum != NULL ? ch->in_room->vnum : 0, 
+                ch->in_room != NULL ? ch->in_room->vnum : 0, 
                 arg != NULL ? arg : "null");
             bug( buf, 0 );
 	}
@@ -1032,7 +1031,7 @@ void do_mppurge( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob goto [location]
  */
-void do_mpgoto( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpgoto)
 {
     char             arg[ MAX_INPUT_LENGTH ];
     ROOM_INDEX_DATA *location;
@@ -1071,7 +1070,7 @@ void do_mpgoto( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob at [location] [commands]
  */
-void do_mpat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpat)
 {
     char arg[ MAX_INPUT_LENGTH ];
     ROOM_INDEX_DATA *location;
@@ -1133,7 +1132,7 @@ void do_mpat( CHAR_DATA *ch, char *argument )
 	    break;
 	}
     }
-    sprintf( last_debug, "" );
+    strcpy( last_debug, "" );
 
     return;
 }
@@ -1154,6 +1153,15 @@ void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
     char_to_room( victim, location );
 
     do_look( victim, "auto" );
+    
+    if ( !IS_NPC(victim) )
+    {
+        ap_enter_trigger(victim, location->area);
+        ap_renter_trigger(victim);
+        rp_enter_trigger(victim);
+        op_greet_trigger(victim);
+        mp_greet_trigger(victim);
+    }
 }
 
 /*
@@ -1162,7 +1170,7 @@ void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
  *
  * Syntax: mob transfer [target|'all'] [location]
  */
-void do_mptransfer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mptransfer)
 {
     char             arg1[ MAX_INPUT_LENGTH ];
     char             arg2[ MAX_INPUT_LENGTH ];
@@ -1221,7 +1229,7 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
         for ( d = descriptor_list; d; d = d->next )
         {
             if (   !d->character 
-                || (d->connected != CON_PLAYING && !IS_WRITING_NOTE(d->connected))
+                || !(IS_PLAYING(d->connected))
                 || !can_see(ch, d->character)
                 || ch->in_room->area != d->character->in_room->area 
                 || d->character->level == 1 )
@@ -1244,7 +1252,7 @@ void do_mptransfer( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob gtransfer [victim] [location]
  */
-void do_mpgtransfer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpgtransfer)
 {
     char             arg1[ MAX_INPUT_LENGTH ];
     char             arg2[ MAX_INPUT_LENGTH ];
@@ -1292,7 +1300,7 @@ void do_mpgtransfer( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob force [victim] [command]
  */
-void do_mpforce( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpforce)
 {
     char arg[ MAX_INPUT_LENGTH ];
     char buf[MSL];
@@ -1348,7 +1356,7 @@ void do_mpforce( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob gforce [victim] [commands]
  */
-void do_mpgforce( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpgforce)
 {
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *victim, *vch, *vch_next;
@@ -1393,7 +1401,7 @@ void do_mpgforce( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob vforce [vnum] [commands]
  */
-void do_mpvforce( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpvforce)
 {
     CHAR_DATA *victim, *victim_next;
     char arg[ MAX_INPUT_LENGTH ];
@@ -1432,12 +1440,6 @@ void do_mpvforce( CHAR_DATA *ch, char *argument )
     return;
 }
 
-/* imped in magic.c */
-extern char *target_name;
-bool get_spell_target( CHAR_DATA *ch, char *arg, int sn, /* input */
-		       int *target, CHAR_DATA **vo ); /* output */
-void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
-
 /*
  * Lets the mobile cast spells --
  * Beware: this does only crude checking on the target validity
@@ -1446,7 +1448,7 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
  *
  * Syntax: mob cast [spell] {target}
  */
-void do_mpcast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpcast)
 {
     void *victim = NULL;
     char spell[ MAX_INPUT_LENGTH ];
@@ -1481,7 +1483,7 @@ void do_mpcast( CHAR_DATA *ch, char *argument )
 	return;
     victim = check_reflection( sn, ch->level, ch, victim, target_type );
 
-    (*skill_table[sn].spell_fun)( sn, ch->level, ch, victim, target_type );
+    (*skill_table[sn].spell_fun)( sn, ch->level, ch, victim, target_type, FALSE );
     return;
 }
 
@@ -1491,7 +1493,7 @@ void do_mpcast( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob damage [victim|'all'] [min] [max] {kill}
  */
-void do_mpdamage( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpdamage)
 {
     CHAR_DATA *victim = NULL, *victim_next;
     char target[ MAX_INPUT_LENGTH ],
@@ -1551,11 +1553,11 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
         {
 	        victim_next = victim->next_in_room;
 	        if ( victim != ch )
-                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
+                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
         }
     }
     else
-        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill, FALSE);
+        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
     return;
 }
 
@@ -1565,7 +1567,7 @@ void do_mpdamage( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob remember [victim]
  */
-void do_mpremember( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpremember)
 {
     char arg[ MAX_INPUT_LENGTH ];
     one_argument( argument, arg );
@@ -1581,7 +1583,7 @@ void do_mpremember( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob forget
  */
-void do_mpforget( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpforget)
 {
     ch->mprog_target = NULL;
 }
@@ -1593,7 +1595,7 @@ void do_mpforget( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob delay [pulses]
  */
-void do_mpdelay( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpdelay)
 {
     char arg[ MAX_INPUT_LENGTH ];
 
@@ -1612,7 +1614,7 @@ void do_mpdelay( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob cancel
  */
-void do_mpcancel( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpcancel)
 {
    ch->mprog_delay = -1;
 }
@@ -1626,7 +1628,7 @@ void do_mpcancel( CHAR_DATA *ch, char *argument )
  * Syntax: mob call [vnum] [victim|'null'] [object1|'null'] [object2|'null']
  *
  */
-void do_mpcall( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpcall)
 {
     char arg[ MAX_INPUT_LENGTH ];
     CHAR_DATA *vch;
@@ -1666,7 +1668,7 @@ void do_mpcall( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob otransfer [item name] [location]
  */
-void do_mpotransfer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpotransfer)
 {
     OBJ_DATA *obj;
     ROOM_INDEX_DATA *location;
@@ -1706,7 +1708,7 @@ void do_mpotransfer( CHAR_DATA *ch, char *argument )
  *
  * Syntax: mob remove [victim] [object vnum|'all'] {inv|get|room}
  */
-void do_mpremove( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpremove)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj, *obj_next;
@@ -1734,7 +1736,7 @@ void do_mpremove( CHAR_DATA *ch, char *argument )
 	bug ( "MpRemove: Invalid object from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	*/
-	int loc = flag_value(wear_loc_flags, arg);
+	int loc = flag_lookup(arg, wear_loc_flags);
 	if ( loc == NO_FLAG )
 	{
 	    bug ( "MpRemove: Invalid wear-location from vnum %d.", 
@@ -1807,7 +1809,7 @@ void mpremort( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 
-void do_mpremort( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpremort)
 {
     CHAR_DATA *victim;
     char arg[ MAX_INPUT_LENGTH ];
@@ -1820,7 +1822,7 @@ void do_mpremort( CHAR_DATA *ch, char *argument )
 
 
 /* Auth mobprog commands, ported from Smaug by Rimbol. */
-void do_mpapply( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpapply)
 {
     CHAR_DATA *victim;
     
@@ -1868,7 +1870,7 @@ void do_mpapply( CHAR_DATA *ch, char *argument )
 
 /* Auth mobprog commands, ported from Smaug by Rimbol. */
 /* Based on new auth version by Samson. */
-void do_mpapplyb( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpapplyb)
 {
     CHAR_DATA *victim;
     char buf[MAX_STRING_LENGTH];
@@ -1929,8 +1931,7 @@ void do_mpapplyb( CHAR_DATA *ch, char *argument )
 
 /* stuff for special quests --Bobble */
 
-void mpqset(CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3,
-                int timer, int limit )
+void mpqset( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3, int timer, int limit )
 {
     if (IS_NPC(victim))
     {
@@ -1944,7 +1945,7 @@ void mpqset(CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3,
 }
 
 /* Syntax: mob qset $n [id] [status] */
-void do_mpqset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpqset)
 {
     CHAR_DATA *victim;
     static char arg[MAX_INPUT_LENGTH];
@@ -1996,7 +1997,7 @@ void do_mpqset( CHAR_DATA *ch, char *argument )
     mpqset( ch, victim, arg2, arg3, timer, limit );
 }
 
-void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
+void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, const char *arg3 )
 {
     int increment;
 
@@ -2017,23 +2018,20 @@ void mpqadvance( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, char *arg3 )
 
     int old_status = quest_status( victim, id );
     int timer = qset_timer(victim, id );
-    set_quest_status( victim, id, old_status + increment, timer );
+    set_quest_status( victim, id, old_status + increment, timer, 0 );
 }
 
 /* Syntax: mob qadvance $n [id] {increment} */
-void do_mpqadvance( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpqadvance)
 {
     CHAR_DATA *victim;
     char arg[MAX_INPUT_LENGTH];
     char arg2[MIL];
     char arg3[MIL];
-    char arg4[MIL];
-    int id, increment, old_status, timer;
 
     argument = one_argument( argument, arg );
     argument = one_argument( argument, arg2 );
     argument = one_argument( argument, arg3 );
-    argument = one_argument( argument, arg4 );
 
     if ( arg[0] == 0 || arg2[0] == 0 )
     {
@@ -2058,7 +2056,7 @@ void do_mpqadvance( CHAR_DATA *ch, char *argument )
 #define REWARD_EXP     0
 #define REWARD_QP      1
 #define REWARD_GOLD    2 
-void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
+void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
 {
     int reward;
     char buf[MSL];
@@ -2113,14 +2111,13 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, char *arg2, int amount )
 }
 
 /* Syntax: mob reward $n [exp|qp|gold] [amount] */
-void do_mpreward( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpreward)
 {
     CHAR_DATA *victim;
     static char arg1[MIL];
     static char arg2[MIL];
     static char arg3[MIL];
-    static char buf[MSL];
-    int amount, reward;
+    int amount;
 
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -2151,13 +2148,13 @@ void do_mpreward( CHAR_DATA *ch, char *argument )
     mpreward( ch, victim, arg2, amount);
 }
 
-void do_mppeace( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mppeace)
 {
     /* call imm command, does same thing */
     do_peace( ch, argument );
 }
 
-void do_mprestore( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mprestore)
 {
     CHAR_DATA *victim = get_char_room( ch, argument );
 
@@ -2167,7 +2164,7 @@ void do_mprestore( CHAR_DATA *ch, char *argument )
     restore_char( victim );
 }
 
-void do_mpact( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mpact)
 {
     int value;
     char arg1[MIL];
@@ -2186,7 +2183,7 @@ void do_mpact( CHAR_DATA *ch, char *argument )
 	one_argument( argument, arg1 );
     }
 
-    if ( (value = flag_value(act_flags, arg1)) == NO_FLAG )
+    if ( (value = flag_lookup(arg1, act_flags)) == NO_FLAG )
     {
 	bugf( "do_mpact: unknown flag <%s> from mob %d",
 	      argument, ch->pIndexData->vnum );
@@ -2202,7 +2199,7 @@ void do_mpact( CHAR_DATA *ch, char *argument )
 	SET_BIT( ch->act, value );
 }
 
-void do_mphit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mphit)
 {
     CHAR_DATA *victim;
 

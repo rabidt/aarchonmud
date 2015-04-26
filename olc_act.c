@@ -19,25 +19,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
 #include "lookup.h"
-#include <sys/stat.h>
+#include "mob_stats.h"
 
 char * mprog_type_to_name ( int type );
 
 /*
 #define ALT_FLAGVALUE_SET( _blargh, _table, _arg )		\
 {							\
-    int blah = flag_value( _table, _arg );		\
+    int blah = flag_lookup(_arg, _table);		\
     _blargh = (blah == NO_FLAG) ? 0 : blah;		\
 }
 
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg )		\
 {							\
-    int blah = flag_value( _table, _arg );		\
+    int blah = flag_lookup(_arg, _table);		\
     _blargh ^= (blah == NO_FLAG) ? 0 : blah;	\
 }
 */
@@ -47,14 +48,14 @@ char * mprog_type_to_name ( int type );
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg ) \
     _blargh = alt_flagvalue_toggle( _blargh, _table, _arg )
 
-long alt_flagvalue( const struct flag_type *flag_table, char *argument )
+long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 {
     long buf = 0;
     int flag;
 #ifdef FLAG_DEBUG
     log_string( "alt_flagvalue: start" );
 #endif
-    flag = flag_value( flag_table, argument );
+    flag = flag_lookup(argument, flag_table);
     if ( flag != NO_FLAG )
 	I_SET_BIT( buf, flag );
 #ifdef FLAG_DEBUG
@@ -63,15 +64,14 @@ long alt_flagvalue( const struct flag_type *flag_table, char *argument )
     return buf;
 }
 
-long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
-			   char *argument )
+long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, const char *argument )
 {
     long buf = old_flag;
     int flag;
 #ifdef FLAG_DEBUG
     log_string( "alt_flagvalue_toggle: start" );
 #endif
-    flag = flag_value( flag_table, argument );
+    flag = flag_lookup(argument, flag_table );
     if ( flag != NO_FLAG )
 	I_TOGGLE_BIT( buf, flag );
 #ifdef FLAG_DEBUG
@@ -81,15 +81,15 @@ long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table,
 }
 
 /* Return TRUE if area changed, FALSE if not. */
-#define REDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define OEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define MEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define AEDIT( fun )		bool fun( CHAR_DATA *ch, char *argument )
-#define HEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
+#define REDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define OEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define MEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define AEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
+#define HEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
-#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, char *argument )
-#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, char *argument )
-#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, char *argument )
+#define RACEEDIT( fun )    bool fun( CHAR_DATA *ch, const char *argument )
+#define SKILLEDIT( fun )   bool fun( CHAR_DATA *ch, const char *argument )
+#define REMORTEDIT( fun )  bool fun( CHAR_DATA *ch, const char *argument )
 
 
 
@@ -104,7 +104,7 @@ struct olc_help_type
 
 
 
-bool show_version( CHAR_DATA *ch, char *argument )
+bool show_version( CHAR_DATA *ch, const char *argument )
 {
     send_to_char( VERSION, ch );
     send_to_char( "\n\r", ch );
@@ -141,7 +141,6 @@ const struct olc_help_type help_table[] =
     
     /* ROM specific bits: */
     
-    {	"armor",	ac_type,	 "Ac for different attacks."	 },
     {   "apply",	apply_flags,	 "Apply flags"			 },
     {	"form",		form_flags,	 "Mobile body form."	         },
     {	"part",		part_flags,	 "Mobile body parts."		 },
@@ -279,7 +278,7 @@ Name:		show_help
 Purpose:	Displays help for many tables used in OLC.
 Called by:	olc interpreters.
 ****************************************************************************/
-bool show_help( CHAR_DATA *ch, char *argument )
+bool show_help( CHAR_DATA *ch, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -349,6 +348,7 @@ bool show_help( CHAR_DATA *ch, char *argument )
                             {
                                 show_skill_cmds( ch, TAR_IGNORE );
                                 show_skill_cmds( ch, TAR_IGNORE_OFF );
+                                show_skill_cmds( ch, TAR_IGNORE_OBJ );
                             }
                             else if ( !str_prefix( spell, "attack" ) )
                             {
@@ -511,7 +511,7 @@ REDIT( redit_olist )
         if ( ( pObjIndex = get_obj_index( vnum ) ) )
         {
             if ( fAll || is_name( arg, pObjIndex->name )
-                || flag_value( type_flags, arg ) == pObjIndex->item_type )
+                || flag_lookup(arg, type_flags) == pObjIndex->item_type )
             {
                 found = TRUE;
                 sprintf( buf, "[%5d] %-17.16s",
@@ -752,7 +752,7 @@ AEDIT ( aedit_addaprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (aprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, aprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "aprog");
@@ -845,7 +845,10 @@ AEDIT( aedit_show )
     sprintf( buf, "Credits:    [%s]\n\r", pArea->credits );
     send_to_char_bw( buf, ch );
     
-    sprintf( buf, "Flags:      [%s]\n\r", flag_string( area_flags, pArea->area_flags ) );
+    sprintf( buf, "Flags:      [%s]\n\r", flag_bits_name(area_flags, pArea->area_flags) );
+    send_to_char( buf, ch );
+
+    sprintf( buf, "Comments:\n\r%s", pArea->comments );
     send_to_char( buf, ch );
     
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
@@ -1249,7 +1252,6 @@ AEDIT( aedit_minlevel )
 {
     AREA_DATA *pArea;
     char min[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1272,7 +1274,6 @@ AEDIT( aedit_maxlevel )
 {
     AREA_DATA *pArea;
     char max[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1295,7 +1296,6 @@ AEDIT( aedit_miniquests )
 {
     AREA_DATA *pArea;
     char quests[MAX_STRING_LENGTH];
-    char buf[MAX_STRING_LENGTH];
     int  value;
     
     EDIT_AREA(ch, pArea);
@@ -1348,6 +1348,22 @@ AEDIT( aedit_security )
     return TRUE;
 }
 
+AEDIT( aedit_comments)
+{
+    AREA_DATA *pArea;
+
+    EDIT_AREA(ch, pArea);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pArea->comments );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  comments   - line edit\n\r", ch );
+    return FALSE;
+}
+
 AEDIT( aedit_builder )
 {
     AREA_DATA *pArea;
@@ -1370,7 +1386,7 @@ AEDIT( aedit_builder )
     if ( strstr( pArea->builders, name ) != '\0' )
     {
         pArea->builders = string_replace( pArea->builders, name, "\0" );
-        pArea->builders = string_unpad( pArea->builders );
+        pArea->builders = trim_realloc( pArea->builders );
         
         if ( pArea->builders[0] == '\0' )
         {
@@ -1386,7 +1402,7 @@ AEDIT( aedit_builder )
         if ( strstr( pArea->builders, "None" ) != '\0' )
         {
             pArea->builders = string_replace( pArea->builders, "None", "\0" );
-            pArea->builders = string_unpad( pArea->builders );
+            pArea->builders = trim_realloc( pArea->builders );
         }
         
         if (pArea->builders[0] != '\0' )
@@ -1396,7 +1412,7 @@ AEDIT( aedit_builder )
         }
         strcat( buf, name );
         free_string( pArea->builders );
-        pArea->builders = string_proper( str_dup( buf ) );
+        pArea->builders = str_dup(string_proper(buf));
         
         send_to_char( "Builder added.\n\r", ch );
         send_to_char( pArea->builders,ch);
@@ -1655,7 +1671,7 @@ REDIT ( redit_addrprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (rprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, rprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "rprog");
@@ -1711,11 +1727,11 @@ REDIT( redit_show )
     strcat( buf1, buf );
     
     sprintf( buf, "Vnum:       [%5d]\n\rSector:     [%s]\n\r",
-        pRoom->vnum, flag_stat_string( sector_flags, pRoom->sector_type ) );
+        pRoom->vnum, flag_bit_name(sector_flags, pRoom->sector_type) );
     strcat( buf1, buf );
     
     sprintf( buf, "Room flags: [%s]\n\r",
-        flag_string( room_flags, pRoom->room_flags ) );
+        flag_bits_name(room_flags, pRoom->room_flags) );
     strcat( buf1, buf );
     
     if ( pRoom->heal_rate != 100 || pRoom->mana_rate != 100 )
@@ -1812,10 +1828,10 @@ REDIT( redit_show )
         
         if ( ( pexit = pRoom->exit[door] ) )
         {
-            char word[MAX_INPUT_LENGTH];
+            //char word[MAX_INPUT_LENGTH];
             char reset_state[MAX_STRING_LENGTH];
-            char *state;
-            int i, length;
+            //char *state;
+            //int i, length;
             
             sprintf( buf, "-%-5s to [%5d] Key: [%5d] ",
                 capitalize(dir_name[door]),
@@ -1828,37 +1844,9 @@ REDIT( redit_show )
             * Capitalize all flags that are not part of the reset info.
             */
 	    sprintf( reset_state, " Exit flags: [%s] [%s]\n\r", 
-		     flag_string(exit_flags, pexit->rs_flags),
-		     flag_string(exit_flags, pexit->exit_info));
+            flag_bits_name(exit_flags, pexit->rs_flags),
+            flag_bits_name(exit_flags, pexit->exit_info));
 	    strcat( buf1, reset_state );
-	    /* was hiding reset flags --Bobble
-            strcpy( reset_state, flag_string( exit_flags, pexit->rs_flags ) );
-	    state = flag_string( exit_flags, pexit->exit_info );
-            strcat( buf1, " Exit flags: [" );
-            for (; ;)
-            {
-                state = one_argument( state, word );
-                
-                if ( word[0] == '\0' )
-                {
-                    int end;
-                    
-                    end = strlen(buf1) - 1;
-                    buf1[end] = ']';
-                    strcat( buf1, "\n\r" );
-                    break;
-                }
-                
-                if ( str_infix( word, reset_state ) )
-                {
-                    length = strlen(word);
-                    for (i = 0; i < length; i++)
-                        word[i] = UPPER(word[i]);
-                }
-                strcat( buf1, word );
-                strcat( buf1, " " );
-            }
-	    */
             
             if ( pexit->keyword && pexit->keyword[0] != '\0' )
             {
@@ -1874,6 +1862,9 @@ REDIT( redit_show )
     }
     
     send_to_char( buf1, ch );
+    
+    sprintf( buf, "Comments:\n\r%s", pRoom->comments );
+    send_to_char( buf, ch );
 
     if ( pRoom->rprogs )
     {
@@ -1926,7 +1917,7 @@ EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed )
 }
 
 /* Local function. */
-bool change_exit( CHAR_DATA *ch, char *argument, int door )
+bool change_exit( CHAR_DATA *ch, const char *argument, int door )
 {
     ROOM_INDEX_DATA *pRoom;
     EXIT_DATA *rev_exit;
@@ -1940,7 +1931,7 @@ bool change_exit( CHAR_DATA *ch, char *argument, int door )
     * Set the exit flags, needs full argument.
     * ----------------------------------------
     */
-    if ( ( value = flag_value( exit_flags, argument ) ) != NO_FLAG )
+    if ( (value = flag_lookup(argument, exit_flags)) != NO_FLAG )
     {
         if ( !pRoom->exit[door] )
         {
@@ -2139,7 +2130,7 @@ bool change_exit( CHAR_DATA *ch, char *argument, int door )
         
         if ( arg[0] == '\0'
 	     || !is_number( arg )
-	     || strcmp(arg2, "") && strcmp(arg2, "oneway") )
+	     || (strcmp(arg2, "") && strcmp(arg2, "oneway")) )
         {
             send_to_char( "Syntax:  [direction] key [vnum]\n\r", ch );
             send_to_char( "         [direction] key [vnum] oneway\n\r", ch );
@@ -2595,6 +2586,8 @@ REDIT( redit_delete )
 
         last=curr;
     }
+    // should not be possible to reach this
+    return FALSE;    
 }
 
 
@@ -2671,7 +2664,21 @@ REDIT( redit_name )
     return TRUE;
 }
 
+REDIT( redit_comments )
+{
+    ROOM_INDEX_DATA *pRoom;
 
+    EDIT_ROOM(ch, pRoom);
+
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pRoom->comments );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  comments\n\r", ch );
+    return FALSE;
+}
 
 REDIT( redit_desc )
 {
@@ -2867,6 +2874,7 @@ Purpose:	Returns the location of the bit that matches the count.
 1 = first match, 2 = second match etc.
 Called by:	oedit_reset(olc_act.c).
 ****************************************************************************/
+/*
 int wear_loc(int bits, int count)
 {
     int flag;
@@ -2879,7 +2887,7 @@ int wear_loc(int bits, int count)
     
     return NO_FLAG;
 }
-
+*/
 
 
 /*****************************************************************************
@@ -3001,7 +3009,7 @@ REDIT( redit_oreset )
         /*
         * Make sure the location on mobile is valid.
         */
-        if ( (wear_loc = flag_value( wear_loc_flags, argument )) == NO_FLAG )
+        if ( (wear_loc = flag_lookup(argument, wear_loc_flags)) == NO_FLAG )
         {
             send_to_char( "REdit: Invalid wear_loc.  '? wear-loc'\n\r", ch );
             return FALSE;
@@ -3016,7 +3024,7 @@ REDIT( redit_oreset )
                 "%s (%d) has wear flags: [%s]\n\r",
                 capitalize( pObjIndex->short_descr ),
                 pObjIndex->vnum,
-                flag_string( wear_flags, pObjIndex->wear_flags ) );
+                wear_bits_name(pObjIndex->wear_flags) );
             send_to_char( output, ch );
             return FALSE;
         }
@@ -3042,7 +3050,6 @@ REDIT( redit_oreset )
         add_reset( pRoom, pReset, 0/* Last slot*/ );
         
         olevel  = URANGE( 0, to_mob->level - 2, LEVEL_HERO );
-        newobj = create_object( pObjIndex, number_fuzzy( olevel ) );
         
         if ( to_mob->pIndexData->pShop )	/* Shop-keeper? */
         {
@@ -3077,7 +3084,7 @@ REDIT( redit_oreset )
             "%s of %s (%d) and added to resets.\n\r",
             capitalize( pObjIndex->short_descr ),
             pObjIndex->vnum,
-            flag_stat_string( wear_loc_strings, pReset->arg3 ),
+            flag_bit_name(wear_loc_strings, pReset->arg3),
             to_mob->short_descr,
             to_mob->pIndexData->vnum );
         send_to_char( output, ch );
@@ -3121,7 +3128,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 		 "[v2] Damage Type:    %s\n\r",
 		 obj->value[0],
 		 obj->value[1],
-		 flag_stat_string(damage_type, obj->value[2]) );
+		 flag_bit_name(damage_type, obj->value[2]) );
         send_to_char( buf, ch );
         break;
         
@@ -3147,8 +3154,8 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v2] Portal Flags:   %s\n\r"
             "[v3] Goes to (vnum): [%d]\n\r",
             obj->value[0],
-            i_flag_string( exit_flags, obj->value[1]),
-            i_flag_string( portal_flags, obj->value[2]),
+            i_flag_bits_name(exit_flags, obj->value[1]),
+            i_flag_bits_name(portal_flags, obj->value[2]),
             obj->value[3] );
         send_to_char( buf, ch);
         break;
@@ -3162,7 +3169,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v4] Mana bonus:      [%d]\n\r",
             obj->value[0],
             obj->value[1],
-            i_flag_string( furniture_flags, obj->value[2]),
+            i_flag_bits_name(furniture_flags, obj->value[2]),
             obj->value[3],
             obj->value[4] );
         send_to_char( buf, ch );
@@ -3189,35 +3196,11 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         send_to_char( buf, ch );
         break;
         
-    case ITEM_CIGARETTE:
-        sprintf( buf,
-            "[v0] Nicotene:  [%d]\n\r"
-            "[v1] Level:     [%d]\n\r"
-            "[v2] Spell:     %s\n\r"
-            "[v3] Spell:     %s\n\r"
-            "[v4] Spell:     %s\n\r",
-            obj->value[0], obj->value[1],
-            obj->value[2] != -1 ? skill_table[obj->value[2]].name
-            : "reserved",
-            obj->value[3] != -1 ? skill_table[obj->value[3]].name
-            : "reserved",
-            obj->value[4] != -1 ? skill_table[obj->value[4]].name
-            : "reserved" );
-        send_to_char( buf, ch );
-        break;
-        
-        /* ARMOR for ROM */
-        
+    /* ARMOR for ROM */
     case ITEM_ARMOR:
         sprintf( buf,
-            "[v0] Ac pierce       [%d]\n\r"
-            "[v1] Ac bash         [%d]\n\r"
-            "[v2] Ac slash        [%d]\n\r"
-            "[v3] Ac exotic       [%d]\n\r",
-            obj->value[0],
-            obj->value[1],
-            obj->value[2],
-            obj->value[3] );
+            "[v0] Ac              [%d]\n\r",
+            obj->value[0] );
         send_to_char( buf, ch );
         break;
         
@@ -3226,7 +3209,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         /* It somehow fixed a bug in showing scroll/pill/potions too ?! */
     case ITEM_WEAPON:
         sprintf( buf, "[v0] Weapon class:   %s\n\r",
-	    flag_stat_string( weapon_class, obj->value[0] ) );
+	    flag_bit_name(weapon_class, obj->value[0]) );
         send_to_char( buf, ch );
         sprintf( buf, "[v1] Number of dice: [%d]\n\r", obj->value[1] );
         send_to_char( buf, ch );
@@ -3236,7 +3219,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             attack_table[obj->value[3]].name );
         send_to_char( buf, ch );
         sprintf( buf, "[v4] Special type:   %s\n\r",
-            i_flag_string( weapon_type2,  obj->value[4] ) );
+            i_flag_bits_name(weapon_type2, obj->value[4]) );
         send_to_char( buf, ch );
         break;
         
@@ -3248,7 +3231,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             "[v3] Item Capacity    [%d]\n\r"
             "[v4] Weight Mult(%%)   [%d]\n\r",
             obj->value[0],
-            i_flag_string( container_flags, obj->value[1] ),
+            i_flag_bits_name(container_flags, obj->value[1]),
             get_obj_index(obj->value[2])
             ? get_obj_index(obj->value[2])->short_descr
             : "none",
@@ -3306,7 +3289,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
 
 
-bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *argument)
+bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
 {
     int value;
 
@@ -3343,7 +3326,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 	    pObj->value[1] = atoi( argument );
 	    break;
 	case 2:
-	    if ( (value = flag_value(damage_type, argument)) != NO_FLAG )
+	    if ( (value = flag_lookup(argument, damage_type)) != NO_FLAG )
 	    {
 		send_to_char( "DAMAGE TYPE SET.\n\r\n\r", ch );
 		pObj->value[2] = value;
@@ -3409,37 +3392,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 	}
 	break;
 	
-    case ITEM_CIGARETTE:
-	switch ( value_num )
-	    {
-	    default:
-		do_help( ch, "ITEM_CIGARETTE" );
-		return FALSE;
-	    case 0:
-		send_to_char( "NICOTENE SET.\n\r\n\r", ch );
-		pObj->value[0] = atoi( argument );
-		break;
-	    case 1:
-		send_to_char( "SPELL LEVEL SET.\n\r\n\r", ch );
-		pObj->value[1] = atoi( argument );
-		break;
-	    case 2:
-		send_to_char( "SPELL TYPE 1 SET.\n\r\n\r", ch );
-		pObj->value[2] = spell_lookup( argument );
-		break;
-	    case 3:
-		send_to_char( "SPELL TYPE 2 SET.\n\r\n\r", ch );
-		pObj->value[3] = spell_lookup( argument );
-		break;
-	    case 4:
-		send_to_char( "SPELL TYPE 3 SET.\n\r\n\r", ch );
-		pObj->value[4] = spell_lookup( argument );
-		break;
-	    }
-	break;
-	
 	/* ARMOR for ROM: */
-	
     case ITEM_ARMOR:
 	switch ( value_num )
 	    {
@@ -3447,20 +3400,8 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 		do_help( ch, "ITEM_ARMOR" );
 		return FALSE;
 	    case 0:
-		send_to_char( "AC PIERCE SET.\n\r\n\r", ch );
+		send_to_char( "AC SET.\n\r\n\r", ch );
 		pObj->value[0] = atoi( argument );
-		break;
-	    case 1:
-		send_to_char( "AC BASH SET.\n\r\n\r", ch );
-		pObj->value[1] = atoi( argument );
-		break;
-	    case 2:
-		send_to_char( "AC SLASH SET.\n\r\n\r", ch );
-		pObj->value[2] = atoi( argument );
-		break;
-	    case 3:
-		send_to_char( "AC EXOTIC SET.\n\r\n\r", ch );
-		pObj->value[3] = atoi( argument );
 		break;
 	    }
 	break;
@@ -3474,7 +3415,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 	    do_help( ch, "ITEM_WEAPON" );
 	    return FALSE;
 	case 0:
-	    if ( (value = flag_value(weapon_class, argument)) != NO_FLAG )
+	    if ( (value = flag_lookup(argument, weapon_class)) != NO_FLAG )
 		{
 		    send_to_char( "WEAPON CLASS SET.\n\r\n\r", ch );
 		    pObj->value[0] = value;
@@ -3568,7 +3509,7 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, char *a
 		pObj->value[0] = atoi( argument );
 		break;
 	    case 1:
-		if ( ( value = flag_value( container_flags, argument ) ) != NO_FLAG )
+		if ( (value = flag_lookup(argument, container_flags)) != NO_FLAG )
 		    I_TOGGLE_BIT(pObj->value[1], value);
 		else
 		    {
@@ -3818,7 +3759,7 @@ OEDIT ( oedit_addoprog )
         return FALSE;
     }
 
-    if ( (value = flag_value (oprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, oprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "oprog");
@@ -3869,18 +3810,18 @@ OEDIT( oedit_show )
     
     sprintf( buf, "Vnum:        [%5d]\n\rType:        [%s]\n\r",
         pObj->vnum,
-        flag_stat_string( type_flags, pObj->item_type ) );
+        flag_bit_name(type_flags, pObj->item_type) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Level:       [%5d]\n\r", pObj->level );
     send_to_char( buf, ch );
     
     sprintf( buf, "Wear flags:  [%s]\n\r",
-        flag_string( wear_flags, pObj->wear_flags ) );
+        wear_bits_name(pObj->wear_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Extra flags: [%s]\n\r",
-        flag_string( extra_flags, pObj->extra_flags ) );
+        extra_bits_name(pObj->extra_flags) );
     send_to_char( buf, ch );
     
     if (pObj->clan>0 || pObj->rank>0)
@@ -3895,10 +3836,6 @@ OEDIT( oedit_show )
     
     sprintf( buf, "Material:    [%s]\n\r",                /* ROM */
         pObj->material );
-    send_to_char( buf, ch );
-    
-    sprintf( buf, "Condition:   [%5d]\n\r",               /* ROM */
-        pObj->condition );
     send_to_char( buf, ch );
     
     sprintf( buf, "Weight:      [%5d]\n\rCost:        [%5d]\n\r",
@@ -3942,6 +3879,9 @@ OEDIT( oedit_show )
     sprintf( buf, "Short desc:  %s\n\rLong desc:\n\r     %s\n\r",
         pObj->short_descr, pObj->description );
     send_to_char( buf, ch );
+
+    sprintf( buf, "Comments:\n\r%s", pObj->comments );
+    send_to_char( buf, ch );
     
     for ( cnt = 0, paf = pObj->affected; paf; paf = paf->next )
     {
@@ -3953,7 +3893,7 @@ OEDIT( oedit_show )
 
         sprintf( buf, "[%4d] %-8d %s", cnt,
             paf->modifier,
-            flag_stat_string( apply_flags, paf->location ) );
+            flag_bit_name(apply_flags, paf->location) );
         send_to_char( buf, ch );
 
 	if (paf->bitvector)
@@ -4054,7 +3994,7 @@ OEDIT( oedit_addaffect )
         return FALSE;
     }
 
-    if ( ( value = flag_value( apply_flags, loc ) ) == NO_FLAG ) /* Hugin */
+    if ( (value = flag_lookup(loc, apply_flags)) == NO_FLAG ) /* Hugin */
     {
         send_to_char( "Valid affects are:\n\r", ch );
         show_help( ch, "apply" );
@@ -4062,13 +4002,15 @@ OEDIT( oedit_addaffect )
     }
     
     if ( det[0] != '\0' )
-	if ( is_number( det ) )
-	    detect_level = atoi( det );
-	else
-	{
-	    send_to_char( "Detect level must be an integer.\n\r", ch );
-	    return FALSE;
-	}
+    {
+        if ( is_number( det ) )
+            detect_level = atoi( det );
+        else
+        {
+            send_to_char( "Detect level must be an integer.\n\r", ch );
+            return FALSE;
+        }
+    }
     
     pAf             =   new_affect();
     pAf->location   =   value;
@@ -4087,7 +4029,7 @@ OEDIT( oedit_addaffect )
 
 OEDIT( oedit_addapply )
 {
-    int value,bv,typ;
+    int bv,typ;
     OBJ_INDEX_DATA *pObj;
     AFFECT_DATA *pAf;
     char type[MAX_STRING_LENGTH];
@@ -4115,7 +4057,7 @@ OEDIT( oedit_addapply )
       return FALSE;
     }
     
-    if ( ( typ = flag_value( apply_types, type ) ) == NO_FLAG )
+    if ( (typ = flag_lookup(type, apply_types)) == NO_FLAG )
     {
         send_to_char( "Invalid apply type. Valid apply types are:\n\r", ch);
         show_help( ch, "apptype" );
@@ -4128,7 +4070,7 @@ OEDIT( oedit_addapply )
     }
     
     if ( bvector[0] == '\0' || 
-	 ( bv = flag_value( bitvector_type[typ].table, bvector ) ) == NO_FLAG )
+	 (bv = flag_lookup(bvector, bitvector_type[typ].table)) == NO_FLAG )
     {
         send_to_char( "Invalid bitvector type.\n\r", ch );
         send_to_char( "Valid bitvector types are:\n\r", ch );
@@ -4137,13 +4079,15 @@ OEDIT( oedit_addapply )
     }
     
     if ( det[0] != '\0' )
-	if ( is_number( det ) )
-	    detect_level = atoi( det );
-	else
-	{
-	    send_to_char( "Detect level must be an integer.\n\r", ch );
-	    return FALSE;
-	}
+    {
+        if ( is_number( det ) )
+            detect_level = atoi( det );
+        else
+        {
+            send_to_char( "Detect level must be an integer.\n\r", ch );
+            return FALSE;
+        }
+    }
 
     pAf             =   new_affect();
     pAf->location   =   APPLY_NONE;
@@ -4311,16 +4255,29 @@ OEDIT( oedit_long )
     }
     
     free_string( pObj->description );
-    pObj->description = str_dup( argument );
-    pObj->description[0] = UPPER( pObj->description[0] );
+    pObj->description = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
 }
 
+OEDIT( oedit_comments)
+{
+    OBJ_INDEX_DATA *pObj;
 
+    EDIT_OBJ(ch, pObj);
 
-bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, char *argument, int value )
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pObj->comments );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  comments   - line edit\n\r", ch );
+    return FALSE;
+}
+
+bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, const char *argument, int value )
 {
     if ( argument[0] == '\0' )
     {
@@ -4341,7 +4298,7 @@ Name:		oedit_values
 Purpose:	Finds the object and sets its value.
 Called by:	The four valueX functions below. (now five -- Hugin )
 ****************************************************************************/
-bool oedit_values( CHAR_DATA *ch, char *argument, int value )
+bool oedit_values( CHAR_DATA *ch, const char *argument, int value )
 {
     OBJ_INDEX_DATA *pObj;
     
@@ -4453,7 +4410,7 @@ OEDIT( oedit_combine )
     {
       send_to_char( "Syntax: combine [#vnum of resulting object]\n\r", ch );
       send_to_char( "        combine 0\n\r", ch );
-      return;
+      return FALSE;
     }
     
     vnum = atoi( buf );
@@ -4461,7 +4418,7 @@ OEDIT( oedit_combine )
     if (vnum != 0 && !get_obj_index(vnum))
     {
       send_to_char( "That vnum doesn't exist.\n\r", ch );
-      return;
+      return FALSE;
     }
 
     pObj->combine_vnum = vnum;
@@ -4469,6 +4426,8 @@ OEDIT( oedit_combine )
       send_to_char( "Combine removed.\n\r", ch );
     else
       send_to_char( "Combine set.\n\r", ch );
+    
+    return TRUE;
 }
 
 void show_ratings( CHAR_DATA *ch )
@@ -4488,7 +4447,7 @@ OEDIT( oedit_rating )
 {
     OBJ_INDEX_DATA *pObj;
     char buf[MIL];
-    int value, i;
+    int value;
 
     EDIT_OBJ(ch, pObj);
 
@@ -4497,26 +4456,27 @@ OEDIT( oedit_rating )
     if ( get_trust(ch) < L2 )
     {
 	send_to_char( "You must be level 108 to rate the object's difficulty.\n\r", ch );
-	return;
+	return FALSE;
     }
 
     if (buf[0] == '\0' || !is_number( buf ))
     {
 	send_to_char( "Syntax: rating [difficulty rating]\n\r", ch );
 	show_ratings( ch );
-	return;
+	return FALSE;
     }
     
     value = atoi( buf );
     if ( value < 0 || value >= MAX_RATING )
     {
 	show_ratings( ch );
-	return;
+	return FALSE;
     }
 
     /* set the rating */
     pObj->diff_rating = value;
     send_to_char( "Difficulty rating set.\n\r", ch );
+    return TRUE;
 }
 
 OEDIT( oedit_delete )
@@ -4619,7 +4579,8 @@ OEDIT( oedit_delete )
         
         last=curr;
     }
-
+    // should not reach this point
+    return FALSE;
 }
 
 OEDIT( oedit_create )
@@ -4774,8 +4735,6 @@ OEDIT( oedit_ed )
     
     if ( !str_cmp( command, "format" ) )
     {
-        EXTRA_DESCR_DATA *ped = NULL;
-        
         if ( keyword[0] == '\0' )
         {
             send_to_char( "Syntax:  ed format [keyword]\n\r", ch );
@@ -4786,7 +4745,6 @@ OEDIT( oedit_ed )
         {
             if ( is_name( keyword, ed->keyword ) )
                 break;
-            ped = ed;
         }
         
         if ( !ed )
@@ -4820,7 +4778,7 @@ OEDIT( oedit_extra )      /* Moved out of oedit() due to naming conflicts -- Hug
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( extra_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, extra_flags)) != NO_FLAG )
         {
             TOGGLE_BIT(pObj->extra_flags, value);
             
@@ -4844,7 +4802,7 @@ OEDIT( oedit_wear )      /* Moved out of oedit() due to naming conflicts -- Hugi
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( wear_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, wear_flags)) != NO_FLAG )
         {
             TOGGLE_BIT(pObj->wear_flags, value);
             
@@ -4868,21 +4826,25 @@ OEDIT( oedit_type )      /* Moved out of oedit() due to naming conflicts -- Hugi
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( ( value = flag_value( type_flags, argument ) ) != NO_FLAG )
+        if ( (value = flag_lookup(argument, type_flags)) != NO_FLAG )
         {
-            pObj->item_type = value;
-            
             send_to_char( "Type set.\n\r", ch);
-            
-            /*
-            * Clear the values.
-            */
-            pObj->value[0] = 0;
-            pObj->value[1] = 0;
-            pObj->value[2] = 0;
-            pObj->value[3] = 0;
-            pObj->value[4] = 0;     /* ROM */
-            
+
+            if ( pObj->item_type != value )
+            {
+                pObj->item_type = value;
+                pObj->value[0] = 0;
+                pObj->value[1] = 0;
+                pObj->value[2] = 0;
+                pObj->value[3] = 0;
+                pObj->value[4] = 0;     /* ROM */
+            }
+            if ( value == ITEM_WAND || value == ITEM_STAFF )
+            {
+                // default of 50 charges for wands and staffs
+                pObj->value[1] = 50;
+                pObj->value[2] = 50;
+            }
             return TRUE;
         }
     }
@@ -4929,160 +4891,137 @@ OEDIT( oedit_level )
     return TRUE;
 }
 
-
-
-OEDIT( oedit_condition )
-{
-    OBJ_INDEX_DATA *pObj;
-    int value;
-    
-    if ( argument[0] != '\0'
-        && ( value = atoi (argument ) ) >= 0
-        && ( value <= 100 ) )
-    {
-        EDIT_OBJ( ch, pObj );
-        
-        pObj->condition = value;
-        send_to_char( "Condition set.\n\r", ch );
-        
-        return TRUE;
-    }
-    
-    send_to_char( "Syntax:  condition [number]\n\r"
-        "Where number can range from 0 (ruined) to 100 (perfect).\n\r",
-        ch );
-    return FALSE;
-}
-
-
-#define OBJ_STAT_AC_WEAPON    0
-#define OBJ_STAT_AC_EXOTIC    1
-#define OBJ_STAT_SHOP_COST    2
-#define OBJ_STAT_DROP_COST    3
-#define OBJ_STAT_NR           4
+#define OBJ_STAT_AC           0 
+#define OBJ_STAT_SHOP_COST    1
+#define OBJ_STAT_DROP_COST    2
+#define OBJ_STAT_NR           3 
 
 
 /* values in above order, obj_stats[i] = stats for level i+1 */
 static int obj_ovalue[][OBJ_STAT_NR] = {
-    {1,1,500,150          },// 1
-    {1,1,1000,300         },
-    {1,1,1500,450         },
-    {1,1,2000,600         },
-    {1,1,3000,900         },//5
-    {1,1,3600,1080        },
-    {1,1,4200,1260        },
-    {1,1,4800,1440        },
-    {2,2,5400,1620        },
-    {2,2,7000,2100        },//10
-    {2,2,7700,2310        },
-    {3,3,8400,2520        },
-    {3,3,9100,2730        },
-    {3,3,9800,2940        },
-    {3,3,12000,3600       },//15
-    {4,4,12800,3840       },
-    {4,4,13600,4080       },
-    {4,4,14400,4320       },
-    {4,4,17100,5130       },
-    {4,4,18000,5400       },//20
-    {5,5,18900,5670       },
-    {5,5,19800,5940       },
-    {5,5,20700,6210       },
-    {5,5,24000,7200       },
-    {6,6,25000,7500       },//25
-    {6,6,26000,7800       },
-    {6,6,27000,8100       },
-    {6,6,28000,8400       },
-    {6,6,31900,9570       },
-    {7,7,33000,9900       },//30
-    {7,7,34100,10230      },
-    {7,7,35200,10560      },
-    {7,7,36300,10890      },
-    {8,8,40800,12240      },
-    {8,8,42000,12600      },//35
-    {8,8,43200,12960      },
-    {8,8,44400,13320      },
-    {8,8,49400,14820      },
-    {9,9,50700,15210      },
-    {9,9,52000,15600      },//40
-    {9,9,53300,15990      },
-    {9,9,54600,16380      },
-    {10,10,60200,18060    },
-    {10,10,61600,18480    },
-    {10,10,63000,18900    },//45
-    {10,10,64400,19320    },
-    {10,10,65800,19740    },
-    {11,11,72000,21600    },
-    {11,11,73500,22050    },
-    {11,11,75000,22500    },//50
-    {11,11,76500,22950    },
-    {12,12,78000,23400    },
-    {12,12,84800,25440    },
-    {12,12,86400,25920    },
-    {12,12,88000,26400    },//55
-    {12,12,89600,26880    },
-    {13,13,96900,29070    },
-    {13,13,98600,29580    },
-    {13,13,100300,30090   },
-    {13,13,102000,30600   },//60
-    {14,14,103700,31110   },
-    {14,14,111600,33480   },
-    {14,14,113400,34020   },
-    {14,14,115200,34560   },
-    {14,14,117000,35100   },//65
-    {15,15,118800,35640   },
-    {15,15,127300,38190   },
-    {15,15,129200,38760   },
-    {15,15,131100,39330   },
-    {16,16,133000,39900   },//70
-    {16,16,134900,40470   },
-    {16,16,144000,43200   },
-    {16,16,146000,43800   },
-    {16,16,148000,44400   },
-    {17,17,150000,45000   },//75
-    {17,17,159600,47880   },
-    {17,17,161700,48510   },
-    {17,17,163800,49140   },
-    {18,18,165900,49770   },
-    {18,18,168000,50400   },//80
-    {18,18,178200,53460   },
-    {18,18,180400,54120   },
-    {18,18,182600,54780   },
-    {19,19,184800,55440   },
-    {19,19,187000,56100   },//85
-    {19,19,197800,59340   },
-    {19,19,200100,60030   },
-    {20,20,202400,60720   },
-    {20,20,204700,61410   },
-    {20,20,216000,64800   },//90
-    {20,20,449600,134880  },
-    {20,20,464400,139320  },
-    {21,21,479400,143820  },
-    {21,21,494600,148380  },
-    {21,21,510000,153000  },//95
-    {21,21,532200,159660  },
-    {22,22,551100,165330  },
-    {22,22,572000,171600  },
-    {22,22,594000,178200  },
-    {22,22,600000,180000  },//100
+    {1,500,150          },// 1
+    {1,1000,300         },
+    {1,1500,450         },
+    {1,2000,600         },
+    {1,3000,900         },//5
+    {1,3600,1080        },
+    {1,4200,1260        },
+    {1,4800,1440        },
+    {2,5400,1620        },
+    {2,7000,2100        },//10
+    {2,7700,2310        },
+    {3,8400,2520        },
+    {3,9100,2730        },
+    {3,9800,2940        },
+    {3,12000,3600       },//15
+    {4,12800,3840       },
+    {4,13600,4080       },
+    {4,14400,4320       },
+    {4,17100,5130       },
+    {4,18000,5400       },//20
+    {5,18900,5670       },
+    {5,19800,5940       },
+    {5,20700,6210       },
+    {5,24000,7200       },
+    {6,25000,7500       },//25
+    {6,26000,7800       },
+    {6,27000,8100       },
+    {6,28000,8400       },
+    {6,31900,9570       },
+    {7,33000,9900       },//30
+    {7,34100,10230      },
+    {7,35200,10560      },
+    {7,36300,10890      },
+    {8,40800,12240      },
+    {8,42000,12600      },//35
+    {8,43200,12960      },
+    {8,44400,13320      },
+    {8,49400,14820      },
+    {9,50700,15210      },
+    {9,52000,15600      },//40
+    {9,53300,15990      },
+    {9,54600,16380      },
+    {10,60200,18060    },
+    {10,61600,18480    },
+    {10,63000,18900    },//45
+    {10,64400,19320    },
+    {10,65800,19740    },
+    {11,72000,21600    },
+    {11,73500,22050    },
+    {11,75000,22500    },//50
+    {11,76500,22950    },
+    {12,78000,23400    },
+    {12,84800,25440    },
+    {12,86400,25920    },
+    {12,88000,26400    },//55
+    {12,89600,26880    },
+    {13,96900,29070    },
+    {13,98600,29580    },
+    {13,100300,30090   },
+    {13,102000,30600   },//60
+    {14,103700,31110   },
+    {14,111600,33480   },
+    {14,113400,34020   },
+    {14,115200,34560   },
+    {14,117000,35100   },//65
+    {15,118800,35640   },
+    {15,127300,38190   },
+    {15,129200,38760   },
+    {15,131100,39330   },
+    {16,133000,39900   },//70
+    {16,134900,40470   },
+    {16,144000,43200   },
+    {16,146000,43800   },
+    {16,148000,44400   },
+    {17,150000,45000   },//75
+    {17,159600,47880   },
+    {17,161700,48510   },
+    {17,163800,49140   },
+    {18,165900,49770   },
+    {18,168000,50400   },//80
+    {18,178200,53460   },
+    {18,180400,54120   },
+    {18,182600,54780   },
+    {19,184800,55440   },
+    {19,187000,56100   },//85
+    {19,197800,59340   },
+    {19,200100,60030   },
+    {20,202400,60720   },
+    {20,204700,61410   },
+    {20,216000,64800   },//90
+    {20,449600,134880  },
+    {20,464400,139320  },
+    {21,479400,143820  },
+    {21,494600,148380  },
+    {21,510000,153000  },//95
+    {21,532200,159660  },
+    {22,551100,165330  },
+    {22,572000,171600  },
+    {22,594000,178200  },
+    {22,600000,180000  }//100
 };
 
 
 int* get_obj_ovalue( int level )
 {
-    static int ovalue[OBJ_STAT_NR] = { 15, 20, 150, 250 };
+    static int ovalue[OBJ_STAT_NR] = { };
     level = UMAX( 1, level );
 
     if ( level <= 100 )
-	return obj_ovalue[level-1];
+        return obj_ovalue[level-1];
     
     /* extrapolate */
-      ovalue[OBJ_STAT_AC_WEAPON] = 15 + (level-5);
-      ovalue[OBJ_STAT_AC_EXOTIC] = 15 + (level-5);
-      ovalue[OBJ_STAT_DROP_COST] = 15 + (level-5);
-      ovalue[OBJ_STAT_SHOP_COST] = 15 + (level-5);
+    ovalue[OBJ_STAT_AC] = 15 + (level-5);
+    ovalue[OBJ_STAT_DROP_COST] = 15 + (level-5);
+    ovalue[OBJ_STAT_SHOP_COST] = 15 + (level-5);
 
-   return ovalue;
+    return ovalue;
 } 
+
+int armor_class_by_level( int level )
+{
+    return get_obj_ovalue(level)[OBJ_STAT_AC];
+}
 
 bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
 {
@@ -5226,7 +5165,7 @@ OEDIT( oedit_adjust )
     OBJ_INDEX_DATA *pObj;
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    int *ovalue, weight;
+    int *ovalue;
     bool set_drop = FALSE;
     bool set_shop = FALSE;
     
@@ -5261,14 +5200,11 @@ OEDIT( oedit_adjust )
     // AC
     if (pObj->item_type == ITEM_ARMOR)
     {
-        int ac_sum = pObj->value[0] + pObj->value[1] + pObj->value[2] + pObj->value[3] * 3;
-        int spec_sum = (ovalue[OBJ_STAT_AC_WEAPON] + ovalue[OBJ_STAT_AC_EXOTIC]) * 3;
+        int ac_sum = pObj->value[0];
+        int spec_sum = ovalue[OBJ_STAT_AC];
         if ( ac_sum != spec_sum )
         {
-            pObj->value[0] = ovalue[OBJ_STAT_AC_WEAPON];
-            pObj->value[1] = ovalue[OBJ_STAT_AC_WEAPON];
-            pObj->value[2] = ovalue[OBJ_STAT_AC_WEAPON];
-            pObj->value[3] = ovalue[OBJ_STAT_AC_EXOTIC];
+            pObj->value[0] = ovalue[OBJ_STAT_AC];
             send_to_char("AC has been adjusted.\n\r", ch);
         }
     }
@@ -5320,7 +5256,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf, "Act:         [%s]\n\r",
-        flag_string( act_flags, pMob->act ) );
+        act_bits_name(pMob->act) );
     send_to_char( buf, ch );
     
     sprintf( buf,
@@ -5339,7 +5275,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitroll:     [%3d\%=%5d] Damage: [%3d\%=%5d] Dam Type: [%s]\n\r",
+        "Hitroll:     [%3d%%=%5d] Damage: [%3d%%=%5d] Dam Type: [%s]\n\r",
         pMob->hitroll_percent,
         mob_base_hitroll(pMob, pMob->level),
         pMob->damage_percent,
@@ -5348,7 +5284,7 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf,
-        "Hitpoints:   [%3d\%=%5d]   Mana: [%3d\%=%5d]     Move: [%3d\%=%5d]\n\r",
+        "Hitpoints:   [%3d%%=%5d]   Mana: [%3d%%=%5d]     Move: [%3d%%=%5d]\n\r",
         pMob->hitpoint_percent,
         mob_base_hp(pMob, pMob->level),
         pMob->mana_percent,
@@ -5358,7 +5294,7 @@ MEDIT( medit_show )
     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor:       [%3d\%=%5d]  Saves: [%3d\%=%5d]\n\r",
+    sprintf( buf, "Armor:       [%3d%%=%5d]  Saves: [%3d%%=%5d]\n\r",
         pMob->ac_percent,
         mob_base_ac(pMob, pMob->level),
         pMob->saves_percent,
@@ -5381,44 +5317,44 @@ MEDIT( medit_show )
     /* ROM values: */
     
     sprintf( buf, "Form:        [%s]\n\r",
-        flag_string( form_flags, pMob->form ) );
+        form_bits_name(pMob->form) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Parts:       [%s]\n\r",
-        flag_string( part_flags, pMob->parts ) );
+        part_bits_name(pMob->parts) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Imm:         [%s]\n\r",
-        flag_string( imm_flags, pMob->imm_flags ) );
+        imm_bits_name(pMob->imm_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Res:         [%s]\n\r",
-        flag_string( res_flags, pMob->res_flags ) );
+        imm_bits_name(pMob->res_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Vuln:        [%s]\n\r",
-        flag_string( vuln_flags, pMob->vuln_flags ) );
+        imm_bits_name(pMob->vuln_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Off:         [%s]\n\r",
-        flag_string( off_flags,  pMob->off_flags ) );
+        off_bits_name(pMob->off_flags) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Size:        [%s]\n\r",
-        flag_stat_string( size_flags, pMob->size ) );
+        flag_bit_name(size_flags, pMob->size) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Start pos.   [%s]\n\r",
-        flag_stat_string( position_flags, pMob->start_pos ) );
+        flag_bit_name(position_flags, pMob->start_pos) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Default pos  [%s]\n\r",
-        flag_stat_string( position_flags, pMob->default_pos ) );
+        flag_bit_name(position_flags, pMob->default_pos) );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wealth:      [%d\%=%d]\n\r",
+    sprintf( buf, "Wealth:      [%d%%=%ld]\n\r",
         pMob->wealth_percent,
-        mob_base_wealth(pMob, pMob->level)
+        mob_base_wealth(pMob)
     );
     send_to_char( buf, ch );
     
@@ -5439,6 +5375,9 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     sprintf( buf, "Description:\n\r%s", pMob->description );
+    send_to_char( buf, ch );
+
+    sprintf( buf, "Comments:\n\r%s", pMob->comments );
     send_to_char( buf, ch );
     
     if ( pMob->pShop )
@@ -5467,10 +5406,20 @@ MEDIT( medit_show )
                     send_to_char( "  ------ -----------\n\r", ch );
                 }
                 sprintf( buf, "  [%4d] %s\n\r", iTrade,
-                    flag_stat_string( type_flags, pShop->buy_type[iTrade] ) );
+                    flag_bit_name(type_flags, pShop->buy_type[iTrade]) );
                 send_to_char( buf, ch );
             }
         }
+    }
+
+    if ( pMob->boss_achieve )
+    {
+        send_to_char( "\n\rBOSS ACHIEVEMENT\n\r", ch );
+        ptc( ch, "QP reward:   %d\n\r", pMob->boss_achieve->quest_reward);
+        ptc( ch, "EXP reward:  %d\n\r", pMob->boss_achieve->exp_reward);
+        ptc( ch, "Gold reward: %d\n\r", pMob->boss_achieve->gold_reward);
+        ptc( ch, "AchP reward: %d\n\r", pMob->boss_achieve->ach_reward);
+        
     }
     
     if ( pMob->mprogs )
@@ -5560,6 +5509,13 @@ MEDIT( medit_delete )
         }
     }
 
+    /* check for mprog triggers */
+    if ( pMob->mprogs )
+    {
+        send_to_char( "MEdit:  Can't delete, mprog triggers exist.\n\r", ch );
+        return FALSE;
+    }
+
     CHAR_DATA *m;
     for ( m=char_list ; m ; m=m->next )
     {
@@ -5595,7 +5551,8 @@ MEDIT( medit_delete )
         
         last=curr;
     }
-
+    // should not reach this point
+    return FALSE;
 }
 
 
@@ -5690,139 +5647,138 @@ MEDIT( medit_spec )
 #define LVL_STAT_DAM_DICE_NUMBER 3
 #define LVL_STAT_DAM_DICE_TYPE   4
 #define LVL_STAT_DAM_DICE_BONUS  5
-#define LVL_STAT_AC_WEAPON       6
-#define LVL_STAT_AC_EXOTIC       7
-#define LVL_STAT_NR              8
+#define LVL_STAT_AC              6
+#define LVL_STAT_NR              7 
 
 /* values in above order, level_stats[i] = stats for level i+1
 */
 static int level_stats[][LVL_STAT_NR] = {
-    {  2,  6,    10,  1,  4,  0,   95,  100 },
-    {  2,  7,    22,  1,  5,  0,   89,   95 },
-    {  2,  6,    35,  1,  6,  0,   83,   90 },
-    {  2,  7,    46,  1,  5,  1,   76,   85 },
-    {  2,  6,    60,  1,  6,  1,   70,   80 },
-    {  2,  7,    71,  1,  7,  1,   64,   76 },
-    {  2,  6,    85,  1,  8,  1,   58,   72 },
-    {  2,  7,    96,  1,  7,  2,   52,   68 },
-    {  2,  6,   110,  1,  8,  2,   46,   64 },
-    {  2,  7,   121,  2,  4,  2,   40,   60 }, // 10
-    {  7,  3,   134,  2,  6,  0,   33,   56 },
-    {  1, 18,   157,  4,  3,  0,   26,   52 },
-    {  1, 20,   175,  4,  3,  1,   19,   48 },
-    { 11,  3,   182,  3,  4,  2,   12,   44 },
-    {  3,  9,   208,  2,  6,  3,    5,   40 },
-    { 12,  3,   224,  2,  9,  0,   -1,   36 },
-    { 12,  3,   249,  4,  3,  3,   -7,   32 },
-    { 12,  3,   274,  1, 13,  5,  -13,   28 },
-    { 12,  3,   299,  1, 13,  6,  -19,   24 },
-    {  3,  9,   333,  2,  8,  5,  -25,   20 }, // 20
-    {  7,  5,   373,  5,  4,  2,  -31,   16 },
-    {  8,  5,   416,  5,  4,  3,  -37,   12 },
-    {  1, 38,   466,  1, 18,  7,  -43,    8 },
-    {  1, 42,   510,  1, 18,  8,  -49,    4 },
-    {  5, 10,   550,  2, 10,  7,  -55,    0 },
-    {  7,  8,   609,  9,  3,  1,  -62,   -4 },
-    {  1, 54,   676,  1, 20,  9,  -69,   -8 },
-    {  2, 30,   735,  1, 20, 10,  -76,  -12 },
-    {  2, 32,   796, 10,  3,  1,  -83,  -16 },
-    {  6, 12,   853,  4,  6,  8,  -90,  -20 }, // 30
-    {  1, 72,   948, 10,  3,  3,  -96,  -24 },
-    {  4, 20,  1035, 11,  3,  2, -102,  -28 },
-    { 10,  9,  1120, 11,  3,  3, -108,  -32 },
-    {  5, 18,  1215, 12,  3,  2, -114,  -36 },
-    { 10, 10,  1300,  4,  7, 11, -120,  -40 },
-    { 11, 10,  1420,  5,  6, 10, -126,  -44 },
-    { 12, 10,  1520,  5,  6, 11, -132,  -48 },
-    {  9, 14,  1634,  9,  4,  7, -138,  -52 },
-    {  9, 15,  1745,  9,  4,  8, -144,  -56 },
-    { 15, 10,  1850,  4,  8, 13, -150,  -60 }, // 40
-    {  9, 18,  2088,  7,  5, 11, -156,  -64 },
-    { 19, 10,  2310,  2, 14, 18, -162,  -68 },
-    {  9, 22,  2552,  2, 14, 19, -168,  -72 },
-    {  9, 24,  2784, 12,  3, 11, -174,  -76 },
-    { 25, 10,  3000,  8,  4, 16, -180,  -80 },
-    { 18, 16,  3312,  2, 14, 22, -187,  -84 },
-    { 15, 22,  3620,  7,  5, 17, -194,  -88 },
-    { 20, 19,  3920,  1, 32, 23, -201,  -92 },
-    { 15, 28,  4230, 11,  4, 13, -208,  -96 },
-    { 50, 10,  4500,  5,  8, 19, -215, -100 }, // 50
-    { 50, 10,  5000,  2, 18, 24, -221, -104 },
-    { 50, 10,  5500, 11,  4, 17, -227, -108 },
-    { 50, 10,  6000,  8,  5, 21, -233, -112 },
-    { 50, 10,  6500,  1, 32, 30, -239, -116 },
-    { 50, 10,  7000, 10,  4, 23, -245, -120 },
-    { 50, 10,  7500,  8,  5, 26, -251, -124 },
-    { 50, 10,  8000,  2, 18, 32, -257, -128 },
-    { 50, 10,  8500, 12,  4, 23, -263, -132 },
-    { 50, 10,  9000,  2, 20, 33, -269, -136 },
-    { 50, 10,  9500,  8,  6, 28, -275, -140 }, // 60
-    { 53, 10,  9700,  7,  7, 28, -281, -144 },
-    { 56, 10,  9900, 11,  5, 23, -287, -148 },
-    { 59, 10, 10100, 11,  5, 23, -293, -152 },
-    { 62, 10, 10300,  2, 24, 31, -299, -156 },
-    { 65, 10, 10500,  8,  7, 24, -305, -160 },
-    { 65, 10, 10700, 12,  5, 21, -312, -164 },
-    { 65, 10, 10900, 12,  5, 22, -319, -168 },
-    { 65, 10, 11100, 12,  5, 24, -326, -172 },
-    { 65, 10, 11300, 12,  5, 25, -333, -176 },
-    { 65, 10, 11500,  8,  7, 30, -340, -180 }, // 70
-    { 65, 10, 11700, 12,  5, 27, -346, -184 },
-    { 65, 10, 11900, 12,  5, 28, -352, -188 },
-    { 65, 10, 12100, 10,  6, 30, -358, -192 },
-    { 65, 10, 12300, 10,  6, 31, -364, -196 },
-    { 65, 10, 12500, 10,  6, 32, -370, -200 },
-    { 64, 10, 12700,  3, 18, 40, -376, -204 },
-    { 63, 10, 12900,  4, 14, 39, -382, -208 },
-    { 62, 10, 13100,  1, 54, 43, -388, -212 },
-    { 61, 10, 13300,  9,  7, 35, -394, -216 },
-    { 60, 10, 13500, 11,  6, 34, -400, -220 }, // 80
-    { 60, 11, 13500,  8,  8, 37, -406, -224 },
-    { 60, 12, 13500,  3, 20, 42, -412, -228 },
-    { 60, 13, 13500,  2, 30, 44, -418, -232 },
-    { 60, 14, 13500,  1, 60, 45, -424, -236 },
-    { 60, 15, 13500, 12,  6, 34, -430, -240 },
-    { 61, 15, 13700,  1, 60, 47, -436, -244 },
-    { 62, 15, 13900,  2, 30, 48, -442, -248 },
-    { 63, 15, 14100,  1, 60, 50, -448, -252 },
-    { 64, 15, 14300,  2, 30, 51, -454, -256 },
-    { 65, 15, 14500, 19,  4, 36, -460, -260 }, // 90
-    { 65, 15, 14750, 12,  6, 42, -466, -264 },
-    { 65, 15, 15000,  2, 32, 51, -472, -268 },
-    { 65, 15, 15250,  5, 14, 47, -478, -272 },
-    { 65, 15, 15500,  1, 68, 50, -484, -276 },
-    { 65, 15, 15750, 10,  8, 40, -490, -280 },
-    { 65, 15, 16200,  1, 72, 49, -497, -284 },
-    { 65, 15, 16650, 12,  7, 38, -504, -288 },
-    { 65, 15, 17100,  5, 16, 44, -511, -292 },
-    { 65, 15, 17550,  4, 20, 45, -518, -296 },
-    { 65, 15, 18000, 11,  8, 38, -525, -300 }, // 100
-    { 65, 15, 18450, 11,  8, 39, -530, -304 },
-    { 65, 15, 18900, 11,  8, 40, -535, -308 },
-    { 65, 15, 19350, 11,  8, 42, -540, -312 },
-    { 65, 15, 19800, 11,  8, 43, -545, -316 },
-    { 65, 15, 20250, 11,  8, 44, -550, -320 },
-    { 65, 15, 20650,  1, 80, 54, -556, -324 },
-    { 65, 15, 21050, 10,  9, 45, -562, -328 },
-    { 65, 15, 21450,  9, 10, 47, -568, -332 },
-    { 65, 15, 21850,  2, 42, 54, -574, -336 },
-    { 65, 15, 22500, 12,  8, 44, -580, -340 }, // 110
-    { 65, 15, 22950, 12,  8, 45, -608, -344 },
-    { 65, 15, 23400, 12,  8, 46, -636, -348 },
-    { 65, 15, 23850, 12,  8, 48, -664, -352 },
-    { 65, 15, 24300, 12,  8, 49, -692, -356 },
-    { 65, 15, 24750, 12,  8, 50, -720, -360 },
-    { 65, 15, 25200, 12,  8, 51, -726, -364 },
-    { 65, 15, 25650, 12,  8, 52, -732, -368 },
-    { 65, 15, 26100, 12,  8, 54, -738, -372 },
-    { 65, 15, 26550, 12,  8, 55, -744, -376 },
-    { 65, 15, 27000, 12,  8, 56, -750, -380 } // 120
+    {  2,  6,    10,  1,  4,  0,   95 },
+    {  2,  7,    22,  1,  5,  0,   89 },
+    {  2,  6,    35,  1,  6,  0,   83 },
+    {  2,  7,    46,  1,  5,  1,   76 },
+    {  2,  6,    60,  1,  6,  1,   70 },
+    {  2,  7,    71,  1,  7,  1,   64 },
+    {  2,  6,    85,  1,  8,  1,   58 },
+    {  2,  7,    96,  1,  7,  2,   52 },
+    {  2,  6,   110,  1,  8,  2,   46 },
+    {  2,  7,   121,  2,  4,  2,   40 }, // 10
+    {  7,  3,   134,  2,  6,  0,   33 },
+    {  1, 18,   157,  4,  3,  0,   26 },
+    {  1, 20,   175,  4,  3,  1,   19 },
+    { 11,  3,   182,  3,  4,  2,   12 },
+    {  3,  9,   208,  2,  6,  3,    5 },
+    { 12,  3,   224,  2,  9,  0,   -1 },
+    { 12,  3,   249,  4,  3,  3,   -7 },
+    { 12,  3,   274,  1, 13,  5,  -13 },
+    { 12,  3,   299,  1, 13,  6,  -19 },
+    {  3,  9,   333,  2,  8,  5,  -25 }, // 20
+    {  7,  5,   373,  5,  4,  2,  -31 },
+    {  8,  5,   416,  5,  4,  3,  -37 },
+    {  1, 38,   466,  1, 18,  7,  -43 },
+    {  1, 42,   510,  1, 18,  8,  -49 },
+    {  5, 10,   550,  2, 10,  7,  -55 },
+    {  7,  8,   609,  9,  3,  1,  -62 },
+    {  1, 54,   676,  1, 20,  9,  -69 },
+    {  2, 30,   735,  1, 20, 10,  -76 },
+    {  2, 32,   796, 10,  3,  1,  -83 },
+    {  6, 12,   853,  4,  6,  8,  -90 }, // 30
+    {  1, 72,   948, 10,  3,  3,  -96 },
+    {  4, 20,  1035, 11,  3,  2, -102 },
+    { 10,  9,  1120, 11,  3,  3, -108 },
+    {  5, 18,  1215, 12,  3,  2, -114 },
+    { 10, 10,  1300,  4,  7, 11, -120 },
+    { 11, 10,  1420,  5,  6, 10, -126 },
+    { 12, 10,  1520,  5,  6, 11, -132 },
+    {  9, 14,  1634,  9,  4,  7, -138 },
+    {  9, 15,  1745,  9,  4,  8, -144 },
+    { 15, 10,  1850,  4,  8, 13, -150 }, // 40
+    {  9, 18,  2088,  7,  5, 11, -156 },
+    { 19, 10,  2310,  2, 14, 18, -162 },
+    {  9, 22,  2552,  2, 14, 19, -168 },
+    {  9, 24,  2784, 12,  3, 11, -174 },
+    { 25, 10,  3000,  8,  4, 16, -180 },
+    { 18, 16,  3312,  2, 14, 22, -187 },
+    { 15, 22,  3620,  7,  5, 17, -194 },
+    { 20, 19,  3920,  1, 32, 23, -201 },
+    { 15, 28,  4230, 11,  4, 13, -208 },
+    { 50, 10,  4500,  5,  8, 19, -215 }, // 50
+    { 50, 10,  5000,  2, 18, 24, -221 },
+    { 50, 10,  5500, 11,  4, 17, -227 },
+    { 50, 10,  6000,  8,  5, 21, -233 },
+    { 50, 10,  6500,  1, 32, 30, -239 },
+    { 50, 10,  7000, 10,  4, 23, -245 },
+    { 50, 10,  7500,  8,  5, 26, -251 },
+    { 50, 10,  8000,  2, 18, 32, -257 },
+    { 50, 10,  8500, 12,  4, 23, -263 },
+    { 50, 10,  9000,  2, 20, 33, -269 },
+    { 50, 10,  9500,  8,  6, 28, -275 }, // 60
+    { 53, 10,  9700,  7,  7, 28, -281 },
+    { 56, 10,  9900, 11,  5, 23, -287 },
+    { 59, 10, 10100, 11,  5, 23, -293 },
+    { 62, 10, 10300,  2, 24, 31, -299 },
+    { 65, 10, 10500,  8,  7, 24, -305 },
+    { 65, 10, 10700, 12,  5, 21, -312 },
+    { 65, 10, 10900, 12,  5, 22, -319 },
+    { 65, 10, 11100, 12,  5, 24, -326 },
+    { 65, 10, 11300, 12,  5, 25, -333 },
+    { 65, 10, 11500,  8,  7, 30, -340 }, // 70
+    { 65, 10, 11700, 12,  5, 27, -346 },
+    { 65, 10, 11900, 12,  5, 28, -352 },
+    { 65, 10, 12100, 10,  6, 30, -358 },
+    { 65, 10, 12300, 10,  6, 31, -364 },
+    { 65, 10, 12500, 10,  6, 32, -370 },
+    { 64, 10, 12700,  3, 18, 40, -376 },
+    { 63, 10, 12900,  4, 14, 39, -382 },
+    { 62, 10, 13100,  1, 54, 43, -388 },
+    { 61, 10, 13300,  9,  7, 35, -394 },
+    { 60, 10, 13500, 11,  6, 34, -400 }, // 80
+    { 60, 11, 13500,  8,  8, 37, -406 },
+    { 60, 12, 13500,  3, 20, 42, -412 },
+    { 60, 13, 13500,  2, 30, 44, -418 },
+    { 60, 14, 13500,  1, 60, 45, -424 },
+    { 60, 15, 13500, 12,  6, 34, -430 },
+    { 61, 15, 13700,  1, 60, 47, -436 },
+    { 62, 15, 13900,  2, 30, 48, -442 },
+    { 63, 15, 14100,  1, 60, 50, -448 },
+    { 64, 15, 14300,  2, 30, 51, -454 },
+    { 65, 15, 14500, 19,  4, 36, -460 }, // 90
+    { 65, 15, 14750, 12,  6, 42, -466 },
+    { 65, 15, 15000,  2, 32, 51, -472 },
+    { 65, 15, 15250,  5, 14, 47, -478 },
+    { 65, 15, 15500,  1, 68, 50, -484 },
+    { 65, 15, 15750, 10,  8, 40, -490 },
+    { 65, 15, 16200,  1, 72, 49, -497 },
+    { 65, 15, 16650, 12,  7, 38, -504 },
+    { 65, 15, 17100,  5, 16, 44, -511 },
+    { 65, 15, 17550,  4, 20, 45, -518 },
+    { 65, 15, 18000, 11,  8, 38, -525 }, // 100
+    { 65, 15, 18450, 11,  8, 39, -530 },
+    { 65, 15, 18900, 11,  8, 40, -535 },
+    { 65, 15, 19350, 11,  8, 42, -540 },
+    { 65, 15, 19800, 11,  8, 43, -545 },
+    { 65, 15, 20250, 11,  8, 44, -550 },
+    { 65, 15, 20650,  1, 80, 54, -556 },
+    { 65, 15, 21050, 10,  9, 45, -562 },
+    { 65, 15, 21450,  9, 10, 47, -568 },
+    { 65, 15, 21850,  2, 42, 54, -574 },
+    { 65, 15, 22500, 12,  8, 44, -580 }, // 110
+    { 65, 15, 22950, 12,  8, 45, -608 },
+    { 65, 15, 23400, 12,  8, 46, -636 },
+    { 65, 15, 23850, 12,  8, 48, -664 },
+    { 65, 15, 24300, 12,  8, 49, -692 },
+    { 65, 15, 24750, 12,  8, 50, -720 },
+    { 65, 15, 25200, 12,  8, 51, -726 },
+    { 65, 15, 25650, 12,  8, 52, -732 },
+    { 65, 15, 26100, 12,  8, 54, -738 },
+    { 65, 15, 26550, 12,  8, 55, -744 },
+    { 65, 15, 27000, 12,  8, 56, -750 } // 120
 };
 
 /* returns an array with the stats for that level */
 int* get_level_stats( int level )
 {
-    static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750, -380 };
+    static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750 };
 
     level = UMAX( 1, level );
 
@@ -5834,8 +5790,7 @@ int* get_level_stats( int level )
     stats[LVL_STAT_DAM_DICE_NUMBER] = (level+9)/10;
     stats[LVL_STAT_DAM_DICE_TYPE] = (level+9)/10 - 4;
     stats[LVL_STAT_DAM_DICE_BONUS] = 56 + 2 * (level-120);
-    stats[LVL_STAT_AC_WEAPON] = -30 - 6 * level;
-    stats[LVL_STAT_AC_EXOTIC] = 100 - 4 * level;
+    stats[LVL_STAT_AC] = -30 - 6 * level;
 
     return stats;
 }
@@ -5868,7 +5823,6 @@ void set_mob_level( CHAR_DATA *mob, int level )
 void set_mob_level( CHAR_DATA *mob, int level )
 {
     MOB_INDEX_DATA *pMobIndex = mob->pIndexData;
-    int i;
     
     level = URANGE(1, level, 200);
     mob->level = level;
@@ -5897,8 +5851,7 @@ void set_mob_level( CHAR_DATA *mob, int level )
     mob->hitroll = mob_base_hitroll( pMobIndex, level );
     mob->damroll = mob_base_damroll( pMobIndex, level );
     mob->saving_throw = mob_base_saves( pMobIndex, level );
-    for (i = 0; i < 4; i++)
-        mob->armor[i] = mob_base_ac( pMobIndex, level );
+    mob->armor = mob_base_ac( pMobIndex, level );
 
     /* str ... luc */
     compute_mob_stats(mob);    
@@ -6004,8 +5957,21 @@ MEDIT( medit_desc )
     return FALSE;
 }
 
+MEDIT( medit_comments)
+{
+    MOB_INDEX_DATA *pMob;
 
+    EDIT_MOB(ch, pMob);
 
+    if ( argument[0] == '\0' )
+    {
+        string_append( ch, &pMob->comments );
+        return TRUE;
+    }
+
+    send_to_char( "Syntax:  comments   - line edit\n\r", ch );
+    return FALSE;
+}
 
 MEDIT( medit_long )
 {
@@ -6020,8 +5986,7 @@ MEDIT( medit_long )
     }
     
     free_string( pMob->long_descr );
-    pMob->long_descr = str_dup( argument );
-    pMob->long_descr[0] = UPPER( pMob->long_descr[0]  );
+    pMob->long_descr = upper_realloc(str_dup(argument));
     
     send_to_char( "Long description set.\n\r", ch);
     return TRUE;
@@ -6077,7 +6042,7 @@ MEDIT( medit_name )
 {
     MOB_INDEX_DATA *pMob;
     char arg [MAX_INPUT_LENGTH];
-    char *s;
+    const char *s;
     char buf[MAX_INPUT_LENGTH];
     struct stat fst;
     
@@ -6110,7 +6075,105 @@ MEDIT( medit_name )
     return TRUE;
 }
 
+MEDIT( medit_bossachieve )
+{
+    MOB_INDEX_DATA *pMob;
+    char command[MIL];
+    //char arg1[MIL];
 
+    argument = one_argument( argument, command );
+    //argument = one_argument( argument, arg1 );
+
+    EDIT_MOB(ch, pMob);
+    
+    if ( command[0] == '\0' )
+    {
+        send_to_char( "Syntax: \n\r", ch );
+        send_to_char( "  bossachieve assign   -- Turn on achievement\n\r"
+                      "  bossachieve remove   -- Turn off achievement\n\r"
+                      "  bossachieve exp   [#value]\n\r"
+                      "  bossachieve gold  [#value]\n\r"
+                      "  bossachieve qp    [#value]\n\r"
+                      "  bossachieve ach   [#value]\n\r",
+                      ch);
+        return FALSE;
+    }
+
+    if ( !str_cmp( command, "assign" ) )
+    {
+        if ( pMob->boss_achieve )
+        {
+            send_to_char( "Mob already has boss achieve assigned.\n\r", ch);
+            return FALSE;
+        }
+        if (ch->pcdata->security < 9)
+        {
+            send_to_char( "Must be security 9 to add boss achievements.\n\r", ch);
+            return FALSE;
+        }
+
+        pMob->boss_achieve = new_boss_achieve();
+        update_bossachv_table();
+        send_to_char( "Boss achievement turned on.\n\r", ch);
+        return TRUE;
+    }
+
+    if (!pMob->boss_achieve)
+    {
+        send_to_char( "Boss achievement not turned on\n\r", ch );
+        return FALSE;
+    }
+
+    if ( !str_cmp( command, "remove" ) )
+    {
+        free_boss_achieve( pMob->boss_achieve );
+        pMob->boss_achieve = NULL;
+
+        update_bossachv_table();
+        send_to_char( "Boss achievement removed.\n\r", ch );
+        return TRUE;
+    }
+
+    if ( argument[0] == '\0' || !is_number( argument ) )
+    {
+        ptc( ch, "Usage: bossachieve %s [#value]\n\r", command);
+        return FALSE;
+    }
+
+
+    int value=atoi(argument);
+    if ( value < 0 )
+    {
+        ptc( ch, "Value must be 0 or greater.\n\r");
+        return FALSE;
+    }
+
+    if (!str_cmp( command, "qp" ) )
+    {
+        pMob->boss_achieve->quest_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "gold" ) )
+    {
+        pMob->boss_achieve->gold_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "exp" ) )
+    {
+        pMob->boss_achieve->exp_reward = value;
+        return TRUE;
+    }
+    if (!str_cmp( command, "ach" ) )
+    {
+        pMob->boss_achieve->ach_reward = value;
+        return TRUE;
+    }
+
+
+    medit_bossachieve( ch, "" );
+    return FALSE;
+
+}
 
 MEDIT( medit_shop )
 {
@@ -6205,7 +6268,7 @@ MEDIT( medit_shop )
             return FALSE;
         }
         
-        if ( ( value = flag_value( type_flags, argument ) ) == NO_FLAG )
+        if ( (value = flag_lookup(argument, type_flags)) == NO_FLAG )
         {
             send_to_char( "MEdit:  That type of item is not known.\n\r", ch );
             return FALSE;
@@ -6299,7 +6362,7 @@ MEDIT( medit_sex )          /* Moved out of medit() due to naming conflicts -- H
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( sex_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, sex_flags) ) != NO_FLAG )
         {
             pMob->sex = value;
             
@@ -6323,7 +6386,7 @@ MEDIT( medit_act )          /* Moved out of medit() due to naming conflicts -- H
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( act_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, act_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->act, value );
             SET_BIT( pMob->act, ACT_IS_NPC );
@@ -6348,7 +6411,7 @@ MEDIT( medit_affect )      /* Moved out of medit() due to naming conflicts -- Hu
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( affect_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, affect_flags) ) != NO_FLAG )
         {
             /*SET_BIT(pMob->affect_field, value); -Rim (for Quirky) 4/12/98*/
             
@@ -6377,7 +6440,7 @@ MEDIT( medit_form )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( form_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, form_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->form, value );
             send_to_char( "Form toggled.\n\r", ch );
@@ -6399,7 +6462,7 @@ MEDIT( medit_part )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( part_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, part_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->parts, value );
             send_to_char( "Parts toggled.\n\r", ch );
@@ -6421,7 +6484,7 @@ MEDIT( medit_imm )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( imm_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, imm_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->imm_flags, value );
             send_to_char( "Immunity toggled.\n\r", ch );
@@ -6443,7 +6506,7 @@ MEDIT( medit_res )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( res_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, res_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->res_flags, value );
             send_to_char( "Resistance toggled.\n\r", ch );
@@ -6465,7 +6528,7 @@ MEDIT( medit_vuln )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( vuln_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, vuln_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->vuln_flags, value );
             send_to_char( "Vulnerability toggled.\n\r", ch );
@@ -6508,7 +6571,7 @@ MEDIT( medit_off )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( off_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, off_flags) ) != NO_FLAG )
         {
             TOGGLE_BIT( pMob->off_flags, value );
             send_to_char( "Offensive behaviour toggled.\n\r", ch );
@@ -6530,7 +6593,7 @@ MEDIT( medit_size )
     {
         EDIT_MOB( ch, pMob );
         
-        if ( ( value = flag_value( size_flags, argument ) ) != NO_FLAG )
+        if ( ( value = flag_lookup(argument, size_flags) ) != NO_FLAG )
         {
             pMob->size = value;
             send_to_char( "Size set.\n\r", ch );
@@ -6618,7 +6681,7 @@ MEDIT( medit_position )
         if ( str_prefix( arg, "start" ) )
             break;
         
-        if ( ( value = flag_value( position_flags, argument ) ) == NO_FLAG )
+        if ( ( value = flag_lookup(argument, position_flags) ) == NO_FLAG )
             break;
         
         EDIT_MOB( ch, pMob );
@@ -6632,7 +6695,7 @@ MEDIT( medit_position )
         if ( str_prefix( arg, "default" ) )
             break;
         
-        if ( ( value = flag_value( position_flags, argument ) ) == NO_FLAG )
+        if ( ( value = flag_lookup(argument, position_flags) ) == NO_FLAG )
             break;
         
         EDIT_MOB( ch, pMob );
@@ -6731,7 +6794,7 @@ static const char* basic_dam_names[MAX_DAM_TYPE] =
 };
 
 /* returns the name for the given damage type */
-char* basic_dam_name( int dam_type )
+const char* basic_dam_name( int dam_type )
 {
   if (dam_type < 0 || dam_type >= MAX_DAM_TYPE)
     return "?";
@@ -6869,7 +6932,7 @@ MEDIT ( medit_addmprog )
         return FALSE;
     }
     
-    if ( (value = flag_value (mprog_flags, trigger) ) == NO_FLAG)
+    if ( (value = flag_lookup(trigger, mprog_flags)) == NO_FLAG )
     {
         send_to_char("Valid flags are:\n\r",ch);
         show_help( ch, "mprog");
@@ -6987,7 +7050,7 @@ REDIT( redit_room )
     
     EDIT_ROOM(ch, room);
     
-    if ( (value = flag_value( room_flags, argument )) == NO_FLAG )
+    if ( (value = flag_lookup(argument, room_flags)) == NO_FLAG )
     {
         send_to_char( "Syntax: room [flags]\n\r", ch );
         return FALSE;
@@ -7005,7 +7068,7 @@ REDIT( redit_sector )
     
     EDIT_ROOM(ch, room);
     
-    if ( (value = flag_value( sector_flags, argument )) == NO_FLAG) 
+    if ( (value = flag_lookup(argument, sector_flags)) == NO_FLAG )
     {
         if (str_prefix(argument, "inside"))
         {
@@ -7152,7 +7215,7 @@ HEDIT( hedit_delete)
 /* percentage values */
 
 #define CMD(cmd) (strcmp(command, cmd)==0)
-bool medit_percent ( CHAR_DATA *ch, char *argument, char* command)
+bool medit_percent ( CHAR_DATA *ch, const char *argument, char* command)
 {
     MOB_INDEX_DATA *pMob;
     char arg[MAX_INPUT_LENGTH];

@@ -15,8 +15,7 @@
  * A general purpose percentage trigger. Checks if a random percentage
  * number is less than trigger phrase
  */
-bool ap_percent_trigger(
-        AREA_DATA *area, CHAR_DATA *ch1, int type)
+bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type)
 {
     if ( !HAS_ATRIG(area, type) )
         return TRUE;
@@ -33,6 +32,19 @@ bool ap_percent_trigger(
         }
     }
     return TRUE;
+}
+
+bool ap_death_trigger(CHAR_DATA *ch)
+{
+    if ( !ch->in_room)
+    {
+        bugf("ap_death_trigger: in_room NULL for %s", ch->name);
+        return TRUE;
+    }
+    if ( !HAS_ATRIG(ch->in_room->area, ATRIG_DEATH) )
+        return TRUE;
+
+    return ap_percent_trigger( ch->in_room->area, ch, ATRIG_DEATH);
 }
 
 bool ap_rexit_trigger(CHAR_DATA *ch)
@@ -141,6 +153,23 @@ void ap_quit_trigger(CHAR_DATA *ch)
 		return;
 	
 	ap_percent_trigger( room->area, ch, ATRIG_QUIT);
+}
+
+void ap_connect_trigger(CHAR_DATA *ch)
+{
+    ROOM_INDEX_DATA *room;
+
+    room=ch->in_room;
+
+    if (!room)
+    {
+        bugf("ap_connect_trigger: in_room NULL for %s", ch->name);
+        return;
+    }
+    if ( !HAS_ATRIG(room->area, ATRIG_CONNECT) )
+        return;
+
+    ap_percent_trigger( room->area, ch, ATRIG_CONNECT);
 }
 
 void ap_void_trigger(CHAR_DATA *ch)

@@ -20,6 +20,7 @@
 */
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -383,6 +384,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
     rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
     rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
+    rfprintf( fp, "COMMENTS %s~\n", fix_string(pMobIndex->comments) );
     rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
     
@@ -460,7 +462,6 @@ Called by:	save_objects (below).
 ****************************************************************************/
 void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
 {
-    char letter;
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
     char buf[MAX_STRING_LENGTH];
@@ -551,25 +552,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             : "");
         break;
         
-    case ITEM_CIGARETTE:
-        fprintf( fp, "%d %d '%s' '%s' '%s'\n",
-            pObjIndex->value[0] > 0 ? /* no negative numbers */
-            pObjIndex->value[0]
-            : 0,
-            pObjIndex->value[1] > 0 ? /* no negative numbers */
-            pObjIndex->value[1]
-            : 0,
-            pObjIndex->value[2] != -1 ?
-            skill_table[pObjIndex->value[2]].name
-            : "",
-            pObjIndex->value[3] != -1 ?
-            skill_table[pObjIndex->value[3]].name
-            : "",
-            pObjIndex->value[4] != -1 ?
-            skill_table[pObjIndex->value[4]].name
-            : "");
-        break;
-        
     case ITEM_STAFF:
     case ITEM_WAND:
         fprintf( fp, "%d %d %d '%s' %d\n",
@@ -585,17 +567,6 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     fprintf( fp, "%d ", pObjIndex->level );
     fprintf( fp, "%d ", pObjIndex->weight );
     fprintf( fp, "%d ", pObjIndex->cost );
-    fprintf( fp, "%d ",	pObjIndex->durability );
-    
-    if ( pObjIndex->condition >  90 ) letter = 'P';
-    else if ( pObjIndex->condition >  75 ) letter = 'G';
-    else if ( pObjIndex->condition >  50 ) letter = 'A';
-    else if ( pObjIndex->condition >  25 ) letter = 'W';
-    else if ( pObjIndex->condition >  10 ) letter = 'D';
-    else if ( pObjIndex->condition >   0 ) letter = 'B';
-    else                                   letter = 'R';
-    
-    fprintf( fp, "%c\n", letter );
     
     if (pObjIndex->clan > 0)
         rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
@@ -662,6 +633,8 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
         }
         reverse_oprog_order(pObjIndex); 
     }
+
+    rfprintf( fp, "N %s~\n", fix_string( pObjIndex->comments ) );
     
     return;
 }
@@ -734,7 +707,7 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     if ( ( pExit = pRoomIndex->exit[door] )
                         && pExit->u1.to_room )
                     {
-                        int locks = 0;
+                        //int locks = 0;
                         
                         /* HACK : TO PREVENT EX_LOCKED etc without EX_ISDOOR
                         to stop booting the mud */
@@ -813,6 +786,8 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                     }
                     reverse_rprog_order(pRoomIndex);
                 }
+
+                rfprintf ( fp, "N %s~\n", pRoomIndex->comments );
                 
                 fprintf( fp, "S\n" );
             }
@@ -992,7 +967,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pReset->arg1,
                             pReset->arg3,
                             capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            flag_stat_string( wear_loc_strings, pReset->arg3 ),
+                            flag_bit_name(wear_loc_strings, pReset->arg3),
                             pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
                         if ( !pLastMob )
                         {
@@ -1029,6 +1004,8 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                         fprintf( fp, "O 0 %d 0 %d\n", 
                             pReset->arg1,
                             pReset->arg3 );
+                        // to avoid 'unused' warning when VERBOSE flag is not set
+                        pLastObj = pLastObj;
                         break;
                         
                     case 'P':
@@ -1081,6 +1058,35 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
+void save_bossachievements( FILE *fp, AREA_DATA *pArea )
+{
+    BOSSACHV *pBoss;
+    MOB_INDEX_DATA *pMobIndex;
+    int iHash;
+    
+    fprintf( fp, "#BOSSACHV\n" );
+    
+    for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
+    {
+        for( pMobIndex = mob_index_hash[iHash]; pMobIndex; pMobIndex = pMobIndex->next )
+        {
+            if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->boss_achieve )
+            {
+                pBoss = pMobIndex->boss_achieve;
+                
+                fprintf( fp, "%d ", pMobIndex->vnum);
+                fprintf( fp, "%d %d %d %d\n",
+                        pBoss->exp_reward,
+                        pBoss->gold_reward,
+                        pBoss->quest_reward,
+                        pBoss->ach_reward);
+            }
+        }
+    }
+    
+    fprintf( fp, "0\n\n\n\n" );
+    return;
+}
 
 
 /*****************************************************************************
@@ -1134,13 +1140,24 @@ Called by:	do_asave(olc_save.c).
 ****************************************************************************/
 void save_area( AREA_DATA *pArea )
 {
+    struct stat st = {0};
     FILE *fp;
     int i;
+    char buf[MSL];
     
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
 
-    fclose( fpReserve );
+    if ( stat(pArea->file_name, &st) == 0 )
+    {
+        sprintf( buf, AREA_BACKUP_DIR "%s", pArea->file_name );
+        int result=rename( pArea->file_name, buf );
+        if ( result != 0 )
+        {
+            perror("Error: ");
+        }
+    }
+
     if ( !( fp = fopen( pArea->file_name, "w" ) ) )
     {
         bug( "Open_area: fopen", 0 );
@@ -1158,6 +1175,7 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "\n#AREADATA\n" );
     rfprintf( fp, "Name %s~\n",        pArea->name );
     rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
+    rfprintf( fp, "Comments %s~\n",       fix_string( pArea->comments ) );
     fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
     rfprintf( fp, "Credits %s~\n",     pArea->credits );
   /* Added minlevel, maxlevel, and miniquests for new areas command
@@ -1195,6 +1213,7 @@ void save_area( AREA_DATA *pArea )
     save_specials( fp, pArea );
     save_resets( fp, pArea );
     save_shops( fp, pArea );
+    save_bossachievements( fp, pArea );
     save_mobprogs( fp, pArea );
     save_objprogs( fp, pArea );
 	save_areaprogs( fp, pArea );
@@ -1206,7 +1225,6 @@ void save_area( AREA_DATA *pArea )
     fprintf( fp, "#$\n" );
     
     fclose( fp );
-    fpReserve = fopen( NULL_FILE, "r" );
     return;
 }
 
@@ -1216,24 +1234,13 @@ Name:		do_asave
 Purpose:	Entry point for saving area data.
 Called by:	interpreter(interp.c)
 ****************************************************************************/
-void do_asave( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_asave)
 {
     char arg1 [MAX_INPUT_LENGTH];
     AREA_DATA *pArea;
-    FILE *fp;
-    int value,sec;
+    int value;
     
-    fp = NULL;
-    
-    if ( !ch )       /* Do an autosave */
-        sec = 9;
-    else if ( !IS_NPC(ch) )
-        sec = ch->pcdata->security;
-    else
-        sec = 0;
-    
-    smash_tilde( argument );
-    strcpy( arg1, argument );
+    smash_tilde_cpy( arg1, argument );
     
     if ( arg1[0] == '\0' )
     {
@@ -1330,8 +1337,8 @@ void do_asave( CHAR_DATA *ch, char *argument )
             if ( ch && !IS_BUILDER( ch, pArea ) )
                 continue;
             
-	    if ( IS_SET(pArea->area_flags, AREA_CLONE) )
-		continue;
+            if ( IS_SET(pArea->area_flags, AREA_CLONE) )
+                continue;
 
             /* Save changed areas. */
             if ( IS_SET(pArea->area_flags, AREA_CHANGED) )
@@ -1350,11 +1357,13 @@ void do_asave( CHAR_DATA *ch, char *argument )
             }
         }
         if ( !str_cmp( buf, "None.\n\r" ) )
+        {
             if ( ch )
                 send_to_char( buf, ch );
             else
                 log_string( "None." );
-            return;
+        }
+        return;
     }
     
     /* Save the area.lst file. */

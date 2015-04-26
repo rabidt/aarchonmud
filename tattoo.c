@@ -13,6 +13,7 @@
 #include "buffer_util.h"
 #include "tattoo.h"
 #include "tables.h"
+#include "mudconfig.h"
 
 #define TATTOO(ID)         tattoo_data_list[ID]
 #define TATTOO_ID(ch,loc)  (ch)->pcdata->tattoos[loc]
@@ -181,7 +182,7 @@ OBJ_INDEX_DATA* tattoo_obj( int ID )
     return get_obj_index( tattoo_data_list[ID].vnum );
 }
 
-char* tattoo_desc( int ID )
+const char* tattoo_desc( int ID )
 {
     OBJ_INDEX_DATA *obj;
 
@@ -191,7 +192,7 @@ char* tattoo_desc( int ID )
 	return obj->short_descr;
 }
 
-char* tattoo_name( int ID )
+const char* tattoo_name( int ID )
 {
     OBJ_INDEX_DATA *obj;
 
@@ -212,7 +213,7 @@ int tattoo_cost( int ID )
     return tattoo_data_list[ID].cost;
 }
 
-int tattoo_id( char *name )
+int tattoo_id( const char *name )
 {
     OBJ_INDEX_DATA *obj;
     int ID;
@@ -227,6 +228,14 @@ int tattoo_id( char *name )
 }
 
 /***************************** general *******************************/ 
+
+float tattoo_bonus_factor( float level )
+{
+    if ( level < 90 )
+        return (level + 10) / 100;
+    else
+        return 1 + (level - 90) / 10;
+}
 
 AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
 {
@@ -245,14 +254,12 @@ AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
     {
         if ( basic )
             factor = 0;
-        else if ( level < 90 )
-            factor = level + 10;
         else
-            factor = 100 + 10 * (level - 90);
+            factor = tattoo_bonus_factor(level);
     }
     memcpy( &taff, aff, sizeof(AFFECT_DATA) );
     taff.next = NULL;
-    taff.modifier = (int)(aff->modifier * factor/100);
+    taff.modifier = (int)(aff->modifier * factor);
 
     return &taff;
 }
@@ -309,24 +316,21 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     return TATTOO_ID(ch, loc);
 }
 
+float get_obj_tattoo_level( int obj_level, int level )
+{
+    // average of level and object level for translucent equipment
+    return (level + obj_level) / 2.0;
+}
+
 float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
 {
-    OBJ_DATA *obj;
-
-    if ( IS_NPC(ch) )
-        return 0;
-
+    OBJ_DATA *obj = get_eq_char(ch, loc);
+    
     // full level if no equipment worn over it
-    if ( (obj = get_eq_char(ch, loc)) == NULL )
+    if ( !obj )
         return level;
     
-    if ( !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
-    {
-        bug( "get_tattoo_level: non-translucent object (%d)", loc );
-        return 0;
-    }
-    // average of level and object level for translucent equipment
-    return (level + obj->level) / 2.0;
+    return get_obj_tattoo_level(obj->level, level);
 }
 
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level )
@@ -422,7 +426,7 @@ void show_tattoo_loc( CHAR_DATA *ch )
 	}
 }
 
-void do_tattoo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tattoo)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -449,7 +453,7 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
     }
     else if ( !strcmp(arg1, "buy") )
     {
-	if ( (loc = flag_value(wear_loc_flags, arg2)) == NO_FLAG
+	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
 	     || !is_tattoo_loc(loc) )
 	{
 	    send_to_char( "That's not a valid location.\n\r", ch );
@@ -492,7 +496,7 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
     }
     else if ( !strcmp(arg1, "remove") )
     {
-	if ( (loc = flag_value(wear_loc_flags, arg2)) == NO_FLAG
+	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
 	     || !is_tattoo_loc(loc) )
 	{
 	    send_to_char( "That's not a valid location.\n\r", ch );
@@ -515,7 +519,10 @@ void do_tattoo( CHAR_DATA *ch, char *argument )
 	tattoo_modify_equip( ch, loc, FALSE, TRUE, TRUE );
 	tattoo_modify_equip( ch, loc, FALSE, TRUE, FALSE );
 	remove_tattoo( ch->pcdata->tattoos, loc );
-	cost = tattoo_cost(ID) * 9/10;
+    if ( cfg_refund_tattoos )
+        cost = tattoo_cost(ID);
+    else
+        cost = tattoo_cost(ID) * 9/10;
 
 	logpf( "%s removed tattoo '%s' at %s for %d qp",
 	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc), cost );

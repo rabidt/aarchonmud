@@ -68,8 +68,6 @@ void save_wizlist(void)
     FILE *fp;
     bool found = FALSE;
     
-    fclose( fpReserve ); 
-
     if ( ( fp = fopen( WIZ_FILE, "w" ) ) == NULL )
     {
         log_error( WIZ_FILE );
@@ -82,7 +80,6 @@ void save_wizlist(void)
     }
     
     fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     if (!found)
         unlink(WIZ_FILE);
 }
@@ -123,7 +120,7 @@ void load_wizlist(void)
     }
 }
 
-void do_wizlist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_wizlist)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];

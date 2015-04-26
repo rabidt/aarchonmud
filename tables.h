@@ -25,6 +25,8 @@
 *	ROM license, in the file Rom24/doc/rom.license			   *
 ***************************************************************************/
 
+#ifndef TABLES_H
+#define TABLES_H
 
 /* other tables */
 extern const char* spell_target_names[];
@@ -97,7 +99,6 @@ extern  const   struct  flag_type       imm_flags[];
 extern  const   struct  flag_type       form_flags[];
 extern  const   struct  flag_type       part_flags[];
 extern  const   struct  flag_type       comm_flags[];
-extern  const   struct  flag_type       togg_flags[];
 extern  const   struct  flag_type       extra_flags[];
 extern  const   struct  flag_type       wear_flags[];
 extern  const   struct  flag_type       weapon_flags[];
@@ -130,6 +131,7 @@ extern  const   struct  flag_type       size_flags[];
 extern  const   struct  flag_type       position_flags[];
 extern  const   struct  flag_type       ac_type[];
 extern  const   struct  bit_type        bitvector_type[];
+extern  const   struct  flag_type       con_states[];
 
 /* game tables */
 
@@ -141,3 +143,8 @@ extern  const   struct  penalty_type penalty_table[];
 extern  const   struct  pkgrade_type    pkgrade_table[];
 
 extern const ACHIEVEMENT achievement_table [];
+
+/* functions */
+bool is_settable( int flag, const struct flag_type *flag_table );
+
+#endif

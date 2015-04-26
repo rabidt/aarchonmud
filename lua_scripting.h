@@ -2,8 +2,6 @@
 #define LUA_SCRIPTING_H
 
 
-void unregister_lua( void *ptr );
-
 void lua_mob_program( const char *text, int pvnum, const char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
@@ -34,25 +32,23 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_aprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_rprog( lua_State *LS, int vnum, const char *code);
 
-bool op_percent_trigger(
-        const char *trigger,
-        OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2,
-        int type );
-        
-void do_lboard( CHAR_DATA *ch, char *argument);
-void do_lhistory( CHAR_DATA *ch, char *argument);
+DECLARE_DO_FUN(do_lboard);
+DECLARE_DO_FUN(do_lhistory);
 void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
 void save_lboards();
 void load_lboards();
 void check_lboard_reset();
-void do_lua(CHAR_DATA *ch, char *argument);
+void check_mprog( lua_State *LS, int vnum, const char *code );
+void check_oprog( lua_State *LS, int vnum, const char *code );
+void check_aprog( lua_State *LS, int vnum, const char *code );
+void check_rprog( lua_State *LS, int vnum, const char *code );
+DECLARE_DO_FUN(do_lua);
 bool run_lua_interpret( DESCRIPTOR_DATA *d );
 void lua_unregister_desc( DESCRIPTOR_DATA *d );
-void unregister_lua( void *ptr );
 void run_delayed_function( TIMER_NODE *tmr );
 void open_lua();
 bool run_lua_interpret( DESCRIPTOR_DATA *d);
-void do_luai( CHAR_DATA *ch, char *argument);
+DECLARE_DO_FUN(do_luai);
 
 int GetLuaMemoryUsage();
 int GetLuaGameObjectCount();

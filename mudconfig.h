@@ -10,14 +10,24 @@ extern bool cfg_show_qp_mult;
 extern bool cfg_enable_qp_mult;
 extern float cfg_qp_mult;
 
+extern bool cfg_show_gold_mult;
+extern bool cfg_enable_gold_mult;
+extern float cfg_gold_mult;
+
+extern bool cfg_refund_tattoos;
+extern bool cfg_refund_qeq;
+
 extern char *cfg_word_of_day;
+
+extern bool cfg_show_rolls;
+extern bool cfg_const_damroll;
 
 typedef struct config_data_entry
 {
     const char *name;
     int type;
     void *value;
-    void *default_value;
+    const void *default_value;
 } CFG_DATA_ENTRY;
 
 extern CFG_DATA_ENTRY mudconfig_table[];

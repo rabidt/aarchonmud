@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "merc.h"
 #include "tables.h"
@@ -195,6 +196,21 @@ int pc_race_lookup (const char *name)
     
     return 0;
 }
+
+/* returns race number */
+int subclass_lookup (const char *name)
+{
+    int subclass;
+   
+    for ( subclass = 1; subclass_table[subclass].name != NULL; subclass++)
+    {
+        if ( LOWER(name[0]) == LOWER(subclass_table[subclass].name[0])
+            && !str_prefix(name, subclass_table[subclass].name) )
+            return subclass;
+    }
+
+    return 0;
+} 
 
 /* returns alignment */
 int align_lookup (const char *name)

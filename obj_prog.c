@@ -20,6 +20,12 @@ bool op_percent_trigger(
         OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, 
         int type )
 {
+    if (!obj)
+    {
+        bugf("NULL obj passed to op_percent_trigger");
+        return TRUE;
+    }
+
     if ( !HAS_OTRIG(obj, type) )
         return TRUE;
 
@@ -44,8 +50,7 @@ bool op_percent_trigger(
              && ( ch2 ? !ch2->must_extract : TRUE ) );
 }
 
-bool op_act_trigger(
-        OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, char *trigger, int type)
+bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *trigger, int type)
 {
     PROG_LIST *prg;
 
@@ -70,16 +75,19 @@ bool op_act_trigger(
             && ( ch2 ? !ch2->must_extract : TRUE ) );
 }
 
-bool op_try_trigger( char* argument, CHAR_DATA *ch )
+/* similar to act trigger, but we need to return whether or not any matching trigger was found */
+bool op_try_trigger( const char *trigger, CHAR_DATA *ch )
 {
+    PROG_LIST *prg;
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;
     bool found = FALSE;
+    bool continu=TRUE;
 
     if ( !ch->in_room )
     {
         bugf("op_try_trigger: ch->in_room NULL for %s", ch->name);
-        return;
+        return FALSE;
     }
 
     for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
@@ -88,8 +96,19 @@ bool op_try_trigger( char* argument, CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            found = TRUE;
+            for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+            {
+                if ( prg->trig_type == OTRIG_TRY 
+                    && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL                      
+                        ||   !strcmp(prg->trig_phrase, "*") ) )
+                {
+                    found = TRUE;
+                    continu = lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
+
+                    if (!continu)
+                        return found;
+                }
+            }
         }
     }
 
@@ -99,15 +118,26 @@ bool op_try_trigger( char* argument, CHAR_DATA *ch )
 
         if ( HAS_OTRIG(obj, OTRIG_TRY) )
         {
-            op_act_trigger(obj, ch, NULL, argument, OTRIG_TRY); 
-            found = TRUE;
+            for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+            {
+                if ( prg->trig_type == OTRIG_TRY 
+                    && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL                      
+                        ||   !strcmp(prg->trig_phrase, "*") ) )
+                {
+                    found = TRUE;
+                    continu = lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
+
+                    if (!continu)
+                        return found;
+                }
+            }
         }
     }
 
     return found;
 }
 
-void op_speech_trigger( char *argument, CHAR_DATA *ch )
+void op_speech_trigger( const char *argument, CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *next_obj;

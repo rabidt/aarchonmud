@@ -13,22 +13,10 @@
 #include "lookup.h"
 #include "mob_stats.h"
 
-bool is_obj_ingame( OBJ_INDEX_DATA *obj );
-bool is_mob_ingame( MOB_INDEX_DATA *mob );
-bool is_room_ingame( ROOM_INDEX_DATA *room );
-bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg );
-bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg );
-bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg );
-bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
-bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
-bool has_shop( MOB_INDEX_DATA *mob, int vnum );
-bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg );
-bool has_spell( OBJ_INDEX_DATA *obj, int ID );
-bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg );
 void show_grep_syntax( CHAR_DATA *ch );
-void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
-void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
-void grep_room( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum );
+void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
 
 typedef struct grep_data GREP_DATA;
 struct grep_data
@@ -40,7 +28,7 @@ struct grep_data
     bool negate;
 };
 
-GREP_DATA* new_grep_data( sh_int stat, int value, char *str_value, bool negate )
+GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool negate )
 {
     GREP_DATA *gd = alloc_mem( sizeof(GREP_DATA) );
 
@@ -80,7 +68,7 @@ void free_grep_list( GREP_DATA *gd )
 #define GREP_MOB  1
 #define GREP_ROOM 2
 
-void do_grep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_grep)
 {
     char arg1[MIL];
     char arg2[MIL];
@@ -197,6 +185,7 @@ void show_grep_syntax( CHAR_DATA *ch )
     send_to_char( "           imm     <immunities>\n\r", ch );
     send_to_char( "           ingame\n\r", ch );
     send_to_char( "           shopmob <no arg - shows mobs with shops>\n\r", ch );
+    send_to_char( "           race    <race name>\n\r", ch );
     send_to_char( "room stats: heal   <min ratio>\n\r", ch );
     send_to_char( "           flag    <room flag>\n\r", ch );
     send_to_char( "           sector  <sector>\n\r", ch );
@@ -231,7 +220,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -290,7 +279,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 		send_to_char( "What type do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(type_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, type_flags)) == NO_FLAG )
 	    {
 		send_to_char( "Please specify a valid item type.\n\r", ch );
 		return NULL;
@@ -381,7 +370,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 		send_to_char( "What affect do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(apply_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, apply_flags)) == NO_FLAG )
 	    {
 		send_to_char( "That affect doesn't exist.\n\r", ch );
 		return NULL;
@@ -395,7 +384,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, char *argument )
 		send_to_char( "What extra stat do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_value(extra_flags, arg2)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, extra_flags)) == NO_FLAG )
 	    {
 		send_to_char( "That extra stat doesn't exist.\n\r", ch );
 		return NULL;
@@ -596,7 +585,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
     return match;
 }
 
-void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -667,9 +656,10 @@ void grep_obj( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_SHOPMOB  13
 #define GREP_MOB_SPECFUN  14
 #define GREP_MOB_ALIGN    15
+#define GREP_MOB_RACE     16
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -815,7 +805,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    value = atoi(arg2);
 	    stat = GREP_MOB_MPROG;
 	}
-	else if ( !str_cmp(arg1, "vuln") || !str_cmp(arg1, "affect"))
+	else if ( !str_cmp(arg1, "vuln"))
 	{
 	    if ( arg2[0] == '\0' )
 	    {
@@ -829,7 +819,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    stat = GREP_MOB_VULN;
 	}
-        else if ( !str_cmp(arg1, "res") || !str_cmp(arg1, "affect"))
+        else if ( !str_cmp(arg1, "res"))
 	{
 	    if ( arg2[0] == '\0' )
 	    {
@@ -843,20 +833,35 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, char *argument )
 	    }
 	    stat = GREP_MOB_RES;
 	}
-        else if ( !str_cmp(arg1, "imm") || !str_cmp(arg1, "affect"))
+        else if ( !str_cmp(arg1, "imm"))
 	{
-	    if ( arg2[0] == '\0' )
+            if ( arg2[0] == '\0' )
 	    {
-		send_to_char( "What resist do you want to grep for?\n\r", ch );
-		return NULL;
+		 send_to_char( "What resist do you want to grep for?\n\r", ch );
+		 return NULL;
 	    }
 	    if ( (value = flag_lookup(arg2, imm_flags)) == NO_FLAG )
 	    {
-		send_to_char( "That immunity doesn't exist.\n\r", ch );
+ 		send_to_char( "That immunity doesn't exist.\n\r", ch );
 		return NULL;
 	    }
 	    stat = GREP_MOB_IMM;
 	}
+        else if ( !str_cmp(arg1, "race"))
+        {
+            if ( arg2[0] == '\0' )
+	    {
+		 send_to_char( "Which race do you want to grep for?\n\r", ch );
+		 return NULL;
+	    }
+            if ( (value = race_lookup(arg2)) < 0 )
+	    {
+ 		send_to_char( "That race doesn't exist.\n\r", ch );
+		return NULL;
+	    }
+            stat = GREP_MOB_RACE;
+	}
+
     else if ( !str_cmp(arg1, "specfun") )
     {
         if ( arg2[0] == '\0' )
@@ -905,9 +910,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
         wealth = mob_base_wealth(mob);
 	match = (wealth >= gd->value);
 	if ( mob->pShop == NULL )
-	    sprintf( buf, "(%d gold)", wealth / 100 );
+	    sprintf( buf, "(%ld gold)", wealth / 100 );
 	else
-	    sprintf( buf, "(S %d gold)", wealth / 100 );
+	    sprintf( buf, "(S %ld gold)", wealth / 100 );
 	strcat( info, buf );
 	break;
     case GREP_MOB_AFF:
@@ -954,6 +959,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     case GREP_MOB_IMM:
 	match = IS_SET( mob->imm_flags, gd->value );
 	break;
+    case GREP_MOB_RACE:
+        match = (mob->race == gd->value );
+        break;
     default: 
 	break;
     case GREP_MOB_SPECFUN:
@@ -973,13 +981,12 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     return match;
 }
 
-void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
 
     MOB_INDEX_DATA *mob;
-    SHOP_DATA *pShop;
     GREP_DATA *gd;
     int vnum,
 	nMatch = 0;
@@ -1038,7 +1045,7 @@ void grep_mob( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
 #define GREP_ROOM_NAME     4
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_room_grep( CHAR_DATA *ch, char *argument )
+GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -1174,7 +1181,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
     return match;
 }
 
-void grep_room( CHAR_DATA *ch, char *argument, int min_vnum, int max_vnum )
+void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -1250,14 +1257,8 @@ bool is_room_ingame( ROOM_INDEX_DATA *room )
     && is_area_ingame(room->area);
 }
 
-int average_roll( int nr, int type, int bonus );
-int average_mob_hp( int level );
-
 bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 {
-    int spec, value, level;
-    float factor;
-
     /* remort has no specs */
     if ( IS_SET(mob->area->area_flags, AREA_REMORT) )
 	return TRUE;
@@ -1273,28 +1274,28 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 
     if ( mob->wealth_percent > 200 )
     {
-        sprintf( msg, "wealth=%d\%", mob->wealth_percent );
+        sprintf( msg, "wealth=%d%%", mob->wealth_percent );
         return FALSE;
     }
 
     /* check hp */
     if ( mob->hitpoint_percent != 100 )
     {
-        sprintf( msg, "hp=%d\%", mob->hitpoint_percent );
+        sprintf( msg, "hp=%d%%", mob->hitpoint_percent );
         return FALSE;
     }
 
     /* check damage */
     if ( mob->damage_percent != 100 )
     {
-        sprintf( msg, "damage=%d\%", mob->damage_percent );
+        sprintf( msg, "damage=%d%%", mob->damage_percent );
         return FALSE;
     }
 
     /* check hitroll */
     if ( mob->hitroll_percent != 100 )
     {
-        sprintf( msg, "hitroll=%d\%", mob->hitroll_percent );
+        sprintf( msg, "hitroll=%d%%", mob->hitroll_percent );
         return FALSE;
     }
 
@@ -1503,7 +1504,26 @@ int get_obj_ops( OBJ_DATA *obj )
 
     /* affects */
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
-        sum += get_affect_ops( aff, obj->level );
+        // only permanent affects count
+        if ( aff->duration < 0 )
+            sum += get_affect_ops( aff, obj->level );
+
+    return (int) (sum);
+}
+
+// used for enchanting items
+int get_obj_ops_by_duration( OBJ_DATA *obj, int duration )
+{
+    AFFECT_DATA *aff;
+    float sum = 0;
+
+    if ( obj == NULL )
+        return 0;
+
+    /* affects */
+    for ( aff = obj->affected; aff != NULL; aff = aff->next )
+        if ( aff->duration == duration )
+            sum += get_affect_ops( aff, obj->level );
 
     return (int) (sum);
 }
@@ -1576,27 +1596,36 @@ int get_obj_spec( OBJ_DATA *obj )
     return get_obj_index_spec(obj->pIndexData, obj->level);
 }
 
-int weapon_dam_spec( int level, bool twohanded )
+int weapon_dam_spec( int level, int weapon_class, bool twohanded )
 {
+    int spec = 0;
+    
     if ( level < 90 )
     {
         if ( twohanded )
-            return (level + 10) * 9/10;
+            spec = (level + 10) * 9/10;
         else
-            return (level + 10) * 6/10;
+            spec = (level + 10) * 6/10;
     }
     else
     {
         if ( twohanded )
-            return (level - 60) * 3;
+            spec = (level - 60) * 3;
         else
-            return (level - 60) * 2;
+            spec = (level - 60) * 2;
     }
+    
+    // bows are effectively two-handed and provoke counter-attacks
+    // this is compensated by dealing massive damage
+    if ( weapon_class == WEAPON_BOW )
+        spec *= 2.5;
+    
+    return spec;
 }
 
 int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
 {
-    return weapon_dam_spec(obj->level, IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
+    return weapon_dam_spec(obj->level, obj->value[0], IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
 }
 
 int average_weapon_dam( OBJ_DATA *obj )
@@ -1724,8 +1753,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     if ( obj->item_type == ITEM_ARMOR )
     {
 	spec = (obj->level * 2 + 8) / 9;
-	value = (obj->value[0] + obj->value[1] + obj->value[2] + 
-		 3 * obj->value[3]) / 6;
+	value = obj->value[0];
 	if ( value > spec )
 	{
 	    sprintf( msg, "ac=%d/%d", value, spec );
@@ -1749,8 +1777,8 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
     value = get_obj_index_ops( obj );
     // ignore objects with no bonuses at all
     if ( 0 < value && value < spec && !IS_SET(obj->extra_flags, ITEM_RANDOM) 
-      || !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
-      || !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
+      && !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
+      && !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
     {
         sprintf( msg, "ops=%d/%d", value, spec );
         return TRUE;
@@ -1808,7 +1836,7 @@ bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
 
 bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
 {
-    char *mob_spec_name = spec_name_lookup(mob->spec_fun);
+    const char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
     if ( mob_spec_name == NULL )
         return FALSE;
@@ -1850,9 +1878,10 @@ bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg )
 	if ( aff->location == loc )
 	{
 	    sprintf( msg, "%d %s", aff->modifier,
-		     flag_stat_string(apply_flags, aff->location) );
+		     flag_bit_name(apply_flags, aff->location) );
 	    return TRUE;
 	}
     return FALSE;
 }
+
 

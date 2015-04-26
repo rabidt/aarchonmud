@@ -11,6 +11,7 @@ DECLARE_SPEC_FUN( spec_cast_adept       );
 DECLARE_SPEC_FUN( spec_cast_cleric      );
 DECLARE_SPEC_FUN( spec_cast_judge       );
 DECLARE_SPEC_FUN( spec_cast_mage        );
+DECLARE_SPEC_FUN( spec_cast_draconic    );
 DECLARE_SPEC_FUN( spec_cast_undead      );
 DECLARE_SPEC_FUN( spec_executioner      );
 DECLARE_SPEC_FUN( spec_fido             );
@@ -27,5 +28,14 @@ DECLARE_SPEC_FUN( spec_questmaster      );
 DECLARE_SPEC_FUN( spec_bounty_hunter    );
 DECLARE_SPEC_FUN( spec_remort           );
 DECLARE_SPEC_FUN( spec_temple_guard     );
+
+struct spell_type
+{
+    char    *spell;
+    sh_int  min_level;
+    sh_int  max_level;
+};
+
+const struct spell_type* get_spell_list( CHAR_DATA *ch );
 
 #endif

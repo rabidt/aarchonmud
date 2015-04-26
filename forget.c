@@ -11,7 +11,7 @@
 #include "merc.h"
 
 
-void do_forget(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_forget)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
@@ -27,9 +27,7 @@ void do_forget(CHAR_DATA *ch, char *argument)
     if (IS_NPC(rch))
         return;
     
-    smash_tilde( argument );
-    
-    argument = one_argument(argument,arg);
+    one_argument(smash_tilde_cc(argument), arg);
     
     if (arg[0] == '\0')
     {
@@ -67,7 +65,7 @@ void do_forget(CHAR_DATA *ch, char *argument)
     {
         CHAR_DATA *wch;
         
-        if (d->connected != CON_PLAYING || !can_see(ch,d->character))
+        if (!IS_PLAYING(d->connected) || !can_see(ch,d->character))
             continue;
         
         wch = ( d->original != NULL ) ? d->original : d->character;
@@ -114,7 +112,7 @@ void do_forget(CHAR_DATA *ch, char *argument)
     printf_to_char(ch, "You are now deaf to %s.\n\r", capitalize(arg));
 }
 
-void do_remember(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_remember)
 {
     CHAR_DATA *rch;
     char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];

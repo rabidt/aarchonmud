@@ -41,7 +41,6 @@ void save_bans(void)
     FILE *fp;
     bool found = FALSE;
 
-    fclose( fpReserve ); 
     if ( ( fp = fopen( BAN_FILE, "w" ) ) == NULL )
     {
         log_error( BAN_FILE );
@@ -58,7 +57,6 @@ void save_bans(void)
      }
 
      fclose(fp);
-     fpReserve = fopen( NULL_FILE, "r" );
      if (!found)
 	unlink(BAN_FILE);
 }
@@ -96,7 +94,7 @@ void load_bans(void)
     }
 }
 
-bool check_ban(char *site,int type)
+bool check_ban( const char *site, int type )
 {
     BAN_DATA *pban;
     char host[MAX_STRING_LENGTH];
@@ -127,7 +125,7 @@ bool check_ban(char *site,int type)
 }
 
 
-void ban_site(CHAR_DATA *ch, char *argument, bool fPerm)
+void ban_site(CHAR_DATA *ch, const char *argument, bool fPerm)
 {
     char buf[MAX_STRING_LENGTH],buf2[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
@@ -248,17 +246,17 @@ void ban_site(CHAR_DATA *ch, char *argument, bool fPerm)
     return;
 }
 
-void do_ban(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_ban)
 {
     ban_site(ch,argument,FALSE);
 }
 
-void do_permban(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_permban)
 {
     ban_site(ch,argument,TRUE);
 }
 
-void do_allow( CHAR_DATA *ch, char *argument )                        
+DEF_DO_FUN(do_allow)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];

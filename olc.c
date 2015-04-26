@@ -207,7 +207,7 @@ Name:      show_commands
 Purpose:   Display all olc commands.
 Called by:   olc interpreters.
 ****************************************************************************/
-bool show_commands( CHAR_DATA *ch, char *argument )
+bool show_commands( CHAR_DATA *ch, const char *argument )
 {
    switch (ch->desc->editor)
    {
@@ -253,6 +253,7 @@ const struct olc_cmd_type aedit_table[] =
    /*  {   command      function   }, */
    {   "age",      aedit_age          },
    {   "builder",  aedit_builder      }, /* s removed -- Hugin */
+   {   "comments", aedit_comments        },
    {   "commands", show_commands      },
    {   "create",   aedit_create       },
    {   "scrap",    aedit_scrap        },
@@ -293,6 +294,7 @@ const struct olc_cmd_type redit_table[] =
    {   "commands",  show_commands     },
    {   "create",    redit_create      },
    {   "desc",      redit_desc        },
+   {   "comments",  redit_comments       },
    {   "ed",        redit_ed          },
    {   "format",    redit_format      },
    {   "name",      redit_name        },
@@ -350,6 +352,7 @@ const struct olc_cmd_type oedit_table[] =
    {   "long",       oedit_long      },
    {   "name",       oedit_name      },
    {   "short",      oedit_short     },
+   {   "comments",   oedit_comments     },
    {   "show",       oedit_show      },
    {   "v0",         oedit_value0    },
    {   "v1",         oedit_value1    },
@@ -363,7 +366,6 @@ const struct olc_cmd_type oedit_table[] =
    {   "type",       oedit_type      },  /* ROM */
    {   "material",   oedit_material  },  /* ROM */
    {   "level",      oedit_level     },  /* ROM */
-   {   "condition",  oedit_condition },  /* ROM */
    {   "combine",    oedit_combine   },
    {   "rating",     oedit_rating    },
    {   "adjust",     oedit_adjust    },
@@ -386,6 +388,7 @@ const struct olc_cmd_type medit_table[] =
    {   "commands",     show_commands   },
    {   "create",       medit_create    },
    {   "desc",         medit_desc      },
+   {   "comments",     medit_comments     },
    {   "level",        medit_level     },
    {   "long",         medit_long      },
    {   "name",         medit_name      },
@@ -419,6 +422,8 @@ const struct olc_cmd_type medit_table[] =
    {   "addmprog",     medit_addmprog  },  /* ROM */
    {   "delmprog",     medit_delmprog  },  /* ROM */
    {   "stance",       medit_stance    },
+
+   {   "bossachieve",  medit_bossachieve },
    
    {   "?",            show_help       },
    {   "version",      show_version    },
@@ -489,7 +494,7 @@ bool edit_done( CHAR_DATA *ch )
 
 
 /* Area Interpreter, called by do_aedit. */
-void aedit( CHAR_DATA *ch, char *argument )
+void aedit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    char command[MAX_INPUT_LENGTH];
@@ -505,9 +510,8 @@ void aedit( CHAR_DATA *ch, char *argument )
       return;
    }
 
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
    {
@@ -548,7 +552,7 @@ void aedit( CHAR_DATA *ch, char *argument )
    }
    
    /* search for area flag to be toggled */
-   if ( ( value = flag_value( area_flags, command ) ) != NO_FLAG )
+   if ( (value = flag_lookup(command, area_flags)) != NO_FLAG )
    {
        if ( !is_settable(value, area_flags) )
        {
@@ -570,7 +574,7 @@ void aedit( CHAR_DATA *ch, char *argument )
 
 
 /* Room Interpreter, called by do_redit. */
-void redit( CHAR_DATA *ch, char *argument )
+void redit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    ROOM_INDEX_DATA *pRoom;
@@ -587,9 +591,8 @@ void redit( CHAR_DATA *ch, char *argument )
     }
    pArea = pRoom->area;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
    {
@@ -637,7 +640,7 @@ void redit( CHAR_DATA *ch, char *argument )
 
 
 /* Object Interpreter, called by do_oedit. */
-void oedit( CHAR_DATA *ch, char *argument )
+void oedit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    OBJ_INDEX_DATA *pObj;
@@ -645,9 +648,8 @@ void oedit( CHAR_DATA *ch, char *argument )
    char command[MAX_INPUT_LENGTH];
    int  cmd;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    EDIT_OBJ(ch, pObj);
    if (!pObj)
@@ -704,7 +706,7 @@ void oedit( CHAR_DATA *ch, char *argument )
 
 
 /* Mobile Interpreter, called by do_medit. */
-void medit( CHAR_DATA *ch, char *argument )
+void medit( CHAR_DATA *ch, const char *argument )
 {
    AREA_DATA *pArea;
    MOB_INDEX_DATA *pMob;
@@ -712,9 +714,8 @@ void medit( CHAR_DATA *ch, char *argument )
    char arg[MAX_STRING_LENGTH];
    int  cmd;
    
-   smash_tilde( argument );
-   strcpy( arg, argument );
-   argument = one_argument( argument, command );
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument( arg, command );
    
    EDIT_MOB(ch, pMob);
    if (!pMob)
@@ -789,7 +790,7 @@ const struct editor_cmd_type editor_table[] =
 
 
 /* Entry point for all editors. */
-void do_olc( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_olc)
 {
    char command[MAX_INPUT_LENGTH];
    int  cmd;
@@ -823,7 +824,7 @@ void do_olc( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing area_data. */
-void do_aedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_aedit)
 {
    AREA_DATA *pArea;
    int value;
@@ -873,7 +874,7 @@ void do_aedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing room_index_data. */
-void do_redit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_redit)
 {
     AREA_DATA *pArea;
     ROOM_INDEX_DATA *pRoom;
@@ -977,7 +978,7 @@ void do_redit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing obj_index_data. */
-void do_oedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oedit)
 {
    OBJ_INDEX_DATA *pObj;
    AREA_DATA *pArea;
@@ -1075,7 +1076,7 @@ void do_oedit( CHAR_DATA *ch, char *argument )
 
 
 /* Entry point for editing mob_index_data. */
-void do_medit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_medit)
 {
    MOB_INDEX_DATA *pMob;
    AREA_DATA *pArea;
@@ -1331,9 +1332,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             "O[%5d] %-13.13s %-19.19s M[%5d]       %-15.15s\n\r",
             pReset->arg1,
             pObj->short_descr,
-            (pReset->command == 'G') ?
-            flag_stat_string( wear_loc_strings, WEAR_NONE )
-            : flag_stat_string( wear_loc_strings, pReset->arg3 ),
+            flag_bit_name(wear_loc_strings, (pReset->command == 'G') ? WEAR_NONE : pReset->arg3),
             pMob->vnum,
             pMob->short_descr );
          strcat( final, buf );
@@ -1351,7 +1350,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             pReset->arg1,
             capitalize( dir_name[ pReset->arg2 ] ),
             pRoomIndex->name,
-            flag_stat_string( door_resets, pReset->arg3 ) );
+            flag_bit_name(door_resets, pReset->arg3) );
          strcat( final, buf );
          
          break;
@@ -1490,7 +1489,7 @@ bool can_delete_reset_msg( CHAR_DATA *ch, RESET_DATA *reset )
 
 /* now the real stuff goes smoothly ;) */
 
-void do_resets( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_resets)
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1523,7 +1522,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
    */
    if ( arg1[0] == '\0' )
    {
-       do_rlook(ch);
+       do_rlook(ch, "");
    }
    
    clone_warning( ch, ch->in_room->area );
@@ -1689,7 +1688,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
             * --------------------------
             */
             {
-               if ( flag_value( wear_loc_flags, arg4 ) == NO_FLAG )
+               if ( flag_lookup(arg4, wear_loc_flags) == NO_FLAG )
                {
 		  send_to_char( "Syntax:  reset <number> obj <vnum> <wear-loc>\n\n", ch );
                   send_to_char( "For wear locations, type '? wear-loc'\n\r", ch );
@@ -1703,7 +1702,7 @@ void do_resets( CHAR_DATA *ch, char *argument )
                }
 
                pReset->arg1 = vnum;
-               pReset->arg3 = flag_value( wear_loc_flags, arg4 );
+               pReset->arg3 = flag_lookup(arg4, wear_loc_flags);
                if ( pReset->arg3 == WEAR_NONE )
                   pReset->command = 'G';
                else
@@ -1745,15 +1744,14 @@ void do_resets( CHAR_DATA *ch, char *argument )
 }
 
 /* Help Editor - kermit 1/98 */
-void hedit( CHAR_DATA *ch, char *argument)
+void hedit( CHAR_DATA *ch, const char *argument )
 {
    char command[MIL];
    char arg[MIL];
    int cmd;
    
-   smash_tilde(argument);
-   strcpy(arg, argument);
-   argument = one_argument( argument, command);
+   smash_tilde_cpy(arg, argument);
+   argument = one_argument(arg, command);
    
    /* This was our bug. *bonk Kermit* -BC
    if (ch->pcdata->security < 9)
@@ -1791,11 +1789,8 @@ void hedit( CHAR_DATA *ch, char *argument)
    return;    
 }
 
-/* defined in act_info.c */
-HELP_DATA* find_help_data( CHAR_DATA *ch, char *argument, BUFFER *output );
-
 /* Help Editor - kermit 1/98 */
-void do_hedit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hedit)
 {
    HELP_DATA *pHelp;
    BUFFER *output;

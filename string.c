@@ -24,26 +24,24 @@
 #include "olc.h"
 #include "lua_main.h"
 
-char *string_linedel( char *, int );
-char *string_lineadd( char *, char *, int );
-char *numlineas( char * );
-char *get_line( char *str, char *buf );
+const char * string_linedel( const char *, int );
+const char * string_lineadd( const char *, const char *, int );
+const char * numlineas( const char * );
+const char * get_line( const char *str, char *buf );
 
-/* Called by string_add() */
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument );
 
 /*****************************************************************************
  Name:      del_last_line
  Purpose:   Removes last line from string
  Called by: many
  ****************************************************************************/
-char * del_last_line( char *string )
+const char * del_last_line( const char *string )
 {
   char xbuf[4*MAX_STRING_LENGTH]; 
   return del_last_line_ext(string, xbuf);
 }
 
-char * del_last_line_ext( char *string, char *xbuf )
+const char * del_last_line_ext( const char *string, char *xbuf )
 {
    int len;
    bool found = FALSE;
@@ -83,21 +81,17 @@ char * del_last_line_ext( char *string, char *xbuf )
  Purpose:	Clears string and puts player into editing mode.
  Called by:	none
  ****************************************************************************/
-void string_edit( CHAR_DATA *ch, char **pString )
+void string_edit( CHAR_DATA *ch, const char **pString )
 {
     send_to_char( "-========- Entering EDIT Mode -=========-\n\r", ch );
     send_to_char( "    Type .h on a new line for help\n\r", ch );
     send_to_char( " Terminate with a ~ or @ on a blank line.\n\r", ch );
     send_to_char( "-=======================================-\n\r", ch );
 
-    if ( *pString == NULL )
-    {
-        *pString = str_dup( "" );
-    }
-    else
-    {
-        **pString = '\0';
-    }
+    if ( *pString != NULL )
+        free_string(*pString);
+    
+    *pString = str_empty;
 
     ch->desc->pString = pString;
 
@@ -111,7 +105,7 @@ void string_edit( CHAR_DATA *ch, char **pString )
  Purpose:	Puts player into append mode for given string.
  Called by:	(many)olc_act.c
  ****************************************************************************/
-void string_append( CHAR_DATA *ch, char **pString )
+void string_append( CHAR_DATA *ch, const char **pString )
 {
     send_to_char( "-=======- Entering APPEND Mode -========-\n\r", ch );
     send_to_char( "    Type .h on a new line for help\n\r", ch );
@@ -157,14 +151,13 @@ void string_append( CHAR_DATA *ch, char **pString )
  Purpose:	Substitutes one string for another.
  Called by:	string_add(string.c) (aedit_builder)olc_act.c.
  ****************************************************************************/
-char * string_replace( char * orig, char * old, char * new )
+const char * string_replace( const char *orig, const char *old, const char *new )
 {
   char xbuf[MAX_STRING_LENGTH];
   return string_replace_ext(orig, old, new, xbuf, MAX_STRING_LENGTH);
 }
 
-char * string_replace_ext( char * orig, char * old, char * new, 
-			   char *xbuf, int xbuf_length)
+const char * string_replace_ext( const char * orig, const char * old, const char * new, char *xbuf, int xbuf_length )
 {
     int i;
 
@@ -194,14 +187,14 @@ char * string_replace_ext( char * orig, char * old, char * new,
  Purpose:	Interpreter for string editing.
  Called by:	game_loop_xxxx(comm.c).
  ****************************************************************************/
-void string_add( CHAR_DATA *ch, char *argument )
+void string_add( CHAR_DATA *ch, const char *argument )
 {
-   char buf[MAX_STRING_LENGTH];
+   char buf[MAX_STRING_LENGTH], argbuf[MSL];
    
    /*
     * Thanks to James Seng
     */
-   smash_tilde( argument );
+   argument = smash_tilde_cpy( argbuf, argument );
 
    if ( !str_cmp(argument, ".q") || *argument == '~' || *argument == '@' )
    {
@@ -373,12 +366,6 @@ void string_add( CHAR_DATA *ch, char *argument )
       return;
    }
    
-   /*
-   * Ensure no tilde's inside string.
-   * --------------------------------
-   */
-   smash_tilde( argument );
-   
    strcat( buf, argument );
    strcat( buf, "\n\r" );
    free_string( *ch->desc->pString );
@@ -397,10 +384,11 @@ void string_add( CHAR_DATA *ch, char *argument )
  Purpose:	Special string formating and word-wrapping.
  Called by:	string_add(string.c) (many)olc_act.c
  ****************************************************************************/
-char *format_string( char *oldstring /*, bool fSpace */)
+const char* format_string( const char *oldstring /*, bool fSpace */)
 {
   char xbuf[MAX_STRING_LENGTH];
   char xbuf2[MAX_STRING_LENGTH];
+  const char *oc;
   char *rdesc;
   int i=0, noncol=0, pos=0;
   bool cap=TRUE;
@@ -410,9 +398,9 @@ char *format_string( char *oldstring /*, bool fSpace */)
   i=0;
   
   /* First major loop reads in the oldstring, and removes excess spaces */
-  for (rdesc = oldstring; *rdesc; rdesc++)
+  for (oc = oldstring; *oc; oc++)
   {
-    if (*rdesc=='\n')
+    if (*oc=='\n')
     {
       if (xbuf[i-1] != ' ')
       {
@@ -420,8 +408,8 @@ char *format_string( char *oldstring /*, bool fSpace */)
         i++;
       }
     }
-    else if (*rdesc=='\r') ;
-    else if (*rdesc==' ')
+    else if (*oc=='\r') ;
+    else if (*oc==' ')
     {
       if (xbuf[i-1] != ' ')
       {
@@ -429,27 +417,27 @@ char *format_string( char *oldstring /*, bool fSpace */)
         i++;
       }
     }
-    else if (*rdesc==')')
+    else if (*oc==')')
     {
       if (xbuf[i-1]==' ' && xbuf[i-2]==' ' && 
           (xbuf[i-3]=='.' || xbuf[i-3]=='?' || xbuf[i-3]=='!'))
       {
-        xbuf[i-2]=*rdesc;
+        xbuf[i-2]=*oc;
         xbuf[i-1]=' ';
         xbuf[i]=' ';
         i++;
       }
       else
       {
-        xbuf[i]=*rdesc;
+        xbuf[i]=*oc;
         i++;
       }
     }
-    else if (*rdesc=='.' || *rdesc=='?' || *rdesc=='!') {
+    else if (*oc=='.' || *oc=='?' || *oc=='!') {
       if (xbuf[i-1]==' ' && xbuf[i-2]==' ' && 
           (xbuf[i-3]=='.' || xbuf[i-3]=='?' || xbuf[i-3]=='!')) {
-        xbuf[i-2]=*rdesc;
-        if (*(rdesc+1) != '\"')
+        xbuf[i-2]=*oc;
+        if (*(oc+1) != '\"')
         {
           xbuf[i-1]=' ';
           xbuf[i]=' ';
@@ -461,13 +449,13 @@ char *format_string( char *oldstring /*, bool fSpace */)
           xbuf[i]=' ';
           xbuf[i+1]=' ';
           i+=2;
-          rdesc++;
+          oc++;
         }
       }
       else
       {
-        xbuf[i]=*rdesc;
-        if (*(rdesc+1) != '\"')
+        xbuf[i]=*oc;
+        if (*(oc+1) != '\"')
         {
           xbuf[i+1]=' ';
           //xbuf[i+2]=' ';
@@ -481,14 +469,14 @@ char *format_string( char *oldstring /*, bool fSpace */)
           //xbuf[i+3]=' ';
           //i += 4;
 	  i += 3;
-          rdesc++;
+          oc++;
         }
       }
       cap = TRUE;
     }
     else
     {
-      xbuf[i]=*rdesc;
+      xbuf[i]=*oc;
       if ( cap )
         {
           cap = FALSE;
@@ -567,7 +555,7 @@ char *format_string( char *oldstring /*, bool fSpace */)
  Called by:	handle_con_note_text in board.c
  ****************************************************************************/
 /* improved version by Bobble */
-char *force_wrap( char *old_string )
+char *force_wrap( const char *old_string )
 {
    int i, i_old;
    int last_return, last_blank, colour_count;
@@ -642,7 +630,7 @@ char *force_wrap( char *old_string )
  		percentages.
  Called by:	string_add(string.c)
  ****************************************************************************/
-char *first_arg( char *argument, char *arg_first, bool fCase )
+const char *first_arg( const char *argument, char *arg_first, bool fCase )
 {
     char cEnd;
 
@@ -681,9 +669,9 @@ char *first_arg( char *argument, char *arg_first, bool fCase )
     return argument;
 }
 
-char *string_linedel( char *string, int line )
+const char *string_linedel( const char *string, int line )
 {
-   char *strtmp = string;
+   const char *strtmp = string;
    char buf[MAX_STRING_LENGTH];
    int cnt = 1, tmp = 0;
    
@@ -714,9 +702,9 @@ char *string_linedel( char *string, int line )
    return str_dup(buf);
 }
 
-char *string_lineadd( char *string, char *newstr, int line )
+const char *string_lineadd( const char *string, const char *newstr, int line )
 {
-   char *strtmp = string;
+   const char *strtmp = string;
    int cnt = 1, tmp = 0;
    bool done = FALSE;
    char buf[MAX_STRING_LENGTH];
@@ -755,7 +743,7 @@ char *string_lineadd( char *string, char *newstr, int line )
 }
 
 /* buf queda con la linea sin \n\r */
-char *get_line( char *str, char *buf )
+const char *get_line( const char *str, char *buf )
 {
    int tmp = 0;
    bool found = FALSE;
@@ -784,7 +772,7 @@ char *get_line( char *str, char *buf )
    return str;
 }
 
-char *numlineas( char *string )
+const char* numlineas( const char *string )
 {
    int cnt = 1;
    static char buf[MAX_STRING_LENGTH*2];
@@ -802,40 +790,6 @@ char *numlineas( char *string )
    return buf;
    
 }
-
-
-/*
- * Used in olc_act.c for aedit_builders.
- */
-char * string_unpad( char * argument )
-{
-    char buf[MAX_STRING_LENGTH];
-    char *s;
-
-    s = argument;
-
-    while ( *s == ' ' )
-        s++;
-
-    strcpy( buf, s );
-    s = buf;
-
-    if ( *s != '\0' )
-    {
-        while ( *s != '\0' )
-            s++;
-        s--;
-
-        while( *s == ' ' )
-            s--;
-        s++;
-        *s = '\0';
-    }
-
-    free_string( argument );
-    return str_dup( buf );
-}
-
 
 
 /*
@@ -867,17 +821,19 @@ char * string_proper( char * argument )
 
 /* truncate an optionally colored string to a certain length 
    */
-char *truncate_color_string( const char *argument, int limit )
+const char *truncate_color_string( const char *argument, int limit )
 {
+    static SR_BUF sr_buf;
+    char *rtn = next_sr_buf( &sr_buf );
+
     if ( strlen_color(argument) <= limit )
         return argument;
-    else if ( strlen(argument) > 4*MSL) 
+    else if ( strlen(argument) > MSL) 
     {
-        bugf("truncate_color_string received string with length > 4*MSL");
+        bugf("truncate_color_string received string with length > MSL");
         return "ERROR"; /* So it won't crash */
     }
 
-    static char rtn[4*MSL]; 
     int i=0;
     int len=0;
     for ( i=0 ; len < limit ; i++ ) 
@@ -901,19 +857,21 @@ char *truncate_color_string( const char *argument, int limit )
     return rtn;
 }
 
-char *format_color_string( const char *argument, int width )
+const char *format_color_string( const char *argument, int width )
 {
+    static SR_BUF sr_buf;
+    char *rtn = next_sr_buf( &sr_buf );
+
     int lencolor=strlen_color(argument);
     if ( lencolor > width )
         return truncate_color_string( argument, width );
     else if ( lencolor == width ) /* just in case */
         return argument;
 
-    static char rtn[4*MSL];
-    int i;
+    int i=0;
     int len=0;
 
-    for ( i=0 ; *(argument+i) != '\0' ; i++ )
+    for (  ; *(argument+i) != '\0' ; i++ )
     {
         rtn[i]=*(argument+i);
         len++;
@@ -948,9 +906,9 @@ char *format_color_string( const char *argument, int width )
  * Original at http://http://dark.nrg.dtu.dk/~wreck/mud/code/color.txt
  *						Dennis Reed
  */
-int strlen_color( char *argument )
+int strlen_color( const char *argument )
 {
-    char *str;
+    const char *str;
     int  length;
     
     if ( argument == NULL || argument[0] == '\0' )
@@ -998,7 +956,7 @@ int strlen_color( char *argument )
  *     "=======CENTER======="
  */
 
-char *center( char *argument, int width, char fill )
+const char * center( const char *argument, int width, char fill )
 {
     char	buf[MSL];
     static char buf2[MSL];
@@ -1036,7 +994,7 @@ char *center( char *argument, int width, char fill )
 }
 
 /* Color code aware left pad function.  -Rimbol 6/99 */
-char *lpad( char *argument, int width, char fill )
+const char *lpad( const char *argument, int width, char fill )
 {
     static char buf2[MSL];
     int		length; /* Length without color codes */
@@ -1064,7 +1022,7 @@ char *lpad( char *argument, int width, char fill )
 }
 
 /* Color code aware right pad function.  -Rim 6/99 */
-char *rpad( char *argument, int width, char fill )
+const char *rpad( const char *argument, int width, char fill )
 {
     char	buf[MSL];
     static char buf2[MSL];
@@ -1099,7 +1057,7 @@ char *rpad( char *argument, int width, char fill )
 }
 
 /* return wether a string 'looks' empty */
-bool is_empty_string( char *s )
+bool is_empty_string( const char *s )
 {
     if ( s == NULL )
 	return TRUE;
@@ -1120,9 +1078,28 @@ bool is_empty_string( char *s )
     return TRUE;
 }
 
-char* ltrim(const char *s)
+const char* ltrim(const char *s)
 {
     while ( isspace(*s) )
         s++;
     return s;
+}
+
+const char* aan(const char *s)
+{
+    switch (*s) {
+        case 'a':
+        case 'A':
+        case 'e':
+        case 'E':
+        case 'i':
+        case 'I':
+        case 'o':
+        case 'O':
+        case 'u':
+        case 'U':
+            return "an";
+        default:
+            return "a";
+    }
 }
