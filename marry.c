@@ -15,7 +15,7 @@
 #include "lookup.h"
 
 
-void do_consent( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_consent)
 {
     if (IS_NPC(ch))
         return;
@@ -33,7 +33,7 @@ void do_consent( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_marry( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_marry)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -124,7 +124,7 @@ void do_marry( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_divorce( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_divorce)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -221,11 +221,18 @@ void check_spouse( CHAR_DATA *ch )
     if ( (spouse = get_player(ch->pcdata->spouse)) == NULL )
     {
 	d=new_descriptor();
-	if ( !load_char_obj(d, ch->pcdata->spouse) )
+	if ( !load_char_obj(d, ch->pcdata->spouse, TRUE) )
 	{
 	    send_to_char( "Your spouse has vanished. You're single again.\n\r", ch );
 	    free_string( ch->pcdata->spouse );
 	    ch->pcdata->spouse = NULL;
+         /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
 	    free_descriptor(d);
 	    return;
 	}

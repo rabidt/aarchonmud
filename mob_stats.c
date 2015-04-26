@@ -7,6 +7,7 @@
 #include <sys/time.h>
 
 #include "merc.h"
+#include "mudconfig.h"
 
 // wealth
 
@@ -25,7 +26,8 @@ long mob_base_wealth( MOB_INDEX_DATA *pMobIndex )
         level = 120;
         factor = 5;
     }
-    factor = factor * pMobIndex->wealth_percent / 100;    
+    factor = factor * pMobIndex->wealth_percent / 100;
+    factor *= cfg_gold_mult;
 
     return (long)(level_base_wealth(level) * factor);
 }
@@ -152,7 +154,7 @@ int mob_base_attacks( MOB_INDEX_DATA *pMobIndex, int level )
     if ( IS_SET(pMobIndex->affect_field, AFF_GUARD) )
         attacks -= 50;
     if ( IS_SET(pMobIndex->affect_field, AFF_HASTE) )
-        attacks += 100;    
+        attacks += 150;
     if ( IS_SET(pMobIndex->affect_field, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
     return attacks;

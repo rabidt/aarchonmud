@@ -50,14 +50,8 @@
 
 extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
-CHAR_DATA* get_mp_char( CHAR_DATA *ch, char *argument );
-OBJ_DATA* get_mp_obj( CHAR_DATA *ch, char *argument );
-ROOM_INDEX_DATA* find_mp_location( CHAR_DATA *ch, char *arg );
-
-bool is_r_number( char *arg );
-int r_atoi( CHAR_DATA *ch, char *arg );
-bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name );
-int cmd_eval( int vnum, char *line, int check,
+bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name );
+int cmd_eval( int vnum, const char *line, int check,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, const void *arg2, CHAR_DATA *rch );
 
@@ -414,7 +408,7 @@ bool has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear )
  * obj_name: string that is compared to the name of the item, or ""
  */
 
-bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
+bool has_item_in_container( CHAR_DATA *ch, int vnum, const char *obj_name )
 {
 	OBJ_DATA *container;
 	OBJ_DATA *obj;
@@ -429,7 +423,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 
 	    for( obj = container->contains; obj; obj=obj->next_content )
 	    {
-		if( vnum < 0 && is_either_name(obj_name, obj->name) )
+		if( vnum < 0 && is_name(obj_name, obj->name) )
 		    return TRUE;
 		if( vnum > 0 && obj->pIndexData->vnum == vnum )
 		    return TRUE;
@@ -440,7 +434,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, char *obj_name )
 	return FALSE;
 }
 
-bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
+bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name )
 {
 	OBJ_DATA *obj;
 
@@ -449,7 +443,7 @@ bool check_in_container( OBJ_DATA *container, int vnum, char *obj_name )
         if (obj->must_extract) 
             continue;
 
-	    if( vnum < 0 && is_either_name(obj_name, obj->name) )
+	    if( vnum < 0 && is_name(obj_name, obj->name) )
 		return TRUE;
 	    if( vnum > 0 && obj->pIndexData->vnum == vnum )
 		return TRUE;
@@ -469,7 +463,7 @@ bool get_mob_vnum_room( CHAR_DATA *ch, int vnum )
     if (ch->in_room == NULL )
     {
         bugf( "get_mob_vnum_room: NULL room for ch %d", ch->pIndexData->vnum );
-        return NULL;
+        return FALSE;
     }
 
     for ( mob = ch->in_room->people; mob; mob = mob->next_in_room )
@@ -497,18 +491,18 @@ bool get_obj_vnum_room( CHAR_DATA *ch, int vnum )
     return FALSE;
 }
 
-bool is_affected_parse( CHAR_DATA *ch, char *buf )
+bool is_affected_parse( CHAR_DATA *ch, const char *arg )
 {
     int aff_flag;
 
     if ( ch == NULL )
 	return FALSE;
 
-    if ( (aff_flag = flag_lookup(buf, affect_flags)) != NO_FLAG )
+    if ( (aff_flag = flag_lookup(arg, affect_flags)) != NO_FLAG )
 	return IS_AFFECTED( ch, aff_flag );
 
     /* check for skill affect */
-    return is_affected( ch, skill_lookup(buf) );
+    return is_affected( ch, skill_lookup(arg) );
 }
 
 /* ---------------------------------------------------------------------
@@ -525,7 +519,7 @@ bool is_affected_parse( CHAR_DATA *ch, char *buf )
  *
  *----------------------------------------------------------------------
  */
-int cmd_eval( int vnum, char *line, int check,
+int cmd_eval( int vnum, const char *line, int check,
 	CHAR_DATA *mob, CHAR_DATA *ch, 
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
@@ -535,11 +529,11 @@ int cmd_eval( int vnum, char *line, int check,
     OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
     OBJ_DATA  *lval_obj = NULL;
 
-    char *original, buf[MAX_INPUT_LENGTH], code;
+    const char *original = line;
+    char buf[MAX_INPUT_LENGTH], code;
     int lval = 0, oper = 0, rval = -1;
     int xval = 0;
 
-    original = line;
     line = one_argument( line, buf );
     if ( buf[0] == '\0' || mob == NULL )
 	return FALSE;
@@ -1164,10 +1158,10 @@ bool is_mprog_running()
 }
 
 void program_flow( 
-    char *text,
+    const char *text,
     bool is_lua,
     int pvnum,  /* For diagnostic purposes */
-    char *source,  /* the actual MOBprog code */
+    const char *source,  /* the actual MOBprog code */
     CHAR_DATA *mob, CHAR_DATA *ch, 
     const void *arg1, sh_int arg1type,
     const void *arg2, sh_int arg2type,
@@ -1189,7 +1183,7 @@ void program_flow(
     }
 
     CHAR_DATA *rch = NULL;
-    char *code, *line;
+    const char *code, *line;
     char buf[MAX_STRING_LENGTH];
     char control[MAX_INPUT_LENGTH], data[MAX_STRING_LENGTH];
     
@@ -1394,7 +1388,7 @@ void program_flow(
 #endif
 
 	  /* savety-net against mob disappearing during execution */
-	  if ( IS_DEAD(mob) )
+	  if ( mob->must_extract || !mob->in_room )
 	      break;
        }
     }
@@ -1420,10 +1414,8 @@ void program_flow(
  * A general purpose string trigger. Matches argument to a string trigger
  * phrase.
  */
-bool mp_act_trigger( 
-	char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
-	const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type,
-    int type )
+bool mp_act_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch, 
+    const void *arg1, sh_int arg1type, const void *arg2, sh_int arg2type, int type )
 {
     PROG_LIST *prg;
 
@@ -1534,7 +1526,8 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
 bool mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
 {
 
-    char        buf[MAX_INPUT_LENGTH], *p;
+    char buf[MAX_INPUT_LENGTH];
+    const char *p;
     PROG_LIST  *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
@@ -1655,7 +1648,7 @@ void mp_timer_trigger( CHAR_DATA *mob )
 }
 
 
-bool mp_spell_trigger( char* argument, CHAR_DATA *mob, CHAR_DATA *ch)
+bool mp_spell_trigger( const char *argument, CHAR_DATA *mob, CHAR_DATA *ch )
 {
     bool found = FALSE;
    
@@ -1704,7 +1697,7 @@ bool mp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
     return FALSE;
 }
 
-bool mp_try_trigger( char* argument, CHAR_DATA *ch )
+bool mp_try_trigger( const char* argument, CHAR_DATA *ch )
 {
   CHAR_DATA *mob;
   CHAR_DATA *next_char;
@@ -1748,7 +1741,7 @@ bool has_mp_trigger_vnum( CHAR_DATA *mob, int trigger, int vnum )
     {
         if ( prg->trig_type == trigger )
         {
-            char *p = prg->trig_phrase;
+            const char *p = prg->trig_phrase;
             if ( is_r_number(p) && r_atoi(mob, p) == vnum )
                 return TRUE;
         }

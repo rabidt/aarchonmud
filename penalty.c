@@ -15,17 +15,12 @@
 #include "recycle.h"
 
 
-/* Externals */
-bool exists_player( char *name );
-
 /* Local Prototypes */
-bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype );
+bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype );
 char *penalty_status_name(int status);
 void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
-int show_penalties_by_player(CHAR_DATA *imm, char *victim_name, int played, int format);
-void show_penalty_type(CHAR_DATA *ch, char *penname);
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument );
+void show_penalty_type(CHAR_DATA *ch, const char *penname);
 void check_penlist();
 void load_crime_list(void);
 void save_crime_list(void);
@@ -60,7 +55,7 @@ char *penalty_status_name(int status)
 	return ( buf[0] != '\0' ) ? buf+1 : "none";
 }
 
-void do_penlist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_penlist)
 {
     char arg[MIL];
 
@@ -75,47 +70,47 @@ void do_penlist( CHAR_DATA *ch, char *argument )
                      "         penlist cleanup   - Remove deleted chars from list\n\r",ch);
 }
 
-void do_nochannel( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nochannel)
 {
     process_penalty(ch, argument, "nochannel");
 }
 
-void do_noemote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noemote)
 {
     process_penalty(ch, argument, "noemote");
 }
 
-void do_noshout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noshout)
 {
     process_penalty(ch, argument, "noshout");
 }
 
-void do_notell( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_notell)
 {
     process_penalty(ch, argument, "notell");
 }
 
-void do_freeze( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_freeze)
 {
     process_penalty(ch, argument, "freeze");
 }
 
-void do_jail( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_jail)
 {
     process_penalty(ch, argument, "jail");
 }
 
-void do_parole( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_parole)
 {
     process_penalty(ch, argument, "parole");
 }
 
-void do_pardon( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pardon)
 {
     process_penalty(ch, argument, "pardon");
 }
 
-void do_nonote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_nonote)
 {
     process_penalty(ch, argument, "nonote");
 }
@@ -123,7 +118,7 @@ void do_nonote( CHAR_DATA *ch, char *argument )
 /* Check if another imm is already penalising victim to prevent
  * dealing out penalties twice --Bobble
  */
-bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, char *pentype )
+bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *pentype )
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *wch;
@@ -146,7 +141,7 @@ bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, char *pentype )
 
 /* Apply penalty to character.  
 If applied successfully return TRUE, else return FALSE. */
-bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype )
+bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
 {
     sh_int pen;
     char arg[MIL];
@@ -191,7 +186,7 @@ bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype )
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
     {
         d = new_descriptor();
-        if (!load_char_obj(d, arg))
+        if ( !load_char_obj(d, arg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);
             free_char(d->character);
@@ -339,7 +334,7 @@ bool process_penalty( CHAR_DATA *ch, char *argument, char *pentype )
 }
 
 /* Display info about a type of penalty */
-void show_penalty_type(CHAR_DATA *ch, char *penname)
+void show_penalty_type(CHAR_DATA *ch, const char *penname)
 {
     int i, pen;
 
@@ -377,7 +372,7 @@ void show_penalty_type(CHAR_DATA *ch, char *penname)
    Format 3 = show all penalties as a report (i.e. do_penlist),
    If no penalties are found for this player, return will be 0. */
 
-int show_penalties_by_player(CHAR_DATA *ch, char *victim_name, int victim_played, int format)
+int show_penalties_by_player(CHAR_DATA *ch, const char *victim_name, int victim_played, int format)
 {
     PENALTY_DATA *p;
     int i = 0, pen;
@@ -463,7 +458,7 @@ void load_penalties()
 {
     FILE *fp;
     PENALTY_DATA *p;
-    char *ctmp;
+    const char *ctmp;
     
     penalty_list = NULL;
     
@@ -615,7 +610,7 @@ void delete_penalty_node(PENALTY_DATA *node)
 }
 
 /* Handle CON_PENALTY_SEVERITY state */
-void  penalty_severity( DESCRIPTOR_DATA *d, char * argument )
+void penalty_severity( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -681,7 +676,7 @@ void  penalty_severity( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_HOURS state */
-void penalty_hours ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_hours( DESCRIPTOR_DATA *d, const char *argument )
 {
     CHAR_DATA *ch = d->character;
     PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -737,7 +732,7 @@ void penalty_hours ( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_POINTS state */
-void  penalty_points  ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_points( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -785,7 +780,7 @@ void  penalty_points  ( DESCRIPTOR_DATA *d, char * argument )
 }
 
 /* Handle CON_PENALTY_CONFIRM state */
-void  penalty_confirm ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_confirm( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -831,7 +826,7 @@ bool can_remove_penalty( CHAR_DATA *ch, PENALTY_DATA *pen )
 /* Note: Coming into this function, p->duration contains victim->playing. 
          This is just a hack to pass a parameter. -Rim */
 /* Handle CON_PENALTY_PENLIST state (for pardon and parole) */
-void penalty_penlist ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument )
 {
    CHAR_DATA *ch = d->character;
    PENALTY_DATA *p = ch->pcdata->new_penalty;
@@ -923,7 +918,7 @@ void penalty_penlist ( DESCRIPTOR_DATA *d, char * argument )
 
 
 /* Handle CON_PENALTY_FINISH state */
-void penalty_finish  ( DESCRIPTOR_DATA *d, char * argument )
+void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
 {
     char buf[MSL], to_buf[MSL];   
 
@@ -1305,8 +1300,6 @@ void save_crime_list(void)
     FILE *fp;
     bool found = FALSE;
     
-    fclose( fpReserve ); 
-
     if ( ( fp = fopen( CRIME_FILE, "w" ) ) == NULL )
     {
         log_error( CRIME_FILE );
@@ -1319,7 +1312,6 @@ void save_crime_list(void)
     }
     
     fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
     if (!found)
         unlink(CRIME_FILE);
 }
@@ -1361,7 +1353,7 @@ void load_crime_list(void)
 }
 
 
-void do_crimelist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_crimelist)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1428,7 +1420,7 @@ void do_crimelist(CHAR_DATA *ch, char *argument)
         "crimelist delete <name>               - Delete a type from the list.\n\r", ch );
 }
 
-int get_crime_count( CHAR_DATA *ch, char *crime_name, char *imm_name )
+int get_crime_count( CHAR_DATA *ch, const char *crime_name, const char *imm_name )
 {
     CRIME_DATA *cr;
     bool check_imm = imm_name[0] != '\0';
@@ -1449,7 +1441,7 @@ int get_crime_count( CHAR_DATA *ch, char *crime_name, char *imm_name )
     return tally;
 }
 
-void do_review( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_review)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1530,7 +1522,7 @@ void do_review( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_punish( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_punish)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1613,7 +1605,7 @@ void do_punish( CHAR_DATA *ch, char *argument )
 
 
 
-void do_forgive( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_forgive)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];

@@ -17,14 +17,6 @@
 
 
 void check_craft_obj( OBJ_DATA *obj, int type );
-void craft_obj_max_caster( OBJ_DATA *obj, int ops );
-void craft_obj_stat_caster( OBJ_DATA *obj, int ops );
-void craft_obj_roll_caster( OBJ_DATA *obj, int ops );
-void craft_obj_max_physical( OBJ_DATA *obj, int ops );
-void craft_obj_roll_physical( OBJ_DATA *obj, int ops );
-void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
-void craft_obj_physical( OBJ_DATA *obj, int ops );
-void craft_obj_stat_physical( OBJ_DATA *obj, int ops );
 
 struct materials_type
 {
@@ -118,7 +110,7 @@ struct crafting_type crafting_table[] =
 
 
 
-void do_supplies( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_supplies)
 {
     int i;
     char buf[MSL], *rarity;
@@ -146,7 +138,7 @@ void do_supplies( CHAR_DATA *ch, char *argument )
 /* Updated November 2012 - Includes a second argument so players can specifiy
 whether or not they want Physical or Mental stats - Astark */
 
-void do_craft( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_craft)
 {
     int i, j, skill, craft, type;
     char buf[MSL];
@@ -159,10 +151,11 @@ void do_craft( CHAR_DATA *ch, char *argument )
     argument=one_argument(argument, arg2);
 
     /* Prints list of possible materials when no argument is used */
-    if ( arg1[0] == '\0' || (arg2[0]==0) )
+    if ( arg1[0] == '\0' )
     {
-        send_to_char("Syntax: craft <item_name> <physical | mental> \n\r", ch);
-	send_to_char( "Craft what? Please specify what you will be crafting.\n\r", ch );
+        send_to_char("Craft what? Please specify what you will be crafting.\n\r", ch);
+        send_to_char("Syntax: craft <item_name> [physical|mental]\n\r", ch);
+        send_to_char("        craft <item_name> [strengthen|lighten]\n\r", ch);
         for ( i = 0; crafting_table[i].name != NULL; i++ )
 	{
 	    if ( (materials = get_obj_index(crafting_table[i].materials_vnum[0])) == NULL )
@@ -193,6 +186,70 @@ void do_craft( CHAR_DATA *ch, char *argument )
 	return;
     }
 
+    // craft usage to toggle heavy_armor flag
+    bool strengthen = !strcmp(arg2, "strengthen");
+    bool weaken = !strcmp(arg2, "lighten");
+    if ( strengthen || weaken )
+    {
+        if ( !(crafting = get_obj_carry(ch, arg1, ch)) )
+        {
+            send_to_char("You do not carry that item.\n\r", ch);
+            return;
+        }
+        int ac_factor = itemwear_ac_factor(first_itemwear(crafting));
+        if ( ac_factor == 0 )
+        {
+            ptc(ch, "%s cannot be strengthened or lightened.\n\r", crafting->short_descr);
+            return;
+        }
+        if ( strengthen && IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+        {
+            ptc(ch, "%s is as strong as you can make it.\n\r", crafting->short_descr);
+            return;
+        }
+        if ( weaken && !IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+        {
+            ptc(ch, "%s is as light as you can make it.\n\r", crafting->short_descr);
+            return;
+        }
+        int cost_level = 10 + crafting->level + UMAX(0, crafting->level - 90) * 9;
+        int cost = cost_level * cost_level * ac_factor;
+        if ( ch->silver + ch->gold * 100 < cost )
+        {
+            ptc(ch, "It costs %.2f gold to %s %s.\n\r",
+                cost * 0.01,
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr
+            );
+            return;
+        }
+        WAIT_STATE( ch, skill_table[gsn_craft].beats );
+        deduct_cost(ch, cost);
+        if ( !per_chance(skill) )
+        {
+            ptc(ch, "Your attempt to %s %s fails, wasting %.2f gold worth of materials.\n\r",
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr,
+                cost * 0.01
+            );
+            check_improve(ch, gsn_craft, FALSE, 2);
+        }
+        else
+        {
+            ptc(ch, "You %s %s, using up %.2f gold worth of materials.\n\r",
+                strengthen ? "strengthen" : "lighten",
+                crafting->short_descr,
+                cost * 0.01
+            );
+            if ( strengthen )
+                SET_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+            else
+                REMOVE_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+            check_improve(ch, gsn_craft, TRUE, 2);
+        }
+        return;
+    }
+    
     /* Check which item is crafted */
     craft = -1;
     for ( i = 0; crafting_table[i].name != NULL; i++ )
@@ -224,14 +281,16 @@ void do_craft( CHAR_DATA *ch, char *argument )
 	}
 
     /* This passes the parameter */
-    if (!strcmp(arg2, "physical"))
-  	type=1;
-    else if (!strcmp(arg2, "mental"))
-	type=2;
+    if ( !strcmp(arg2, "physical") )
+        type = ITEM_RANDOM_PHYSICAL;
+    else if ( !strcmp(arg2, "mental") )
+        type = ITEM_RANDOM_CASTER;
+    else if ( !strcmp(arg2, "") )
+        type = ITEM_RANDOM;
     else
     {
 	send_to_char("Please specify if you want 'physical' or 'mental' preference for the stats\n\r", ch);
-	send_to_char("Syntax: craft <item_name> <physical | mental> \n\r", ch);
+	send_to_char("Syntax: craft <item_name> [physical|mental]\n\r", ch);
 	return;
     }
 
@@ -272,11 +331,10 @@ void do_craft( CHAR_DATA *ch, char *argument )
 
 
 
-void do_extract( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_extract)
 {
-    int mtable, chance2, material, skill;
+    int mtable, material = 0, skill;
     OBJ_DATA *obj;
-    OBJ_INDEX_DATA *pObjIndex;
     OBJ_DATA *extracted;
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];
@@ -337,16 +395,6 @@ void do_extract( CHAR_DATA *ch, char *argument)
         mtable += ((obj->level - 90) * 3);
         mtable += obj->pIndexData->diff_rating * 2;
     }
-
-    chance2 = rand() %100;
-
-    /* Used for verifying that the integers are working properly. Commented out on purpose 
-       sprintf( buf, "mtable = %d , chance2= %d.\n\r", mtable, chance2 ); 
-       send_to_char( buf, ch ); 
-
-     */
-
-
 
     /* Items level 90 and below can only make items rarity 0-1 */
     if (mtable <= 90)
@@ -434,53 +482,6 @@ void do_extract( CHAR_DATA *ch, char *argument)
     return;
 }
 
-
-/*
- * Code from enchant.c rewritten for crafting only so that
- * enchant armor/weapon don't break. Thanks Maed!
- */
-int get_craft_ops( OBJ_DATA *obj, int level )
-{
-    AFFECT_DATA *aff;
-    int ops_left, fail, vnum;
-
-    /* no enchanting of quest eq etc. */
-    if ( obj == NULL
-	 || IS_OBJ_STAT(obj, ITEM_STICKY)
-     || (IS_SET(obj->extra_flags, ITEM_NO_EXTRACT)))
-	return 0;
-
-    /* no enchanting of objects which add special effects */
-    for ( aff = obj->pIndexData->affected; aff != NULL; aff = aff->next )
-	if ( aff->bitvector != 0 )
-	    return 0;
-
-    /* ops below spec */
-    ops_left = get_obj_spec( obj ) - get_obj_ops( obj );
-    if ( IS_OBJ_STAT(obj, ITEM_BLESS) )
-	ops_left += 1;
-    /* check for artificially created items => harder to enchant */
-    if ( obj->pIndexData->vnum == OBJ_VNUM_SIVA_WEAPON )
-	ops_left -= 5;
-
-    /* check for failure */
-    fail = 50 + UMAX(0, obj->level - level);
-    fail -= 5 * ops_left;
-    fail = URANGE(1, fail, 99);
-    if ( chance(fail) )
-    {
-	fail = 0;
-	while ( number_bits(2) == 0 )
-	    fail--;
-	return fail;
-    }
-
-    /* ok, successful enchant */
-    ops_left = UMAX( 0, ops_left );
-    return ops_left/2 + 1;
-}
-
-
 /* enchants crafting objects. Effective Nov 2012, this now 
 checks for a physical or mental parameter to make the items
 more useable - Astark  */
@@ -488,436 +489,12 @@ more useable - Astark  */
 void check_craft_obj( OBJ_DATA *obj, int type )
 {
     if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) )
-	return;
+        return;
 
-    REMOVE_BIT( obj->extra_flags, ITEM_RANDOM );
-  
-    if (type == 1)
-        craft_obj_physical( obj, get_obj_spec(obj) - get_obj_ops(obj) );
-    else
-        craft_obj_caster( obj, get_obj_spec(obj) - get_obj_ops(obj) );
-}
-
-
-
-void add_craft_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
-{
-    AFFECT_DATA *obj_aff;
-
-    if ( obj == NULL || aff == NULL )
-	return;
-
-    /* search for matching affect already on object */
-    for ( obj_aff = obj->affected; obj_aff != NULL; obj_aff = obj_aff->next )
-	if ( obj_aff->location == aff->location
-	     && obj_aff->duration == aff->duration )
-	    break;
-
-    /* found matching affect on object? */
-    if ( obj_aff != NULL )
-	obj_aff->modifier += aff->modifier;
-    else
-	affect_to_obj( obj, aff );
-}
-
-
-
-
-
-/* Section added for physical paramter */
-void craft_obj_physical( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA aff;
-    int add;
-
-    if ( obj == NULL || ops <= 0 )
-	return;
-
-    /* stats */
-    add = number_range( 0, ops );          /* min of 4, max of 16 ops for stats */
-    add = number_range( 0, add );
-    craft_obj_stat_physical( obj, add );  
-    ops -= add;                            /* lower available ops to keep item in spec */
-    add = number_range( 0, ops/2 );     /* will determine how many ops to spent on HR/DR/AC/Saves */
-    craft_obj_roll_physical( obj, add );  
-    ops -= add;                     
-    craft_obj_max_physical( obj, ops );   /* uses the rest on HP/Mana/Move */
-}
-
-/* add str, con, .. */
-void craft_obj_stat_physical( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    AFFECT_DATA *aff;
-    int add, total, max;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops * 4;
-    
-    while ( total > 0 )
+    if ( type != ITEM_RANDOM )
     {
-	/* modifier */
-	if ( total < 4 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 10, total );
-	    add = number_range( 4, max );
-	}
-	af.modifier = add;
-
-	/* location */
-        if ( !number_bits(2) )
-        {
-    	    switch ( number_range(0, 7) )
-	    {
-	    case 0: af.location = APPLY_STR; break;
-	    case 1: af.location = APPLY_CON; break;
-	    case 2: af.location = APPLY_VIT; break;
-	    case 3: af.location = APPLY_AGI; break;
-	    case 4: af.location = APPLY_DEX; break;
-	    case 5: af.location = APPLY_DIS; break;
-	    case 6: af.location = APPLY_CHA; break;
-	    case 7: af.location = APPLY_LUC; break;
-	    }
-        }
-        else
-        {
-    	    switch ( number_range(0, 5) )
-	    {
-	    case 0: af.location = APPLY_STR; break;
-	    case 1: af.location = APPLY_CON; break;
-	    case 2: af.location = APPLY_VIT; break;
-	    case 3: af.location = APPLY_AGI; break;
-	    case 4: af.location = APPLY_DEX; break;
-	    case 5: af.location = APPLY_LUC; break;
-	    }
-        }
-
-	add_craft_affect( obj, &af );
-	
-	total -= add;
+        REMOVE_BIT(obj->extra_flags, ITEM_RANDOM);
+        SET_BIT(obj->extra_flags, type);
     }
-}
-
-/* add hit, dam, ac, saves */
-void craft_obj_roll_physical( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max, choice;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	max = UMIN( 5, total );
-	add = number_range( 1, max );
-	af.modifier = add;
-	
-	/* location */
-	switch ( obj->item_type )
-	{
-	default:
-	    choice = number_range(0,3); break;
-	case ITEM_WEAPON:
-	    if ( !number_bits(2) )             /* You have a better chance of getting HR/DR than saves & AC */
-		choice = number_range(0,3);
-	    else if ( !number_bits(1) )
-		choice = number_range(0,2);   /* Same as above.. little better chance of AC than saves on weapons */
-            else
-                choice = number_range(0,1);
-	case ITEM_ARMOR:
-	    if ( !number_bits(2) )             /* You have a better chance of getting HR/DR than saves & AC */
-		choice = number_range(0,3);
-	    else
-		choice = number_range(0,1);
-	}
-	/* translate location & adjust modifier */
-	switch( choice )
-	{
-	default: return;
-	case 0: af.location = APPLY_HITROLL; break;
-	case 1: af.location = APPLY_DAMROLL; break;
-	case 2:
-	    af.location = APPLY_AC; 
-	    af.modifier *= -10;
-	    break;
-	case 3:
-	    af.location = APPLY_SAVES;
-	    af.modifier *= -1;
-	}
-		
-	add_craft_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-/* add hp, mana, move */
-void craft_obj_max_physical( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max, choice;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops * 10;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	if ( total < 20 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 50, total );
-	    add = number_range( 10, max );
-	}
-	af.modifier = add;
-
-	/* location */
-        if (!number_bits(3))
-            choice = number_range(0,1); /* Better chance of getting HP, than Move */
-        else
-            choice = number_range(0,0);
-	switch ( choice )
-	{
-	case 0: af.location = APPLY_HIT; break;
-	case 1: af.location = APPLY_MOVE; break;
-	}
-
-	add_craft_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-void add_craft_affect_physical( OBJ_DATA *obj, AFFECT_DATA *aff )
-{
-    AFFECT_DATA *obj_aff;
-
-    if ( obj == NULL || aff == NULL )
-	return;
-
-    /* search for matching affect already on object */
-    for ( obj_aff = obj->affected; obj_aff != NULL; obj_aff = obj_aff->next )
-	if ( obj_aff->location == aff->location
-	     && obj_aff->duration == aff->duration )
-	    break;
-
-    /* found matching affect on object? */
-    if ( obj_aff != NULL )
-	obj_aff->modifier += aff->modifier;
-    else
-	affect_to_obj( obj, aff );
-}
-
-
-
-
-
-/* Section added for caster parameter */
-void craft_obj_caster( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA aff;
-    int add;
-
-    if ( obj == NULL || ops <= 0 )
-	return;
-
-    /* stats */
-    add = number_range( 0, ops/2 );         
-    add = number_range( 0, add );
-    craft_obj_stat_caster( obj, add );   
-    ops -= add;                          
-    add = number_range( 0, ops/6 );  
-    craft_obj_roll_caster( obj, add );   
-    ops -= add;                          
-    craft_obj_max_caster( obj, ops );    
-
-}
-
-/* add str, con, .. */
-void craft_obj_stat_caster( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    AFFECT_DATA *aff;
-    int add, total, max;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops * 4;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	if ( total < 4 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 10, total );
-	    add = number_range( 4, max );
-	}
-	af.modifier = add;
-
-	/* location */
-        if ( !number_bits(3) )
-        {
-        
-    	    switch ( number_range(0, 1) )
-	    {
-	    case 0: af.location = APPLY_INT; break;
-	    case 1: af.location = APPLY_WIS; break;
-	    }
-        }
-        else
-        {
-
-    	    switch ( number_range(0, 7) )
-	    {
-	    case 0: af.location = APPLY_CON; break;
-	    case 1: af.location = APPLY_VIT; break;
-	    case 2: af.location = APPLY_AGI; break;
-            case 3: af.location = APPLY_INT; break;
-            case 4: af.location = APPLY_WIS; break;
-	    case 5: af.location = APPLY_DIS; break;
-	    case 6: af.location = APPLY_CHA; break;
-	    case 7: af.location = APPLY_LUC; break;
-	    }
-        }
-
-	add_craft_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-/* add hit, dam, ac, saves */
-void craft_obj_roll_caster( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max, choice;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	max = UMIN( 5, total );
-	add = number_range( 1, max );
-	af.modifier = add;
-	
-	/* location */
-	switch ( obj->item_type )
-	{
-	default:
-	    choice = number_range(0,3); break;
-	case ITEM_WEAPON:
-	    if ( !number_bits(3) )             // You have a better chance of getting saves & AC than HR/DR
-		choice = number_range(0,3);
-	    else
-		choice = number_range(2,3);
-	case ITEM_ARMOR:
-	    if ( !number_bits(3) )             // You have a better chance of getting saves & AC than HR/DR
-		choice = number_range(0,3);
-	    else
-		choice = number_range(2,3);
-	}
-	/* translate location & adjust modifier */
-	switch( choice )
-	{
-	default: return;
-	case 0: af.location = APPLY_HITROLL; break;
-	case 1: af.location = APPLY_DAMROLL; break;
-	case 2:
-	    af.location = APPLY_SAVES;
-	    af.modifier *= -1;
-	    break;
-	case 3:
-	    af.location = APPLY_AC; 
-	    af.modifier *= -10;
-	}
-		
-	add_craft_affect( obj, &af );
-	
-	total -= add;
-    }
-}
-
-/* add hp, mana, move */
-void craft_obj_max_caster( OBJ_DATA *obj, int ops )
-{
-    AFFECT_DATA af;
-    int add, total, max, choice;
-    
-    af.where        = TO_OBJECT;
-    af.type         = 0;
-    af.level        = 0;
-    af.duration     = -1;
-    af.bitvector    = 0;
-    af.detect_level = 0;
-
-    total = ops * 10;
-    
-    while ( total > 0 )
-    {
-	/* modifier */
-	if ( total < 20 )
-	    add = total;
-	else
-	{
-	    max = UMIN( 50, total );
-	    add = number_range( 10, max );
-	}
-	af.modifier = add;
-
-	/* location */
-        if ( !number_bits(4) )
-            choice = number_range(0,2); /* Better chance of getting Mana than HP or Move */
-        else if ( !number_bits(1) )
-            choice = number_range(0,1);
-        else
-            choice = 1;
-	switch ( choice )
-	{
-	case 0: af.location = APPLY_HIT; break;
-	case 1: af.location = APPLY_MANA; break;
-        case 2: af.location = APPLY_MOVE; break;
-	}
-
-	add_craft_affect( obj, &af );
-	
-	total -= add;
-    }
+    check_enchant_obj(obj);
 }

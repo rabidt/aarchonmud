@@ -71,7 +71,11 @@ void load_social_table ()
 		exit(1);
 	}
 	
-	fscanf (fp, "%d\n", &maxSocial);
+    if ( fscanf(fp, "%d\n", &maxSocial) != 1 )
+    {
+        bugf("Could not read nuber of socials");
+        exit(1);
+    }
 
 	/* IMPORTANT to use malloc so we can realloc later on */
 		
@@ -152,13 +156,13 @@ int social_lookup (const char *name)
  */
 
 #ifndef CONST_SOCIAL
-void do_sedit (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_sedit)
 {
 	char cmd[MAX_INPUT_LENGTH], social[MAX_INPUT_LENGTH];
-	char buf[MAX_STRING_LENGTH];
+	char buf[MAX_STRING_LENGTH], arg_buf[MIL];
 	int iSocial;
 	
-	smash_tilde (argument);
+    argument = smash_tilde_cpy(arg_buf, argument);
 	
 	argument = one_argument (argument,cmd);
 	argument = one_argument (argument,social);

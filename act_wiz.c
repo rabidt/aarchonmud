@@ -52,17 +52,15 @@ DECLARE_DO_FUN(do_stand     );
 DECLARE_DO_FUN(do_help      );
 DECLARE_DO_FUN(do_grant     );
 DECLARE_DO_FUN(do_revoke    );
+DECLARE_DO_FUN( do_pipe     );
 
 
 /*
 * Local functions.
 */
-int   flag_value     args( ( const struct flag_type *flag_table, char *argument) );
 void  sort_reserved  args( ( RESERVED_DATA *pRes ) );
-void  raw_kill       args( ( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue ) );
-void do_qset(CHAR_DATA *ch, char *argument);
 
-void do_wiznet( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wiznet)
 {
     int flag, col = 0;
     char buf[MAX_STRING_LENGTH];
@@ -141,27 +139,25 @@ void do_wiznet( CHAR_DATA *ch, char *argument )
 
 
 
-void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
-            long flag, long flag_skip, int min_level) 
+void wiznet( const char *string, CHAR_DATA *ch, const void *arg1, long flag, long flag_skip, int min_level )
 {
     DESCRIPTOR_DATA *d;
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
-	    &&  d->character != ch
-	    && (flag == WIZ_AUTH && CAN_AUTH(d->character)
-		|| (IS_IMMORTAL(d->character) 
-		    && IS_SET(d->character->wiznet,WIZ_ON) 
-		    && (!flag || IS_SET(d->character->wiznet,flag))
-		    && (!flag_skip || !IS_SET(d->character->wiznet,flag_skip))
-		    && get_trust(d->character) >= min_level)))
+        bool playing = IS_PLAYING(d->connected);
+        if ( !playing || !d->character || d->character == ch )
+            continue;
+        bool auth_match = flag == WIZ_AUTH && CAN_AUTH(d->character);
+        bool imm_match = IS_IMMORTAL(d->character) && get_trust(d->character) >= min_level && IS_SET(d->character->wiznet,WIZ_ON) && (!flag || IS_SET(d->character->wiznet,flag));
+        bool skip_match = flag_skip && IS_SET(d->character->wiznet,flag_skip);
+        if ( auth_match || (imm_match && !skip_match) )
         {
             if (IS_SET(d->character->wiznet,WIZ_PREFIX))
                 send_to_char("{V--> ",d->character);
             else
                 send_to_char("{V", d->character);
-            act_new(string,d->character,obj,ch,TO_CHAR,POS_DEAD);
+            act_new(string, d->character, arg1, ch, TO_CHAR, POS_DEAD);
             send_to_char("{x", d->character );
         }
     }
@@ -172,12 +168,12 @@ void wiznet(char *string, CHAR_DATA *ch, OBJ_DATA *obj,
 
 
 /* equips a character */
-void do_outfit ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_outfit)
 {
     OBJ_DATA *obj;
     int i,sn,vnum;
     
-    if ( !IS_IMMORTAL(ch) && ch->level > 5 || IS_NPC(ch) )
+    if ( (!IS_IMMORTAL(ch) && ch->level > 5) || IS_NPC(ch) )
     {
         send_to_char("Find it yourself!\n\r",ch);
         return;
@@ -261,10 +257,10 @@ void do_outfit ( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_smote(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_smote)
 {
     CHAR_DATA *vch;
-    char *letter,*name;
+    const char *letter, *name;
     char last[MAX_INPUT_LENGTH], temp[MAX_STRING_LENGTH];
     size_t matches = 0;
     
@@ -354,13 +350,13 @@ void do_smote(CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_bamfin( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bamfin)
 {
     char buf[MAX_STRING_LENGTH];
     
     if ( !IS_NPC(ch) )
     {
-        smash_tilde( argument );
+        argument = smash_tilde_cc(argument);
         
         if (argument[0] == '\0')
         {
@@ -386,13 +382,13 @@ void do_bamfin( CHAR_DATA *ch, char *argument )
 
 
 
-void do_bamfout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bamfout)
 {
     char buf[MAX_STRING_LENGTH];
     
     if ( !IS_NPC(ch) )
     {
-        smash_tilde( argument );
+        argument = smash_tilde_cc(argument);
         
         if (argument[0] == '\0')
         {
@@ -418,7 +414,7 @@ void do_bamfout( CHAR_DATA *ch, char *argument )
 
 
 
-void do_echo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_echo)
 {
     DESCRIPTOR_DATA *d;
     
@@ -430,7 +426,7 @@ void do_echo( CHAR_DATA *ch, char *argument )
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected) ) 
+        if ( IS_PLAYING(d->connected) ) 
         {
             if (get_trust(d->character) >= get_trust(ch))
                 send_to_char( "global> ",d->character);
@@ -444,7 +440,7 @@ void do_echo( CHAR_DATA *ch, char *argument )
 
 
 
-void do_recho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recho)
 {
     DESCRIPTOR_DATA *d;
     
@@ -457,7 +453,7 @@ void do_recho( CHAR_DATA *ch, char *argument )
     
     for ( d = descriptor_list; d; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&   d->character->in_room == ch->in_room )
         {
             if (get_trust(d->character) >= get_trust(ch))
@@ -470,7 +466,7 @@ void do_recho( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_zecho(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_zecho)
 {
     DESCRIPTOR_DATA *d;
     
@@ -482,7 +478,7 @@ void do_zecho(CHAR_DATA *ch, char *argument)
     
     for (d = descriptor_list; d; d = d->next)
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+        if ( (IS_PLAYING(d->connected) ) 
             &&  d->character->in_room != NULL && ch->in_room != NULL
             &&  d->character->in_room->area == ch->in_room->area)
         {
@@ -494,7 +490,7 @@ void do_zecho(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_pecho( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pecho)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -524,7 +520,7 @@ void do_pecho( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_transfer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_transfer)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -545,7 +541,7 @@ void do_transfer( CHAR_DATA *ch, char *argument )
     {
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) 
+            if ( (IS_PLAYING(d->connected)) 
                 &&   d->character != ch
                 &&   d->character->in_room != NULL
                 &&   can_see( ch, d->character ) )
@@ -607,7 +603,7 @@ void do_transfer( CHAR_DATA *ch, char *argument )
 
 
 
-void do_at( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_at)
 {
     char arg[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *location;
@@ -662,7 +658,7 @@ void do_at( CHAR_DATA *ch, char *argument )
 
 
 
-void do_goto( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_goto)
 {
     ROOM_INDEX_DATA *location;
     CHAR_DATA *rch;
@@ -727,25 +723,37 @@ void do_goto( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_copyove( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_copyove)
 {
     send_to_char( "If you want to COPYOVER, spell it out.\n\r", ch );
     return;
 }
 
-void do_reboo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reboo)
 {
     send_to_char( "If you want to REBOOT, spell it out.\n\r", ch );
     return;
 }
 
-void do_reboot( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reboot)
 {
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    CHAR_DATA *vch;
     
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to reboot?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_reboot,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+
     if (ch->invis_level < LEVEL_HERO)
     {
         sprintf( buf, "Reboot by %s.", ch->name );
@@ -765,7 +773,7 @@ void do_reboot( CHAR_DATA *ch, char *argument )
 
 
 
-void do_shutdow( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shutdow)
 {
     send_to_char( "If you want to SHUTDOWN, spell it out.\n\r", ch );
     return;
@@ -773,13 +781,25 @@ void do_shutdow( CHAR_DATA *ch, char *argument )
 
 
 
-void do_shutdown( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shutdown)
 {
     char buf[MAX_STRING_LENGTH];
     extern bool merc_down;
     DESCRIPTOR_DATA *d,*d_next;
-    CHAR_DATA *vch;
-    
+   
+    if (strcmp(argument, "confirm"))
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to shutdown?\n\r",
+                bin_info_string);
+
+        confirm_yes_no( ch->desc,
+                do_shutdown,
+                "confirm",
+                NULL,
+                NULL);
+        return;
+    }
+ 
     if (ch->invis_level < LEVEL_HERO)
         sprintf( buf, "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );
@@ -796,7 +816,7 @@ void do_shutdown( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_snoop( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_snoop)
 {
     char arg[MAX_INPUT_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -884,7 +904,7 @@ void do_snoop( CHAR_DATA *ch, char *argument )
 
 
 
-void do_switch( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_switch)
 {
     char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -963,7 +983,7 @@ void do_switch( CHAR_DATA *ch, char *argument )
 
 
 
-void do_return( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_return)
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -1029,10 +1049,10 @@ void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
 }
 
 /* command that is similar to load */
-void do_clone(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_clone)
 {
     char arg[MAX_INPUT_LENGTH];
-    char *rest;
+    const char *rest;
     CHAR_DATA *mob;
     OBJ_DATA  *obj;
     
@@ -1148,7 +1168,7 @@ void do_clone(CHAR_DATA *ch, char *argument )
 
 /* RT to replace the two load commands */
 
-void do_load(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_load)
 {
     char arg[MAX_INPUT_LENGTH];
     
@@ -1178,12 +1198,12 @@ void do_load(CHAR_DATA *ch, char *argument )
 }
 
 
-void do_mload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_mload)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     MOB_INDEX_DATA *pMobIndex;
-    CHAR_DATA *victim;
+    CHAR_DATA *victim = NULL;
     char buf[MAX_STRING_LENGTH];
     int i, ammount = 1;
     
@@ -1233,11 +1253,11 @@ void do_mload( CHAR_DATA *ch, char *argument )
 
 
 
-void do_oload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_oload)
 {
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     OBJ_INDEX_DATA *pObjIndex;
-    OBJ_DATA *obj;
+    OBJ_DATA *obj = NULL;
     int i, ammount = 1;
     
     argument = one_argument( argument, arg1 );
@@ -1287,48 +1307,29 @@ void do_oload( CHAR_DATA *ch, char *argument )
 
 
 
-void do_purge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_purge)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[100];
     CHAR_DATA *victim;
-    OBJ_DATA *obj;
     DESCRIPTOR_DATA *d;
     
     one_argument( argument, arg );
     
     if ( arg[0] == '\0' || !strcmp(arg, "room") )
     {
-        /* 'purge' */
-        CHAR_DATA *vnext;
-        OBJ_DATA  *obj_next;
-        
-        for ( victim = ch->in_room->people; victim != NULL; victim = vnext )
-        {
-            vnext = victim->next_in_room;
-            if ( IS_NPC(victim) && !IS_SET(victim->act,ACT_NOPURGE) 
-                && victim != ch /* safety precaution */ )
-                extract_char( victim, TRUE );
-        }
-        
-        for ( obj = ch->in_room->contents; obj != NULL; obj = obj_next )
-        {
-            obj_next = obj->next_content;
-            if (!IS_OBJ_STAT(obj,ITEM_NOPURGE))
-                extract_obj( obj );
-        }
-        
-        act( "$n purges the room!", ch, NULL, NULL, TO_ROOM);
-        send_to_char( "Ok.\n\r", ch );
+        act("$n purges the room!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the room.\n\r", ch);
+        purge_room(ch->in_room);
         return;
     }
     
     if ( !strcmp(arg, "area") )
     {
-	purge_area( ch->in_room->area );
-        act( "$n purges the area!", ch, NULL, NULL, TO_ROOM);
-	send_to_char( "You purge the area.\n\r", ch );
-	return;
+        act("$n purges the area!", ch, NULL, NULL, TO_ROOM);
+        send_to_char("You purge the area.\n\r", ch);
+        purge_area(ch->in_room->area);
+        return;
     }
 
     if ( ( victim = get_char_world( ch, arg ) ) == NULL )
@@ -1342,13 +1343,13 @@ void do_purge( CHAR_DATA *ch, char *argument )
         
         if (ch == victim)
         {
-            send_to_char("Ho ho ho.\n\r",ch);
+            send_to_char("Purging yourself? You'd end up in Purgatory!\n\r", ch);
             return;
         }
         
         if (get_trust(ch) <= get_trust(victim))
         {
-            send_to_char("Maybe that wasn't a good idea...\n\r",ch);
+            act("Your trust is not high enough to purge $N.", ch, NULL, victim, TO_CHAR);
             sprintf(buf,"%s tried to purge you!\n\r",ch->name);
             send_to_char(buf,victim);
             return;
@@ -1356,8 +1357,7 @@ void do_purge( CHAR_DATA *ch, char *argument )
         
         act("$n disintegrates $N.",ch,0,victim,TO_NOTVICT);
         
-        if (victim->level > 1)
-            quit_save_char_obj( victim );
+        quit_save_char_obj(victim);
         d = victim->desc;
         extract_char( victim, TRUE );
         if ( d != NULL )
@@ -1366,6 +1366,7 @@ void do_purge( CHAR_DATA *ch, char *argument )
         return;
     }
     
+    act( "You purge $N.", ch, NULL, victim, TO_CHAR );
     act( "$n purges $N.", ch, NULL, victim, TO_NOTVICT );
     extract_char( victim, TRUE );
     return;
@@ -1373,7 +1374,7 @@ void do_purge( CHAR_DATA *ch, char *argument )
 
 
 
-void do_advance( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_advance)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH];
@@ -1497,7 +1498,7 @@ void do_advance( CHAR_DATA *ch, char *argument )
 
 
 
-void do_trust( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_trust)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -1545,7 +1546,7 @@ void restore_char( CHAR_DATA *victim )
     update_pos( victim );
 }
 
-void do_restore( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_restore)
 {
     char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -1617,7 +1618,7 @@ void do_restore( CHAR_DATA *ch, char *argument )
 
 
 
-void do_log( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_log)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1677,7 +1678,7 @@ void do_log( CHAR_DATA *ch, char *argument )
 
 
 
-void do_peace( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_peace)
 {
     CHAR_DATA *rch, *victim;
     char arg[MIL];
@@ -1714,7 +1715,7 @@ void do_peace( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_wizlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wizlock)
 {
     extern bool wizlock;
     wizlock = !wizlock;
@@ -1735,7 +1736,7 @@ void do_wizlock( CHAR_DATA *ch, char *argument )
 
 /* RT anti-newbie code */
 
-void do_newlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_newlock)
 {
     extern bool newlock;
     newlock = !newlock;
@@ -1754,13 +1755,12 @@ void do_newlock( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_ptitle( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_ptitle)
 {
     char arg1 [MAX_INPUT_LENGTH];
-    char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
-    smash_tilde( argument );
+    argument = smash_tilde_cc(argument);
     argument = one_argument( argument, arg1 );
 
     if ( arg1[0] == '\0')
@@ -1773,16 +1773,15 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
     if (!strcmp(arg1, "list"))
     {
         FILE * fp;
-        char * word;
+        const char *word;
         char buf [MSL];
         int cost;
 
-        fclose(fpReserve);
         strcpy(buf, "../area/pre_titles.txt");
         if (!(fp = fopen(buf, "r")))
         {
             bug("Can't open pre_titles.txt.",0);
-            return FALSE;
+            return;
         }
 
         printf_to_char(ch,"%-15s %4s\n\r", "Title", "Cost");
@@ -1794,10 +1793,9 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
             cost =fread_number(fp);
             printf_to_char(ch, "%-15s %4d\n\r",word,cost);
         }
-        send_to_char("\n\r",victim);
+        send_to_char("\n\r", ch);
         fclose(fp);
-        fpReserve = fopen( NULL_FILE, "r" );
-        return FALSE;
+        return;
     }
 
     if ( ( victim = get_char_world( ch, arg1 ) ) == NULL )
@@ -1814,10 +1812,9 @@ void do_ptitle( CHAR_DATA *ch, char *argument)
 	return;
 }
 
-void do_namecolor( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_namecolor)
 {
     char arg1 [MAX_INPUT_LENGTH];
-    char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
 
     argument = one_argument( argument, arg1 );
@@ -1845,7 +1842,7 @@ void do_namecolor( CHAR_DATA *ch, char *argument)
 
 
 
-void do_pflag( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_pflag)
 {
 	int i;
     char arg1 [MAX_INPUT_LENGTH];
@@ -1854,7 +1851,7 @@ void do_pflag( CHAR_DATA *ch, char *argument)
     sh_int duration;
     CHAR_DATA *victim;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strcpy( arg3, argument );
@@ -1917,7 +1914,7 @@ void do_pflag( CHAR_DATA *ch, char *argument)
     return;	
 }
 
-void do_string( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_string)
 {
     char type [MAX_INPUT_LENGTH];
     char arg1 [MAX_INPUT_LENGTH];
@@ -1926,7 +1923,7 @@ void do_string( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     
-    smash_tilde( argument );
+    argument = smash_tilde_cc( argument );
     argument = one_argument( argument, type );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -2061,12 +2058,13 @@ void do_string( CHAR_DATA *ch, char *argument )
                 return;
             }
             
-            strcat(argument,"\n\r");
+            char desc_buf[MSL];
+            sprintf(desc_buf, "%s\n\r", argument);
             
             ed = new_extra_descr();
             
             ed->keyword     = str_dup( arg3     );
-            ed->description = str_dup( argument );
+            ed->description = str_dup( desc_buf );
             ed->next        = obj->extra_descr;
             obj->extra_descr    = ed;
             return;
@@ -2082,7 +2080,7 @@ void do_string( CHAR_DATA *ch, char *argument )
 /*
  * Thanks to Grodyn for pointing out bugs in this function.
  */
-void do_force( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_force)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -2229,7 +2227,7 @@ void do_force( CHAR_DATA *ch, char *argument )
 /*
 * New routines by Dionysos.
 */
-void do_invis( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_invis)
 {
     int level;
     char arg[MAX_STRING_LENGTH];
@@ -2274,7 +2272,7 @@ void do_invis( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_incognito( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_incognito)
 {
     int level;
     char arg[MAX_STRING_LENGTH];
@@ -2320,7 +2318,7 @@ void do_incognito( CHAR_DATA *ch, char *argument )
 
 
 
-void do_holylight( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_holylight)
 {
     if ( IS_NPC(ch) )
         return;
@@ -2341,13 +2339,13 @@ void do_holylight( CHAR_DATA *ch, char *argument )
 
 /* prefix command: it will put the string typed on each line typed */
 
-void do_prefi (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_prefi)
 {
     send_to_char("You cannot abbreviate the prefix command.\r\n",ch);
     return;
 }
 
-void do_prefix (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_prefix)
 {
     char buf[MAX_INPUT_LENGTH];
     
@@ -2379,7 +2377,7 @@ void do_prefix (CHAR_DATA *ch, char *argument)
 }
 
 
-void do_sla( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sla)
 {
     send_to_char( "If you want to SLAY, spell it out.\n\r", ch );
     return;
@@ -2387,7 +2385,7 @@ void do_sla( CHAR_DATA *ch, char *argument )
 
 
 
-void do_slay( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_slay)
 {
     CHAR_DATA *victim;
     char arg[MAX_INPUT_LENGTH];
@@ -2430,14 +2428,14 @@ void do_slay( CHAR_DATA *ch, char *argument )
 /* Omni wiz command by Prism <snazzy@ssnlink.net>. 
      Updated 12-8-13 by Astark to include functionality from sockets */
 
-void do_omni( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_omni)
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
     BUFFER *output;
     DESCRIPTOR_DATA *d;
     int players = 0;
-    char *          state;
+    const char *state;
     char            login[100];
     char            idle[10];
     buf[0]    = '\0';
@@ -2454,54 +2452,51 @@ void do_omni( CHAR_DATA *ch, char *argument )
     {
         CHAR_DATA *wch = ( d->original != NULL ) ? d->original : d->character;
         
-        if ( wch == NULL )
+        if ( wch == NULL || !can_see(ch, wch) )
             continue;
 
         players++;
                    
-        if ( wch && can_see( ch, wch ) )
+        /* NB: You may need to edit the CON_ values */
+        /* I updated to all current rom CON_ values -Silverhand */
+        switch( d->connected % MAX_CON_STATE)
         {
-            /* NB: You may need to edit the CON_ values */
-            /* I updated to all current rom CON_ values -Silverhand */
-            switch( d->connected % MAX_CON_STATE)
-            {
-            case CON_PLAYING:              state = "PLAYING ";    break;
-            case CON_GET_NAME:             state = "Get Name";    break;
-            case CON_GET_OLD_PASSWORD:     state = "Passwd  ";    break;
-            case CON_CONFIRM_NEW_NAME:     state = "New Nam ";    break;
-            case CON_GET_NEW_PASSWORD:     state = "New Pwd ";    break;
-            case CON_CONFIRM_NEW_PASSWORD: state = "Con Pwd ";    break;
-            case CON_GET_NEW_RACE:         state = "New Rac ";    break;
-            case CON_GET_NEW_SEX:          state = "New Sex ";    break;
-            case CON_GET_NEW_CLASS:        state = "New Cls ";    break;
-            case CON_GET_ALIGNMENT:        state = "New Aln ";    break;
-            case CON_DEFAULT_CHOICE:       state = "Default ";    break;
-            case CON_GET_CREATION_MODE:    state = "Cre Mod ";    break;
-            case CON_ROLL_STATS:           state = "Roll St ";    break;
-            case CON_GET_STAT_PRIORITY:    state = "Sta Pri ";    break;
-            case CON_NOTE_TO:              state = "Note To ";    break;
-            case CON_NOTE_SUBJECT:         state = "Note Sub";    break;
-            case CON_NOTE_EXPIRE:          state = "Note Exp";    break;
-            case CON_NOTE_TEXT:            state = "Note Txt";    break;
-            case CON_NOTE_FINISH:          state = "Note Fin";    break;
-            case CON_GEN_GROUPS:           state = " Custom ";    break;
-            case CON_PICK_WEAPON:          state = " Weapon ";    break;
-            case CON_READ_IMOTD:           state = " IMOTD  ";    break;
-            case CON_BREAK_CONNECT:        state = "LINKDEAD";    break;
-            case CON_READ_MOTD:            state = "  MOTD  ";    break;
-            case CON_GET_COLOUR:           state = " Colour?";    break;
-            default:                       state = "UNKNOWN!";    break;
-            }
-            
-            /* Format "login" value... */
-            strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
-            
-            if ( wch->timer > 0 )
-                sprintf( idle, "%-4d", wch->timer );
-            else
-                sprintf( idle, "    " );
+        case CON_PLAYING:              state = "PLAYING ";    break;
+        case CON_GET_NAME:             state = "Get Name";    break;
+        case CON_GET_OLD_PASSWORD:     state = "Passwd  ";    break;
+        case CON_CONFIRM_NEW_NAME:     state = "New Nam ";    break;
+        case CON_GET_NEW_PASSWORD:     state = "New Pwd ";    break;
+        case CON_CONFIRM_NEW_PASSWORD: state = "Con Pwd ";    break;
+        case CON_GET_NEW_RACE:         state = "New Rac ";    break;
+        case CON_GET_NEW_SEX:          state = "New Sex ";    break;
+        case CON_GET_NEW_CLASS:        state = "New Cls ";    break;
+        case CON_GET_ALIGNMENT:        state = "New Aln ";    break;
+        case CON_DEFAULT_CHOICE:       state = "Default ";    break;
+        case CON_GET_CREATION_MODE:    state = "Cre Mod ";    break;
+        case CON_ROLL_STATS:           state = "Roll St ";    break;
+        case CON_GET_STAT_PRIORITY:    state = "Sta Pri ";    break;
+        case CON_NOTE_TO:              state = "Note To ";    break;
+        case CON_NOTE_SUBJECT:         state = "Note Sub";    break;
+        case CON_NOTE_EXPIRE:          state = "Note Exp";    break;
+        case CON_NOTE_TEXT:            state = "Note Txt";    break;
+        case CON_NOTE_FINISH:          state = "Note Fin";    break;
+        case CON_GEN_GROUPS:           state = " Custom ";    break;
+        case CON_PICK_WEAPON:          state = " Weapon ";    break;
+        case CON_READ_IMOTD:           state = " IMOTD  ";    break;
+        case CON_BREAK_CONNECT:        state = "LINKDEAD";    break;
+        case CON_READ_MOTD:            state = "  MOTD  ";    break;
+        case CON_GET_COLOUR:           state = " Colour?";    break;
+        default:                       state = "UNKNOWN!";    break;
         }
-          
+        
+        /* Format "login" value... */
+        strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
+        
+        if ( wch->timer > 0 )
+            sprintf( idle, "%-4d", wch->timer );
+        else
+            sprintf( idle, "    " );
+        
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
         sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s\n\r",
             d->descriptor,                          /* ID */
@@ -2531,7 +2526,7 @@ void do_omni( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_as(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_as)
 {
     CHAR_DATA *victim ;
     DESCRIPTOR_DATA *original ;
@@ -2602,9 +2597,9 @@ void do_as(CHAR_DATA *ch, char *argument)
 * Update  : Characters returned to Original room by: Anthony Michael Tregre
 */
 
-void do_pload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pload)
 {
-    DESCRIPTOR_DATA d;
+    DESCRIPTOR_DATA d={0};
     bool isChar = FALSE;
     char name[MAX_INPUT_LENGTH];
     
@@ -2614,27 +2609,33 @@ void do_pload( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    argument[0] = UPPER(argument[0]);
     argument = one_argument(argument, name);
+    name[0] = UPPER(name[0]);
     
     /* Don't want to load a second copy of a player who's already online! */
-    if ( get_char_world( ch, name ) != NULL )
+    if ( char_list_find(name) != NULL )
     {
         send_to_char( "That person is already connected!\n\r", ch );
         return;
     }
     
-    isChar = load_char_obj(&d, name); /* char pfile exists? */
+    isChar = load_char_obj(&d, name, FALSE); /* char pfile exists? */
     
     if (!isChar) 
     {
         send_to_char("Load Who? Are you sure? I can't seem to find them.\n\r", ch);
+         /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d.character)
+        {
+            free_char(d.character);
+            d.character=NULL;
+        }
         return;
     }
     
     d.character->desc 	= NULL;
-    d.character->next	= char_list;
-    char_list    		= d.character;
+    char_list_insert(d.character);
     d.connected   	= CON_PLAYING;
     reset_char(d.character);
     
@@ -2669,7 +2670,7 @@ void do_pload( CHAR_DATA *ch, char *argument )
   * Author  : Gary McNickle <gary@dharvest.com>
   * Update  : Characters returned to Original room by: Anthony Michael Tregre
 */
-void do_punload( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_punload)
 {
     CHAR_DATA *victim;
     char who[MAX_INPUT_LENGTH];
@@ -2683,7 +2684,7 @@ void do_punload( CHAR_DATA *ch, char *argument )
     }
 
 
-    if ( ( victim = get_char_world( ch, who ) ) == NULL )
+    if ( ( victim = char_list_find(who) ) == NULL )
     {
         send_to_char( "They aren't here.\n\r", ch );
         return;
@@ -2735,12 +2736,10 @@ void save_reserved(void)
     RESERVED_DATA *res;
     FILE *fp;
     
-    fclose(fpReserve);
     if (!(fp = fopen(RESERVED_LIST, "w")))
     {
         bug( "Save_reserved: cannot open " RESERVED_LIST, 0 );
         log_error(RESERVED_LIST);
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -2749,21 +2748,16 @@ void save_reserved(void)
     
     fprintf(fp, "$~\n");
     fclose(fp);
-    fpReserve = fopen(NULL_FILE, "r");
     return;
 }
 
 /* Reserved names, ported from Smaug 1.4 by Rimbol 3/99. */
-void do_reserve(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_reserve)
 {
     char arg[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    char buf[MAX_STRING_LENGTH];
-    BUFFER *buffer;
     RESERVED_DATA *res;
 
-    buffer = new_buf();
-    
     argument = one_argument(argument, arg);
     argument = one_argument(argument, arg2);
     
@@ -2771,7 +2765,9 @@ void do_reserve(CHAR_DATA *ch, char *argument)
     if (!*arg)
     {
         int wid = 0;
-        
+        BUFFER *buffer = new_buf();
+        char buf[MAX_STRING_LENGTH];
+    
         sprintf( buf, "\n\r-- Reserved Names --\n\r" );
 	add_buf( buffer, buf );
         for (res = first_reserved; res; res = res->next)
@@ -2857,7 +2853,7 @@ bool global_immediate_flush = FALSE;
 #endif
 
 /* toggle immediate descrictor flushing (debugging tool) */
-void do_flush(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_flush)
 {
   char arg[MAX_INPUT_LENGTH];
 
@@ -2901,7 +2897,7 @@ void do_flush(CHAR_DATA *ch, char *argument)
 }
 
 /* list quests for a character */
-void do_qlist( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_qlist)
 {
     CHAR_DATA *victim;
     char arg[MIL];
@@ -2954,111 +2950,36 @@ void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 }
 
 /* command that crashes the mud for testing purposes --Bobble */
-void do_crash( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_crash)
 {
     int i = 0, *p = NULL;
 
-    /*
-    if ( get_trust(ch) < ML )
-    {
-	send_to_char( "Only IMPs may crash the mud!\n\r", ch );
-	return;
-    }
-    */
-
     if ( !strcmp("null", argument) )
-	*p = 0;
+        *p = 0;
     else if ( !strcmp("div", argument) )
-	i = 1/0;
+        i = 1/i;
     else if ( !strcmp("exit", argument) )
-	exit(1);
+        exit(1);
     else
     {
-	send_to_char( "Syntax: crash [null|div|exit]\n\r", ch );
-	send_to_char( "Warning: THIS WILL CRASH THE MUD!!!\n\r", ch );
-	return;
+        send_to_char( "Syntax: crash [null|div|exit]\n\r", ch );
+        send_to_char( "Warning: THIS WILL CRASH THE MUD!!!\n\r", ch );
+        return;
     }
 
     /* prevent compiler optimizations.. */
     if ( i == 0 || *p == 0 )
-	send_to_char( "I smell fish.\n\r", ch );
+        send_to_char( "I smell fish.\n\r", ch );
 }
 
-/* New Qset command */
-void do_qset( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_avatar)
 {
-    CHAR_DATA *victim;
-    char arg[MAX_INPUT_LENGTH];
-    char arg2[MIL];
-    char arg3[MIL];
-    char arg4[MIL];
-    char arg5[MIL];
-    int timer;
-    int limit;
-
-    argument = one_argument( argument, arg );
-    argument = one_argument( argument, arg2 );
-    argument = one_argument( argument, arg3 );
-    argument = one_argument( argument, arg4 );
-    argument = one_argument( argument, arg5 );
-
-    if ( arg[0] == '\0' )
-    {
-	send_to_char( "Syntax: qset [name] [id] [value] [time limit]\n\r", ch );
-	return;
-    }
-
-    victim = get_char_world( ch, arg );
-    if ( victim == NULL )
-    {
-	send_to_char( "Character not found.\n\r", ch );
-	return;
-    }
-
-    if ( IS_NPC(victim) )
-    {
-	send_to_char( "NPCs don't have a quest status.\n\r", ch );
-	return;
-    }
-
-    if ( !is_r_number(arg2) || !is_number(arg3) )
-    {
-	send_to_char("Invalid arguments.\n\r", ch) ;
-	return;
-    }
-
-    /* This is a timer so that we can have expirable qsets to allow
-       players to repeat quests without abusing them - Astark Oct 2012 */
-    
-    if ( !is_number(arg4) )
-        timer = 0;
-    else    
-        timer = atoi(arg4);
-
-    /* This is the counter that reduces the above timer. For example, if
-       the timer is 5, and this number is 24, it will be 24 hours before
-       the timer hits 0 - Astark Oct 2012 */
-
-    if ( !is_number(arg5) )
-        limit = 0;
-    else    
-        limit = atoi(arg5);
-
-    /* new function used to set timer on qstatus -Astark Oct 2012 */
-    set_quest_status( victim, r_atoi( ch,arg2), atoi(arg3), timer, limit );
-    act( "You have successfully changed $N's qstatus.", ch, NULL, victim, TO_CHAR );
-    return;
-
-}
-
-void do_avatar( CHAR_DATA *ch, char *argument ) /* Procedure Avatar */
-{ /* Declaration */
-  char buf[MAX_STRING_LENGTH];    /* buf */
-  char arg1[MAX_INPUT_LENGTH];    /* arg1 */
-  OBJ_DATA *obj_next;     /* obj data which is a pointer */
-  OBJ_DATA *obj;      /* obj */
-  int level;        /* level */
-  int iLevel;       /* ilevel */
+  char buf[MAX_STRING_LENGTH];
+  char arg1[MAX_INPUT_LENGTH];
+  OBJ_DATA *obj_next;
+  OBJ_DATA *obj;
+  int level;
+  int iLevel;
 
   argument = one_argument ( argument, arg1 );
 
@@ -3155,7 +3076,7 @@ equipped. - Astark 6/12
   return;
 }
 
-void do_printlist(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_printlist)
 {
     if (argument[0]=='\0')
     {
@@ -3204,7 +3125,7 @@ void do_printlist(CHAR_DATA *ch, char *argument)
     }
 }
 
-void do_mortlag(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_mortlag)
 {
   char arg[MAX_INPUT_LENGTH];
   char buf[MAX_STRING_LENGTH];
@@ -3260,7 +3181,7 @@ void do_mortlag(CHAR_DATA *ch, char *argument)
   }
 }
 
-void do_pgrep( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_pgrep)
 {
     if ( argument[0] == '\0' )
     {
@@ -3328,7 +3249,7 @@ static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
         ptc(ch, "%-20s %-20s %-20s\n\r",
                 tbl[i].name,
                 tbl[i].noun,
-                flag_stat_string( damage_type, tbl[i].damage) );
+                flag_bit_name(damage_type, tbl[i].damage) );
     }
 }
 
@@ -3367,7 +3288,7 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
     {
         ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
                 tbl[i].name,
-                flag_stat_string( damage_type, tbl[i].type),
+                flag_bit_name(damage_type, tbl[i].type),
                 tbl[i].verb,
                 tbl[i].martial ? "YES" : "no",
                 tbl[i].weapon ? "YES" : "no",
@@ -3388,13 +3309,13 @@ static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
     }
 }
 
-#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note}
+#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note }
 
 struct
 {
     const char *name;
     void (*printfun)();
-    void *table;
+    const void *table;
     const char *note;
 } dotable_table[]=
 {
@@ -3426,7 +3347,6 @@ struct
     PRFLAG( apply_flags, ""),
     PRFLAG( wear_loc_strings, ""),
     PRFLAG( container_flags, ""),
-    PRFLAG( ac_type, ""),
     PRFLAG( size_flags, ""),
     PRFLAG( weapon_class, ""),
     PRFLAG( weapon_type2, ""),
@@ -3434,7 +3354,6 @@ struct
     PRFLAG( portal_flags, ""),
     PRFLAG( furniture_flags, ""),
     PRFLAG( apply_types, ""),
-    PRFLAG( togg_flags, ""),
 
     { "item_table", print_item_table, item_table, "Item types." },
     { "attack_table", print_attack_table, attack_table, "Attack types."},
@@ -3474,4 +3393,38 @@ void do_tables( CHAR_DATA *ch, const char *argument)
 
     do_tables( ch, "");
 
+}
+
+void do_repeat( CHAR_DATA *ch, const char *argument )
+{
+    char arg1[MIL];
+    int nr, i;
+    
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("Syntax: repeat <nr> command [arguments]\n\r", ch);
+        return;
+    }
+    
+    argument = one_argument(argument, arg1);
+    nr = atoi(arg1);
+    if ( nr < 1 || nr > 100 )
+    {
+        send_to_char("First argument must be a number between 1 and 100.\n\r", ch);
+        return;
+    }
+        
+    if ( argument[0] == '\0' )
+    {
+        send_to_char("What command do you want to repeat?\n\r", ch);
+        return;
+    }
+    
+    for ( i = 0; i < nr; i++ )
+    {
+        interpret(ch, argument);
+        // saveguard against repeated quitting and other bright ideas
+        if ( !valid_CH(ch) || ch->must_extract )
+            return;
+    }
 }

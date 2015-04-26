@@ -35,7 +35,7 @@
 
 /* 4 more 'heal's added in by Sraet */
 
-void do_heal(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_heal)
 {
     CHAR_DATA *mob;
     char arg[MAX_INPUT_LENGTH];
@@ -258,14 +258,13 @@ void do_heal(CHAR_DATA *ch, char *argument)
         break;
     }
    
-    extern char *target_name;
     static char tname_buf[MIL];
     sprintf( tname_buf, "%s %s",
           ch->name,
           argument);
     target_name=tname_buf;
             
-    spell(sn,100,mob,ch,TARGET_CHAR);
+    spell(sn, 120, mob, ch, TARGET_CHAR, FALSE);
 }
 
 typedef struct spell_cost SPELL_COST;
@@ -278,6 +277,7 @@ struct spell_cost
 static SPELL_COST arcane_cost[] =
 {
     { "sanctuary", 200 },
+    { "damned blade", 150 },
     { "haste", 100 },
     { "fly", 50 },
     { "protection magic", 50 },
@@ -295,7 +295,7 @@ static SPELL_COST arcane_cost[] =
 
 
 /* added by Bobble */
-void do_spellup(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_spellup)
 {
     CHAR_DATA *mob;
     char arg[MAX_INPUT_LENGTH], buf[MSL];
@@ -369,16 +369,16 @@ void do_spellup(CHAR_DATA *ch, char *argument)
     act("$n utters some arcane words.",mob,NULL,NULL,TO_ROOM);
     
     if ( sn == -1 )
-	for ( spell = 0; arcane_cost[spell].name != NULL; spell++ )
-	{
-	    sn = skill_lookup( arcane_cost[spell].name );
-	    if ( sn == -1 )
-	    {
-		bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
-		return;
-	    }
-	    skill_table[sn].spell_fun(sn,50,mob,ch,TARGET_CHAR);
-	}
+        for ( spell = 0; arcane_cost[spell].name != NULL; spell++ )
+        {
+            sn = skill_lookup( arcane_cost[spell].name );
+            if ( sn == -1 )
+            {
+                bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
+                return;
+            }
+            skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
+        }
     else
-	skill_table[sn].spell_fun(sn,60,mob,ch,TARGET_CHAR);
+        skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
 }

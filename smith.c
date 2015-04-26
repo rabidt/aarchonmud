@@ -8,21 +8,23 @@
 #include "merc.h"
 #include "recycle.h"
 
-#define SM_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
-#define SM_SET_FUN( fun )    void fun( CHAR_DATA *ch, char *argument )
+#define SM_FUN( fun )    void fun( CHAR_DATA *ch, const char *argument )
+#define SM_SET_FUN( fun )    void fun( CHAR_DATA *ch, const char *argument )
 #define SM_PRICE_FUN( fun )  void fun( CHAR_DATA *ch, int *gold, int *qp )
 SMITH_DATA *smith_new( OBJ_DATA *obj );
 
 DECLARE_DO_FUN(do_smith);
 
-typedef void SMITH_SET_FUN args( ( CHAR_DATA *ch, char *argument) );
-typedef void SMITH_FUN args( ( CHAR_DATA *ch, char *argument ) );
+typedef void SMITH_SET_FUN args( ( CHAR_DATA *ch, const char *argument) );
+typedef void SMITH_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 typedef void SMITH_PRICE_FUN args( ( CHAR_DATA *ch, int *gold, int *qp ) );
 
 /* local functions */
 bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj);
 void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp );
 bool try_pay_smith( CHAR_DATA *ch );
+void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch );
+void smith_free( SMITH_DATA *sm );
 
 struct smith_arg
 {
@@ -81,7 +83,7 @@ const struct smith_set_arg smith_set_table[] =
 
 
 /* new stuff starts here */
-void do_smith( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_smith)
 {
     if (IS_NPC(ch))
         return;
@@ -96,7 +98,7 @@ void do_smith( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    struct smith_arg * arg_entry;
+    const struct smith_arg * arg_entry;
 
     int i;
     for ( arg_entry=&smith_arg_table[i=0] ; arg_entry->name ; arg_entry=&smith_arg_table[++i] )
@@ -129,7 +131,7 @@ SM_FUN( smith_set)
     char arg1[MIL];
     argument=one_argument( argument, arg1);
 
-    struct smith_set_arg * arg_entry;
+    const struct smith_set_arg * arg_entry;
 
     int i;
     for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
@@ -272,7 +274,7 @@ void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp )
     *gold=0;
     *qp=0; 
 
-    struct smith_set_arg * arg_entry;
+    const struct smith_set_arg * arg_entry;
     int i;
     for ( arg_entry=&smith_set_table[i=0] ; arg_entry->name ; arg_entry=&smith_set_table[++i] )
     {

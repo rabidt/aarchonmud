@@ -101,9 +101,25 @@ bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
     return TRUE;
 }
 
+void rp_connect_trigger( CHAR_DATA *ch )
+{
+    ROOM_INDEX_DATA *room;
+
+    room=ch->in_room;
+
+    if (!room)
+    {
+        bugf("rp_connect_trigger: in_room NULL for %s", ch->name);
+        return;
+    }
+    if ( !HAS_RTRIG(room, RTRIG_CONNECT) )
+        return;
+
+    rp_percent_trigger( room, ch, NULL, NULL, NULL, NULL, RTRIG_CONNECT);
+} 
 
 /* returns whether a trigger was found */
-bool rp_try_trigger( char *argument, CHAR_DATA *ch )
+bool rp_try_trigger( const char *argument, CHAR_DATA *ch )
 {
     if ( !ch->in_room )
     {
@@ -172,9 +188,8 @@ static bool exit_trigger( CHAR_DATA *ch, ROOM_INDEX_DATA *room, int door, int ty
     const char *dirname=dir_name[door];
     for ( prg = room->rprogs ; prg ; prg = prg->next )
     {
-        if ( prg->trig_type == type 
-                && ( !strcmp(prg->trig_phrase, dirname ) )
-                    || !strcmp(prg->trig_phrase, "*" ) )
+        if ( (prg->trig_type == type && !strcmp(prg->trig_phrase, dirname))
+                || !strcmp(prg->trig_phrase, "*") )
         {
             return lua_room_program( dirname, prg->vnum, prg->script->code, room, ch, NULL, NULL, NULL, NULL, type, prg->script->security)
                 && (ch ? !ch->must_extract : TRUE );

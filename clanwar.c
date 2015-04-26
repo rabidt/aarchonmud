@@ -32,7 +32,7 @@ void load_clanwars()
 {
 	FILE *fp;
 	CLANWAR_DATA *p;
-	char *c1, *c2;
+    const char *c1, *c2;
     int i,j;
    
 	clanwar_table = NULL;
@@ -111,14 +111,11 @@ void save_clanwars()
 		return;
 	}
 
-    fclose(fpReserve);
-
 	fp = fopen (CLANWAR_FILE, "w");
 	
 	if (!fp)
 	{
 		bug ("Could not open " CLANWAR_FILE " for writing",0);
-        fpReserve = fopen( NULL_FILE, "r" );
 		return;
 	}
 	
@@ -136,8 +133,6 @@ void save_clanwars()
 	fprintf (fp, "END\n");
 		
 	fclose (fp);
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 
@@ -226,9 +221,6 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
 void add_clanwar_node(CHAR_DATA *ch, sh_int other_clan, int status)
 {
    CLANWAR_DATA *p;
-   CLANWAR_DATA *q;
-
-   q = clanwar_lookup(ch->clan, other_clan);
    
    p = alloc_mem (sizeof(CLANWAR_DATA));
    p->clan_one = ch->clan;
@@ -278,7 +270,7 @@ int delete_clanwar_node(CLANWAR_DATA *node)
 
 
 /*  ==== This is delicate code - modify at your own risk ==== */
-void do_clanwar(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_clanwar)
 {
    
    char arg1[MAX_STRING_LENGTH];

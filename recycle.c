@@ -33,9 +33,8 @@
 #include <lua.h>
 #include "merc.h"
 #include "recycle.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
-
-void free_quest(QUEST_DATA *quest);
 
 /* stuff for recyling notes */
 NOTE_DATA *note_free;
@@ -123,19 +122,11 @@ DESCRIPTOR_DATA *descriptor_free;
 
 DESCRIPTOR_DATA *new_descriptor(void)
 {
-	static DESCRIPTOR_DATA d_zero;
 	DESCRIPTOR_DATA *d;
 
-	if (descriptor_free == NULL)
-	d = alloc_perm(sizeof(*d));
-	else
-	{
-	d = descriptor_free;
-	descriptor_free = descriptor_free->next;
-	}
+	d = alloc_DESCRIPTOR();
 	
-	*d = d_zero;
-	VALIDATE(d);
+    VALIDATE(d);
 	
 	d->connected    = CON_GET_NAME;
 	d->showstr_head = NULL;
@@ -146,6 +137,8 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->editor   = 0;            /* OLC */
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
+
+    new_ref(&d->conhandler);
 
     d->lua.interpret=FALSE;
     d->lua.incmpl=FALSE;
@@ -167,8 +160,11 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
 	INVALIDATE(d);
-	d->next = descriptor_free;
-	descriptor_free = d;
+	d->next = NULL;
+
+    free_ref( &d->conhandler );
+
+    free_DESCRIPTOR( d );
 }
 
 /* stuff for recycling gen_data */
@@ -237,23 +233,11 @@ void free_extra_descr(EXTRA_DESCR_DATA *ed)
 }
 
 
-/* stuff for recycling affects */
-AFFECT_DATA *affect_free;
-
 AFFECT_DATA *new_affect(void)
 {
-	static AFFECT_DATA af_zero;
 	AFFECT_DATA *af;
 
-	if (affect_free == NULL)
-	af = alloc_perm(sizeof(*af));
-	else
-	{
-	af = affect_free;
-	affect_free = affect_free->next;
-	}
-
-	*af = af_zero;
+	af = alloc_AFFECT();
 
 	VALIDATE(af);
 	af->next = NULL;
@@ -268,26 +252,15 @@ void free_affect(AFFECT_DATA *af)
 	return;
 
 	INVALIDATE(af);
-	af->next = affect_free;
-	affect_free = af;
+	af->next = NULL;
+    free_AFFECT( af );
 }
-
-/* stuff for recycling objects */
-OBJ_DATA *obj_free;
 
 OBJ_DATA *new_obj(void)
 {
-	static OBJ_DATA obj_zero;
 	OBJ_DATA *obj;
 
-	if (obj_free == NULL)
-	obj = alloc_perm(sizeof(*obj));
-	else
-	{
-	obj = obj_free;
-	obj_free = obj_free->next;
-	}
-	*obj = obj_zero;
+	obj = alloc_OBJ();
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
@@ -336,29 +309,18 @@ void free_obj(OBJ_DATA *obj)
 
 	INVALIDATE(obj);
 
-	obj->next   = obj_free;
-	obj_free    = obj; 
+	obj->next   = NULL;
+    free_OBJ( obj );
 }
 
 
-/* stuff for recyling characters */
-CHAR_DATA *char_free;
-
 CHAR_DATA *new_char (void)
 {
-	static CHAR_DATA ch_zero;
 	CHAR_DATA *ch;
 	int i;
 
-	if (char_free == NULL)
-	ch = alloc_perm(sizeof(*ch));
-	else
-	{
-	ch = char_free;
-	char_free = char_free->next;
-	}
+	ch = alloc_CH();
 
-	*ch             = ch_zero;
 	VALIDATE(ch);
 	ch->name                    = &str_empty[0];
 	ch->short_descr             = &str_empty[0];
@@ -368,8 +330,7 @@ CHAR_DATA *new_char (void)
 	ch->prefix          = &str_empty[0];
 	ch->logon                   = current_time;
 	ch->lines                   = PAGELEN;
-	for (i = 0; i < 4; i++)
-		ch->armor[i]            = 100;
+	ch->armor                   = 100;
 	ch->hunting					= NULL;
 	ch->aggressors				= NULL;
     ch->pet                     = NULL;
@@ -424,6 +385,7 @@ void free_char (CHAR_DATA *ch)
 	extract_obj(obj);
 	}
 
+    affect_unfreeze_sn(ch, 0); // to ensure frozen affects get deallocated as well
 	for (paf = ch->affected; paf != NULL; paf = paf_next)
 	{
 	    paf_next = paf->next;
@@ -451,10 +413,11 @@ void free_char (CHAR_DATA *ch)
 	if (ch->pcdata != NULL)
 	    free_pcdata(ch->pcdata);
 
-	ch->next = char_free;
-	char_free  = ch;
+	ch->next = NULL; 
 
 	INVALIDATE(ch);
+
+    free_CH( ch );
 	return;
 }
 
@@ -490,6 +453,7 @@ PC_DATA *new_pcdata(void)
     }
     
 //    pcdata->buffer = new_buf();
+    pcdata->boss_achievements         = NULL;
     pcdata->pkill_count = 0;
     pcdata->pkill_deaths = 0;
     pcdata->pkpoints = 0;
@@ -504,6 +468,8 @@ PC_DATA *new_pcdata(void)
     pcdata->race_lost               = 0;
     pcdata->class_won               = 0;
     pcdata->class_lost              = 0;
+    pcdata->duel_won                = 0;
+    pcdata->duel_lost               = 0;
     pcdata->total_wars              = 0;
     pcdata->war_kills               = 0;
     pcdata->warpoints               = 0;
@@ -581,6 +547,13 @@ void free_pcdata(PC_DATA *pcdata)
         {    e_next = pExp->next;
              free(pExp);
         }
+    }
+
+    BOSSREC * rec, * rec_next;
+    for ( rec = pcdata->boss_achievements ; rec ; rec=rec_next )
+    {
+        rec_next=rec->next;
+        free_BOSSREC( rec );
     }
 
     pers_history_free(pcdata->gtell_history);
@@ -751,143 +724,12 @@ int get_size (int val)
 	return -1;
 }
 
-BUFFER *new_buf()
-{
-	BUFFER *buffer;
-
-	if (buf_free == NULL) 
-	buffer = alloc_perm(sizeof(*buffer));
-	else
-	{
-	buffer = buf_free;
-	buf_free = buf_free->next;
-	}
-
-	buffer->next    = NULL;
-	buffer->state   = BUFFER_SAFE;
-	buffer->size    = get_size(BASE_BUF);
-
-	buffer->string  = alloc_mem(buffer->size);
-	buffer->string[0]   = '\0';
-	VALIDATE(buffer);
-
-	return buffer;
-}
-
-BUFFER *new_buf_size(int size)
-{
-	BUFFER *buffer;
- 
-	if (buf_free == NULL)
-		buffer = alloc_perm(sizeof(*buffer));
-	else
-	{
-		buffer = buf_free;
-		buf_free = buf_free->next;
-	}
- 
-	buffer->next        = NULL;
-	buffer->state       = BUFFER_SAFE;
-	buffer->size        = get_size(size);
-	if (buffer->size == -1)
-	{
-		bug("new_buf: buffer size %d too large.",size);
-		exit(1);
-	}
-	buffer->string      = alloc_mem(buffer->size);
-	buffer->string[0]   = '\0';
-	VALIDATE(buffer);
- 
-	return buffer;
-}
-
-
-void free_buf(BUFFER *buffer)
-{
-	if (!IS_VALID(buffer))
-	return;
-
-	free_mem(buffer->string,buffer->size);
-	buffer->string = NULL;
-	buffer->size   = 0;
-	buffer->state  = BUFFER_FREED;
-	INVALIDATE(buffer);
-
-	buffer->next  = buf_free;
-	buf_free      = buffer;
-}
-
-
-bool add_buf(BUFFER *buffer, char *string)
-{
-	int len;
-	char *oldstr;
-	int oldsize;
-
-	oldstr = buffer->string;
-	oldsize = buffer->size;
-
-	if (buffer->state == BUFFER_OVERFLOW) /* don't waste time on bad strings! */
-	return FALSE;
-
-	len = strlen(buffer->string) + strlen(string) + 1;
-
-	while (len >= buffer->size) /* increase the buffer size */
-	{
-	buffer->size    = get_size(buffer->size + 1);
-	{
-		if (buffer->size == -1) /* overflow */
-		{
-		buffer->size = oldsize;
-		buffer->state = BUFFER_OVERFLOW;
-		bug("buffer overflow past size %d",buffer->size);
-		return FALSE;
-		}
-	}
-	}
-
-	if (buffer->size != oldsize)
-	{
-	buffer->string  = alloc_mem(buffer->size);
-
-	strcpy(buffer->string,oldstr);
-	free_mem(oldstr,oldsize);
-	}
-
-	strcat(buffer->string,string);
-	return TRUE;
-}
-
-
-void clear_buf(BUFFER *buffer)
-{
-	buffer->string[0] = '\0';
-	buffer->state     = BUFFER_SAFE;
-}
-
-
-char *buf_string(BUFFER *buffer)
-{
-	return buffer->string;
-}
-
-/* stuff for recycling mobprograms */
-PROG_LIST *mprog_free;
- 
 PROG_LIST *new_mprog(void)
 {
-   static PROG_LIST mp_zero;
    PROG_LIST *mp;
 
-   if (mprog_free == NULL)
-	   mp = alloc_perm(sizeof(*mp));
-   else
-   {
-	   mp = mprog_free;
-	   mprog_free=mprog_free->next;
-   }
-
-   *mp = mp_zero;
+   mp = alloc_MTRIG();
+   
    mp->vnum             = 0;
    mp->trig_type        = 0;
    mp->script           = NULL;
@@ -901,26 +743,16 @@ void free_mprog(PROG_LIST *mp)
 	  return;
 
    INVALIDATE(mp);
-   mp->next = mprog_free;
-   mprog_free = mp;
+   mp->next = NULL;
+   free_MTRIG( mp );
 }
-
-PROG_LIST *oprog_free;
 
 PROG_LIST *new_oprog(void)
 {
-   static PROG_LIST op_zero;
    PROG_LIST *op;
 
-   if (oprog_free == NULL)
-       op = alloc_perm(sizeof(*op));
-   else
-   {
-       op = oprog_free;
-       oprog_free=oprog_free->next;
-   }
-
-   *op = op_zero;
+   op = alloc_OTRIG();
+   
    op->vnum             = 0;
    op->trig_type        = 0;
    op->script           = NULL;
@@ -934,26 +766,16 @@ void free_oprog(PROG_LIST *op)
       return;
 
    INVALIDATE(op);
-   op->next = oprog_free;
-   oprog_free = op;
+   op->next = NULL; 
+   free_OTRIG( op );
 }
-
-PROG_LIST *aprog_free;
 
 PROG_LIST *new_aprog(void)
 {
-   static PROG_LIST ap_zero;
    PROG_LIST *ap;
 
-   if (aprog_free == NULL)
-       ap = alloc_perm(sizeof(*ap));
-   else
-   {
-       ap = aprog_free;
-       aprog_free=aprog_free->next;
-   }
+   ap = alloc_ATRIG(); 
 
-   *ap = ap_zero;
    ap->vnum             = 0;
    ap->trig_type        = 0;
    ap->script           = NULL;
@@ -967,26 +789,16 @@ void free_aprog(PROG_LIST *ap)
       return;
 
    INVALIDATE(ap);
-   ap->next = aprog_free;
-   aprog_free = ap;
+   ap->next = NULL;
+   free_ATRIG( ap );
 }
-
-PROG_LIST *rprog_free;
 
 PROG_LIST *new_rprog(void)
 {
-    static PROG_LIST rp_zero;
     PROG_LIST *rp;
     
-    if (rprog_free == NULL)
-        rp = alloc_perm(sizeof(*rp));
-    else
-    {
-        rp = rprog_free;
-        rprog_free=rprog_free->next;
-    }
+    rp = alloc_RTRIG(); 
 
-    *rp = rp_zero;
     rp->vnum        = 0;
     rp->trig_type   = 0;
     rp->script      = NULL;
@@ -1000,8 +812,8 @@ void free_rprog(PROG_LIST *rp)
         return;
 
     INVALIDATE(rp);
-    rp->next = rprog_free;
-    rprog_free = rp;
+    rp->next = NULL;
+    free_RTRIG( rp );
 }
 
 HELP_AREA * had_free;
@@ -1021,19 +833,11 @@ HELP_AREA * new_had ( void )
    return had;
 }
 
-HELP_DATA * help_free;
-
 HELP_DATA * new_help ( void )
 {
    HELP_DATA * help;
    
-   if ( help_free == NULL )
-	  help       = alloc_perm( sizeof( *help ) );
-   else
-   {
-	  help       = help_free;
-	  help_free = help_free->next;
-   }
+   help       = alloc_HELP();
 
    help->level   = 0;
    help->keyword = str_dup("");

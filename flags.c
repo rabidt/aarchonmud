@@ -35,8 +35,9 @@
 #include <time.h>
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
+void print_pkill_expire( CHAR_DATA *ch );
 
-void do_flag(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_flag)
 {
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH],arg3[MAX_INPUT_LENGTH];
     char word[MAX_INPUT_LENGTH], buf[MSL];
@@ -288,7 +289,7 @@ void print_pkill_grades( CHAR_DATA *ch )
     send_to_char( buf, ch );
 }
 
-try_set_hardcore(CHAR_DATA *ch)
+void try_set_hardcore(CHAR_DATA *ch)
 {
     if ( !IS_SET(ch->act, PLR_PERM_PKILL) )
     {
@@ -311,12 +312,12 @@ try_set_hardcore(CHAR_DATA *ch)
 
 }
 
-pkill_confirm(CHAR_DATA *ch, char *arg)
+void pkill_confirm(CHAR_DATA *ch, const char *arg)
 {
     if (ch->pcdata->confirm_pkill)
     {
         /* extra password check to prevent pkill by trigger-abuse */
-        if ( strcmp(crypt(arg, ch->pcdata->pwd), ch->pcdata->pwd) )
+        if ( !check_password(arg, ch->pcdata->pwd) )
         {
             send_to_char( "Wrong password, try again.\n\r", ch );
             return; 
@@ -456,7 +457,7 @@ void print_pkill_expire( CHAR_DATA *ch)
 }
 
 /* Pkill code by Rimbol, 7/20/97 */
-void do_pkill( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_pkill)
 {
     char arg1[MIL], arg2[MIL];
 
@@ -514,7 +515,7 @@ void do_pkill( CHAR_DATA *ch, char *argument)
 }
 
 /* roleplay flag by Bobble */
-void do_roleplay( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_roleplay)
 {
     char arg1[MIL], arg2[MIL];
 

@@ -241,7 +241,7 @@ void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly 
         return;
 }
 
-void do_login_grant(CHAR_DATA *ch)
+void login_grant( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     int cmd;
@@ -262,7 +262,7 @@ void do_login_grant(CHAR_DATA *ch)
     }
 }
 
-void do_grant( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_grant)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH];
@@ -271,7 +271,6 @@ void do_grant( CHAR_DATA *ch, char *argument )
     CHAR_DATA *victim = NULL, *rch, *rvictim = NULL;
     int  dur,cmd,x;
     bool found = FALSE;
-    DESCRIPTOR_DATA *d;
     
     argument = one_argument(argument,arg1);
     argument = one_argument(argument,arg2);
@@ -286,23 +285,6 @@ void do_grant( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /*
-    for (d = descriptor_list; d != NULL; d = d->next)
-    {
-        rvictim = d->original ? d->original : d->character;
-        
-        if (rvictim == NULL) 
-            continue;
-        
-        if (!str_cmp(rvictim->name,arg1))
-        {
-            victim = d->character;
-            break;
-        }
-    }
-    */    
-
-    /* Bobble: fix for linkdead victims */
     victim = get_char_world( rch, arg1 );
     if ( victim != NULL && IS_NPC(victim) )
     {
@@ -454,12 +436,11 @@ void do_grant( CHAR_DATA *ch, char *argument )
         return;
 }
 
-void do_revoke( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_revoke)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *victim = NULL, *rvictim = NULL;
-    DESCRIPTOR_DATA *d;
     int cmd, x;
     bool had_return, found = FALSE;
     
@@ -472,23 +453,6 @@ void do_revoke( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    /*
-    for (d = descriptor_list; d != NULL; d = d->next)
-    {
-        rvictim = d->original ? d->original : d->character;
-        
-        if (rvictim == NULL) 
-            continue;
-        
-        if (!str_cmp(rvictim->name,arg1))
-        {
-            victim = d->character;
-            break;
-        }
-    }
-    */
-    
-    /* Bobble: fix for linkdead victims */
     victim = get_char_world( ch, arg1 );
     if ( victim != NULL && IS_NPC(victim) )
     {
@@ -604,7 +568,7 @@ void do_revoke( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_gstat( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gstat)
 {
     char arg[MAX_INPUT_LENGTH];
     char buf[MAX_STRING_LENGTH];

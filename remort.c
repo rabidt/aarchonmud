@@ -14,14 +14,13 @@ DECLARE_DO_FUN( do_look );
 DECLARE_DO_FUN( do_outfit );
 DECLARE_DO_FUN( do_quit );
 DECLARE_DO_FUN( do_visible );
-AREA_DATA *get_vnum_area( int );
 
 typedef struct remort_table REMORT_TABLE;
 
 struct remort_table
 {
     REMORT_TABLE *next;
-    char *name;
+    const char *name;
     int remorts;
     time_t signup;
     time_t limit;	
@@ -29,7 +28,7 @@ struct remort_table
 
 struct remort_chamber
 {
-    char *name;
+    const char *name;
     int vnum;
     int availability;
     bool speed;
@@ -43,11 +42,15 @@ struct remort_chamber
 #define R6  32 // Astark added 12-21-12. Testing.
 #define R7  64 // Astark added 12-21-12. Testing.
 #define R8  128 // Astark added 12-22-12. Testing.
+#define R9  256 // Enabled August 1 2014
 
+#define HOUR 3600
+#define DAY (24*HOUR)
+#define WEEK (7*DAY)
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
-#define MAX_CHAMBER 21
+#define MAX_CHAMBER 22
 
 const struct remort_chamber chambers[] =
 {
@@ -68,30 +71,16 @@ const struct remort_chamber chambers[] =
     assigned a weird vnum to the first room */
     {"Remort: Tribulations of Dakaria ",  31394,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   4694,    R7, FALSE},
-    {"Remort: Tribulations of Dakaria ",   3444,    R7, FALSE},
     {"Remort: Tribulations of Dakaria ",   3344,    R7, TRUE},
     {"Remort: Urban Wasteland         ",   9000,    R8, FALSE},
     {"Remort: Urban Wasteland         ",  18500,    R8, FALSE},
-    {"Remort: Urban Wasteland         ",  18700,    R8, FALSE},
-    {"Remort: Urban Wasteland         ",  12800,    R8, FALSE},
+    {"Remort: Urban Wasteland         ",  18700,    R8, TRUE},
+    {"Remort: Curse of the Ages       ",    300,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",   9800,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",  13500,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",  16500,    R9, FALSE},
     {NULL,			0, 0}
 };
-
-/* These entries were previously in the table above. I've left them in tact
-   to use as a reference, however I've moved them so that the above table
-   is easier to read - Astark 12-21-12 */
-    /*    
-    {"Remort: Afterlife        ",	22600, R3+R4, FALSE},
-    {"Remort: Afterlife        ",	22700, R3+R4, TRUE},
-    {"Remort: Afterlife        ",	22800, R3+R4, TRUE},
-    */
-    /*
-    {"Remort: Counterintuition ",	27600, R5, FALSE},
-    {"Remort: Counterintuition ",	27750, R5, FALSE},
-    {"Remort: Counterintuition ",	27900, R5, FALSE},
-    {"Remort: Counterintuition ",	28050, R5, TRUE},
-    {"Remort: Counterintuition ",	28200, R5, TRUE},
-    */
 
 
 REMORT_TABLE *chamber_list[MAX_CHAMBER];
@@ -113,16 +102,15 @@ bool is_in_remort(CHAR_DATA *ch)
     return FALSE;
 }
 
-void do_remort args( (CHAR_DATA *ch, char *argument) );
 void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_enter args( (CHAR_DATA *ch, CHAR_DATA *adept) );
 void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, char *arg) );
+void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, const char *arg) );
 void remort_save args( ( void ) );
 
-void do_remort(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_remort)
 {
     CHAR_DATA *adept;
     char arg [MAX_INPUT_LENGTH];
@@ -157,6 +145,7 @@ void do_remort(CHAR_DATA *ch, char *argument)
     }
     
     if (arg[0] != '\0')
+    {
         if (!strcmp(arg, "signup"))
         {
             remort_signup(ch, adept);
@@ -187,7 +176,8 @@ void do_remort(CHAR_DATA *ch, char *argument)
             remort_repeat(ch, adept, argument);
             return;
         }
-        
+    }
+    
     send_to_char("Remort options: signup, cancel, status, enter, speed, repeat.\n\r", ch);
     send_to_char("For more information, type 'HELP REMORT'.\n\r", ch);
 }
@@ -479,11 +469,12 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     char_to_room( ch, room );
     send_to_char("You step into a shimmering vortex and arrive in another dimension.\n\r",ch);
     do_look( ch, "auto" );
-    make_visible(ch, "");
+    make_visible( ch );
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
-    i->limit += 259200;
+    i->limit = current_time + WEEK;
     
     remort_update();
 }
@@ -561,11 +552,12 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     char_to_room( ch, room );
     send_to_char("You step into a shimmering vortex and arrive in another dimension.\n\r",ch);
     do_look( ch, "auto" );
-    make_visible(ch, "");
+    make_visible( ch );
     affect_strip( ch, gsn_god_bless );
     affect_strip( ch, gsn_god_curse );
+    die_follower(ch, FALSE);
     
-    i->limit = current_time + 28800;
+    i->limit = current_time + 8*HOUR;
     
     remort_update();
 }
@@ -580,14 +572,12 @@ void remort_update()
     int j;
     CHAR_DATA *ch = NULL;
     DESCRIPTOR_DATA *d;
-    bool used[20];
+    bool used[MAX_CHAMBER];
     
     for (j = 0; chambers[j].name != NULL; j++)
         if (chamber_list[j] != NULL &&
             (chamber_list[j]->limit < current_time))
         {
-            OBJ_DATA *obj;
-            OBJ_DATA *obj_next;
 	    char log_buf[MSL];
 
 	    sprintf( log_buf, "%s has run out of time for remort", chamber_list[j]->name );
@@ -596,8 +586,7 @@ void remort_update()
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 ch = d->original ? d->original : d->character;
-                if ((d->connected == CON_PLAYING
-                    || IS_WRITING_NOTE(d->connected))
+                if ((IS_PLAYING(d->connected)) 
                     && !str_cmp(ch->name, chamber_list[j]->name))
                 {
                     found = TRUE;
@@ -608,19 +597,7 @@ void remort_update()
             if (found)
             {
                 send_to_char("You have run out of time to complete remort.\n\r",ch);
-		/*
-                for ( obj = ch->carrying; obj; obj = obj_next )
-                {
-                    obj_next = obj->next_content;
-                    if (IS_SET(obj->extra_flags, ITEM_REMORT))
-                    {
-                        obj_from_char( obj );
-                        extract_obj( obj );
-                    }
-                }
-		*/
-		extract_char_eq( ch, &is_remort_obj, -1 );
-		
+                extract_char_eq( ch, &is_remort_obj, -1 );
                 char_from_room( ch );
                 char_to_room( ch, get_room_index(ROOM_VNUM_RECALL) );
                 do_look( ch, "auto" );
@@ -628,26 +605,22 @@ void remort_update()
             else
             {
                 d = new_descriptor();
-                load_char_obj(d, chamber_list[j]->name);
+                load_char_obj(d, chamber_list[j]->name, FALSE);
 
                 if (d->character != NULL)
                 {
                     d->character->in_room = get_room_index(ROOM_VNUM_RECALL);
-
-		    /*
-                    for ( obj = d->character->carrying; obj; obj = obj_next )
-                    {
-                        obj_next = obj->next_content;
-                        if (IS_SET(obj->extra_flags, ITEM_REMORT))
-                        {
-                            obj_from_char( obj );
-                            extract_obj( obj );
-                        }
-                    }
-		    */
-		    extract_char_eq( d->character, &is_remort_obj, -1 );
+                    extract_char_eq( d->character, &is_remort_obj, -1 );
                 }
                 quit_save_char_obj(d->character);
+                /* load_char_obj still loads "default" character
+                   even if player not found, so need to free it */
+                if (d->character)
+                {
+                    nuke_pets(d->character);
+                    free_char(d->character);
+                    d->character=NULL;
+                }
                 free_descriptor(d);
             }
             
@@ -690,7 +663,7 @@ void remort_update()
                 {
                     used[j] = TRUE;
                     if (i->limit == 0)
-                        i->limit = current_time + 259200;
+                        i->limit = current_time + WEEK;
                     break;
                 }
         }
@@ -747,7 +720,7 @@ void remort_load()
 {
     FILE *fp;
     REMORT_TABLE *p, *q = NULL;
-    char *s;
+    const char *s;
     int i;
     
     wait_list = NULL;
@@ -889,51 +862,48 @@ MEMFILE* remort_mem_save()
 
 void remort_begin(CHAR_DATA *ch)
 {
-    int i, j;
+    int i;
+    bool reconnect = IS_SET(ch->act, PLR_REMORT_ROLL);
 
     remort_remove(ch, TRUE);
 
     // mark as rolling stats in case we loose connection
-    SET_BIT(ch->act, PLR_REMORT_ROLL);
-    quit_save_char_obj(ch);
+    if ( !reconnect )
+    {
+        SET_BIT(ch->act, PLR_REMORT_ROLL);
+        quit_save_char_obj(ch);
+    }
     
     if (ch->desc != NULL)
-        ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    {
+        if ( ch->pcdata->ascents > 0 )
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
+        else
+            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+    }
     else
     {
         do_quit(ch, "");
         return;
     }
     
-    if ( ch == char_list )
+    if ( !reconnect )
     {
-        char_list = ch->next;
-    }
-    else
-    {
-        CHAR_DATA *prev;
+        char_from_char_list(ch);
+    
+        if ( is_in_room(ch) )
+            char_from_room(ch);
         
-        for ( prev = char_list; prev != NULL; prev = prev->next )
-            if ( prev->next == ch )
-            {
-                prev->next = ch->next;
-                break;
-            }
+        /* need to do a little cleanup*/
+        CHAR_DATA *wch;
+        for ( wch = char_list; wch != NULL; wch = wch->next )
+        {
+            if ( wch->reply == ch )
+                wch->reply = NULL;
+            if ( ch->mprog_target == wch )
+                wch->mprog_target = NULL;
+        }
     }
-    
-    if ( is_in_room(ch) )
-        char_from_room(ch);
-    
-    /* need to do a little cleanup*/
-    CHAR_DATA *wch;
-    for ( wch = char_list; wch != NULL; wch = wch->next )
-    {
-        if ( wch->reply == ch )
-            wch->reply = NULL;
-        if ( ch->mprog_target == wch )
-            wch->mprog_target = NULL;
-    }
-    unregister_lua( ch );
 
     for (i = 0; i < MAX_STATS; i++)
         ch->pcdata->history_stats[i] += ch->pcdata->original_stats[i];
@@ -1018,8 +988,7 @@ void remort_complete(CHAR_DATA *ch)
     do_outfit(ch,"");
     obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
     
-    ch->next    = char_list;
-    char_list   = ch;
+    char_list_insert(ch);
     
     ch->desc->connected = CON_PLAYING;
     char_to_room( ch, get_room_index( ROOM_VNUM_SCHOOL ) );
@@ -1032,7 +1001,7 @@ void remort_complete(CHAR_DATA *ch)
     force_full_save();
 }
 
-void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
+void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 {
     char buf[MSL];
 
@@ -1090,5 +1059,42 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, char *arg )
     remort_begin(ch);
 } 
 
+DEF_DO_FUN(do_ascend)
+{
+    if ( IS_NPC(ch) )
+        return;
 
+#ifndef TESTER
+    ptc(ch, "Ascension system coming late 2015. Stay tuned.\n\r");
+    return;
+#endif
+    
+    if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
+    {
+        ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
+#ifdef TESTER
+        ptc(ch, "We will ignore that for testing though.\n\r");
+#else
+        return;
+#endif
+    }
+    
+    if ( strcmp(argument, "confirm") )
+    {
+        send_to_char("To ascend, type <ascend confirm>.\n\r", ch);
+        send_to_char("WARNING: Doing so will cause you to be reborn as a remort 0 character!\n\r", ch);
+        return;
+    }
 
+    if ( ch->carrying != NULL )
+    {
+        send_to_char("You must leave all posessions behind.\n\r", ch);
+        return;
+    }
+    
+    logpf("Ascending %s.", ch->name);
+    ch->pcdata->remorts = 0;
+    ch->pcdata->ascents += 1;
+    
+    remort_begin(ch);
+}

@@ -36,9 +36,9 @@
 
 struct	mob_cmd_type
 {
-    char * const	name;
-    DO_FUN *		do_fun;
-    char * const        help;
+    const char * const name;
+    DO_FUN *do_fun;
+    const char * const help;
 };
 
 /* the command table itself */

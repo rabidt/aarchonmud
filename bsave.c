@@ -52,7 +52,6 @@ int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
 void mem_save_storage_box( CHAR_DATA *ch );
 char *time_format args((time_t, char *));
-int get_pkgrade_level( int pts );
 void save_quest( CHAR_DATA *ch, DBUFFER *buf );
 
 char *print_flags(int flag)
@@ -84,6 +83,16 @@ char *print_flags(int flag)
     return buf;
 }
 
+static int count_objects( OBJ_DATA *obj_list )
+{
+    int count = 0;
+    while ( obj_list )
+    {
+        count += 1 + count_objects(obj_list->contains);
+        obj_list = obj_list->next_content;
+    }
+    return count;
+}
 
 /*
  * Array of containers read for proper re-nesting of objects.
@@ -139,7 +148,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
     {
         FILE *fp;
-        fclose(fpReserve);
         sprintf(strsave, "%s%s",GOD_DIR, capitalize(ch->name));
         if ((fp = fopen(strsave,"w")) == NULL)
         {
@@ -152,12 +160,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 		    ch->level, get_trust(ch), ch->name, ch->pcdata->title);
 	    fclose( fp );
 	}
-	fpReserve = fopen( NULL_FILE, "r" );
     }
 #endif
     
     /* alloc memory file */
-    sprintf(strsave, capitalize(ch->name));
+    strcpy(strsave, capitalize(ch->name));
     /* 16k should do for most players; 
        if not, the buffer will expand automatically */
     mf = memfile_new(strsave, 16*1024);
@@ -168,6 +175,10 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
       bug(msg, 0);
       return NULL;
     }
+
+    /* record obj count to track vanishing eq bug */
+    if ( ch->carrying == NULL )
+        logpf("mem_save_char_obj: %s carries no objects", ch->name);
 
     /* now save to memory file */
     bprintf( mf->buf, "#VER %d\n", CURR_PFILE_VERSION );
@@ -217,7 +228,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
 #endif
 
     if ( IS_NPC(ch) )
-        return NULL;
+        return;
 
 
 /* If they don't have any storage boxes at all or none are loaded
@@ -256,7 +267,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
     if (mf->buf->overflowed)
     {
       memfile_free(mf);
-      return NULL;
+      return;
     }
 
 #if defined(SIM_DEBUG)
@@ -409,7 +420,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->incog_level)
         bprintf(buf,"Inco %d\n",ch->incog_level);
     
-    bprintf( buf, "Togg %s\n", print_tflag(ch->togg));    
     bprintf( buf, "Pos  %d\n",   
         ch->position == POS_FIGHTING ? POS_STANDING : ch->position );
     
@@ -432,8 +442,8 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->damroll != 0)
         bprintf( buf, "Dam   %d\n",  ch->damroll );
     
-    bprintf( buf, "ACs %d %d %d %d\n",   
-        ch->armor[0],ch->armor[1],ch->armor[2],ch->armor[3]);
+    bprintf( buf, "AC %d\n",   
+        ch->armor);
     
     if (ch->wimpy !=0 )
         bprintf( buf, "Wimp  %d\n",  ch->wimpy   );
@@ -503,6 +513,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	bprintf( buf, "PKExpire %ld\n",  ch->pcdata->pkill_expire);
 
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
+        bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
+        if ( ch->pcdata->subclass )
+            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
@@ -539,16 +552,18 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 	if (ch->pcdata->trained_move)
 	    bprintf(buf, "TMov %d\n", ch->pcdata->trained_move);
         
-	bprintf( buf, "Cond  %d %d %d %d %d %d\n",
+	bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
             ch->pcdata->condition[1],
             ch->pcdata->condition[2],
-            ch->pcdata->condition[3],
-            ch->pcdata->condition[4],
-            ch->pcdata->condition[5] );
+            ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
-        
+
+    bprintf( buf, "GuiC %d %d %d\n", ch->pcdata->guiconfig.chat_window,
+                                     ch->pcdata->guiconfig.show_images,
+                                     ch->pcdata->guiconfig.image_window );
+
        /*
         * Write Colour Config Information.
         */
@@ -714,6 +729,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 		bprintf(buf, "-1 -1\n" );
 	}
 
+    /* boss achievements */
+    struct boss_achieve_record *rec;
+    for ( rec = ch->pcdata->boss_achievements ; rec; rec=rec->next )
+    {
+        bprintf( buf, "BAch %d %d\n", rec->vnum, rec->timestamp );
+    }
+
 
         /* write alias */
         for (pos = 0; pos < MAX_ALIAS; pos++)
@@ -829,6 +851,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "WarReligionKills %d\n", ch->pcdata->religion_kills );
     bprintf( buf, "WarReligionWon %d\n", ch->pcdata->religion_won );
     bprintf( buf, "WarReligionLost %d\n", ch->pcdata->religion_lost );
+    bprintf( buf, "WarDuelKills %d\n", ch->pcdata->duel_kills );
+    bprintf( buf, "WarDuelWon %d\n", ch->pcdata->duel_won );
+    bprintf( buf, "WarDuelLost %d\n", ch->pcdata->duel_lost );
     bprintf( buf, "MobKills %d\n", ch->pcdata->mob_kills );
     bprintf( buf, "MobDeaths %d\n", ch->pcdata->mob_deaths );
     bprintf( buf, "QuestsFailed %d\n", ch->pcdata->quest_failed );
@@ -938,8 +963,8 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
     bprintf( buf, "Hit  %d\n", pet->hitroll );
     bprintf( buf, "DamDice %d %d\n", pet->damage[DICE_NUMBER], pet->damage[DICE_TYPE] );
     bprintf(buf, "Dam  %d\n", pet->damroll);
-    bprintf(buf, "ACs  %d %d %d %d\n",
-        pet->armor[0],pet->armor[1],pet->armor[2],pet->armor[3]);
+    bprintf(buf, "AC %d\n",
+        pet->armor);
     bprintf( buf, "Attr %d %d %d %d %d %d %d %d %d %d\n",
         pet->perm_stat[STAT_STR],
         pet->perm_stat[STAT_CON],
@@ -1010,7 +1035,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     * Castrate storage characters.
     */
     if ( is_drop_obj(obj)
-	 || obj->item_type == ITEM_KEY && !is_remort_obj(obj)
+	 || (obj->item_type == ITEM_KEY && !is_remort_obj(obj))
 	 || obj->item_type == ITEM_TRASH )
         return;
     
@@ -1163,7 +1188,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
 /*
  * Load a char and inventory into a new ch structure.
  */
-void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
+void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
 {
     CHAR_DATA *ch;
     int stat;
@@ -1223,8 +1248,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
     ch->pcdata->condition[COND_THIRST]  = 72; 
     ch->pcdata->condition[COND_FULL]    = 72;
     ch->pcdata->condition[COND_HUNGER]  = 72;
-    ch->pcdata->condition[COND_SMOKE]    = 0;
-    ch->pcdata->condition[COND_TOLERANCE]  = 0;
     ch->pcdata->security        = 0;    /* OLC */
     ch->pcdata->clan_rank = 0;
     ch->pcdata->customduration = 0;
@@ -1263,7 +1286,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
         for ( ; ; )
         {
             char letter;
-            char *word;
+            const char *word;
             
             letter = bread_letter( buf );
             if ( letter == '*' )
@@ -1280,7 +1303,12 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             
             word = bread_word( buf );
             if      ( !str_cmp( word, "VER"    ) ) pfile_version = bread_number ( buf );
-            else if ( !str_cmp( word, "PLAYER" ) ) bread_char ( ch, buf );
+            else if ( !str_cmp( word, "PLAYER" ) )
+            {
+                bread_char(ch, buf);
+                if ( char_only )
+                    break;
+            }
             else if ( !str_cmp( word, "OBJECT" ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "O"      ) ) bread_obj  ( ch->pet ? ch->pet : ch, buf, NULL );
             else if ( !str_cmp( word, "PET"    ) ) bread_pet  ( ch, buf );
@@ -1292,6 +1320,14 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
             }
         }
 
+    // copy verbatim settings from char to descriptor
+    if ( d->pProtocol )
+        d->pProtocol->verbatim = IS_SET(ch->act, PLR_COLOUR_VERBATIM);
+        
+    /* record obj count to track vanishing eq bug */
+    if ( !char_only )
+        logpf("mem_load_char_obj: %s carries %d objects", ch->name, count_objects(ch->carrying));
+        
     /* initialize race */
     if (ch->race == 0)
         ch->race = race_lookup("human");
@@ -1317,9 +1353,8 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf )
 
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 {
-    int stat;
-    int i, iNest;
-    int box_number;
+    int iNest;
+    int box_number = 0;
     RBUFFER *buf;
     buf = read_wrap_buffer(mf->buf);
 
@@ -1330,7 +1365,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
         for ( ; ; )
         {
             char letter;
-            char *word;
+            const char *word;
 
             letter = bread_letter( buf );
             if ( letter == '*' )
@@ -1388,7 +1423,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
     char str_buf[MAX_STRING_LENGTH];
-    char *word;
+    const char *word;
     bool fMatch;
     int count = 0;
     int lastlogoff = current_time;
@@ -1457,19 +1492,19 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
-            if (!str_cmp( word, "AC") || !str_cmp(word,"Armor"))
+            if (!str_cmp( word, "AC") )
             {
-                bread_to_eol(buf);
+                ch->armor=bread_number(buf);
                 fMatch = TRUE;
                 break;
             }
             
             if (!str_cmp(word,"ACs"))
             {
-                int i;
-                
-                for (i = 0; i < 4; i++)
-                    ch->armor[i] = bread_number(buf);
+                /* old format */
+                ch->armor=bread_number(buf);
+                bread_to_eol(buf);
+
                 fMatch = TRUE;
                 break;
             }
@@ -1519,10 +1554,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 paf->modifier   = bread_number( buf );
                 paf->location   = bread_number( buf );
                 paf->bitvector  = bread_number( buf );
-		if ( pfile_version < VER_FLAG_CHANGE )
-		    FLAG_CONVERT( paf->bitvector );
-                paf->next       = ch->affected;
-                ch->affected    = paf;
+                if ( pfile_version < VER_FLAG_CHANGE )
+                    FLAG_CONVERT( paf->bitvector );
+                ch->affected = affect_insert(ch->affected, paf);
                 fMatch = TRUE;
                 break;
             }
@@ -1598,9 +1632,23 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 break;
             }
             
+            KEY( "Ascent", ch->pcdata->ascents, bread_number(buf) );
+            
             break;
             
     case 'B':
+        if (!str_cmp(word, "BAch" ) )
+        {
+            BOSSREC * rec = alloc_BOSSREC();
+            rec->vnum=bread_number(buf);
+            rec->timestamp=bread_number(buf);
+
+            rec->next = ch->pcdata->boss_achievements;
+            ch->pcdata->boss_achievements = rec;
+            fMatch = TRUE;
+            break;
+        }
+
         KEYS( "Bamfin",  ch->pcdata->bamfin, bread_string( buf ) );
         KEYS( "Bamfout", ch->pcdata->bamfout,    bread_string( buf ) );
         KEY( "Bank",    ch->pcdata->bank,       bread_number( buf ) );       
@@ -1614,7 +1662,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if (!str_cmp(word, "Boards" ))
         {
             int i,num = bread_number (buf); /* number of boards saved */
-            char *boardname;
+            const char *boardname;
             
             for (; num ; num-- ) /* for each of the board saved */
             {
@@ -1642,7 +1690,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Calm",    ch->calm,       bread_number( buf ) );
         if ( !str_cmp(word, "Clan") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -1657,8 +1705,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->condition[1] = bread_number( buf );
             ch->pcdata->condition[2] = bread_number( buf );
             ch->pcdata->condition[3] = bread_number( buf );
-            ch->pcdata->condition[4] = bread_number( buf );
-            ch->pcdata->condition[5] = bread_number( buf );
+            /*ch->pcdata->condition[4] =*/ bread_number( buf );
+            /*ch->pcdata->condition[5] =*/ bread_number( buf );
             fMatch = TRUE;
             break;
         }
@@ -1674,7 +1722,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEYF("Comm",     ch->comm ); 
         if (!str_cmp(word, "CRank") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->pcdata->clan_rank=clan_rank_lookup(ch->clan, temp);
             free_string(temp);
             fMatch=TRUE;
@@ -1925,21 +1973,33 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if ( !str_cmp( word, "Group" )  || !str_cmp(word,"Gr"))
         {
             int gn;
-            char *temp;
+            const char *temp;
             
             temp = bread_word( buf ) ;
             gn = group_lookup(temp);
             /* gn    = group_lookup( bread_word( buf ) ); */
             if ( gn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown group. ", 0 );
+                if ( strcmp(temp, "rom basics") )
+                    bugf("bread_char: unknown group '%s'.", temp);
             }
             else
                 gn_add(ch,gn);
             fMatch = TRUE;
             break;
         }
+        /* old */
+        KEY( "Gui", ch->pcdata->guiconfig.chat_window, bread_number( buf ) );
+        /* new */
+        if ( !str_cmp( word, "GuiC" ) )
+        {
+            ch->pcdata->guiconfig.chat_window = bread_number( buf );
+            ch->pcdata->guiconfig.show_images = bread_number( buf );
+            ch->pcdata->guiconfig.image_window = bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
+
         break;
         
     case 'H':
@@ -2034,7 +2094,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         if ( !strcmp( word, "LuaCfg") )
         {
-            const char *temp=bread_string( buf );
+            const char *temp = bread_string( buf );
             load_luaconfig( ch, temp );
             free_string( temp );
             fMatch=TRUE;
@@ -2045,8 +2105,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             LUA_EXTRA_VAL *luaval;
             int type=bread_number( buf );
-            char *name= bread_string( buf );
-            char *val = bread_string( buf );
+            const const char *name= bread_string( buf );
+            const const char *val = bread_string( buf );
             luaval=new_luaval( type, name, val, TRUE );
 
             luaval->next=ch->luavals;
@@ -2062,7 +2122,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
 	if ( !str_cmp(word, "Morph") )
 	{
-        char *temp=bread_string(buf);
+        const char *temp=bread_string(buf);
 	    ch->pcdata->morph_race = race_lookup( temp );
         free_string(temp);
 	    ch->pcdata->morph_time = bread_number( buf );
@@ -2073,7 +2133,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         if ( !str_cmp(word, "Mastery") || !str_cmp(word,"Ma") )
         {
             int value = bread_number(buf);
-            char *temp = bread_word(buf);
+            const char *temp = bread_word(buf);
             int sn = skill_lookup(temp);
 
             if ( sn < 0 )
@@ -2154,18 +2214,20 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
 	if ( !str_cmp(word, "QStat") )
 	{
-            QUEST_DATA *qdata;
- 
  	    int id, status, timer;
             time_t limit;
 	    id = bread_number( buf );
 	    status = bread_number( buf );  
             timer = bread_number( buf ) ;
             if (timer > 0)
-                timer -= ((current_time - lastlogoff) / 60) ;  
+                /* This decrements the qset timer by 1 point for each hour that
+                   you have been logged off. - Astark */
+                timer -= ((current_time - lastlogoff) / 3600) ;  
             if (timer < 0)
                 timer = 0;
-            limit = current_time + 55;
+                /* This resets the limit to 1 hour from the time of login, so that
+                   it will start to decrement every 1 hour again. - Astark */
+            limit = current_time + 3600;
 
             set_quest_status( ch, id, status, timer, limit);
 	    fMatch = TRUE;
@@ -2178,7 +2240,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'R':
         if (!str_cmp(word, "Race") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             ch->race=race_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2213,7 +2275,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             int sn;
             int value;
-            char *temp;
+            const char *temp;
             
             value = bread_number( buf );
             temp = bread_word( buf ) ;
@@ -2221,8 +2283,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             /* sn    = skill_lookup( bread_word( buf ) ); */
             if ( sn < 0 )
             {
-                fprintf(stderr,"%s",temp);
-                bug( "Bread_char: unknown skill. ", 0 );
+                if ( strcmp(temp, "recall") )
+                    bugf("bread_char: unknown skill '%s'.", temp);
             }
             else
                 ch->pcdata->learned[sn] = value;
@@ -2241,10 +2303,19 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         KEY( "Stance",  ch->stance, bread_number( buf ) );
         
+        if ( !str_cmp(word, "Subclass") )
+        {
+            const char *temp = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            free_string(temp);
+            fMatch = TRUE;
+            break;
+        }
+        
         break;
         
     case 'T':
-		KEYF( "Togg",	ch->togg	);
+        KEYF( "Togg",	ch->togg	);
         KEY( "TrueSex",     ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "TSex",    ch->pcdata->true_sex,   bread_number( buf ) );
         KEY( "Trai",    ch->train,      bread_number( buf ) );
@@ -2256,7 +2327,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             set_title(ch, temp);
             free_string(temp);
             fMatch = TRUE;
@@ -2307,6 +2378,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "WarReligionKills",ch->pcdata->religion_kills, bread_number( buf ) );
         KEY( "WarReligionWon",ch->pcdata->religion_won,     bread_number( buf ) );
         KEY( "WarReligionLost",ch->pcdata->religion_lost,   bread_number( buf ) );
+        KEY( "WarDuelKills", ch->pcdata->duel_kills,        bread_number( buf ) );
+        KEY( "WarDuelWon", ch->pcdata->duel_won,            bread_number( buf ) );
+        KEY( "WarDuelLost", ch->pcdata->duel_lost,          bread_number( buf ) );
 
 	if ( !str_cmp( word, "WarTotalKills" ) )
 	{
@@ -2337,7 +2411,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 /* load a pet from the forgotten reaches */
 void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 {
-    char *word;
+    const char *word;
     CHAR_DATA *pet;
     bool fMatch;
     int lastlogoff = current_time;
@@ -2383,10 +2457,10 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
             
             if (!str_cmp(word,"ACs"))
             {
-                int i;
-                
-                for (i = 0; i < 4; i++)
-                    pet->armor[i] = bread_number(buf);
+                /* old format */
+                pet->armor=bread_number(buf);
+                bread_to_eol(buf);
+
                 fMatch = TRUE;
                 break;
             }
@@ -2488,7 +2562,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         case 'C':
             if (!str_cmp(word, "Clan") )
             {
-                char *temp=bread_string(buf);
+                const char *temp=bread_string(buf);
                 pet->clan=clan_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
@@ -2576,7 +2650,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         case 'R':
             if (!str_cmp(word, "Race") )
             {
-                char *temp=bread_string(buf);
+                const char *temp=bread_string(buf);
                 pet->race=race_lookup(temp);
                 free_string(temp);
                 fMatch=TRUE;
@@ -2606,7 +2680,7 @@ extern  OBJ_DATA    *obj_free;
 void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 {
     OBJ_DATA *obj;
-    char *word;
+    const char *word;
     int iNest;
     bool fMatch;
     bool fNest;
@@ -2754,20 +2828,20 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'C':
+        /*
             KEY( "Cond",    obj->condition, bread_number( buf ) );
-	    /*
             KEY( "Cost",    obj->cost,      bread_number( buf ) );
 	    */
-	    if ( !str_cmp(word, "Cost") )
-	    {
-		/* ignore cost */
-		bread_number( buf );
-		fMatch = TRUE;
-		break;
-	    }
+        if ( !str_cmp(word, "Cost") || !str_cmp(word, "Cond") )
+        {
+            /* ignore cost and condition */
+            bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
         if (!str_cmp(word, "Clan") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             obj->clan=clan_lookup(temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2775,7 +2849,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         }
         if (!str_cmp(word, "CRank") )
         {
-            char *temp=bread_string(buf);
+            const char *temp=bread_string(buf);
             obj->rank=clan_rank_lookup(obj->clan, temp);
             free_string(temp);
             fMatch=TRUE;
@@ -2786,7 +2860,16 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         case 'D':
             KEYS( "Description", obj->description,   bread_string( buf ) );
             KEYS( "Desc",    obj->description,   bread_string( buf ) );
+            /*
             KEY( "Dur",    obj->durability,   bread_number( buf ) );
+            */
+            if ( !str_cmp( word, "Dur" ) )
+            {
+                /* ignore durability */
+                bread_number( buf );
+                fMatch = TRUE;
+                break;
+            }
             break;
             
         case 'E':
@@ -2878,8 +2961,8 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             {
                 LUA_EXTRA_VAL *luaval;
                 int type=bread_number( buf );
-                char *name=bread_string( buf );
-                char *val=bread_string( buf );
+                const char *name=bread_string( buf );
+                const char *val=bread_string( buf );
                 luaval=new_luaval( type, name, val, TRUE );
 
                 luaval->next=obj->luavals;
@@ -3012,7 +3095,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 
 
 
-void do_finger(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_finger)
 {
     char arg[MAX_INPUT_LENGTH];
     BUFFER *output;
@@ -3029,15 +3112,6 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     one_argument(argument,arg);
     
-    /* Added by Maedhros to toggle old version of finger */
-    if (IS_SET(ch->togg, TOGG_OLDFINGER))
-    {
-      do_oldfinger (ch, arg);
-      return;
-    }
-    else
-
-    /* end of toggle code */
     if (arg[0] == '\0')
     {
         send_to_char("You must provide a name.\n\r",ch);
@@ -3046,9 +3120,16 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     d = new_descriptor();
     
-    if (!load_char_obj(d, argument))
+    if ( !load_char_obj(d, argument, TRUE) )
     {
         send_to_char("Character not found.\n\r", ch);
+        /* load_char_obj still loads "default" character
+           even if player not found, so need to free it */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         free_descriptor(d);
         return;
     }
@@ -3196,6 +3277,19 @@ void do_finger(CHAR_DATA *ch, char *argument)
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
     
+    /* ascent and subclass */
+    if ( wch->level <= LEVEL_HERO && wch->pcdata->ascents > 0 )
+    {
+        sprintf(buf, "{D|{x ");
+        sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
+            wch->pcdata->ascents,
+            subclass_table[wch->pcdata->subclass].name);
+        strcat( buf, buf2 );
+        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+        strcat( buf, "{D|{x\n\r" );
+        add_buf( output, buf );        
+    }
+    
     /* Last on */
     if ( wch->level < LEVEL_IMMORTAL || IS_IMMORTAL(ch) )
     {
@@ -3236,12 +3330,14 @@ void do_finger(CHAR_DATA *ch, char *argument)
     
     if (wch->level <= LEVEL_HERO)
     {
-	int pk, war;
+        int war;
 
-	if( wch->pcdata->pkpoints == 0 )
-	    pk = get_pkgrade_level(wch->pcdata->pkill_count);
-	else
-	    pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        /*
+        if( wch->pcdata->pkpoints == 0 )
+            pk = get_pkgrade_level(wch->pcdata->pkill_count);
+        else
+            pk = get_pkgrade_level(wch->pcdata->pkpoints);
+        */
 
 	if( wch->pcdata->warpoints == 0 )
 	    war = get_pkgrade_level(wch->pcdata->war_kills);
@@ -3291,12 +3387,17 @@ void do_finger(CHAR_DATA *ch, char *argument)
 		wch->pcdata->quest_failed, wch->pcdata->gender_won, wch->pcdata->gender_lost, wch->pcdata->gender_kills );
 	add_buf( output, buf );
 
+    sprintf( buf,
+        "{D|{x                         {D|{x        {DDuel Wars: | %4d | %4d | %5d |{x\n\r",
+        wch->pcdata->duel_won, wch->pcdata->duel_lost, wch->pcdata->duel_kills);
+    add_buf( output, buf );
+
 	sprintf(buf,
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
             wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 /
             (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success),
-	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won,
-	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost,
+	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won + wch->pcdata->duel_won,
+	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost + wch->pcdata->duel_lost,
 	    wch->pcdata->war_kills );
         add_buf( output, buf );
         
@@ -3312,176 +3413,5 @@ void do_finger(CHAR_DATA *ch, char *argument)
     free_char(wch);
     free_descriptor(d);
     
-    return;
-}
-
-/* finger command by Smote, added to and made pretty by Quirky :P */
-void do_oldfinger(CHAR_DATA *ch, char *argument)
-{
-    char arg[MAX_INPUT_LENGTH];
-    BUFFER *output;
-    char buf[MAX_STRING_LENGTH];
-    char custombuf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    CHAR_DATA *wch;
-    RELIGION_DATA *rel;
-    int war;
-
-    one_argument(argument,arg);
-
-    if (arg[0] == '\0')
-    {
-        send_to_char("You must provide a name.\n\r",ch);
-        return;
-    }
-
-    d=new_descriptor();
-    
-    sprintf( last_debug, "do_oldfinger: 1" );
-    if (!load_char_obj(d, argument))
-    {
-        send_to_char("Character not found.\n\r", ch);
-        free_descriptor(d);
-        sprintf( last_debug, "" );
-        return;
-    }
-    sprintf( last_debug, "do_oldfinger: 2" );
-    wch=d->character;
-    output = new_buf();
-
-    if (wch->pcdata->customflag[0]!='\0')
-        sprintf(custombuf, "(%s) ", wch->pcdata->customflag);
-    else
-        custombuf[0] = '\0';
-    
-    sprintf(buf, "Name and Title: %s%s%s%s%s%s%s%s{x%s\n\r",
-        IS_SET(wch->act,PLR_RP) ? "(RP) " : "",
-        IS_SET(wch->act,PLR_HELPER) ? "({GH{CE{cL{GP{CE{cR{x) " : "",
-        IS_SET(wch->act,PLR_KILLER) ? "(KILLER) " : "",
-        IS_SET(wch->act,PLR_THIEF) ? "(THIEF) " : "",
-        custombuf,
-	    IS_NPC(wch)?"":wch->pcdata->name_color,
-	    IS_NPC(wch)?"":wch->pcdata->pre_title,
-        wch->name, IS_NPC(wch) ? "" : wch->pcdata->title);
-    add_buf(output, buf );
-    sprintf(buf, "Level: %d\n\r", wch->level);
-    add_buf(output, buf);
-    sprintf(buf, "Gender: %s\n\r", wch->sex == 0 ? "sexless" : wch->sex == 1 ? "male" : "female");
-    add_buf(output, buf);
-    sprintf(buf, "Race: %s\n\r", wch->race < MAX_PC_RACE ? pc_race_table[wch->race].name : "     ");
-    add_buf(output, buf);
-    sprintf(buf, "Class: %s\n\r", class_table[wch->class].name);
-    add_buf(output, buf);
-    sprintf(buf, "Remorts: %d\n\r", wch->pcdata->remorts);
-    add_buf(output, buf);
-    if (clan_table[wch->clan].active)
-        sprintf(buf, "Clan and Rank: [%s-%s]\n\r", 
-        clan_table[wch->clan].who_name,
-        clan_table[wch->clan].rank_list[wch->pcdata->clan_rank].who_name);
-    else
-        sprintf(buf, "Clan and Rank: none\n\r");
-    add_buf(output, buf);
-    if ((rel = get_religion(wch)) != NULL)
-    {
-        sprintf(buf, "Religion God: %s\n\r", rel->god);
-        add_buf(output, buf);
-        sprintf(buf, "Religion Rank: %s\n\r", get_ch_rank_name(wch));
-        add_buf(output, buf);
-    }
-    else
-    {
-        sprintf(buf, "Religion God: none\n\r");
-        add_buf(output, buf);
-        sprintf(buf, "Religion Rank: none\n\r");
-        add_buf(output, buf);    
-    }
-    if( wch->pcdata && wch->pcdata->spouse )
-    {
-        sprintf( buf, "Spouse: %s\n\r", wch->pcdata->spouse );
-        add_buf(output, buf);
-    }
-    else
-    {
-        sprintf( buf, "Spouse: None\n\r" );
-        add_buf(output, buf);
-    }
-    sprintf(buf, "Date Last On: %s\n\r", time_format(fingertime, custombuf));
-    add_buf(output, buf);
-    sprintf(buf, "Date Created: %s\n\r", time_format(wch->id, custombuf));
-    add_buf(output, buf);
-    sprintf(buf, "Pkills: %d\n\r", wch->pcdata->pkill_count);
-    add_buf(output, buf);
-    sprintf(buf, "Mob Kills: %d\n\r", wch->pcdata->mob_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Beheads: %d\n\r", wch->pcdata->behead_cnt);
-    add_buf(output, buf);
-    sprintf(buf, "Quests Complete: %d\n\r", wch->pcdata->quest_success);
-    add_buf(output, buf);
-    sprintf(buf, "Hard Quests Complete: %d\n\r", wch->pcdata->quest_hard_success);
-    add_buf(output, buf);
-    sprintf(buf, "Quests Failed: %d\n\r", wch->pcdata->quest_failed);
-    add_buf(output, buf);
-    sprintf(buf, "Percent Success: %4.1f%%\n\r", wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 / (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success));
-    add_buf(output, buf);
-    sprintf(buf, "Total Wars: %d\n\r", wch->pcdata->total_wars);
-    add_buf(output, buf);
-    sprintf(buf, "Total Wins: %d\n\r", wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won);
-    add_buf(output, buf);
-    sprintf(buf, "Total Losses: %d\n\r", wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Total Kills: %d\n\r", wch->pcdata->war_kills);
-    add_buf(output, buf);
-
-	if( wch->pcdata->warpoints == 0 )
-	    war = get_pkgrade_level(wch->pcdata->war_kills);
-	else
-	    war = get_pkgrade_level(wch->pcdata->warpoints);
-
-    sprintf(buf, "Warfare Grade: %s\n\r", pkgrade_table[war].grade);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Wins: %d\n\r", wch->pcdata->armageddon_won);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Losses: %d\n\r", wch->pcdata->armageddon_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Armageddon Kills: %d\n\r", wch->pcdata->armageddon_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Wins: %d\n\r", wch->pcdata->clan_won);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Losses: %d\n\r", wch->pcdata->clan_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Clan War Kills: %d\n\r", wch->pcdata->clan_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Wins: %d\n\r", wch->pcdata->class_won);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Losses: %d\n\r", wch->pcdata->class_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Class War Kills: %d\n\r", wch->pcdata->class_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Wins: %d\n\r", wch->pcdata->race_won);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Losses: %d\n\r", wch->pcdata->race_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Race War Kills: %d\n\r", wch->pcdata->race_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Wins: %d\n\r", wch->pcdata->religion_won);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Losses: %d\n\r", wch->pcdata->religion_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Religion War Kills: %d\n\r", wch->pcdata->religion_kills);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Wins: %d\n\r", wch->pcdata->gender_won);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Losses: %d\n\r", wch->pcdata->gender_lost);
-    add_buf(output, buf);
-    sprintf(buf, "Gender War Kills: %d\n\r", wch->pcdata->gender_kills);
-        
-    page_to_char(buf_string(output),ch);
-    free_buf(output);
-
-    nuke_pets(wch);
-    free_char(wch);
-    free_descriptor(d);
-
-    sprintf( last_debug, "" );
     return;
 }

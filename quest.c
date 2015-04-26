@@ -20,6 +20,8 @@
 #include "special.h"
 #include "lua_arclib.h"
 #include "mudconfig.h"
+#include "olc.h"
+#include "warfare.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -103,7 +105,7 @@ QUEST_ITEM quest_item_table[] =
     { QUEST_ITEM9,   600, "" },
     { QUEST_ITEM10,  500, "" },
     { QUEST_ITEM11,  500, "" },
-    { 0, 0, NULL }
+    { 0, 0, "" }
 };
 
 char* list_quest_items()
@@ -164,7 +166,6 @@ char* list_quest_items()
 
 bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 {
-    char buf[MIL];
     QUEST_ITEM *qi;
     int i;
 
@@ -203,7 +204,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
     char buf[MSL];
     
     if ( ch == NULL || IS_NPC(ch) || obj == NULL )
-	return;
+        return FALSE;
 
     /* is obj a quest item? which? */
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
@@ -219,7 +220,7 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	    return FALSE;
 	}
 	
-	if (!strcmp(qi->name,""))
+	if ( !strcmp(qi->name,"") || cfg_refund_qeq )
 	{
 	    qp_gain = qi->cost;//refund full cost on old items
             do_say( quest_man, "As you like, I can refund you the whole cost!" );
@@ -259,9 +260,6 @@ void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
 void quest_update   args(( void ));
 bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 bool chance     args(( int num ));
-
-bool  color_name( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
-void set_pre_title ( CHAR_DATA * ch, char *argument, CHAR_DATA * victim);
 
 /* Added for "hard" quest option -- Astark Feb2012 */
 void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
@@ -305,10 +303,10 @@ int rand_div(int divident, int divisor)
 }
 
 /* The main quest function */
-void do_quest(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_quest)
 {
     CHAR_DATA *questman;
-    OBJ_DATA *obj=NULL, *obj_next;
+    OBJ_DATA *obj=NULL;
     OBJ_INDEX_DATA *questinfoobj;
     MOB_INDEX_DATA *questinfo;
     ROOM_INDEX_DATA *questinforoom;
@@ -483,6 +481,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
         strcat(buf, "  100qp.................Experience (1/4 exp per level)\n\r");
 	strcat(buf, "   50qp.................Warfare\n\r");
+    strcat(buf, "   10qp.................Duel\n\r");
         strcat(buf, "\n\r");
         strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
         strcat(buf, "To see a list of items, type '\t<send href='help questitems'>{whelp questitems{x\t</send>'\n\r");
@@ -614,6 +613,18 @@ void do_quest(CHAR_DATA *ch, char *argument)
 	    }
 	    return;
 	}
+    else if (is_name(arg2, "duel"))
+    {
+        if (ch->pcdata->questpoints >= 10)
+            proc_startduel(ch, argument);
+        else
+        {
+            sprintf(buf, "Sorry, %s, but you don't have enough quest points for that.", ch->name);
+            do_say(questman,buf);
+        }
+        return;
+    }
+            
 
 		/* Added for Vodurs ptitle and color name 11/25/11 -- Maedhros */
 
@@ -779,7 +790,10 @@ void do_quest(CHAR_DATA *ch, char *argument)
 
         int reward_silver = 0, reward_points = 0, reward_prac = 0, reward_exp = 0;
         int luck = ch_luc_quest(ch);
-        CHAR_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
+        OBJ_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
+        int prac_chance = IS_SET(ch->act, PLR_QUESTORHARD) ? 20 : 15;
+        if ( IS_AFFECTED(ch, AFF_FORTUNE) )
+            prac_chance += 5;
 
         // kill mob quest (completed)
         if ( ch->pcdata->questmob == -1 )
@@ -788,7 +802,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
                 ch->pcdata->quest_hard_success++;
@@ -797,7 +811,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -813,7 +827,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( ch->level, 30*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
-                if ( per_chance(20) )
+                if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
                 ch->pcdata->quest_hard_success++;
@@ -822,7 +836,7 @@ void do_quest(CHAR_DATA *ch, char *argument)
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
                 reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
-                if ( per_chance(15) )
+                if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
             }
@@ -834,6 +848,9 @@ void do_quest(CHAR_DATA *ch, char *argument)
             return;
         }
         
+        sprintf(buf, "Congratulations on completing your quest!");
+        do_say(questman, buf);
+        
         // general adjustments
         reward_points += reward_points * get_religion_bonus(ch) / 100;
         if ( cfg_enable_qp_mult )
@@ -841,16 +858,13 @@ void do_quest(CHAR_DATA *ch, char *argument)
             reward_points = (int)(reward_points * cfg_qp_mult );
             if ( cfg_show_qp_mult )
             {
-                sprintf(buf, "There's currently a qp bonus of %d%%!",
-                    (int)((cfg_qp_mult*100)-100));
+                sprintf(buf, "There's currently a qp bonus of %d%%!", (int)((cfg_qp_mult*100)-99.5));
                 do_say(questman, buf );
             }
 
         }
 
         // notify of rewards
-        sprintf(buf, "Congratulations on completing your quest!");
-        do_say(questman, buf);
         sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
         do_say(questman, buf);
         if ( reward_prac > 0 )
@@ -912,10 +926,6 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
     int mob_vnum;
     bool found = FALSE;
  
-    /* Added - Maedhros, Feb 10, 2006 */ 
-    int i;
-    int* iPtr;
-
     if ( ch == NULL || IS_NPC(ch) )
 	return;
 
@@ -1311,39 +1321,11 @@ bool quest_level_diff( CHAR_DATA *ch, int mlevel)
     return IS_BETWEEN( min_level, mlevel, min_level + 30 );
 }
 
-
-/* When players quest a hard quest it will be anywhere
-   from 10 to 65 levels higher than the player. Typically
-   will need a group, but not always. Checks for the
-   act and room hard_quest flags -- Astark Feb 2012 */
-
-/* Astark Nov 2012 - The code has now been modified to treat
-   low remort and low level players a bit more fairly. I'm not
-   great at math so I'm sure some players will still complain,
-   but this makes the quests a little more worth while. The
-   reward isn't -that- great so the quests shouldn't be -that-
-   hard */
-
 bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 {
-    if (ch->level < 90)
-    {
-  /* added plus 5 to minimum level - Astark 1-7-13 */
-        int clevel = ch->level + 5 + (2 * ch->pcdata->remorts);
-        int min_level = URANGE( 1, clevel, 110 );
-  /* increased from 25 to 30 - Astark 1-7-13 */
-        int max_level = (min_level + 30 + ch->pcdata->remorts );
-
-        return IS_BETWEEN( min_level, mlevel, 119 ); 
-    }
-    else
-    {
-        int clevel = (ch->level - 90) * 4;
-        int min_level = URANGE( 90, clevel+90, 120 );
-        int max_level = (min_level + 20 + 3 * ch->pcdata->remorts );
-
-        return IS_BETWEEN( min_level, mlevel, 175 ); 
-    }
+    // mobs for hard quests are higher level by 10 + 33%
+    // so e.g. a range of 90-120 goes up to 130-170
+    return quest_level_diff(ch, (mlevel - 10) * 3/4);
 }
 
 
@@ -1361,7 +1343,7 @@ void quest_update(void)
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         if (d->character != NULL && !IS_NPC(d->character)
-            && (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)))
+            && (IS_PLAYING(d->connected)))
         {
             
             ch = d->character;
@@ -1373,6 +1355,7 @@ void quest_update(void)
                     send_to_char("You may now quest again.\n\r",ch);
             }
             else if (IS_SET(ch->act,PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+            {
                 if (--ch->pcdata->countdown <= 0)
                 {
                     char buf [MAX_STRING_LENGTH];
@@ -1392,6 +1375,7 @@ void quest_update(void)
                 }
                 else if (ch->pcdata->countdown < 6)
                     send_to_char("Better hurry, you're almost out of time for your quest!\n\r",ch);
+            }
         }
     }
     return;
@@ -1555,7 +1539,6 @@ void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch )
 
 void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch )
 {
-    char buf[MSL];
     LUA_EXTRA_VAL *luaval;
 
     if ( ch == NULL || to_ch == NULL )
@@ -1583,7 +1566,7 @@ void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch )
     return;
 }
 
-bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
+bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
 {
   char arg2 [MAX_INPUT_LENGTH];
   char buf [3] = "";
@@ -1682,13 +1665,12 @@ bool color_name( CHAR_DATA * ch, char *argument,CHAR_DATA * victim)
   return TRUE;
 }
 
-void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
+void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
 {
   char arg2 [MAX_STRING_LENGTH];
   char buf [MSL];
-  char * buf2;
   FILE *fp;
-  char * word;
+  const char *word;
   int cost;
 
   if (victim == NULL)
@@ -1707,7 +1689,7 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
 
   if ( IS_NPC(victim) )
   {
-    return FALSE;
+    return;
   }
 
   if (!strcmp(arg2, "clear"))
@@ -1715,17 +1697,16 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     free_string(victim->pcdata->pre_title);
     victim->pcdata->pre_title= str_dup("");
     send_to_char("Pretitle cleared.\n\r",ch);
-    return TRUE;
+    return;
   }
 
   if (!strcmp(arg2, "list"))
   {
-    fclose(fpReserve);
     strcpy(buf, "../area/pre_titles.txt");
     if (!(fp = fopen(buf, "r")))
     {
       bug("Can't open pre_titles.txt",0);
-      return FALSE;
+      return;
     }
     
     printf_to_char(ch,"%-15s %4s\n\r","Title", "Cost");
@@ -1741,17 +1722,15 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
     send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
     fclose (fp);
-    fpReserve = fopen( NULL_FILE, "r" );
-    return FALSE;
+    return;
   }
 
 
-  fclose(fpReserve);
   strcpy(buf, "../area/pre_titles.txt");
   if (!(fp = fopen(buf, "r")))
   {
     bug("Can't open pre_titles.txt",0);
-    return FALSE;
+    return;
   }
 
   /* Capitalize first letter of title */
@@ -1772,8 +1751,7 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
       send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
 
     fclose(fp);
-    fpReserve = fopen( NULL_FILE, "r" );
-    return FALSE;
+    return;
   }
 
   cost = fread_number( fp );
@@ -1807,8 +1785,6 @@ void set_pre_title( CHAR_DATA * ch, char *argument, CHAR_DATA * victim)
     }
   }
   fclose(fp);
-  fpReserve = fopen( NULL_FILE, "r" );
-  return TRUE;
 }
 
 
@@ -1855,7 +1831,7 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
 	{
 	    qdata->status = status;
             qdata->timer = timer; /* Number of hours before it hits 0 */
-            qdata->limit = current_time + 55; /* 1 minute before timer will drop 1 point. */
+            qdata->limit = current_time + 3600; /* 1 hour before timer will drop 1 point. */
 	    return;
 	}
 

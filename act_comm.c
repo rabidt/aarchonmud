@@ -35,15 +35,21 @@
 #include "recycle.h"
 #include "tables.h"
 #include "special.h"
+#include "religion.h"
+#include "simsave.h"
+#include "interp.h"
+#include "warfare.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
 DECLARE_DO_FUN(do_groups    );
 void war_remove( CHAR_DATA *ch, bool killed );
-bool can_order( char *command, CHAR_DATA *victim );
 void smash_beep_n_blink( char *str );
-void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char, bool check_visible );
 void quit_char( CHAR_DATA *ch );
+void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
+void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
+void open_chat_tag( CHAR_DATA *ch );
+void close_chat_tag( CHAR_DATA *ch );
 
 #define ALTER_COLOUR( type ) \
 if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED;} \
@@ -67,12 +73,12 @@ else if ( !str_prefix( argument, "nobeep" ) ) {ch->pcdata->type[2] = 0;} \
 else { send_to_char_bw( "Unrecognized colour. Unchanged.\n\r", ch ); return;}
 
 
-void do_delet( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_delet)
 {
     send_to_char("You must type the full command to delete yourself.\n\r",ch);
 }
 
-void do_delete( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_delete)
 {
     char filename[MAX_INPUT_LENGTH];
     char arg1[MIL], arg2[MIL];
@@ -88,7 +94,7 @@ void do_delete( CHAR_DATA *ch, char *argument)
         if ( !strcmp(arg1, "confirm") )
         {
 	    /* extra password check to prevent deleting by trigger-abuse */
-	    if ( strcmp(crypt(arg2, ch->pcdata->pwd), ch->pcdata->pwd) )
+        if ( !check_password(arg2, ch->pcdata->pwd) )
 	    {
 		send_to_char( "Wrong password, try again.\n\r", ch );
 		return; 
@@ -137,9 +143,9 @@ void do_delete( CHAR_DATA *ch, char *argument)
 }
 
 
-print_pub_chan( sh_int sn, CHAR_DATA *ch)
+void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 {
-    CHANNEL *chan=&(public_channel_table[sn]);
+    const CHANNEL *chan = &(public_channel_table[sn]);
     char buf[MSL];
     sprintf(buf, "{%c%s{%c",
 		chan->prime_color,
@@ -156,8 +162,8 @@ print_pub_chan( sh_int sn, CHAR_DATA *ch)
 
 /* RT code to display channel status */
 
-void do_channels( CHAR_DATA *ch, char *argument)
-{
+DEF_DO_FUN(do_channels)
+{   
     char buf[MAX_STRING_LENGTH];
 
     /* lists all channels and their status */
@@ -180,15 +186,15 @@ void do_channels( CHAR_DATA *ch, char *argument)
         else
             send_to_char("{2OFF{x\n\r",ch);
         
-	print_pub_chan(sn_gossip, ch);
-        print_pub_chan(sn_auction, ch);
-	print_pub_chan(sn_music, ch);
-	print_pub_chan(sn_question, ch);
-	print_pub_chan(sn_quote, ch);
-	print_pub_chan(sn_gratz, ch);
-	print_pub_chan(sn_gametalk, ch);
-	print_pub_chan(sn_bitch, ch);
-	print_pub_chan(sn_newbie, ch);
+    print_pub_chan(sn_gossip, ch);
+    print_pub_chan(sn_auction, ch);
+    print_pub_chan(sn_music, ch);
+    print_pub_chan(sn_question, ch);
+    print_pub_chan(sn_quote, ch);
+    print_pub_chan(sn_gratz, ch);
+    print_pub_chan(sn_gametalk, ch);
+    print_pub_chan(sn_bitch, ch);
+    print_pub_chan(sn_newbie, ch);
  
         if( ch->clan > 0 )
 	{
@@ -269,6 +275,9 @@ void do_channels( CHAR_DATA *ch, char *argument)
         else
             send_to_char("Scroll buffering is off.\n\r",ch);
     }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+            ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
     
     if (ch->prompt != NULL)
     {
@@ -289,7 +298,7 @@ void do_channels( CHAR_DATA *ch, char *argument)
 
 /* RT deaf blocks out all shouts */
 
-void do_deaf( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_deaf)
 {
     
     if (IS_SET(ch->comm,COMM_DEAF))
@@ -306,7 +315,7 @@ void do_deaf( CHAR_DATA *ch, char *argument)
 
 /* RT quiet blocks out all communication */
 
-void do_quiet ( CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_quiet)
 {
     if (IS_SET(ch->comm,COMM_QUIET))
     {
@@ -322,7 +331,7 @@ void do_quiet ( CHAR_DATA *ch, char * argument)
 
 /* afk command */
 
-void do_afk ( CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_afk)
 {
 
     if (IS_NPC(ch))
@@ -344,7 +353,7 @@ void do_afk ( CHAR_DATA *ch, char * argument)
 
 /* busy command; marks you "busy" instead of afk so you don't have to receive tells */
 /* related to autobusy command, which makes you busy during fights only, and "unbusy" afterwards */
-void do_busy ( CHAR_DATA *ch, char * argument)
+DEF_DO_FUN(do_busy)
 {
 
     if (IS_NPC(ch))
@@ -365,13 +374,13 @@ void do_busy ( CHAR_DATA *ch, char * argument)
 }
 
 
-void do_replay (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_replay)
 {
 	do_playback( ch, "tell" );
 }
 
 
-char *parse_url( char *argument)
+const char *parse_url( const char *argument )
 {
     const char open[]="\t<a href=\"";
     const char mid[]= "\">";
@@ -383,7 +392,7 @@ char *parse_url( char *argument)
              || ( url=strstr(argument, "www."    ) ) ) )
     return argument;
     
-    static char rtn[MSL*2];
+    static char rtn[MSL*10];
     int rtnIndex;
 
     for ( rtnIndex=0 ; ; argument++)
@@ -394,7 +403,7 @@ char *parse_url( char *argument)
             rtnIndex+=strlen(open);
 
             char *cptr;
-            for (cptr=url; *cptr != ' ' && *cptr !='\0' ; cptr++)
+            for (cptr=url; *cptr != ' ' && *cptr !='\0' && *cptr !='\n' && *cptr !='\r'; cptr++)
             {
                 rtn[rtnIndex++]=*cptr;
             }
@@ -424,11 +433,8 @@ char *parse_url( char *argument)
     return rtn;
 }
 
-        
-
-
 /* RT chat replaced with ROM gossip */
-void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
+void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
 {
 	if ( chan == NULL )
 	{
@@ -436,7 +442,7 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
 		return;
 	}
 	
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH], arg_buf[MSL];
     DESCRIPTOR_DATA *d;
     bool found;
     sh_int pos;
@@ -491,11 +497,19 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
                     chan->second_color);
         }
 
-        smash_beep_n_blink( argument );
-        argument=parse_url(argument);
+        strcpy(arg_buf, argument);
+        smash_beep_n_blink(arg_buf);
+        argument=parse_url(arg_buf);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
+        show_image_to_char( ch, buf );
         send_to_char( buf, ch );
+        if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( ch );
+            send_to_char( buf, ch );
+            close_chat_tag( ch );
+        }
 
         argument = makedrunk(argument,ch);
 
@@ -509,7 +523,7 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
             
             victim = d->original ? d->original : d->character;
             
-            if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+            if ( (IS_PLAYING(d->connected)) &&
                 d->character != ch &&
                 !IS_SET(victim->comm,chan->offbit) &&
                 !IS_SET(victim->comm,COMM_QUIET) &&
@@ -532,46 +546,53 @@ void public_channel( CHANNEL *chan, CHAR_DATA *ch, char *argument )
                     act_new_gag( buf,
                         ch,argument, d->character, TO_VICT,POS_SLEEPING,
                         GAG_NCOL_CHAN, FALSE );
-                    
+                    if ( d->character->pcdata && 
+                            d->character->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( d->character );
+                        act_new_gag( buf,
+                            ch,argument, d->character, TO_VICT,POS_SLEEPING,
+                            GAG_NCOL_CHAN, FALSE ); 
+                        close_chat_tag( d->character );
+                    }
                 }
-
             }
         }
     }
 }
 
-void do_gossip( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gossip)
 {
 	public_channel( &public_channel_table[sn_gossip], ch, argument );
 }
 
 
-void do_newbie( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_newbie)
 {
 	public_channel( &public_channel_table[sn_newbie], ch, argument );
 }
 
 
 
-void do_bitch( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bitch)
 {
 	public_channel( &public_channel_table[sn_bitch], ch, argument );
 }
-void do_gametalk( CHAR_DATA *ch, char *argument )
+
+DEF_DO_FUN(do_gametalk)
 {
 	public_channel( &public_channel_table[sn_gametalk], ch, argument );
 }
 /* Function info_message is called in a fashion similar to wiznet to
 announce various events to players. -- Rimbol */
-void info_message( CHAR_DATA *ch, char *argument, bool show_to_char )
+void info_message( CHAR_DATA *ch, const char *argument, bool show_to_char )
 {
     info_message_new( ch, argument, show_to_char, FALSE );
 }
 
 /* extended version that can show message only to players who see
  * the character - needed for login info */
-void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
-		       bool check_visible )
+void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -606,46 +627,53 @@ void info_message_new( CHAR_DATA *ch, char *argument, bool show_to_char,
         if (ch && !NOT_AUTHED(ch) && NOT_AUTHED(victim))
             continue;
         
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             !IS_SET(victim->comm,COMM_NOINFO) &&
             !IS_SET(victim->comm,COMM_QUIET) )
         {
             sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
             act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+
+            if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+            {
+                open_chat_tag( victim );
+                act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                close_chat_tag( victim );
+            }
         }
     }
 }
 
-void do_gratz( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gratz)
 {
 	public_channel( &public_channel_table[sn_gratz], ch, argument );
 }
 
-void do_quote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_quote)
 {
 	public_channel( &public_channel_table[sn_quote], ch, argument );
 }
 
 /* RT question channel */
-void do_question( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_question)
 {
 	public_channel( &public_channel_table[sn_question], ch, argument );
 }
 
 /* RT answer channel - uses same line as questions */
-void do_answer( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_answer)
 {
 	public_channel( &public_channel_table[sn_answer], ch, argument );
 }
 
 /* RT music channel */
-void do_music( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_music)
 {
 	public_channel( &public_channel_table[sn_music], ch, argument );
 }
 
 /* clan channels */
-void do_clantalk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_clantalk)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -706,7 +734,7 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
     sprintf(buf,"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
             d->character != ch && !IS_NPC(d->character) &&
             is_same_clan(ch,d->character) &&
             clan_table[d->character->clan].rank_list[d->character->pcdata->clan_rank].can_use_clantalk &&
@@ -737,7 +765,7 @@ void do_clantalk( CHAR_DATA *ch, char *argument )
 }
 
 /* religion channels */
-void do_religion_talk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_religion_talk)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -803,7 +831,7 @@ void do_religion_talk( CHAR_DATA *ch, char *argument )
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ( (d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ( (IS_PLAYING(d->connected)) &&
 	     d->character != ch && !IS_NPC(d->character) &&
 	     get_religion(d->character) == rel &&
 	     is_religion_member(d->character) &&
@@ -831,7 +859,7 @@ void do_religion_talk( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_immtalk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_immtalk)
 {
 	public_channel( &public_channel_table[sn_immtalk], ch, argument );
 }
@@ -845,7 +873,7 @@ bool check_immtalk( CHAR_DATA *ch )
 argument) which toggles COMM_NOINFO.  As with the other
 channels, if COMM_NOINFO or COMM_QUIET is set, INFO messages
 will not be sent to that player.  -- Rimbol */
-void do_info( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_info)
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -871,12 +899,19 @@ void do_info( CHAR_DATA *ch, char *argument )
             {
                 victim = d->original ? d->original : d->character;
                 
-                if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+                if ((IS_PLAYING(d->connected)) &&
                     !IS_SET(victim->comm,COMM_NOINFO) &&
                     !IS_SET(victim->comm,COMM_QUIET) )
                 {
                     sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                    
+                    if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+                    {
+                        open_chat_tag( victim );
+                        act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
+                        close_chat_tag( victim );
+                    }
                 }
             }
         }
@@ -885,9 +920,9 @@ void do_info( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_say( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_say)
 {
-    char *mid1, *mid2, *scan;
+    const char *mid1, *mid2, *scan;
     char buf[MAX_STRING_LENGTH];
     
     if (is_affected(ch, gsn_slash_throat) && !IS_IMMORTAL(ch))
@@ -979,12 +1014,12 @@ void do_say( CHAR_DATA *ch, char *argument )
 }
 
 
-
-void do_shout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shout)
 {
     DESCRIPTOR_DATA *d;
     bool found;
     sh_int pos;
+    char arg_buf[MSL];
 
     if (NOT_AUTHED(ch))
     {
@@ -1034,19 +1069,18 @@ void do_shout( CHAR_DATA *ch, char *argument )
 
     WAIT_STATE( ch, 12 );
     
-    smash_beep_n_blink( argument );
-        
-    act( "{uYou shout {U'$T{U'{x", ch, NULL, argument, TO_CHAR );
-
-
-    argument = makedrunk(argument,ch);
+    strcpy(arg_buf, argument);
+    smash_beep_n_blink(arg_buf);
+    act( "{uYou shout {U'$T{U'{x", ch, NULL, arg_buf, TO_CHAR );
+    argument = makedrunk(arg_buf, ch);
+    
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         CHAR_DATA *victim;
         
         victim = d->original ? d->original : d->character;
         
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected)) &&
+        if ((IS_PLAYING(d->connected)) &&
             d->character != ch &&
             !IS_SET(victim->comm, COMM_SHOUTSOFF) &&
             !IS_SET(victim->comm, COMM_QUIET) &&
@@ -1072,7 +1106,7 @@ void do_shout( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
+void act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
 
@@ -1080,7 +1114,7 @@ void act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	nt_act( buf, ch, NULL, victim, TO_VICT );
 }
 
-void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
+void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
     bool found;
@@ -1115,6 +1149,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
+
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
+
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->tell_history, buf);
 	argument = makedrunk(argument,ch);
@@ -1140,7 +1182,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
 	/* NPC's shouldn't be able to go AFK, but .. safety is worth the extra check! */
         if (!IS_NPC(victim))
         {
-            act("$E is AFK, and not receiving tells.",ch,NULL,victim,TO_CHAR);
+            act("$E is AFK, and may view your tell upon returning.",ch,NULL,victim,TO_CHAR);
 			victim->pcdata->new_tells=TRUE;
         }
     }
@@ -1154,8 +1196,14 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
     }
     else
     {
-	/* send as regular */
-	send_to_char(buf, victim);
+	    /* send as regular */
+	    send_to_char(buf, victim);
+        if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+        {
+            open_chat_tag( victim );
+            send_to_char( buf, victim );
+            close_chat_tag( victim );
+        }
     }   
 	
     
@@ -1167,12 +1215,10 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, char *argument )
         mp_act_trigger( argument, victim, ch, NULL,0, NULL,0, TRIG_SPEECH );
 }
 
-void do_tell( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tell)
 {
-    char arg[MAX_INPUT_LENGTH],buf[MAX_STRING_LENGTH];
+    char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    bool found;
-    sh_int pos;
     
     if ( IS_SET(ch->penalty,PENALTY_NOTELL) || IS_SET(ch->comm,COMM_DEAF))
     {
@@ -1230,13 +1276,9 @@ void do_tell( CHAR_DATA *ch, char *argument )
 }
 
 
-
-void do_reply( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_reply)
 {
     CHAR_DATA *victim;
-    char buf[MAX_STRING_LENGTH];
-    bool found;
-    sh_int pos;
     
     if ( IS_SET(ch->penalty,PENALTY_NOTELL) )
     {
@@ -1263,11 +1305,12 @@ void do_reply( CHAR_DATA *ch, char *argument )
     tell_char( ch, victim, argument );
 }
 
-void do_yell( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_yell)
 {
     DESCRIPTOR_DATA *d;
     bool found;
     sh_int pos;
+    char arg_buf[MSL];
     
     if (NOT_AUTHED(ch))
     {
@@ -1299,12 +1342,14 @@ void do_yell( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    smash_beep_n_blink( argument );
+    strcpy(arg_buf, argument);
+    smash_beep_n_blink(arg_buf);
+    argument = arg_buf;
         
     nt_act("{uYou yell {U'$t{U'{x",ch,argument,NULL,TO_CHAR);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        if ((d->connected == CON_PLAYING || IS_WRITING_NOTE(d->connected))
+        if ((IS_PLAYING(d->connected))
             &&   d->character != ch
             &&   d->character->in_room != NULL
             &&   d->character->in_room->area == ch->in_room->area
@@ -1331,8 +1376,7 @@ void do_yell( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
-void do_emote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_emote)
 {
 
     bool keep_space = (argument[0] != '\'');
@@ -1367,11 +1411,10 @@ void do_emote( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
-void do_pmote( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pmote)
 {
     CHAR_DATA *vch;
-    char *letter,*name;
+    const char *letter, *name;
     char last[MAX_INPUT_LENGTH], temp[MAX_STRING_LENGTH];
     size_t matches = 0;
     bool keep_space = (argument[0] != '\'');
@@ -1699,8 +1742,7 @@ const   struct  pose_table_type pose_table  [MAX_POSE]  =
 };
 
 
-
-void do_pose( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pose)
 {
     int level;
     int pose;
@@ -1770,35 +1812,33 @@ void log_bugs(char *str)
         return;
 }    
 
-void do_bug( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bug)
 {
     append_file( ch, BUG_FILE, argument );
     send_to_char( "Bug logged.\n\r", ch );
     return;
 }
 
-void do_typo( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_typo)
 {
     append_file( ch, TYPO_FILE, argument );
     send_to_char( "Typo logged.\n\r", ch );
     return;
 }
 
-void do_rent( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rent)
 {
     send_to_char( "There is no rent here.  Just quit.\n\r", ch );
     return;
 }
 
-
-void do_qui( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_qui)
 {
     send_to_char( "If you want to QUIT, you have to spell it out.\n\r", ch );
     return;
 }
 
-
-void do_quit( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_quit)
 {
     if ( IS_NPC(ch) || ch->pcdata == NULL )
         return;
@@ -1897,6 +1937,8 @@ void quit_char( CHAR_DATA *ch )
     extract_char( ch, TRUE );
     if ( d != NULL )
         close_socket( d );
+    else
+        logpf("quit_char: no descriptor for %s", ch->name);
     
     /* toast evil cheating bastards */
     for (d = descriptor_list; d != NULL; d = d_next)
@@ -1907,6 +1949,7 @@ void quit_char( CHAR_DATA *ch )
         tch = d->original ? d->original : d->character;
         if (tch && tch->id == id)
         {
+            bugf("quit_char: %s still referenced via descriptor", tch->name);
             extract_char(tch,TRUE);
             close_socket(d);
         }
@@ -1915,14 +1958,12 @@ void quit_char( CHAR_DATA *ch )
     return;
 }
 
-
-void do_save( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_save)
 {
     send_to_char("Your character is saved automatically here.\n\r", ch);
 }
 
-
-void do_follow( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_follow)
 {
     /* RT changed to allow unlimited following and follow the NOFOLLOW rules */
     char arg[MAX_INPUT_LENGTH];
@@ -2065,17 +2106,18 @@ void die_follower( CHAR_DATA *ch, bool preservePets )
     
     for ( fch = char_list; fch != NULL; fch = fch->next )
     {
-        if ( fch->master == ch && (!preservePets || !IS_NPC(fch)))
+        if ( preservePets && IS_NPC(fch) && IS_AFFECTED(fch, AFF_CHARM) )
+            continue;
+        if ( fch->master == ch )
             stop_follower( fch );
         if ( fch->leader == ch )
-            fch->leader = fch;
+            fch->leader = NULL;
     }
     
     return;
 }
 
-
-void do_order( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_order)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
@@ -2165,7 +2207,7 @@ void do_order( CHAR_DATA *ch, char *argument )
     return;
 }
 
-char* ch_name(CHAR_DATA *ch)
+const char* ch_name( CHAR_DATA *ch )
 {
     if ( !ch )
         return "";
@@ -2199,7 +2241,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
     sprintf( buf,
-        "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s %5d etl\n\r",
+        "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
         !IS_NPC(gch) ? class_table[gch->class].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
         ch_name(gch),
@@ -2208,25 +2250,25 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         mv_col, gch->move,  gch->max_move,
        /* Shows what spells you can help your group with */
         NPC_OFF(gch, OFF_RESCUE) || PLR_ACT(gch, PLR_AUTORESCUE) ? "{WR{x" : " ",
-        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
-        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
-        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
-        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
         is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+        IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+        IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
         is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+        IS_AFFECTED(gch, AFF_BERSERK) ? "{WZ{x" : get_skill(ch, gsn_frenzy) > 1 ? "{Rz{x" : " ",
 
         (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1) * exp_per_level(gch) - gch->exp
     );
     send_to_char( buf, ch );
 }
 
-void do_group( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_group)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
-    char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
-    char *remain;
+    const char *remain;
 
     remain = one_argument( argument, arg );
     
@@ -2250,7 +2292,7 @@ void do_group( CHAR_DATA *ch, char *argument )
             }
         }
         // afterwards pick up all group members not in room
-        for ( gch = char_list; gch != NULL; gch = gch->next )
+        for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
         {
             if ( is_same_group( gch, ch ) && ch->in_room != gch->in_room)
                 show_group_member( ch, gch );
@@ -2333,10 +2375,10 @@ void do_group( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    victim->leader = ch;
     act_new("$N joins $n's group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
+    change_leader(victim, ch);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
@@ -2374,20 +2416,31 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
         send_to_char( "You can't pass leadership to somebody you don't lead.\n\r", ch );
         return;
     }
-    CHAR_DATA *gch;
 
+    change_leader(ch, victim);
+}
+
+void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader )
+{
+    CHAR_DATA *gch;
     for ( gch = char_list; gch != NULL; gch = gch->next )
     {
         if ( IS_NPC(gch) )
             continue;
-        if ( gch->leader==ch || gch==ch)
+        if ( gch->leader == old_leader || gch == old_leader )
         {
-            gch->leader=victim;
-            gch->master=victim;
-            if ( gch==victim)
+            if ( gch == new_leader )
+            {
+                gch->leader = NULL;
+                gch->master = NULL;
                 ptc( gch, "You now lead the group.\n\r");
+            }
             else
-                ptc( gch, "%s now leads your group.\n\r", victim->name );
+            {
+                gch->leader = new_leader;
+                gch->master = new_leader;
+                ptc( gch, "%s now leads your group.\n\r", new_leader->name );
+            }
         }
     }
 }
@@ -2395,7 +2448,7 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
 /*
 * 'Split' originally by Gnort, God of Chaos.
 */
-void do_split( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_split)
 {
     char buf[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH],arg2[MAX_INPUT_LENGTH];
@@ -2513,9 +2566,7 @@ void do_split( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
-
-void do_gtell( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gtell)
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *gch;
@@ -2535,9 +2586,15 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
     argument = makedrunk(argument,ch);
     
-    for ( gch = char_list; gch != NULL; gch = gch->next )
+    for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
     {
         if ( is_same_group( gch, ch ) )
 		{
@@ -2549,6 +2606,13 @@ void do_gtell( CHAR_DATA *ch, char *argument )
 				send_to_char(buf, gch);
 				if ( !IS_NPC(gch) )
 					log_pers( gch->pcdata->gtell_history, buf);
+
+                if ( gch->pcdata && gch->pcdata->guiconfig.chat_window )
+                {
+                    open_chat_tag( gch );
+                    send_to_char( buf, gch );
+                    close_chat_tag( gch );
+                }
 			}
 		}
     }
@@ -2556,7 +2620,21 @@ void do_gtell( CHAR_DATA *ch, char *argument )
     return;
 }
 
-
+CHAR_DATA *ultimate_master( CHAR_DATA *ch )
+{
+    while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
+    {
+        // safety net since we're getting crashes
+        if ( !valid_CH(ch->master) || ch->master->must_extract )
+        {
+            bugf("ultimate_master: invalid master for %s", IS_NPC(ch) ? ch->short_descr : ch->name);
+            ch->master = NULL;
+        }
+        else
+            ch = ch->master;
+    }
+    return ch;
+}
 
 /*
 * It is very important that this be an equivalence relation:
@@ -2568,6 +2646,10 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
 {
     if ( ach == NULL || bch == NULL)
         return FALSE;
+    
+    // safety net
+    if ( !valid_CH(ach) || !valid_CH(bch) || ach->must_extract || bch->must_extract )
+        return FALSE;
 
     if ( IS_NPC(ach) && IS_NPC(bch)
             && !IS_AFFECTED(ach, AFF_CHARM) && !IS_AFFECTED(bch, AFF_CHARM)
@@ -2575,10 +2657,8 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
         return TRUE;
 
     /* charmies belong to same group as master */
-    while ( IS_AFFECTED(ach, AFF_CHARM) && ach->master != NULL )
-        ach = ach->master;
-    while ( IS_AFFECTED(bch, AFF_CHARM) && bch->master != NULL )
-        bch = bch->master;
+    ach = ultimate_master(ach);
+    bch = ultimate_master(bch);
     
     if ( ach->leader != NULL ) ach = ach->leader;
     if ( bch->leader != NULL ) bch = bch->leader;
@@ -2589,7 +2669,7 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
 * Colour setting and unsetting, way cool, Lope Oct '94
 * (most of) Lope's V2.0 update added to Aarchon Sept '98 by Quirky
 */
-void do_colour( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_colour)
 {
     char   arg[ MAX_STRING_LENGTH ];
     
@@ -2620,6 +2700,7 @@ void do_colour( CHAR_DATA *ch, char *argument )
     
     if (!str_cmp( arg, "verbatim" ) )
     {
+        ch->desc->pProtocol->verbatim = !ch->desc->pProtocol->verbatim;
         TOGGLE_BIT( ch->act, PLR_COLOUR_VERBATIM );
         if ( IS_SET( ch->act, PLR_COLOUR_VERBATIM ) )
             send_to_char( "Color codes are now displayed {rverbatim{x.\n\r", ch );
@@ -2824,7 +2905,7 @@ void do_colour( CHAR_DATA *ch, char *argument )
     
 }
 
-void do_bounty( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_bounty)
 {
     char arg1 [MAX_INPUT_LENGTH];
     char arg2 [MAX_INPUT_LENGTH];
@@ -3022,7 +3103,7 @@ void do_bounty( CHAR_DATA *ch, char *argument )
     return;
 }
 
-char * makedrunk (char *string, CHAR_DATA * ch)
+const char * makedrunk (const char *string, CHAR_DATA * ch)
 {
     /* This structure defines all changes for a character */
     struct struckdrunk drunk[] =
@@ -3081,39 +3162,34 @@ char * makedrunk (char *string, CHAR_DATA * ch)
         {"z", "z", "Z", "zZ", "szz", "sZZz", "ZSz", "ZzzZz", "Zzz", "Zsszzsz", }}
     };
     
-    static char buf[1024];
+    static char buf[MSL];
     char temp;
-    int pos = 0;
-    int drunklevel;
-    int randomnum,n1,n2,i;
+    int pos, drunklevel, randomnum;
+        
+    if ( string[0] == '\0' )
+        return string;
     
-    if (IS_AFFECTED(ch, AFF_INSANE))
+    if ( IS_AFFECTED(ch, AFF_INSANE) )
     {
-        for (pos=0; string[pos]!='\0'; pos++);
-        drunklevel=2+pos/12;
-        for (pos--; drunklevel>0; drunklevel--)
+        strcpy(buf, string);
+        // garble up character order using "reverse bubble-sort" - a "bobble sort" ;)
+        pos = 0;
+        while ( buf[pos+1] != '\0' )
         {
-            if (pos<16)
+            if ( !number_bits(2) )
             {
-                n1=number_range(0,pos);
-                n2=number_range(0,pos);
-                if (n1>n2)
-                {
-                    randomnum=n1;
-                    n1=n2;
-                    n2=randomnum;
-                }	
+                temp = buf[pos];
+                buf[pos] = buf[pos+1];
+                buf[pos+1] = temp;
+                if ( pos > 0 )
+                    pos--;
+                else
+                    pos++;
             }
             else
-            {
-                n1=number_range(0,pos-8);
-                n2=n1+number_range(1,8);
-            }
-            for (i=n1; i<=n2; i++)
-                buf[n2-i+n1]=string[i];
-            for (i=n1; i<=n2; i++)
-                string[i]=buf[i];
+                pos++;
         }
+        return buf;
     }
     
     /* Check how drunk a person is... */
@@ -3166,13 +3242,13 @@ char * makedrunk (char *string, CHAR_DATA * ch)
 }
 
 /* RT auction rewritten in ROM style */
-void do_auction( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_auction)
 {
 	public_channel( &public_channel_table[sn_auction], ch, argument );
 }
 
 /* Sardonic 10/99 */
-void do_savantalk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_savantalk)
 {
    public_channel( &public_channel_table[sn_savantalk], ch, argument );
 }
@@ -3192,7 +3268,7 @@ void print_gag(char* info_str, long value, CHAR_DATA *ch)
     send_to_char(buf, ch);
 }
 
-bool check_gag_arg(char* arg, char* cmp_str, long value, CHAR_DATA *ch)
+bool check_gag_arg(const char* arg, const char* cmp_str, long value, CHAR_DATA *ch)
 {
     if (!strcmp(arg, cmp_str))
     {
@@ -3208,7 +3284,7 @@ bool check_gag_arg(char* arg, char* cmp_str, long value, CHAR_DATA *ch)
 }
 
 /* Toggle gagging options. */
-void do_gag( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_gag)
 {
     if ( argument[0] == '\0' )
     {
@@ -3245,22 +3321,27 @@ void do_gag( CHAR_DATA *ch, char *argument )
     send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn]\n\r", ch);
 }
 
-void do_try ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_try)
 {
-  if (IS_NPC(ch))
-      return;
+    if (IS_NPC(ch))
+        return;
 
-  if (argument[0] == '\0')
-    send_to_char("Try to do what?\n\r", ch);
-  else
-    if (!mp_try_trigger(argument, ch) 
-            && !op_try_trigger(argument, ch)
-            && !rp_try_trigger(argument, ch) )
-      send_to_char("That didn't work.\n\r", ch);
+    if (argument[0] == '\0')
+        send_to_char("Try to do what?\n\r", ch);
+    else
+    {
+        bool found=FALSE;
+        found = mp_try_trigger(argument, ch);
+        found = op_try_trigger(argument, ch) | found;
+        found = rp_try_trigger(argument, ch) | found;
+
+        if (!found)
+            send_to_char("That didn't work.\n\r", ch);
+    }
 
 }
 
-void do_turn_in ( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_turn_in)
 {
     CHAR_DATA *judge;
     char buf[MSL];
@@ -3323,7 +3404,7 @@ void do_turn_in ( CHAR_DATA *ch, char *argument )
     REMOVE_BIT( ch->act, PLR_THIEF  );
 }
 
-void do_action( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_action)
 {
     char buf[MSL];
 
@@ -3362,10 +3443,8 @@ void do_action( CHAR_DATA *ch, char *argument )
     }
 }
 
-
-void do_noreply( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_noreply)
 {
-    DESCRIPTOR_DATA *d;
     CHAR_DATA *found_ch;
     char buf[MAX_STRING_LENGTH];
 
@@ -3391,4 +3470,129 @@ void do_noreply( CHAR_DATA *ch, char *argument )
 	send_to_char( "Character not found.\n\r", ch );
 	return;
     }
+}
+
+void open_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" INTERNAL Align=\"right\">");
+}
+
+void close_chat_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
+} 
+
+void open_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" INTERNAL Align=\"top\">");
+}
+
+void close_image_window( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<FRAME Name=\"Images\" Action=\"CLOSE\">");
+}
+
+void gui_login_setup( CHAR_DATA *ch )
+{
+    const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
+
+    if ( ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_window( ch );
+    }
+    else if ( strstr(client, "mudportal" ) )
+    {
+        // always use chatwindow in mudportal cause i said so
+        ch->pcdata->guiconfig.chat_window=TRUE;
+        open_chat_window( ch );
+        ptc( ch, "{CI see you're using mudportal. Chat window enabled.{x\n\r" );
+    }
+
+    if ( strstr( client, "zmud") ||
+         strstr( client, "zMUD") ||
+         strstr( client, "cmud") ||
+         strstr( client, "CMUD") )
+    {
+        ptc( ch, "{CI see you're using %s. Type '\t(guiconfig\t)' to see some special options.{x\n\r", client);
+    }
+}
+
+void open_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Images>" );
+}
+
+void close_imagewin_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
+void open_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t<DEST Comm>" );
+}
+
+void close_chat_tag( CHAR_DATA *ch )
+{
+    ptc( ch, "\t</DEST>" );
+}
+
+DEF_DO_FUN(do_guiconfig)
+{
+    if (IS_NPC(ch))
+        return;
+
+    if ( !strcmp( argument, "chat" ) )
+    {
+        ch->pcdata->guiconfig.chat_window = !ch->pcdata->guiconfig.chat_window;
+        ptc( ch, "Your chat window is turned %s.\n\r",
+                ch->pcdata->guiconfig.chat_window ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.chat_window )
+        {
+            open_chat_window( ch );
+        }
+        else
+        {
+            close_chat_window( ch );
+        }
+        return;
+    }
+    else if ( !strcmp( argument, "images" ) )
+    {
+        ch->pcdata->guiconfig.show_images = !ch->pcdata->guiconfig.show_images;
+        ptc( ch, "Display images is turned %s.\n\r",
+                ch->pcdata->guiconfig.show_images ? "ON" : "OFF" );
+        return; 
+    }
+    else if ( !strcmp( argument, "imagewin" ) )
+    {
+        
+        ch->pcdata->guiconfig.image_window = !ch->pcdata->guiconfig.image_window;
+        ptc( ch, "Your image window is turned %s.\n\r",
+                ch->pcdata->guiconfig.image_window ? "ON" : "OFF" );
+
+        if ( ch->pcdata->guiconfig.image_window )
+        {
+            open_image_window( ch );
+        }
+        else
+        {
+            close_image_window( ch );
+        }
+        return;
+    }
+
+    ptc( ch, "Your chat window is turned %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig chat' to toggle\n\r" );
+
+    ptc( ch, "Display images is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.show_images ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig images' to toggle\n\r" );
+
+    ptc( ch, "Image window is %s.\n\r",
+        ( ch->pcdata && ch->pcdata->guiconfig.image_window ) ? "ON" : "OFF" );
+    ptc( ch, "'guiconfig imagewin' to toggle\n\r" );
+
 }

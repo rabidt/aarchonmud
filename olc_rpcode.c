@@ -13,8 +13,9 @@
 #include "olc.h"
 #include "recycle.h"
 #include "lua_scripting.h"
+#include "lua_main.h"
 
-#define RPEDIT( fun )           bool fun(CHAR_DATA *ch, char*argument)
+#define RPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 
 const struct olc_cmd_type rpedit_table[] =
 {
@@ -30,7 +31,7 @@ const struct olc_cmd_type rpedit_table[] =
    {  NULL,       0              }
 };
 
-void rpedit( CHAR_DATA *ch, char *argument)
+void rpedit( CHAR_DATA *ch, const char *argument )
 {
     PROG_CODE *pRcode;
     char arg[MAX_INPUT_LENGTH];
@@ -38,9 +39,8 @@ void rpedit( CHAR_DATA *ch, char *argument)
     int cmd;
     AREA_DATA *ad;
 
-    smash_tilde(argument);
-    strcpy(arg, argument);
-    argument = one_argument( argument, command);
+    smash_tilde_cpy(arg, argument);
+    argument = one_argument(arg, command);
 
     EDIT_RPCODE(ch, pRcode);
     if (!pRcode)
@@ -101,7 +101,7 @@ void rpedit( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_rprun( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rprun)
 {
     if ( IS_NPC(ch) )
         return;
@@ -109,7 +109,6 @@ void do_rprun( CHAR_DATA *ch, char *argument)
     ROOM_INDEX_DATA *room;
     int vnum=0;
     char arg[MSL];
-    char arg2[MSL];
     PROG_CODE *pRcode;
     bool result=FALSE;
 
@@ -163,7 +162,7 @@ void do_rprun( CHAR_DATA *ch, char *argument)
 
 }
 
-void do_rpedit(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rpedit)
 {
     PROG_CODE *pRcode;
     char command[MAX_INPUT_LENGTH];
@@ -313,6 +312,7 @@ RPEDIT (rpedit_delete)
         }
         last=curr;
     }
+    return FALSE;
 }
 
 RPEDIT (rpedit_create)
@@ -404,35 +404,30 @@ RPEDIT(rpedit_security)
         else
         {
             ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
-            return;
+            return FALSE;
         }
     }
 
     if (newsec == pRcode->security)
     {
         ptc(ch, "Security is already at %d.\n\r", newsec );
-        return;
+        return FALSE;
     }
     else if (newsec > ch->pcdata->security )
     {
         ptc(ch, "Your security %d doesn't allow you to set security %d.\n\r",
                 ch->pcdata->security, newsec);
-        return;
+        return FALSE;
     }
 
     pRcode->security=newsec;
     ptc(ch, "Security for %d updated to %d.\n\r",
             pRcode->vnum, pRcode->security);
-
+    return TRUE;
 }
 
 void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode )
 {
-    PROG_LIST *rpl;
-    int hash;
-    char buf[MSL];
-    ROOM_INDEX_DATA *room;
-
     check_rprog( g_mud_LS, pRcode->vnum, pRcode->code);
     ptc(ch, "Fixed lua script for %d.\n\r", pRcode->vnum);
 

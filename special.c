@@ -44,83 +44,107 @@ DECLARE_DO_FUN(do_say   );
 DECLARE_DO_FUN(do_backstab);
 DECLARE_DO_FUN(do_flee);
 DECLARE_DO_FUN(do_murder);
+DECLARE_DO_FUN(do_cast);
+DECLARE_DO_FUN(do_religion_talk);
+
 
 /* the function table */
 const   struct  spec_type    spec_table[] =
 {
-	{   "spec_breath_any",      spec_breath_any     },
-	{   "spec_breath_acid",     spec_breath_acid    },
-	{   "spec_breath_fire",     spec_breath_fire    },
-	{   "spec_breath_frost",        spec_breath_frost   },
-	{   "spec_breath_gas",      spec_breath_gas     },
-	{   "spec_breath_lightning",    spec_breath_lightning   },  
-	{   "spec_cast_adept",      spec_cast_adept     },
-	{   "spec_cast_cleric",     spec_cast_cleric    },
-	{   "spec_cast_judge",      spec_cast_judge     },
-	{   "spec_cast_mage",       spec_cast_mage      },
-	{   "spec_cast_undead",     spec_cast_undead    },
-	{   "spec_executioner",     spec_executioner    },
-	{   "spec_fido",            spec_fido       },
-	{   "spec_guard",           spec_guard      },
-	{   "spec_janitor",         spec_janitor        },
-	{   "spec_mayor",           spec_mayor      },
-	{   "spec_poison",          spec_poison     },
-	{   "spec_thief",           spec_thief      },
-	{   "spec_nasty",           spec_nasty      },
-	{   "spec_troll_member",    spec_troll_member   },
-	{   "spec_ogre_member",     spec_ogre_member    },
-	{   "spec_patrolman",       spec_patrolman      },
-	{   "spec_questmaster",     spec_questmaster    }, /* Vassago */ 
-	{   "spec_bounty_hunter",   spec_bounty_hunter  },
-	{   "spec_remort",	    spec_remort },
-	{   "spec_temple_guard",    spec_temple_guard   },
-	{   NULL,               NULL            }
+    {   "spec_breath_any",      spec_breath_any,    FALSE   },
+    {   "spec_breath_acid",     spec_breath_acid,   FALSE   },
+    {   "spec_breath_fire",     spec_breath_fire,   FALSE   },
+    {   "spec_breath_frost",    spec_breath_frost,  FALSE   },
+    {   "spec_breath_gas",      spec_breath_gas,    FALSE   },
+    {   "spec_breath_lightning",spec_breath_lightning,FALSE },  
+    {   "spec_cast_adept",      spec_cast_adept,    FALSE   },
+    {   "spec_cast_cleric",     spec_cast_cleric,   FALSE   },
+    {   "spec_cast_judge",      spec_cast_judge,    FALSE   },
+    {   "spec_cast_mage",       spec_cast_mage,     FALSE   },
+    {   "spec_cast_draconic",   spec_cast_draconic, TRUE    },
+    {   "spec_cast_undead",     spec_cast_undead,   FALSE   },
+    {   "spec_executioner",     spec_executioner,   FALSE   },
+    {   "spec_fido",            spec_fido,          FALSE   },
+    {   "spec_guard",           spec_guard,         FALSE   },
+    {   "spec_janitor",         spec_janitor,       FALSE   },
+    {   "spec_mayor",           spec_mayor,         FALSE   },
+    {   "spec_poison",          spec_poison,        FALSE   },
+    {   "spec_thief",           spec_thief,         FALSE   },
+    {   "spec_nasty",           spec_nasty,         FALSE   },
+    {   "spec_troll_member",    spec_troll_member,  FALSE   },
+    {   "spec_ogre_member",     spec_ogre_member,   FALSE   },
+    {   "spec_patrolman",       spec_patrolman,     FALSE   },
+    {   "spec_questmaster",     spec_questmaster,   FALSE   }, /* Vassago */ 
+    {   "spec_bounty_hunter",   spec_bounty_hunter, FALSE   },
+    {   "spec_remort",          spec_remort,        FALSE   },
+    {   "spec_temple_guard",    spec_temple_guard,  TRUE    },
+    {   NULL,                   NULL,               FALSE   }
+};
+/*
+struct spell_type
+{
+    char    *spell;
+    sh_int  min_level;
+    sh_int  max_level;
+};*/
+
+#define NO_MAX 200
+const struct spell_type spell_list_cleric[] =
+{
+    { "dispel magic", 40, NO_MAX },
+    { "blindness", 20, NO_MAX },
+    { "curse", 1, NO_MAX },
+    { "plague", 1, 120 },
+    { "poison", 1, 120 },
+    { "slow", 1, NO_MAX },
+    { "weaken", 1, NO_MAX },
+    { "flamestrike", 40, NO_MAX },
+    { "harm", 40, NO_MAX },
+    { "heal", 40, 120 },
+    { "cure mortal", 80, NO_MAX },
+    { "restoration", 120, NO_MAX },
+    { NULL, 0, 0 }
 };
 
-const char* spell_list_cleric[] = {
-    "dispel magic",
-    "blindness",
-    "curse",
-    "plague",
-    "poison",
-    "slow",
-    "weaken",
-    "flamestrike",
-    "harm",
-    "heal",
-    NULL
+const struct spell_type spell_list_mage[] = {
+    { "dispel magic", 20, NO_MAX },
+    { "magic missile", 1, 40 },
+    { "chill touch", 10, 80 },
+    { "burning hands", 10, 40 },
+    { "colour spray", 1, 40 },
+    { "fireball", 20, 120 },
+    { "lightning bolt", 20, 120 },
+    { "acid blast", 40, NO_MAX },
+    { "energy drain", 40, NO_MAX },
+    { "stop", 80, NO_MAX },
+    { NULL, 0, 0 }
 };
 
-const char* spell_list_mage[] = {
-    "dispel magic",
-    "magic missile",
-    "chill touch",
-    "burning hands",
-    "colour spray",
-    "fireball",
-    "lightning bolt",
-    "acid blast",
-    "energy drain",
-    "stop",
-    NULL
+const struct spell_type spell_list_draconic[] = {
+    { "acid breath", 1, NO_MAX },
+    { "lightning breath", 1, NO_MAX },
+    { "fire breath", 1, NO_MAX },
+    { "frost breath", 1, NO_MAX },
+    { "gas breath", 1, NO_MAX },
+    { NULL, 0, 0 }
 };
 
-const char* spell_list_undead[] = {
-    "curse",
-    "weaken",
-    "chill touch",
-    "blindness",
-    "poison",
-    "harm",
-    "energy drain",
-    "plague",
-    "necrosis",
-    "tomb rot",
-    "soreness",
-    "haunt",
-    "mana burn",
-    "fear",
-    NULL
+const struct spell_type spell_list_undead[] = {
+    { "curse", 1, NO_MAX },
+    { "weaken", 1, NO_MAX },
+    { "chill touch", 10, 80 },
+    { "blindness", 20, NO_MAX },
+    { "poison", 1, 120 },
+    { "harm", 40, NO_MAX },
+    { "energy drain", 20, NO_MAX },
+    { "plague", 1, 120 },
+    { "necrosis", 40, NO_MAX },
+    { "tomb rot", 80, NO_MAX },
+    { "soreness", 40, NO_MAX },
+    { "haunt", 40, NO_MAX },
+    { "mana burn", 80, NO_MAX },
+    { "fear", 20, NO_MAX },
+    { NULL, 0, 0 }
 };
 
 /*
@@ -140,7 +164,7 @@ SPEC_FUN *spec_lookup( const char *name )
 	return 0;
 }
 
-char *spec_name_lookup( SPEC_FUN *function)
+const char* spec_name_lookup( SPEC_FUN *function )
 {
 	int i;
 
@@ -151,6 +175,19 @@ char *spec_name_lookup( SPEC_FUN *function)
 	}
 
 	return NULL;
+}
+
+bool is_wait_based( SPEC_FUN *function )
+{
+    int i;
+
+    for ( i = 0; spec_table[i].function != NULL; i++ )
+    {
+        if ( function == spec_table[i].function )
+            return spec_table[i].wait_based;
+    }
+    
+    return FALSE;
 }
 
 bool spec_troll_member( CHAR_DATA *ch)
@@ -425,7 +462,7 @@ bool dragon( CHAR_DATA *ch, char *spell_name )
 
 	if ( ( sn = skill_lookup( spell_name ) ) < 0 )
 	return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, victim, TARGET_CHAR);
+	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 }
 
@@ -486,7 +523,7 @@ bool spec_breath_gas( CHAR_DATA *ch )
 
 	if ( ( sn = skill_lookup( "gas breath" ) ) < 0 )
 	return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, NULL,TARGET_CHAR);
+	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, NULL, TARGET_CHAR, FALSE );
 	return TRUE;
 }
 
@@ -522,47 +559,43 @@ bool spec_cast_adept( CHAR_DATA *ch )
 	{
 	case 0:
 	act( "$n utters the word 'abrazak'.", ch, NULL, NULL, TO_ROOM );
-	spell_armor( skill_lookup( "armor" ), ch->level,ch,victim,TARGET_CHAR);
+	spell_armor( skill_lookup( "armor" ), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 
 	case 1:
 	act( "$n utters the word 'fido'.", ch, NULL, NULL, TO_ROOM );
-	spell_bless( skill_lookup( "bless" ), ch->level,ch,victim,TARGET_CHAR);
+	spell_bless( skill_lookup( "bless" ), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 
 	case 2:
 	act("$n utters the words 'judicandus noselacri'.",ch,NULL,NULL,TO_ROOM);
-	spell_cure_blindness( skill_lookup( "cure blindness" ),
-		ch->level, ch, victim,TARGET_CHAR);
+	spell_cure_blindness( skill_lookup( "cure blindness" ), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 
 	case 3:
 	act("$n utters the words 'judicandus dies'.", ch,NULL, NULL, TO_ROOM );
-	spell_cure_light( skill_lookup( "cure light" ),
-		ch->level, ch, victim,TARGET_CHAR);
+	spell_cure_light( skill_lookup( "cure light" ), ch->level, ch, victim, TARGET_CHAR, FALSE);
 	return TRUE;
 
 	case 4:
 	act( "$n utters the words 'judicandus sausabru'.",ch,NULL,NULL,TO_ROOM);
-	spell_cure_poison( skill_lookup( "cure poison" ),
-		ch->level, ch, victim,TARGET_CHAR);
+	spell_cure_poison( skill_lookup( "cure poison" ), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 
 	case 5:
 	act("$n utters the word 'candusima'.", ch, NULL, NULL, TO_ROOM );
-	spell_refresh( skill_lookup("refresh"),ch->level,ch,victim,TARGET_CHAR);
+	spell_refresh( skill_lookup("refresh"), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	return TRUE;
 
 	case 6:
 	act("$n utters the words 'judicandus eugzagz'.",ch,NULL,NULL,TO_ROOM);
-	spell_cure_disease(skill_lookup("cure disease"),
-		ch->level,ch,victim,TARGET_CHAR);
+	spell_cure_disease(skill_lookup("cure disease"), ch->level, ch, victim, TARGET_CHAR, FALSE );
 	}
 
 	return FALSE;
 }
 
-char** get_spell_list( CHAR_DATA *ch )
+const struct spell_type* get_spell_list( CHAR_DATA *ch )
 {
     SPEC_FUN *spec_fun = ch->pIndexData->spec_fun;
     
@@ -570,6 +603,8 @@ char** get_spell_list( CHAR_DATA *ch )
         return spell_list_cleric;
     if ( spec_fun == spec_cast_mage )
         return spell_list_mage;
+    if ( spec_fun == spec_cast_draconic )
+        return spell_list_draconic;
     if ( spec_fun == spec_cast_undead )
         return spell_list_undead;
     
@@ -581,16 +616,28 @@ bool spec_cast_any( CHAR_DATA *ch )
     if ( ch->position != POS_FIGHTING )
         return FALSE;
 
-    char** spell_list = get_spell_list( ch );
+    const struct spell_type* spell_list = get_spell_list( ch );
     if ( spell_list == NULL )
         return FALSE;
 
-    int max_spell = 0;
-    while (spell_list[max_spell])
-        max_spell++;    
+    // select a random spell to cast
+    int spell_count = 0;
+    int spell_selected = 0;
+    int spell_index = 0;
+    
+    while ( spell_list[spell_index].spell )
+    {
+        if ( spell_list[spell_index].min_level <= ch->level && ch->level <= spell_list[spell_index].max_level )
+        {
+            // uniform distribution with one parse of the list :)
+            if ( !number_range(0, spell_count++) )
+                spell_selected = spell_index;
+        }
+        spell_index++;
+    }
     
     char argument[255];
-    sprintf( argument, "'%s'", spell_list[number_range(0, max_spell-1)] );    
+    sprintf( argument, "'%s'", spell_list[spell_selected].spell );
     do_cast( ch, argument );
     return TRUE;
 }
@@ -607,6 +654,13 @@ bool spec_cast_judge( CHAR_DATA *ch )
 
 bool spec_cast_mage( CHAR_DATA *ch )
 {
+    return spec_cast_any( ch );
+}
+
+bool spec_cast_draconic( CHAR_DATA *ch )
+{
+    if ( ch->wait > 0 )
+        return FALSE;
     return spec_cast_any( ch );
 }
 
@@ -918,7 +972,7 @@ bool spec_poison( CHAR_DATA *ch )
     act( "You bite $N!",  ch, NULL, victim, TO_CHAR    );
     act( "$n bites $N!",  ch, NULL, victim, TO_NOTVICT );
     act( "$n bites you!", ch, NULL, victim, TO_VICT    );
-    spell_poison( gsn_poison, ch->level, ch, victim,TARGET_CHAR);
+    spell_poison( gsn_poison, ch->level, ch, victim, TARGET_CHAR, FALSE );
     return TRUE;
 }
 

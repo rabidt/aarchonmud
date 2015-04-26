@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "merc.h"
@@ -39,8 +40,6 @@
 DECLARE_DO_FUN(do_open  );
 DECLARE_DO_FUN(do_say   );
 
-void bcopy(register char *s1,register char *s2,int len);
-void bzero(register char *sp,int len);
 void do_hunt_relic( CHAR_DATA *ch );
 
 
@@ -423,7 +422,7 @@ bool is_wilderness( int sector )
     */
 }
 
-void do_hunt( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hunt)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
@@ -459,13 +458,17 @@ void do_hunt( CHAR_DATA *ch, char *argument )
     /* invisible victims leave tracks as well */
     ignore_invisible = TRUE;
 
-    victim = get_char_area( ch, arg );
-    if ( !victim )
-        victim = get_char_world( ch, arg );
+    victim = get_char_world( ch, arg );
     
     if ( victim == NULL || !can_locate(ch, victim) )
     {
         send_to_char("No-one around by that name.\n\r", ch );
+        return;
+    }
+
+    if ( !is_room_ingame(victim->in_room) && is_room_ingame(ch->in_room))
+    {
+        send_to_char("No-one around by that name.\n\r", ch);
         return;
     }
     
@@ -568,10 +571,10 @@ void do_hunt( CHAR_DATA *ch, char *argument )
             if (number_percent () < (chance/4))
             {
                 send_to_char("Someone is hunting you down.\n\r", victim);
-                check_improve(victim, gsn_elude, TRUE, 8);
+                check_improve(victim, gsn_elude, TRUE, 3);
             }
         }
-        else check_improve(victim, gsn_elude, FALSE, 8);
+        else check_improve(victim, gsn_elude, FALSE, 3);
     }
     
    /*
@@ -651,12 +654,12 @@ void do_hunt_relic( CHAR_DATA *ch )
 }
 
 /* 'hunts' for a room */
-void do_scout( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_scout)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_STRING_LENGTH];
     ROOM_INDEX_DATA *target;
-    int direction, chance;
+    int direction;
     int skill, sn;
     
     /*one_argument( argument, arg );*/
@@ -775,8 +778,7 @@ void do_scout( CHAR_DATA *ch, char *argument )
 void hunt_victim( CHAR_DATA *ch )
 {
     int       dir, chance;
-    bool      found;
-    CHAR_DATA *tmp;
+    bool      found = FALSE;
     CHAR_DATA *victim;
 
     if( ch == NULL || ch->hunting == NULL || !IS_NPC(ch) || IS_AFFECTED(ch, AFF_CHARM))
@@ -785,15 +787,17 @@ void hunt_victim( CHAR_DATA *ch )
    /*
     * Make sure the victim still exists.
     */
-    for( found = 0, tmp = char_list; tmp; tmp = tmp->next )
-        if (!str_cmp(ch->hunting, tmp->name))
-	{
-            found = 1;
-	    break;
-	}
+    for( victim = char_list; victim != NULL; victim = victim->next )
+    {
+        if ( victim->must_extract || victim->in_room == NULL )
+            continue;
+        if ( !str_cmp(ch->hunting, victim->name) )
+        {
+            found = TRUE;
+            break;
+        }
+    }
 
-    victim = tmp;
-        
     ignore_invisible = TRUE;
     if ( !found || !can_see( ch, victim ))
     {
@@ -816,12 +820,18 @@ void hunt_victim( CHAR_DATA *ch )
 	    return;
 	}
 
-	act( "$n glares at $N and says, 'Ye shall DIE!'",
-	     ch, NULL, victim, TO_NOTVICT );
-	act( "$n glares at you and says, 'Ye shall DIE!'",
-	     ch, NULL, victim, TO_VICT );
-	act( "You glare at $N and say, 'Ye shall DIE!",
-	     ch, NULL, victim, TO_CHAR);
+        if ( IS_SET(ch->form, FORM_SENTIENT) )
+        {
+            act( "$n glares at $N and says, 'Ye shall DIE!'", ch, NULL, victim, TO_NOTVICT );
+            act( "$n glares at you and says, 'Ye shall DIE!'", ch, NULL, victim, TO_VICT );
+            act( "You glare at $N and say, 'Ye shall DIE!", ch, NULL, victim, TO_CHAR);
+        }
+        else
+        {
+            act( "$n growls at $N and attacks!'", ch, NULL, victim, TO_NOTVICT );
+            act( "$n growls at you and attacks!'", ch, NULL, victim, TO_VICT );
+            act( "You growl at $N and attack!", ch, NULL, victim, TO_CHAR);
+        }
 	multi_hit( ch, victim, TYPE_UNDEFINED );
 	stop_hunting(ch);
 	return;
@@ -861,10 +871,10 @@ void hunt_victim( CHAR_DATA *ch )
             if (number_percent () < (eludeskill/4))
             {
                 send_to_char("Someone is hunting you down.\n\r", victim);
-                check_improve(victim, gsn_elude, TRUE, 10);
+                check_improve(victim, gsn_elude, TRUE, 3);
             }
         }
-        else check_improve(victim, gsn_elude, FALSE, 10);
+        else check_improve(victim, gsn_elude, FALSE, 3);
     }
     
     /*
@@ -891,7 +901,7 @@ void hunt_victim( CHAR_DATA *ch )
     return;
 }
 
-void do_stalk( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stalk)
 {
     if ( IS_NPC(ch) )
         return;

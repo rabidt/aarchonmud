@@ -23,12 +23,15 @@ void bread_tattoos( RBUFFER *rbuf, tattoo_list tl );
 /***************************** tattoo_data ***************************/
 
 bool is_tattoo_loc( int loc );
-char* tattoo_desc( int ID );
+const char* tattoo_desc( int ID );
 int tattoo_cost( int ID );
-int tattoo_id( char *name );
+int tattoo_id( const char *name );
+int tattoo_bonus_ID( CHAR_DATA *ch, int loc );
 
 /***************************** general *******************************/ 
 
+float tattoo_bonus_factor( float level );
+float get_obj_tattoo_level( int obj_level, int level );
 void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool drop, bool basic );
 void tattoo_modify_level( CHAR_DATA *ch, int old_level, int new_level );
 void tattoo_modify_reset( CHAR_DATA *ch );
@@ -37,7 +40,7 @@ float get_tattoo_level( CHAR_DATA *ch, int loc, int level );
 
 /***************************** do_functions **************************/
 
-void do_tattoo( CHAR_DATA *ch, char *argument );
+DECLARE_DO_FUN(do_tattoo);
 
 #endif
 
