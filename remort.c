@@ -471,7 +471,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     affect_strip( ch, gsn_god_curse );
     die_follower(ch, FALSE);
     
-    i->limit += 259200;
+    i->limit = current_time + 259200;
     
     remort_update();
 }
