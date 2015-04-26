@@ -2559,6 +2559,12 @@ REDIT( redit_delete )
         }
     }
 
+    if (is_being_edited(pRoom))
+    {
+        send_to_char( "Can't delete room, it is being edited.\n\r", ch );
+        return FALSE;
+    }
+
     /* if we're here, it's ok to delete */
     int iHash=vnum % MAX_KEY_HASH;
 
@@ -4554,6 +4560,12 @@ OEDIT( oedit_delete )
         }
     }
 
+    if (is_being_edited(pObj))
+    {
+        send_to_char( "Can't delete obj, it is being edited.\n\r", ch );
+        return FALSE;
+    }
+
     /* got here means we're good to delete */
     iHash=value % MAX_KEY_HASH;
 
@@ -5524,6 +5536,12 @@ MEDIT( medit_delete )
             send_to_char( "MEdit:  Can't delete, instances exist.\n\r", ch );
             return FALSE;
         }
+    }
+
+    if (is_being_edited(pMob))
+    {
+        send_to_char( "Can't delete mob, it is being edited.\n\r", ch );
+        return FALSE;
     }
 
     /* got here means we're good to delete */
