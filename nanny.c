@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "merc.h"
 #include "recycle.h"
@@ -23,16 +24,17 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_skills    );
 DECLARE_DO_FUN(do_outfit    );
 DECLARE_DO_FUN(do_unread    );
+DECLARE_DO_FUN(do_stats     );
+DECLARE_DO_FUN(do_etls      );
+DECLARE_DO_FUN(do_board     );
+DECLARE_DO_FUN(do_showrace  );
+DECLARE_DO_FUN(do_showsubclass);
+DECLARE_DO_FUN(do_cmotd     );
 
 extern bool            wizlock;        /* Game is wizlocked        */
 extern bool            newlock;        /* Game is newlocked        */
 
-bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
-					bool fConn ) );
-bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
-bool check_parse_name( char *name, bool newchar );
 void show_races_to_d( DESCRIPTOR_DATA *d );
-
 void enter_game args((DESCRIPTOR_DATA *d));
 void take_rom_basics args((DESCRIPTOR_DATA *d));
 void take_class_defaults args((DESCRIPTOR_DATA *d));
@@ -40,48 +42,35 @@ void take_default_weapon args((DESCRIPTOR_DATA *d));
 void newbie_alert args((DESCRIPTOR_DATA *d));
 void take_default_stats args((CHAR_DATA *ch));
 void auto_assign_stats args((CHAR_DATA *ch));
-bool parse_roll_stats args((CHAR_DATA *ch,char *argument));
-void do_stats args((CHAR_DATA *ch, char *argument));
-void do_etls args((CHAR_DATA *ch, char *argument));
+void skill_reimburse( CHAR_DATA *ch );
 
-bool	get_name			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_old_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	confirm_new_name		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_password		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	confirm_new_password	args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_race		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_sex			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_new_class		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_alignment		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	default_choice		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	gen_groups			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	pick_weapon			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	read_imotd			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	read_motd			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	break_connect		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	get_creation_mode		args( ( DESCRIPTOR_DATA *d, char *argument ) );
-bool	roll_stats			args( ( DESCRIPTOR_DATA *d, char *argument ) );
-/* It would be nice to have colour in creation!!  Added by Quirky, June 2003 */
-bool	get_colour		args( ( DESCRIPTOR_DATA *d, char *argument ) );
+#define DECLARE_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
+#define DEF_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
 
-void  handle_con_note_to      args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_subject args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_expire  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_text    args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  handle_con_note_finish  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  do_board args( (CHAR_DATA *ch, char *argument) );
-
-void  penalty_severity  args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_confirm   args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_hours     args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_points    args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_penlist   args( (DESCRIPTOR_DATA *d, char * argument ) );
-void  penalty_finish    args( (DESCRIPTOR_DATA *d, char * argument ) );
+DECLARE_NANNY_FUN(get_name);
+DECLARE_NANNY_FUN(get_old_password);
+DECLARE_NANNY_FUN(confirm_new_name);
+DECLARE_NANNY_FUN(get_new_password);
+DECLARE_NANNY_FUN(confirm_new_password);
+DECLARE_NANNY_FUN(get_new_race);
+DECLARE_NANNY_FUN(get_new_sex);
+DECLARE_NANNY_FUN(get_new_class);
+DECLARE_NANNY_FUN(get_new_subclass);
+DECLARE_NANNY_FUN(get_alignment);
+DECLARE_NANNY_FUN(default_choice);
+DECLARE_NANNY_FUN(gen_groups);
+DECLARE_NANNY_FUN(pick_weapon);
+DECLARE_NANNY_FUN(read_imotd);
+DECLARE_NANNY_FUN(read_motd);
+DECLARE_NANNY_FUN(break_connect);
+DECLARE_NANNY_FUN(get_creation_mode);
+DECLARE_NANNY_FUN(roll_stats);
+DECLARE_NANNY_FUN(get_colour);
 
 /*
  * Deal with sockets that haven't logged in yet.
  */
-void nanny( DESCRIPTOR_DATA *d, char *argument )
+void nanny( DESCRIPTOR_DATA *d, const char *argument )
 {
       /* Delete leading spaces UNLESS character is writing a note */
       if (d->connected != CON_NOTE_TEXT)
@@ -197,6 +186,10 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 	    case CON_PENALTY_FINISH:
 		penalty_finish(d, argument);
 		break;
+
+        case CON_LUA_HANDLER:
+        lua_con_handler(d, argument);
+        break;
 	    }	
 	    break;
 	    
@@ -290,6 +283,10 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 		    close_socket( d );
 		    return;
 		    
+        case CON_GET_NEW_SUBCLASS:
+            if (get_new_subclass(d, argument)) get_new_race(d, argument);
+            break;
+            
 		case CON_GET_NEW_RACE:
 		    if (get_new_race(d, argument)) roll_stats(d, argument);
 		    break;
@@ -309,8 +306,18 @@ void nanny( DESCRIPTOR_DATA *d, char *argument )
 	return;
 }
 
-
-bool is_reserved_name( char *name )
+// password check that handles pwd = "" and similar cases correctly
+bool check_password( const char *argument, const char *pwd )
+{
+    if ( !pwd || !strcmp(pwd, "") )
+        return TRUE;
+    if ( !argument )
+        return FALSE;
+    const char *encrypted = crypt(argument, pwd);
+    return encrypted && (strcmp(encrypted, pwd) == 0);
+}
+    
+bool is_reserved_name( const char *name )
 {
   RESERVED_DATA *res;
   
@@ -325,7 +332,7 @@ bool is_reserved_name( char *name )
 /*
  * Parse a name for acceptability.
  */
-bool check_parse_name( char *name, bool newchar )
+bool check_parse_name( const char *name, bool newchar )
 {
     char strsave[MAX_INPUT_LENGTH];
 
@@ -356,7 +363,7 @@ bool check_parse_name( char *name, bool newchar )
     * Lock out IllIll twits.
     */
     {
-        char *pc;
+        const char *pc;
         bool fIll,adjcaps = FALSE,cleancaps = FALSE;
         unsigned int total_caps = 0;
         
@@ -438,10 +445,9 @@ void set_creation_state(DESCRIPTOR_DATA *d, int cmode)
     return;
 }
 
-
-bool get_name ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_name)
 {
-    char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH], argbuf[MIL];
     bool fOld;
     
     if (con_state(d)!=CON_GET_NAME)
@@ -457,12 +463,22 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
         return FALSE;
     }
     
-    argument[0] = UPPER(argument[0]);
+    //argument[0] = UPPER(argument[0]);
+    strcpy(argbuf, argument);
+    argbuf[0] = UPPER(argument[0]);
+    argument = argbuf;
 
-    fOld = load_char_obj( d, argument );
+    fOld = load_char_obj( d, argument, FALSE );
     if ( !check_parse_name( argument, (bool)(!fOld) ) )
     {
         write_to_buffer( d, "Illegal name, try another.\n\rName: ", 0 );
+        /* load_char_obj can load "default" char, so we should free
+           it if so */
+        if (d->character)
+        {
+            free_char(d->character);
+            d->character=NULL;
+        }
         return FALSE;
     }
     
@@ -529,7 +545,7 @@ bool get_name ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_old_password)
 {
 	CHAR_DATA *ch = d->character;
 	char buf[MAX_STRING_LENGTH];
@@ -546,7 +562,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 	else
 	{
 		write_to_buffer( d, "\n\r", 2 );
-		if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ))
+        if ( !check_password(argument, ch->pcdata->pwd) )
 		{
 			write_to_buffer( d, "Wrong Password.\n\r", 0 );
 			close_socket( d );
@@ -573,7 +589,7 @@ bool	get_old_password ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	confirm_new_name ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(confirm_new_name)
 {
 	char buf[MAX_STRING_LENGTH];
 
@@ -606,7 +622,7 @@ bool	confirm_new_name ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_password)
 {
 	char *pwdnew;
 	char *p;
@@ -654,7 +670,7 @@ bool	get_new_password ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(confirm_new_password)
 {
 	CHAR_DATA *ch=d->character;
 
@@ -667,7 +683,7 @@ bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
 
 	write_to_buffer( d, "\n\r", 2 );
 
-	if ( strcmp( crypt( argument, ch->pcdata->pwd ), ch->pcdata->pwd ) )
+    if ( !check_password(argument, ch->pcdata->pwd) )
 	{
 		write_to_buffer( d, "Passwords don't match, please retype it.\n\r", 0 );
 		return (get_new_password(d, argument));
@@ -679,7 +695,7 @@ bool	confirm_new_password ( DESCRIPTOR_DATA *d, char *argument )
 }
 
 
-bool get_colour( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_colour)
 {
 	CHAR_DATA *ch = d->character;
 
@@ -703,7 +719,7 @@ bool get_colour( DESCRIPTOR_DATA *d, char *argument )
 	return FALSE;
 }
 
-bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
+DEF_NANNY_FUN(get_creation_mode)
 {
 	char arg[MAX_STRING_LENGTH];
 	char msg[MAX_STRING_LENGTH];
@@ -756,7 +772,7 @@ bool get_creation_mode(DESCRIPTOR_DATA *d, char *argument)
 
 
 
-bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_race)
 {
     char arg[MAX_STRING_LENGTH];
     CHAR_DATA *ch = d->character;
@@ -764,8 +780,6 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     char msg[MAX_STRING_LENGTH];
     char buffer[MAX_STRING_LENGTH*2];
     char *pbuff; 
-    char colour;
-    char racename[15];
     
     if (con_state(d) != CON_GET_NEW_RACE)
     {
@@ -901,7 +915,6 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     }
 
     ch->race = race;
-    sprintf( racename, pc_race_table[race].name );
 
     /* strip affects */
     while ( ch->affected )
@@ -925,10 +938,8 @@ bool get_new_race ( DESCRIPTOR_DATA *d, char *argument )
     ch->pcdata->points =0;
     ch->size = pc_race_table[race].size;
     
-    sprintf( msg, "\n\r     {cFor your first incarnation, you have chosen to be a%s %s.{x\n\r\n\r",
-	(racename[0]=='a'||racename[0]=='e'||racename[0]=='i'
-	 ||racename[0]=='o'||racename[0]=='u'||racename[0]=='y') ? "n" : "",
-	racename ); 
+    sprintf( msg, "\n\r     {cFor your first incarnation, you have chosen to be %s %s.{x\n\r\n\r",
+        aan(pc_race_table[race].name), pc_race_table[race].name );
     pbuff = buffer;
     colourconv( pbuff, msg, d->character );
     write_to_buffer(d, buffer, 0);
@@ -980,7 +991,7 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 }
 
 
-bool	get_new_sex ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_sex)
 {
 	CHAR_DATA *ch = d->character;
 	char msg[MAX_STRING_LENGTH];
@@ -1021,14 +1032,13 @@ bool	get_new_sex ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_class)
 {
 	int i;
 	char buf[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH];
 	char *pbuff;
 	char arg[MAX_STRING_LENGTH];
-	char classname[20];
 	CHAR_DATA *ch = d->character;
 
 	if (con_state(d)!=CON_GET_NEW_CLASS)
@@ -1166,29 +1176,98 @@ bool	get_new_class ( DESCRIPTOR_DATA *d, char *argument )
 	}
 
 	ch->class = i;
-	sprintf( classname, class_table[i].name );
 
-	sprintf( buf, "\n\r     {cYou have chosen to be a%s %s.{x\n\r\n\r",
-	    (classname[0]=='a'||classname[0]=='e'||classname[0]=='i'
-	     || classname[0]=='o'||classname[0]=='u'||classname[0]=='y') ? "n" : "",
-	     classname ); 
-	    pbuff = buffer;
-	    colourconv( pbuff, buf, d->character );
-	    write_to_buffer(d, buffer, 0);
+    sprintf( buf, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
+    pbuff = buffer;
+    colourconv( pbuff, buf, d->character );
+    write_to_buffer(d, buffer, 0);
 
 	return TRUE;
 }
 
 
+static int nanny_show_subclasses( CHAR_DATA *ch )
+{
+    int sc;
+    int count = 0;
+    
+    ptc(ch, "The following subclasses are available:\n\r[{W");
+    for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+    {
+        if ( can_take_subclass(ch->class, sc) )
+        {
+            ptc(ch, " %s", subclass_table[sc].name);
+            count++;
+        }
+    }
+    ptc(ch, "{x ]\n\r{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+    return count;
+}
 
-bool	get_alignment ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(get_new_subclass)
+{
+    int sc;
+    char arg[MAX_STRING_LENGTH];
+    CHAR_DATA *ch = d->character;
+
+    if ( con_state(d) != CON_GET_NEW_SUBCLASS )
+    {
+        ptc(ch, "\n\r");
+        do_help(ch, "subclasses");
+        nanny_show_subclasses(ch);
+
+        set_con_state(d, CON_GET_NEW_SUBCLASS);
+        return FALSE;
+    }
+
+    argument = one_argument(argument, arg);
+    
+    if ( !strcmp(arg, "help") )
+    {
+        if ( argument[0] == '\0' )
+            do_help(ch, "subclasses");
+        else
+            do_showsubclass(ch, argument);
+        ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+        return FALSE;
+    }
+    
+    sc = subclass_lookup(arg);
+
+    if ( sc == 0 )
+    {
+        if ( arg[0] )
+            ptc(ch, "That's not a subclass.\n\r");
+        int count = nanny_show_subclasses(ch);
+        // safety-net
+        if ( count == 0 )
+        {
+            ptc(ch, "\n\r{RNo subclasses available. Moving on.{x\n\r");
+            return TRUE;
+        }
+        return FALSE;
+    }
+    if ( !can_take_subclass(ch->class, sc) )
+    {
+        ptc(ch, "You do not qualify for that subclass.\n\r");
+        nanny_show_subclasses(ch);
+        return FALSE;
+    }
+
+    ch->pcdata->subclass = sc;
+    ptc(ch, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(subclass_table[sc].name), subclass_table[sc].name);
+    
+    return TRUE;
+}
+
+
+DEF_NANNY_FUN(get_alignment)
 {
 	CHAR_DATA *ch=d->character;
     char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2]="";
 	char *pbuff; 
 	char arg[MAX_STRING_LENGTH];
-        int align;
 
 	if (con_state(d)!= CON_GET_ALIGNMENT)
 	{
@@ -1289,9 +1368,7 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 {
 	CHAR_DATA *ch=d->character;
 
-	group_add(ch,"rom basics",FALSE);
 	group_add(ch,class_table[ch->class].base_group,FALSE);
-	ch->pcdata->learned[gsn_recall] = 50;
 	
 	return;
 }	
@@ -1356,7 +1433,7 @@ void newbie_alert(DESCRIPTOR_DATA *d)
 }
 
 
-bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(default_choice)
 {
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
@@ -1384,7 +1461,7 @@ bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
 		take_class_defaults(d); 
 		return TRUE;
 	default:
-		sprintf(msg,"{CPlease answer yes/no (Y/N)?{x ",0);
+		sprintf(msg, "{CPlease answer yes/no (Y/N)?{x ");
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character ); 
 		write_to_buffer(d, buffer ,0);
@@ -1397,7 +1474,7 @@ bool	default_choice ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(gen_groups)
 {
 	CHAR_DATA *ch=d->character;
 	char buf[MAX_STRING_LENGTH];
@@ -1406,7 +1483,7 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 	{
 		ch->gen_data = new_gen_data();
 		ch->gen_data->points_chosen = ch->pcdata->points;
-		do_help(ch,"header group");
+		do_help(ch,"header group list");
 		list_group_costs(ch);
         //write_to_buffer(d,"You already have the following skills:\n\r",0);
         //do_skills(ch,"");
@@ -1437,12 +1514,11 @@ bool	gen_groups ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(pick_weapon)
 {
 	int w, weapon;
 	CHAR_DATA *ch=d->character;
 	char msg[MAX_STRING_LENGTH];
-	char tmp[10];
 	char buffer[MAX_STRING_LENGTH*2];
         char *pbuff;    /* pointer to buff */
 
@@ -1542,7 +1618,7 @@ bool	pick_weapon ( DESCRIPTOR_DATA *d, char *argument )
 	return TRUE;
 }
 
-bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(roll_stats)
 {
 	CHAR_DATA *ch=d->character;
 
@@ -1590,7 +1666,7 @@ bool roll_stats ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	read_imotd ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(read_imotd)
 {
     if (!is_granted_name(d->character,"imotd"))
 		return read_motd(d, argument);
@@ -1608,7 +1684,7 @@ bool	read_imotd ( DESCRIPTOR_DATA *d, char *argument )
 
 
 
-bool	read_motd ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(read_motd)
 {
 	if (con_state(d) != CON_READ_MOTD)
 	{
@@ -1621,7 +1697,7 @@ bool	read_motd ( DESCRIPTOR_DATA *d, char *argument )
 }
 
 
-bool	break_connect ( DESCRIPTOR_DATA *d, char *argument )
+DEF_NANNY_FUN(break_connect)
 {
 	DESCRIPTOR_DATA *d_old, *d_next;
 
@@ -1677,13 +1753,16 @@ bool	break_connect ( DESCRIPTOR_DATA *d, char *argument )
 /*
  * Look for link-dead player to reconnect.
  */
-bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
+bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH];
     
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
+        if ( ch->must_extract )
+            continue;
+        
         if ( !IS_NPC(ch)
             &&   (!fConn || ch->desc == NULL)
             &&   !str_cmp( d->character->name, ch->name ) )
@@ -1742,7 +1821,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, char *name, bool fConn )
 /*
  * Check if already playing.
  */
-bool check_playing( DESCRIPTOR_DATA *d, char *name )
+bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 {
 	DESCRIPTOR_DATA *dold;
 
@@ -1770,27 +1849,37 @@ struct quote_type
 
 const struct quote_type quote_table[MAX_QUOTES] =
 {
-    { "{WYou will move slower when encumbered (Carrying too much weight).{x\n\r"                            }, /* 1 */
+    { "{WYou will move and regenerate slower while encumbered (carrying too much weight).{x\n\r"            }, /* 1 */
     { "{WMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },
-    { "{WBeing affected by 'Fly' will reduces the moves used moving from room to room.{x\n\r"               },
+    { "{WBeing affected by 'fly' reduces movement points used, and moves you faster between rooms.{x\n\r"   },
     { "{WThe lemonade fountain 2N from Palace Square (recall) will satisfy thirst and hunger.{x\n\r"        },
     { "{WDon't forget to eat and drink. Being hungry or thirsty reduces your regeneration rates.{x\n\r"     }, /* 5 */
-    { "{WYou can heal faster by sleeping or resting at the fireplace in the Inne of the Last Home.{x\n\r"   },
+    { "{WYou can heal faster by sleeping or resting at the Palace Square or The Temple.{x\n\r"              },
     { "{WBe sure to practice your new skills and spells after leveling up.{x\n\r"                           },
-    { "{WYou can earn a lot of extra gold by selling items that you don't need or have outgrown.{x\n\r"     },
+    { "{WYou can earn extra gold by selling items that you don't need or have outgrown.{x\n\r"              },
     { "{WDeposit your gold at the bank NW,W from Palace Square. It will stay safe in the bank.{x\n\r"       },
     { "{WLenny the banker can exchange your silver for gold. (give <amount> silver lenny).{x\n\r"           }, /* 10 */
     { "{WMost storage containers will reduce the effective weight of the items in your inventory.{x\n\r"    },
     { "{WType AUTOLIST to see what commands you can automate (such as looting corpses with autoloot.{x\n\r" },
     { "{WYou can automate a single combat command using ACTION. Read 'help action' for more info.{x\n\r"    },
-    { "{WRead 'help train' to find out why training DISCIPLINE is so important.{x\n\r"                      },
     { "{WThe CONSIDER command will give you a -rough- idea of how hard a fight may be.{x\n\r"               }, /* 15 */
     { "{WThere are maps available on our website of many areas. http://www.aarchonmud.com{x "               }, 
     { "{WThe Wandering Sages that roam Bastion will lore any item for you. Just hand it to them!{x\n\r"     },
     { "{WIf you lose your newbie guide, you can buy another one at Herman the Gnome (SE,E){x\n\r"           },
     { "{WTake time to explore. There are many mini-quests throughout Aarchon.{x\n\r"                        }, /* 20 */
-    { "{WField experience is EXP that you absorb over time. Read 'help field xp' for more info.{x\n\r"      },
+    { "{WField experience is EXP that you absorb over time. Read 'help field' for more info.{x\n\r"         },
     { "{WDid you know, that if you type '!' it will repeat the last command you typed?{x\n\r"               },
+    { "{WTyping '&' will clear your command queue. Useful for when you spam too many commands!{x\n\r"       },
+    { "{WVisit the mystic NW of recall for a free god blessing. Read 'help god bless' for more info.{x\n\r" },
+    { "{WThe 'finger' command allows you to look up detailed information about players.{x\n\r"              },
+    { "{WWant to try out another class? You don't need to delete. Just make a second character!{x\n\r"      },
+    { "{WThe donation pit 'down' from recall often contains items you can use or sell for extra gold.{x\n\r"},
+    { "{WMercy the Healer at The Temple can spell you up for a fee. Type 'spellup' in her room for a list.{x\n\r"},
+    { "{WType 'identify <item name>' at any shop to have the shopkeeper lore the item for a nominal fee.{x\n\r"},
+    { "{WUse the 'gag' command to disable extraneous combat messages.{x\n\r"                                },
+    { "{WYou can disable these automated tips by typing 'nohelp', or see more by typing 'tips'.{x\n\r"      },
+    { "{WFind lights, containers, food, and drink at Herman's shop, SE, E from recall.{x\n\r"               },
+    { "{WThe 'dirs' command or 'help dirs' will give you a list of directions to all areas in the game.{x\n\r"}
 };
 
 
@@ -1821,8 +1910,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 
 	write_to_buffer( d, "\n\rWelcome to Aarchon!  May your time here be pleasantly wasted.\n\r",	0 );
-	ch->next    = char_list;
-	char_list   = ch;
+    char_list_insert(ch);
 	d->connected    = CON_PLAYING;
       /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
@@ -1893,7 +1981,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 		bool found = FALSE;
 
 		for ( desc = descriptor_list; desc; desc = desc->next )
-		    if ( (desc->connected == CON_PLAYING || IS_WRITING_NOTE(desc->connected))
+		    if ( (IS_PLAYING(desc->connected) )
 			 && desc->character
 			 && IS_IMMORTAL(desc->character))
 			found = TRUE;
@@ -1947,7 +2035,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	    info_message_new(ch, buf, FALSE, FALSE);
 	}
     MXPSendTag( d, "<VERSION>" );
-
+    gui_login_setup( d->character );
 	/* Prevents pkillers from immediately attacking upon login.
 	   Will annoy people who use their alts to watch for targets! Q, Nov 2002 */
 	if ( ch->pcdata != NULL )
@@ -1989,22 +2077,20 @@ void enter_game ( DESCRIPTOR_DATA *d )
     morph_update( ch );
     check_spouse( ch );
 
-    /* fix for bug that caused players to lose a group */
-    {
-	int sn = skill_lookup( "sivas sacrifice" );
-	int gn = group_lookup( "sacred invocations" );
-	if ( sn > 0 && gn > 0 && ch->pcdata->learned[sn] > 0 )
-	    ch->pcdata->group_known[gn] = TRUE;
-    }
-
+    // reimburse players for lost skills
+    skill_reimburse(ch);
+    
     if ( is_clan(ch) )
         do_cmotd(ch, "");
 
     if ( IS_IMMORTAL(ch))
     {
         // Refresh imm commands.
-        do_login_grant(ch);
+        login_grant(ch);
     }
 
+    /* and finally, run connect triggers if any */
+    ap_connect_trigger(ch);
+    rp_connect_trigger(ch);
     return;
 }

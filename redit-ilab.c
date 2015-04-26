@@ -53,7 +53,6 @@ extern char * const where_name [];
 /* ROM 2.4 support - BC */
 RESET_DATA *new_reset_data( void);
 BUFFER *new_buf_size( int size );
-bool add_buf( BUFFER *buffer, char *string);
 void free_reset_data ( RESET_DATA *pReset );
 void free_buf( BUFFER *buffer );
 
@@ -64,38 +63,42 @@ void free_buf( BUFFER *buffer );
 
 struct wear_location
 {
-	int wear_bits; /* the ITEM_ bit set in the item */
-	int wear_loc1; /* where is this worn */
-	int wear_loc2; /* WEAR_NONE or secondary location (i.e. left ring-finger) */
+   int wear_loc; /* where is this worn */
+   int item_wear_bit; /* required ITEM_WEAR_ bit set in the item */
 };
- 
+
 const struct wear_location wear_locations [] =
 {
-/* Item_flag       prim loc         sec loc or WEAR_NONE */
-/*	{ITEM_LIGHT,    	WEAR_LIGHT,     WEAR_NONE}, */
-        {ITEM_WEAR_FINGER,      WEAR_FINGER_L,  WEAR_FINGER_R},
-	{ITEM_WEAR_NECK, 	WEAR_NECK_1, 	WEAR_NECK_2},
-        {ITEM_WEAR_TORSO,       WEAR_TORSO,     WEAR_NONE},
-        {ITEM_WEAR_HEAD,        WEAR_HEAD,      WEAR_NONE},
-        {ITEM_WEAR_LEGS,        WEAR_LEGS,      WEAR_NONE},
-        {ITEM_WEAR_FEET,        WEAR_FEET,      WEAR_NONE},
-	{ITEM_WEAR_HANDS, 	WEAR_HANDS, 	WEAR_NONE},
-        {ITEM_WEAR_ARMS,        WEAR_ARMS,      WEAR_NONE},
-	{ITEM_WEAR_SHIELD, 	WEAR_SHIELD, 	WEAR_NONE},
-	{ITEM_WEAR_ABOUT, 	WEAR_ABOUT, 	WEAR_NONE},
-	{ITEM_WEAR_WAIST, 	WEAR_WAIST, 	WEAR_NONE},
-	{ITEM_WEAR_WRIST, 	WEAR_WRIST_L, 	WEAR_WRIST_R},
-        {ITEM_WIELD,            WEAR_WIELD,     WEAR_SECONDARY},
-        {ITEM_HOLD,             WEAR_HOLD,      WEAR_NONE},
-
-	/* Some extra wear locations. Yours are probably different */
-
-        {ITEM_WEAR_FLOAT,       WEAR_FLOAT,         WEAR_NONE}
-	
-	
-/* insert extra locations here */	
-
+    { WEAR_FINGER_L,    ITEM_WEAR_FINGER },
+    { WEAR_NECK_1,      ITEM_WEAR_NECK },
+    { WEAR_NECK_2,      ITEM_WEAR_NECK },
+    { WEAR_TORSO,       ITEM_WEAR_TORSO },
+    { WEAR_HEAD,        ITEM_WEAR_FINGER },
+    { WEAR_LEGS,        ITEM_WEAR_LEGS },
+    { WEAR_FEET,        ITEM_WEAR_FEET },
+    { WEAR_HANDS,       ITEM_WEAR_HANDS },
+    { WEAR_ARMS,        ITEM_WEAR_ARMS },
+    { WEAR_SHIELD,      ITEM_WEAR_SHIELD },
+    { WEAR_ABOUT,       ITEM_WEAR_ABOUT },
+    { WEAR_WAIST,       ITEM_WEAR_WAIST },
+    { WEAR_WRIST_L,     ITEM_WEAR_WRIST },
+    { WEAR_WRIST_R,     ITEM_WEAR_WRIST },
+    { WEAR_WIELD,       ITEM_WIELD },
+    { WEAR_SECONDARY,   ITEM_WIELD },
+    { WEAR_HOLD,        ITEM_HOLD },
+    { WEAR_FLOAT,       ITEM_WEAR_FLOAT }
 };
+
+// computes suitable WEAR_ location based on ITEM_WEAR_ flags
+// returns number of WEAR_ locations written into wear
+int get_wear_locs( const tflag item_wear_flags, int *wear_locs )
+{
+    int i, count = 0;
+    for ( i = 0; i <= MAX_WEAR_LOCATIONS; i++ )
+        if ( flag_is_set(item_wear_flags, wear_locations[i].item_wear_bit) )
+            wear_locs[count++] = wear_locations[i].wear_loc;
+    return count;
+}
 
 /*
  * MEMORY MANAGEMENT
@@ -162,7 +165,7 @@ static void redit_add_reset (ROOM_INDEX_DATA *pRoom, RESET_DATA *pReset)
 }
 
 /* Parses a door state and returns a number, or -1 if state is invalid */
-static int parse_door_state (char* state)
+static int parse_door_state (const char *state)
 {
 	if (!str_cmp(state, "open"))
 		return 0;
@@ -319,13 +322,14 @@ static int reset_level (ROOM_INDEX_DATA *pRoom, RESET_DATA *pReset)
 			mob = get_mob_index (p->arg1);
 
 	if (mob)
+    {
 		if (mob->pShop && (pReset->command == 'G' || pReset->command =='E')) /* level of items in shops varies */
 		{
 			return 0;
 		}
 		else
 			level = URANGE(0,mob->level - 2, LEVEL_HERO);
-		
+    }
 	return level;		
 }
 
@@ -502,7 +506,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'M': /* MOB */
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
-                char *sdesc=truncate_color_string( mob->short_descr, 35);
+        const char *sdesc = truncate_color_string(mob->short_descr, 35);
                 sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%ds  {x[%%s]",
                     35 + ( mob ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf( buf, buf2,
@@ -517,7 +521,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'O': /* Obj on the floor */
 	{
         OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
-        char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 
                 sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc)  - strlen_color(sdesc) : 0));
@@ -535,9 +539,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'P': /* Put inside */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
-		OBJ_INDEX_DATA *container = get_obj_index (pReset->arg3);
-		
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%ds {x(%%s)",
@@ -555,7 +557,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'G': /* Give to mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
@@ -571,7 +573,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	case 'E': /* Equip mob */
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
-                char *sdesc=truncate_color_string( obj->short_descr, 28);
+        const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%ds {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
@@ -635,7 +637,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 /*
  * Shows to the character what resets in this room.
  */
-void do_rlook (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rlook)
 {
 	char buf[200];
 	int number = 1;
@@ -699,7 +701,7 @@ void do_rlook (CHAR_DATA *ch, char *argument)
  * rmob <mob vnum|mob keyword> [limit]
  * Default limit is 1.
  */
-void do_rmob (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rmob)
 {
 	int vnum;
 	int count;
@@ -786,7 +788,7 @@ void do_rmob (CHAR_DATA *ch, char *argument)
  * Gives an item to a mob (G Reset)
  * rgive <mob-keyword> <item-vnum|item-keyword> [reboot|limit-number]
  */
-void do_rgive (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rgive)
 {
 	char mob_name[MAX_INPUT_LENGTH];
 	char obj_name[MAX_INPUT_LENGTH];
@@ -885,7 +887,7 @@ void do_rgive (CHAR_DATA *ch, char *argument)
 /*
  * Adds an E Reset to a mob
  */
-void do_rwear (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rwear)
 {
 	char mob_name[MAX_INPUT_LENGTH];
 	char obj_name[MAX_INPUT_LENGTH];
@@ -893,7 +895,7 @@ void do_rwear (CHAR_DATA *ch, char *argument)
 	RESET_DATA *p, *mob_reset;
 	OBJ_INDEX_DATA *obj;
 	MOB_INDEX_DATA *mob;
-	int obj_vnum,i,limit, wear_bits,wear_loc;
+	int obj_vnum,i,limit, wear_loc;
 	bool worn_table[MAX_WEAR];
 
 	if (!IS_BUILDER_HERE(ch))
@@ -989,11 +991,12 @@ void do_rwear (CHAR_DATA *ch, char *argument)
 	for (p = mob_reset->next ; p && (p->command != 'M'); p = p->next)
 		if (p->command == 'E')
 			if ((p->arg3 < MAX_WEAR) && (p->arg3 > 0))
+            {
 				if (worn_table[p->arg3]) /* give the luser some info */
 					send_to_char ("Warning: This mob is equipped in the same location more than once.\n\r",ch);
 				else					
 					worn_table[p->arg3] = TRUE;
-				
+            }
 	/* we now have a table filled with locations, TRUE denotes they are occupied */
 	
 	/* special case: light sources */
@@ -1002,62 +1005,34 @@ void do_rwear (CHAR_DATA *ch, char *argument)
 		send_to_char ("This mob already is equipped with a light source.\n\r",ch);
 		return;
 	}
-	
-	/* Find out the most significant wear_bit on the piece of ef EQ */
-	/* keep rightshifting wear_bits till they are 0, then left shift them back
-	   as many times as they were rightshifted, to only gain a single flag.
-	*/   
-	
-	for (i = 0,wear_bits = obj->wear_flags; wear_bits ; wear_bits >>= 1, i++);
-	wear_bits = 1 << (i-1);
 
 	if (obj->item_type == ITEM_LIGHT) /* lights are special */
 		wear_loc = WEAR_LIGHT;
 	else
 	{
-	
-    	if (wear_bits == ITEM_TAKE)
+        // find locations where eq could be equipped
+        int wear_locs[MAX_WEAR];
+        int wear_count = get_wear_locs(obj->wear_flags, wear_locs);
+        
+        if ( wear_count == 0 )
     	{
     		send_to_char ("This item can only be taken, not worn.\n\r",ch);
     		return;	
     	}
-    	
 
-    	/* Look through the table to find the struct that fits */
-
-    	for ( i = 0; i < MAX_WEAR_LOCATIONS; i++)
-    		if (wear_locations[i].wear_bits == wear_bits)
-    			break;
-    			
-    	if (i >= MAX_WEAR_LOCATIONS)
-    	{
-    		send_to_char ("The wear bits for this item are most likely corrupt.\n\r",ch);
-    		return;
-    	}
-    	
-    	/* we have a location now.. see if it is taken */
-    	
-    	if (worn_table[wear_locations[i].wear_loc1])
-    	{
- /*		send_to_char ("Primary location already used, checking secondary..\n\r",ch); */
-    		/* check alternative location */
-    		if (wear_locations[i].wear_loc2 != WEAR_NONE)
-    			if (!worn_table[wear_locations[i].wear_loc2])
-    				wear_loc = wear_locations[i].wear_loc2; /* not used */
-    			else
-    			{
-    				send_to_char ("The secondary location is used up, too.\n\r",ch);
-    				return;
-    			}
-    		else
-    		{
-    			send_to_char ("There is only one place you can wear this equipment, and that's already taken.\n\r",ch);
-    			return;
-    		}
-    			
-    	}
-    	else /* it is not worn there */
-    		wear_loc = wear_locations[i].wear_loc1;	
+        // search for an allowed wear location that's free
+        for ( i = 0; i < wear_count; i++ )
+            if ( !worn_table[wear_locs[i]] )
+            {
+                wear_loc = wear_locs[i];
+                break;
+            }
+            
+        if ( i >= wear_count )
+        {
+            send_to_char("All potential wear locations are already used up.\n\r", ch);
+            return;
+        }
     } /* ! item_light */
 		
 		
@@ -1099,7 +1074,7 @@ void do_rwear (CHAR_DATA *ch, char *argument)
  * if second argument is 0, the object is placed in front of the list, level
  * being 0.
  */
-void do_rdrop (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rdrop)
 {
 	OBJ_INDEX_DATA* obj;
 	char arg1[MAX_INPUT_LENGTH];
@@ -1266,7 +1241,7 @@ void do_rdrop (CHAR_DATA *ch, char *argument)
  * Adds a R Reset to the room
  * rrandom <1-6|"remove">
  */
-void do_rrandom (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rrandom)
 {
 	RESET_DATA *pReset;
 	int count;
@@ -1337,7 +1312,7 @@ void do_rrandom (CHAR_DATA *ch, char *argument)
 /*
  * Finds every reset in this area that involves something with the given keyword
  */
-void do_rwhere (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rwhere)
 {
 	RESET_DATA *p;
 	char buf[200];
@@ -1492,7 +1467,7 @@ void do_rwhere (CHAR_DATA *ch, char *argument)
  * those too.
  * CONFIRM just removes the item no matter what.
  */
-void do_rkill (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rkill)
 {
 	bool fAll = FALSE; /* set to remove recursively */
 	bool fConfirm = FALSE; /* set to confirm remove */
@@ -1521,6 +1496,7 @@ void do_rkill (CHAR_DATA *ch, char *argument)
 	argument = one_argument(argument,arg);
 
 	if (arg[0])
+    {
 		if (str_cmp(arg, "confirm"))
 		{
 			send_to_char ("Usage is RKILL <number of reset to remove> [\"confirm\" [\"all\"]]\n\r",ch);
@@ -1528,8 +1504,9 @@ void do_rkill (CHAR_DATA *ch, char *argument)
 		}	
 		else
 			fConfirm = TRUE;
-			
+    }
 	if (argument[0])
+    {
 		if (str_cmp(argument, "all"))
 		{
 			send_to_char ("Usage is RKILL <number of reset to remove> [\"confirm\" [\"all\"]]\n\r",ch);
@@ -1537,6 +1514,7 @@ void do_rkill (CHAR_DATA *ch, char *argument)
 		}
 		else
 			fAll = TRUE;
+    }
 			
 /* Now, find the particular reset... */
 
@@ -1570,11 +1548,12 @@ void do_rkill (CHAR_DATA *ch, char *argument)
 		}
 
    		if (p->command == 'M') 
+        {
     		if (p->arg3 == ch->in_room->vnum)
     			last_mob_here = TRUE;
     		else
     			last_mob_here = FALSE;
-    			
+        }
 		
 	} /* for */
 	
@@ -1705,7 +1684,7 @@ void do_rkill (CHAR_DATA *ch, char *argument)
  * Inserts a P Reset
  * rput <keyword|vnum of item> <keyword of container> [limit|"reboot"]
  */
-void do_rput (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rput)
 {
 	char item_name[MAX_INPUT_LENGTH];
 	char container_name[MAX_INPUT_LENGTH]; 
@@ -1864,7 +1843,7 @@ void do_rput (CHAR_DATA *ch, char *argument)
  * D <Direction> <open|close|lock|magicclose|magiclock|"remove">
  */
 
-void do_rdoor (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_rdoor)
 {
 	char dir_str[MAX_INPUT_LENGTH];
 	char buf[100];
@@ -1968,7 +1947,7 @@ void do_rdoor (CHAR_DATA *ch, char *argument)
  * Find every exit/container requiring this given key
  *  findlock <key-vnum|key-keyword>
  */
-void do_findlock (CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_findlock)
 {
 	OBJ_INDEX_DATA *obj, *container;
 	char buf [MAX_STRING_LENGTH];
@@ -2039,7 +2018,7 @@ void do_findlock (CHAR_DATA *ch, char *argument)
  * utility function : forces unconditional reset of all areas/current area
  */
 
-void do_rforce (CHAR_DATA *ch, char* argument)
+DEF_DO_FUN(do_rforce)
 {
     ROOM_INDEX_DATA *pRoomIndex;
     AREA_DATA *area;

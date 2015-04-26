@@ -39,10 +39,7 @@
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
-bool  in_pkill_battle args( ( CHAR_DATA *ch ) );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
-bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
-void morph_update( CHAR_DATA *ch );
 void check_bleed( CHAR_DATA *ch, int dir );
 
 
@@ -59,7 +56,7 @@ const   sh_int  rev_dir     []      =
 
 const   sh_int  movement_loss   [SECT_MAX]  =
 {
-   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6
+   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6, 4
 };
 
 bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
@@ -120,7 +117,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
     
         if ( to_room->clan )
         {
-            if ( ch->clan != to_room->clan )
+            if ( !IS_NPC(ch) && ch->clan != to_room->clan )
             {
                 if ( show )
                     printf_to_char(ch, "That area is for clan %s only.\n\r",
@@ -145,7 +142,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
 bool can_move_dir( CHAR_DATA *ch, int dir, bool show )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
-    EXIT_DATA *pexit = in_room->exit[dir];
+    EXIT_DATA *pexit = dir >= 0 ? in_room->exit[dir] : NULL;
     ROOM_INDEX_DATA *to_room = pexit ? pexit->u1.to_room : NULL;
     
     if ( !in_room 
@@ -185,7 +182,7 @@ int get_random_exit( CHAR_DATA *ch )
         return -1;
     
     for ( dir = 0; dir < MAX_DIR; dir++ )
-        if ( can_move[dir] = can_move_dir(ch, dir, FALSE) )
+        if ( (can_move[dir] = can_move_dir(ch, dir, FALSE)) )
             count++;
     
     if ( !count )
@@ -207,7 +204,7 @@ int get_random_exit( CHAR_DATA *ch )
 /*
 * Local functions.
 */
-int find_door   args( ( CHAR_DATA *ch, char *arg ) );
+int find_door( CHAR_DATA *ch, const char *arg );
 bool    has_key     args( ( CHAR_DATA *ch, int key ) );
 bool check_drown args((CHAR_DATA *ch));
 bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
@@ -253,7 +250,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             return ch->in_room == to_room ? door : -1;
         if ( !rp_exit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
-        if ( to_room && !ap_rexit_trigger(ch, to_room->area) )
+        if ( to_room && !ap_rexit_trigger(ch) )
             return ch->in_room == to_room ? door : -1;
         if ( to_room && !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
@@ -293,7 +290,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         return -1;
 
     // movement cost and lag
-    if ( !IS_NPC(ch) )
+    if ( !NPC_ACT(ch, ACT_OBJ) )
     {
         int move = ( movement_loss[UMIN(SECT_MAX-1, in_room->sector_type)] + movement_loss[UMIN(SECT_MAX-1, to_room->sector_type)] ) / 2;
 
@@ -315,10 +312,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             else if ( per_chance(get_skill(ch, gsn_climbing)) )
             {
                 move -= climb_cost;
-                check_improve(ch,gsn_climbing,TRUE,6);
+                check_improve(ch,gsn_climbing,TRUE,3);
             }
             else
-                check_improve(ch,gsn_climbing,FALSE,6);
+                check_improve(ch,gsn_climbing,FALSE,3);
         }
                     
         int waitpulse = 2 + move / 6;
@@ -368,6 +365,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         send_to_char( "You come out of hiding.\n\r", ch );
     }
    
+    int sneak_skill = (100 + get_skill(ch, gsn_sneak)) * (200 - get_heavy_armor_penalty(ch)) / 400;
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
         if ( !IS_AFFECTED(ch, AFF_SNEAK) )
@@ -378,7 +376,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             for ( fch = in_room->people; fch != NULL; fch = fch_next )
             {
                 fch_next = fch->next_in_room;
-                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                chance = sneak_skill - get_skill(fch, gsn_alertness) / 3;
                 if ( !per_chance(chance) )
                     act( buf, ch, NULL, fch, TO_VICT );
             }
@@ -405,7 +403,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             for ( fch = to_room->people; fch != NULL; fch = fch_next )
             {
                 fch_next = fch->next_in_room;
-                chance = get_skill(ch, gsn_sneak) - get_skill(fch, gsn_alertness) / 3;
+                chance = sneak_skill - get_skill(fch, gsn_alertness) / 3;
                 if ( !per_chance(chance) )
                     act( "$n has arrived.", ch, NULL, fch, TO_VICT );
                 }
@@ -447,13 +445,11 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
        ap_renter_trigger( ch );
        rp_enter_trigger( ch );
        op_greet_trigger( ch );
+       mp_greet_trigger( ch );
    }
 
    if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
        mp_percent_trigger( ch, NULL, NULL, 0, NULL, 0, TRIG_ENTRY );
-   if ( !IS_NPC( ch ) )
-       mp_greet_trigger( ch );
-
 
    /* mprog might have moved the char */
    if ( ch->in_room != to_room )
@@ -538,7 +534,10 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             && (!strcmp(fch->hunting, "all") || is_name(fch->hunting, ch->name)) )
         {
             check_improve(fch, gsn_ambush, TRUE, 2);
-            backstab_char( fch, ch );
+            if ( is_ranged_weapon(get_eq_char(fch, WEAR_WIELD)) )
+                snipe_char(fch, ch);
+            else
+                backstab_char(fch, ch);
             if ( fch->fighting == ch )
                 multi_hit(fch, ch, TYPE_UNDEFINED);
             return door;
@@ -599,13 +598,13 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     if ( !per_chance(chance) )
     {
         send_to_char("You paddle around and get nowhere.\n\r", ch);
-        check_improve(ch, gsn_swimming, FALSE, 2);
+        check_improve(ch, gsn_swimming, FALSE, 3);
         if ( inwater == SECT_UNDERWATER )
             check_drown(ch);
         return FALSE;
     }
     else
-        check_improve(ch, gsn_swimming, TRUE, 2);
+        check_improve(ch, gsn_swimming, TRUE, 3);
     
     if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
     {
@@ -626,7 +625,7 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     return TRUE;
 }
 
-void do_north( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_north)
 {
    move_char( ch, DIR_NORTH, FALSE );
    return;
@@ -634,7 +633,7 @@ void do_north( CHAR_DATA *ch, char *argument )
 
 
 
-void do_east( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_east)
 {
    move_char( ch, DIR_EAST, FALSE );
    return;
@@ -642,7 +641,7 @@ void do_east( CHAR_DATA *ch, char *argument )
 
 
 
-void do_south( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_south)
 {
    move_char( ch, DIR_SOUTH, FALSE );
    return;
@@ -650,7 +649,7 @@ void do_south( CHAR_DATA *ch, char *argument )
 
 
 
-void do_west( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_west)
 {
    move_char( ch, DIR_WEST, FALSE );
    return;
@@ -658,7 +657,7 @@ void do_west( CHAR_DATA *ch, char *argument )
 
 
 
-void do_up( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_up)
 {
    move_char( ch, DIR_UP, FALSE );
    return;
@@ -666,38 +665,38 @@ void do_up( CHAR_DATA *ch, char *argument )
 
 
 
-void do_down( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_down)
 {
    move_char( ch, DIR_DOWN, FALSE );
    return;
 }
 
-void do_northeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northeast)
 {
    move_char( ch, DIR_NORTHEAST, FALSE );
    return;
 }
 
-void do_southeast( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southeast)
 {
    move_char( ch, DIR_SOUTHEAST, FALSE );
    return;
 }
 
-void do_southwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_southwest)
 {
    move_char( ch, DIR_SOUTHWEST, FALSE );
    return;
 }
 
-void do_northwest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_northwest)
 {
    move_char( ch, DIR_NORTHWEST, FALSE );
    return;
 }
 
 
-int find_door( CHAR_DATA *ch, char *arg )
+int find_door( CHAR_DATA *ch, const char *arg )
 {
    EXIT_DATA *pexit;
    int door;
@@ -768,7 +767,7 @@ int find_door( CHAR_DATA *ch, char *arg )
 
 
 
-void do_open( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_open)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -895,7 +894,7 @@ void do_open( CHAR_DATA *ch, char *argument )
 
 
 
-void do_close( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_close)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -1029,7 +1028,7 @@ bool has_key( CHAR_DATA *ch, int key )
 
 
 
-void do_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_lock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1103,9 +1102,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 		 act("$n locks $p.",ch,obj,NULL,TO_ROOM);
 		 if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 		 {
-		    obj_from_char(key);
 		    act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 		    act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 		 }
 		 return;
 	  }
@@ -1130,9 +1129,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  act( "$n locks $p.", ch, obj, NULL, TO_ROOM );
 	  if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 	  {
-	    obj_from_char(key);
 	    act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 	    act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+        extract_obj(key);
 	  }
 	  
 	  return;
@@ -1165,9 +1164,9 @@ void do_lock( CHAR_DATA *ch, char *argument )
 	  act( "$n locks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
 	  if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 		{
-		obj_from_char(key);
 		act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 		act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+        extract_obj(key);
 		}
 	  
 	  /* lock the other side */
@@ -1184,7 +1183,7 @@ void do_lock( CHAR_DATA *ch, char *argument )
 
 
 
-void do_unlock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_unlock)
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *key;
@@ -1248,9 +1247,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 		act("$n unlocks $p.",ch,obj,NULL,TO_ROOM);
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 		
 		return;
@@ -1280,9 +1279,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  act( "$n unlocks $p.", ch, obj, NULL, TO_ROOM );
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 	  return;
    }
@@ -1316,9 +1315,9 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 	  act( "$n unlocks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
 		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
 			{
-            extract_obj(key);     
 			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
 			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+            extract_obj(key);
 			}
 	  /* unlock the other side */
 	  if ( ( to_room   = pexit->u1.to_room            ) != NULL
@@ -1334,7 +1333,7 @@ void do_unlock( CHAR_DATA *ch, char *argument )
 
 #define NLRETURN if ( number_percent() > chance ) \
                  { send_to_char("\n\r", ch); return; }
-void do_estimate( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_estimate)
 {
     char buf[MAX_STRING_LENGTH];
     char arg[MAX_INPUT_LENGTH];
@@ -1385,7 +1384,7 @@ void do_estimate( CHAR_DATA *ch, char *argument )
     WAIT_STATE(ch, skill_table[gsn_estimate].beats);
 
     /* do now so we can just return later */
-    check_improve(ch, gsn_estimate, TRUE, 1);
+    check_improve(ch, gsn_estimate, TRUE, 3);
 	
     /* some simple info */
     sprintf( buf, "%s is %s.\n\r", victim->short_descr, char_look_info(victim) );
@@ -1443,9 +1442,8 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 	     );
     send_to_char( buf, ch );
 
-    sprintf( buf, "Armor: pierce: %d  bash: %d  slash: %d  magic: %d\n\r",
-	     GET_AC(victim,AC_PIERCE), GET_AC(victim,AC_BASH),
-	     GET_AC(victim,AC_SLASH),  GET_AC(victim,AC_EXOTIC)
+    sprintf( buf, "Armor: %d\n\r",
+	     GET_AC(victim)
 	     );
     send_to_char(buf,ch);
 
@@ -1490,10 +1488,9 @@ void do_estimate( CHAR_DATA *ch, char *argument )
 }
 #undef NLRETURN
 
-void do_shoot_lock( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_shoot_lock)
 {
     char arg[MAX_INPUT_LENGTH];
-    CHAR_DATA *gch;
     OBJ_DATA *obj;
     int door;
     int skill;
@@ -1549,7 +1546,7 @@ void do_shoot_lock( CHAR_DATA *ch, char *argument )
         if ( !IS_NPC(ch) && number_percent() > skill )
         {
             send_to_char( "You miss the lock completely.\n\r", ch);
-	        check_improve(ch,gsn_shoot_lock,FALSE,2);
+	        check_improve(ch,gsn_shoot_lock,FALSE,1);
 	        return;
         }  
         
@@ -1580,7 +1577,7 @@ void do_shoot_lock( CHAR_DATA *ch, char *argument )
 	    REMOVE_BIT(pexit->exit_info, EX_LOCKED);
 	    send_to_char( "*BLAM!*\n\r", ch );
 	    act( "$n blows away the lock on the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-	    check_improve(ch,gsn_shoot_lock,TRUE,2);
+	    check_improve(ch,gsn_shoot_lock,TRUE,1);
 	  
 	    /* pick the other side */
 	    if ( ( to_room   = pexit->u1.to_room            ) != NULL
@@ -1593,7 +1590,7 @@ void do_shoot_lock( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_unjam(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_unjam)
 {
     OBJ_DATA *obj;
     int skill;
@@ -1649,14 +1646,14 @@ void do_unjam(CHAR_DATA *ch, char *argument)
 	REMOVE_BIT(obj->extra_flags,ITEM_JAMMED);
 	act("$n unjams $s weapon!",ch,obj,NULL,TO_ROOM);
 	act("You unjam $p.",ch,obj,NULL,TO_CHAR);
-	check_improve(ch,gsn_unjam,TRUE,4);
+	check_improve(ch,gsn_unjam,TRUE,2);
 	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
 	return;
     }
     else
     {
 	act("You fail to unjam $p.",ch,obj,NULL,TO_CHAR);
-	check_improve(ch,gsn_unjam,FALSE,4);
+	check_improve(ch,gsn_unjam,FALSE,2);
 	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
 	return;
     }
@@ -1666,7 +1663,7 @@ void do_unjam(CHAR_DATA *ch, char *argument)
     */
 }
 
-void do_set_snare ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_set_snare)
 {
 
     int chance;
@@ -1688,13 +1685,13 @@ void do_set_snare ( CHAR_DATA *ch, char *argument)
 		    send_to_char("You set up a snare.\n\r", ch);
 		    act("$n sets a snare.", ch, NULL, NULL, TO_ROOM);
 		    SET_BIT( in_room->room_flags, ROOM_SNARE );   
-		    check_improve(ch, gsn_set_snare, TRUE, 2); 
+		    check_improve(ch, gsn_set_snare, TRUE, 3); 
 		}
 	    
 	    else
 		{
 		    send_to_char("Your snare doesn't quite work.\n\r", ch);
-		    check_improve(ch, gsn_set_snare, FALSE, 2); 
+		    check_improve(ch, gsn_set_snare, FALSE, 3); 
 		}
 	    
 	}
@@ -1703,7 +1700,7 @@ void do_set_snare ( CHAR_DATA *ch, char *argument)
     return;
 }
 
-void do_peel ( CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_peel)
 {
 
     int chance;
@@ -1726,13 +1723,13 @@ void do_peel ( CHAR_DATA *ch, char *argument)
 		    act("$n drops a banana peel, hope nobody slips.", ch, NULL,
 			NULL, TO_ROOM);
 		    SET_BIT( in_room->room_flags, ROOM_PEEL );
-		    check_improve(ch, gsn_peel, TRUE, 2);
+		    check_improve(ch, gsn_peel, TRUE, 3);
                 }
 	    
 	    else
                 {
 		    send_to_char("The peel sticks to your hand.\n\r", ch);
-		    check_improve(ch, gsn_peel, FALSE, 2);
+		    check_improve(ch, gsn_peel, FALSE, 3);
                 }
 	    
 	}
@@ -1742,7 +1739,7 @@ void do_peel ( CHAR_DATA *ch, char *argument)
 }
 
 
-void do_pick( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_pick)
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
@@ -1755,6 +1752,14 @@ void do_pick( CHAR_DATA *ch, char *argument )
     if ( arg[0] == '\0' )
     {
         send_to_char( "Pick what?\n\r", ch );
+        return;
+    }
+
+    skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
+
+    if (skill == 0)
+    {
+        send_to_char("You don't know how to pick locks.\n\r", ch );
         return;
     }
     
@@ -1775,11 +1780,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
     if( !str_cmp(arg,"sw") )
         { do_pick(ch,"southwest"); return; }
     
-    WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
-    
-    
-    skill = get_skill(ch,gsn_pick_lock) * (ch->level + get_curr_stat(ch, STAT_DEX) + 200)/500;
-    
+   
     if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
     {
         /* portal stuff */
@@ -1789,7 +1790,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             /* look for guards */
             for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
             {
-                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
                 {
                     act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
                     return;
@@ -1838,14 +1839,16 @@ void do_pick( CHAR_DATA *ch, char *argument )
             if ( number_percent() > skill )
             {
                 send_to_char( "You failed.\n\r", ch);
-                check_improve(ch,gsn_pick_lock,FALSE,2);
+                check_improve(ch,gsn_pick_lock,FALSE,1);
+                WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
             
             I_REMOVE_BIT(obj->value[1],EX_LOCKED);
             act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
             act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-            check_improve(ch,gsn_pick_lock,TRUE,2);
+            check_improve(ch,gsn_pick_lock,TRUE,1);
+            WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
         
@@ -1854,7 +1857,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
             /* look for guards */
             for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
             {
-                if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+                if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
                 {
                     act( "$N is standing too close to the lock.", ch, NULL, gch, TO_CHAR );
                     return;
@@ -1884,7 +1887,8 @@ void do_pick( CHAR_DATA *ch, char *argument )
             if ( number_percent() > skill )
             {
                 send_to_char( "You failed.\n\r", ch);
-                check_improve(ch,gsn_pick_lock,FALSE,2);
+                check_improve(ch,gsn_pick_lock,FALSE,1);
+                WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
                 return;
             }
         }
@@ -1892,7 +1896,8 @@ void do_pick( CHAR_DATA *ch, char *argument )
         I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
         act("You pick the lock on $p.",ch,obj,NULL,TO_CHAR);
         act("$n picks the lock on $p.",ch,obj,NULL,TO_ROOM);
-        check_improve(ch,gsn_pick_lock,TRUE,2);
+        check_improve(ch,gsn_pick_lock,TRUE,1);
+        WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
         return;
     }
     
@@ -1906,7 +1911,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
         /* look for guards */
         for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
         {
-            if ( IS_NPC(gch) && IS_AWAKE(gch) && ch->level + 5 < gch->level )
+            if ( IS_NPC(gch) && IS_AWAKE(gch) && !IS_AFFECTED(gch, AFF_CHARM) && ch->level + 5 < gch->level )
             {
                 act( "$N is standing too close to the lock.",
                 ch, NULL, gch, TO_CHAR );
@@ -1936,14 +1941,16 @@ void do_pick( CHAR_DATA *ch, char *argument )
         if (  number_percent() > skill )
         {
             send_to_char( "You failed.\n\r", ch);
-            check_improve(ch,gsn_pick_lock,FALSE,2);
+            check_improve(ch,gsn_pick_lock,FALSE,1);
+            WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
             return;
         }
         
         REMOVE_BIT(pexit->exit_info, EX_LOCKED);
         send_to_char( "*Click*\n\r", ch );
         act( "$n picks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-        check_improve(ch,gsn_pick_lock,TRUE,2);
+        WAIT_STATE( ch, skill_table[gsn_pick_lock].beats );
+        check_improve(ch,gsn_pick_lock,TRUE,1);
         
         /* pick the other side */
         if ( ( to_room   = pexit->u1.to_room            ) != NULL
@@ -1958,7 +1965,7 @@ void do_pick( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_stand( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_stand)
 {
    OBJ_DATA  *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -1999,6 +2006,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  if ( IS_AFFECTED(ch, AFF_SLEEP) )
 	  { send_to_char( "You can't wake up!\n\r", ch ); return; }
 	  
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You wake and stand up.\n\r", ch );
@@ -2041,6 +2052,10 @@ void do_stand( CHAR_DATA *ch, char *argument )
 	  break;
 	  
    case POS_RESTING: case POS_SITTING:
+      if ( ch->on && !op_percent_trigger( NULL, ch->on, NULL, ch, NULL, OTRIG_WAKE) )
+      {
+          return;
+      }
 	  if (obj == NULL)
 	  {
 		 send_to_char( "You stand up.\n\r", ch );
@@ -2079,7 +2094,7 @@ void do_stand( CHAR_DATA *ch, char *argument )
 
 
 
-void do_rest( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rest)
 {
    OBJ_DATA *obj = NULL;
    CHAR_DATA *gch = NULL;
@@ -2118,6 +2133,9 @@ void do_rest( CHAR_DATA *ch, char *argument )
 		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
 		 return;
 	  }
+
+      if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_REST) )
+            return;
 	  
 	  ch->on = obj;
    }
@@ -2235,146 +2253,139 @@ void do_rest( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sit (CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sit)
 {
-   OBJ_DATA *obj = NULL;
-   CHAR_DATA *gch = NULL;
+    OBJ_DATA *obj = NULL;
+    CHAR_DATA *gch = NULL;
    
-   if (ch->position == POS_FIGHTING)
-   {
-	  send_to_char("Maybe you should finish this fight first?\n\r",ch);
-	  return;
-   }
+    if ( ch->position == POS_FIGHTING )
+    {
+        send_to_char("Maybe you should finish this fight first?\n\r",ch);
+        return;
+    }
    
-   /* okay, now that we know we can sit, find an object to sit on */
-   if (argument[0] != '\0')
-   {
-	  obj = get_obj_list(ch,argument,ch->in_room->contents);
-	  if (obj == NULL)
-	  {
-		 send_to_char("You don't see that here.\n\r",ch);
-		 return;
-	  }
-   }
-   else obj = ch->on;
+    /* okay, now that we know we can sit, find an object to sit on */
+    if ( argument[0] != '\0' )
+    {
+        obj = get_obj_list(ch, argument, ch->in_room->contents);
+        if (obj == NULL)
+        {
+            send_to_char("You don't see that here.\n\r", ch);
+            return;
+        }
+    }
+    else
+        obj = ch->on;
    
-   if (obj != NULL)                                                              
-   {
-	  if (obj->item_type != ITEM_FURNITURE
-		 ||  (!I_IS_SET(obj->value[2],SIT_ON)
-		 &&   !I_IS_SET(obj->value[2],SIT_IN)
-		 &&   !I_IS_SET(obj->value[2],SIT_AT)))
-	  {
-		 send_to_char("You can't sit on that.\n\r",ch);
-		 return;
-	  }
-	  
-	  if (obj != NULL && ch->on != obj && count_users(obj) >= obj->value[0])
-	  {
-		 act_new("There's no more room on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 return;
-	  }
-	  
-	  ch->on = obj;
-   }
-   switch (ch->position)
-   {
-   case POS_SLEEPING:
-	  if (IS_AFFECTED(ch,AFF_SLEEP))
-	  {
-		 send_to_char("You can't wake up!\n\r",ch);
-		 return;
-	  }
-	  
-	  if (obj == NULL)
-	  {
-		 send_to_char( "You wake and sit up.\n\r", ch );
-		 act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act_new("You wake and sit at $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act_new("You wake and sit on $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else
-	  {
-		 act_new("You wake and sit in $p.",ch,obj,NULL,TO_CHAR,POS_DEAD);
-		 act("$n wakes and sits in $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  
-         if ( IS_AFFECTED(ch, AFF_SHELTER) )
-                 for (gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-                         if (is_same_group( gch, ch ))
-                         {
-                                 affect_strip ( gch, gsn_shelter    );
-                                 REMOVE_AFFECT ( gch, AFF_SHELTER );
-				 set_pos(gch, POS_STANDING);
-                                 if (gch == ch)
-                                         send_to_char("You have revealed the shelter!\n",ch);
-                                 else
-                                         act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_STANDING);
-                         }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   case POS_RESTING:
-	  if (obj == NULL)
-		 send_to_char("You stop resting.\n\r",ch);
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act("You sit at $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act("You sit on $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits on $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   case POS_SITTING:
-	  send_to_char("You are already sitting down.\n\r",ch);
-	  break;
-   case POS_STANDING:
-	  if (obj == NULL)
-	  {
-		 send_to_char("You sit down.\n\r",ch);
-		 act("$n sits down on the ground.",ch,NULL,NULL,TO_ROOM);
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_AT))
-	  {
-		 act("You sit down at $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits down at $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else if (I_IS_SET(obj->value[2],SIT_ON))
-	  {
-		 act("You sit on $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits on $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  else
-	  {
-		 act("You sit down in $p.",ch,obj,NULL,TO_CHAR);
-		 act("$n sits down in $p.",ch,obj,NULL,TO_ROOM);
-	  }
-	  ch->position = POS_SITTING;
-          if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-	  break;
-   }
-   return;
+    /* check if we can sit down */
+    if ( ch->position == POS_SITTING && ch->on == obj )
+    {
+        if ( obj )
+            act_new("You are already sitting on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+        else
+            send_to_char("You are already sitting down.\n\r", ch);
+        return;
+    }
+   
+    if ( ch->position == POS_SLEEPING && IS_AFFECTED(ch, AFF_SLEEP) )
+    {
+        send_to_char("You can't wake up!\n\r",ch);
+        return;       
+    }
+   
+    if ( obj != NULL )
+    {
+        if ( obj->item_type != ITEM_FURNITURE
+            || (!I_IS_SET(obj->value[2], SIT_ON)
+            &&  !I_IS_SET(obj->value[2], SIT_IN)
+            &&  !I_IS_SET(obj->value[2], SIT_AT)) )
+        {
+            send_to_char("You can't sit on that.\n\r", ch);
+            return;
+        }
+        
+        if ( obj != NULL && ch->on != obj && count_users(obj) >= obj->value[0] )
+        {
+            act_new("There's no more room on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            return;
+        }
+        
+        if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SIT) )
+            return;
+        
+        ch->on = obj;
+    }
+    
+    int old_pos = ch->position;
+    ch->position = POS_SITTING;
+   
+    /* ok, we already sat down, now just send feedback */
+    if ( old_pos == POS_SLEEPING )
+    {
+        if ( obj == NULL )
+        {
+            send_to_char( "You wake and sit up.\n\r", ch );
+            act( "$n wakes and sits up.", ch, NULL, NULL, TO_ROOM );
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_AT) )
+        {
+            act_new("You wake and sit at $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else if ( I_IS_SET(obj->value[2],SIT_ON) )
+        {
+            act_new("You wake and sit on $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else
+        {
+            act_new("You wake and sit in $p.", ch, obj, NULL, TO_CHAR, POS_DEAD);
+            act("$n wakes and sits in $p.", ch, obj, NULL, TO_ROOM);
+        }
+        
+        if ( IS_AFFECTED(ch, AFF_SHELTER) )
+            for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+                if ( is_same_group(gch, ch) )
+                {
+                    affect_strip(gch, gsn_shelter);
+                    REMOVE_AFFECT(gch, AFF_SHELTER);
+                    if ( gch == ch )
+                        send_to_char("You have revealed the shelter!\n", ch);
+                    else
+                        act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_RESTING);
+                }
+        
+        if ( !IS_NPC(ch) )
+            ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+    }
+    else
+    {
+        if ( obj == NULL )
+        {
+            act("$n sits down on the ground.", ch, NULL, NULL, TO_ROOM);
+            send_to_char("You sit down.\n\r", ch);
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_AT) )
+        {
+            act("You sit at $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits at $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else if ( I_IS_SET(obj->value[2], SIT_ON) )
+        {
+            act("You sit on $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits on $p.", ch, obj, NULL, TO_ROOM);
+        }
+        else
+        {
+            act("You sit down in $p.", ch, obj, NULL, TO_CHAR);
+            act("$n sits down in $p.", ch, obj, NULL, TO_ROOM);
+        }
+    }
+    return;
 }
 
 
-void do_sleep( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sleep)
 {
    OBJ_DATA *obj = NULL;
    
@@ -2421,6 +2432,9 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 			return;
 		 }
 		 
+         if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_SLEEP) )
+            return;
+
 		 ch->on = obj;
 		 if (I_IS_SET(obj->value[2],SLEEP_AT))
 		 {
@@ -2451,7 +2465,7 @@ void do_sleep( CHAR_DATA *ch, char *argument )
 
 
 
-void do_wake( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_wake)
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -2478,7 +2492,7 @@ void do_wake( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_sneak( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_sneak)
 {
     AFFECT_DATA af;
     
@@ -2532,9 +2546,11 @@ void do_sneak( CHAR_DATA *ch, char *argument )
     return;
 }
 
-void do_hide( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_hide)
 {
     AFFECT_DATA af;
+    int hips_skill = get_skill(ch, gsn_hips);
+    bool hips = FALSE;
     
     send_to_char( "You attempt to hide.\n\r", ch );
     
@@ -2571,13 +2587,18 @@ void do_hide( CHAR_DATA *ch, char *argument )
 
     if (ch->fighting != NULL)
     {
-        send_to_char("I think your opponent sees you.\n\r",ch);
-        return;
+        if ( hips_skill == 0 || (!room_is_dim(ch->in_room) && !IS_AFFECTED(ch, AFF_SHROUD)) )
+        {
+            send_to_char("I think your opponent sees you.\n\r",ch);
+            return;
+        }
+        hips = TRUE;
     }
     
     WAIT_STATE( ch, skill_table[gsn_hide].beats );
-    if ( number_percent( ) < get_skill(ch,gsn_hide))
+    if ( per_chance(get_skill(ch,gsn_hide)) )
     {
+        // hips: need to apply affect first to get check_see to work
         af.where     = TO_AFFECTS;
         af.type      = gsn_hide;
         af.level     = ch->level; 
@@ -2586,6 +2607,20 @@ void do_hide( CHAR_DATA *ch, char *argument )
         af.modifier  = 0;
         af.bitvector = AFF_HIDE;
         affect_to_char( ch, &af );
+        if ( hips )
+        {
+            CHAR_DATA *opp;
+            for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
+                if ( opp->fighting == ch && check_see_combat(opp, ch) )
+                {
+                    act("$N spots you and your attempt to hide fails.", ch, NULL, opp, TO_CHAR);
+                    affect_strip(ch, gsn_hide);
+                    return;
+                }
+            // successful hide-in-plain-sight, end all combat with ch
+            act("$n vanishes into the shadows.", ch, NULL, NULL, TO_ROOM);
+            stop_fighting(ch, TRUE);
+        }
         send_to_char("You successfully hide.\n\r",ch); 
         check_improve(ch,gsn_hide,TRUE,3);
     }
@@ -2614,14 +2649,14 @@ void make_visible( CHAR_DATA *ch )
 /*
 * Contributed by Alander.
 */
-void do_visible( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_visible)
 {
     make_visible( ch );
     send_to_char( "Ok.\n\r", ch );
     return;
 }
 
-void do_recall( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_recall)
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
@@ -2629,7 +2664,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     int chance;
     int room=ROOM_VNUM_RECALL;
     int move_cost;
-    char *god_name;
+    const char *god_name;
     
     if (IS_REMORT(ch))
     {
@@ -2672,7 +2707,7 @@ void do_recall( CHAR_DATA *ch, char *argument )
     if ( carries_relic(ch) )
     {
         send_to_char( "Not with a relic!\n\r", ch );
-        return FALSE;
+        return;
     }
 
     if ( (god_name = get_god_name(ch)) == NULL )
@@ -2728,12 +2763,14 @@ void do_recall( CHAR_DATA *ch, char *argument )
     /* This vnum specification is for Bastion. Cheaper to recall from Bastion
        than other areas. Added to help newbies who get lost in our huge city. */
 
-    if (ch->in_room->area->min_vnum == 10200)
+    if ( IS_NPC(ch) )
+        move_cost = 0;
+    else if ( ch->in_room->area->min_vnum == 10200 )
         move_cost = ch->level * 5/2;
     else
         move_cost = ch->level * 5;
 
-    if ( !IS_NPC(ch) && ch->move < move_cost)
+    if ( ch->move < move_cost )
     {
 	send_to_char("You are too tired to recall.\n\r", ch);
 	return;
@@ -2743,14 +2780,12 @@ void do_recall( CHAR_DATA *ch, char *argument )
     {
         int lose,skill;
         
-        skill = get_skill(ch,gsn_recall);
-        skill += get_curr_stat(ch, STAT_LUC)/5;
-		skill -= get_curr_stat(victim, STAT_LUC)/4;
+        skill = 50 + (get_curr_stat(ch, STAT_LUC) - get_curr_stat(victim, STAT_LUC)) / 5;
 
-		if (lose = get_skill(victim, gsn_entrapment))
+        if ( (lose = get_skill(victim, gsn_entrapment)) )
 		{
 			skill -= lose/3;
-			check_improve(victim, gsn_entrapment, TRUE, 10);
+			check_improve(victim, gsn_entrapment, TRUE, 1);
 		}
 
 		if (victim->stance == STANCE_AMBUSH)
@@ -2758,7 +2793,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         
         if (number_percent() > skill/3)
         {
-            check_improve(ch,gsn_recall,FALSE,6);
             WAIT_STATE( ch, 6 );
             sprintf( buf, "%s doesn't answer your prayer.\n\r", god_name);
             send_to_char( buf, ch );
@@ -2791,7 +2825,6 @@ void do_recall( CHAR_DATA *ch, char *argument )
         else
             send_to_char("You recall from combat!\n\r",ch);
 
-        check_improve(ch,gsn_recall,TRUE,4);
         stop_fighting( ch, TRUE );
         
     }
@@ -2829,14 +2862,12 @@ int morph_power( CHAR_DATA *ch )
     return -1;
 }
 
-void do_morph(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_morph)
 {
-    AFFECT_DATA *paf;
-    OBJ_DATA *obj;
 	CHAR_DATA *victim;
 	char arg[MAX_INPUT_LENGTH];
 	char buf[MAX_STRING_LENGTH];
-	int race, cost;
+	int race;
 
 	one_argument(argument, arg);
 
@@ -2844,41 +2875,54 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 	else if ( MULTI_MORPH(ch) )
 	{
-		if ((arg[0]=='\0') && ch->pcdata->morph_race)
-		{
-			WAIT_STATE(ch, PULSE_VIOLENCE);
-			send_to_char("You revert to your original form.\n\r", ch);
-			ch->pcdata->morph_time = 0;
-			ch->pcdata->morph_race = 0;
-			morph_update( ch );
-			return;
-		}
+        if ( arg[0] == '\0' )
+        {
+            if ( ch->pcdata->morph_race )
+            {
+                WAIT_STATE(ch, PULSE_VIOLENCE);
+                send_to_char("You revert to your original form.\n\r", ch);
+                ch->pcdata->morph_time = 0;
+                ch->pcdata->morph_race = 0;
+                morph_update( ch );
+            }
+            else
+                send_to_char("You must select a victim or race to emulate.\n\r", ch);
+            return;
+        }
+        
+        if ( (victim = get_char_room(ch, arg)) )
+            race = victim->race;
+        else
+            race = pc_race_lookup(arg);
+        
+        if ( !race )
+        {
+            send_to_char("That's not a valid victim or race.\n\r", ch);
+            return;
+        }
 
-		if (arg[0]=='\0' || (victim=get_char_room(ch, arg))==NULL)
-		{
-			send_to_char("You must select a victim to emulate.\n\r", ch);
-			return;
-		}
-
-		if ( (race=victim->race) == ch->race )
-		{
-			send_to_char("Your victim has the same race as you.\n\r", ch);
-			return;
-		}
+        if ( race == ch->race )
+        {
+            send_to_char("You are already of that race.\n\r", ch);
+            return;
+        }
 
 		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
-			sprintf(buf, "You cant morph into a %s.\n\r",
+			sprintf(buf, "You can't morph into a %s.\n\r",
 				race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
 
-		cost = (pc_race_table[race].remorts + 1) * ch->level;
-		if ( (ch->mana < cost ) || (ch->move < 2*cost) )
+        int base_cost = (pc_race_table[race].remorts + 5) * (20 + ch->level) * (victim ? 1 : 2);
+        int mana_cost = base_cost * 0.4; // min mana factor for any class
+        int move_cost = base_cost * 0.7; // min move factor for any class
+        
+        if ( ch->mana < mana_cost || ch->move < move_cost )
 		{
 			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
-					cost, 2*cost, race_table[race].name);
+                mana_cost, move_cost, race_table[race].name);
 			send_to_char(buf, ch);
 			return;
 		}
@@ -2887,10 +2931,10 @@ void do_morph(CHAR_DATA *ch, char *argument)
 			WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
 			sprintf(buf, "You morph into a %s.\n\r", race_table[race].name);
 			send_to_char(buf, ch);
-			ch->move-=2*cost;
-			ch->mana-=cost;
+            ch->mana -= mana_cost;
+            ch->move -= move_cost;
 			ch->pcdata->morph_race = race;
-			ch->pcdata->morph_time = ch->level*2 + 10;
+			ch->pcdata->morph_time = get_duration_by_type(DUR_EXTREME, ch->level);
 			morph_update( ch );
 		}
 	}
@@ -2903,23 +2947,17 @@ void do_morph(CHAR_DATA *ch, char *argument)
 		    ch->pcdata->morph_race = 0;
 		    ch->pcdata->morph_time = 0;
 		}
-		else if ( ch->move < (cost = 10) )
-		{
-		    send_to_char( "You are too exhausted to morph into humanoid form.\n\r", ch );
-		    return;
-		}
 		else
 		{
 		    WAIT_STATE(ch, PULSE_VIOLENCE);
 		    send_to_char("You morph into humanoid form.\n\r", ch);
 		    ch->pcdata->morph_race = race_naga;
 		    ch->pcdata->morph_time = 10;
-		    ch->move -= cost;
 		}
 		morph_update( ch );
 	}
 	else if (ch->race == race_werewolf)
-		send_to_char("You cant control your lycanthropy.\n\r", ch);
+		send_to_char("You can't control your lycanthropy.\n\r", ch);
 	else
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 }
@@ -2954,20 +2992,25 @@ void morph_update( CHAR_DATA *ch )
 void trap_damage( CHAR_DATA *ch, bool can_behead )
 {
     ROOM_INDEX_DATA *was_in_room = ch->in_room;
-    int dam, dam_type;
 
-    if ( can_behead && number_bits(4) == 0 )
+    int dam_type = number_range(DAM_BASH, DAM_POISON);
+    int dam = 100 + dice( ch->level, 20 );
+
+    if ( can_behead )
     {
-	act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
-	act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
-	behead( ch, ch );
-	return;
+        // no beheading in remort - instead damage is increased
+        if ( ch->pcdata && IS_REMORT(ch) )
+            dam += dam * (ch->pcdata->remorts + 1) / 5;
+        else if ( number_bits(4) == 0 )
+        {
+            act( "Your head is chopped right off!", ch, NULL, NULL, TO_CHAR );
+            act( "$n's head is chopped right off!", ch, NULL, NULL, TO_ROOM );
+            behead( ch, ch );
+            return;
+        }
     }
-
-    /* damage */
-    dam_type = number_range(DAM_BASH, DAM_POISON);
-    dam = 100 + dice( ch->level, ch->level );
-    damage( ch, ch, dam, 0, dam_type, FALSE);
+    
+    full_dam( ch, ch, dam, 0, dam_type, FALSE);
     
     if ( ch->in_room != was_in_room )
 	return;
@@ -3068,10 +3111,10 @@ bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj )
     return TRUE;
 }
 
-void do_disarm_trap( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_disarm_trap)
 {
-    int door, skill;
-    EXIT_DATA *exit, *rev_exit;
+    int door = 0, skill;
+    EXIT_DATA *exit = NULL, *rev_exit;
     OBJ_DATA *obj;
     bool disarm_exit;
 
@@ -3090,35 +3133,35 @@ void do_disarm_trap( CHAR_DATA *ch, char *argument )
     /* which item or exit are we disarming? */
     if ( (obj = get_obj_here(ch, argument)) == NULL )
     {
-	disarm_exit = TRUE;
+        disarm_exit = TRUE;
 
-	/* is argument a direction? */
-	door = find_door( ch, argument );
-	if ( door < 0 )
-	    return;
+        /* is argument a direction? */
+        door = find_door( ch, argument );
+        if ( door < 0 )
+            return;
 
-	if ( (exit = ch->in_room->exit[door]) == NULL )
-	{
-	    bugf( "do_disarm_trap: NULL exit %d in room %d",
-		  door, ch->in_room->vnum );
-	    return;
-	}
+        if ( (exit = ch->in_room->exit[door]) == NULL )
+        {
+            bugf( "do_disarm_trap: NULL exit %d in room %d",
+            door, ch->in_room->vnum );
+            return;
+        }
 
-	if ( !IS_SET(exit->exit_info, EX_TRAPPED) )
-	{
-	    send_to_char( "That exit isn't trapped.\n\r", ch );
-	    return;
-	}
+        if ( !IS_SET(exit->exit_info, EX_TRAPPED) )
+        {
+            send_to_char( "That exit isn't trapped.\n\r", ch );
+            return;
+        }
     }
     else
     {
-	disarm_exit = FALSE;
-	
-	if ( !IS_SET(obj->extra_flags, ITEM_TRAPPED) )
-	{
-	    act( "$p isn't trapped.", ch, obj, NULL, TO_CHAR );
-	    return;
-	}
+        disarm_exit = FALSE;
+        
+        if ( !IS_SET(obj->extra_flags, ITEM_TRAPPED) )
+        {
+            act( "$p isn't trapped.", ch, obj, NULL, TO_CHAR );
+            return;
+        }
     }
 
     /* ok, we have a trap to disarm */ 
@@ -3147,7 +3190,7 @@ void do_disarm_trap( CHAR_DATA *ch, char *argument )
 }
 
 
-void do_root( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_root)
 {
     char arg[MIL];
     AFFECT_DATA af;
@@ -3220,7 +3263,6 @@ void check_bleed( CHAR_DATA *ch, int dir )
 {
     OBJ_DATA *blood;
     char buf[MSL];
-    AFFECT_DATA *af;
 
     if ( ch == NULL || ch->in_room == NULL )
 	return;
@@ -3330,14 +3372,6 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 	send_to_char("check_explore: start\n\r",ch);
 #endif
 	
-	EXPLORE_HOLDER *pExp;
-#ifdef EXPLORE_DEBUG
-/*	for( pExp = ch->pcdata->explored->buckets ; pExp ; pExp = pExp->next )
-	{
-		printf_to_char( ch, "mask: %d\n\rbits: %u\n\r", pExp->mask, pExp->bits );
-	}
-	printf_to_char( ch, "vnum: %d\n\r", pRoom->vnum );*/
-#endif
 	if(explored_vnum(ch, pRoom->vnum) )
 		return;
 
@@ -3347,7 +3381,7 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 #endif
 }
 
-void do_explored(CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_explored)
 {	char buf[MAX_STRING_LENGTH];
 	sprintf(buf, "You have explored %d room%s!{x\r\n", ch->pcdata->explored->set, (ch->pcdata->explored->set == 1 ? "" : "s") );
 	send_to_char(buf,ch);
@@ -3367,11 +3401,11 @@ void do_explored(CHAR_DATA *ch, char *argument )
 }
 
 //RUN COMMAND by SIVA 2/14/04
-void do_run(CHAR_DATA * ch, char *argument)
+DEF_DO_FUN(do_run)
 {
 	//local variables
 	CHAR_DATA *wch;
-	char *p;	//pointer to iterate argument
+	const char *p;	//pointer to iterate argument
 	int i; //counter for for loops
 	int last = 0; //holds last character of argument
 	int par_counter = 0; // for turning chars into ints	

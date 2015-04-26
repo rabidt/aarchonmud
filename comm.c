@@ -49,11 +49,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <signal.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
+#include "timer.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -115,7 +118,6 @@ int close       args( ( int fd ) );
  */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
 DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
-FILE *          fpReserve;      /* Reserved file handle     */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
 bool            wizlock;        /* Game is wizlocked        */
@@ -136,11 +138,7 @@ bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
 /*
  * Other local functions (OS-independent).
  */
-bool    check_reconnect     args( ( DESCRIPTOR_DATA *d, char *name,
-            bool fConn ) );
-bool    check_playing       args( ( DESCRIPTOR_DATA *d, char *name ) );
 int     main            args( ( int argc, char **argv ) );
-void    nanny           args( ( DESCRIPTOR_DATA *d, char *argument ) );
 bool    process_output      args( ( DESCRIPTOR_DATA *d, bool fPrompt ) );
 void    read_from_buffer    args( ( DESCRIPTOR_DATA *d ) );
 void    stop_idling     args( ( CHAR_DATA *ch ) );
@@ -171,15 +169,6 @@ int main( int argc, char **argv )
 
     /* Log some info about the binary if present */
     log_string(bin_info_string);
-
-    /*
-     * Reserve one channel for our use.
-     */
-    if ( ( fpReserve = fopen( NULL_FILE, "r" ) ) == NULL )
-    {
-        log_error( NULL_FILE );
-        exit( 1 );
-    }
 
     /*
      * Get the port number.
@@ -251,7 +240,8 @@ int init_socket( u_short port )
     int x = 1;
     int fd;
 
-    system( "touch SHUTDOWN.TXT" );
+    if ( system("touch SHUTDOWN.TXT") == -1 )
+        log_error("init_socket: touch SHUTDOWN.TXT");
     if ( ( fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
     {
         log_error( "Init_socket: socket" );
@@ -301,7 +291,8 @@ int init_socket( u_short port )
         exit(1);
     }
 
-    system( "rm SHUTDOWN.TXT" );
+    if ( system("rm SHUTDOWN.TXT") == -1 )
+        log_error("init_socket: rm SHUTDOWN.TXT");
 
     return fd;
 }
@@ -321,6 +312,8 @@ void game_loop_unix( int control )
     /* Main loop */
     while ( !merc_down )
     {
+        check_lua_stack();
+
         fd_set in_set;
         fd_set out_set;
         fd_set exc_set;
@@ -443,7 +436,8 @@ void game_loop_unix( int control )
             if ( d->character != NULL && check_fear(d->character) )
                 continue;
 
-            read_from_buffer( d );
+            if (d->connected != CON_NOTE_TEXT)
+                read_from_buffer( d );
             if ( d->incomm[0] != '\0' )
             {
 #ifdef LAG_FREE
@@ -516,6 +510,11 @@ void game_loop_unix( int control )
                 if ( d->outtop == 0 )
                     d->last_msg_was_prompt = FALSE;
             }                              /* if ( d->incomm[0] != '\0' ) */
+            /* special handling for note editor */
+            else if (d->connected == CON_NOTE_TEXT && d->inbuf[0] != '\0' )
+            {
+                handle_con_note_text( d, "" );
+            }
             else
             {
                 linecnt=0;
@@ -638,7 +637,7 @@ void init_descriptor( int control )
        struct hostent *from;
      */
     int desc;
-    int size;
+    unsigned int size;
 
     size = sizeof(sock);
     getsockname( control, (struct sockaddr *) &sock, &size );
@@ -824,6 +823,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
         else
         {
+            logpf("close_socket: %s not playing", ch->name);
             /* can't do extract_char cause it's not on char list,
                but we still need to do a little cleanup*/
             CHAR_DATA *wch;
@@ -835,7 +835,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
                     wch->mprog_target = NULL;
             }
 
-            unregister_lua( ch );
+            //unregister_lua( ch );
             free_char(dclose->original ? dclose->original : dclose->character );
         }
     }
@@ -843,21 +843,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
     if ( d_next == dclose )
         d_next = d_next->next;   
 
-    if ( dclose == descriptor_list )
-    {
-        descriptor_list = descriptor_list->next;
-    }
-    else
-    {
-        DESCRIPTOR_DATA *d;
-
-        for ( d = descriptor_list; d && d->next != dclose; d = d->next )
-            ;
-        if ( d != NULL )
-            d->next = dclose->next;
-        else
-            bug( "Close_socket: dclose not found.", 0 );
-    }
+    desc_from_descriptor_list(dclose);
 
     set_con_state(dclose, CON_CLOSED);
 
@@ -1184,6 +1170,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
      * Bust a prompt.
      */
     if ( !d->pProtocol->WriteOOB && !merc_down && !d->last_msg_was_prompt )
+    {
         if ( d->showstr_point )
             write_to_buffer( d, "[Hit Return to continue]\n\r", 0 );
         else if ( fPrompt && (d->pString || d->lua.interpret) && (d->connected == CON_PLAYING || d->connected == CON_PENALTY_FINISH ))
@@ -1213,7 +1200,8 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if (IS_SET(ch->comm,COMM_TELNET_GA))
                 write_to_buffer(d,go_ahead_str,0);
         }
-
+    }
+    
     /*
      * Snoop-o-rama.
      */
@@ -1241,19 +1229,6 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
        to determin it's own string length */
     if (d->outtop == 0)
         return TRUE;
-
-    /* check for ';' smashing --Bobble */
-    if ( d->character != NULL )
-    {
-        CHAR_DATA *ch;
-
-        //ch = original_char( d->character );
-        if ( d->original != NULL )
-            ch = d->original;
-        else
-            ch = d->character;
-
-    }
 
     int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);
     if ( !written )
@@ -1286,6 +1261,7 @@ void bust_a_prompt( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
+    char buf3[MSL];
     const char *str;
     const char *i;
     char *point;
@@ -1334,6 +1310,18 @@ void bust_a_prompt( CHAR_DATA *ch )
         {
             default :
                 i = " "; break;
+            case 'b':
+                sprintf( buf3, "%s%s%s%s%s%s%s%s" ,
+                NPC_OFF(ch, OFF_RESCUE) || PLR_ACT(ch, PLR_AUTORESCUE) ? "{WR{x" : " ",
+                is_affected(ch, gsn_bless) || is_affected(ch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
+                IS_AFFECTED(ch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
+                is_affected(ch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+                IS_AFFECTED(ch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(ch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
+                IS_AFFECTED(ch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
+                is_affected(ch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
+                IS_AFFECTED(ch, AFF_BERSERK) ? "{WZ{x" : get_skill(ch, gsn_frenzy) > 1 ? "{Rz{x" : " ");
+                sprintf( buf2, "%s", buf3 );
+                i = buf2; break;
             case 'e':
                 found = FALSE;
                 doors[0] = '\0';
@@ -1475,7 +1463,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                         (ch->level + 1) * exp_per_level(ch) - ch->exp);
                 i = buf2; break;
             case 'F' :
-                sprintf(buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->field );
+                sprintf(buf2, "%ld", IS_NPC(ch) ? 0 : ch->pcdata->field );
                 i = buf2; break;
             case 'g' :
                 sprintf( buf2, "%ld", ch->gold);
@@ -1564,7 +1552,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         sprintf( buf2, "humanoid" );
                 }
-                else sprintf( buf2, "" );
+                else strcpy(buf2, "");
                 i = buf2; break;
 
             case 'P' :
@@ -1575,7 +1563,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         sprintf( buf2, "..." );
                 }
-                else sprintf( buf2, "" );
+                else strcpy(buf2, "");
                 i = buf2; break;
 
         }
@@ -1687,7 +1675,6 @@ int write_to_descriptor( int desc, char *txt, int length )
 {
     int iStart;
     int nWrite, nWritten = 0;
-    int blockNr = 0;
 
     if ( length <= 0 )
         length = strlen(txt);
@@ -1714,7 +1701,7 @@ void stop_idling( CHAR_DATA *ch )
 {
 
     if ( ch == NULL || ch->desc == NULL
-            || (ch->desc->connected != CON_PLAYING && !IS_WRITING_NOTE(ch->desc->connected)) )
+            || (!IS_PLAYING(ch->desc->connected)) )
         return;
 
     /* Removed before implementation because the testers didn't like it...
@@ -1984,8 +1971,7 @@ void show_string(struct descriptor_data *d, char *input)
 
 
 /* non-trigger act */
-void nt_act ( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2,
-        int type )
+void nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
     bool old_state = MOBtrigger;
     MOBtrigger = FALSE;
@@ -2019,8 +2005,7 @@ void act_gag(const char *format, CHAR_DATA *ch, const void *arg1,
     act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE);
 }
 
-void act_see( const char *format, CHAR_DATA *ch, const void *arg1, 
-        const void *arg2, int type )
+void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
     act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE);
 }
@@ -2044,13 +2029,12 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     OBJ_DATA       *obj1 = ( OBJ_DATA  * ) arg1;
     OBJ_DATA       *obj2 = ( OBJ_DATA  * ) arg2;
     const  char    *str;
-    char       *i = NULL;
+    const char     *i = NULL;
     char       *point;
     char       *pbuff;
     char       buffer[ MAX_STRING_LENGTH*2 ];
     char       buf[ MAX_STRING_LENGTH   ];
     char       fname[ MAX_INPUT_LENGTH  ];
-    bool       fColour = FALSE;
     CHAR_DATA      *next_char;
     bool act_wizi;
 
@@ -2115,7 +2099,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         {
             int chance = 50 + get_skill(to, gsn_alertness)/2;
 
-            if ( !check_see(to, ch) || !IS_NPC(ch) && number_percent() > chance )
+            if ( !check_see(to, ch) || (!IS_NPC(ch) && per_chance(chance)) )
                 continue;
         }
 
@@ -2128,7 +2112,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
                 *point++ = *str++;
                 continue;
             }
-            fColour = TRUE;
             ++str;
             i = " <@@@> ";
             if( !arg2 && *str >= 'A' && *str <= 'Z' )
@@ -2198,8 +2181,11 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         buf[0]   = UPPER(buf[0]);
         pbuff    = buffer;
         colourconv( pbuff, buf, to );
-        if (to->desc && (to->desc->connected == CON_PLAYING || IS_WRITING_NOTE(to->desc->connected)))
+        if (to->desc && (IS_PLAYING(to->desc->connected )))
+        {
+            show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
+        }
         else
             if ( MOBtrigger )
                 mp_act_trigger( buf, to, ch, arg1, arg1_type, arg2, arg2_type, TRIG_ACT );
@@ -2208,6 +2194,18 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     return;
 }
 
+void recho( const char *msg, ROOM_INDEX_DATA *room )
+{
+    CHAR_DATA * ch;
+    char buf[MSL];
+    
+    if ( !room || !room->people )
+        return;
+
+    sprintf(buf, "%s\n\r", msg);
+    for ( ch = room->people; ch; ch = ch->next_in_room )
+        send_to_char(buf, ch);
+}
 
 int colour( char type, CHAR_DATA *ch, char *string )
 {
@@ -2711,7 +2709,7 @@ char* remove_color( const char *txt )
     return buffer;
 }
 
-void logpf (char * fmt, ...)
+void logpf (const char * fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2723,7 +2721,7 @@ void logpf (char * fmt, ...)
 }
 
 /* source: EOD, by John Booth <???> */
-void printf_to_char (CHAR_DATA *ch, char *fmt, ...)
+void printf_to_char (CHAR_DATA *ch, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2736,7 +2734,7 @@ void printf_to_char (CHAR_DATA *ch, char *fmt, ...)
 
 /* bugf - a handy little thing - remember to #include stdarg.h */
 /* Source: Erwin S. Andreasen */
-void bugf (char * fmt, ...)
+void bugf (const char * fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2748,8 +2746,7 @@ void bugf (char * fmt, ...)
 }
 
 /* Rim 1/99 */
-void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
-        long flag, long flag_skip, int min_level, char *fmt, ...) 
+void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2760,7 +2757,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj,
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
 }
 
-bool add_buff(BUFFER *buffer, char *fmt, ...)
+bool add_buff(BUFFER *buffer, const char *fmt, ...)
 {
     char buf [2*MSL];
     va_list args;
@@ -2771,7 +2768,7 @@ bool add_buff(BUFFER *buffer, char *fmt, ...)
     return add_buf(buffer, buf);
 }
 
-bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
+bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
 {
     char buf [2*MSL];
     int i;
@@ -2799,7 +2796,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, char *fmt, ...)
  *  http://pip.dknet.dk/~pip1773
  *  Changed into a ROM patch after seeing the 100th request for it :)
  */
-void do_copyover (CHAR_DATA *ch, char * argument)
+static void copyover_mud( const char *argument )
 {
     FILE *fp;
     DESCRIPTOR_DATA *d, *d_next;
@@ -2807,13 +2804,14 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     char arg0[50], arg1[10], arg2[10], arg3[10];
     extern int control; /* db.c */
 
+
     fp = fopen (COPYOVER_FILE, "w");
 
     if (!fp)
     {
-        send_to_char ("Copyover file not writeable, aborted.\n\r",ch);
+        bugf("Copyover file not writeable, aborted.");
         logpf ("Could not write to copyover file: %s", COPYOVER_FILE);
-        log_error ("do_copyover:fopen");
+        log_error ("copyover_mud:fopen");
         return;
     }
 
@@ -2822,7 +2820,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     if ( argument[0] != '\0' )
         sprintf( buf, "\n\r%s", argument );
     else
-        sprintf( buf, "" );
+        strcpy( buf, "" );
 
     strcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r");
     strcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r");
@@ -2849,7 +2847,7 @@ void do_copyover (CHAR_DATA *ch, char * argument)
         CHAR_DATA * och = CH (d);
         d_next = d->next; /* We delete from the list , so need to save this */
 
-        if (!d->character || (d->connected > CON_PLAYING && !IS_WRITING_NOTE(d->connected))) /* drop those logging on */
+        if (!d->character || (!IS_PLAYING(d->connected) )) /* drop those logging on */
         {
             write_to_descriptor (d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r", 0);
             close_socket (d); /* throw'em out */
@@ -2865,26 +2863,126 @@ void do_copyover (CHAR_DATA *ch, char * argument)
     fprintf (fp, "-1\n");
     fclose (fp);
 
-    /* Close reserve and other always-open files and release other resources */
-
-    fclose (fpReserve);
-
     /* exec - descriptors are inherited */
 
     sprintf (arg0, "%s", "aeaea");
     sprintf (arg1, "%d", port);
     sprintf (arg2, "%s", "copyover");
     sprintf (arg3, "%d", control);
-    logpf( "do_copyover: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
+    logpf( "copyover_mud: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 
     /* Failed - sucessful exec will not return */
 
-    log_error ("do_copyover: execl");
-    send_to_char ("Copyover FAILED!\n\r",ch);
+    log_error ("copyover_mud: execl");
+    bugf("Copyover FAILED!");
+}
 
-    /* Here you might want to reopen fpReserve */
-    fpReserve = fopen (NULL_FILE, "r");
+static TIMER_NODE *copyover_timer=NULL;
+static int copyover_countdown=0;
+
+void handle_copyover_timer()
+{
+    copyover_timer=NULL;
+    
+    if (copyover_countdown<1)
+    {
+        copyover_mud("");
+        return;
+    }
+    
+    /* gecho the stuff */
+    DESCRIPTOR_DATA *d;
+    for ( d=descriptor_list; d; d=d->next )
+    {
+        if ( IS_PLAYING(d->connected ) )
+        {
+            ptc( d->character, "{R!!!{WA copyover will occur in %d seconds{R!!!{x\n\r", copyover_countdown);
+        }
+    }  
+  
+    int delay;
+    if (copyover_countdown <= 3)
+    {
+        delay = 1;
+    }
+    else if (copyover_countdown <=10)
+    {
+        /* target 3 seconds */
+        delay = copyover_countdown-3;
+    }
+    else if (copyover_countdown <= 30)
+    {
+        /* target 10 seconds */
+        delay = copyover_countdown-10;
+    }
+    else if (copyover_countdown <= 60)
+    {
+        /* target 30 seconds */
+        delay = copyover_countdown-30;
+    }
+    else if (copyover_countdown <= 120)
+    {
+        /* target 60 seconds */
+        delay = copyover_countdown-60;
+    }
+    else
+    {
+        /* target 120 seconds */
+        delay = copyover_countdown-120;
+    }
+
+    copyover_countdown -= delay;
+    copyover_timer = register_c_timer( delay, handle_copyover_timer);
+    return;
+}
+
+DEF_DO_FUN( do_copyover )
+{
+    if (argument[0]=='\0')
+    {
+        ptc(ch, "%s\n\rPlease confirm, do you want to copyover?\n\r",
+            bin_info_string);
+
+        confirm_yes_no( ch->desc,
+            do_copyover,
+            "confirm",
+            NULL,
+            NULL);
+        return;
+    }
+    else if (!strcmp(argument, "confirm"))
+    {
+        copyover_mud("");
+        return;
+    }
+    else if (!strcmp(argument, "cancel"))
+    {
+        if (!copyover_timer)
+        {
+            send_to_char( "There is no pending copyover.\n\r", ch );
+            return;
+        }
+
+        unregister_timer_node( copyover_timer );
+        copyover_timer=NULL;
+
+        DESCRIPTOR_DATA *d;
+        for ( d=descriptor_list; d; d=d->next )
+        {
+            if ( IS_PLAYING(d->connected ) )
+            {
+                ptc( d->character, "{R!!!{WThe copyover has been cancelled{R!!!{x\n\r");
+            }
+        }
+        
+    }
+    else if (is_number(argument))
+    {
+        copyover_countdown=atoi(argument);
+        handle_copyover_timer();
+        return;
+    }
 }
 
 /* Recover from a copyover - load players */
@@ -2915,7 +3013,9 @@ void copyover_recover ()
 
     for (;;)
     {
-        fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
+        int matched = fscanf (fp, "%d %s %s %s\n", &desc, name, host, protocol );
+        if ( matched < 4 )
+            logpf("copyover_recover: fscanf returned %d", matched);
 
         if (desc == -1)
             break;
@@ -2943,7 +3043,7 @@ void copyover_recover ()
 
         /* Now, find the pfile */
 
-        fOld = load_char_obj (d, name);
+        fOld = load_char_obj (d, name, FALSE);
 
         if (!fOld) /* Player file not found?! */
         {
@@ -2959,8 +3059,7 @@ void copyover_recover ()
                 d->character->in_room = get_room_index (ROOM_VNUM_TEMPLE);
 
             /* Insert in the char_list */
-            d->character->next = char_list;
-            char_list = d->character;
+            char_list_insert(d->character);
 
             char_to_room (d->character, d->character->in_room);
             do_look (d->character, "auto");
@@ -3084,7 +3183,6 @@ void write_last_command ()
 void nasty_signal_handler (int no)
 {
     static bool log_done = FALSE;
-    CHAR_DATA *ch;
 
     if ( log_done )
         return;
@@ -3111,8 +3209,7 @@ void nasty_signal_handler (int no)
         /* wait for forked process to exit */
         waitpid(forkpid, NULL, 0);
         /* try to catch things with a copyover */
-        if ( (ch=create_mobile(get_mob_index(2))) != NULL )
-            do_copyover ( ch, "system error: trying to recover with copyover" );
+        copyover_mud ( "system error: trying to recover with copyover" );
         exit(0);
     }
     else

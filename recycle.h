@@ -113,6 +113,13 @@ void	free_pcdata args( (PC_DATA *pcdata) );
 #undef PD
 #undef CD
 
+/* portal recycling */
+PORTAL_DATA *new_portal( void );
+void free_portal( PORTAL_DATA *portal );
+
+/* quest recycling */
+QUEST_DATA *new_quest( void );
+void free_quest( QUEST_DATA *quest );
 
 /* mob id and memory procedures */
 #define MD MEM_DATA
@@ -124,13 +131,8 @@ MD	*find_memory args( (MEM_DATA *memory, long id) );
 #undef MD
 
 /* buffer procedures */
-BUFFER     * new_buf      args( (void) );
-BUFFER     * new_buf_size args( (int size) );
-void         free_buf     args( (BUFFER *buffer) );
-bool         add_buf      args( (BUFFER *buffer, char *string) );
-void         clear_buf    args( (BUFFER *buffer) );
-char       * buf_string   args( (BUFFER *buffer) );
 HELP_AREA  * new_had		  args( (void) );
 HELP_DATA  * new_help	  args( (void) );
 SORT_TABLE * new_sort     args( (void) );
 void		    free_sort    args( (SORT_TABLE * sort) );
+

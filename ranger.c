@@ -14,9 +14,6 @@
 #include <stdlib.h>
 #include "merc.h"
 
-/* Command procedures needed */
-bool saves_dispel( int dis_level, int spell_level, int duration);
-
 /* Forage skill.  Rimbol, 7/97 */
 void do_forage(CHAR_DATA *ch)
 {
@@ -71,12 +68,12 @@ void do_forage(CHAR_DATA *ch)
 	   act( "$n produces $p from the surroundings.", ch, trailmix, NULL, TO_ROOM );
 	   act( "You produce $p from the surrounding vegetation.", 
 		  ch, trailmix, NULL, TO_CHAR );
-	   check_improve(ch, gsn_forage, TRUE, 2);
+	   check_improve(ch, gsn_forage, TRUE, 3);
 	}
 	else
 	{
 	   send_to_char("You can't find anything edible.\n\r", ch);
-	   check_improve(ch, gsn_forage, FALSE, 2);
+	   check_improve(ch, gsn_forage, FALSE, 3);
 	}
 
 	WAIT_STATE(ch,skill_table[gsn_forage].beats);
@@ -141,12 +138,12 @@ void do_torch(CHAR_DATA *ch)
 	   act( "$n produces $p from the surroundings.", ch, torch, NULL, TO_ROOM );
 	   act( "You produce $p from your surroundings.", 
 		  ch, torch, NULL, TO_CHAR );
-	   check_improve(ch, gsn_torch, TRUE, 2);
+	   check_improve(ch, gsn_torch, TRUE, 3);
 	}
 	else
 	{
 	   send_to_char("You can't find anything suitable for making a torch.\n\r", ch);
-	   check_improve(ch, gsn_torch, FALSE, 2);
+	   check_improve(ch, gsn_torch, FALSE, 3);
 	}
 
 	WAIT_STATE(ch,skill_table[gsn_torch].beats);
@@ -282,7 +279,7 @@ void do_shelter( CHAR_DATA *ch )
 
 
 /* First Aid skill.  --Rimbol, 7/97 */
-void do_firstaid( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_firstaid)
 {
 	CHAR_DATA *target;
 	char arg1 [MAX_INPUT_LENGTH];
@@ -360,14 +357,14 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
                send_to_char(buf, ch);
            }
 
-           check_improve(ch, gsn_firstaid, TRUE, 2);
+           check_improve(ch, gsn_firstaid, TRUE, 3);
 	   WAIT_STATE(ch, skill_table[gsn_firstaid].beats);
 	}
 	else
 	{
 	   ch->mana -= mana_cost / 2;
 	   send_to_char("You lose concentration and fumble your bandages into the muck.\n\r", ch);
-	   check_improve(ch, gsn_firstaid, FALSE, 2);
+	   check_improve(ch, gsn_firstaid, FALSE, 3);
 	   WAIT_STATE(ch, skill_table[gsn_firstaid].beats);
 	}
 
@@ -377,7 +374,7 @@ void do_firstaid( CHAR_DATA *ch, char *argument )
 }
 
 /* Detoxify skill.  --Rimbol, 7/97 */
-void do_detoxify( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_detoxify)
 {
    OBJ_DATA *obj;
    AFFECT_DATA af;
@@ -430,7 +427,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 		 if (obj->value[3])
 		 {
 			obj->value[3] = 0;
-			check_improve(ch,gsn_detoxify,TRUE,4);
+			check_improve(ch,gsn_detoxify,TRUE,2);
 		 }
 		 WAIT_STATE(ch,skill_table[gsn_detoxify].beats);
 		 return;
@@ -454,7 +451,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 			   act("$n removes the deadly poison from $p.",ch,obj,NULL,TO_ROOM);
 			   act("You remove the deadly poison from $p.",ch,obj,NULL,TO_CHAR);
 			   affect_remove_obj(obj,paf);
-			   check_improve(ch,gsn_detoxify,TRUE,4);
+			   check_improve(ch,gsn_detoxify,TRUE,2);
 			   WAIT_STATE(ch,skill_table[gsn_detoxify].beats);
 			}
 		 return;
@@ -471,7 +468,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
    act("You fail to remove the poison from $p.",ch,obj,NULL,TO_CHAR);
    act("$n fails to remove the poison from $p.",ch,obj,NULL,TO_ROOM);
 
-   check_improve(ch,gsn_detoxify,FALSE,4);
+   check_improve(ch,gsn_detoxify,FALSE,2);
 
  /* Give a 20% chance for failed detox to poison the char making the attempt. */
    if (number_percent() <= 20 && !IS_IMMORTAL(ch))
@@ -494,7 +491,7 @@ void do_detoxify( CHAR_DATA *ch, char *argument )
 
 
 /* Tame animal/beast skill.  --Rimbol, 7/97 */
-void do_tame( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_tame)
 {
 	CHAR_DATA *victim;
 	AFFECT_DATA af;
@@ -517,7 +514,7 @@ void do_tame( CHAR_DATA *ch, char *argument )
 	   return;
 	}
 
-	if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
+	if ( ( victim = get_victim_room( ch, arg1 ) ) == NULL )
 	{
 	   send_to_char( "They aren't here.\n\r", ch );
 	   return;
@@ -577,12 +574,12 @@ void do_tame( CHAR_DATA *ch, char *argument )
 	   affect_to_char( victim, &af );
 
 	   act("$N is ready to do your bidding.",ch, NULL, victim, TO_CHAR);
-	   check_improve(ch, gsn_tame, TRUE, 2);
+	   check_improve(ch, gsn_tame, TRUE, 3);
 	}
 	else
 	{
 	   act("$N growls at you.", ch, NULL, victim, TO_CHAR);
-	   check_improve(ch, gsn_tame, FALSE, 2);
+	   check_improve(ch, gsn_tame, FALSE, 3);
 	}
 	
 	WAIT_STATE(ch, skill_table[gsn_tame].beats);
@@ -688,12 +685,12 @@ void do_camp_fire(CHAR_DATA *ch)
 	   act( "$n builds $p.", ch, fire, NULL, TO_ROOM );
 	   act( "You build $p to keep you warm through the night.", 
 		  ch, fire, NULL, TO_CHAR );
-	   check_improve(ch, gsn_camp_fire, TRUE, 2);
+	   check_improve(ch, gsn_camp_fire, TRUE, 3);
 	}
 	else
 	{
 	   send_to_char("Your efforts end in failure.\n\r", ch);
-	   check_improve(ch, gsn_camp_fire, FALSE, 2);
+	   check_improve(ch, gsn_camp_fire, FALSE, 3);
 	}
 
 	WAIT_STATE(ch,skill_table[gsn_camp_fire].beats);
@@ -704,7 +701,6 @@ void do_fishing(CHAR_DATA *ch)
 {
 	OBJ_DATA *fish;
 	CHAR_DATA *mob;    
-	extern int top_obj_index;
 	int skill, chance, level;
 	
 	skill = get_skill(ch, gsn_fishing);
@@ -762,14 +758,14 @@ void do_fishing(CHAR_DATA *ch)
 	    obj_to_room( fish, ch->in_room );
 	    act( "$n catches $p.", ch, fish, NULL, TO_ROOM );
 	    send_to_char( "You catch .... an old, soggy boot!  And it's exactly your size!\n\r", ch );
-	    check_improve(ch, gsn_fishing, FALSE, 2);
+	    check_improve(ch, gsn_fishing, FALSE, 3);
 	    WAIT_STATE(ch,skill_table[gsn_fishing].beats);
 	    return;
 	}
 	else if (chance < 50)
 	{
 	    send_to_char("Ohhhh, something's tugging on your line!!  ...but it got away.\n\r", ch);
-	    check_improve(ch, gsn_fishing, FALSE, 2);
+	    check_improve(ch, gsn_fishing, FALSE, 3);
 	    WAIT_STATE(ch,skill_table[gsn_fishing].beats);
 	    return;
 	}
@@ -783,7 +779,7 @@ void do_fishing(CHAR_DATA *ch)
 	obj_to_room( fish, ch->in_room );
 	act( "$n catches $p.", ch, fish, NULL, TO_ROOM );
 	act( "You catch $p ... now that's good eatin!",  ch, fish, NULL, TO_CHAR );
-	check_improve(ch, gsn_fishing, TRUE, 2);
+	check_improve(ch, gsn_fishing, TRUE, 3);
 	WAIT_STATE(ch,skill_table[gsn_fishing].beats);
 	return;
 }
@@ -854,7 +850,7 @@ void do_build_raft(CHAR_DATA *ch)
 	return;
 }
 
-void do_taxidermy(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_taxidermy)
 {
         OBJ_DATA *obj;
 	int skill;
@@ -908,27 +904,41 @@ void do_taxidermy(CHAR_DATA *ch, char *argument)
 
 	if (number_percent() < skill)  /* success! */
 	{
-		act("$n preserves $p for all time.",ch,obj,NULL,TO_ROOM);
-		act("You preserve $p for all time.",ch,obj,NULL,TO_CHAR);
-		obj->timer = -1;
-		check_improve(ch,gsn_taxidermy,TRUE,4);
-		WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
-		return;
+            char buf[MSL];
+	    act("$n preserves $p for all time.",ch,obj,NULL,TO_ROOM);
+	    act("You preserve $p for all time.",ch,obj,NULL,TO_CHAR);
+	    obj->timer = -1;
+        
+            if (obj->item_type != ITEM_CORPSE_NPC && obj->item_type != ITEM_CORPSE_PC)
+            {
+                // add preserved keyword
+                sprintf(buf, "%s preserved", obj->name);
+                free_string(obj->name);
+                obj->name = str_dup(buf);
+            }
+            else
+            {
+                // replace the fresh keyword on corpses
+                obj->name = string_replace(obj->name, "fresh", "preserved");
+            }
+	    
+            check_improve(ch,gsn_taxidermy,TRUE,2);
+	    WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
+	    return;
 	}
 
 	act("You fail to preserve $p. In fact, you botch it pretty badly.",ch,obj,NULL,TO_CHAR);
         act("$n fails to preserve $p. In fact, $e botches it pretty badly.",ch,obj,NULL,TO_ROOM);
 	extract_obj( obj );
-	check_improve(ch,gsn_taxidermy,FALSE,4);
+	check_improve(ch,gsn_taxidermy,FALSE,2);
 	WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
 	return;
 }
 
-void do_treat_weapon(CHAR_DATA *ch, char *argument)
+DEF_DO_FUN(do_treat_weapon)
 {
 	char arg[MAX_STRING_LENGTH];           
 	OBJ_DATA *obj, *herb;
-	AFFECT_DATA af;
 	int percent,skill;
 	int flag_bit;
 	
@@ -1027,6 +1037,7 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 	if ( percent < skill - flag_add_malus(obj) )
 	{
 	    /*
+        AFFECT_DATA af;
 	    af.where     = TO_WEAPON;
 	    af.type      = gsn_poison;
 	    af.level     = ch->level * percent / 100;
@@ -1040,7 +1051,7 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 	    
 	    act("$n treats $p with $s herbs.",ch,obj,NULL,TO_ROOM);
 	    act("You treat $p with your herbs.",ch,obj,NULL,TO_CHAR);
-	    check_improve(ch,gsn_treat_weapon,TRUE,3);
+	    check_improve(ch,gsn_treat_weapon,TRUE,2);
 	    WAIT_STATE(ch,skill_table[gsn_treat_weapon].beats);
 	    return;
 	}
@@ -1052,13 +1063,13 @@ void do_treat_weapon(CHAR_DATA *ch, char *argument)
 	   act("$n ruins $p with $s shoddy treatment.",ch,obj,NULL,TO_ROOM);
 	   act("You ruin $p with your shoddy treatment.",ch,obj,NULL,TO_CHAR);
 	   */
-	   check_improve(ch,gsn_treat_weapon,FALSE,3);
+	   check_improve(ch,gsn_treat_weapon,FALSE,2);
 	   WAIT_STATE(ch,skill_table[gsn_treat_weapon].beats);
 	   return;
 	}
 }
 
-void do_dowsing( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_dowsing)
 {
     OBJ_DATA *spring, *stick;
     int skill;
@@ -1100,10 +1111,10 @@ void do_dowsing( CHAR_DATA *ch, char *argument )
     if ( !chance(skill) )
     {
 	send_to_char( "You can't find any water here.\n\r", ch );
-	check_improve( ch, gsn_dowsing, FALSE, 1 );
+	check_improve( ch, gsn_dowsing, FALSE, 2 );
 	return;
     }
-    check_improve( ch, gsn_dowsing, TRUE, 1 );
+    check_improve( ch, gsn_dowsing, TRUE, 2 );
 
     spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
     spring->timer = ch->level + 10;
@@ -1112,7 +1123,7 @@ void do_dowsing( CHAR_DATA *ch, char *argument )
     act( "$n has divined the location of a spring!", ch, spring, NULL, TO_ROOM );
 }
 
-void do_rustle_grub( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_rustle_grub)
 {
     OBJ_DATA *mushroom;
     int skill;
@@ -1144,10 +1155,10 @@ void do_rustle_grub( CHAR_DATA *ch, char *argument )
     if ( !chance(skill) )
     {
 	send_to_char( "You can't find any grub here.\n\r", ch );
-	check_improve( ch, gsn_rustle_grub, FALSE, 1 );
+	check_improve( ch, gsn_rustle_grub, FALSE, 3 );
 	return;
     }
-    check_improve( ch, gsn_rustle_grub, TRUE, 1 );
+    check_improve( ch, gsn_rustle_grub, TRUE, 3 );
 
     mushroom = create_object( get_obj_index( OBJ_VNUM_GRUB ), 0 );
     mushroom->value[0] = ch->level / 3;
@@ -1157,7 +1168,7 @@ void do_rustle_grub( CHAR_DATA *ch, char *argument )
     act( "$n rustles up some grub.", ch, mushroom, NULL, TO_ROOM );
 }
 
-void do_fledge( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_fledge)
 {
     OBJ_DATA *arrows;
     int skill;
@@ -1192,6 +1203,6 @@ void do_fledge( CHAR_DATA *ch, char *argument )
     obj_to_room( arrows, ch->in_room );
     act( "You carve and fledge some arrows.", ch, arrows, NULL, TO_CHAR );
     act( "$n carves and fledges some arrows.", ch, arrows, NULL, TO_ROOM );
-    check_improve( ch, gsn_fledging, TRUE, 1 );
+    check_improve( ch, gsn_fledging, TRUE, 3 );
 }
 

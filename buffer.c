@@ -212,7 +212,8 @@ char* escape_ws(const char *s) {
 char* reformat(const char *fmt, va_list va)
 {
     static char new_fmt[MSL];
-    char *next = fmt, *next_new = new_fmt;
+    const char *next = fmt;
+    char *next_new = new_fmt;
     bool format_mode = FALSE;
     // store for later use in debug
     va_list va_orig;
@@ -226,7 +227,7 @@ char* reformat(const char *fmt, va_list va)
             // special treatment of "%s~", this is where the magic happens
             if ( format_mode && *(next+1) == 's' && *(next+2) == '~' )
             {
-                char *sarg = va_arg(va, char*);
+                const char *sarg = va_arg(va, const char*);
                 if ( *sarg == '^' || isspace(*sarg) )
                     *(next_new++) = '^';
                 // already consumed the argument, so make sure we don't do it again
@@ -322,6 +323,22 @@ int rfprintf(FILE *f, const char *fmt, ...)
     return res;
 }
 
+// sprintf with reformat
+int rsprintf(char *buf, const char *fmt, ...)
+{
+    va_list va;
+    
+    va_start (va, fmt);
+    char *new_fmt = reformat(fmt, va);
+    va_end (va);
+
+    va_start (va, fmt);
+    int res = vsprintf (buf, new_fmt, va);
+    va_end (va);
+    
+    return res;
+}
+
 /* tools for methods returning pointers to local static strings
  * which must not overlap different calls -- Bobble
  */
@@ -345,5 +362,5 @@ char* next_sr_buf( SR_BUF *sr_buf )
 	index = 0;
     }
 
-    return &sr_buf->buf[sr_buf->last_index = index];
+    return sr_buf->buf[sr_buf->last_index = index];
 }

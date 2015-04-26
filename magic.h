@@ -41,9 +41,7 @@ DECLARE_SPELL_FUN(  spell_burning_hands );
 DECLARE_SPELL_FUN(  spell_call_lightning    );
 DECLARE_SPELL_FUN(  spell_calm      );
 DECLARE_SPELL_FUN(  spell_cancellation  );
-DECLARE_SPELL_FUN(  spell_cause_critical    );
-DECLARE_SPELL_FUN(  spell_cause_light   );
-DECLARE_SPELL_FUN(  spell_cause_serious );
+DECLARE_SPELL_FUN(  spell_cause_harm    );
 DECLARE_SPELL_FUN(  spell_change_sex    );
 DECLARE_SPELL_FUN(  spell_chain_lightning   );
 DECLARE_SPELL_FUN(  spell_charm_person  );
@@ -94,7 +92,6 @@ DECLARE_SPELL_FUN(      spell_frenzy        );
 DECLARE_SPELL_FUN(  spell_gate      );
 DECLARE_SPELL_FUN(  spell_giant_strength    );
 DECLARE_SPELL_FUN(  spell_hallow        );
-DECLARE_SPELL_FUN(  spell_harm      );
 DECLARE_SPELL_FUN(      spell_haste     );
 DECLARE_SPELL_FUN(  spell_haunt         );
 DECLARE_SPELL_FUN(  spell_heal          );
@@ -231,3 +228,21 @@ DECLARE_SPELL_FUN( spell_holy_apparition);
 DECLARE_SPELL_FUN( spell_phantasmal_image );
 DECLARE_SPELL_FUN( spell_shroud_of_darkness );
 DECLARE_SPELL_FUN( spell_minor_fade     );  
+DECLARE_SPELL_FUN( spell_divine_power );
+DECLARE_SPELL_FUN( spell_shadow_companion );
+
+/**
+ * constants for easy changing of spell result "failure" handling
+ * each spell function returns wether it completed successfully, where success means
+ * that the spell was cast, not that it "worked" when there is a chance of failure
+ * a return value of FALSE means that no mana or time is spent casting
+ */
+#define SR_SYNTAX   FALSE   // syntax error in spell command (for spells parsing parameter strings)
+#define SR_TARGET   FALSE   // targeting error not caught by general spell targeting (e.g. wrong object type)
+#define SR_UNABLE   FALSE   // spell cannot be cast under current conditions (e.g. indoors, in warfare, inventory full)
+#define SR_IMMUNE   TRUE    // target is immune to the spell
+#define SR_AFFECTED TRUE    // target is already affected (or not affected in case of cure spells)
+
+// every spell function should return early (after any syntax/target/unable checks) if called for checking purposes only
+#define SPELL_CHECK_RETURN if (check) return TRUE;
+

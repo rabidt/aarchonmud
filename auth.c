@@ -50,8 +50,6 @@
 
 
 /* Function declarations */
-bool check_parse_name	    args( ( char *name, bool newchar ) );
-CHAR_DATA *get_waiting_desc args( ( CHAR_DATA *ch, char *name ) );
 
 DECLARE_DO_FUN(do_quit);
 DECLARE_DO_FUN(do_reserve);
@@ -63,18 +61,18 @@ AUTH_LIST *last_auth_name;
 /* stuff for auto-authing recreating chars */
 char last_delete_name[MIL] = "";
 
-void add_auto_auth( char *name )
+void add_auto_auth( const char *name )
 {
     sprintf( last_delete_name, "%s", name );
 }
 
-bool check_auto_auth( char *name )
+bool check_auto_auth( const char *name )
 {
     return str_cmp( last_delete_name, name ) == 0;
 }
 
 /* Will return TRUE if player is online or if a pfile exists by that name */
-bool exists_player( char *name )
+bool exists_player( const char *name )
 {
 #if defined (WIN32)
     struct _stat fst;
@@ -174,7 +172,7 @@ void fread_auth( FILE *fp )
 {
     AUTH_LIST *new_auth;
     bool fMatch;
-    char *word;
+    const char *word;
     char buf[MAX_STRING_LENGTH];
     
     new_auth = alloc_mem(sizeof(AUTH_LIST));
@@ -256,13 +254,10 @@ void save_auth_list()
     FILE *fpout;
     AUTH_LIST *list;
     
-    fclose(fpReserve);
-
     if ( ( fpout = fopen( AUTH_FILE, "w" ) ) == NULL )
     {
         bug( "Cannot open auth.txt for writing.", 0 );
         log_error( AUTH_FILE );
-        fpReserve = fopen( NULL_FILE, "r" );
         return;
     }
     
@@ -275,24 +270,20 @@ void save_auth_list()
     fprintf( fpout, "#END\n" );
     fclose( fpout );
     fpout = NULL;
-
-    fpReserve = fopen( NULL_FILE, "r" );
 }
 
 void load_auth_list()
 {
     FILE *fp;
-    int x;
     
     first_auth_name = last_auth_name = NULL;
     
     if ( ( fp = fopen( AUTH_FILE, "r" ) ) != NULL )
     {
-        x = 0;
         for ( ;; )
         {
             char letter;
-            char *word;
+            const char *word;
             
             letter = fread_letter( fp );
             if ( letter == '*' )
@@ -353,7 +344,7 @@ int get_auth_state( CHAR_DATA *ch )
 }
 
 
-AUTH_LIST *get_auth_name( char *name )
+AUTH_LIST *get_auth_name( const char *name )
 {
     AUTH_LIST *mname;
     
@@ -399,7 +390,7 @@ void add_to_auth( CHAR_DATA *ch )
 }
 
 
-void remove_from_auth( char *name )
+void remove_from_auth( const char *name )
 {
     AUTH_LIST *old_name;
     
@@ -530,7 +521,7 @@ bool is_waiting_for_auth( CHAR_DATA *ch )
 /* 
  * Check if the name prefix uniquely identifies a char descriptor
  */ 
-CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, char *name ) 
+CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, const char *name ) 
 { 
     DESCRIPTOR_DATA *d; 
     CHAR_DATA       *ret_char = NULL;
@@ -561,7 +552,7 @@ CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, char *name )
 } 
 
 
-void do_authorize( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_authorize)
 {
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
@@ -902,7 +893,7 @@ void do_authorize( CHAR_DATA *ch, char *argument )
 }
 
 /* new auth */
-void do_name( CHAR_DATA *ch, char *argument )
+DEF_DO_FUN(do_name)
 {
     char fname[1024];
 #if defined (WIN32)
@@ -921,7 +912,7 @@ void do_name( CHAR_DATA *ch, char *argument )
         return;
     }
     
-    argument[0] = UPPER(argument[0]);
+    argument = capitalize(argument);
     
     if (!check_parse_name(argument, TRUE))
     {

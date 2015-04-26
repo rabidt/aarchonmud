@@ -6,20 +6,33 @@ typedef struct lua_obj_type
 {
     const char *type_name;
 
-    struct lua_prop_type * const get_table;
-    struct lua_prop_type * const set_table;
-    struct lua_prop_type * const method_table;
+    bool (*valid)();
+    void *(*check)();
+    bool (*is)();
+    bool (*push)();
+    void *(*alloc)();
+    void (*free)();
 
+    int (*index)();
+    int (*newindex)();
+
+    void (*reg)();
+
+    const struct lua_prop_type * const get_table;
+    const struct lua_prop_type * const set_table;
+    const struct lua_prop_type * const method_table;
+
+    int count;
 } LUA_OBJ_TYPE;
 
 typedef struct lua_extra_val
 {
     struct lua_extra_val *next;
-    char *name;
+    const char *name;
 
     int type;
 
-    char *val;
+    const char *val;
     bool persist;
 
 } LUA_EXTRA_VAL;
@@ -42,20 +55,27 @@ extern LUA_OBJ_TYPE ATRIG_type;
 extern LUA_OBJ_TYPE RTRIG_type;
 extern LUA_OBJ_TYPE AFFECT_type;
 extern LUA_OBJ_TYPE HELP_type;
+extern LUA_OBJ_TYPE DESCRIPTOR_type;
+extern LUA_OBJ_TYPE BOSSACHV_type;
+extern LUA_OBJ_TYPE BOSSREC_type;
 
 void register_globals( lua_State *LS );
-bool lua_make_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, void *game_obj);
-bool lua_is_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, int arg );
-void * lua_check_type( LUA_OBJ_TYPE *tp,
-                lua_State *LS, int index );
+LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );
+void free_luaval( LUA_EXTRA_VAL *luaval );
+void cleanup_uds();
 
+/* moved to merc.h cause what if a file calls 
+   valid_CH without including lua_arclib.h?
+   It assumes int and doesn't work right.
+   */
+/*
 #define declf( ltype, ctype ) \
 ctype * check_ ## ltype ( lua_State *LS, int index ); \
 bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    make_ ## ltype ( lua_State *LS, int index );
-
+bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ctype * alloc_ ## ltype (void) ;\
+void    free_ ## ltype ( ctype * ud );\
+bool valid_ ## ltype ( ctype *ud );
 
 declf(CH, CHAR_DATA)
 declf(OBJ, OBJ_DATA)
@@ -73,7 +93,8 @@ declf(RTRIG, PROG_LIST)
 declf(SHOP, SHOP_DATA)
 declf(AFFECT, AFFECT_DATA)
 declf(HELP, HELP_DATA)
+declf(DESCRIPTOR, DESCRIPTOR_DATA)
+*/
 #undef declf
-
 
 #endif
