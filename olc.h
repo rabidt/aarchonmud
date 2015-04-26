@@ -457,3 +457,6 @@ void fix_aprog_areas( CHAR_DATA *ch, PROG_CODE *pAcode );
 
 /* olc_rpcode.c */
 void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode );
+
+
+bool is_being_edited( void *ptr );
