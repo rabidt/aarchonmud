@@ -18,6 +18,7 @@
 #include <lua.h>
 #include "merc.h"
 #include "special.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 #include "mudconfig.h"
 #include "olc.h"
@@ -634,7 +635,8 @@ DEF_DO_FUN(do_quest)
         }
         else if (!strcmp(arg2, "ptitle"))
 	{
-	    set_pre_title(ch,argument,ch);
+        quest_buy_ptitle( ch, argument);
+        return; 
 	}		 
 		 /* End of Vodurs ptitle */
 
@@ -1650,128 +1652,6 @@ bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
   }
 
   return TRUE;
-}
-
-void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
-{
-  char arg2 [MAX_STRING_LENGTH];
-  char buf [MSL];
-  FILE *fp;
-  const char *word;
-  int cost;
-
-  if (victim == NULL)
-    victim = ch;
-
-  argument = one_argument( argument, arg2);
-
-  if ( !strcmp(arg2, "" ))
-  {
-    if (!IS_IMMORTAL(ch))
-      send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
-    else
-      send_to_char("Title not found. 'ptitle list' for titles.\n\r",ch);
-    return;
-  }
-
-  if ( IS_NPC(victim) )
-  {
-    return;
-  }
-
-  if (!strcmp(arg2, "clear"))
-  {
-    free_string(victim->pcdata->pre_title);
-    victim->pcdata->pre_title= str_dup("");
-    send_to_char("Pretitle cleared.\n\r",ch);
-    return;
-  }
-
-  if (!strcmp(arg2, "list"))
-  {
-    strcpy(buf, "../area/pre_titles.txt");
-    if (!(fp = fopen(buf, "r")))
-    {
-      bug("Can't open pre_titles.txt",0);
-      return;
-    }
-    
-    printf_to_char(ch,"%-15s %4s\n\r","Title", "Cost");
-    for ( ; ; )
-    {
-      word=fread_word( fp );
-      if (!strcmp(word, "End"))
-        break;
-      cost = fread_number( fp );
-      sprintf(buf, "%-15s %4d\n\r",word,cost);
-      send_to_char(buf,ch);
-
-    }
-    send_to_char("Use 'clear' argument to remove pretitle at no cost.\n\r",ch);
-    fclose (fp);
-    return;
-  }
-
-
-  strcpy(buf, "../area/pre_titles.txt");
-  if (!(fp = fopen(buf, "r")))
-  {
-    bug("Can't open pre_titles.txt",0);
-    return;
-  }
-
-  /* Capitalize first letter of title */
-  arg2[0] = UPPER(arg2[0]);
-
-  for ( ; ; )
-  {
-    word = fread_word( fp);
-    if (!strcmp(word, "End") || !strcmp(word,arg2))
-      break;
-  }
-
-  if (!strcmp(word, "End"))
-  {
-    if (!IS_IMMORTAL(ch))
-      send_to_char("Title not found. 'quest buy ptitle list' for titles and cost.\n\r",ch);
-    else
-      send_to_char("Title not found. 'ptitle list' for titles,\n\r",ch);
-
-    fclose(fp);
-    return;
-  }
-
-  cost = fread_number( fp );
-  strcat(arg2, " ");
-  
-  if (!strcmp(arg2,victim->pcdata->pre_title))
-  {
-    send_to_char("That's the same as the current title!\n\r",ch);
-  }
-
-  else
-  {
-    if (!IS_IMMORTAL(ch))
-    {
-      if (victim->pcdata->questpoints >= cost)
-      {
-        victim->pcdata->questpoints -= cost;
-	free_string(victim->pcdata->pre_title);
-	victim->pcdata->pre_title = str_dup(arg2);
-	send_to_char("Pretitle changed.\n\r",ch);
-      }
-      else
-      {
-        send_to_char("Not enough quest points.\n\r",ch);
-      }
-    }
-    else
-    {
-      victim->pcdata->pre_title = str_dup(arg2);
-      send_to_char("Pretitle changed.\n\r",ch);
-    }
-  }
-  fclose(fp);
 }
 
 
