@@ -941,6 +941,54 @@ void show_image_to_char( CHAR_DATA *ch, const char *txt )
     }
 }
 
+const char *save_ptitles( CHAR_DATA *ch )
+{
+    if (IS_NPC(ch))
+        return NULL;
+
+    lua_getglobal(g_mud_LS, "save_ptitles" );
+    push_CH(g_mud_LS, ch);
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 1 ) )
+    {
+        ptc (ch, "Error with save_ptitles:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+        return NULL;
+    }
+
+    const char *rtn;
+    if (lua_isnil(g_mud_LS, -1) || lua_isnone(g_mud_LS, -1) )
+    {
+        rtn=NULL;
+    }
+    else if (!lua_isstring(g_mud_LS, -1))
+    {
+        bugf("String wasn't returned in save_ptitles.");
+        rtn=NULL;
+    }
+    else
+    {
+        rtn=str_dup(luaL_checkstring( g_mud_LS, -1 ));
+    }
+   
+    lua_pop( g_mud_LS, 1 );
+
+    return rtn;
+}
+
+void load_ptitles( CHAR_DATA *ch, const char *text )
+{
+    lua_getglobal(g_mud_LS, "load_ptitles" );
+    push_CH(g_mud_LS, ch);
+    lua_pushstring( g_mud_LS, text );
+
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0 ) )
+    {
+        ptc (ch, "Error with load_ptitles:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
 const char *save_luaconfig( CHAR_DATA *ch )
 {
     if (!IS_IMMORTAL(ch))
@@ -1202,6 +1250,45 @@ DEF_DO_FUN(do_luahelp)
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         ptc (ch, "Error with do_luahelp:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+DEF_DO_FUN(do_ptitle)
+{
+    lua_getglobal(g_mud_LS, "do_ptitle");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf( "Error with do_ptitle:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void quest_buy_ptitle( CHAR_DATA *ch, const char *argument)
+{
+    lua_getglobal(g_mud_LS, "quest_buy_ptitle");
+    push_CH(g_mud_LS, ch);
+    lua_pushstring(g_mud_LS, argument);
+    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
+    {
+        bugf( "Error with quest_buy_ptitle:\n %s\n\r",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop( g_mud_LS, 1);
+    }
+}
+
+void fix_ptitles( CHAR_DATA *ch)
+{
+    lua_getglobal(g_mud_LS, "fix_ptitles");
+    push_CH(g_mud_LS, ch);
+    
+    if (CallLuaWithTraceBack( g_mud_LS, 1, 0) )
+    {
+        bugf( "Error with fix_ptitles:\n %s\n\r",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
