@@ -44,6 +44,7 @@
 #include "buffer_util.h"
 #include "simsave.h"
 #include "religion.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 
 extern  int     _filbuf         args( (FILE *) );
@@ -117,7 +118,7 @@ void    bread_obj   args( ( CHAR_DATA *ch,  RBUFFER *buf, OBJ_DATA *storage_box 
 
 /* version number to keep track with changes in pfile format or pfile age 
  * (e.g. for moneywipe) --Bobble */
-#define CURR_PFILE_VERSION 3
+#define CURR_PFILE_VERSION 3 
 static int pfile_version = 0;
 
 #define VER_FLAG_CHANGE  1
@@ -879,6 +880,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     {
         bprintf( buf, "LuaCfg %s~\n", luaconfig );
     }
+
+    const char *ptitles=save_ptitles( ch );
+    if (ptitles)
+    {
+        bprintf( buf, "Ptitles %s~\n", ptitles );
+        free_string(ptitles);
+    }
     
     
     bprintf( buf, "End\n\n" );
@@ -1338,6 +1346,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
 	    ch->sex = SEX_NEUTRAL;
 
 	morph_update( ch );
+    fix_ptitles( ch );
     
     read_wrap_free(buf);
 #if defined(SIM_DEBUG)
@@ -2173,6 +2182,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "Practice",    ch->practice,       bread_number( buf ) );
         KEY( "Prac",    ch->practice,       bread_number( buf ) );
 	    KEYS( "Pretitle",ch->pcdata->pre_title, bread_string(buf));
+        if ( !strcmp( word, "Ptitles") )
+        {
+            const char *temp = bread_string( buf );
+            load_ptitles( ch, temp );
+            free_string( temp );
+            fMatch=TRUE;
+            break;
+        }
         KEYS( "Prompt",      ch->prompt,             bread_string( buf ) );
         KEYS( "Prom",    ch->prompt,     bread_string( buf ) );
 

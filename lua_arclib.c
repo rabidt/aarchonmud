@@ -1103,6 +1103,17 @@ static int dbglib_show ( lua_State *LS)
     return 1;
 }
 
+static int glob_awardptitle( lua_State *LS)
+{
+    int top=lua_gettop(LS);
+    lua_getglobal(LS, "glob_awardptitle");
+
+    lua_insert( LS, 1);
+    lua_call( LS, top, LUA_MULTRET );
+    
+    return lua_gettop(LS);
+}
+
 static int glob_randnum ( lua_State *LS)
 {
     int top=lua_gettop(LS);
@@ -1221,6 +1232,7 @@ GLOB_TYPE glob_table[] =
     GFUN(getrandomroom, 0),
     GFUN(transfer,      0),
     GFUN(gtransfer,     0),
+    GFUN(awardptitle,   5),
     GFUN(sendtochar,    0),
     GFUN(echoat,        0),
     GFUN(echoaround,    0),
@@ -4110,6 +4122,15 @@ static int CH_get_questpoints( lua_State *LS)
     return 1;
 }
 
+static int CH_set_questpoints( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch)) luaL_error(LS, "Can't set questpoints on NPCs.");
+
+    ud_ch->pcdata->questpoints=luaL_checkinteger(LS, 2);
+    return 0;
+}
+
 static int CH_get_achpoints( lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4269,6 +4290,62 @@ static int CH_set_description (lua_State *LS)
     }
     free_string( ud_ch->description );
     ud_ch->description=str_dup(new);
+    return 0;
+}
+
+static int CH_get_ptitles( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS, 1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'ptitles' for NPC.");
+    }
+
+    push_ref( LS, ud_ch->pcdata->ptitles );
+    return 1;
+}
+
+static int CH_set_ptitles( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't set 'ptitles' for NPC.");
+    }
+
+    /* probably should check type and format of table in the future */
+
+    save_ref( LS, 2, &(ud_ch->pcdata->ptitles));
+    return 0;
+}
+
+static int CH_get_ptitle( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'ptitle' for NPC.");
+    }
+
+    lua_pushstring(LS, ud_ch->pcdata->pre_title);
+    return 1;
+}
+
+static int CH_set_ptitle( lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't set 'ptitle' for NPC.");
+    }
+
+    const char *new=check_string( LS, 2, MIL);
+    free_string(ud_ch->pcdata->pre_title);
+    ud_ch->pcdata->pre_title=str_dup(new);
     return 0;
 }
 
@@ -4464,6 +4541,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(mobdeaths, 0),
     CHGET(descriptor, 0),
     CHGET(bossachvs, 0),
+    CHGET(ptitle, 0),
+    CHGET(ptitles, 0),
     /* NPC only */
     CHGET(vnum, 0),
     CHGET(proto,0),
@@ -4510,6 +4589,10 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(longdescr, 5),
     CHSET(description, 5),
     CHSET(pet, 5),
+    /* PC only */
+    CHSET(questpoints, SEC_NOSCRIPT),
+    CHSET(ptitles, SEC_NOSCRIPT),
+    CHSET(ptitle, SEC_NOSCRIPT),
     ENDPTABLE
 };
 

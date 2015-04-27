@@ -125,6 +125,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "unlock",     do_unlock,      POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wield",      do_wear,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wizhelp",    do_wizhelp, POS_DEAD,   IM,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "ptitle",     do_ptitle,  POS_DEAD,   0,   LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
     * Informational commands.

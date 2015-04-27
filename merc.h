@@ -2768,6 +2768,8 @@ struct  pc_data
         bool show_images;
         bool image_window;
     } guiconfig;
+
+    LUAREF ptitles;
 };
 
 /* Data for special quests */
@@ -4781,6 +4783,8 @@ void save_mudconfig();
 void load_mudconfig();
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
+const char* save_ptitles( CHAR_DATA *ch );
+void load_ptitles( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
