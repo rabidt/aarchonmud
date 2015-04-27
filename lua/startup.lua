@@ -51,6 +51,26 @@ function glob_randnum(low, high)
     return math.floor( (mt.rand()*(high+1-low) + low)) -- people usually want inclusive
 end
 
+function glob_awardptitle( ch, ptitle)
+    if not ch.ispc then
+        error("Can't add ptitles to NPCs.")
+    end
+
+    if not ch.ptitles then 
+        forceset(ch, "ptitles",{})
+    end
+
+    local lst=ch.ptitles
+
+    -- If already has it, do nothing
+    for k,v in pairs(lst) do
+        if v==ptitle then return end
+    end
+
+    table.insert(lst, ptitle)
+    table.sort(lst)
+end
+
 function SaveTable( name, tbl, areaFname )
   if string.find(name, "[^a-zA-Z0-9_]") then
     error("Invalid character in name.")
