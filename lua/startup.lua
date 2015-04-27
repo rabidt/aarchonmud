@@ -56,6 +56,10 @@ function glob_awardptitle( ch, ptitle)
         error("Can't add ptitles to NPCs.")
     end
 
+    if string.find(ptitle, "[^a-zA-Z\.]") then
+        error("Ptitles can only contain letters and '.'")
+    end
+
     if not ch.ptitles then 
         forceset(ch, "ptitles",{})
     end
