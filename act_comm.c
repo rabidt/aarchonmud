@@ -516,7 +516,10 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
         sprintf(buf,"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
         log_chan(ch, buf, *(chan->psn));
 
-
+        // public channels show character name
+        sprintf(buf,"{%c%s{%c %s {%c'$t{%c'{x", chan->prime_color, IS_NPC(ch) ? ch->short_descr : ch->name,
+            chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
+        
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
             CHAR_DATA *victim;
@@ -542,7 +545,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                 }
                 if (!found)
                 {
-					sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
+                    //sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
                     act_new_gag( buf,
                         ch,argument, d->character, TO_VICT,POS_SLEEPING,
                         GAG_NCOL_CHAN, FALSE );
