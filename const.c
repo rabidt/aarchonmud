@@ -4772,31 +4772,6 @@ struct  skill_type
     "", "!aura of menace!", ""
     },
 
-/*
- * Spells for mega1.are from Glop/Erkenbrand.
- */
-	{
-	"general purpose",
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_general_purpose,  TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                         0,      12, DUR_NONE,
-	"general purpose ammo", "!General Purpose Ammo!",   ""
-	},
- 
-	{
-	"high explosive",
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_high_explosive,   TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                         0,      12, DUR_NONE,
-	"high explosive ammo",  "!High Explosive Ammo!",    ""
-	},
-
 /*  NEW RANGER STUFF by SIVA 9/28/98 */
 
 	{
