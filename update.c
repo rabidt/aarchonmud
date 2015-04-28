@@ -2564,14 +2564,23 @@ void update_handler( void )
 void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
     bool lethal = ch->in_room == victim->in_room;
+    int skill = get_skill(ch, gsn_high_explosives);
+    
+    dam += dam * skill / 200;
     
     if ( saves_spell(victim, NULL, dam/10, DAM_BASH) )
         dam /= 2;
     else
     {
         send_to_char("You are thrown to the floor by the force of the explosion!\n\r", victim);
+        act("$n is thrown to the floor by the force of the explosion!", victim, NULL, NULL, TO_ROOM);
         set_pos(victim, POS_RESTING);
         destance(victim, 0);
+        if ( per_chance(skill) )
+        {
+            WAIT_STATE(victim, PULSE_VIOLENCE);
+            DAZE_STATE(victim, 2*PULSE_VIOLENCE);
+        }
     }
     
     deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);

@@ -2213,6 +2213,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "demolitionist", ASSASSIN|GUNSLINGER,
+        { "evasion", "high explosives" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
         "slayer", ASSASSIN,
         { "estimate", "exploit weakness" },
         { 10, 30 },
@@ -5924,6 +5930,17 @@ struct  skill_type
         spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
         NULL, 150, 12, DUR_BRIEF,
         "", "Your god's power leaves you.", ""
+    },
+
+    {
+        "high explosives",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_high_explosives, 0, 0, DUR_NONE,
+        "", "!high explosives!", ""
     },
 
     {
