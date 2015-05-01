@@ -98,6 +98,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "balance",    do_balance,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "deposit",    do_deposit,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "withdraw",   do_withdraw,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "channel",    do_channel,     POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE   },
     { "channels",   do_channels,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "exits",      do_exits,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "explored",   do_explored,    POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
