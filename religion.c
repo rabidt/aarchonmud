@@ -3699,7 +3699,7 @@ DEF_DO_FUN( do_channel )
     }
     
     int chance = -paf->modifier;
-    WAIT_STATE(ch, skill_table[gsn_divine_channel].beats);
+    WAIT_STATE(ch, PULSE_VIOLENCE);
     affect_strip(ch, gsn_divine_channel);
     
     if ( per_chance(chance) )

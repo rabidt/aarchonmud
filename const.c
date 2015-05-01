@@ -5799,7 +5799,7 @@ struct  skill_type
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_CHA, STAT_WIS, STAT_LUC,
         spell_null, TAR_IGNORE, POS_STANDING,
-        &gsn_divine_channel, 0, 24, DUR_SPECIAL,
+        &gsn_divine_channel, 0, 0, DUR_SPECIAL,
         "", "Your channeling pool is drained.", ""
     },
 
