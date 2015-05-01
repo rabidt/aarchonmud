@@ -5753,6 +5753,9 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 /* check if the gods have mercy on a character */
 bool check_mercy( CHAR_DATA *ch )
 {
+    if ( check_skill(ch, gsn_divine_channel) )
+        return TRUE;
+    
     int chance = 1000;
     chance += get_curr_stat(ch, STAT_CHA) * 4 + get_curr_stat(ch, STAT_LUC);
     chance += ch->alignment;

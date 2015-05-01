@@ -112,6 +112,7 @@ DECLARE_DO_FUN( do_bug      );
 DECLARE_DO_FUN( do_buy      );
 DECLARE_DO_FUN( do_calm     );
 DECLARE_DO_FUN( do_cast     );
+DECLARE_DO_FUN( do_channel  );
 DECLARE_DO_FUN( do_channels );
 DECLARE_DO_FUN( do_charge   );
 DECLARE_DO_FUN( do_charloadtest);
