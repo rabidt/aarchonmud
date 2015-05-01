@@ -2237,7 +2237,8 @@ DEF_DO_FUN(do_affects)
     if ( ch->affected != NULL )
     {
         send_to_char( "You are affected by the following spells:\n\r", ch );
-        show_affects(ch, ch, ch->level >= 5, TRUE);
+        bool show_long = ch->level >= 5 || (ch->pcdata && (ch->pcdata->remorts || ch->pcdata->ascents));
+        show_affects(ch, ch, show_long, TRUE);
     }
     else 
         send_to_char("You are not affected by any spells.\n\r",ch);
