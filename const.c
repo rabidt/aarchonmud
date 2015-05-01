@@ -2165,6 +2165,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "chosen", CLERIC|PALADIN|MONK|TEMPLAR,
+        { "divine channel" },
+        { 1 },
+        { 100 }
+    },
+    {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
         { "mystic infusion" },
         { 10 },
@@ -5784,6 +5790,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_unarmed_parry, 0, 0, DUR_NONE,
         "", "!unarmed parry!", ""
+    },
+
+    {
+        "divine channel",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_STANDING,
+        &gsn_divine_channel, 0, 24, DUR_SPECIAL,
+        "", "Your channeling pool is drained.", ""
     },
 
     {

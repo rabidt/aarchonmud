@@ -3661,3 +3661,49 @@ void free_prayer( CHAR_DATA *ch )
     free_mem( ch->pcdata->prayer_request, sizeof(PRAYER_DATA) );
     ch->pcdata->prayer_request = NULL;
 }
+
+DEF_DO_FUN( do_channel )
+{
+    AFFECT_DATA *paf = affect_find(ch->affected, gsn_divine_channel);
+    int i;
+    
+    if ( paf == NULL )
+    {
+        send_to_char("You have no divine energy to channel.\n\r", ch);
+        return;
+    }
+    
+    if ( is_affected(ch, gsn_god_bless) )
+    {
+        send_to_char("You already have divine favour.\n\r", ch);
+        return;
+    }
+    
+    for ( i = 0; god_table[i].name; i++ )
+    {
+        // only blessings, not curses
+        if ( god_table[i].mean )
+            continue;
+        
+        if ( !strcmp(god_table[i].name, argument) )
+            break;
+    }
+    if ( !god_table[i].name )
+    {
+        send_to_char("You may cannel the following blessings:", ch);
+        for ( i = 0; god_table[i].name; i++ )
+            if ( !god_table[i].mean )
+                ptc(ch, " %s", god_table[i].name);
+        send_to_char("\n\r", ch);
+        return;
+    }
+    
+    int chance = -paf->modifier;
+    WAIT_STATE(ch, skill_table[gsn_divine_channel].beats);
+    affect_strip(ch, gsn_divine_channel);
+    
+    if ( per_chance(chance) )
+        (*god_table[i].fun)(NULL, ch, get_god_name(ch), GOD_FUNC_DEFAULT_DURATION);
+    else
+        send_to_char("The gods don't answer your call.\n\r", ch);
+}

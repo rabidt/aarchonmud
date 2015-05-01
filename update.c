@@ -1348,6 +1348,19 @@ void char_update( void )
             check_improve( ch, gsn_iron_hide, TRUE, 8 );
         } 
 
+        /* divine channel */
+        if ( !is_affected(ch, gsn_god_bless) && check_skill(ch, gsn_divine_channel) )
+        {
+            AFFECT_DATA af;
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_divine_channel;
+            af.level    = ch->level;
+            af.location = APPLY_SAVES;
+            af.duration = -1;
+            af.modifier = -1;
+            af.bitvector = 0;
+            affect_join_capped(ch, &af, -100);
+        }
 
         if ( ch->position >= POS_STUNNED )
         {
