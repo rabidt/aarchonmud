@@ -183,6 +183,26 @@ bool can_attack(CHAR_DATA *ch)
     return TRUE;
 }
 
+// free attack for everyone fighting victim, except for victim's target
+static void gangbang( CHAR_DATA *victim )
+{
+    CHAR_DATA *ch, *next;
+    
+    if ( !victim->in_room )
+        return;
+    
+    for ( ch = victim->in_room->people; ch; ch = next )
+    {
+        next = ch->next_in_room;
+        if ( ch->fighting == victim && victim->fighting != ch )
+        {
+            if ( stop_attack(ch, victim) )
+                return;
+            one_hit(ch, victim, TYPE_UNDEFINED, FALSE);
+        }
+    }
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -239,7 +259,11 @@ void violence_update( void )
 	check_jump_up(ch);
 
         if ( IS_AWAKE(ch) && ch->in_room == victim->in_room )
+        {
             multi_hit( ch, victim, TYPE_UNDEFINED );
+            if ( check_skill(ch, gsn_gang_up) )
+                gangbang(victim);
+        }
         else
             stop_fighting( ch, FALSE );
         

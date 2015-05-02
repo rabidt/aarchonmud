@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "mobster", THIEF,
+        { "gang up", "call sidekick" },
+        { 30, 50 },
+        { 100, 90 }
+    },
+    {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
         { "hide in plain sight", "shadow companion" },
         { 10, 30 },
@@ -5724,6 +5730,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_savage_frenzy, 0, 0, DUR_NONE,
         "", "!savage frenzy!", ""
+    },
+
+    {
+        "gang up",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_CHA, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_gang_up, 0, 0, DUR_NONE,
+        "", "!gang up!", ""
     },
 
     {
