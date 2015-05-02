@@ -44,6 +44,9 @@ struct remort_chamber
 #define R8  128 // Astark added 12-22-12. Testing.
 #define R9  256 // Enabled August 1 2014
 
+#define HOUR 3600
+#define DAY (24*HOUR)
+#define WEEK (7*DAY)
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
@@ -471,7 +474,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     affect_strip( ch, gsn_god_curse );
     die_follower(ch, FALSE);
     
-    i->limit += 259200;
+    i->limit = current_time + WEEK;
     
     remort_update();
 }
@@ -554,7 +557,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     affect_strip( ch, gsn_god_curse );
     die_follower(ch, FALSE);
     
-    i->limit = current_time + 28800;
+    i->limit = current_time + 8*HOUR;
     
     remort_update();
 }
@@ -660,7 +663,7 @@ void remort_update()
                 {
                     used[j] = TRUE;
                     if (i->limit == 0)
-                        i->limit = current_time + 259200;
+                        i->limit = current_time + WEEK;
                     break;
                 }
         }

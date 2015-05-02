@@ -31,6 +31,19 @@
 AREA_DATA *get_area_data   args( ( int vnum ) );
 
 
+bool is_being_edited( void *ptr )
+{
+    DESCRIPTOR_DATA *d;
+
+    for ( d=descriptor_list ; d ; d=d->next )
+    {
+        if ( ptr == d->pEdit )
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 /* Executed from comm.c.  Minimizes compiling when changes are made. */
 bool run_olc_editor( DESCRIPTOR_DATA *d )
 {

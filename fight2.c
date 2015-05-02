@@ -906,9 +906,18 @@ DEF_DO_FUN(do_aim)
                     disarm(ch, victim, FALSE, get_mastery(ch, gsn_aim));
                 break;
             case AIM_FOOT:
-                act("Your bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
-                act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
-                act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                if ( get_weapon_sn(ch) == gsn_bow )
+                {
+                    act("Your arrow hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
+                    act("$n's arrow hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
+                    act("$n's arrow hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                }
+                else
+                {
+                    act("Your bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_CHAR);
+                    act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
+                    act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
+                }
                 WAIT_STATE( victim, 2*PULSE_VIOLENCE );
                 victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
                 if( number_bits(1) )
@@ -2138,7 +2147,7 @@ DEF_DO_FUN(do_feint)
     
     if ( fch == NULL )
     {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+        send_to_char( "Nobody is attacking you.\n\r", ch );
         return;
     }
     
@@ -2153,7 +2162,7 @@ DEF_DO_FUN(do_feint)
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
         vch_next = vch->next_in_room;
-        if ( is_same_group(ch, vch) && ch!=vch )
+        if ( is_same_group(ch, vch) && ch != vch && vch->fighting )
             victim = vch;
     }
     
@@ -2176,11 +2185,7 @@ DEF_DO_FUN(do_feint)
     act( "$n feints away from $N!",  ch, NULL, fch, TO_NOTVICT );
     check_improve(ch,gsn_feint,TRUE,2);
     
-    stop_fighting( ch, TRUE );
-    stop_fighting( fch, TRUE );
-    
-    set_fighting( victim, fch );
-    set_fighting( fch, victim );
+    set_fighting(fch, victim);
     return;
 }
 

@@ -183,6 +183,26 @@ bool can_attack(CHAR_DATA *ch)
     return TRUE;
 }
 
+// free attack for everyone fighting victim, except for victim's target
+static void gangbang( CHAR_DATA *victim )
+{
+    CHAR_DATA *ch, *next;
+    
+    if ( !victim->in_room )
+        return;
+    
+    for ( ch = victim->in_room->people; ch; ch = next )
+    {
+        next = ch->next_in_room;
+        if ( ch->fighting == victim && victim->fighting != ch )
+        {
+            if ( stop_attack(ch, victim) )
+                return;
+            one_hit(ch, victim, TYPE_UNDEFINED, FALSE);
+        }
+    }
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -239,7 +259,11 @@ void violence_update( void )
 	check_jump_up(ch);
 
         if ( IS_AWAKE(ch) && ch->in_room == victim->in_room )
+        {
             multi_hit( ch, victim, TYPE_UNDEFINED );
+            if ( check_skill(ch, gsn_gang_up) )
+                gangbang(victim);
+        }
         else
             stop_fighting( ch, FALSE );
         
@@ -3598,7 +3622,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    remember_attack(victim, ch, dam);
+    remember_attack(victim, ch, dam + mana_loss + move_loss);
     
     /* deaths door check Added by Tryste */
     if ( !IS_NPC(victim) && victim->hit < 1 )
@@ -5755,6 +5779,9 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 /* check if the gods have mercy on a character */
 bool check_mercy( CHAR_DATA *ch )
 {
+    if ( check_skill(ch, gsn_divine_channel) )
+        return TRUE;
+    
     int chance = 1000;
     chance += get_curr_stat(ch, STAT_CHA) * 4 + get_curr_stat(ch, STAT_LUC);
     chance += ch->alignment;
@@ -5850,6 +5877,8 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     int high_align, low_align;
     float group_factor, ch_factor;
     int total_dam, group_dam;
+    // damage dealt times number of victim's allies at the time
+    int ally_dam = 0, group_ally_dam = 0;
 
     /*
      * Monsters don't get kill xp's or changes.
@@ -5894,6 +5923,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
             if (gch->id == m->id)
             {
                 group_dam += m->reaction;
+                group_ally_dam += m->ally_reaction;
             }
     }
         
@@ -5930,6 +5960,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         base_exp = calculate_base_exp( level_power(gch), victim );
         dam_done = get_reaction( victim, gch );
+        ally_dam = get_ally_reaction( victim, gch );
         ch_factor = calculate_exp_factor( gch );
         
         // alignment change
@@ -5938,6 +5969,9 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         // partly exp from own, partly from group
         xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
+        // bonus for fighting multiple mobs at once
+        int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
+        xp += UMIN(xp, ally_xp / 3);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
@@ -7245,9 +7279,9 @@ DEF_DO_FUN(do_stance)
         return;
     }
     
-    for (i = 0; stances[i].name != NULL; i++)
-        if (!str_prefix(argument, stances[i].name))
-	    break;
+    for ( i = 0; stances[i].name != NULL; i++ )
+        if ( !str_prefix(argument, stances[i].name) && get_skill(ch, *(stances[i].gsn)) )
+            break;
 
     is_pet = IS_NPC(ch) && (IS_SET(ch->act, ACT_PET) || IS_AFFECTED(ch, AFF_CHARM));
 

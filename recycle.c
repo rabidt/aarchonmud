@@ -486,6 +486,9 @@ PC_DATA *new_pcdata(void)
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
+
+    new_ref(&pcdata->ptitles);
+
     VALIDATE(pcdata);
 
     return pcdata;
@@ -567,7 +570,7 @@ void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-
+    free_ref(&pcdata->ptitles);
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;
@@ -682,6 +685,7 @@ MEM_DATA *new_mem_data(void)
 	memory->next = NULL;
 	memory->id = 0;
 	memory->reaction = 0;
+    memory->ally_reaction = 0;
 	memory->when = 0;
 	VALIDATE(memory);
 

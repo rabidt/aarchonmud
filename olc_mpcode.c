@@ -314,6 +314,12 @@ MPEDIT (mpedit_delete)
         }
     }
 
+    if (is_being_edited(pMcode))
+    {
+        send_to_char( "Can't delete mprog, it is being edited.\n\r", ch);
+        return FALSE;
+    }
+
     /* if we got here, we're good to delete */
     PROG_CODE *curr, *last=NULL;
     for ( curr=mprog_list ; curr ; curr=curr->next )
