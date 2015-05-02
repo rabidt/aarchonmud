@@ -5142,6 +5142,9 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         || ch->stance==STANCE_BUNNY)
         chance += 15;
 
+    if ( IS_NPC(ch) && IS_SET(ch->off_flags, OFF_DODGE) )
+        chance += 15;
+    
     if ( IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
         chance += 10;
 
