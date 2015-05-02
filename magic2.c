@@ -1957,6 +1957,9 @@ DEF_SPELL_FUN(spell_tree_golem)
         return FALSE;
     
     set_mob_level( mob, mlevel );
+    
+    if ( per_chance(beast_skill) )
+       REMOVE_AFFECT(mob, AFF_SLOW);
 
     sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
         mob->description,ch->name);
@@ -2033,6 +2036,11 @@ DEF_SPELL_FUN(spell_water_elemental)
     mob = create_mobile(mobIndex);
     
     set_mob_level( mob, mlevel );
+    if ( per_chance(beast_skill) )
+    {
+        SET_BIT(mob->off_flags, OFF_RESCUE);
+        SET_BIT(mob->off_flags, OFF_FAST);
+    }
 
     // set name, description etc. to match liquid
 #define rename(VAR) free_string(mob->VAR);mob->VAR=str_dup(buf)
@@ -2171,6 +2179,11 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
             return FALSE;
         
         set_mob_level( mob, mlevel );
+        if ( per_chance(beast_skill) )
+        {
+            SET_BIT(mob->off_flags, OFF_RESCUE);
+            SET_BIT(mob->off_flags, OFF_FAST);
+        }
 
         sprintf(buf,"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
         free_string(mob->description);

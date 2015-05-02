@@ -2924,7 +2924,7 @@ void check_beast_mastery( CHAR_DATA *ch )
     CHAR_DATA *mob;
     MOB_INDEX_DATA *mobIndex;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, sector;
+    int mlevel, sector, hero_bonus;
     int skill = get_skill(ch, gsn_beast_mastery);
 
     if ( skill == 0 )
@@ -2959,8 +2959,9 @@ void check_beast_mastery( CHAR_DATA *ch )
 
     mob = create_mobile(mobIndex);
 
+    hero_bonus = UMAX(0, ch->level - 90);
     mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
-    mlevel = URANGE(1, mlevel, ch->level);
+    mlevel = URANGE(1, mlevel, ch->level) + hero_bonus;
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"This wild animal follows %s.\n\r", ch->name);
