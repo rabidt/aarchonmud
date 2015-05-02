@@ -316,7 +316,7 @@ CHAR_DATA *get_random_char( CHAR_DATA *mob )
     {
         if ( mob != vch 
         &&   !IS_NPC( vch ) 
-        &&   check_see( mob, vch )
+        //&&   check_see( mob, vch )
         &&   ( now = number_percent() ) > highest )
         {
             victim = vch;
@@ -557,7 +557,7 @@ int cmd_eval( int vnum, const char *line, int check,
 	    if ( is_r_number( buf ) )
 		return( (bool) get_mob_vnum_room( mob, r_atoi(mob, buf) ) );
 	    else
-		return( (bool) (get_char_room( mob, buf) != NULL) );
+		return( (bool) (pget_char_room( mob, buf) != NULL) );
 	case CHK_OBJHERE:
 	    if ( is_r_number( buf ) )
 		return( get_obj_vnum_room( mob, r_atoi(mob, buf) ) );
@@ -658,7 +658,7 @@ int cmd_eval( int vnum, const char *line, int check,
       /* name of actor given - first search for character, then for object */
       /* set code to 'i' or 'o' to differ between character and object */
       code = 'i'; 
-      lval_char = get_char_room(mob, buf);
+      lval_char = pget_char_room(mob, buf);
       if (lval_char == NULL)
       {
 	code = 'o';
@@ -962,7 +962,7 @@ void expand_arg( char *buf,
     str     = format;
     while ( *str != '\0' )
     {
-    	if ( *str != '$' )
+        if ( *str != '$' )
         {
             *point++ = *str++;
             continue;
@@ -971,137 +971,136 @@ void expand_arg( char *buf,
 
         switch ( *str )
         {
-            default:  bug( "Expand_arg: bad code %d.", *str );
-                          i = " <@@@> ";                        break;
+            default:
+                bug("Expand_arg: bad code %d.", *str);
+                i = " <@@@> ";
+                break;
             case 'i':
-		one_argument( mob->name, fname );
-		i = fname;                         		break;
-            case 'I': i = mob->short_descr;                     break;
+                one_argument(mob->name, fname);
+                i = fname;
+                break;
+            case 'I':
+                i = mob->short_descr;
+                break;
             case 'n': 
-		i = someone;
-		if ( ch != NULL && can_see( mob, ch ) )
-		{
-            	    one_argument( ch->name, fname );
-		    i = capitalize(fname);
-		}						break;
+                i = someone;
+                if ( ch != NULL )
+                {
+                    one_argument(ch->name, fname);
+                    i = capitalize(fname);
+                }
+                break;
             case 'N': 
-	    	i = (ch != NULL && can_see( mob, ch ) )
-		? ( IS_NPC( ch ) ? ch->short_descr : ch->name )
-		: someone;                         		break;
-            case 't': 
-		i = someone;
-		if ( vch != NULL && can_see( mob, vch ) )
-		{
-            	     one_argument( vch->name, fname );
-		     i = capitalize(fname);
-		}						break;
+                i = (ch != NULL) ? (IS_NPC(ch) ? ch->short_descr : ch->name) : someone;
+                break;
+            case 't':
+                i = someone;
+                if ( vch != NULL )
+                {
+                    one_argument(vch->name, fname);
+                    i = capitalize(fname);
+                }
+                break;
             case 'T': 
-	    	i = (vch != NULL && can_see( mob, vch ))
-		? ( IS_NPC( vch ) ? vch->short_descr : vch->name )
-		: someone;                         		break;
+                i = (vch != NULL) ? (IS_NPC(vch) ? vch->short_descr : vch->name) : someone;
+                break;
             case 'r': 
-		if ( rch == NULL ) 
-		    rch = get_random_char( mob );
-		i = someone;
-		if( rch != NULL && can_see( mob, rch ) )
-		{
-                    one_argument( rch->name, fname );
-		    i = capitalize(fname);
-		} 						break;
-            case 'R': 
-		if ( rch == NULL ) 
-		    rch = get_random_char( mob );
-		i  = ( rch != NULL && can_see( mob, rch ) )
-		? ( IS_NPC( ch ) ? ch->short_descr : ch->name )
-		:someone;					break;
-	    case 'q':
-		i = someone;
-		if ( mob->mprog_target != NULL && can_see( mob, mob->mprog_target ) )
-	        {
-		    one_argument( mob->mprog_target->name, fname );
-		    i = capitalize( fname );
-		} 						break;
-	    case 'Q':
-	    	i = (mob->mprog_target != NULL && can_see( mob, mob->mprog_target ))
-		? ( IS_NPC( mob->mprog_target ) ? mob->mprog_target->short_descr : mob->mprog_target->name )
-		: someone;                         		break;
-            case 'j': i = he_she  [URANGE(0, mob->sex, 2)];     break;
-            case 'e': 
-	    	i = (ch != NULL && can_see( mob, ch ))
-		? he_she  [URANGE(0, ch->sex, 2)]        
-		: someone;					break;
-            case 'E': 
-	    	i = (vch != NULL && can_see( mob, vch ))
-		? he_she  [URANGE(0, vch->sex, 2)]        
-		: someone;					break;
-            case 'J': 
-		i = (rch != NULL && can_see( mob, rch ))
-		? he_she  [URANGE(0, rch->sex, 2)]        
-		: someone;					break;
-	    case 'X':
-		i = (mob->mprog_target != NULL && can_see( mob, mob->mprog_target))
-		? he_she  [URANGE(0, mob->mprog_target->sex, 2)]
-		: someone;					break;
-            case 'k': i = him_her [URANGE(0, mob->sex, 2)];	break;
-            case 'm': 
-	    	i = (ch != NULL && can_see( mob, ch ))
-		? him_her [URANGE(0, ch  ->sex, 2)]
-		: someone;        				break;
-            case 'M': 
-	    	i = (vch != NULL && can_see( mob, vch ))
-		? him_her [URANGE(0, vch ->sex, 2)]        
-		: someone;					break;
-            case 'K': 
-		if ( rch == NULL ) 
-		    rch = get_random_char( mob );
-		i = (rch != NULL && can_see( mob, rch ))
-		? him_her [URANGE(0, rch ->sex, 2)]
-		: someone;					break;
-            case 'Y': 
-	    	i = (mob->mprog_target != NULL && can_see( mob, mob->mprog_target ))
-		? him_her [URANGE(0, mob->mprog_target->sex, 2)]        
-		: someone;					break;
-            case 'l': i = his_her [URANGE(0, mob ->sex, 2)];    break;
-            case 's': 
-	    	i = (ch != NULL && can_see( mob, ch ))
-		? his_her [URANGE(0, ch ->sex, 2)]
-		: someones;					break;
-            case 'S': 
-	    	i = (vch != NULL && can_see( mob, vch ))
-		? his_her [URANGE(0, vch ->sex, 2)]
-		: someones;					break;
+                if ( rch == NULL ) 
+                    rch = get_random_char(mob);
+                i = someone;
+                if ( rch != NULL )
+                {
+                    one_argument(rch->name, fname);
+                    i = capitalize(fname);
+                }
+                break;
+            case 'R':
+                if ( rch == NULL )
+                    rch = get_random_char(mob);
+                i = (rch != NULL) ? (IS_NPC(ch) ? ch->short_descr : ch->name) : someone;
+                break;
+            case 'q':
+                i = someone;
+                if ( mob->mprog_target != NULL )
+                {
+                    one_argument(mob->mprog_target->name, fname);
+                    i = capitalize(fname);
+                }
+                break;
+            case 'Q':
+                i = (mob->mprog_target != NULL) ? (IS_NPC(mob->mprog_target) ? mob->mprog_target->short_descr : mob->mprog_target->name) : someone;
+                break;
+            case 'j':
+                i = he_she[URANGE(0, mob->sex, 2)];
+                break;
+            case 'e':
+                i = (ch != NULL) ? he_she[URANGE(0, ch->sex, 2)] : someone;
+                break;
+            case 'E':
+                i = (vch != NULL) ? he_she[URANGE(0, vch->sex, 2)] : someone;
+                break;
+            case 'J':
+                i = (rch != NULL) ? he_she[URANGE(0, rch->sex, 2)] : someone;
+                break;
+            case 'X':
+                i = (mob->mprog_target != NULL) ? he_she[URANGE(0, mob->mprog_target->sex, 2)] : someone;
+                break;
+            case 'k':
+                i = him_her[URANGE(0, mob->sex, 2)];
+                break;
+            case 'm':
+                i = (ch != NULL) ? him_her[URANGE(0, ch  ->sex, 2)] : someone;
+                break;
+            case 'M':
+                i = (vch != NULL) ? him_her[URANGE(0, vch ->sex, 2)] : someone;
+                break;
+            case 'K':
+                if ( rch == NULL )
+                    rch = get_random_char(mob);
+                i = (rch != NULL) ? him_her[URANGE(0, rch ->sex, 2)] : someone;
+                break;
+            case 'Y':
+                i = (mob->mprog_target != NULL) ? him_her[URANGE(0, mob->mprog_target->sex, 2)] : someone;
+                break;
+            case 'l':
+                i = his_her[URANGE(0, mob ->sex, 2)];
+                break;
+            case 's':
+                i = (ch != NULL) ? his_her[URANGE(0, ch ->sex, 2)] : someones;
+                break;
+            case 'S':
+                i = (vch != NULL) ? his_her[URANGE(0, vch ->sex, 2)] : someones;
+                break;
             case 'L': 
-		if ( rch == NULL ) 
-		    rch = get_random_char( mob );
-		i = ( rch != NULL && can_see( mob, rch ) )
-		? his_her [URANGE(0, rch ->sex, 2)]
-		: someones;					break;
+                if ( rch == NULL ) 
+                    rch = get_random_char(mob);
+                i = (rch != NULL) ? his_her[URANGE(0, rch ->sex, 2)] : someones;
+                break;
             case 'Z': 
-	    	i = (mob->mprog_target != NULL && can_see( mob, mob->mprog_target ))
-		? his_her [URANGE(0, mob->mprog_target->sex, 2)]
-		: someones;					break;
-	    case 'o':
-		i = something;
-		if ( obj1 != NULL && can_see_obj( mob, obj1 ) )
-		{
-            	    one_argument( obj1->name, fname );
+                i = (mob->mprog_target != NULL) ? his_her[URANGE(0, mob->mprog_target->sex, 2)] : someones;
+                break;
+            case 'o':
+                i = something;
+                if ( obj1 != NULL )
+                {
+                    one_argument(obj1->name, fname);
                     i = fname;
-		} 						break;
+                }
+                break;
             case 'O':
-                i = (obj1 != NULL && can_see_obj( mob, obj1 ))
-                ? obj1->short_descr
-                : something;					break;
+                i = (obj1 != NULL) ? obj1->short_descr : something;
+                break;
             case 'p':
-		i = something;
-		if ( obj2 != NULL && can_see_obj( mob, obj2 ) )
-		{
-            	    one_argument( obj2->name, fname );
-            	    i = fname;
-		} 						break;
+                i = something;
+                if ( obj2 != NULL )
+                {
+                    one_argument(obj2->name, fname);
+                    i = fname;
+                }
+                break;
             case 'P':
-            	i = (obj2 != NULL && can_see_obj( mob, obj2 ))
-                ? obj2->short_descr
-                : something;					break;
+                i = (obj2 != NULL) ? obj2->short_descr : something;
+                break;
         }
  
         ++str;
