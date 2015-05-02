@@ -1460,6 +1460,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -5878,6 +5880,8 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     int high_align, low_align;
     float group_factor, ch_factor;
     int total_dam, group_dam;
+    // damage dealt times number of victim's allies at the time
+    int ally_dam = 0, group_ally_dam = 0;
 
     /*
      * Monsters don't get kill xp's or changes.
@@ -5922,6 +5926,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
             if (gch->id == m->id)
             {
                 group_dam += m->reaction;
+                group_ally_dam += m->ally_reaction;
             }
     }
         
@@ -5958,6 +5963,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         base_exp = calculate_base_exp( level_power(gch), victim );
         dam_done = get_reaction( victim, gch );
+        ally_dam = get_ally_reaction( victim, gch );
         ch_factor = calculate_exp_factor( gch );
         
         // alignment change
@@ -5966,6 +5972,9 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         // partly exp from own, partly from group
         xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
+        // bonus for fighting multiple mobs at once
+        int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
+        xp += UMIN(xp, ally_xp / 3);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
