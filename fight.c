@@ -3620,7 +3620,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    remember_attack(victim, ch, dam);
+    remember_attack(victim, ch, dam + mana_loss + move_loss);
     
     /* deaths door check Added by Tryste */
     if ( !IS_NPC(victim) && victim->hit < 1 )
