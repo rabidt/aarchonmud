@@ -7270,9 +7270,9 @@ DEF_DO_FUN(do_stance)
         return;
     }
     
-    for (i = 0; stances[i].name != NULL; i++)
-        if (!str_prefix(argument, stances[i].name))
-	    break;
+    for ( i = 0; stances[i].name != NULL; i++ )
+        if ( !str_prefix(argument, stances[i].name) && get_skill(ch, *(stances[i].gsn)) )
+            break;
 
     is_pet = IS_NPC(ch) && (IS_SET(ch->act, ACT_PET) || IS_AFFECTED(ch, AFF_CHARM));
 
