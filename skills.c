@@ -2130,6 +2130,7 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==gsn_dual_wield)
 	 || (sn==gsn_two_handed)
      || (sn==gsn_hand_to_hand)
+     || (sn==gsn_dodge)
 	 || (sn==gsn_rescue)
 	 || (sn==gsn_flee)
 	 || (sn==gsn_sneak)
@@ -2156,8 +2157,6 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
         return TRUE;
     
     /* skills by offensive flags */
-    if (sn==gsn_dodge)
-	return IS_SET(ch->off_flags, OFF_DODGE);
     if (sn==gsn_parry)
 	return IS_SET(ch->off_flags, OFF_PARRY);
     if (sn==gsn_second_attack || sn==gsn_third_attack)
