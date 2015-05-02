@@ -38,4 +38,6 @@ void release_ref( lua_State *LS, LUAREF *ref );
 void push_ref( lua_State *LS, LUAREF ref );
 bool is_set_ref( LUAREF ref );
 
+void quest_buy_ptitle( CHAR_DATA *ch, const char *argument);
+void fix_ptitles( CHAR_DATA *ch );
 #endif

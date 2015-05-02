@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         465
+#define MAX_SKILL         466
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -2461,7 +2461,8 @@ struct mem_data
     MEM_DATA    *next;
     bool    valid;
     int     id;     
-    int     reaction;
+    int     reaction; // damage dealt to mob
+    int     ally_reaction; // damage * number of assists (for exp bonus)
     time_t  when;
 };
 
@@ -2789,6 +2790,8 @@ struct  pc_data
         bool show_images;
         bool image_window;
     } guiconfig;
+
+    LUAREF ptitles;
 };
 
 /* Data for special quests */
@@ -3418,6 +3421,7 @@ extern sh_int  gsn_combat_casting;
 extern sh_int  gsn_warmage_edge;
 extern sh_int  gsn_elemental_strike;
 extern sh_int  gsn_savage_frenzy;
+extern sh_int  gsn_gang_up;
 extern sh_int  gsn_hips;
 extern sh_int  gsn_shadow_companion;
 extern sh_int  gsn_shadow_strike;
@@ -3425,6 +3429,7 @@ extern sh_int  gsn_shadow_body;
 extern sh_int  gsn_piercing_blade;
 extern sh_int  gsn_lethal_hands;
 extern sh_int  gsn_unarmed_parry;
+extern sh_int  gsn_divine_channel;
 extern sh_int  gsn_mystic_infusion;
 extern sh_int  gsn_rapid_fire;
 extern sh_int  gsn_bullet_rain;
@@ -3435,6 +3440,7 @@ extern sh_int  gsn_exploit_weakness;
 extern sh_int  gsn_arcane_defiling;
 extern sh_int  gsn_eldritch_blast;
 extern sh_int  gsn_eldritch_curse;
+extern sh_int  gsn_high_explosives;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4870,6 +4876,8 @@ void save_mudconfig();
 void load_mudconfig();
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
+const char* save_ptitles( CHAR_DATA *ch );
+void load_ptitles( CHAR_DATA *ch, const char *text );
 int name_sorted_group_table( int sequence );
 int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
@@ -5226,6 +5234,7 @@ void	forget_attacks	args((CHAR_DATA *ch));
 int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 void    forget_attacker(CHAR_DATA *ch, CHAR_DATA *attacker);
 int     get_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
+int     get_ally_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
 int     find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance );
 
 /* quest.c */

@@ -2326,3 +2326,174 @@ function do_qset(ch, argument)
     end
 end
 -- end do_qset section
+
+-- do_ptitle section
+function save_ptitles( ch )
+    local pt=ch.ptitles
+
+    if not pt then return nil end
+    
+    return table.concat(pt, "|")
+end
+
+function load_ptitles( ch, text )
+    local tbl={}
+
+    for title in string.gmatch( text, "[^|]+") do
+        table.insert(tbl, title)
+    end 
+
+    ch.ptitles=tbl
+end
+
+local function ptitle_usage( ch )
+    sendtochar( ch, [[
+ptitle set [title] -- Set your ptitle
+ptitle list        -- List your available ptitles
+ptitle clear       -- Clear your current ptitle
+]])
+end
+
+-- make sure that current ptitle is in the list of awarded ptitles
+function fix_ptitles(ch)
+    -- trim current ptitle
+    if ch.ptitle=="" then return end
+    
+    local ttl=string.match(ch.ptitle, "[^%s]+") -- trim the appended space 
+
+    if not ch.ptitles then
+        forceset(ch, "ptitles", {[1]=ttl})
+        return
+    end
+
+    local lst=ch.ptitles
+
+    for k,v in pairs(ch.ptitles) do
+        if v==ttl then return end
+    end
+
+    table.insert(lst, ttl) 
+    table.sort(lst)
+end
+
+function do_ptitle( ch, argument)
+    local args=arguments(argument)
+
+    if #args<1 then
+        ptitle_usage( ch )
+        return
+    end
+
+    if args[1]=="list" then
+        if not ch.ptitles or #ch.ptitles<1 then
+            sendtochar(ch, "You have no ptitles.\n\r")
+            return
+        end 
+        pagetochar( ch, table.concat(ch.ptitles,"\n\r").."\n\r")
+        return
+    elseif args[1]=="clear" then
+        ch.ptitle=""
+        sendtochar(ch, "Ptitle cleared.\n\r")
+        return
+    elseif args[1]=="set" then 
+        if not ch.ptitles or #ch.ptitles<1 then
+            sendtochar(ch, "You don't have any ptitles available!\n\r")
+            return
+        end
+
+        for k,v in pairs(ch.ptitles) do
+            if args[2]:lower()==v:lower() then
+                ch.ptitle=v.." "
+                sendtochar(ch, "Ptitle set to "..v.."\n\r")
+                return
+            end
+        end
+        
+        sendtochar(ch, "Sorry, "..args[2].." is not one of your available ptitles.\n\r")
+        return
+    else
+        ptitle_usage( ch )
+        return
+    end
+end
+
+local ptitle_list={
+    "Sir",
+    "Maid",
+    "Baron",
+    "Baroness",
+    "Lady",
+    "Mistress",
+    "Professor",
+    "Mr.",
+    "Mrs.",
+    "Ms.",
+    "Miss",
+    "Dr.",
+    "Doctor",
+    "Doc",
+    "Herr",
+    "Frau",
+    "The",
+    "Master",
+    "Darth",
+    "El",
+    "La",
+    "Prince",
+    "Princess",
+    "Tzar",
+    "Grandpa",
+    "Grandma",
+    "Hunter",
+    "Huntress",
+    "Lord",
+    "Champion",
+    "Warlord",
+    "Commander",
+    "Uncle",
+    "Auntie",
+    "Father",
+    "Mother",
+    "Brother",
+    "Sister",
+}
+local ptitle_cost=200
+function quest_buy_ptitle(ch, argument)
+    local args=arguments(argument)
+
+    if not(args[1]) or args[1]=="" then
+        sendtochar( ch, [[
+quest buy ptitle list -- List ptitles available for purchase.
+quest buy <title>     -- Purchase a ptitle
+]])
+        return
+
+    elseif args[1]=="list" then
+        local out={}
+        table.insert(out, ("%-15s %4s\n\r"):format("Title", "Cost") )
+
+        for i,v in ipairs(ptitle_list) do
+            table.insert(out, ("%-15s %4d\n\r"):format(v, ptitle_cost) )
+        end
+
+        pagetochar( ch, table.concat(out))
+        return
+    else
+        if ch.questpoints<ptitle_cost then
+            sendtochar(ch, "Sorry, you need "..ptitle_cost.." quest points.\n\r")
+            return
+        end
+        for k,v in pairs(ptitle_list) do
+            if args[1]:lower()==v:lower() then
+                ch.questpoints=ch.questpoints-200
+                awardptitle(ch, v)
+                sendtochar( ch, ("You have purchased the '%s' ptitle. Use the 'ptitle' command to set it!\n\r"):format(v) )
+                return
+            end
+        end
+
+        sendtochar( ch, "No such ptitle on the list: "..args[1].."\n\r")
+        return
+    end
+end
+-- end do_ptitle section

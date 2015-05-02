@@ -286,6 +286,11 @@ APEDIT (apedit_delete)
         }
     }
 
+    if (is_being_edited(pAcode))
+    {
+        send_to_char( "Can't delete aprog, it is being edited.\n\r", ch );
+        return FALSE;
+    }
     /* if we got here, we're good to delete */
     PROG_CODE *curr, *last=NULL;
     for ( curr=aprog_list ; curr ; curr=curr->next )

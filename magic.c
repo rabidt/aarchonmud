@@ -5972,37 +5972,6 @@ DEF_SPELL_FUN(spell_word_of_recall)
 
 /* Draconian & Necromancer spells are in breath.c --Bobble */
 
-/*
- * Spells for mega1.are from Glop/Erkenbrand.
- */
-DEF_SPELL_FUN(spell_general_purpose)
-{
-    SPELL_CHECK_RETURN
-    
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam;
-
-    dam = number_range( 25, 100 );
-    if ( saves_spell(victim, ch, level, DAM_PIERCE) )
-        dam /= 2;
-    full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
-    return TRUE;
-}
-
-DEF_SPELL_FUN(spell_high_explosive)
-{
-    SPELL_CHECK_RETURN
-    
-    CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int dam;
-
-    dam = number_range( 30, 120 );
-    if ( saves_spell(victim, ch, level, DAM_PIERCE) )
-        dam /= 2;
-    full_dam( ch, victim, dam, sn, DAM_PIERCE ,TRUE);
-    return TRUE;
-}
-
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);

@@ -145,7 +145,8 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
-    if ( obj->timer == -1                 )   strcat( buf, "(Preserved) " );
+    if ( obj->timer == -1 && obj->item_type != ITEM_EXPLOSIVE )
+        strcat( buf, "(Preserved) " );
     
     if ( fShort )
     {
@@ -1036,9 +1037,9 @@ DEF_DO_FUN(do_autolist)
         send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
 
     if (!IS_SET(ch->act,PLR_CANLOOT))
-        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
-    else 
         send_to_char("noloot         ON     Players cannot loot items from corpses you own.\n\r",ch);
+    else 
+        send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
 
     if (IS_SET(ch->act,PLR_NOSUMMON))
         send_to_char("nosummon       ON     Players cannot gate to or summon you.\n\r",ch);
@@ -2236,7 +2237,8 @@ DEF_DO_FUN(do_affects)
     if ( ch->affected != NULL )
     {
         send_to_char( "You are affected by the following spells:\n\r", ch );
-        show_affects(ch, ch, ch->level >= 5, TRUE);
+        bool show_long = ch->level >= 5 || (ch->pcdata && (ch->pcdata->remorts || ch->pcdata->ascents));
+        show_affects(ch, ch, show_long, TRUE);
     }
     else 
         send_to_char("You are not affected by any spells.\n\r",ch);
@@ -5960,10 +5962,11 @@ DEF_DO_FUN(do_showsubclass)
     
     if ( argument[0] == '\0' )
     {
-        send_to_char("Syntax: showsubclass <subclass|class|byclass|all>\n\r", ch);
+        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
         return;
     }
     
+    /*
     if ( !strcmp(argument, "all") )
     {
         for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
@@ -5978,8 +5981,9 @@ DEF_DO_FUN(do_showsubclass)
             ptc(ch, "None found.\n\r");
         return;
     }
+    */
 
-    if ( !strcmp(argument, "byclass") )
+    if ( !strcmp(argument, "all") )
     {
         for ( class = 0; class < MAX_CLASS; class++ )
         {

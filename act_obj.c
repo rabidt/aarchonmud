@@ -2065,11 +2065,8 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 
     if ( CAN_WEAR( obj, ITEM_HOLD ) )
     {
-        if (get_eq_char (ch, WEAR_SECONDARY) != NULL)
-        {
-            send_to_char ("You cannot hold an item while using 2 weapons.\n\r",ch);
+        if ( !remove_obj(ch, WEAR_SECONDARY, fReplace) )
             return;
-        }
 
         if (((weapon = get_eq_char(ch,WEAR_WIELD)) != NULL) &&
                 IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS))
@@ -2099,20 +2096,20 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
                 return;
         }
 
-        if ( !IS_NPC(ch) 
-                && get_obj_weight(obj) > (ch_str_wield(ch)))
+        if ( !IS_NPC(ch) && get_obj_weight(obj) > ch_str_wield(ch) )
         {
             send_to_char( "It is too heavy for you to wield.\n\r", ch );
             return;
         }
 
-        if ( !IS_NPC(ch) && IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && get_eq_char(ch, WEAR_HOLD) != NULL )
-        {
-            send_to_char("You need two hands free for that weapon.\n\r",ch);
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && !remove_obj(ch, WEAR_HOLD, fReplace) )
             return;
-        }
 
-
+        // if wielding non-bow, remove any arrows held
+        OBJ_DATA *hold = get_eq_char(ch, WEAR_HOLD);
+        if ( hold && hold->item_type == ITEM_ARROWS && obj->value[0] != WEAPON_BOW )
+            remove_obj(ch, WEAR_HOLD, fReplace);
+        
         act_gag( "$n wields $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         act( "You wield $p.", ch, obj, NULL, TO_CHAR );
 
@@ -4326,11 +4323,8 @@ DEF_DO_FUN(do_second)
         return;
     }
 
-    if ( get_eq_char(ch, WEAR_HOLD) != NULL )
-    {
-        send_to_char ("You cannot use a secondary weapon while holding an item.\n\r", ch);
+    if ( !remove_obj(ch, WEAR_HOLD, TRUE) )
         return;
-    }
 
     wield = get_eq_char(ch,WEAR_WIELD);
 

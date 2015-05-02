@@ -1348,6 +1348,19 @@ void char_update( void )
             check_improve( ch, gsn_iron_hide, TRUE, 8 );
         } 
 
+        /* divine channel */
+        if ( !is_affected(ch, gsn_god_bless) && check_skill(ch, gsn_divine_channel) )
+        {
+            AFFECT_DATA af;
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_divine_channel;
+            af.level    = ch->level;
+            af.location = APPLY_SAVES;
+            af.duration = -1;
+            af.modifier = -1;
+            af.bitvector = 0;
+            affect_join_capped(ch, &af, -100);
+        }
 
         if ( ch->position >= POS_STUNNED )
         {
@@ -2567,14 +2580,23 @@ void update_handler( void )
 void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
     bool lethal = ch->in_room == victim->in_room;
+    int skill = get_skill(ch, gsn_high_explosives);
+    
+    dam += dam * skill / 200;
     
     if ( saves_spell(victim, NULL, dam/10, DAM_BASH) )
         dam /= 2;
     else
     {
         send_to_char("You are thrown to the floor by the force of the explosion!\n\r", victim);
+        act("$n is thrown to the floor by the force of the explosion!", victim, NULL, NULL, TO_ROOM);
         set_pos(victim, POS_RESTING);
         destance(victim, 0);
+        if ( per_chance(skill) )
+        {
+            WAIT_STATE(victim, PULSE_VIOLENCE);
+            DAZE_STATE(victim, 2*PULSE_VIOLENCE);
+        }
     }
     
     deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
@@ -2905,7 +2927,7 @@ void check_beast_mastery( CHAR_DATA *ch )
     CHAR_DATA *mob;
     MOB_INDEX_DATA *mobIndex;
     char buf[MAX_STRING_LENGTH];
-    int mlevel, sector;
+    int mlevel, sector, hero_bonus;
     int skill = get_skill(ch, gsn_beast_mastery);
 
     if ( skill == 0 )
@@ -2940,8 +2962,9 @@ void check_beast_mastery( CHAR_DATA *ch )
 
     mob = create_mobile(mobIndex);
 
+    hero_bonus = UMAX(0, ch->level - 90);
     mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
-    mlevel = URANGE(1, mlevel, ch->level);
+    mlevel = URANGE(1, mlevel, ch->level) + hero_bonus;
     set_mob_level( mob, mlevel );
 
     sprintf(buf,"This wild animal follows %s.\n\r", ch->name);

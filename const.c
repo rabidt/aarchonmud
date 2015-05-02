@@ -2153,6 +2153,12 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
+        "mobster", THIEF,
+        { "gang up", "call sidekick" },
+        { 30, 50 },
+        { 100, 90 }
+    },
+    {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
         { "hide in plain sight", "shadow companion" },
         { 10, 30 },
@@ -2163,6 +2169,12 @@ const struct subclass_type subclass_table[] =
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
+    },
+    {
+        "chosen", CLERIC|PALADIN|MONK|TEMPLAR,
+        { "divine channel" },
+        { 1 },
+        { 100 }
     },
     {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
@@ -2209,6 +2221,12 @@ const struct subclass_type subclass_table[] =
     {
         "crusader", PALADIN|TEMPLAR,
         { "holy avenger", "divine retribution" },
+        { 30, 50 },
+        { 100, 100 }
+    },
+    {
+        "demolitionist", ASSASSIN|GUNSLINGER,
+        { "evasion", "high explosives" },
         { 30, 50 },
         { 100, 100 }
     },
@@ -4766,31 +4784,6 @@ struct  skill_type
     "", "!aura of menace!", ""
     },
 
-/*
- * Spells for mega1.are from Glop/Erkenbrand.
- */
-	{
-	"general purpose",
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_general_purpose,  TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                         0,      12, DUR_NONE,
-	"general purpose ammo", "!General Purpose Ammo!",   ""
-	},
- 
-	{
-	"high explosive",
-	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_high_explosive,   TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-	NULL,                         0,      12, DUR_NONE,
-	"high explosive ammo",  "!High Explosive Ammo!",    ""
-	},
-
 /*  NEW RANGER STUFF by SIVA 9/28/98 */
 
 	{
@@ -5740,6 +5733,17 @@ struct  skill_type
     },
 
     {
+        "gang up",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_CHA, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_gang_up, 0, 0, DUR_NONE,
+        "", "!gang up!", ""
+    },
+
+    {
         "shadow companion",
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
@@ -5803,6 +5807,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_unarmed_parry, 0, 0, DUR_NONE,
         "", "!unarmed parry!", ""
+    },
+
+    {
+        "divine channel",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_WIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_STANDING,
+        &gsn_divine_channel, 0, 0, DUR_SPECIAL,
+        "", "Your channeling pool is drained.", ""
     },
 
     {
@@ -5924,6 +5939,17 @@ struct  skill_type
         spell_divine_power, TAR_CHAR_SELF, POS_STANDING,
         NULL, 150, 12, DUR_BRIEF,
         "", "Your god's power leaves you.", ""
+    },
+
+    {
+        "high explosives",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_LUC,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_high_explosives, 0, 0, DUR_NONE,
+        "", "!high explosives!", ""
     },
 
     {

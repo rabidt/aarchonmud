@@ -290,6 +290,12 @@ RPEDIT (rpedit_delete)
         }
     }
 
+    if (is_being_edited(pRcode))
+    { 
+        send_to_char( "Can't delete rprog, it is being edited.\n\r", ch );
+        return FALSE;
+    }
+
     /* if we got here, we're good to delete */
     PROG_CODE *curr, *last=NULL;
     for ( curr=rprog_list ; curr ; curr=curr->next )
