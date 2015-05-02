@@ -2147,7 +2147,7 @@ DEF_DO_FUN(do_feint)
     
     if ( fch == NULL )
     {
-        send_to_char( "You aren't fighting anyone.\n\r", ch );
+        send_to_char( "Nobody is attacking you.\n\r", ch );
         return;
     }
     
@@ -2162,7 +2162,7 @@ DEF_DO_FUN(do_feint)
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
         vch_next = vch->next_in_room;
-        if ( is_same_group(ch, vch) && ch!=vch )
+        if ( is_same_group(ch, vch) && ch != vch && vch->fighting )
             victim = vch;
     }
     
@@ -2185,11 +2185,7 @@ DEF_DO_FUN(do_feint)
     act( "$n feints away from $N!",  ch, NULL, fch, TO_NOTVICT );
     check_improve(ch,gsn_feint,TRUE,2);
     
-    stop_fighting( ch, TRUE );
-    stop_fighting( fch, TRUE );
-    
-    set_fighting( victim, fch );
-    set_fighting( fch, victim );
+    set_fighting(fch, victim);
     return;
 }
 
