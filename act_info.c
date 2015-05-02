@@ -5961,10 +5961,11 @@ DEF_DO_FUN(do_showsubclass)
     
     if ( argument[0] == '\0' )
     {
-        send_to_char("Syntax: showsubclass <subclass|class|byclass|all>\n\r", ch);
+        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
         return;
     }
     
+    /*
     if ( !strcmp(argument, "all") )
     {
         for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
@@ -5979,8 +5980,9 @@ DEF_DO_FUN(do_showsubclass)
             ptc(ch, "None found.\n\r");
         return;
     }
+    */
 
-    if ( !strcmp(argument, "byclass") )
+    if ( !strcmp(argument, "all") )
     {
         for ( class = 0; class < MAX_CLASS; class++ )
         {
