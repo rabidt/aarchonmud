@@ -4778,6 +4778,7 @@ void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
 void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CD *    get_player( const char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    pget_char_room( CHAR_DATA *ch, const char *argument );
 CD *    get_victim_room( CHAR_DATA *ch, const char *argument );
 CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, const char *argument ) );   
