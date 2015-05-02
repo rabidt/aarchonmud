@@ -251,6 +251,13 @@ DEF_SPELL_FUN(spell_call_sidekick)
     if ((mob = create_mobile(get_mob_index(MOB_VNUM_SIDEKICK)))==NULL) 
         return FALSE;
     
+    // mobsters get call sidekick as well
+    if ( ch->class == class_lookup("thief") )
+    {
+        REMOVE_BIT(mob->act, ACT_GUN);
+        SET_BIT(mob->act, ACT_THIEF);
+    }
+    
     set_mob_level( mob, mlevel );
     arm_npc( mob );
 
