@@ -2382,7 +2382,8 @@ int get_skill(CHAR_DATA *ch, int sn)
     skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
     /* injury */
-    if (sn != gsn_ashura) // needed to avoid infinite recursion
+    // needed to avoid infinite recursion for ashura, and true grit only works a 1 hp left
+    if ( sn != gsn_ashura && sn != gsn_true_grit )
         skill = skill * (100 - get_injury_penalty(ch)) / 100;
     
     /* poison & disease */
