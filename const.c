@@ -2177,7 +2177,7 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
-        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
+        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
         { "mystic infusion" },
         { 10 },
         { 100 }
@@ -2189,7 +2189,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "warmage", MAGE|ILLUSIONIST|NECROMANCER,
+        "warmage", MAGE|ILLUSIONIST,
         { "combat casting", "warmage edge" },
         { 10, 30 },
         { 100, 100 }
@@ -2270,6 +2270,12 @@ const struct subclass_type subclass_table[] =
         "defiler", NECROMANCER,
         { "arcane defiling", "inquisition" },
         { 10, 30 },
+        { 100, 80 }
+    },
+    {
+        "dreadlord", NECROMANCER,
+        { "army of darkness", "aura of menace" },
+        { 30, 50 },
         { 100, 80 }
     },
     { NULL }
@@ -5952,6 +5958,17 @@ struct  skill_type
         "", "!high explosives!", ""
     },
 
+    {
+        "army of darkness",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_WIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_army_of_darkness, 0, 0, DUR_NONE,
+        "", "!army_of_darkness!", ""
+    },
+    
     {
         "leadership",  
         {  30, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
