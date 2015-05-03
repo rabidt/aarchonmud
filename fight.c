@@ -1914,6 +1914,9 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
     bonus += get_skill( ch->leader, gsn_leadership );
     bonus += ch->leader->level - ch->level;
+    
+    if ( IS_UNDEAD(ch) )
+        bonus += get_skill(ch->leader, gsn_army_of_darkness);
 
     if (improve)
         check_improve( ch->leader, gsn_leadership, TRUE, 8 );
