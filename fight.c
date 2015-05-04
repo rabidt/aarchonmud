@@ -1956,23 +1956,6 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
-// used by after_attack and stance_after_hit
-static bool check_elemental_strike( CHAR_DATA *ch, OBJ_DATA *wield )
-{
-    if ( !per_chance(get_skill(ch, gsn_elemental_strike)) )
-        return FALSE;
-    
-    int strike_chance = 15;
-    if ( wield != NULL )
-    {
-        if ( wield->value[0] == WEAPON_BOW )
-            strike_chance = 25;
-        else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-            strike_chance = 20;
-    }
-    return per_chance(strike_chance);
-}
-
 void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
     CHECK_RETURN( ch, victim );
@@ -1981,13 +1964,15 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     bool twohanded = wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
     
     // elemental strike - separate handling if in elemental blade stance
-    if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
+    int calm_threshold = ch->max_mana * ch->calm / 100;
+    if ( hit && ch->mana > calm_threshold && ch->stance != STANCE_ELEMENTAL_BLADE )
     {
-        if ( check_elemental_strike(ch, wield) )
+        if ( check_skill(ch, gsn_elemental_strike) )
         {
             // additional mana cost
-            ch->mana--;
-            int dam = 10 + number_range(ch->level, ch->level*2);
+            int mana_cost = UMIN(ch->mana, 2 + ch->level / 5);
+            ch->mana -= mana_cost;
+            int dam = dice(2*mana_cost, 6);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
@@ -2657,8 +2642,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    break;
 	else
 	    ch->mana -= 1;
-    if ( check_elemental_strike(ch, wield) )
-        dam *= 2;
+    if ( check_skill(ch, gsn_elemental_strike) )
+        dam += ch->level / 3;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
