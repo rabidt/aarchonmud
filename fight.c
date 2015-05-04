@@ -7245,7 +7245,6 @@ void check_stance(CHAR_DATA *ch)
 DEF_DO_FUN(do_stance)
 {
     int i;
-    bool is_pet;
     
     if (argument[0] == '\0')
     {
@@ -7258,15 +7257,12 @@ DEF_DO_FUN(do_stance)
         return;
     }
     
+    // only search known stances
     for ( i = 0; stances[i].name != NULL; i++ )
         if ( !str_prefix(argument, stances[i].name) && get_skill(ch, *(stances[i].gsn)) )
             break;
 
-    is_pet = IS_NPC(ch) && (IS_SET(ch->act, ACT_PET) || IS_AFFECTED(ch, AFF_CHARM));
-
-    if ( stances[i].name == NULL
-	 || (!IS_NPC(ch) && get_skill(ch, *(stances[i].gsn))==0)
-	 || (is_pet && i != ch->pIndexData->stance) )
+    if ( stances[i].name == NULL )
     {
         if (ch->stance && stances[ch->stance].name)
         {

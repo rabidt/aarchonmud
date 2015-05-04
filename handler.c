@@ -4577,3 +4577,14 @@ void all_colour( CHAR_DATA *ch, const char *argument )
     
     return;
 }
+
+// returns index in stances table, or -1 if sn is not a stance
+int get_stance_index( int sn )
+{
+    int stance;
+    for ( stance = 0; stances[stance].gsn != NULL; stance++ )
+        if ( *(stances[stance].gsn) == sn )
+            return stance;
+    return -1;
+}
+

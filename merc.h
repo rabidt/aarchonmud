@@ -4804,6 +4804,7 @@ OD *    create_money    args( ( int gold, int silver ) );
 int get_obj_number  args( ( OBJ_DATA *obj ) );
 int get_obj_weight  args( ( OBJ_DATA *obj ) );
 int get_true_weight args( ( OBJ_DATA *obj ) );
+int get_stance_index( int sn );
 bool    room_is_dark    args( ( ROOM_INDEX_DATA *pRoomIndex ) );
 bool    room_is_dim( ROOM_INDEX_DATA *pRoomIndex );
 bool    room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex );
