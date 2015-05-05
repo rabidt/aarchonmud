@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         466
+#define MAX_SKILL         467
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3441,6 +3441,7 @@ extern sh_int  gsn_arcane_defiling;
 extern sh_int  gsn_eldritch_blast;
 extern sh_int  gsn_eldritch_curse;
 extern sh_int  gsn_high_explosives;
+extern sh_int  gsn_army_of_darkness;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -4779,6 +4780,7 @@ void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
 void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CD *    get_player( const char *name );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
+CD *    pget_char_room( CHAR_DATA *ch, const char *argument );
 CD *    get_victim_room( CHAR_DATA *ch, const char *argument );
 CD *    get_char_world  args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    get_char_area  args( ( CHAR_DATA *ch, const char *argument ) );   
@@ -4803,6 +4805,7 @@ OD *    create_money    args( ( int gold, int silver ) );
 int get_obj_number  args( ( OBJ_DATA *obj ) );
 int get_obj_weight  args( ( OBJ_DATA *obj ) );
 int get_true_weight args( ( OBJ_DATA *obj ) );
+int get_stance_index( int sn );
 bool    room_is_dark    args( ( ROOM_INDEX_DATA *pRoomIndex ) );
 bool    room_is_dim( ROOM_INDEX_DATA *pRoomIndex );
 bool    room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex );
