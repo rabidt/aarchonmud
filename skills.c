@@ -2987,7 +2987,14 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
     is_spell = IS_SPELL(skill);
     add_buff(buffer, "{cSettings for %s:  {Y%s{x\n\r", (is_spell ? "spell" : "skill"), capitalize(skill_table[skill].name));
 
-    stance = get_stance_index(*(skill_table[skill].pgsn));
+    if (skill_table[skill].pgsn)
+    {
+        stance = get_stance_index(*(skill_table[skill].pgsn));
+    }
+    else
+    {
+        stance = 0;
+    }
 
     if ( is_spell )
     {
