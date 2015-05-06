@@ -2244,9 +2244,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "sacred fist", MONK,
-        { "mantra", "anatomy" },
-        { 30, 50 },
-        { 100, 80 }
+        { "mantra", "anatomy", "empower spell" },
+        { 30, 50, 70 },
+        { 100, 80, 80 }
     },
     {
         "terminator", GUNSLINGER,
