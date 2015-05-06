@@ -1728,10 +1728,11 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
     {
-        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25)
-            + get_skill(ch, gsn_precise_shot) / 4;
+        int skill = get_skill(ch, gsn_sharp_shooting)
+            + mastery_bonus(ch, gsn_sharp_shooting, 30, 50)
+            + get_skill(ch, gsn_precise_shot);
         if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
-            && !number_bits(2) && per_chance(chance) )
+            && number_range(1,800) <= skill )
         {
             dam *= 2;
             check_improve (ch, gsn_sharp_shooting, TRUE, 5);
