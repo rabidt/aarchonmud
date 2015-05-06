@@ -4981,8 +4981,6 @@ DEF_SPELL_FUN(spell_confusion)
 
 DEF_SPELL_FUN(spell_poison)
 {
-    SPELL_CHECK_RETURN
-    
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     AFFECT_DATA af;
@@ -4993,6 +4991,8 @@ DEF_SPELL_FUN(spell_poison)
 
         if (obj->item_type == ITEM_FOOD || obj->item_type == ITEM_DRINK_CON)
         {
+            SPELL_CHECK_RETURN
+    
             if (IS_OBJ_STAT(obj,ITEM_BLESS) || IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
             {
                 act("Your spell fails to corrupt $p.",ch,obj,NULL,TO_CHAR);
@@ -5005,23 +5005,8 @@ DEF_SPELL_FUN(spell_poison)
 
         if (obj->item_type == ITEM_WEAPON)
         {
-            /*
-               if (IS_WEAPON_STAT(obj,WEAPON_FLAMING)
-               ||  IS_WEAPON_STAT(obj,WEAPON_FROST)
-               ||  IS_WEAPON_STAT(obj,WEAPON_VAMPIRIC)
-               ||  IS_WEAPON_STAT(obj,WEAPON_SHARP)
-               ||  IS_WEAPON_STAT(obj,WEAPON_VORPAL)
-               ||  IS_WEAPON_STAT(obj,WEAPON_SHOCKING)
-               ||  IS_WEAPON_STAT(obj,WEAPON_MANASUCK)
-               ||  IS_WEAPON_STAT(obj,WEAPON_MOVESUCK)
-               ||  IS_WEAPON_STAT(obj,WEAPON_DUMB)
-               ||  IS_OBJ_STAT(obj,ITEM_BLESS) || IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
-               {
-               act("You can't seem to envenom $p.",ch,obj,NULL,TO_CHAR);
-               return;
-               }
-             */
-
+            SPELL_CHECK_RETURN
+            
             if (IS_WEAPON_STAT(obj,WEAPON_POISON))
             {
                 act("$p is already envenomed.",ch,obj,NULL,TO_CHAR);
@@ -5045,6 +5030,8 @@ DEF_SPELL_FUN(spell_poison)
         return SR_TARGET;
     }
 
+    SPELL_CHECK_RETURN
+    
     victim = (CHAR_DATA *) vo;
 
     if ( saves_spell(victim, ch, level, DAM_POISON) )
