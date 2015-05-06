@@ -3028,7 +3028,7 @@ void check_shadow_companion( CHAR_DATA *ch )
 
     mob = create_mobile(mobIndex);
 
-    mlevel = dice(1,3) + ch->level * (80 + skill) / 200;
+    mlevel = dice(1,3) + ch->level * (100 + skill) / 200;
     mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
