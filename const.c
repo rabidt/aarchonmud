@@ -2262,9 +2262,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "beastmaster", RANGER,
-        { "beast mastery", "water elemental" },
-        { 10, 90 },
-        { 100, 90 }
+        { "beast mastery", "water elemental", "chain spell" },
+        { 10, 50, 70 },
+        { 100, 90, 80 }
     },
     {
         "defiler", NECROMANCER,
