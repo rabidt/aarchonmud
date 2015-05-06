@@ -2207,7 +2207,7 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
-        "kensai", SAMURAI|NINJA,
+        "kensai", SAMURAI,
         { "piercing blade", "beheading" },
         { 10, 30 },
         { 100, 100 }
