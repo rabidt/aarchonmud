@@ -4331,7 +4331,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
 
     mob = create_mobile(mobIndex);
 
-    mlevel = URANGE(1, level * 4/5, ch->level);
+    mlevel = URANGE(1, level, ch->level);
     set_mob_level(mob, mlevel);
 
     sprintf(buf,"This shadow follows %s.\n\r", ch->name);
@@ -4348,7 +4348,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
     
     af.where     = TO_AFFECTS;
     af.type      = gsn_shadow_companion;
-    af.level     = ch->level;
+    af.level     = level;
     af.duration  = -1;
     af.location  = 0;
     af.modifier  = 0;
