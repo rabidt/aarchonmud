@@ -5259,6 +5259,7 @@ void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
+void    core_tick();
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
 void      update_bounty args( ( CHAR_DATA *ch ) );
