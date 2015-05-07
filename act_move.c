@@ -2636,8 +2636,7 @@ DEF_DO_FUN(do_hide)
 void make_visible( CHAR_DATA *ch )
 {
    affect_strip ( ch, gsn_hide        );
-   affect_strip ( ch, gsn_invis       );
-   affect_strip ( ch, gsn_mass_invis  );
+   affect_strip_flag(ch, AFF_INVISIBLE);
    affect_strip ( ch, gsn_astral      );
    affect_strip ( ch, gsn_shelter     );
    REMOVE_AFFECT( ch, AFF_HIDE        );

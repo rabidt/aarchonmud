@@ -232,6 +232,7 @@ sh_int  gsn_blindness;
 sh_int  gsn_charm_person;
 sh_int  gsn_curse;
 sh_int  gsn_invis;
+sh_int  gsn_improved_invis;
 sh_int  gsn_astral;
 sh_int  gsn_mass_invis;
 sh_int  gsn_poison;

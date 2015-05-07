@@ -2165,7 +2165,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "shadowblade", THIEF|NINJA|ILLUSIONIST,
+        "shadowblade", THIEF|NINJA,
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
@@ -2247,6 +2247,12 @@ const struct subclass_type subclass_table[] =
         { "mantra", "anatomy", "empower spell" },
         { 30, 50, 70 },
         { 100, 80, 80 }
+    },
+    {
+        "trickster", ILLUSIONIST,
+        { "improved invis", "flanking" },
+        { 30, 50 },
+        { 100, 80 }
     },
     {
         "terminator", GUNSLINGER,
@@ -3905,6 +3911,17 @@ struct  skill_type
 	"",         "You are no longer invisible.",     
 	"$p fades into view."
 	},
+
+    {
+    "improved invis",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_INT, STAT_WIS, STAT_LUC,
+    spell_improved_invis, TAR_CHAR_SELF, POS_STANDING,
+    &gsn_improved_invis, 50, 12, DUR_BRIEF,
+    "", "You are no longer invisible.", ""
+    },
 
 	{
 	"iron maiden", 

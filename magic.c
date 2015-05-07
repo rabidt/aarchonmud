@@ -4662,7 +4662,44 @@ DEF_SPELL_FUN(spell_invis)
     return TRUE;
 }
 
+DEF_SPELL_FUN(spell_improved_invis)
+{
+    AFFECT_DATA af;
 
+    if ( IS_NOHIDE(ch) || IS_TAG(ch) )
+    {
+        send_to_char("There is no place to hide.\n\r",ch);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+    
+    if ( is_affected(ch, sn) )
+    {
+        send_to_char("You are already invisible.\n\r", ch);
+        return SR_AFFECTED;
+    }    
+
+    if ( IS_AFFECTED(ch, AFF_ASTRAL) )
+    {
+        send_to_char("All is visible on the Astral plane.\n\r", ch);
+        return SR_AFFECTED;
+    }
+
+    affect_strip_flag(ch, AFF_INVISIBLE);
+    act( "$n fades out of existence.", ch, NULL, NULL, TO_ROOM );
+
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_NONE;
+    af.modifier  = 0;
+    af.bitvector = AFF_INVISIBLE;
+    affect_to_char(ch, &af);
+    send_to_char("You fade out of existence.\n\r", ch);
+    return TRUE;
+}
 
 DEF_SPELL_FUN(spell_know_alignment)
 {

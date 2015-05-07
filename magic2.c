@@ -382,7 +382,7 @@ DEF_SPELL_FUN(spell_astral)
     affect_to_char( victim, &af );
     affect_strip ( ch, gsn_hide );
     REMOVE_BIT   ( ch->affect_field, AFF_HIDE   );
-    affect_strip ( ch, gsn_invis );
+    affect_strip_flag( ch, AFF_INVISIBLE );
     REMOVE_BIT   ( ch->affect_field, AFF_INVISIBLE  );
     affect_strip ( ch, gsn_sneak );
     REMOVE_BIT   ( ch->affect_field, AFF_SNEAK  );
