@@ -3276,7 +3276,7 @@ struct
     { NULL, NULL, NULL, NULL}
 };
 
-void do_tables( CHAR_DATA *ch, const char *argument)
+DEF_DO_FUN(do_tables)
 {
     int i;
 
@@ -3308,7 +3308,7 @@ void do_tables( CHAR_DATA *ch, const char *argument)
 
 }
 
-void do_repeat( CHAR_DATA *ch, const char *argument )
+DEF_DO_FUN(do_repeat)
 {
     char arg1[MIL];
     int nr, i;
@@ -3340,4 +3340,10 @@ void do_repeat( CHAR_DATA *ch, const char *argument )
         if ( !valid_CH(ch) || ch->must_extract )
             return;
     }
+}
+
+DEF_DO_FUN(do_tick)
+{
+    send_to_char("The universe lurches forward in time.\n\r", ch);
+    core_tick();
 }

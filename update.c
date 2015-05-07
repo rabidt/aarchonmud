@@ -2428,6 +2428,17 @@ void extract_update( void )
     }
 }
 
+// core functions executed each tick
+// separate to enable imm-forced ticks
+void core_tick()
+{
+    weather_update();
+    char_update();
+    war_update();  
+    quest_update();  
+    obj_update();
+}
+
 /*
  * Handle all kinds of updates.
  * Called once per pulse from game loop.
@@ -2512,13 +2523,8 @@ void update_handler( void )
         /* number_range( PULSE_TICK / 2, 3 * PULSE_TICK / 2 ); */
 
         auth_update();
-        weather_update  ( );
-        char_update ( );
-        /* obj_update  ( ); */  /* Original spot for obj_update() */
-
-        war_update  ( );  
-        quest_update( );  
-        obj_update();     /* Added this here - Elik, Feb 8, 2006 */ 
+        core_tick();
+        
         /* clan_update(); */
         all_religions( &religion_create_relic );
         update_relic_bonus();
