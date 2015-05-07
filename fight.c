@@ -3046,10 +3046,9 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim == ch )
         return;
     
-    if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !is_affected(ch, gsn_improved_invis) )
     {
-        affect_strip( ch, gsn_invis );
-        affect_strip( ch, gsn_mass_invis );
+        affect_strip_flag( ch, AFF_INVISIBLE );
         REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
         act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
     }
