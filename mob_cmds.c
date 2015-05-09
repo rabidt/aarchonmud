@@ -777,8 +777,8 @@ DEF_DO_FUN(do_mpechoaround)
     if ( arg[0] == '\0' )
 	return;
 
-    if ( ( victim=get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     mpechoaround( ch, victim, argument);
 }
@@ -803,8 +803,8 @@ DEF_DO_FUN(do_mpechoat)
     if ( arg[0] == '\0' || argument[0] == '\0' )
 	return;
 
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     mpechoat( ch, victim, argument );
 }
@@ -926,7 +926,7 @@ DEF_DO_FUN(do_mpoload)
 	return;
     }
 
-    obj = create_object( pObjIndex, level );
+    obj = create_object(pObjIndex);
     check_enchant_obj( obj );
     if ( (fWear || !fToroom) && CAN_WEAR(obj, ITEM_TAKE) )
     {
@@ -994,7 +994,7 @@ DEF_DO_FUN(do_mppurge)
     }
     
 
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
     {
 	if ( ( obj = get_obj_here( ch, arg ) ) )
 	{
@@ -1280,7 +1280,7 @@ DEF_DO_FUN(do_mpgtransfer)
         }
     }
 
-    if ( (who = get_char_room(ch, arg1)) == NULL )
+    if ( (who = pget_char_room(ch, arg1)) == NULL )
         return;
 
     for ( victim = ch->in_room->people; victim; victim = victim_next )
@@ -1339,8 +1339,8 @@ DEF_DO_FUN(do_mpforce)
     {
 	CHAR_DATA *victim;
 
-	if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	    return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
 	if ( victim == ch )
 	    return;
@@ -1378,8 +1378,8 @@ DEF_DO_FUN(do_mpgforce)
 	return;
     }
 
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     if ( victim == ch )
 	return;
@@ -1517,7 +1517,7 @@ DEF_DO_FUN(do_mpdamage)
     }
     if( !str_cmp( target, "all" ) )
 	fAll = TRUE;
-    else if( ( victim = get_char_room( ch, target ) ) == NULL )
+    else if ( (victim = pget_char_room(ch, target)) == NULL )
 	return;
 
     if ( is_number( min ) )
@@ -1652,7 +1652,7 @@ DEF_DO_FUN(do_mpcall)
     obj1 = obj2 = NULL;
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
-        vch = get_char_room( ch, arg );
+        vch = pget_char_room(ch, arg);
     argument = one_argument( argument, arg );
     if ( arg[0] != '\0' )
     	obj1 = get_obj_here( ch, arg );
@@ -1717,8 +1717,8 @@ DEF_DO_FUN(do_mpremove)
     char arg[MIL], arg2[MIL];
 
     argument = one_argument( argument, arg );
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     argument = one_argument( argument, arg );
     one_argument( argument, arg2 );
@@ -1815,7 +1815,7 @@ DEF_DO_FUN(do_mpremort)
     char arg[ MAX_INPUT_LENGTH ];
 
     argument = one_argument( argument, arg );
-    if ( (victim = get_char_room(ch, arg)) == NULL || IS_NPC(victim) )
+    if ( (victim = pget_char_room(ch, arg)) == NULL || IS_NPC(victim) )
         return;
     mpremort(ch, victim);
 }
@@ -1839,7 +1839,7 @@ DEF_DO_FUN(do_mpapply)
         return;
     }
     
-    if ( (victim = get_char_room( ch, argument ) ) == NULL )
+    if ( (victim = pget_char_room(ch, argument) ) == NULL )
     {
         bug("Mpapply - no such player in room from vnum %d.",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
@@ -1889,7 +1889,7 @@ DEF_DO_FUN(do_mpapplyb)
         return;
     }
     
-    if ( (victim = get_char_room( ch, argument ) ) == NULL )
+    if ( (victim = pget_char_room(ch, argument)) == NULL )
     {
         bug("Mpapplyb - no such player in room from vnum %d",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
@@ -1991,8 +1991,8 @@ DEF_DO_FUN(do_mpqset)
     else    
         limit = atoi(arg5);
 
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     mpqset( ch, victim, arg2, arg3, timer, limit );
 }
@@ -2047,8 +2047,8 @@ DEF_DO_FUN(do_mpqadvance)
 	return;
     }
 
-    if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-	return;
+    if ( (victim = pget_char_room(ch, arg)) == NULL )
+        return;
 
     mpqadvance( ch, victim, arg2, arg3 );
 }
@@ -2139,7 +2139,7 @@ DEF_DO_FUN(do_mpreward)
     }
     amount = atoi( arg3 );
 
-    if ( ( victim = get_char_room( ch, arg1 ) ) == NULL )
+    if ( (victim = pget_char_room(ch, arg1)) == NULL )
 	return;
 
     if ( IS_NPC(victim) || victim->pcdata == NULL )
@@ -2156,7 +2156,7 @@ DEF_DO_FUN(do_mppeace)
 
 DEF_DO_FUN(do_mprestore)
 {
-    CHAR_DATA *victim = get_char_room( ch, argument );
+    CHAR_DATA *victim = pget_char_room(ch, argument);
 
     if ( victim == NULL )
 	return;

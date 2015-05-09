@@ -2165,7 +2165,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "shadowblade", THIEF|NINJA|ILLUSIONIST,
+        "shadowblade", THIEF|NINJA,
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
@@ -2177,7 +2177,7 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
-        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST|NECROMANCER,
+        "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
         { "mystic infusion" },
         { 10 },
         { 100 }
@@ -2189,7 +2189,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "warmage", MAGE|ILLUSIONIST|NECROMANCER,
+        "warmage", MAGE|ILLUSIONIST,
         { "combat casting", "warmage edge" },
         { 10, 30 },
         { 100, 100 }
@@ -2207,7 +2207,7 @@ const struct subclass_type subclass_table[] =
         { 100 }
     },
     {
-        "kensai", SAMURAI|NINJA,
+        "kensai", SAMURAI,
         { "piercing blade", "beheading" },
         { 10, 30 },
         { 100, 100 }
@@ -2244,7 +2244,13 @@ const struct subclass_type subclass_table[] =
     },
     {
         "sacred fist", MONK,
-        { "mantra", "anatomy" },
+        { "mantra", "anatomy", "empower spell" },
+        { 30, 50, 70 },
+        { 100, 80, 80 }
+    },
+    {
+        "trickster", ILLUSIONIST,
+        { "improved invis", "flanking" },
         { 30, 50 },
         { 100, 80 }
     },
@@ -2262,14 +2268,20 @@ const struct subclass_type subclass_table[] =
     },
     {
         "beastmaster", RANGER,
-        { "beast mastery", "water elemental" },
-        { 10, 90 },
-        { 100, 90 }
+        { "beast mastery", "water elemental", "chain spell" },
+        { 10, 50, 70 },
+        { 100, 90, 80 }
     },
     {
         "defiler", NECROMANCER,
         { "arcane defiling", "inquisition" },
         { 10, 30 },
+        { 100, 80 }
+    },
+    {
+        "dreadlord", NECROMANCER,
+        { "army of darkness", "aura of menace" },
+        { 30, 50 },
         { 100, 80 }
     },
     { NULL }
@@ -3899,6 +3911,17 @@ struct  skill_type
 	"",         "You are no longer invisible.",     
 	"$p fades into view."
 	},
+
+    {
+    "improved invis",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_INT, STAT_WIS, STAT_LUC,
+    spell_improved_invis, TAR_CHAR_SELF, POS_STANDING,
+    &gsn_improved_invis, 50, 12, DUR_BRIEF,
+    "", "You are no longer invisible.", ""
+    },
 
 	{
 	"iron maiden", 
@@ -5952,6 +5975,17 @@ struct  skill_type
         "", "!high explosives!", ""
     },
 
+    {
+        "army of darkness",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_INT, STAT_WIS,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_army_of_darkness, 0, 0, DUR_NONE,
+        "", "!army_of_darkness!", ""
+    },
+    
     {
         "leadership",  
         {  30, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },

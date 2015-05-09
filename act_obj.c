@@ -3434,7 +3434,7 @@ DEF_DO_FUN(do_buy)
         {
             if ( IS_SET( obj->extra_flags, ITEM_INVENTORY ) )
             {
-                t_obj = create_object( obj->pIndexData, obj->level );
+                t_obj = create_object( obj->pIndexData );
                 check_enchant_obj( t_obj );
             }
             else
@@ -4479,7 +4479,7 @@ DEF_DO_FUN(do_merge)
 
     extract_obj( obj1 );
     extract_obj( obj2 );
-    combine_obj = create_object( pObjIndex, 0 );
+    combine_obj = create_object( pObjIndex );
 
     check_enchant_obj(combine_obj);
 

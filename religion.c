@@ -595,7 +595,7 @@ void religion_create_relic( RELIGION_DATA *religion )
     }
 
     /* create and place the relic */
-    religion->relic_obj = create_object( relic_index, 0 );
+    religion->relic_obj = create_object( relic_index );
     obj_to_room( religion->relic_obj, room );
 
 #ifdef REL_DEBUG

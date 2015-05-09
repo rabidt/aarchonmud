@@ -2123,6 +2123,11 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 && (sn >= 0 && sn < MAX_SKILL)
 	 && skill_table[sn].beats > 0 )
 	return TRUE;
+    
+    /* non-charmed mobs also know all stances */
+    int stance = get_stance_index(sn);
+    if ( stance >= 0 && (!charmed || ch->pIndexData->stance == stance) )
+        return TRUE;
 
     /* skills they always have */
     if ( (sn==gsn_shield_block)
@@ -2381,7 +2386,8 @@ int get_skill(CHAR_DATA *ch, int sn)
     skill = skill * (1000 - get_encumberance(ch)) / 1000;
 
     /* injury */
-    if (sn != gsn_ashura) // needed to avoid infinite recursion
+    // needed to avoid infinite recursion for ashura, and true grit only works a 1 hp left
+    if ( sn != gsn_ashura && sn != gsn_true_grit )
         skill = skill * (100 - get_injury_penalty(ch)) / 100;
     
     /* poison & disease */
@@ -2980,10 +2986,7 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
     is_spell = IS_SPELL(skill);
     add_buff(buffer, "{cSettings for %s:  {Y%s{x\n\r", (is_spell ? "spell" : "skill"), capitalize(skill_table[skill].name));
 
-    /* check if skill is a stance */
-    for (stance = 0; stances[stance].gsn != NULL; stance++)
-        if (stances[stance].gsn == skill_table[skill].pgsn)
-            break;
+    stance = get_stance_index(skill);
 
     if ( is_spell )
     {
@@ -2994,7 +2997,7 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
             spell_target_names[skill_table[skill].target],
             skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
     }
-    else if (stances[stance].cost != 0)
+    else if ( stance >= 0 && stances[stance].cost != 0 )
         add_buff(buffer, "Base Move: %d\n\r", 
             stances[stance].cost);
     else
