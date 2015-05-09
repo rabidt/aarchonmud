@@ -102,6 +102,7 @@ DECLARE_SPELL_FUN(      spell_holy_word     );
 DECLARE_SPELL_FUN(  spell_identify      );
 DECLARE_SPELL_FUN(  spell_infravision   );
 DECLARE_SPELL_FUN(  spell_invis     );
+DECLARE_SPELL_FUN(  spell_improved_invis    );
 DECLARE_SPELL_FUN(  spell_know_alignment    );
 DECLARE_SPELL_FUN(  spell_lightning_bolt    );
 DECLARE_SPELL_FUN(  spell_locate_object );

@@ -310,7 +310,7 @@ DEF_DO_FUN(do_craft)
     WAIT_STATE( ch, skill_table[gsn_craft].beats );
     if ( chance(skill) )
     {
-	crafting = create_object( get_obj_index(crafting_table[craft].crafting_vnum), 0 ); 
+        crafting = create_object_vnum(crafting_table[craft].crafting_vnum);
         check_craft_obj( crafting, type );
         /* Hopefully not needed.. but in case */
 	if ( crafting == NULL )
@@ -464,7 +464,7 @@ DEF_DO_FUN(do_extract)
 
     if ( chance(skill-5) )
     {
-        extracted=create_object(get_obj_index(material),0);
+        extracted = create_object_vnum(material);
         sprintf(buf, "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );

@@ -98,7 +98,7 @@ DEF_SPELL_FUN(spell_portal)
     }
     */
     
-    portal = create_object(get_obj_index(OBJ_VNUM_PORTAL),0);
+    portal = create_object_vnum(OBJ_VNUM_PORTAL);
     portal->value[3] = room->vnum;
     
     if (stone != NULL && stone->item_type == ITEM_WARP_STONE)
@@ -174,7 +174,7 @@ DEF_SPELL_FUN(spell_nexus)
     }
     
     /* portal one */ 
-    portal = create_object(get_obj_index(OBJ_VNUM_PORTAL),0);
+    portal = create_object_vnum(OBJ_VNUM_PORTAL);
     portal->value[3] = to_room->vnum;
 
     if ( stone != NULL )
@@ -195,7 +195,7 @@ DEF_SPELL_FUN(spell_nexus)
         return TRUE;
     
     /* portal two */
-    portal = create_object(get_obj_index(OBJ_VNUM_PORTAL),0);
+    portal = create_object_vnum(OBJ_VNUM_PORTAL);
     portal->value[3] = from_room->vnum;
     
     if ( stone != NULL )
@@ -382,7 +382,7 @@ DEF_SPELL_FUN(spell_astral)
     affect_to_char( victim, &af );
     affect_strip ( ch, gsn_hide );
     REMOVE_BIT   ( ch->affect_field, AFF_HIDE   );
-    affect_strip ( ch, gsn_invis );
+    affect_strip_flag( ch, AFF_INVISIBLE );
     REMOVE_BIT   ( ch->affect_field, AFF_INVISIBLE  );
     affect_strip ( ch, gsn_sneak );
     REMOVE_BIT   ( ch->affect_field, AFF_SNEAK  );
@@ -524,7 +524,7 @@ DEF_SPELL_FUN(spell_divine_light)
     
     OBJ_DATA *light;
     
-    light = create_object( get_obj_index( OBJ_VNUM_DIVINE_BALL ), 0 );
+    light = create_object_vnum(OBJ_VNUM_DIVINE_BALL);
     obj_to_room( light, ch->in_room );
     act( "$n invokes the gods and $p appears.",   ch, light, NULL, TO_ROOM );
     act( "You invoke the gods and $p appears.", ch, light, NULL, TO_CHAR );
@@ -1252,7 +1252,7 @@ DEF_SPELL_FUN(spell_hand_of_siva)
 
     SPELL_CHECK_RETURN
     
-    weapon = create_object( get_obj_index( OBJ_VNUM_SIVA_WEAPON ), 0 );
+    weapon = create_object_vnum(OBJ_VNUM_SIVA_WEAPON);
         
     sprintf( buf, weapon->name, weapon_class[i].name );
     free_string( weapon->name );
@@ -1315,7 +1315,7 @@ DEF_SPELL_FUN(spell_goodberry)
 
     SPELL_CHECK_RETURN
     
-    berry = create_object( get_obj_index( OBJ_VNUM_GOODBERRY ), 0 );
+    berry = create_object_vnum(OBJ_VNUM_GOODBERRY);
     berry->value[0] = berry_level;
     berry->level = berry_level;
     obj_to_room( berry, ch->in_room );
@@ -4331,7 +4331,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
 
     mob = create_mobile(mobIndex);
 
-    mlevel = URANGE(1, level * 4/5, ch->level);
+    mlevel = URANGE(1, level, ch->level);
     set_mob_level(mob, mlevel);
 
     sprintf(buf,"This shadow follows %s.\n\r", ch->name);
@@ -4348,7 +4348,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
     
     af.where     = TO_AFFECTS;
     af.type      = gsn_shadow_companion;
-    af.level     = ch->level;
+    af.level     = level;
     af.duration  = -1;
     af.location  = 0;
     af.modifier  = 0;

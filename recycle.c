@@ -685,6 +685,7 @@ MEM_DATA *new_mem_data(void)
 	memory->next = NULL;
 	memory->id = 0;
 	memory->reaction = 0;
+    memory->ally_reaction = 0;
 	memory->when = 0;
 	VALIDATE(memory);
 
