@@ -3282,7 +3282,7 @@ void check_bleed( CHAR_DATA *ch, int dir )
         return;
 
     /* create blood object */
-    if ( (blood = create_object(get_obj_index(OBJ_VNUM_BLOOD), 0)) == NULL )
+    if ( (blood = create_object_vnum(OBJ_VNUM_BLOOD)) == NULL )
         return;
 
     /* add direction hint */
