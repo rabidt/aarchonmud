@@ -986,7 +986,7 @@ void remort_complete(CHAR_DATA *ch)
     }
     
     do_outfit(ch,"");
-    obj_to_char(create_object(get_obj_index(OBJ_VNUM_MAP),0),ch);
+    obj_to_char(create_object_vnum(OBJ_VNUM_MAP), ch);
     
     char_list_insert(ch);
     

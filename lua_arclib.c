@@ -3084,7 +3084,7 @@ static int CH_describe (lua_State *LS)
             luaL_error(LS, "No object with vnum: %d", num);
         }
 
-        ud_obj = create_object( pObjIndex, 0);
+        ud_obj = create_object(pObjIndex);
         cleanUp = true;
     }
     else
@@ -3259,7 +3259,7 @@ static int CH_oload (lua_State *LS)
     if (!pObjIndex)
         luaL_error(LS, "No object with vnum: %d", num);
 
-    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    OBJ_DATA *obj = create_object(pObjIndex);
     check_enchant_obj( obj );
 
     obj_to_char(obj,ud_ch);
@@ -4881,7 +4881,7 @@ static int OBJ_clone( lua_State *LS)
         copy_luavals=lua_toboolean(LS,2);
     }
 
-    OBJ_DATA *clone = create_object(ud_obj->pIndexData,0);
+    OBJ_DATA *clone = create_object(ud_obj->pIndexData);
     clone_object( ud_obj, clone );
 
     if (copy_luavals)
@@ -4930,7 +4930,7 @@ static int OBJ_oload (lua_State *LS)
     if (!pObjIndex)
         luaL_error(LS, "No object with vnum: %d", num);
 
-    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    OBJ_DATA *obj = create_object(pObjIndex);
     check_enchant_obj( obj );
     obj_to_obj(obj,ud_obj);
 
@@ -6037,7 +6037,7 @@ static int ROOM_oload (lua_State *LS)
     if (!pObjIndex)
         luaL_error(LS, "No object with vnum: %d", num);
 
-    OBJ_DATA *obj=create_object( pObjIndex, 0);
+    OBJ_DATA *obj = create_object(pObjIndex);
     check_enchant_obj( obj );
     obj_to_room(obj,ud_room);
 

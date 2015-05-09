@@ -184,7 +184,7 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 	    return TRUE;
 	}
 
-	*obj = create_object(get_obj_index(qi->vnum), ch->level);
+	*obj = create_object_vnum(qi->vnum);
 	if ( *obj != NULL )
 	{
 	    ch->pcdata->questpoints -= qi->cost;
@@ -1034,7 +1034,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
             break;
         }
         
-        questitem = create_object( get_obj_index(objvnum), ch->level );
+        questitem = create_object_vnum(objvnum);
     
         /* Removed (commented out) the following line, and replaced it with the next two,
 	 * one of which was previously outside of generate_quest(), so that the quest item
@@ -1236,7 +1236,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
             break;
         }
         
-        questitem = create_object( get_obj_index(objvnum), ch->level );
+        questitem = create_object_vnum(objvnum);
     
         /* Removed (commented out) the following line, and replaced it with the next two,
 	 * one of which was previously outside of generate_quest(), so that the quest item

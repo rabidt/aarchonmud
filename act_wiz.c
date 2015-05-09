@@ -187,7 +187,7 @@ DEF_DO_FUN(do_outfit)
     
     if ( ( obj = get_eq_char( ch, WEAR_LIGHT ) ) == NULL )
     {
-        obj = create_object( get_obj_index(OBJ_VNUM_SCHOOL_BANNER), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SCHOOL_BANNER);
         obj->cost = 0;
         obj_to_char( obj, ch );
         equip_char( ch, obj, WEAR_LIGHT );
@@ -195,7 +195,7 @@ DEF_DO_FUN(do_outfit)
     
     if ( ( obj = get_eq_char( ch, WEAR_TORSO ) ) == NULL )
     {
-        obj = create_object( get_obj_index(OBJ_VNUM_SCHOOL_VEST), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SCHOOL_VEST);
         obj->cost = 0;
         obj_to_char( obj, ch );
         equip_char( ch, obj, WEAR_TORSO );
@@ -206,13 +206,13 @@ DEF_DO_FUN(do_outfit)
     {
     	if ( ( obj = get_obj_carry( ch, "guide", ch ) ) == NULL )
     	{
-        	obj = create_object( get_obj_index(OBJ_VNUM_NEWBIE_GUIDE), 0 );
+        	obj = create_object_vnum(OBJ_VNUM_NEWBIE_GUIDE);
         	obj->cost = 0;
        		obj_to_char( obj, ch );
     	}
 	if ( ( obj = get_obj_carry( ch, "map", ch ) ) == NULL )
         {
-                obj = create_object( get_obj_index(OBJ_VNUM_MAP), 0 );
+                obj = create_object_vnum(OBJ_VNUM_MAP);
                 obj->cost = 0;
                 obj_to_char( obj, ch );
         }
@@ -236,7 +236,7 @@ DEF_DO_FUN(do_outfit)
         }
         if (get_skill(ch, sn) > get_skill( ch, gsn_hand_to_hand) )
         {
-            obj = create_object(get_obj_index(vnum),0);
+            obj = create_object_vnum(vnum);
             obj_to_char(obj,ch);
             equip_char(ch,obj,WEAR_WIELD);
         }
@@ -247,7 +247,7 @@ DEF_DO_FUN(do_outfit)
         &&  (obj = get_eq_char( ch, WEAR_SHIELD ) ) == NULL
         && (ch->pcdata->learned[gsn_shield_block]>1) )
     {
-        obj = create_object( get_obj_index(OBJ_VNUM_SCHOOL_SHIELD), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SCHOOL_SHIELD);
         obj->cost = 0;
         obj_to_char( obj, ch );
         /* equip_char( ch, obj, WEAR_SHIELD ); */
@@ -1040,7 +1040,7 @@ void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
     {
         if (obj_check(ch,c_obj))
         {
-            t_obj = create_object(c_obj->pIndexData,0);
+            t_obj = create_object(c_obj->pIndexData);
             clone_object(c_obj,t_obj);
             obj_to_obj(t_obj,clone);
             recursive_clone(ch,c_obj,t_obj);
@@ -1107,7 +1107,7 @@ DEF_DO_FUN(do_clone)
             return;
         }
         
-        clone = create_object(obj->pIndexData,0); 
+        clone = create_object(obj->pIndexData); 
         clone_object(obj,clone);
         if (obj->carried_by != NULL)
             obj_to_char(clone,ch);
@@ -1150,7 +1150,7 @@ DEF_DO_FUN(do_clone)
         {
             if (obj_check(ch,obj))
             {
-                new_obj = create_object(obj->pIndexData,0);
+                new_obj = create_object(obj->pIndexData);
                 clone_object(obj,new_obj);
                 recursive_clone(ch,obj,new_obj);
                 obj_to_char(new_obj,clone);
@@ -1292,7 +1292,7 @@ DEF_DO_FUN(do_oload)
     
     for ( i = 0; i < ammount; i++ )
     {
-	obj = create_object( pObjIndex, 0 );
+	obj = create_object( pObjIndex );
 	check_enchant_obj( obj );
 	if ( CAN_WEAR(obj, ITEM_TAKE) )
 	    obj_to_char( obj, ch );
