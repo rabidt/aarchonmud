@@ -2370,7 +2370,7 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	}
 					 
 	name = IS_NPC(victim) ? victim->short_descr : victim->name;
-	obj  = create_object( get_obj_index( OBJ_VNUM_SEVERED_HEAD ), 0 );
+	obj  = create_object_vnum(OBJ_VNUM_SEVERED_HEAD);
 	obj->timer  = -1;
 					 
 	sprintf( buf, obj->short_descr, name );

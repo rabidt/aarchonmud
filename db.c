@@ -232,6 +232,7 @@ sh_int  gsn_blindness;
 sh_int  gsn_charm_person;
 sh_int  gsn_curse;
 sh_int  gsn_invis;
+sh_int  gsn_improved_invis;
 sh_int  gsn_astral;
 sh_int  gsn_mass_invis;
 sh_int  gsn_poison;
@@ -2497,7 +2498,6 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
     CHAR_DATA   *LastMob = NULL;
     OBJ_DATA    *LastObj = NULL;
     int iExit;
-    int level = 0;
     bool last;
     
     if ( !pRoom )
@@ -2601,7 +2601,6 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                 char_to_room( pMob, pRoom );
 		
                 LastMob = pMob;
-                level  = URANGE( 0, pMob->level - 2, LEVEL_HERO - 1 ); /* -1 ROM */
                 last = TRUE;
 
 		if ( HAS_TRIGGER(pMob, TRIG_RESET) )
@@ -2645,8 +2644,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                 break;
             }
             
-            pObj = create_object( pObjIndex, /* UMIN - ROM OLC */
-				  UMIN(number_fuzzy( level ), LEVEL_HERO -1) );
+            pObj = create_object( pObjIndex );
             //pObj->cost = 0;
 	    check_enchant_obj( pObj );
             obj_to_room( pObj, pRoom );
@@ -2682,11 +2680,10 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                 last = FALSE;
                 break;
             }
-            /* lastObj->level  -  ROM */
             
             while (count < pReset->arg4)
             {
-                pObj = create_object( pObjIndex, number_fuzzy( LastObj->level ) );
+                pObj = create_object( pObjIndex );
 		check_enchant_obj( pObj );
                 obj_to_obj( pObj, LastObj );
                 count++;
@@ -2720,7 +2717,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             
             if ( LastMob->pIndexData->pShop )   /* Shop-keeper? */
             {
-                pObj = create_object( pObjIndex, 0 );
+                pObj = create_object( pObjIndex );
                 SET_BIT( pObj->extra_flags, ITEM_INVENTORY );  /* ROM OLC */
                 
             }
@@ -2736,8 +2733,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                 
                 if ( pObjIndex->count < limit || number_range(0,4) == 0 )
                 {
-                    pObj = create_object( pObjIndex, 
-                        UMIN( number_fuzzy( level ), LEVEL_HERO - 1 ) );
+                    pObj = create_object( pObjIndex );
                     /* error message if it is too high */
                     if (pObj->level > LastMob->level + 10)
                         fprintf(stderr,
@@ -2816,9 +2812,8 @@ void arm_npc( CHAR_DATA *mob )
     else
 	REMOVE_BIT( mob->off_flags, OFF_ARMED );
 
-    if ( get_eq_char(mob, WEAR_WIELD) != NULL
-	 || (obj = create_object(get_obj_index(OBJ_VNUM_MOB_WEAPON), 0)) == NULL )
-	return;
+    if ( get_eq_char(mob, WEAR_WIELD) != NULL || (obj = create_object_vnum(OBJ_VNUM_MOB_WEAPON)) == NULL )
+        return;
 
     /* adjust to level */
     if ( mob->level <= 100 )
@@ -2961,7 +2956,7 @@ void arm_npc( CHAR_DATA *mob )
     }
     else if ( can_dual && per_chance(obj->value[0] == WEAPON_DAGGER || obj->value[0] == WEAPON_GUN ? 66 : 33) )
     {
-        OBJ_DATA *secondary = create_object(get_obj_index(OBJ_VNUM_MOB_WEAPON), 0);
+        OBJ_DATA *secondary = create_object_vnum(OBJ_VNUM_MOB_WEAPON);
         if ( secondary != NULL )
         {
             clone_object(obj, secondary);
@@ -2971,7 +2966,7 @@ void arm_npc( CHAR_DATA *mob )
     }
     else if ( can_shield && (IS_SET(mob->act, ACT_WARRIOR) || per_chance(50)) )
     {
-        OBJ_DATA *shield = create_object(get_obj_index(OBJ_VNUM_MOB_SHIELD), 0);
+        OBJ_DATA *shield = create_object_vnum(OBJ_VNUM_MOB_SHIELD);
         if ( shield != NULL )
         {
             shield->level = obj->level;
@@ -3301,10 +3296,23 @@ int spell_obj_cost( int level, int base_cost )
     return power * power / 2;
 }
 
+// separate function for convenience and improved bug notices
+OBJ_DATA *create_object_vnum( int vnum )
+{
+    OBJ_INDEX_DATA *pObjIndex = get_obj_index(vnum);
+    
+    if ( pObjIndex == NULL )
+    {
+        bugf("create_obj_vnum: no object for vnum %s", vnum);
+        return NULL;
+    }
+    return create_object(pObjIndex);
+}
+
 /*
 * Create an instance of an object.
 */
-OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex, int level )
+OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;

@@ -3397,15 +3397,15 @@ OBJ_DATA *create_money( int gold, int silver )
     
     if (gold == 0 && silver == 1)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_SILVER_ONE ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SILVER_ONE);
     }
     else if (gold == 1 && silver == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_GOLD_ONE), 0 );
+        obj = create_object_vnum(OBJ_VNUM_GOLD_ONE);
     }
     else if (silver == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_GOLD_SOME ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_GOLD_SOME);
         sprintf( buf, obj->short_descr, gold );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
@@ -3415,7 +3415,7 @@ OBJ_DATA *create_money( int gold, int silver )
     }
     else if (gold == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_SILVER_SOME ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SILVER_SOME);
         sprintf( buf, obj->short_descr, silver );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
@@ -3426,7 +3426,7 @@ OBJ_DATA *create_money( int gold, int silver )
     
     else
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_COINS ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_COINS);
         sprintf( buf, obj->short_descr, silver, gold );
         free_string( obj->short_descr );
         obj->short_descr    = str_dup( buf );
