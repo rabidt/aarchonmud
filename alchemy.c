@@ -102,7 +102,7 @@ void reset_herbs( ROOM_INDEX_DATA *room )
 	if ( herb != NULL )
 	    continue;
 
-	if ( (herb = create_object(get_obj_index(herb_table[i].vnum), 0)) == NULL )
+	if ( (herb = create_object_vnum(herb_table[i].vnum)) == NULL )
 	    continue;
 
 	obj_to_room( herb, room );
@@ -330,7 +330,7 @@ DEF_DO_FUN(do_brew)
     WAIT_STATE( ch, skill_table[gsn_alchemy].beats );
     if ( chance(skill) )
     {
-	potion = create_object( get_obj_index(recipe_table[recipe].potion_vnum), 0 );
+	potion = create_object_vnum(recipe_table[recipe].potion_vnum);
 	/* better safe than sorry */
 	if ( potion == NULL )
 	    return;

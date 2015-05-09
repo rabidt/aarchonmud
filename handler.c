@@ -56,7 +56,7 @@ OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool ex
 OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim );
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible );
 OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
 CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
 
@@ -2720,9 +2720,21 @@ CHAR_DATA *get_char_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
-    rch = get_char_room_new( ch, argument, TRUE, FALSE );
+    rch = get_char_room_new(ch, argument, TRUE, FALSE, TRUE);
     if ( rch == NULL )
-	rch = get_char_room_new( ch, argument, FALSE, FALSE );
+        rch = get_char_room_new(ch, argument, FALSE, FALSE, TRUE);
+
+    return rch;
+}
+
+// get char for a prog - skips visibility checks
+CHAR_DATA *pget_char_room( CHAR_DATA *ch, const char *argument )
+{
+    CHAR_DATA *rch;
+
+    rch = get_char_room_new(ch, argument, TRUE, FALSE, FALSE);
+    if ( rch == NULL )
+        rch = get_char_room_new(ch, argument, FALSE, FALSE, FALSE);
 
     return rch;
 }
@@ -2731,9 +2743,9 @@ CHAR_DATA *get_victim_room( CHAR_DATA *ch, const char *argument )
 {
     CHAR_DATA *rch;
 
-    rch = get_char_room_new( ch, argument, TRUE, TRUE );
+    rch = get_char_room_new(ch, argument, TRUE, TRUE, TRUE);
     if ( rch == NULL )
-        rch = get_char_room_new( ch, argument, FALSE, TRUE );
+        rch = get_char_room_new(ch, argument, FALSE, TRUE, TRUE);
 
     return rch;
 }
@@ -2747,7 +2759,7 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim )
+CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -2765,9 +2777,9 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
 	return ch->fighting;
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-        if ( /*!can_see( ch, rch )*/ !check_see_target( ch, rch )
+        if ( (visible && !check_see_target(ch, rch))
             || (as_victim && is_same_group(ch, rch))
-	     || !is_ch_name(arg, rch, exact, ch) )
+            || !is_ch_name(arg, rch, exact, ch) )
             continue;
 
         if ( ++count == number )
@@ -3385,15 +3397,15 @@ OBJ_DATA *create_money( int gold, int silver )
     
     if (gold == 0 && silver == 1)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_SILVER_ONE ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SILVER_ONE);
     }
     else if (gold == 1 && silver == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_GOLD_ONE), 0 );
+        obj = create_object_vnum(OBJ_VNUM_GOLD_ONE);
     }
     else if (silver == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_GOLD_SOME ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_GOLD_SOME);
         sprintf( buf, obj->short_descr, gold );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
@@ -3403,7 +3415,7 @@ OBJ_DATA *create_money( int gold, int silver )
     }
     else if (gold == 0)
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_SILVER_SOME ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_SILVER_SOME);
         sprintf( buf, obj->short_descr, silver );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
@@ -3414,7 +3426,7 @@ OBJ_DATA *create_money( int gold, int silver )
     
     else
     {
-        obj = create_object( get_obj_index( OBJ_VNUM_COINS ), 0 );
+        obj = create_object_vnum(OBJ_VNUM_COINS);
         sprintf( buf, obj->short_descr, silver, gold );
         free_string( obj->short_descr );
         obj->short_descr    = str_dup( buf );
@@ -4565,3 +4577,14 @@ void all_colour( CHAR_DATA *ch, const char *argument )
     
     return;
 }
+
+// returns index in stances table, or -1 if sn is not a stance
+int get_stance_index( int sn )
+{
+    int stance;
+    for ( stance = 0; stances[stance].gsn != NULL; stance++ )
+        if ( *(stances[stance].gsn) == sn )
+            return stance;
+    return -1;
+}
+

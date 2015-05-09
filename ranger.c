@@ -61,7 +61,7 @@ void do_forage(CHAR_DATA *ch)
 
 	if (number_percent() < skill) /* success! */
 	{
-	   trailmix = create_object( get_obj_index( OBJ_VNUM_TRAILMIX ), 0 );
+	   trailmix = create_object_vnum(OBJ_VNUM_TRAILMIX);
 	   trailmix->value[0] = ch->level / 2;  /* "Full" value */
 	   trailmix->value[1] = ch->level;      /* "Hunger" value */
 	   obj_to_room( trailmix, ch->in_room );
@@ -132,7 +132,7 @@ void do_torch(CHAR_DATA *ch)
 
 	if (number_percent() < skill)
 	{
-	   torch = create_object( get_obj_index( OBJ_VNUM_TORCH ), 0 );
+	   torch = create_object_vnum(OBJ_VNUM_TORCH);
 	   torch->value[2] = ch->level / 2;  /* Duration */
 	   obj_to_room( torch, ch->in_room );
 	   act( "$n produces $p from the surroundings.", ch, torch, NULL, TO_ROOM );
@@ -667,17 +667,17 @@ void do_camp_fire(CHAR_DATA *ch)
 	{
 	if ((chance + 50 ) < skill)
 	{
-		fire = create_object( get_obj_index( OBJ_VNUM_HUGE_FIRE ), 0 );
+		fire = create_object_vnum(OBJ_VNUM_HUGE_FIRE);
 		fire->timer = number_range(7,12);
 	}
 	else if ((chance + 25) < skill)
 	{
-		fire = create_object( get_obj_index( OBJ_VNUM_BIG_FIRE ), 0 );
+		fire = create_object_vnum(OBJ_VNUM_BIG_FIRE);
 		fire->timer = number_range(10,15);
 	}
 	else
 	{
-		fire = create_object( get_obj_index( OBJ_VNUM_FIRE ), 0 ); 
+		fire = create_object_vnum(OBJ_VNUM_FIRE); 
 		fire->timer = number_range(13,18);
 	}
 	
@@ -749,7 +749,7 @@ void do_fishing(CHAR_DATA *ch)
 
 	if ( chance < 50 && !number_bits(2))
 	{
-	    fish = create_object( get_obj_index( OBJ_VNUM_BOOT ), 0 );
+	    fish = create_object_vnum(OBJ_VNUM_BOOT);
 	    fish->level = ch->level;
 	    fish->value[0] = number_range(0, get_curr_stat(ch,STAT_LUC)/6);
 	    fish->value[1] = number_range(0, get_curr_stat(ch,STAT_LUC)/6);
@@ -770,11 +770,11 @@ void do_fishing(CHAR_DATA *ch)
 	    return;
 	}
 	else if (chance < 90)
-	    fish = create_object( get_obj_index( OBJ_VNUM_FISH ), 0 );
+	    fish = create_object_vnum(OBJ_VNUM_FISH);
 	else if (chance < 101)
-	    fish = create_object( get_obj_index( OBJ_VNUM_BIG_FISH ), 0 );
+	    fish = create_object_vnum(OBJ_VNUM_BIG_FISH);
 	else
-	    fish = create_object( get_obj_index( OBJ_VNUM_HUGE_FISH ), 0 );
+	    fish = create_object_vnum(OBJ_VNUM_HUGE_FISH);
 
 	obj_to_room( fish, ch->in_room );
 	act( "$n catches $p.", ch, fish, NULL, TO_ROOM );
@@ -833,7 +833,7 @@ void do_build_raft(CHAR_DATA *ch)
 
 	if (number_percent() < skill) 
 	{
-	   raft = create_object( get_obj_index( OBJ_VNUM_RAFT ), 0 );
+	   raft = create_object_vnum(OBJ_VNUM_RAFT);
 	   obj_to_room( raft, ch->in_room );
 	   act( "$n builds $p from some nearby branches.", ch, raft, NULL, TO_ROOM );
 	   act( "You build $p from some nearby branches.", 
@@ -1116,7 +1116,7 @@ DEF_DO_FUN(do_dowsing)
     }
     check_improve( ch, gsn_dowsing, TRUE, 2 );
 
-    spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
+    spring = create_object_vnum(OBJ_VNUM_SPRING);
     spring->timer = ch->level + 10;
     obj_to_room( spring, ch->in_room );
     act( "You sense water and draw forth a spring.", ch, spring, NULL, TO_CHAR );
@@ -1160,7 +1160,7 @@ DEF_DO_FUN(do_rustle_grub)
     }
     check_improve( ch, gsn_rustle_grub, TRUE, 3 );
 
-    mushroom = create_object( get_obj_index( OBJ_VNUM_GRUB ), 0 );
+    mushroom = create_object_vnum(OBJ_VNUM_GRUB);
     mushroom->value[0] = ch->level / 3;
     mushroom->value[1] = ch->level / 2;
     obj_to_room( mushroom, ch->in_room );
@@ -1193,7 +1193,7 @@ DEF_DO_FUN(do_fledge)
         return;
     }
 
-    arrows = create_object( get_obj_index( OBJ_VNUM_ARROWS ), 0 );
+    arrows = create_object_vnum(OBJ_VNUM_ARROWS);
 
     if ( arrows == NULL )
 	return;

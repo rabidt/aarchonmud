@@ -561,6 +561,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "slay",       do_slay,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "teleport",   do_transfer,    POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "transfer",   do_transfer,    POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "tick",       do_tick,    POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "poofin",     do_bamfin,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "poofout",    do_bamfout, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "gecho",      do_echo,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },

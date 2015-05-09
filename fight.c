@@ -161,19 +161,15 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + get_skill(ch, gsn_piercing_blade)
+    return get_skill(ch, gsn_critical) + 2 * get_skill(ch, gsn_piercing_blade)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
-    // plus 5% for kensai with piercing blade makes max 20%
-    if ( per_chance(80) )
-        return FALSE;
-    
-    int chance = critical_chance(ch, secondary) / 4;
-    return per_chance(chance);
+    // plus 10% for kensai with piercing blade = max 25%
+    return number_range(1, 2000) <= critical_chance(ch, secondary);
 }
 
 bool can_attack(CHAR_DATA *ch)
@@ -1728,10 +1724,11 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
     {
-        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25)
-            + get_skill(ch, gsn_precise_shot) / 4;
+        int skill = get_skill(ch, gsn_sharp_shooting)
+            + mastery_bonus(ch, gsn_sharp_shooting, 30, 50)
+            + get_skill(ch, gsn_precise_shot);
         if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
-            && !number_bits(2) && per_chance(chance) )
+            && number_range(1,800) <= skill )
         {
             dam *= 2;
             check_improve (ch, gsn_sharp_shooting, TRUE, 5);
@@ -1776,10 +1773,6 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 4);
     }
-    
-    // precise shot
-    if ( dt == gsn_snipe || dt == gsn_aim )
-        dam += dam * get_skill(ch, gsn_precise_shot) / 200;
     
     if ( cfg_const_damroll )
         return dam * 5/6;
@@ -1826,7 +1819,7 @@ void equip_new_arrows( CHAR_DATA *ch )
     if ( ch == NULL || get_eq_char(ch, WEAR_HOLD) != NULL )
 	return;
 
-    obj = create_object( get_obj_index( OBJ_VNUM_ARROWS ), 0 );
+    obj = create_object_vnum(OBJ_VNUM_ARROWS);
 
     if ( obj == NULL )
 	return;
@@ -1914,6 +1907,9 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
     bonus += get_skill( ch->leader, gsn_leadership );
     bonus += ch->leader->level - ch->level;
+    
+    if ( IS_UNDEAD(ch) )
+        bonus += get_skill(ch->leader, gsn_army_of_darkness);
 
     if (improve)
         check_improve( ch->leader, gsn_leadership, TRUE, 8 );
@@ -1953,23 +1949,6 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
-// used by after_attack and stance_after_hit
-static bool check_elemental_strike( CHAR_DATA *ch, OBJ_DATA *wield )
-{
-    if ( !per_chance(get_skill(ch, gsn_elemental_strike)) )
-        return FALSE;
-    
-    int strike_chance = 15;
-    if ( wield != NULL )
-    {
-        if ( wield->value[0] == WEAPON_BOW )
-            strike_chance = 25;
-        else if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-            strike_chance = 20;
-    }
-    return per_chance(strike_chance);
-}
-
 void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
     CHECK_RETURN( ch, victim );
@@ -1978,13 +1957,15 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     bool twohanded = wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
     
     // elemental strike - separate handling if in elemental blade stance
-    if ( hit && ch->mana > 1 && ch->stance != STANCE_ELEMENTAL_BLADE )
+    int calm_threshold = ch->max_mana * ch->calm / 100;
+    if ( hit && ch->mana > calm_threshold && ch->stance != STANCE_ELEMENTAL_BLADE )
     {
-        if ( check_elemental_strike(ch, wield) )
+        if ( check_skill(ch, gsn_elemental_strike) )
         {
             // additional mana cost
-            ch->mana--;
-            int dam = 10 + number_range(ch->level, ch->level*2);
+            int mana_cost = UMIN(ch->mana, 2 + ch->level / 5);
+            ch->mana -= mana_cost;
+            int dam = dice(2*mana_cost, 6);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
@@ -2654,8 +2635,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    break;
 	else
 	    ch->mana -= 1;
-    if ( check_elemental_strike(ch, wield) )
-        dam *= 2;
+    if ( check_skill(ch, gsn_elemental_strike) )
+        dam += ch->level / 3;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
@@ -3065,10 +3046,9 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim == ch )
         return;
     
-    if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !is_affected(ch, gsn_improved_invis) )
     {
-        affect_strip( ch, gsn_invis );
-        affect_strip( ch, gsn_mass_invis );
+        affect_strip_flag( ch, AFF_INVISIBLE );
         REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
         act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
     }
@@ -5447,7 +5427,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->short_descr;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_NPC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_NPC);
         corpse->timer   = number_range( 25, 40 );
         
         if (killer && !IS_NPC(killer) && !go_morgue)
@@ -5480,7 +5460,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->name;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_PC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_PC);
         corpse->timer   = number_range( 25, 40 );
         
         REMOVE_BIT(victim->act, PLR_CANLOOT);
@@ -5679,7 +5659,7 @@ void death_cry( CHAR_DATA *ch )
         const char *name;
         
         name        = IS_NPC(ch) ? ch->short_descr : ch->name;
-        obj     = create_object( get_obj_index( vnum ), 0 );
+        obj     = create_object_vnum(vnum);
         obj->timer  = number_range( 4, 7 );
         
         sprintf( buf, obj->short_descr, name );
@@ -5878,6 +5858,8 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
     int high_align, low_align;
     float group_factor, ch_factor;
     int total_dam, group_dam;
+    // damage dealt times number of victim's allies at the time
+    int ally_dam = 0, group_ally_dam = 0;
 
     /*
      * Monsters don't get kill xp's or changes.
@@ -5922,6 +5904,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
             if (gch->id == m->id)
             {
                 group_dam += m->reaction;
+                group_ally_dam += m->ally_reaction;
             }
     }
         
@@ -5958,6 +5941,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         base_exp = calculate_base_exp( level_power(gch), victim );
         dam_done = get_reaction( victim, gch );
+        ally_dam = get_ally_reaction( victim, gch );
         ch_factor = calculate_exp_factor( gch );
         
         // alignment change
@@ -5966,6 +5950,9 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         
         // partly exp from own, partly from group
         xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
+        // bonus for fighting multiple mobs at once
+        int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
+        xp += UMIN(xp, ally_xp / 3);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
@@ -7260,7 +7247,6 @@ void check_stance(CHAR_DATA *ch)
 DEF_DO_FUN(do_stance)
 {
     int i;
-    bool is_pet;
     
     if (argument[0] == '\0')
     {
@@ -7273,15 +7259,12 @@ DEF_DO_FUN(do_stance)
         return;
     }
     
+    // only search known stances
     for ( i = 0; stances[i].name != NULL; i++ )
         if ( !str_prefix(argument, stances[i].name) && get_skill(ch, *(stances[i].gsn)) )
             break;
 
-    is_pet = IS_NPC(ch) && (IS_SET(ch->act, ACT_PET) || IS_AFFECTED(ch, AFF_CHARM));
-
-    if ( stances[i].name == NULL
-	 || (!IS_NPC(ch) && get_skill(ch, *(stances[i].gsn))==0)
-	 || (is_pet && i != ch->pIndexData->stance) )
+    if ( stances[i].name == NULL )
     {
         if (ch->stance && stances[ch->stance].name)
         {

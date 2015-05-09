@@ -981,7 +981,7 @@ DEF_DO_FUN(do_new_dump)
         {
             nMatch++;
 
-            obj = create_object( pObjIndex, 0 );
+            obj = create_object( pObjIndex );
 
             fprintf( fp, "Name(s): %s\n", obj->name );
 

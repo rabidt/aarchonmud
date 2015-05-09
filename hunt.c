@@ -943,6 +943,27 @@ void stop_hunting(CHAR_DATA *ch)
 	ch->hunting = NULL;
 }
 
+static int get_assist_count( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    CHAR_DATA *helper;
+    int assist_percent = 0;
+    
+    if ( victim->in_room == NULL || ch->in_room == NULL || victim->in_room != ch->in_room )
+        return 0;
+    
+    for ( helper = victim->in_room->people; helper; helper = helper->next_in_room )
+    {
+        if ( helper == ch || helper == victim || helper->fighting == NULL
+            || !IS_NPC(helper) || IS_SET(helper->act, ACT_NOEXP)
+            || !is_same_group(helper->fighting, victim) )
+            continue;
+        // we have an NPC assisting the victim - but may not count as 100%, depending on level
+        int assist_value = 100 + 5 * (helper->level - ch->level);
+        assist_percent += UMAX(0, assist_value);
+    }
+    return rand_div(assist_percent, 100);
+}
+
 void remember_attack(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 {
 	MEM_DATA *m, *m_last, *m_new;
@@ -960,6 +981,7 @@ void remember_attack(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 		if (m->id == victim->id)
 		{
 			m->reaction += dam;
+            m->ally_reaction += dam * get_assist_count(ch, victim);
 			return;
 		}
 	}
@@ -967,6 +989,7 @@ void remember_attack(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 	m_new = new_mem_data();
 	m_new->id = victim->id;
 	m_new->reaction = dam;
+    m_new->ally_reaction = dam * get_assist_count(ch, victim);
 
 	if (m_last)
 	    m_last->next = m_new;
@@ -1073,6 +1096,17 @@ int get_reaction( CHAR_DATA *ch, CHAR_DATA *victim )
     for (m=ch->aggressors; m; m=m->next)
 	if (m->id == victim->id)
 	    return m->reaction;
+
+    return 0;
+}
+
+int get_ally_reaction( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    MEM_DATA *m;
+
+    for ( m = ch->aggressors; m; m=m->next )
+        if ( m->id == victim->id )
+            return m->ally_reaction;
 
     return 0;
 }
