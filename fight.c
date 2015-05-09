@@ -161,19 +161,15 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + get_skill(ch, gsn_piercing_blade)
+    return get_skill(ch, gsn_critical) + 2 * get_skill(ch, gsn_piercing_blade)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
-    // plus 5% for kensai with piercing blade makes max 20%
-    if ( per_chance(80) )
-        return FALSE;
-    
-    int chance = critical_chance(ch, secondary) / 4;
-    return per_chance(chance);
+    // plus 10% for kensai with piercing blade = max 25%
+    return number_range(1, 2000) <= critical_chance(ch, secondary);
 }
 
 bool can_attack(CHAR_DATA *ch)
@@ -1730,10 +1726,11 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     /* enhanced damage */
     if ( is_ranged_weapon(wield) )
     {
-        int chance = get_skill(ch, gsn_sharp_shooting) / 2 + mastery_bonus(ch, gsn_sharp_shooting, 15, 25)
-            + get_skill(ch, gsn_precise_shot) / 4;
+        int skill = get_skill(ch, gsn_sharp_shooting)
+            + mastery_bonus(ch, gsn_sharp_shooting, 30, 50)
+            + get_skill(ch, gsn_precise_shot);
         if ( dt != gsn_burst && dt != gsn_semiauto && dt != gsn_fullauto
-            && !number_bits(2) && per_chance(chance) )
+            && number_range(1,800) <= skill )
         {
             dam *= 2;
             check_improve (ch, gsn_sharp_shooting, TRUE, 5);
@@ -1778,10 +1775,6 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam += dam * (100 + mastery_bonus(ch, gsn_anatomy, 15, 25)) / 400;
         check_improve(ch, gsn_anatomy, TRUE, 4);
     }
-    
-    // precise shot
-    if ( dt == gsn_snipe || dt == gsn_aim )
-        dam += dam * get_skill(ch, gsn_precise_shot) / 200;
     
     if ( cfg_const_damroll )
         return dam * 5/6;
@@ -1828,7 +1821,7 @@ void equip_new_arrows( CHAR_DATA *ch )
     if ( ch == NULL || get_eq_char(ch, WEAR_HOLD) != NULL )
 	return;
 
-    obj = create_object( get_obj_index( OBJ_VNUM_ARROWS ), 0 );
+    obj = create_object_vnum(OBJ_VNUM_ARROWS);
 
     if ( obj == NULL )
 	return;
@@ -3055,10 +3048,9 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim == ch )
         return;
     
-    if ( IS_AFFECTED(ch, AFF_INVISIBLE) )
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !is_affected(ch, gsn_improved_invis) )
     {
-        affect_strip( ch, gsn_invis );
-        affect_strip( ch, gsn_mass_invis );
+        affect_strip_flag( ch, AFF_INVISIBLE );
         REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
         act( "$n fades into existence.", ch, NULL, NULL, TO_ROOM );
     }
@@ -5437,7 +5429,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->short_descr;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_NPC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_NPC);
         corpse->timer   = number_range( 25, 40 );
         
         if (killer && !IS_NPC(killer) && !go_morgue)
@@ -5470,7 +5462,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->name;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_PC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_PC);
         corpse->timer   = number_range( 25, 40 );
         
         REMOVE_BIT(victim->act, PLR_CANLOOT);
@@ -5669,7 +5661,7 @@ void death_cry( CHAR_DATA *ch )
         const char *name;
         
         name        = IS_NPC(ch) ? ch->short_descr : ch->name;
-        obj     = create_object( get_obj_index( vnum ), 0 );
+        obj     = create_object_vnum(vnum);
         obj->timer  = number_range( 4, 7 );
         
         sprintf( buf, obj->short_descr, name );

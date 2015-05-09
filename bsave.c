@@ -2724,7 +2724,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         }
         else
         {
-            obj = create_object(get_obj_index(vnum),-1);
+            obj = create_object_vnum(vnum);
         }
         
     }
@@ -2932,7 +2932,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                     if ( !fVnum )
                     {
                         free_obj( obj );
-                        obj = create_object( get_obj_index( OBJ_VNUM_DUMMY ), 0 );
+                        obj = create_object_vnum(OBJ_VNUM_DUMMY);
                     }
 
                     if (make_new)
@@ -2942,7 +2942,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                         wear = obj->wear_loc;
                         extract_obj(obj);
                         
-                        obj = create_object(obj->pIndexData,0);
+                        obj = create_object(obj->pIndexData);
                         obj->wear_loc = wear;
                     }
 

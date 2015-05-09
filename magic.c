@@ -50,6 +50,7 @@ DECLARE_DO_FUN(do_cast      );
  * Local functions.
  */
 void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
+int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 
 /* imported functions */
@@ -435,7 +436,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
     if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (has_focus_obj(ch) ? 100 : get_dagger_focus(ch))) / 500;
+        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (get_obj_focus(ch) + get_dagger_focus(ch))) / 500;
     else
         hit_roll = (level + 10) * 6/5;
 
@@ -1803,30 +1804,42 @@ int get_spell_heal( int mana, int lag, int level )
     return base_heal * (100 + 3 * level) / 400;
 }
 
-bool has_focus_obj( CHAR_DATA *ch )
+int get_obj_focus( CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    return !has_shield && (obj && obj->item_type != ITEM_ARROWS);
+    
+    if ( !obj || obj->item_type == ITEM_ARROWS )
+        return 0;
+    else if ( has_shield )
+        return (100 + get_skill(ch, gsn_wrist_shield)) / 3;
+    else
+        return 100;
 }
 
 int get_dagger_focus( CHAR_DATA *ch )
 {
     OBJ_DATA *obj = get_eq_char(ch, WEAR_SECONDARY);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
-    if ( has_shield || !obj || obj->item_type != ITEM_WEAPON )
+    int skill = get_skill(ch, gsn_dagger_focus) + mastery_bonus(ch, gsn_dagger_focus, 18, 30);
+    
+    if ( !obj || obj->item_type != ITEM_WEAPON )
         return 0;
-    return get_skill(ch, gsn_dagger_focus) + mastery_bonus(ch, gsn_dagger_focus, 18, 30);
+    else if ( has_shield )
+        return skill * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    else
+        return skill;
 }
 
 int get_focus_bonus( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_focus) + mastery_bonus(ch, gsn_focus, 18, 30);
-
-    if ( has_focus_obj(ch) )
-        return 20 + skill * 2/5;
-    else
-        return (get_dagger_focus(ch) + skill) / 5;
+    int obj_focus = get_obj_focus(ch);
+    int dagger_focus = get_dagger_focus(ch);
+    // only one of obj_focus or dagger_focus can be positive, so sum = max
+    int base = obj_focus + dagger_focus;
+    int bonus = skill * (100 + obj_focus) / 100;
+    return (base + bonus) / 5;
 }
 
 /* needes to be seperate for dracs */
@@ -2607,7 +2620,7 @@ DEF_SPELL_FUN(spell_continual_light)
 
     SPELL_CHECK_RETURN
     
-    light = create_object( get_obj_index( OBJ_VNUM_LIGHT_BALL ), 0 );
+    light = create_object_vnum(OBJ_VNUM_LIGHT_BALL);
     obj_to_room( light, ch->in_room );
     act( "$n twiddles $s thumbs and $p appears.",   ch, light, NULL, TO_ROOM );
     act( "You twiddle your thumbs and $p appears.", ch, light, NULL, TO_CHAR );
@@ -2660,7 +2673,7 @@ DEF_SPELL_FUN(spell_create_bomb)
         
     SPELL_CHECK_RETURN
     
-    bomb = create_object( get_obj_index( OBJ_VNUM_BOMB ), 0 );
+    bomb = create_object_vnum(OBJ_VNUM_BOMB);
     act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
     act( "You create $p.", ch, bomb, NULL, TO_CHAR );
     bomb->timer = -1;
@@ -2679,7 +2692,7 @@ DEF_SPELL_FUN(spell_create_food)
 {
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *mushroom = create_object( get_obj_index( OBJ_VNUM_MUSHROOM ), 0 );
+    OBJ_DATA *mushroom = create_object_vnum(OBJ_VNUM_MUSHROOM);
     mushroom->value[0] = level / 2;
     mushroom->value[1] = level;
     obj_to_room( mushroom, ch->in_room );
@@ -2698,7 +2711,7 @@ DEF_SPELL_FUN(spell_create_rose)
     
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
+    OBJ_DATA *rose = create_object_vnum(OBJ_VNUM_ROSE);
     act("$n has created a beautiful red rose.",ch,rose,NULL,TO_ROOM);
     send_to_char("You create a beautiful red rose.\n\r",ch);
     obj_to_char(rose,ch);
@@ -2710,7 +2723,7 @@ DEF_SPELL_FUN(spell_create_spring)
 {
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
+    OBJ_DATA *spring = create_object_vnum(OBJ_VNUM_SPRING);
     spring->timer = get_duration(sn, level);
     obj_to_room( spring, ch->in_room );
     act( "$p flows from the ground.", ch, spring, NULL, TO_ROOM );
@@ -3746,7 +3759,7 @@ DEF_SPELL_FUN(spell_floating_disc)
 
     SPELL_CHECK_RETURN
     
-    disc = create_object(get_obj_index(OBJ_VNUM_DISC), 0);
+    disc = create_object_vnum(OBJ_VNUM_DISC);
     disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
     disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
     disc->timer     = get_duration(sn, level); 
@@ -4662,7 +4675,44 @@ DEF_SPELL_FUN(spell_invis)
     return TRUE;
 }
 
+DEF_SPELL_FUN(spell_improved_invis)
+{
+    AFFECT_DATA af;
 
+    if ( IS_NOHIDE(ch) || IS_TAG(ch) )
+    {
+        send_to_char("There is no place to hide.\n\r",ch);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+    
+    if ( is_affected(ch, sn) )
+    {
+        send_to_char("You are already invisible.\n\r", ch);
+        return SR_AFFECTED;
+    }    
+
+    if ( IS_AFFECTED(ch, AFF_ASTRAL) )
+    {
+        send_to_char("All is visible on the Astral plane.\n\r", ch);
+        return SR_AFFECTED;
+    }
+
+    affect_strip_flag(ch, AFF_INVISIBLE);
+    act( "$n fades out of existence.", ch, NULL, NULL, TO_ROOM );
+
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_NONE;
+    af.modifier  = 0;
+    af.bitvector = AFF_INVISIBLE;
+    affect_to_char(ch, &af);
+    send_to_char("You fade out of existence.\n\r", ch);
+    return TRUE;
+}
 
 DEF_SPELL_FUN(spell_know_alignment)
 {
@@ -4981,8 +5031,6 @@ DEF_SPELL_FUN(spell_confusion)
 
 DEF_SPELL_FUN(spell_poison)
 {
-    SPELL_CHECK_RETURN
-    
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     AFFECT_DATA af;
@@ -4993,6 +5041,8 @@ DEF_SPELL_FUN(spell_poison)
 
         if (obj->item_type == ITEM_FOOD || obj->item_type == ITEM_DRINK_CON)
         {
+            SPELL_CHECK_RETURN
+    
             if (IS_OBJ_STAT(obj,ITEM_BLESS) || IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
             {
                 act("Your spell fails to corrupt $p.",ch,obj,NULL,TO_CHAR);
@@ -5005,23 +5055,8 @@ DEF_SPELL_FUN(spell_poison)
 
         if (obj->item_type == ITEM_WEAPON)
         {
-            /*
-               if (IS_WEAPON_STAT(obj,WEAPON_FLAMING)
-               ||  IS_WEAPON_STAT(obj,WEAPON_FROST)
-               ||  IS_WEAPON_STAT(obj,WEAPON_VAMPIRIC)
-               ||  IS_WEAPON_STAT(obj,WEAPON_SHARP)
-               ||  IS_WEAPON_STAT(obj,WEAPON_VORPAL)
-               ||  IS_WEAPON_STAT(obj,WEAPON_SHOCKING)
-               ||  IS_WEAPON_STAT(obj,WEAPON_MANASUCK)
-               ||  IS_WEAPON_STAT(obj,WEAPON_MOVESUCK)
-               ||  IS_WEAPON_STAT(obj,WEAPON_DUMB)
-               ||  IS_OBJ_STAT(obj,ITEM_BLESS) || IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
-               {
-               act("You can't seem to envenom $p.",ch,obj,NULL,TO_CHAR);
-               return;
-               }
-             */
-
+            SPELL_CHECK_RETURN
+            
             if (IS_WEAPON_STAT(obj,WEAPON_POISON))
             {
                 act("$p is already envenomed.",ch,obj,NULL,TO_CHAR);
@@ -5045,6 +5080,8 @@ DEF_SPELL_FUN(spell_poison)
         return SR_TARGET;
     }
 
+    SPELL_CHECK_RETURN
+    
     victim = (CHAR_DATA *) vo;
 
     if ( saves_spell(victim, ch, level, DAM_POISON) )
@@ -6074,7 +6111,7 @@ DEF_DO_FUN(do_scribe)
 
     if ( chance(skill) && chance(spell_skill) )
     {
-        if ( (scroll = create_object(get_obj_index(OBJ_VNUM_SCROLL), 0)) == NULL )
+        if ( (scroll = create_object_vnum(OBJ_VNUM_SCROLL)) == NULL )
         {
             send_to_char( "BUG: no scroll object!\n\r", ch );
             return;

@@ -926,7 +926,7 @@ DEF_DO_FUN(do_mpoload)
 	return;
     }
 
-    obj = create_object( pObjIndex, level );
+    obj = create_object(pObjIndex);
     check_enchant_obj( obj );
     if ( (fWear || !fToroom) && CAN_WEAR(obj, ITEM_TAKE) )
     {

@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         467
+#define MAX_SKILL         468
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3343,6 +3343,7 @@ extern sh_int  gsn_blindness;
 extern sh_int  gsn_charm_person;
 extern sh_int  gsn_curse;
 extern sh_int  gsn_invis;
+extern sh_int  gsn_improved_invis;
 extern sh_int  gsn_astral;
 extern sh_int  gsn_mass_invis;
 extern sh_int  gsn_plague;
@@ -4492,7 +4493,8 @@ void    boot_db     args( ( void ) );
 void    area_update args( ( bool all ) );
 CD *    create_mobile   args( ( MOB_INDEX_DATA *pMobIndex ) );
 void    clone_mobile    args( ( CHAR_DATA *parent, CHAR_DATA *clone) );
-OD *    create_object   args( ( OBJ_INDEX_DATA *pObjIndex, int level ) );
+OD *    create_object_vnum( int vnum );
+OD *    create_object( OBJ_INDEX_DATA *pObjIndex );
 void    clone_object    args( ( OBJ_DATA *parent, OBJ_DATA *clone ) );
 void    clear_char  args( ( CHAR_DATA *ch ) );
 const char * get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed );
@@ -4915,7 +4917,6 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
-bool has_focus_obj( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
@@ -5262,6 +5263,7 @@ void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
+void    core_tick();
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
 void      update_bounty args( ( CHAR_DATA *ch ) );

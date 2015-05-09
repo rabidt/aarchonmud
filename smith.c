@@ -482,7 +482,7 @@ SMITH_DATA *smith_new( OBJ_DATA *obj )
     sm->old_obj=obj;
 
     /* clone the heck out of this thing */
-    sm->new_obj= create_object(sm->old_obj->pIndexData,0);
+    sm->new_obj= create_object(sm->old_obj->pIndexData);
     clone_object(sm->old_obj,sm->new_obj);
     //recursive_clone(ch,obj,clone);
 
