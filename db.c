@@ -3303,7 +3303,7 @@ OBJ_DATA *create_object_vnum( int vnum )
     
     if ( pObjIndex == NULL )
     {
-        bugf("create_obj_vnum: no object for vnum %s", vnum);
+        bugf("create_obj_vnum: no object for vnum %d", vnum);
         return NULL;
     }
     return create_object(pObjIndex);
