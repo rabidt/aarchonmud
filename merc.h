@@ -2461,7 +2461,8 @@ struct mem_data
     MEM_DATA    *next;
     bool    valid;
     int     id;     
-    int     reaction;
+    int     reaction; // damage dealt to mob
+    int     ally_reaction; // damage * number of assists (for exp bonus)
     time_t  when;
 };
 
@@ -5236,6 +5237,7 @@ void	forget_attacks	args((CHAR_DATA *ch));
 int		check_anger		args((CHAR_DATA *ch, CHAR_DATA *victim));
 void    forget_attacker(CHAR_DATA *ch, CHAR_DATA *attacker);
 int     get_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
+int     get_ally_reaction( CHAR_DATA *ch, CHAR_DATA *victim );
 int     find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance );
 
 /* quest.c */
