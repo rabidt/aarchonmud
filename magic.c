@@ -2620,7 +2620,7 @@ DEF_SPELL_FUN(spell_continual_light)
 
     SPELL_CHECK_RETURN
     
-    light = create_object( get_obj_index( OBJ_VNUM_LIGHT_BALL ), 0 );
+    light = create_object_vnum(OBJ_VNUM_LIGHT_BALL);
     obj_to_room( light, ch->in_room );
     act( "$n twiddles $s thumbs and $p appears.",   ch, light, NULL, TO_ROOM );
     act( "You twiddle your thumbs and $p appears.", ch, light, NULL, TO_CHAR );
@@ -2673,7 +2673,7 @@ DEF_SPELL_FUN(spell_create_bomb)
         
     SPELL_CHECK_RETURN
     
-    bomb = create_object( get_obj_index( OBJ_VNUM_BOMB ), 0 );
+    bomb = create_object_vnum(OBJ_VNUM_BOMB);
     act( "$n has created $p.", ch, bomb, NULL, TO_ROOM );
     act( "You create $p.", ch, bomb, NULL, TO_CHAR );
     bomb->timer = -1;
@@ -2692,7 +2692,7 @@ DEF_SPELL_FUN(spell_create_food)
 {
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *mushroom = create_object( get_obj_index( OBJ_VNUM_MUSHROOM ), 0 );
+    OBJ_DATA *mushroom = create_object_vnum(OBJ_VNUM_MUSHROOM);
     mushroom->value[0] = level / 2;
     mushroom->value[1] = level;
     obj_to_room( mushroom, ch->in_room );
@@ -2711,7 +2711,7 @@ DEF_SPELL_FUN(spell_create_rose)
     
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *rose = create_object(get_obj_index(OBJ_VNUM_ROSE), 0);
+    OBJ_DATA *rose = create_object_vnum(OBJ_VNUM_ROSE);
     act("$n has created a beautiful red rose.",ch,rose,NULL,TO_ROOM);
     send_to_char("You create a beautiful red rose.\n\r",ch);
     obj_to_char(rose,ch);
@@ -2723,7 +2723,7 @@ DEF_SPELL_FUN(spell_create_spring)
 {
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *spring = create_object( get_obj_index( OBJ_VNUM_SPRING ), 0 );
+    OBJ_DATA *spring = create_object_vnum(OBJ_VNUM_SPRING);
     spring->timer = get_duration(sn, level);
     obj_to_room( spring, ch->in_room );
     act( "$p flows from the ground.", ch, spring, NULL, TO_ROOM );
@@ -3759,7 +3759,7 @@ DEF_SPELL_FUN(spell_floating_disc)
 
     SPELL_CHECK_RETURN
     
-    disc = create_object(get_obj_index(OBJ_VNUM_DISC), 0);
+    disc = create_object_vnum(OBJ_VNUM_DISC);
     disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
     disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
     disc->timer     = get_duration(sn, level); 
@@ -6112,7 +6112,7 @@ DEF_DO_FUN(do_scribe)
 
     if ( chance(skill) && chance(spell_skill) )
     {
-        if ( (scroll = create_object(get_obj_index(OBJ_VNUM_SCROLL), 0)) == NULL )
+        if ( (scroll = create_object_vnum(OBJ_VNUM_SCROLL)) == NULL )
         {
             send_to_char( "BUG: no scroll object!\n\r", ch );
             return;

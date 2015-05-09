@@ -420,7 +420,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
   send_to_char("As you enter, an employee brings in your boxes and sets them before you.\n\r",ch);
   for (i=1;i<=ch->pcdata->storage_boxes;i++)
   {
-      ch->pcdata->box_data[i-1] = create_object(get_obj_index(OBJ_VNUM_STORAGE_BOX), 0);
+      ch->pcdata->box_data[i-1] = create_object_vnum(OBJ_VNUM_STORAGE_BOX);
       obj_to_room( ch->pcdata->box_data[i-1], ch->in_room);
   }
   

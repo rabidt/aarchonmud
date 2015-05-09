@@ -1819,7 +1819,7 @@ void equip_new_arrows( CHAR_DATA *ch )
     if ( ch == NULL || get_eq_char(ch, WEAR_HOLD) != NULL )
 	return;
 
-    obj = create_object( get_obj_index( OBJ_VNUM_ARROWS ), 0 );
+    obj = create_object_vnum(OBJ_VNUM_ARROWS);
 
     if ( obj == NULL )
 	return;
@@ -5424,7 +5424,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->short_descr;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_NPC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_NPC);
         corpse->timer   = number_range( 25, 40 );
         
         if (killer && !IS_NPC(killer) && !go_morgue)
@@ -5457,7 +5457,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     {
         name        = victim->name;
         desc        = victim->name;
-        corpse      = create_object(get_obj_index(OBJ_VNUM_CORPSE_PC), 0);
+        corpse      = create_object_vnum(OBJ_VNUM_CORPSE_PC);
         corpse->timer   = number_range( 25, 40 );
         
         REMOVE_BIT(victim->act, PLR_CANLOOT);
@@ -5656,7 +5656,7 @@ void death_cry( CHAR_DATA *ch )
         const char *name;
         
         name        = IS_NPC(ch) ? ch->short_descr : ch->name;
-        obj     = create_object( get_obj_index( vnum ), 0 );
+        obj     = create_object_vnum(vnum);
         obj->timer  = number_range( 4, 7 );
         
         sprintf( buf, obj->short_descr, name );
