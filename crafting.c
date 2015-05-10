@@ -155,7 +155,9 @@ DEF_DO_FUN(do_craft)
     {
         send_to_char("Craft what? Please specify what you will be crafting.\n\r", ch);
         send_to_char("Syntax: craft <item_name> [physical|mental]\n\r", ch);
-        send_to_char("        craft <item_name> [strengthen|lighten]\n\r", ch);
+        send_to_char("        craft [strengthen|lighten] <item_name>\n\r", ch);
+        if ( IS_IMMORTAL(ch) )
+            send_to_char("        craft [strengthen|lighten] all (imm only)\n\r", ch);
         for ( i = 0; crafting_table[i].name != NULL; i++ )
 	{
 	    if ( (materials = get_obj_index(crafting_table[i].materials_vnum[0])) == NULL )
@@ -187,11 +189,33 @@ DEF_DO_FUN(do_craft)
     }
 
     // craft usage to toggle heavy_armor flag
-    bool strengthen = !strcmp(arg2, "strengthen");
-    bool weaken = !strcmp(arg2, "lighten");
+    bool strengthen = !strcmp(arg1, "strengthen");
+    bool weaken = !strcmp(arg1, "lighten");
     if ( strengthen || weaken )
     {
-        if ( !(crafting = get_obj_carry(ch, arg1, ch)) )
+        if ( !strcmp(arg2, "all") && IS_IMMORTAL(ch) )
+        {
+            for ( crafting = ch->carrying; crafting != NULL; crafting = crafting->next_content )
+                if ( itemwear_ac_factor(wear_to_itemwear(crafting->wear_loc)) > 0 )
+                {
+                    if ( strengthen && !IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+                    {
+                        ptc(ch, "You strengthen %s.\n\r", crafting->short_descr);
+                        SET_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+                    }
+                    else if ( weaken && IS_OBJ_STAT(crafting, ITEM_HEAVY_ARMOR) )
+                    {
+                        ptc(ch, "You lighten %s.\n\r", crafting->short_descr);
+                        REMOVE_BIT(crafting->extra_flags, ITEM_HEAVY_ARMOR);
+                    }
+                }
+            // updated eq worn, better update character
+            reset_char(ch);
+            ptc(ch, "All done.\n\r");
+            return;
+        }
+        
+        if ( !(crafting = get_obj_carry(ch, arg2, ch)) )
         {
             send_to_char("You do not carry that item.\n\r", ch);
             return;
