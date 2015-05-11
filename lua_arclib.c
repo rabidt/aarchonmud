@@ -4730,6 +4730,26 @@ static const LUA_PROP_TYPE CH_method_table [] =
 /* end CH section */
 
 /* OBJ section */
+static int OBJ_set_weapontype( lua_State *LS)
+{
+    OBJ_DATA *ud_obj=check_OBJ(LS,1);
+
+    if (ud_obj->item_type != ITEM_WEAPON )
+        return luaL_error(LS, "weapontype for weapon only.");
+ 
+    const char *arg1=check_string(LS,2,MIL);
+
+    int new_type=flag_lookup(arg1, weapon_class);
+    if ( new_type == NO_FLAG )
+    {
+        return luaL_error(LS, "No such weapontype '%s'", arg1);
+    }
+
+    ud_obj->value[0]=new_type;
+
+    return 0;
+}
+
 static int OBJ_setexitflag( lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
@@ -5455,6 +5475,7 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
     OBJSET(room, 5),
     OBJSET(carriedby, 5),
     OBJSET(attacktype, 5),
+    OBJSET(weapontype, 9),
        
     ENDPTABLE
 };
