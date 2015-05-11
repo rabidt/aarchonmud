@@ -5908,10 +5908,10 @@ DEF_DO_FUN(do_eqhelp)
     if (get_skill(ch,gsn_focus) < 1 && get_eq_char(ch,WEAR_HOLD) != NULL)
         printf_to_char(ch,"{yYou are using a held item without the focus skill.{x\n\r");
 
-    /* Held item provides no focus if shield is worn */
-    
+    /* Held item provides no focus if shield is worn
     if ( get_eq_char(ch,WEAR_SHIELD) != NULL && get_eq_char(ch,WEAR_HOLD) != NULL )
         printf_to_char(ch, "{yYou are holding an item while wearing a shield.{x\n\r");
+    */
     
     /* Wrist shield too ... */
 
