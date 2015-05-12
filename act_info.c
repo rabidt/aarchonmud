@@ -5505,7 +5505,7 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
 
 
     /* achievement for all PC group members in the room */
-    for ( plr=ch->in_room->people; plr; plr=plr_next )
+    for ( plr=ch->in_room ? ch->in_room->people : NULL; plr; plr=plr_next )
     {
         plr_next=plr->next_in_room;
 
