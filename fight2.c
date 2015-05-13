@@ -1841,7 +1841,6 @@ DEF_DO_FUN(do_uppercut)
 {
     CHAR_DATA *victim;
     int chance, skill;
-    long int dam;
     
     if ( (skill = get_skill(ch,gsn_uppercut)) == 0 )
     {   
@@ -1858,35 +1857,29 @@ DEF_DO_FUN(do_uppercut)
     WAIT_STATE( ch, skill_table[gsn_uppercut].beats );
     check_killer(ch,victim);
     
-    if ( number_percent( ) < chance) 
+    if ( per_chance(chance) )
     {
-	dam = martial_damage( ch, victim, gsn_uppercut );
-	dam = number_range( dam, 3*dam );
+        int dam = martial_damage(ch, victim, gsn_uppercut);
+        dam = number_range(dam, 3*dam);
 
-	check_improve(ch,gsn_uppercut,TRUE,3);
-	
-	chance = skill;
-	chance += (ch->size - victim->size) * 10;
-	chance += (get_curr_stat(ch,STAT_STR) - get_curr_stat(victim,STAT_VIT)) / 4;
-	
-	if (number_percent() <= chance/3)
+        check_improve(ch, gsn_uppercut, TRUE, 3);
+        
+        if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_VIT, 33) )
         {
-	    act("$n stuns you with a crushing right hook!",
-		ch,NULL,victim,TO_VICT);
-	    act("You stun $N with a crushing right hook!",ch,NULL,victim,TO_CHAR);
-	    act("$n stuns $N with a crushing right hook.",
-		ch,NULL,victim,TO_NOTVICT);
-	    DAZE_STATE(victim, PULSE_VIOLENCE * 3);
-	    WAIT_STATE(victim, PULSE_VIOLENCE * 3/2);
-        destance(victim, get_mastery(ch, gsn_uppercut));
-	    set_pos( victim, POS_RESTING );
-	} 
-	full_dam( ch, victim, dam, gsn_uppercut,DAM_BASH,TRUE );
+            act("$n stuns you with a crushing right hook!", ch, NULL, victim, TO_VICT);
+            act("You stun $N with a crushing right hook!", ch, NULL, victim, TO_CHAR);
+            act("$n stuns $N with a crushing right hook.", ch, NULL, victim, TO_NOTVICT);
+            DAZE_STATE(victim, PULSE_VIOLENCE * 3);
+            WAIT_STATE(victim, PULSE_VIOLENCE * 3/2);
+            destance(victim, get_mastery(ch, gsn_uppercut));
+            set_pos( victim, POS_RESTING );
+        } 
+        full_dam(ch, victim, dam, gsn_uppercut, DAM_BASH, TRUE);
     }
     else
     {
-	damage( ch, victim, 0, gsn_uppercut, DAM_BASH, TRUE);
-	check_improve(ch,gsn_uppercut,FALSE,3);
+        full_dam(ch, victim, 0, gsn_uppercut, DAM_BASH, TRUE);
+        check_improve(ch, gsn_uppercut, FALSE, 3);
     }
 }
 
