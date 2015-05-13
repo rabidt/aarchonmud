@@ -153,96 +153,124 @@ DEF_DO_FUN(do_berserk)
     }
 }
 
-DEF_DO_FUN(do_bash)
+// combined bash + shield bash + charge routine
+static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
 {
     CHAR_DATA *victim;
-    int chance_hit, chance_stun, dam, skill;
+    const char *action = (sn == gsn_charge ? "charge" : sn == gsn_shield_bash ? "shield bash" : "bash");
+    int skill = get_skill(ch, sn);
     
-    if ( get_skill(ch,gsn_bash) == 0 )
-    {   
-        send_to_char("Bashing? What's that?\n\r",ch);
+    if ( skill == 0 )
+    {
+        ptc(ch, "You don't know how to %s.\n\r", action);
+        return;
+    }
+    
+    if ( sn != gsn_bash && !get_eq_char(ch, WEAR_SHIELD) )
+    {
+        ptc(ch, "You need to wear a shield to %s.\n\r", action);
         return;
     }
     
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
-    if (victim->position < POS_FIGHTING)
+    if ( victim->position < POS_FIGHTING )
     {
-        act("You'll have to let $M get back up first.",ch,NULL,victim,TO_CHAR);
+        act("You'll have to let $M get back up first.", ch, NULL, victim, TO_CHAR);
         return;
     } 
-    
-    if (victim == ch)
+
+    if ( victim == ch )
     {
-        send_to_char("You try to bash your brains out, but fail.\n\r",ch);
+        send_to_char("You try to bash your brains out, but fail.\n\r", ch);
         return;
     }
     
-    if ( is_safe(ch,victim) )
-        return;
+    check_killer(ch, victim);
+    WAIT_STATE(ch, skill_table[sn].beats);
     
-    check_killer(ch,victim);
-    WAIT_STATE(ch,skill_table[gsn_bash].beats);
-
-    /* check whether a blow hits and whether it stuns */
-    skill = (get_skill(ch, gsn_bash) + 100) / 2;
-    chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
+    /* check whether a blow hits */
+    int chance_hit = (skill + 100) / 2 - get_skill(victim, gsn_dodge) / 3;
     chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
     if ( !can_see_combat( ch, victim ) )
-	chance_hit /= 2;
+        chance_hit /= 2;
     
-    /* check if the blow hits */
-    if (number_percent() >= chance_hit)
+    if ( !per_chance(chance_hit) )
     {
-	damage(ch,victim,0,gsn_bash,DAM_BASH,FALSE);
-	act("You fall flat on your face!", ch,NULL,victim,TO_CHAR);
-	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
-	act("You evade $n's bash, causing $m to fall flat on $s face.",
-	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_bash,FALSE,3);
-	if ( ch->stance != STANCE_RHINO )
-        check_lose_stance(ch);
-	set_pos( ch, POS_RESTING );
-	return;
+        damage(ch, victim, 0, sn, DAM_BASH, FALSE);
+        act("You fall flat on your face!", ch, NULL, victim, TO_CHAR);
+        act("$n falls flat on $s face.", ch, NULL, victim, TO_NOTVICT);
+        act("You evade $n's $t, causing $m to fall flat on $s face.", ch, action, victim, TO_VICT);
+        check_improve(ch, sn, FALSE, 3);
+        if ( ch->stance != STANCE_RHINO )
+            check_lose_stance(ch);
+        set_pos(ch, POS_RESTING);
+        return;
     } 
-        
- /* Reduced chance - Astark Nov 2012   chance_stun = skill * 2/3; */
-    chance_stun = skill / 2;
-    /* size & stat bonus/malus */
-    chance_stun += (ch->size - victim->size) * 10;
-    chance_stun += (get_curr_stat(ch, STAT_STR) - get_curr_stat(victim, STAT_STR)) / 4;
+
+    // bash < shield bash < charge, and non-wrist shield helps too
+    int power = (sn == gsn_charge ? 4 : sn == gsn_shield_bash ? 2 : 1);
+    if ( sn != gsn_bash && !offhand_occupied(ch) )
+        power += 1;
     
     /* check if the attack stuns the opponent */
-    if ( !IS_AFFECTED(victim, AFF_ROOTS)
-	 && number_percent() < chance_stun )
+    if ( !IS_AFFECTED(victim, AFF_ROOTS) && combat_maneuver_check(ch, victim, STAT_STR, STAT_CON, 50 + 5 * power) )
     {
-        act("$n sends you sprawling with a powerful bash!",
-            ch,NULL,victim,TO_VICT);
-        act("You slam into $N, and send $M sprawling!",ch,NULL,victim,TO_CHAR);
-        act("$n sends $N sprawling with a powerful bash.",
-            ch,NULL,victim,TO_NOTVICT);
-        destance(victim, get_mastery(ch, gsn_bash));
-	DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
-	set_pos( victim, POS_RESTING );
+        if ( sn == gsn_charge )
+        {
+            act("$n charges into you, sending you sprawling!", ch, NULL, victim, TO_VICT);
+            act("You charge into $N, and send $M sprawling!", ch, NULL, victim, TO_CHAR);
+            act("$n sends $N sprawling with a powerful charge.", ch, NULL, victim, TO_NOTVICT);
+            WAIT_STATE(victim, skill_table[sn].beats);
+            victim->stop += 1;
+        }
+        else if ( sn == gsn_shield_bash )
+        {
+            act("$n bashes you in the face with his shield, sending you sprawling!", ch, NULL, victim, TO_VICT);
+            act("You slam your shield into $N, and send $M sprawling!", ch, NULL, victim, TO_CHAR);
+            act("$n sends $N sprawling with a well placed shield to the face.", ch, NULL, victim, TO_NOTVICT);
+        }
+        else
+        {
+            act("$n sends you sprawling with a powerful bash!", ch, NULL, victim, TO_VICT);
+            act("You slam into $N, and send $M sprawling!", ch, NULL, victim, TO_CHAR);
+            act("$n sends $N sprawling with a powerful bash.", ch, NULL, victim, TO_NOTVICT);
+        }
+        DAZE_STATE(victim, skill_table[sn].beats * 3/2);
+        destance(victim, get_mastery(ch, sn));
+        set_pos(victim, POS_RESTING);
     }
     else /* hit but no stun */
     {
-	act("You slam into $N, but to no effect!", 
-	    ch,NULL,victim,TO_CHAR);
-	act("$n slams into $N, who stands like a rock!",
-	    ch,NULL,victim,TO_NOTVICT);
-	act("You withstand $n's bash with ease.", 
-	    ch,NULL,victim,TO_VICT);
+        act("You slam into $N, but to no effect!", ch, NULL, victim, TO_CHAR);
+        act("$n slams into $N, who stands like a rock!", ch, NULL, victim, TO_NOTVICT);
+        act("You withstand $n's $t with ease.", ch, action, victim, TO_VICT);
+        check_lose_stance(ch);
     }
+    check_improve(ch, sn, TRUE, 3);
 
     /* deal damage */
-    dam = one_hit_damage(ch, victim, gsn_bash, NULL) / 2;
-    if ( IS_SET(ch->parts, PART_TUSKS) )
-	full_dam(ch,victim, dam * 3/2, gsn_bash, DAM_PIERCE,TRUE);
+    int dam = martial_damage(ch, victim, sn) * power / 2;
+    if ( sn == gsn_bash && IS_SET(ch->parts, PART_TUSKS) )
+        full_dam(ch, victim, dam * 3/2, sn, DAM_PIERCE, TRUE);
     else
-	full_dam(ch,victim, dam, gsn_bash,DAM_BASH,TRUE);
-    check_improve(ch,gsn_bash,TRUE,3);
+        full_dam(ch, victim, dam, sn, DAM_BASH, TRUE);
+}
+
+DEF_DO_FUN(do_bash)
+{
+    bash_char(ch, argument, gsn_bash);
+}
+
+DEF_DO_FUN(do_shield_bash)
+{
+    bash_char(ch, argument, gsn_shield_bash);
+}
+
+DEF_DO_FUN(do_charge)
+{
+    bash_char(ch, argument, gsn_charge);
 }
 
 DEF_DO_FUN(do_dirt)
@@ -2382,207 +2410,6 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	obj->description = str_dup( buf );
 					 
 	obj_to_room( obj, ch->in_room );
-}
-
-DEF_DO_FUN(do_shield_bash)
-{
-    CHAR_DATA *victim;
-    OBJ_DATA *obj;
-    int dam;
-    int chance_hit, chance_stun, skill;
-    
-    if (get_skill(ch,gsn_shield_bash)==0)
-    {
-        send_to_char( "One can dream can't they?\n\r", ch );
-        return;
-    }
-    
-    if ( ( obj = get_eq_char( ch, WEAR_SHIELD ) ) == NULL)
-    {
-        send_to_char( "You need to wear a shield to shield bash.\n\r", ch  );
-        return;
-    }
-    
-    if ( (victim = get_combat_victim(ch, argument)) == NULL )
-        return;
-
-    if (victim->position < POS_FIGHTING)
-    {
-	act("You'll have to let $M get back up first.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
-        
-    if (victim == ch)
-    {
-	send_to_char("You try to bash your brains out, but fail.\n\r",ch);
-	return;
-    }
-    
-    check_killer(ch,victim);
-    WAIT_STATE(ch,skill_table[gsn_shield_bash].beats);
-    
-    /* check whether a blow hits and whether it stuns */
-    skill = (get_skill(ch, gsn_shield_bash) + 100) / 2;
-    chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
-    chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see_combat( ch, victim ) )
-	chance_hit /= 2;
-        
-    /* check if the blow hits */
-    if (number_percent() >= chance_hit)
-    {
-	damage(ch,victim,0,gsn_shield_bash,DAM_BASH,FALSE);
-	act("You fall flat on your face!", ch,NULL,victim,TO_CHAR);
-	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
-	act("You evade $n's shield bash, causing $m to fall flat on $s face.",
-	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_shield_bash,FALSE,3);
-	set_pos( ch, POS_RESTING );
-	return;
-    } 
-        
- /* Reduced chance - Astark Nov 2012   chance_stun = skill * 3/4; */
-    chance_stun = skill * 2/3; 
-    /* size & stat bonus/malus */
-    chance_stun += (ch->size - victim->size) * 10;
-    chance_stun += (get_curr_stat(ch, STAT_STR) - get_curr_stat(victim, STAT_STR)) / 4;
-    
-    /* check if the attack stuns the opponent */
-    if ( !IS_AFFECTED(victim, AFF_ROOTS) 
-	 && number_percent() < chance_stun )
-    {
-	act("$n bashes you in the face with his shield, sending you sprawling!",
-	    ch,NULL,victim,TO_VICT);
-	act("You slam your shield into $N, and send $M sprawling!",
-	    ch,NULL,victim,TO_CHAR);
-	act("$n sends $N sprawling with a well placed shield to the face.",
-	    ch,NULL,victim,TO_NOTVICT);
-	
-    destance(victim, get_mastery(ch, gsn_shield_bash));
-	DAZE_STATE(victim, 3*PULSE_VIOLENCE + ch->size - victim->size);
-	set_pos( victim, POS_RESTING );
-    }
-    else /* hit but no stun */
-    {
-	act("You slam your shield into $N, but to no effect!", 
-	    ch,NULL,victim,TO_CHAR);
-	act("$n slams $s shield into $N, who stands like a rock!",
-	    ch,NULL,victim,TO_NOTVICT);
-	act("You withstand $n's shield bash with ease.", 
-	    ch,NULL,victim,TO_VICT);
-        check_lose_stance(ch);
-	WAIT_STATE(ch, skill_table[gsn_shield_bash].beats * 3 / 2);
-    }
-    
-    /* deal damage */
-    dam = one_hit_damage(ch, victim, gsn_shield_bash, NULL);
-    dam += dam * mastery_bonus(ch, gsn_shield_bash, 15, 25) / 100;
-    full_dam(ch,victim, dam, gsn_shield_bash,DAM_BASH,TRUE);
-    check_improve(ch,gsn_shield_bash,TRUE,3);
-}
-
-DEF_DO_FUN(do_charge)
-{
-    CHAR_DATA *victim;
-    OBJ_DATA *obj;
-    int dam;
-    int chance_hit, chance_stun, skill;
-    char arg[MAX_INPUT_LENGTH];
-    
-    one_argument(argument, arg);
-    
-    if (get_skill(ch,gsn_charge)==0)
-    {
-        send_to_char( "One can dream can't they?\n\r", ch );
-        return;
-    }
-    
-    if ( ( obj = get_eq_char( ch, WEAR_SHIELD ) ) == NULL)
-    {
-        send_to_char( "You need to wear a shield to charge.\n\r", ch  );
-        return;
-    }
-    
-    if ( ( victim = get_victim_room( ch, arg ) ) == NULL )
-    {
-	send_to_char( "They aren't here.\n\r", ch );
-	return;
-    }
-        
-    if (victim->position < POS_FIGHTING)
-    {
-	act("You'll have to let $M get back up first.",ch,NULL,victim,TO_CHAR);
-	return;
-    }
-        
-    if (victim == ch)
-    {
-	send_to_char( "You try to bash your brains out, but fail.\n\r", ch);
-	return;
-    }
-        
-    if ( is_safe(ch,victim) )
-	return;
-        
-    check_killer(ch,victim);
-    WAIT_STATE(ch,skill_table[gsn_charge].beats);
-        
-    /* check whether a blow hits and whether it stuns */
-    skill = (get_skill(ch, gsn_charge) + 100) / 2;
-    chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
-    chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-        
-    /* check if the blow hits */
-    if (number_percent() >= chance_hit)
-    {
-	damage(ch,victim,0,gsn_charge,DAM_BASH,FALSE);
-	act("You fall flat on your face!", ch,NULL,victim,TO_CHAR);
-	act("$n falls flat on $s face.", ch,NULL,victim,TO_NOTVICT);
-	act("You evade $n's charge, causing $m to fall flat on $s face.",
-	    ch,NULL,victim,TO_VICT);
-	check_improve(ch,gsn_charge,FALSE,2);
-	check_lose_stance(ch);
-	set_pos( ch, POS_RESTING );
-	return;
-    } 
-        
-    chance_stun = skill * 9/10;
-    /* size & stat bonus/malus */
-    chance_stun += (ch->size - victim->size) * 10;
-    chance_stun += (get_curr_stat(ch, STAT_STR) - get_curr_stat(victim, STAT_STR)) / 4;
-        
-    /* check if the attack stuns the opponent */
-    if ( !IS_AFFECTED(victim, AFF_ROOTS) 
-	 && number_percent() < chance_stun )
-    {
-	act("$n charges into you, sending you sprawling!",
-	    ch,NULL,victim,TO_VICT);
-	act("You charge into $N, and send $M sprawling!",
-	    ch,NULL,victim,TO_CHAR);
-	act("$n sends $N sprawling with a powerful charge.",
-	    ch,NULL,victim,TO_NOTVICT);
-	
-    destance(victim, get_mastery(ch, gsn_charge));
-	DAZE_STATE( victim, 4*PULSE_VIOLENCE + 2*(ch->size - victim->size) );
-	WAIT_STATE( victim, 2*PULSE_VIOLENCE );
-	set_pos( victim, POS_RESTING );
-    }
-    else /* hit but no stun */
-    {
-	act("You charge into $N, but to no effect!", 
-	    ch,NULL,victim,TO_CHAR);
-	act("$n charges into $N, who stands like a rock!",
-	    ch,NULL,victim,TO_NOTVICT);
-	act("You withstand $n's charge with ease.", 
-	    ch,NULL,victim,TO_VICT);
-	WAIT_STATE(ch, skill_table[gsn_charge].beats * 3/2);
-    }
-    
-    /* deal damage */
-    dam = one_hit_damage(ch, victim, gsn_charge, NULL) * 2;
-    dam += dam * mastery_bonus(ch, gsn_charge, 15, 25) / 100;
-    full_dam(ch,victim, dam, gsn_charge,DAM_BASH,TRUE);
-    check_improve(ch,gsn_charge,TRUE,2);
 }
 
 DEF_DO_FUN(do_double_strike)
