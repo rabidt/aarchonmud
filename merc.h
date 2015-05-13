@@ -4620,6 +4620,7 @@ bool    check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );

@@ -1052,14 +1052,22 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
-bool combat_maneuver_check(CHAR_DATA *ch, CHAR_DATA *victim)
+bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat )
 {
     // success chance ranges from 25% to 75%
     if ( per_chance(50) )
         return per_chance(50);
     
-    int ch_roll = get_hitroll(ch) + ch->size * 20;
-    int victim_roll = -get_save(victim, TRUE) + victim->size * 20;
+    int ch_roll = get_hitroll(ch);
+    if ( ch_stat != STAT_NONE )
+        ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
+    ch_roll *= 5 + ch->size;
+    
+    int victim_roll = -get_save(victim, TRUE);
+    if ( victim_stat != STAT_NONE )
+        victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
+    victim_roll *= 5 + victim->size;
+    
     int ch_rolled = number_range(0, ch_roll);
     int victim_rolled = number_range(0, victim_roll);
     int success = ch_rolled > victim_rolled;
@@ -1406,7 +1414,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
-    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim) )
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR) )
     {
         send_to_char("You are constricted and unable to act.\n\r", victim);
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
