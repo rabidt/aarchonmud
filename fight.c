@@ -1052,11 +1052,14 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
-bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat )
+bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat, int base_chance )
 {
-    // success chance ranges from 25% to 75%
+    // safety-net
+    base_chance = URANGE(25, base_chance, 75);
+    
+    // half of all checks use base_chance
     if ( per_chance(50) )
-        return per_chance(50);
+        return per_chance(base_chance);
     
     int ch_roll = get_hitroll(ch);
     if ( ch_stat != STAT_NONE )
@@ -1067,6 +1070,12 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int v
     if ( victim_stat != STAT_NONE )
         victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
     victim_roll *= 5 + victim->size;
+    
+    // adjust for base chance
+    if ( base_chance < 50 )
+        ch_roll = ch_roll * base_chance / 50;
+    else if ( base_chance > 50 )
+        victim_roll = victim_roll * (100 - base_chance) / 50;
     
     int ch_rolled = number_range(0, ch_roll);
     int victim_rolled = number_range(0, victim_roll);
@@ -1414,7 +1423,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
-    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR) )
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
     {
         send_to_char("You are constricted and unable to act.\n\r", victim);
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
@@ -5005,21 +5014,25 @@ bool check_jam( CHAR_DATA *ch, int odds, bool offhand )
     return TRUE;
 }
 
+bool offhand_occupied( CHAR_DATA *ch )
+{
+    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
+    return get_eq_char(ch, WEAR_SECONDARY)
+        || get_eq_char(ch, WEAR_HOLD)
+        || (wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS));
+}
+
 int shield_block_chance( CHAR_DATA *ch, bool improve )
 {
     if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
         return 0;
 
     // offhand occupied means reduced block chance
-    bool offhand_occupied = get_eq_char(ch, WEAR_SECONDARY) != NULL || get_eq_char(ch, WEAR_HOLD) != NULL;
-    OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
-
-    if ( wield != NULL && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-        offhand_occupied = TRUE;
+    bool wrist_shield = offhand_occupied(ch);
 
     int chance = 20 + get_skill(ch, gsn_shield_block) / 4;
 
-    if ( offhand_occupied )
+    if ( wrist_shield )
         chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
@@ -5031,7 +5044,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( improve )
     {
         check_improve(ch, gsn_shield_block, TRUE, 6);
-        if ( offhand_occupied )
+        if ( wrist_shield )
             check_improve(ch, gsn_wrist_shield, TRUE, 7);
     }
 
