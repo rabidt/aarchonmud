@@ -369,10 +369,9 @@ DEF_DO_FUN(do_dirt)
 DEF_DO_FUN(do_trip)
 {
     CHAR_DATA *victim;
-    int chance;
+    int skill = get_skill(ch,gsn_trip);
     
-    if ( (chance = get_skill(ch,gsn_trip)) == 0
-        ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_TRIP)))
+    if ( skill == 0 )
     {
         send_to_char("Tripping?  Like with mushrooms?\n\r",ch);
         return;
@@ -381,14 +380,10 @@ DEF_DO_FUN(do_trip)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
-    if ( is_safe(ch,victim) )
-        return;
-    
     if ( IS_AFFECTED(victim, AFF_ROOTS) )
     {
-	act( "$N is rooted firmly to the ground.",
-	     ch, NULL, victim, TO_CHAR );
-	return;
+        act("$N is rooted firmly to the ground.", ch, NULL, victim, TO_CHAR);
+        return;
     }
     
     if ( IS_AFFECTED(victim,AFF_FLYING) && !IS_AFFECTED(ch,AFF_FLYING))
@@ -397,50 +392,42 @@ DEF_DO_FUN(do_trip)
         return;
     }
     
-    if (victim->position < POS_FIGHTING)
+    if ( victim->position < POS_FIGHTING )
     {
         act("$N is already down.",ch,NULL,victim,TO_CHAR);
         return;
     }
     
-    if (victim == ch)
+    if ( victim == ch )
     {
-        send_to_char("You fall flat on your face!\n\r",ch);
-        WAIT_STATE(ch,2 * skill_table[gsn_trip].beats);
-        act("$n trips over $s own feet!",ch,NULL,NULL,TO_ROOM);
+        send_to_char("You fall flat on your face!\n\r", ch);
+        act("$n trips over $s own feet!", ch, NULL, NULL, TO_ROOM);
+        set_pos(ch, POS_RESTING);
         return;
     }
     
-    /* 50% base chance with 100% skill */
-    chance /= 2; 
-    chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
-    if ( victim->size > ch->size )
-	chance -= (victim->size - ch->size) * 2;
-    
-    if ( !can_see_combat(ch,victim) )
-	chance /= 2;
-
     /* now the attack */
     check_killer(ch,victim);
     WAIT_STATE(ch,skill_table[gsn_trip].beats);
-    if (number_percent() < chance)
+    
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
     {
-	act("$n trips you and you go down!",ch,NULL,victim,TO_VICT);
-	act("You trip $N and $N goes down!",ch,NULL,victim,TO_CHAR);
-	act("$n trips $N, sending $M to the ground.",ch,NULL,victim,TO_NOTVICT);
-	check_improve(ch,gsn_trip,TRUE,3);
-	
-	destance(victim, get_mastery(ch, gsn_trip));
-	DAZE_STATE(victim, PULSE_VIOLENCE + victim->size - SIZE_MEDIUM);
-	set_pos( victim, POS_RESTING );
+        act("$n trips you and you go down!", ch, NULL, victim, TO_VICT);
+        act("You trip $N and $N goes down!", ch, NULL, victim, TO_CHAR);
+        act("$n trips $N, sending $M to the ground.", ch, NULL, victim, TO_NOTVICT);
+        check_improve(ch, gsn_trip, TRUE, 3);
+        
+        destance(victim, get_mastery(ch, gsn_trip));
+        DAZE_STATE(victim, skill_table[gsn_trip].beats);
+        set_pos(victim, POS_RESTING);
 
-	damage(ch,victim,number_range(2, 2 + 3 * victim->size),gsn_trip, 
-	       DAM_BASH,TRUE);
+        int dam = martial_damage(ch, victim, gsn_trip) * (3 + victim->size) / 10;
+        damage(ch, victim, dam, gsn_trip, DAM_BASH, TRUE);
     }
     else
     {
-	damage(ch,victim,0,gsn_trip,DAM_BASH,TRUE);
-	check_improve(ch,gsn_trip,FALSE,3);
+        damage(ch, victim, 0, gsn_trip, DAM_BASH, TRUE);
+        check_improve(ch, gsn_trip, FALSE, 3);
     } 
 }
 
