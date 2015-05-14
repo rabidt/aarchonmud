@@ -1632,9 +1632,9 @@ void split_attack ( CHAR_DATA *ch, int dt )
 DEF_DO_FUN(do_gouge)
 {
     CHAR_DATA *victim;
-    int chance;
+    int skill;
     
-    if ( (chance = get_skill(ch,gsn_gouge)) == 0)
+    if ( (skill = get_skill(ch,gsn_gouge)) == 0)
     {
         send_to_char("Gouging?  Sounds messy.\n\r",ch);
         return;
@@ -1664,26 +1664,31 @@ DEF_DO_FUN(do_gouge)
     if ( is_safe(ch,victim) )
         return;
     
-    /* dexterity */
-    chance += get_curr_stat(ch,STAT_STR)/8;
-    chance += get_curr_stat(ch,STAT_DEX)/8;
-    chance -= get_curr_stat(victim,STAT_AGI)/4;
-    
-    /* gouging is harder than dirt kick */
-    chance -= get_skill( victim, gsn_dodge ) / 3;
-    chance /= 4;
-    
     check_killer(ch,victim);
+    WAIT_STATE(ch, skill_table[gsn_gouge].beats);
+    
     /* now the attack */
-    if (number_percent() < chance)
+    int chance = skill - get_skill(victim, gsn_dodge) / 3;
+    if ( per_chance(chance) )
+    {
+        int dam = martial_damage(ch, victim, gsn_gouge);
+        full_dam(ch, victim, dam, gsn_gouge, DAM_BASH, TRUE);
+        check_improve(ch, gsn_gouge, TRUE, 3);
+    }
+    else
+    {
+        full_dam(ch, victim, 0, gsn_gouge, DAM_BASH, TRUE);
+        check_improve(ch, gsn_gouge, FALSE, 3);
+        return;
+    }
+
+    /* if attack hits, we have a chance of permanent blindness */
+    if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_AGI, 20) )
     {
         AFFECT_DATA af;
-        act("$n is blinded as $s eyes are gouged out!",victim,NULL,NULL,TO_ROOM);
-        act("$n gouges your eyes out!",ch,NULL,victim,TO_VICT);
-        damage(ch,victim,number_range(10,30),gsn_gouge,DAM_NONE,FALSE);
-        send_to_char("You can't see a thing!\n\r",victim);
-        check_improve(ch,gsn_gouge,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_gouge].beats);
+        act("$n is blinded as $s eyes are gouged out!", victim, NULL, NULL, TO_ROOM);
+        act("$n gouges your eyes out!", ch, NULL, victim, TO_VICT);
+        send_to_char("You can't see a thing!\n\r", victim);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_gouge;
@@ -1694,12 +1699,6 @@ DEF_DO_FUN(do_gouge)
         af.bitvector = AFF_BLIND;
         
         affect_to_char(victim,&af);
-    }
-    else
-    {
-        damage(ch,victim,0,gsn_gouge,DAM_NONE,TRUE);
-        check_improve(ch,gsn_gouge,FALSE,3);
-        WAIT_STATE(ch,skill_table[gsn_gouge].beats);
     }
 }
 
