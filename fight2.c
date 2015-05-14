@@ -698,7 +698,7 @@ DEF_DO_FUN(do_hogtie)
 {
     CHAR_DATA *victim;
     OBJ_DATA *rope;
-    int chance, skill;
+    int skill;
     AFFECT_DATA af;
     
     if ( (skill = get_skill(ch, gsn_hogtie)) == 0 )
@@ -729,13 +729,11 @@ DEF_DO_FUN(do_hogtie)
         return;
     }
 
-    chance = skill / 2;
-    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_AGI) +
-	       get_curr_stat(ch, STAT_STR) - get_curr_stat(victim,STAT_STR)) / 16;
-    
     check_killer(ch,victim);
+    WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
+    
     /* now the attack */
-    if (number_percent() < chance)
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
     {
 	//extract_obj( rope );
         act("You hogtie $N!",ch, NULL, victim, TO_CHAR);
