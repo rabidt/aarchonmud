@@ -1428,12 +1428,10 @@ DEF_DO_FUN(do_disarm)
 {
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    int chance,hth,ch_weapon,vict_weapon,ch_vict_weapon;
+    int skill;
     char arg[MAX_INPUT_LENGTH];
     
     one_argument(argument,arg);
-    
-    hth = 0;
     
     // allow disarm as a shortcut for tdisarm while out-of-combat
     if ( !ch->fighting && !get_victim_room(ch, arg) && get_skill(ch, gsn_disarm_trap) > 0 )
@@ -1442,97 +1440,64 @@ DEF_DO_FUN(do_disarm)
         return;
     }
     
-    if ((chance = get_skill(ch,gsn_disarm)) == 0)
+    if ((skill = get_skill(ch,gsn_disarm)) == 0)
     {
         send_to_char( "You don't know how to disarm opponents.\n\r", ch );
-        return;
-    }
-    
-    if ( get_eq_char( ch, WEAR_WIELD ) == NULL 
-        && ((hth = get_skill(ch,gsn_hand_to_hand)) == 0
-	    || (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_DISARM))))
-    {
-        send_to_char( "You must wield a weapon to disarm.\n\r", ch );
         return;
     }
     
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
 
-        if ( !can_see_combat( ch, victim ) )
-        {
-            send_to_char( "You fumble for your opponent's weapon, but can't find it.\n\r", ch );
-            return;
-        }
-        
-        if ( ( obj = get_eq_char( victim, WEAR_WIELD ) ) == NULL )
-        {
-            send_to_char( "Your opponent is not wielding a weapon.\n\r", ch );
-            return;
-        }
+    if ( !can_see_combat( ch, victim ) )
+    {
+        send_to_char( "You fumble for your opponent's weapon, but can't find it.\n\r", ch );
+        return;
+    }
+    
+    if ( (obj = get_eq_char(victim, WEAR_WIELD)) == NULL )
+    {
+        send_to_char( "Your opponent is not wielding a weapon.\n\r", ch );
+        return;
+    }
         
     // starting a fight if needed, regardless of success or failure
     check_killer(ch, victim);
     start_combat(ch, victim);
+    WAIT_STATE( ch, skill_table[gsn_disarm].beats );
 
-        /* find weapon skills */
-        ch_weapon = get_weapon_skill(ch,get_weapon_sn(ch));
-	if ( IS_NPC(victim) )
-	    vict_weapon = 100;
-	else
-	    vict_weapon = get_weapon_skill(victim,get_weapon_sn(victim));
-        ch_vict_weapon = get_weapon_skill(ch,get_weapon_sn(victim));
-        
-        /* modifiers */
-        
-        /* skill */
-        if ( get_eq_char(ch,WEAR_WIELD) == NULL)
-            chance = chance * (100+hth)/300;
-        else
-            chance = chance * (100+ch_weapon)/200;
-        
-        chance += (ch_vict_weapon - vict_weapon) / 4; 
-        
-	/* whips disarm better */
-	if ( get_weapon_sn(ch) == gsn_whip )
-	    chance += 20;
+    /* whips disarm better, hand-to-hand worse */
+    int chance = 50;
+    if ( get_weapon_sn(ch) == gsn_hand_to_hand )
+        chance -= 10;
+    else if ( get_weapon_sn(ch) == gsn_whip )
+        chance += 10;
 
-        /* dex vs. strength */
-        chance += get_curr_stat(ch,STAT_DEX)/4;
-        chance -= get_curr_stat(victim,STAT_STR)/4;
-        
-        /* level */
-        chance += (ch->level - victim->level) / 2;
-        
-	chance /= 2;
-
-        WAIT_STATE( ch, skill_table[gsn_disarm].beats );
-
-        /* You no longer can fail disarm a bunch of times before finding
-         out that your opponent's weapon is damned, if you have detect
-         magic - Astark 6-8-13 */
-        if ( IS_OBJ_STAT(obj,ITEM_NOREMOVE) && IS_AFFECTED(ch,AFF_DETECT_MAGIC))
-        {
-            act("$S weapon won't budge!",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but your weapon won't budge!",ch,NULL,victim,TO_VICT);
-            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
-            return;
-        }
-
-        /* and now the attack */
-        if ( per_chance(chance) )
-        {
-            disarm( ch, victim, FALSE, get_mastery(ch, gsn_disarm) );
-            check_improve(ch,gsn_disarm,TRUE,2);
-        }
-        else
-        {
-            act("You fail to disarm $N.",ch,NULL,victim,TO_CHAR);
-            act("$n tries to disarm you, but fails.",ch,NULL,victim,TO_VICT);
-            act("$n tries to disarm $N, but fails.",ch,NULL,victim,TO_NOTVICT);
-            check_improve(ch,gsn_disarm,FALSE,2);
-        }
+    /* You no longer can fail disarm a bunch of times before finding
+        out that your opponent's weapon is damned, if you have detect
+        magic - Astark 6-8-13 */
+    if ( IS_OBJ_STAT(obj, ITEM_NOREMOVE) && IS_AFFECTED(ch, AFF_DETECT_MAGIC) )
+    {
+        act("$S weapon won't budge!", ch, NULL, victim, TO_CHAR);
+        act("$n tries to disarm you, but your weapon won't budge!", ch, NULL, victim, TO_VICT);
+        act("$n tries to disarm $N, but fails.", ch, NULL, victim, TO_NOTVICT);
         return;
+    }
+
+    /* and now the attack */
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_STR, chance) )
+    {
+        disarm(ch, victim, FALSE, get_mastery(ch, gsn_disarm));
+        check_improve(ch, gsn_disarm, TRUE, 2);
+    }
+    else
+    {
+        act("You fail to disarm $N.", ch, NULL, victim, TO_CHAR);
+        act("$n tries to disarm you, but fails.", ch, NULL, victim, TO_VICT);
+        act("$n tries to disarm $N, but fails.", ch, NULL, victim, TO_NOTVICT);
+        check_improve(ch, gsn_disarm, FALSE, 2);
+    }
+    return;
 }
 
 DEF_DO_FUN(do_surrender)
