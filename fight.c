@@ -1055,7 +1055,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat, int base_chance )
 {
     // safety-net
-    base_chance = URANGE(25, base_chance, 75);
+    base_chance = URANGE(5, base_chance, 95);
     
     // half of all checks use base_chance
     if ( per_chance(50) )
