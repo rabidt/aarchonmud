@@ -6765,68 +6765,63 @@ bool check_lasso( CHAR_DATA *victim )
     CHAR_DATA *opp, *next_opp;
     OBJ_DATA *lasso;
     AFFECT_DATA af;
-    int skill, chance;
     
-    if (victim == NULL || victim->in_room == NULL)
+    if ( victim == NULL || victim->in_room == NULL )
     {
-	bug("check_lasso: NULL victim or NULL in_room", 0);
-	return FALSE;
+        bug("check_lasso: NULL victim or NULL in_room", 0);
+        return FALSE;
     }
     
-    for (opp = victim->in_room->people; opp != NULL; opp = next_opp)
+    for ( opp = victim->in_room->people; opp != NULL; opp = next_opp )
     {
-	next_opp = opp->next_in_room;
+        next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_attack(opp) )
-	    continue;
-	
-	if ( (lasso=get_eq_char(opp, WEAR_HOLD)) == NULL
-	     || lasso->item_type != ITEM_HOGTIE )
-	    continue;
+        if ( opp->fighting != victim || !can_attack(opp) )
+            continue;
+        
+        if ( (lasso=get_eq_char(opp, WEAR_HOLD)) == NULL
+            || lasso->item_type != ITEM_HOGTIE )
+            continue;
 
-	skill = get_skill(opp, gsn_hogtie);
-	if (number_percent() > skill)
-	    continue;
+        if ( !check_skill(opp, gsn_hogtie) )
+            continue;
 
-	act( "$n throws a lasso at you!", opp, NULL, victim, TO_VICT    );
-	act( "You throw a lasso at $N!", opp, NULL, victim, TO_CHAR    );
-	act( "$n throws a lasso at $N!", opp, NULL, victim, TO_NOTVICT );
+        act( "$n throws a lasso at you!", opp, NULL, victim, TO_VICT    );
+        act( "You throw a lasso at $N!", opp, NULL, victim, TO_CHAR    );
+        act( "$n throws a lasso at $N!", opp, NULL, victim, TO_NOTVICT );
 
-	chance = get_skill(victim, gsn_avoidance) - skill / 2;
-	if (number_percent() < chance)
-	{
-	    act( "You avoid $n!",  opp, NULL, victim, TO_VICT    );
-	    act( "$N avoids you!", opp, NULL, victim, TO_CHAR    );
-	    act( "$N avoids $n!",  opp, NULL, victim, TO_NOTVICT );
-	    check_improve(victim,gsn_avoidance,TRUE,1);
-	    continue;
-	}
+        if ( per_chance(50) && check_skill(victim, gsn_avoidance) )
+        {
+            act( "You avoid $n!",  opp, NULL, victim, TO_VICT    );
+            act( "$N avoids you!", opp, NULL, victim, TO_CHAR    );
+            act( "$N avoids $n!",  opp, NULL, victim, TO_NOTVICT );
+            check_improve(victim,gsn_avoidance,TRUE,1);
+            continue;
+        }
 
-	chance = skill/2 + (get_curr_stat(opp, STAT_DEX) -
-			    get_curr_stat(victim,STAT_AGI))/8;
-	if ( number_percent() <= chance )
-	{
-	    act( "$n catches you!", opp, NULL, victim, TO_VICT    );
-	    act( "You catch $N!", opp, NULL, victim, TO_CHAR    );
-	    act( "$n catches $N!", opp, NULL, victim, TO_NOTVICT );
+        if ( combat_maneuver_check(opp, victim, STAT_DEX, STAT_AGI, 50) )
+        {
+            act( "$n catches you!", opp, NULL, victim, TO_VICT    );
+            act( "You catch $N!", opp, NULL, victim, TO_CHAR    );
+            act( "$n catches $N!", opp, NULL, victim, TO_NOTVICT );
 
-	    check_improve(opp,gsn_hogtie,TRUE,1);
+            check_improve(opp,gsn_hogtie,TRUE,1);
 
-	    destance(victim, get_mastery(opp, gsn_hogtie));
-	    if ( !is_affected(victim, gsn_hogtie) )
-	    {
-		af.where    = TO_AFFECTS;
-		af.type     = gsn_hogtie;
-		af.level    = opp->level;
-		af.duration = 0;
-		af.location = APPLY_AGI;
-		af.modifier = -20;
-		af.bitvector = AFF_SLOW;
-		affect_to_char(victim,&af);
-	    }
-	    WAIT_STATE( victim, 6 );
-	    return TRUE;
-	}
+            destance(victim, get_mastery(opp, gsn_hogtie));
+            if ( !is_affected(victim, gsn_hogtie) )
+            {
+                af.where    = TO_AFFECTS;
+                af.type     = gsn_hogtie;
+                af.level    = opp->level;
+                af.duration = 0;
+                af.location = APPLY_AGI;
+                af.modifier = -20;
+                af.bitvector = AFF_SLOW;
+                affect_to_char(victim,&af);
+            }
+            WAIT_STATE( victim, PULSE_VIOLENCE );
+            return TRUE;
+        }
         check_improve(opp, gsn_hogtie, FALSE, 1);
     }   
     
