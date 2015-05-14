@@ -538,9 +538,9 @@ DEF_DO_FUN(do_headbutt)
 DEF_DO_FUN(do_net)
 {
     CHAR_DATA *victim;
-    int chance;
+    int skill;
     
-    if ( (chance = get_skill(ch,gsn_net)) == 0 /*|| IS_NPC(ch)*/ )
+    if ( (skill = get_skill(ch,gsn_net)) == 0 /*|| IS_NPC(ch)*/ )
     {
         send_to_char("You wonder where you could get a net.\n\r",ch);
         return;
@@ -567,18 +567,11 @@ DEF_DO_FUN(do_net)
         return;
     }
     
-    if ( is_safe(ch,victim) )
-        return;
-    
-    /* modifiers */
-    
-    /* dexterity */
-    chance /= 4;
-    chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
-    
     check_killer(ch,victim);
+    WAIT_STATE(ch, skill_table[gsn_net].beats);
+    
     /* now the attack */
-    if (number_percent() < chance)
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 33) )
     {
         AFFECT_DATA af;
         act("$N is trapped in your net!",ch, NULL, victim, TO_CHAR);
@@ -587,7 +580,6 @@ DEF_DO_FUN(do_net)
         damage(ch,victim,number_range(2,5),gsn_net,DAM_NONE,FALSE);
         send_to_char("You stumble around in the net!\n\r",victim);
         check_improve(ch,gsn_net,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_net].beats);
         WAIT_STATE(victim, PULSE_VIOLENCE); 
         
         af.where    = TO_AFFECTS;
@@ -604,7 +596,6 @@ DEF_DO_FUN(do_net)
     {
         damage(ch,victim,0,gsn_net,DAM_NONE,TRUE);
         check_improve(ch,gsn_net,FALSE,3);
-        WAIT_STATE(ch,skill_table[gsn_net].beats);
     }
 }
 
