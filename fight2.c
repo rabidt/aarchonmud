@@ -276,9 +276,9 @@ DEF_DO_FUN(do_charge)
 DEF_DO_FUN(do_dirt)
 {
     CHAR_DATA *victim;
-    int chance;
+    int skill, chance;
     
-    if ( (chance = get_skill(ch,gsn_dirt)) == 0
+    if ( (skill = get_skill(ch,gsn_dirt)) == 0
         ||   (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_KICK_DIRT)))
     {
         send_to_char("You get your feet dirty.\n\r",ch);
@@ -300,21 +300,8 @@ DEF_DO_FUN(do_dirt)
         return;
     }
     
-    if ( is_safe(ch,victim) )
-        return;
-    
-    /* modifiers */
-    
-    /* dexterity */
-    chance += get_curr_stat(ch,STAT_DEX)/4;
-    chance -= get_curr_stat(victim,STAT_AGI)/4;
-    
-    /* sloppy hack to prevent false zeroes */
-    if (chance % 5 == 0)
-        chance += 1;
-    
-    /* terrain */
-    
+    /* terrain determines base chance */
+    chance = 50;
     switch(ch->in_room->sector_type)
     {
     case(SECT_INSIDE):      chance -= 20;   break;
@@ -338,7 +325,7 @@ DEF_DO_FUN(do_dirt)
     
     check_killer(ch,victim);
     /* now the attack */
-    if ( number_percent() <= chance/2 )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, chance) )
     {
         AFFECT_DATA af;
         act("$n is blinded by the dirt in $s eyes!",victim,NULL,NULL,TO_ROOM);
