@@ -324,16 +324,17 @@ DEF_DO_FUN(do_dirt)
     }
     
     check_killer(ch,victim);
+    WAIT_STATE(ch, skill_table[gsn_dirt].beats);
+    start_combat(ch, victim);
+    
     /* now the attack */
     if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, chance) )
     {
         AFFECT_DATA af;
         act("$n is blinded by the dirt in $s eyes!",victim,NULL,NULL,TO_ROOM);
         act("$n kicks dirt in your eyes!",ch,NULL,victim,TO_VICT);
-        damage(ch,victim,number_range(2,5),gsn_dirt,DAM_NONE,FALSE);
         send_to_char("You can't see a thing!\n\r",victim);
         check_improve(ch,gsn_dirt,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_dirt].beats);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_dirt;
@@ -349,7 +350,6 @@ DEF_DO_FUN(do_dirt)
     {
         damage(ch,victim,0,gsn_dirt,DAM_NONE,TRUE);
         check_improve(ch,gsn_dirt,FALSE,3);
-        WAIT_STATE(ch,skill_table[gsn_dirt].beats);
     }
 }
 
@@ -409,7 +409,7 @@ DEF_DO_FUN(do_trip)
         set_pos(victim, POS_RESTING);
 
         int dam = martial_damage(ch, victim, gsn_trip) * (3 + victim->size) / 10;
-        damage(ch, victim, dam, gsn_trip, DAM_BASH, TRUE);
+        full_dam(ch, victim, dam, gsn_trip, DAM_BASH, TRUE);
     }
     else
     {
