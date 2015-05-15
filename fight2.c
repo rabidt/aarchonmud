@@ -2589,7 +2589,7 @@ DEF_DO_FUN(do_hurl)
     CHAR_DATA *victim;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    int skill, chance, dam;
+    int skill, dam;
     
     if ((skill = get_skill(ch,gsn_hurl)) == 0)
     {
@@ -2612,38 +2612,30 @@ DEF_DO_FUN(do_hurl)
         return;
     }
 
-    if (is_safe(ch, victim))
-        return;
-    
     if ( IS_AFFECTED(victim, AFF_ROOTS) )
     {
-	act( "$N is rooted firmly to the ground.",
-	     ch, NULL, victim, TO_CHAR );
-	return;
+        act("$N is rooted firmly to the ground.", ch, NULL, victim, TO_CHAR);
+        return;
     }
 
     WAIT_STATE( ch, skill_table[gsn_hurl].beats );
         
-    chance = skill / 3;
-    chance += (ch->size - victim->size) * 3;
-    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI) +
-	       get_curr_stat(ch, STAT_STR) - get_curr_stat(victim, STAT_STR)) / 16;
-    
-    if ( number_percent( ) <= chance)
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_AGI, STAT_STR, 33) )
     {
-        act( "You hurl $N across the room!",  ch, NULL, victim, TO_CHAR    );
-        act( "$n hurls you!", ch, NULL, victim, TO_VICT    );
-        act( "$n hurls $N across the room!",  ch, NULL, victim, TO_NOTVICT );
+        act("You hurl $N across the room!", ch, NULL, victim, TO_CHAR);
+        act("$n hurls you!", ch, NULL, victim, TO_VICT);
+        act("$n hurls $N across the room!", ch, NULL, victim, TO_NOTVICT);
         check_improve(ch,gsn_hurl,TRUE,3);
         
-        dam = martial_damage( ch, victim, gsn_hurl );
+        dam = martial_damage(ch, victim, gsn_hurl) * (3 + victim->size) / 5;
         
-        DAZE_STATE( victim, 2*PULSE_VIOLENCE + victim->size - SIZE_MEDIUM );
+        DAZE_STATE( victim, 2*PULSE_VIOLENCE );
         WAIT_STATE( victim, PULSE_VIOLENCE );
-        damage(ch,victim, dam, gsn_hurl,DAM_BASH,TRUE);
+        full_dam(ch, victim, dam, gsn_hurl, DAM_BASH, TRUE);
         
-        stop_fighting( victim, FALSE );
-        set_pos( victim, POS_RESTING );
+        destance(victim, get_mastery(ch, gsn_hurl));
+        set_pos(victim, POS_RESTING);
+        stop_fighting(victim, FALSE);
         
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
         {
