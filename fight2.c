@@ -2688,25 +2688,24 @@ DEF_DO_FUN(do_mug)
 
     skill -= get_skill(victim, gsn_dodge) / 3;
     skill += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_DEX)) / 4;
-    skill = skill * 2/3;
     
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_mug].beats );
     
     /* Successful roll */
     
-    if (number_percent() < skill)
+    if ( per_chance(skill) )
     {
         dam = martial_damage(ch, victim, gsn_mug);
         
-        damage(ch,victim, dam, gsn_mug,DAM_PIERCE,TRUE);
+        full_dam(ch, victim, dam, gsn_mug, DAM_BASH, TRUE);
         check_improve(ch,gsn_mug,TRUE,3);
         
 	/* no stealing in warfare --Bobble */
 	if ( IS_SET(ch->act, PLR_WAR) )
 	    return;
 
-        if (number_percent() < skill)
+        if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
         {
             gold   = victim->gold   * number_range(1, ch->level) / 500;
             silver = victim->silver * number_range(1,ch->level) / 500;
