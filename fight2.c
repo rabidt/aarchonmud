@@ -1704,7 +1704,7 @@ DEF_DO_FUN(do_gouge)
 
 DEF_DO_FUN(do_leg_sweep)
 {
-    int chance, tally = 0;
+    int tally = 0;
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int skill;
@@ -1716,65 +1716,50 @@ DEF_DO_FUN(do_leg_sweep)
         return;
     }
     
-    if ( (skill = get_skill(ch, gsn_leg_sweep)) !=0)
-        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    if ( (skill = get_skill(ch, gsn_leg_sweep)) ==0 )
+    {
+        send_to_char("You brush dust off your legs.\n\r", ch);
+        return;
+    }
+        
+    WAIT_STATE(ch, skill_table[gsn_leg_sweep].beats);
+    
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+    {
+        vch_next = vch->next_in_room;
+        if ( vch != ch 
+            && !is_safe_spell(ch,vch,TRUE)
+            && !IS_AFFECTED(vch, AFF_ROOTS)
+            && (ch_is_flying || !IS_AFFECTED(vch, AFF_FLYING))
+            && !(vch->position < POS_FIGHTING))
         {
-            vch_next = vch->next_in_room;
-            if ( vch != ch 
-		 && !is_safe_spell(ch,vch,TRUE)
-		 && !IS_AFFECTED(vch, AFF_ROOTS)
-		 && (ch_is_flying || !IS_AFFECTED(vch, AFF_FLYING))
-		 && !(vch->position < POS_FIGHTING))
+            check_killer(ch, vch);
+            start_combat(ch, vch);
+            if ( per_chance(skill) && combat_maneuver_check(ch, vch, STAT_AGI, STAT_AGI, 50) )
             {
-                
-		chance = skill / 2;
-		chance += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(vch, STAT_AGI)) / 8;
-                
-                /* now the attack */
-                
-                if (number_percent() < chance)
-                {
-		    check_killer(ch,vch);
-                    act("$n sweeps your legs out from under you!",ch,NULL,vch,TO_VICT);
-                    act("You leg sweep $N and $N goes down!",ch,NULL,vch,TO_CHAR);
-                    act("$n leg sweeps $N, sending $M to the ground.",ch,NULL,vch,TO_NOTVICT);
-                    tally++;
-                    DAZE_STATE(vch, 2*PULSE_VIOLENCE);
-                    set_pos( vch, POS_RESTING );
-                    destance(vch, get_mastery(ch, gsn_leg_sweep));
-
-                 /* Not enough damage                      
-                    damage(ch,vch,number_range(4, 6 +  3 * vch->size), gsn_leg_sweep,
-                        DAM_BASH,TRUE); */
-
-                   damage(ch,vch,number_range(10, 25 +  ch->level/4 * vch->size*2 ), gsn_leg_sweep,
-                       DAM_BASH,TRUE);
-                }
+                act("$n sweeps your legs out from under you!", ch, NULL, vch, TO_VICT);
+                act("You leg sweep $N and $N goes down!", ch, NULL, vch, TO_CHAR);
+                act("$n leg sweeps $N, sending $M to the ground.", ch, NULL, vch, TO_NOTVICT);
+                tally++;
+                DAZE_STATE(vch, skill_table[gsn_leg_sweep].beats);
+                set_pos(vch, POS_RESTING);
+                destance(vch, get_mastery(ch, gsn_leg_sweep));
+                int dam = martial_damage(ch, vch, gsn_leg_sweep) * (3 + vch->size) / 10;
+                full_dam(ch, vch, dam, gsn_leg_sweep, DAM_BASH, TRUE);
             }
         }
-        
-        if ( tally==0 ) 
-        {
-            act("$n falls to the ground in an attempt at a leg sweep.",ch,NULL,NULL,TO_ROOM);
-            act("You fall to the ground in an attempt at a leg sweep.",ch,NULL,NULL,TO_CHAR);
-            check_improve(ch,gsn_leg_sweep,FALSE,2);
-            DAZE_STATE(ch, 2*PULSE_VIOLENCE);
-            set_pos( ch, POS_RESTING );
-            
-            check_lose_stance(ch);
-            
-            damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_leg_sweep,
-                DAM_BASH,TRUE);
-            
-        } 
-        else  
-            check_improve(ch,gsn_leg_sweep,TRUE,2);
-        
-        
-        WAIT_STATE( ch, skill_table[gsn_leg_sweep].beats );
-        
-        return;
-  
+    }
+    
+    if ( tally == 0 )
+    {
+        act("$n falls to the ground in an attempt at a leg sweep.", ch, NULL, NULL, TO_ROOM);
+        act("You fall to the ground in an attempt at a leg sweep.", ch, NULL, NULL, TO_CHAR);
+        check_improve(ch, gsn_leg_sweep, FALSE, 2);
+        set_pos(ch, POS_RESTING);
+        check_lose_stance(ch);
+    } 
+    else  
+        check_improve(ch, gsn_leg_sweep, TRUE, 2);
 }
 
 DEF_DO_FUN(do_uppercut)
