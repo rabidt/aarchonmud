@@ -2415,12 +2415,12 @@ DEF_DO_FUN(do_round_swing)
 DEF_DO_FUN(do_spit)
 {
     CHAR_DATA *victim;
-    int chance, dam;
+    int skill;
     
-    if ( (chance = get_skill(ch,gsn_spit)) == 0 )
+    if ( (skill = get_skill(ch,gsn_spit)) == 0 )
     {
-        send_to_char("You spit in utter disgust!!\n\r",ch);
-	act( "$n spits in utter disgust!!", ch, NULL, NULL, TO_ROOM );
+        send_to_char("You spit in utter disgust!!\n\r", ch);
+        act("$n spits in utter disgust!!", ch, NULL, NULL, TO_ROOM);
         return;
     }
     
@@ -2439,31 +2439,19 @@ DEF_DO_FUN(do_spit)
         return;
     }
     
-    if ( is_safe(ch,victim) )
-        return;
-    
-    /* modifiers */
-    
-    /* dexterity */
-    chance /= 2;
-    chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
-    
     check_killer(ch,victim);
+    WAIT_STATE(ch, skill_table[gsn_spit].beats);
+    start_combat(ch, victim);
+        
     /* now the attack */
-    if (number_percent() < chance)
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
     {
         AFFECT_DATA af;
         act("$n is blinded by the glob of spit in $s eyes!",victim,NULL,NULL,TO_ROOM);
         act("$n places a glob of spit in your eyes!",ch,NULL,victim,TO_VICT);
-        
-        dam=number_range(1, 2*ch->level/3);
-        dam+=get_curr_stat(ch, STAT_DEX)/5;
-        dam+=ch->hitroll /3;
-        
-        damage(ch,victim, dam, gsn_spit,DAM_DROWNING,FALSE);
         send_to_char("You can't see a thing!\n\r",victim);
+
         check_improve(ch,gsn_spit,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_spit].beats);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_spit;
@@ -2477,10 +2465,8 @@ DEF_DO_FUN(do_spit)
     }
     else
     {
-        
         damage(ch,victim,0,gsn_spit,DAM_DROWNING,TRUE);
         check_improve(ch,gsn_spit,FALSE,3);
-        WAIT_STATE(ch,skill_table[gsn_spit].beats);
     }
 }
 
