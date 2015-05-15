@@ -3209,6 +3209,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     bool immune;
     int stance = ch->stance;
     int diff;
+    int first_dam_type = FIRST_DAMAGE(dam_type);
     
     if ( stop_damage(ch, victim) )
         return FALSE;
@@ -3335,7 +3336,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if (IS_MIXED_DAMAGE(dam_type))
         {
-            int first_dam_type = FIRST_DAMAGE(dam_type);
+            //int first_dam_type = FIRST_DAMAGE(dam_type);
             int second_dam_type = SECOND_DAMAGE(dam_type);
             dam = adjust_damage(ch, victim, dam / 2, first_dam_type) +
             adjust_damage(ch, victim, (dam+1) / 2, second_dam_type);
@@ -3413,27 +3414,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	dam += dam * get_religion_bonus(ch) / 100;
     */
 
-    // non-spell damage may be reduced by a saving throw as well
+    // non-spell damage is reduced by saves as well
     if ( dam > 1 && is_normal_hit(dt) )
     {
-        int victim_roll = -get_save(victim, TRUE);
-        int ch_roll = 2 * (10 + ch->level) + get_hitroll(ch);
-        int victim_rolled = number_range(0, victim_roll);
-        int ch_rolled = number_range(0, ch_roll);
-        int halved = ch_rolled <= victim_rolled;
-        if ( cfg_show_rolls )
-        {
-            char buf[MSL];
-            sprintf(buf, "Saving throw vs hit: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
-                    ch_name(ch), ch_rolled, ch_roll,
-                    ch_name(victim), victim_rolled, victim_roll,
-                    (halved ? "half damage" : "full damage"));
-            send_to_char(buf, victim);
-            if ( ch && ch != victim )
-                send_to_char(buf, ch);
-        }
-        if ( halved )
-            dam /= 2;
+        bool physical = first_dam_type == DAM_BASH
+            || first_dam_type == DAM_SLASH
+            || first_dam_type == DAM_PIERCE;
+        int saves = -get_save(victim, physical);
+        int pow = 2 * (10 + ch->level) + get_hitroll(ch);
+        if ( saves > 0 && pow > 0 )
+            dam -= dam * saves / (saves + pow) / 2;
     }
     
     // stone skin reduce damage but wears off slowly
