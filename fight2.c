@@ -569,6 +569,7 @@ DEF_DO_FUN(do_net)
     
     check_killer(ch,victim);
     WAIT_STATE(ch, skill_table[gsn_net].beats);
+    start_combat(ch, victim);
     
     /* now the attack */
     if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 33) )
@@ -577,7 +578,6 @@ DEF_DO_FUN(do_net)
         act("$N is trapped in your net!",ch, NULL, victim, TO_CHAR);
         act("$n traps $N in a net!",ch, NULL, victim, TO_ROOM);
         act("$n entraps you in a net!",ch,NULL,victim,TO_VICT);
-        damage(ch,victim,number_range(2,5),gsn_net,DAM_NONE,FALSE);
         send_to_char("You stumble around in the net!\n\r",victim);
         check_improve(ch,gsn_net,TRUE,3);
         WAIT_STATE(victim, PULSE_VIOLENCE); 
@@ -731,6 +731,7 @@ DEF_DO_FUN(do_hogtie)
 
     check_killer(ch,victim);
     WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
+    start_combat(ch, victim);
     
     /* now the attack */
     if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
@@ -762,7 +763,6 @@ DEF_DO_FUN(do_hogtie)
         check_improve(ch,gsn_hogtie,FALSE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
     }
-    start_combat(ch, victim);
 }
 
 // checks whether character can let off a shot, returning accuracy < 100 if using offhand weapon
@@ -1789,7 +1789,7 @@ DEF_DO_FUN(do_uppercut)
 
         check_improve(ch, gsn_uppercut, TRUE, 3);
         
-        if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_VIT, 33) )
+        if ( !saves_physical(victim, ch, ch->level, DAM_BASH) )
         {
             act("$n stuns you with a crushing right hook!", ch, NULL, victim, TO_VICT);
             act("You stun $N with a crushing right hook!", ch, NULL, victim, TO_CHAR);
@@ -3806,14 +3806,13 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         
     dam = martial_damage(ch, victim, gsn_quivering_palm) * 2;
 
-    if ( !IS_AFFECTED(victim, AFF_ROOTS) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
+    if ( !saves_physical(victim, ch, ch->level * 3/2, DAM_BASH) )
     {
         act("You strike $N with a quivering palm, stunning $M!", ch, NULL, victim, TO_CHAR);
         act("$n attacks you with a quivering palm strike, stunning you!", ch, NULL, victim, TO_VICT);
         act("$n stuns $N with a quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
         DAZE_STATE( victim, 4*PULSE_VIOLENCE );
         WAIT_STATE( victim, 2*PULSE_VIOLENCE );
-        set_pos( victim, POS_RESTING );
         
         // bonus effect
         if ( number_bits(2) && !IS_AFFECTED(victim, AFF_FEEBLEMIND) )
