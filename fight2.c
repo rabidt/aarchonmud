@@ -3754,7 +3754,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 {
     CHAR_DATA *victim; 
     int dam;
-    int chance_hit, chance_stun, skill;
+    int chance_hit, skill;
     char arg[MAX_INPUT_LENGTH];
     AFFECT_DATA af;
     
@@ -3784,6 +3784,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         
     check_killer(ch,victim);
     WAIT_STATE(ch,skill_table[gsn_quivering_palm].beats);
+    start_combat(ch, victim);
         
     /* check whether a blow hits and whether it stuns */
     skill = (get_skill(ch, gsn_quivering_palm) + 100) / 2;
@@ -3793,83 +3794,58 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
 	chance_hit /= 2;
         
     /* check if the blow hits */
-    if (number_percent() >= chance_hit)
+    if ( !per_chance(chance_hit) )
     {
         damage(ch,victim,0,gsn_quivering_palm,DAM_BASH,FALSE);
-	act("Your palm quivers but nothing happens!", ch,NULL,victim,TO_CHAR);
-	act("$n misses $s quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
-	act("You evade $n's quivering palm!", ch, NULL, victim, TO_VICT);
-	check_improve(ch,gsn_quivering_palm,FALSE,2);
+        act("Your palm quivers but nothing happens!", ch,NULL,victim,TO_CHAR);
+        act("$n misses $s quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
+        act("You evade $n's quivering palm!", ch, NULL, victim, TO_VICT);
+        check_improve(ch,gsn_quivering_palm,FALSE,2);
         return;
     } 
         
-    chance_stun = skill * 6/10;
-    chance_stun += (get_curr_stat(ch, STAT_STR) - get_curr_stat(victim, STAT_STR)) / 4;
+    dam = martial_damage(ch, victim, gsn_quivering_palm) * 2;
+
+    if ( !IS_AFFECTED(victim, AFF_ROOTS) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
+    {
+        act("You strike $N with a quivering palm, stunning $M!", ch, NULL, victim, TO_CHAR);
+        act("$n attacks you with a quivering palm strike, stunning you!", ch, NULL, victim, TO_VICT);
+        act("$n stuns $N with a quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
+        DAZE_STATE( victim, 4*PULSE_VIOLENCE );
+        WAIT_STATE( victim, 2*PULSE_VIOLENCE );
+        set_pos( victim, POS_RESTING );
         
-    if ( !IS_AFFECTED(victim, AFF_ROOTS) && number_percent() < chance_stun )
-    {
-	act("You strike $N with a quivering palm, stunning $M!",
-	    ch,NULL,victim,TO_CHAR);
-	act("$n attacks you with a quivering palm strike, stunning you! ",
-	    ch,NULL,victim,TO_VICT);
-	act("$n stuns $N with a quivering palm strike!",
-	    ch,NULL,victim,TO_NOTVICT);
-	
-	DAZE_STATE( victim, 4*PULSE_VIOLENCE );
-	WAIT_STATE( victim, 2*PULSE_VIOLENCE );
-	set_pos( victim, POS_RESTING );
-        damage(ch,victim,0,gsn_quivering_palm,DAM_BASH,FALSE);
-    }
-    else
-    {
-	act("You strike $N with a quivering palm, but nothing happens!", 
-	    ch,NULL,victim,TO_CHAR);
-	act("You chuckle at $n's pathetic quivering palm strike.", 
-	    ch,NULL,victim,TO_VICT);
-	act("$n attacks $N with a quivering palm, but nothing happens!",
-	    ch,NULL,victim,TO_NOTVICT);
-	WAIT_STATE(ch, skill_table[gsn_quivering_palm].beats * 3/2);
-        damage(ch,victim,0,gsn_quivering_palm,DAM_BASH,FALSE);
-        return;
-    }
-
-    dam = one_hit_damage(ch, victim, gsn_quivering_palm, NULL) * 3;
-
-    if ( number_bits(2))
-    {
-        if ( !IS_AFFECTED( victim, AFF_FEEBLEMIND) )
+        // bonus effect
+        if ( number_bits(2) && !IS_AFFECTED(victim, AFF_FEEBLEMIND) )
         {
-        af.where     = TO_AFFECTS;
-        af.type      = gsn_quivering_palm;
-        af.level     = ch->level;
-        af.duration  = get_duration(gsn_quivering_palm, ch->level);
-        af.location  = APPLY_INT;
-        af.modifier  = -1 * (ch->level/7);
-        af.bitvector = AFF_FEEBLEMIND;
-        affect_to_char( victim, &af );
-        send_to_char( "Hard . . . to . . . think . . .\n\r", victim );
-        act("$n seems even dumber than usual!",victim,NULL,NULL,TO_ROOM);
+            af.where     = TO_AFFECTS;
+            af.type      = gsn_quivering_palm;
+            af.level     = ch->level;
+            af.duration  = get_duration(gsn_quivering_palm, ch->level);
+            af.location  = APPLY_INT;
+            af.modifier  = -1 * (ch->level/7);
+            af.bitvector = AFF_FEEBLEMIND;
+            affect_to_char( victim, &af );
+            send_to_char( "Hard . . . to . . . think . . .\n\r", victim );
+            act("$n seems even dumber than usual!",victim,NULL,NULL,TO_ROOM);
         }
-    }
-    else if ( number_bits(2))
-    {
-        if ( !IS_AFFECTED( victim, AFF_WEAKEN) )
+        else if ( number_bits(2) && !IS_AFFECTED(victim, AFF_WEAKEN) )
         {
-        af.where     = TO_AFFECTS;
-        af.type      = gsn_quivering_palm;
-        af.level     = ch->level;
-        af.duration  = get_duration(gsn_quivering_palm, ch->level);
-        af.location  = APPLY_STR;
-        af.modifier  = -1 * (ch->level/7);
-        af.bitvector = AFF_WEAKEN;
-        affect_to_char( victim, &af );
-        send_to_char( "You feel your strength slip away.\n\r", victim );
-        act("$n looks tired and weak.",victim,NULL,NULL,TO_ROOM);
+            af.where     = TO_AFFECTS;
+            af.type      = gsn_quivering_palm;
+            af.level     = ch->level;
+            af.duration  = get_duration(gsn_quivering_palm, ch->level);
+            af.location  = APPLY_STR;
+            af.modifier  = -1 * (ch->level/7);
+            af.bitvector = AFF_WEAKEN;
+            affect_to_char( victim, &af );
+            send_to_char( "You feel your strength slip away.\n\r", victim );
+            act("$n looks tired and weak.",victim,NULL,NULL,TO_ROOM);
         }
-    }
-    else
-    {
-        dam += 50;
+        else
+        {
+            dam *= 2;
+        }
     }
             
     /* deal damage */
