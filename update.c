@@ -2582,6 +2582,8 @@ void update_handler( void )
 
 void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
+    bool death_trigger = IS_NPC(victim) && HAS_TRIGGER(victim, TRIG_DEATH);
+    bool lethal = (ch->in_room == victim->in_room) || !death_trigger;
     int skill = get_skill(ch, gsn_high_explosives);
     
     dam += dam * skill / 200;
@@ -2601,7 +2603,7 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
         }
     }
     
-    deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, TRUE);
+    deal_damage(ch, victim, dam, gsn_ignite, MIX_DAMAGE(DAM_BASH, DAM_FIRE), TRUE, lethal);
 }
 
 /* Explosives by Rimbol.  Original idea from Wurm codebase. */
