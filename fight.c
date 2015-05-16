@@ -3212,9 +3212,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
     }
     
-    if ( victim != ch )
+    // safety-net against accidental damage, like bombs
+    bool accident = is_same_group(ch, victim);
+    
+    if ( victim != ch && !accident )
     {
-        
         check_killer(ch, victim);
         if ( start_combat(ch, victim) && victim->position > POS_STUNNED )
         {
