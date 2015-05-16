@@ -10,6 +10,7 @@ bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, boo
 bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 
 DECLARE_DO_FUN( do_disarm_trap );
+DECLARE_DO_FUN( do_ignite );
 
 /*
 * Disarm a creature.
@@ -4505,13 +4506,25 @@ DEF_DO_FUN(do_bomb)
     if ( is_safe(ch, victim) )
         return;
     
-    // find bomb
+    // find lit bomb
     for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
         if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer > 0 )
             break;
+        
     if ( obj == NULL )
     {
-        send_to_char("You carry no lit explosives.\n\r", ch);
+        // find unlit bomb
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( obj->item_type == ITEM_EXPLOSIVE )
+                break;
+        // ignite if we have one
+        if ( obj )
+        {
+            send_to_char("Finding no lit explosives, you try to ignite some.\n\r", ch);
+            do_ignite(ch, "");
+            return;
+        }
+        send_to_char("You have run out of explosives.\n\r", ch);
         return;
     }
 
