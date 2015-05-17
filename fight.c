@@ -1061,7 +1061,7 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int v
     if ( per_chance(50) )
         return per_chance(base_chance);
     
-    int ch_roll = get_hitroll(ch);
+    int ch_roll = (10 + ch->level + get_hitroll(ch)) / 2;
     if ( ch_stat != STAT_NONE )
         ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
     ch_roll *= 5 + ch->size;
