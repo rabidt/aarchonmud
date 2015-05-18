@@ -5302,6 +5302,9 @@ bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
 
 bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
+    if ( ch->in_room != victim->in_room )
+        return FALSE;
+    
     attack_affect_strip(ch, victim);
     if ( !ch->fighting )
     {
