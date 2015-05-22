@@ -2665,6 +2665,17 @@ DEF_SPELL_FUN(spell_create_bomb)
 {
     OBJ_DATA *bomb;
 
+    if ( target_name[0] != '\0' )
+    {
+        if ( !is_number(target_name) )
+        {
+            send_to_char("Syntax: c 'create bomb' [level]\n\r", ch);
+            return SR_UNABLE;
+        }
+        int bomb_level = atoi(target_name);
+        level = URANGE(1, bomb_level, level);
+    }
+    
     if ( ch->carry_number >= can_carry_n(ch) )
     {
         send_to_char("You have no room in your inventory for that!\r\n", ch);

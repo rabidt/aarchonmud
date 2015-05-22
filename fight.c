@@ -2611,15 +2611,6 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	if (number_bits(2)==0)
 	    cold_effect((void *)victim, ch->level, number_range(3,8), TARGET_CHAR);
 	break;
-    case STANCE_SHADOWCLAW:
-	if (wield == NULL && number_bits(10)==69)
-	{
-	    act("In a mighty strike, $N's hand separates $n's neck.",
-		victim,NULL,ch,TO_ROOM);
-	    act("$N slashes $S hand through your neck.",victim,NULL,ch,TO_CHAR);
-	    behead(ch, victim);
-	}
-	break;
     case STANCE_SHADOWSOUL:
 	dam = dice(4, 4);
 	act_gag("You draw life from $n.",victim,NULL,ch,TO_VICT, GAG_WFLAG);
@@ -3230,9 +3221,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             bugf("Excessive Damage: %d points (weapon avg = %d) from a regular hit by %s!", dam, UMAX(weapon_dam, offhand_dam), ch->name);
     }
     
-    if ( victim != ch )
+    // safety-net against accidental damage, like bombs
+    bool accident = is_same_group(ch, victim);
+    
+    if ( victim != ch && !accident )
     {
-        
         check_killer(ch, victim);
         if ( start_combat(ch, victim) && victim->position > POS_STUNNED )
         {
@@ -5311,6 +5304,9 @@ bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
 
 bool start_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 {
+    if ( ch->in_room != victim->in_room )
+        return FALSE;
+    
     attack_affect_strip(ch, victim);
     if ( !ch->fighting )
     {

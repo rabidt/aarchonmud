@@ -2582,7 +2582,8 @@ void update_handler( void )
 
 void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
-    bool lethal = ch->in_room == victim->in_room;
+    bool death_trigger = IS_NPC(victim) && HAS_TRIGGER(victim, TRIG_DEATH);
+    bool lethal = (ch->in_room == victim->in_room) || !death_trigger;
     int skill = get_skill(ch, gsn_high_explosives);
     
     dam += dam * skill / 200;
@@ -2609,7 +2610,7 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 void explode(OBJ_DATA *obj)
 {
     OBJ_DATA *original_obj = obj;
-    CHAR_DATA *rch, *victim = NULL;
+    CHAR_DATA *rch, *rch_next, *victim = NULL;
     CHAR_DATA *owner = NULL;
     ROOM_INDEX_DATA *room;
     char buf[MSL];
@@ -2672,8 +2673,9 @@ void explode(OBJ_DATA *obj)
         return;
     
     // now the damage
-    for ( rch = room->people; rch; rch = rch->next_in_room )
+    for ( rch = room->people; rch; rch = rch_next )
     {
+        rch_next = rch->next_in_room;
         if ( is_safe_spell(owner, rch, FALSE) )
             continue;
         deal_bomb_damage(owner, rch, dam);
