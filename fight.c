@@ -2594,15 +2594,6 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	if (number_bits(2)==0)
 	    cold_effect((void *)victim, ch->level, number_range(3,8), TARGET_CHAR);
 	break;
-    case STANCE_SHADOWCLAW:
-	if (wield == NULL && number_bits(10)==69)
-	{
-	    act("In a mighty strike, $N's hand separates $n's neck.",
-		victim,NULL,ch,TO_ROOM);
-	    act("$N slashes $S hand through your neck.",victim,NULL,ch,TO_CHAR);
-	    behead(ch, victim);
-	}
-	break;
     case STANCE_SHADOWSOUL:
 	dam = dice(4, 4);
 	act_gag("You draw life from $n.",victim,NULL,ch,TO_VICT, GAG_WFLAG);
