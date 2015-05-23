@@ -2474,7 +2474,7 @@ DEF_DO_FUN(do_spit)
 DEF_DO_FUN(do_choke_hold)
 {
     CHAR_DATA *victim;
-    int dam, skill, chance;
+    int dam, skill;
     
     if ( (skill = get_skill(ch,gsn_choke_hold)) == 0)
     {
@@ -2498,14 +2498,11 @@ DEF_DO_FUN(do_choke_hold)
     }
     
     WAIT_STATE(ch,skill_table[gsn_choke_hold].beats);
-    
-    /* base rolls */
-    chance = skill / 2;
-    chance += (get_curr_stat(ch,STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
-	
     check_killer(ch,victim);
+    start_combat(ch, victim);
+    
     /* now the attack */
-    if ( number_percent() <= chance )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
     {
         AFFECT_DATA af;
         
@@ -2523,16 +2520,13 @@ DEF_DO_FUN(do_choke_hold)
         af.modifier = -ch->level / 5;
         af.bitvector = AFF_GUARD;
         affect_to_char(victim,&af);
-		
-	dam = ch->level * 2;
-        damage(ch, victim, dam, gsn_choke_hold, DAM_BASH, TRUE);
-		
+        
+        dam = martial_damage(ch, victim, gsn_choke_hold) / 2;
+        full_dam(ch, victim, dam, gsn_choke_hold, DAM_BASH, TRUE);
     }
     else
     {
         act("You try to wring $N's neck but fail.",ch,NULL,victim,TO_CHAR);
-        /*fail starts fight too -Vodur*/
-        damage(ch,victim,0,gsn_choke_hold,DAM_NONE,FALSE);
         check_improve(ch,gsn_choke_hold,FALSE,3);
     }
 }
