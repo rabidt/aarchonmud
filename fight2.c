@@ -871,10 +871,10 @@ DEF_DO_FUN(do_aim)
     secondgun = accuracy < 100;
     
     check_killer( ch, victim );
+    
+    mastery_adjusted_wait(ch, gsn_aim);
     if ( aim_target == AIM_NORMAL )
-        WAIT_STATE( ch, skill_table[gsn_aim].beats * 2/3 );
-    else
-        WAIT_STATE( ch, skill_table[gsn_aim].beats );
+        ch->wait = ch->wait * 2/3;
     
     chance = (100 + get_skill(ch, gsn_aim)) * accuracy / 200;
 
@@ -1084,7 +1084,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
     skill = skill * accuracy / 100;
 
     check_killer( ch, victim );
-    WAIT_STATE( ch, skill_table[gsn_snipe].beats );
+    mastery_adjusted_wait(ch, gsn_snipe);
 
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
