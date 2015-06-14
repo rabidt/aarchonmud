@@ -5018,7 +5018,7 @@ DEF_SPELL_FUN(spell_confusion)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if ( IS_AFFECTED(ch, AFF_INSANE) )
+    if ( IS_AFFECTED(victim, AFF_INSANE) )
     {
         act("$N is already confused.", ch, NULL, victim, TO_CHAR);
         return SR_AFFECTED;
