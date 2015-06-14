@@ -179,6 +179,30 @@ int spell_lookup( const char *name )
     return -1;
 }
 
+// replace sn with "similar" spell for confused character
+int similar_spell( CHAR_DATA *ch, int spell )
+{
+    int sn, new_spell = spell;
+    int found = 0;
+    
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+        if ( !IS_SPELL(sn) || get_skill(ch, sn) == 0 )
+            continue;
+        // it's a known spell - but is it similar?
+        if ( skill_table[sn].target != skill_table[spell].target
+            || (ch->fighting && skill_table[sn].minimum_position > skill_table[spell].minimum_position) )
+            continue;
+        // chance to cast this particular spell instead
+        found++;
+        if ( number_range(1, found) == found )
+            new_spell = sn;
+    }
+    return new_spell;
+}
+
 int find_spell( CHAR_DATA *ch, const char *name )
 {
     /* finds a spell the character can cast if possible */
@@ -187,39 +211,24 @@ int find_spell( CHAR_DATA *ch, const char *name )
     if (IS_NPC(ch))
         return skill_lookup(name);
 
-    if (IS_AFFECTED(ch, AFF_INSANE)&&number_bits(1)==0)
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
-        for ( sn = 0; sn < MAX_SKILL; sn++ )
+        if (skill_table[sn].name == NULL)
+            break;
+        if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
+                && !str_prefix(name,skill_table[sn].name)
+                && skill_table[sn].spell_fun != spell_null )
         {
-            if (skill_table[sn].name == NULL)
+            if ( found == -1)
+                found = sn;
+            if (get_skill(ch,sn)>0)
                 break;
+        }
+    }
 
-            if (number_bits(5)==0 && get_skill(ch,sn)>0)
-            {
-                if ( found == -1)
-                    found = sn;
-                if (get_skill(ch,sn)>0)
-                    return sn;
-            }
-        }
-    }
-    else
-    {
-        for ( sn = 0; sn < MAX_SKILL; sn++ )
-        {
-            if (skill_table[sn].name == NULL)
-                break;
-            if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
-                 && !str_prefix(name,skill_table[sn].name)
-                 && skill_table[sn].spell_fun != spell_null )
-            {
-                if ( found == -1)
-                    found = sn;
-                if (get_skill(ch,sn)>0)
-                    return sn;
-            }
-        }
-    }
+    // confusion
+    if ( found > 0 && IS_AFFECTED(ch, AFF_INSANE) && number_bits(1)==0 )
+        found = similar_spell(ch, found);
 
     return found;
 }

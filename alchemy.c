@@ -366,7 +366,7 @@ DEF_DO_FUN(do_brew)
                spell_blindness(gsn_blindness, 8, ch, (void *) ch, TARGET_CHAR, FALSE);
                break;
            case 5:
-               i = find_spell(ch,"change sex");
+               i = spell_lookup("change sex");
                if ( is_affected( ch, i ))
                {
                     send_to_char("You've already been changed.\n\r",ch);
