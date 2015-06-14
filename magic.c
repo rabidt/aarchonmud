@@ -1457,6 +1457,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     }
     else if ( 2*number_percent() > (chance+100)
             || !meta_magic_concentration_check(ch)
+            || (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
             || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2) && !check_skill(ch, gsn_combat_casting))
