@@ -1453,7 +1453,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2) && !check_skill(ch, gsn_combat_casting))
             || (concentrate && !check_concentration(ch)) )
     {
-        send_to_char( "You lost your concentration.\n\r", ch );
+        ptc(ch, "You lost your concentration trying to cast %s.\n\r", skill_table[sn].name);
         check_improve(ch,sn,FALSE,3);
         reduce_mana(ch, mana/2);
         return;
