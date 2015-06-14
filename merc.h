@@ -1812,6 +1812,7 @@ struct  kill_data
 #define ITEM_RANDOM_PHYSICAL (ii)
 #define ITEM_RANDOM_CASTER  (jj)
 #define ITEM_HEAVY_ARMOR    (kk)
+#define ITEM_DISARMED       (ll)
 
 
 /* class restriction flags */
@@ -4642,6 +4643,7 @@ int     martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 int     get_pkgrade_level( int pts );
 int     get_weapon_damtype( OBJ_DATA *wield );
 void    attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim );
+bool    provoke_attacks( CHAR_DATA *victim );
 
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );

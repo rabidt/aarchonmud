@@ -1863,6 +1863,21 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
     OBJ_DATA *weapon=NULL;
     int wear_level;
 
+    // trying to equip disarmed item causes lag and attacks of opportunity
+    if ( IS_OBJ_STAT(obj, ITEM_DISARMED) )
+    {
+        WAIT_STATE(ch, PULSE_VIOLENCE);
+        act("You bend down to pick up $p.", ch, obj, NULL, TO_CHAR);
+        act("$n bends down to pick up $p.", ch, obj, NULL, TO_ROOM);
+        if ( provoke_attacks(ch) )
+        {
+            act("Ouch! You fail to pick up $p.", ch, obj, NULL, TO_CHAR);
+            act("Ouch! $n fails to pick up $p.", ch, obj, NULL, TO_ROOM);
+            return;
+        }
+        REMOVE_BIT(obj->extra_flags, ITEM_DISARMED);
+    }
+    
     if ( !can_use_obj(ch, obj) ) /* Check ownership. */
     {
         send_to_char("You can't wear that.\n\r",ch);
@@ -2182,7 +2197,11 @@ DEF_DO_FUN(do_wear)
             obj_next = obj->next_content;
             if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
                 if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
+                {
                     wear_obj( ch, obj, FALSE );
+                    if ( ch->wait > 0 )
+                        return;
+                }
         }
         return;
     }
