@@ -199,6 +199,32 @@ static void gangbang( CHAR_DATA *victim )
     }
 }
 
+// free attack for everyone fighting victim
+// returns TRUE if this interrupts action
+bool provoke_attacks( CHAR_DATA *victim )
+{
+    CHAR_DATA *ch, *next;
+    bool hit = FALSE;
+    
+    if ( !victim->in_room )
+        return FALSE;
+    
+    for ( ch = victim->in_room->people; ch; ch = next )
+    {
+        next = ch->next_in_room;
+        if ( ch->fighting == victim && can_see_combat(ch, victim) )
+        {
+            if ( one_hit(ch, victim, TYPE_UNDEFINED, FALSE) )
+            {
+                hit = TRUE;
+                if ( victim->just_killed )
+                    return TRUE;
+            }
+        }
+    }
+    return hit && !per_chance(25 + get_curr_stat(victim, STAT_DIS) / 4);
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
