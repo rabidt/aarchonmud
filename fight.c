@@ -3839,12 +3839,12 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
                 ch->in_room->vnum );
         log_string( log_buf );
 
-        if ( IS_SET( victim->act, PLR_WAR ) && IS_SET( ch->act, PLR_WAR ) )
+        if ( IS_SET(victim->act, PLR_WAR) )
         {
             sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
             warfare_to_all( buf );
 
-            if ( victim != ch )
+            if ( victim != ch && PLR_ACT(ch, PLR_WAR) )
             {
                 add_war_kills( ch );
                 adjust_wargrade( ch, victim );
@@ -3854,16 +3854,14 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
             do_restore(victim, victim->name);
         }
-
-        if (IS_NPC(ch))
+        else if ( IS_NPC(ch) )
         {                
             sprintf(log_buf, "%s has been killed by %s!", victim->name, ch->short_descr);
             info_message(victim, log_buf, TRUE);            
         }
         else if (ch != victim)
         {
-            if (!IS_SET(victim->act, PLR_WAR) 
-                    && !IS_SET(ch->in_room->room_flags, ROOM_ARENA)) 
+            if ( !IS_SET(ch->in_room->room_flags, ROOM_ARENA) )
             {
                 ch->pcdata->pkill_count++;
                 update_lboard( LBOARD_PKILL, ch, ch->pcdata->pkill_count, 1);
@@ -3902,15 +3900,12 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
                         info_message(victim, log_buf, TRUE);
                     }
                 }
-            }/*end is_set(plr) war check*/
+            }
         }
         else 
         {
-            if ( !IS_SET( victim->act, PLR_WAR ) )
-            {
-                sprintf(log_buf, "%s has carelessly gotten killed.", victim->name);
-                info_message(NULL, log_buf, TRUE);
-            }
+            sprintf(log_buf, "%s has carelessly gotten killed.", victim->name);
+            info_message(NULL, log_buf, TRUE);
         }
     }
 
