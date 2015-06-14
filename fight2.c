@@ -53,6 +53,10 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
         act( "$n disarms $N!",  ch, NULL, victim, TO_NOTVICT );
     }
     
+    // disarm leaves weapon in inventory to prevent item loss, but marked as disarmed.
+    unequip_char(victim, obj);
+    SET_BIT(obj->extra_flags, ITEM_DISARMED);
+    /*
     obj_from_char( obj );
     if ( IS_OBJ_STAT(obj,ITEM_NODROP) 
 	 || IS_OBJ_STAT(obj,ITEM_INVENTORY)
@@ -66,6 +70,7 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
         if (IS_NPC(victim) && victim->wait == 0 && can_see_obj(victim,obj))
             get_obj(victim,obj,NULL);        
     }
+    */
     
     return TRUE;
 }
