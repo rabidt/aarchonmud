@@ -217,12 +217,11 @@ int find_spell( CHAR_DATA *ch, const char *name )
             break;
         if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
                 && !str_prefix(name,skill_table[sn].name)
-                && skill_table[sn].spell_fun != spell_null )
+                && skill_table[sn].spell_fun != spell_null
+                && get_skill(ch, sn) > 0 )
         {
-            if ( found == -1)
-                found = sn;
-            if (get_skill(ch,sn)>0)
-                break;
+            found = sn;
+            break;
         }
     }
 
