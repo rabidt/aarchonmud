@@ -7654,7 +7654,7 @@ struct  skill_type
 	STAT_NONE, STAT_NONE, STAT_NONE,
         spell_haunt,        TAR_CHAR_OFFENSIVE, POS_FIGHTING,
         NULL,                    30,  12, DUR_SHORT,
-        "",              "The spirits loose track of you.",  ""    
+        "",              "The spirits lose track of you.",  ""
         },
 
         {
