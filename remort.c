@@ -867,7 +867,7 @@ void remort_begin(CHAR_DATA *ch)
 
     remort_remove(ch, TRUE);
 
-    // mark as rolling stats in case we loose connection
+    // mark as rolling stats in case we lose connection
     if ( !reconnect )
     {
         SET_BIT(ch->act, PLR_REMORT_ROLL);

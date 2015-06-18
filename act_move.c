@@ -3255,7 +3255,7 @@ DEF_DO_FUN(do_root)
     WAIT_STATE( ch, PULSE_VIOLENCE );
 }
 
-/* checks if a character looses blood */
+/* checks if a character loses blood */
 
 
 void check_bleed( CHAR_DATA *ch, int dir )
