@@ -1929,7 +1929,7 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
 	 */
         act( "You are zapped by $p and remove it.", ch, obj, NULL, TO_CHAR );
         act( "$n is zapped by $p and removes it.",  ch, obj, NULL, TO_ROOM );
-	/* let's not loose items this way.. --Bobble
+	/* let's not lose items this way.. --Bobble
 	obj_from_char( obj );
 	obj_to_room( obj, ch->in_room );
 	*/
