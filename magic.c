@@ -203,6 +203,8 @@ int similar_spell( CHAR_DATA *ch, int spell )
     return new_spell;
 }
 
+// returns a known spell if one matches, otherwise a matching spell if one exists
+// returning unknown spells (if no known match exists) is essential for wish casting
 int find_spell( CHAR_DATA *ch, const char *name )
 {
     /* finds a spell the character can cast if possible */
@@ -217,11 +219,11 @@ int find_spell( CHAR_DATA *ch, const char *name )
             break;
         if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
                 && !str_prefix(name,skill_table[sn].name)
-                && skill_table[sn].spell_fun != spell_null
-                && get_skill(ch, sn) > 0 )
+                && skill_table[sn].spell_fun != spell_null )
         {
             found = sn;
-            break;
+            if ( get_skill(ch, sn) > 0 )
+                break;
         }
     }
 
