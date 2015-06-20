@@ -1123,7 +1123,7 @@ DEF_DO_FUN(do_spells)
 	}
 
     // race skills
-    struct pc_race_type *pc_race = get_morph_pc_race_type(ch);
+    struct pc_race_type *pc_race = MULTI_MORPH(ch) ? &pc_race_table[ch->race] : get_morph_pc_race_type(ch);
     for ( i = 0; i < pc_race->num_skills; i++ )
     {
         sn = skill_lookup_exact(pc_race->skills[i]);
@@ -1314,7 +1314,7 @@ DEF_DO_FUN(do_skills)
 	}
 
     // race skills
-    struct pc_race_type *pc_race = get_morph_pc_race_type(ch);
+    struct pc_race_type *pc_race = MULTI_MORPH(ch) ? &pc_race_table[ch->race] : get_morph_pc_race_type(ch);
     for ( i = 0; i < pc_race->num_skills; i++ )
     {
         sn = skill_lookup_exact(pc_race->skills[i]);
