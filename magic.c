@@ -221,9 +221,15 @@ int find_spell( CHAR_DATA *ch, const char *name )
                 && !str_prefix(name,skill_table[sn].name)
                 && skill_table[sn].spell_fun != spell_null )
         {
-            found = sn;
             if ( get_skill(ch, sn) > 0 )
+            {
+                found = sn;
                 break;
+            }
+            // ensure we still return a match if one exists, even if unknown
+            // should preserve order of spells, so only overwrite if none found yet
+            if ( found == -1 )
+                found = sn;
         }
     }
 
