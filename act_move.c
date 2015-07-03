@@ -2861,6 +2861,28 @@ int morph_power( CHAR_DATA *ch )
     return -1;
 }
 
+void dragonborn_rebirth( CHAR_DATA *ch )
+{
+    // safety-net
+    if ( ch->race != race_dragonborn || IS_NPC(ch) )
+    {
+        bugf("dragonborn_rebirth: invalid character %s", ch->name);
+        return;
+    }
+    
+    // randomly chose a new color
+    int morph_race = number_range(MORPH_DRAGON_RED, MORPH_DRAGON_WHITE);
+    // ensure we don't get the same color a before
+    while ( morph_race == ch->pcdata->morph_race )
+        morph_race = number_range(MORPH_DRAGON_RED, MORPH_DRAGON_WHITE);
+    
+    logpf("dragonborn_rebirth: setting morph race for %s to %s", ch->name, morph_race_table[morph_race].name);
+    ptc(ch, "You have been reborn into a %s.\n\r", morph_race_table[morph_race].name);
+    ch->pcdata->morph_race = morph_race;
+    ch->pcdata->morph_time = -1;
+    morph_update(ch);
+}
+
 DEF_DO_FUN(do_morph)
 {
 	CHAR_DATA *victim;
@@ -2957,6 +2979,34 @@ DEF_DO_FUN(do_morph)
 	}
 	else if (ch->race == race_werewolf)
 		send_to_char("You can't control your lycanthropy.\n\r", ch);
+    else if ( ch->race == race_dragonborn )
+    {
+        if ( strcmp(arg, "rebirth") )
+        {
+            ptc(ch, "To rebirth into a different random color, type 'morph rebirth'.\n\r");
+            ptc(ch, "{RWarning: This will cost you 1 train of hp/mana/move each.{x\n\r");
+            return;
+        }
+        
+        // need to be at full strength to rebirth
+        if ( ch->hit < ch->max_hit
+            || ch->pcdata->trained_hit < 1
+            || ch->pcdata->trained_mana < 1
+            || ch->pcdata->trained_move < 1 )
+        {
+            ptc(ch, "You must be at full health and sufficiently trained to survive a rebirth.\n\r");
+            return;
+        }
+        
+        // ok, good to go
+        ptc(ch, "You feel your health, mental powers and endurance dwindle.\n\r");
+        ch->pcdata->trained_hit--;
+        ch->pcdata->trained_mana--;
+        ch->pcdata->trained_move--;
+        update_perm_hp_mana_move(ch);
+        dragonborn_rebirth(ch);
+        ch->hit = 1;
+    }
 	else
 		send_to_char("You pretend you're a doppelganger.\n\r", ch);
 }
