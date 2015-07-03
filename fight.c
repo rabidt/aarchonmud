@@ -5852,24 +5852,24 @@ void death_penalty( CHAR_DATA *ch )
         ch->pcdata->trained_hit--;
         update_perm_hp_mana_move(ch);
         send_to_char("You feel your health dwindle.\n\r", ch);
-        return;
     }
-    
-    if (ch->pcdata->trained_mana > 0 && --loss_choice == 0)
+    else if (ch->pcdata->trained_mana > 0 && --loss_choice == 0)
     {
         ch->pcdata->trained_mana--;
         update_perm_hp_mana_move(ch);
         send_to_char("You feel your mental powers dwindle.\n\r", ch);
-        return;
     }
-    
-    if (ch->pcdata->trained_move > 0)
+    else if (ch->pcdata->trained_move > 0)
     {
         ch->pcdata->trained_move--;
         update_perm_hp_mana_move(ch);
         send_to_char("You feel your endurance dwindle.\n\r", ch);
-        return;
     }
+    
+    // dragonborn may rebirth into a new color when dying
+    // can only happen after losing a train, and low chance means it's less efficient than voluntary rebirth
+    if ( ch->race == race_dragonborn && per_chance(25) )
+        dragonborn_rebirth(ch);
 }
 
 float calculate_exp_factor( CHAR_DATA *gch );
