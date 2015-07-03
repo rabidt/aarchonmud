@@ -1322,8 +1322,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -5133,6 +5133,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
