@@ -283,6 +283,7 @@ int check_immune(CHAR_DATA *ch, int dam_type)
     case(DAM_LIGHT):    bit = IMM_LIGHT;    break;
     case(DAM_CHARM):    bit = IMM_CHARM;    break;
     case(DAM_SOUND):    bit = IMM_SOUND;    break;
+    case(DAM_HARM):     bit = IMM_HARM;     break;
     default:        return def;
     }
     
