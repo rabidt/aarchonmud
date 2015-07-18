@@ -4182,7 +4182,7 @@ DEF_DO_FUN(do_ignite)
     {
         // try to find unlit explosive
         for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
-            if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer <= 0 )
+            if ( obj->item_type == ITEM_EXPLOSIVE && obj->timer <= 0 && can_see_obj(ch, obj) )
                 break;
         if ( obj == NULL )
         {
@@ -4229,6 +4229,7 @@ DEF_DO_FUN(do_ignite)
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
         obj->timer = 1 + timer;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
+        SET_BIT(obj->extra_flags, ITEM_HUM);
 
         check_improve(ch,gsn_ignite,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_ignite].beats);
