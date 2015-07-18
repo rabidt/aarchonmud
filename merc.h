@@ -1421,7 +1421,7 @@ struct  kill_data
 #define IMM_PETRIFY             (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
-#define IMM_IRON                (Z)
+#define IMM_HARM                (Z)
  
 /* RES bits for mobs */
 #define RES_SUMMON              (A)
@@ -1446,7 +1446,7 @@ struct  kill_data
 #define RES_SOUND               (T)
 #define RES_WOOD                (X)
 #define RES_SILVER              (Y)
-#define RES_IRON                (Z)
+#define RES_HARM                (Z)
  
 /* VULN bits for mobs */
 #define VULN_SUMMON             (A)
@@ -1471,7 +1471,7 @@ struct  kill_data
 #define VULN_SOUND              (T)
 #define VULN_WOOD               (X)
 #define VULN_SILVER             (Y)
-#define VULN_IRON               (Z)
+#define VULN_HARM               (Z)
  
 /* body form */
 #define FORM_EDIBLE             (A)
