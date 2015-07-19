@@ -5621,7 +5621,9 @@ DEF_SPELL_FUN(spell_slow)
         }
 
         act("$n is moving less quickly.",victim,NULL,NULL,TO_ROOM);
-        //return;
+        // might have haste as well as perma-haste
+        if ( IS_AFFECTED(victim, AFF_HASTE) )
+            return TRUE;
     }
 
 
