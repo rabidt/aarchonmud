@@ -238,30 +238,32 @@ int class_lookup (const char *name)
 int check_immune(CHAR_DATA *ch, int dam_type)
 {
     int immune, def, bit, found;
+    bool imm, res, vuln;
     
-    def = IS_NORMAL;
-    
-    if (dam_type == DAM_NONE)
+    if ( dam_type == DAM_NONE )
         return IS_NORMAL;
     
-    if (dam_type <= 3)
+    if ( dam_type <= 3 )
     {
-        if (IS_SET(ch->imm_flags,IMM_WEAPON))
-            def = IS_IMMUNE;
-        else if (IS_SET(ch->res_flags,RES_WEAPON))
-            def = IS_RESISTANT;
-        else if (IS_SET(ch->vuln_flags,VULN_WEAPON))
-            def = IS_VULNERABLE;
+        imm = IS_SET(ch->imm_flags, IMM_WEAPON);
+        res = IS_SET(ch->res_flags, RES_WEAPON);
+        vuln = IS_SET(ch->vuln_flags, VULN_WEAPON);
     }
     else /* magical attack */
     {
-        if (IS_SET(ch->imm_flags,IMM_MAGIC))
-            def = IS_IMMUNE;
-        else if (IS_SET(ch->res_flags,RES_MAGIC))
-            def = IS_RESISTANT;
-        else if (IS_SET(ch->vuln_flags,VULN_MAGIC))
-            def = IS_VULNERABLE;
+        imm = IS_SET(ch->imm_flags, IMM_MAGIC);
+        res = IS_SET(ch->res_flags, RES_MAGIC);
+        vuln = IS_SET(ch->vuln_flags, VULN_MAGIC);
     }
+    
+    if ( imm )
+        def = IS_IMMUNE;
+    else if ( res && !vuln )
+        def = IS_RESISTANT;
+    else if ( vuln && !res )
+        def = IS_VULNERABLE;
+    else
+        def = IS_NORMAL;
     
     /* set bits to check -- VULN etc. must ALL be the same or this will fail */
     switch (dam_type)
