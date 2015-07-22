@@ -4151,7 +4151,7 @@ DEF_DO_FUN(do_blast)
     check_killer(ch, victim);
     start_combat(ch, victim);
     
-    int dam = dice(2,4) + ch->level + ch->mana / 50;
+    int dam = dice(2,4) + ch->level + ch->max_mana / 40;
     dam += dam * get_focus_bonus(ch) / 100;
     
     bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);
