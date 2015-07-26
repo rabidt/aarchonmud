@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         468
+#define MAX_SKILL         467
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -4131,7 +4131,7 @@ extern  struct  align_type    align_table[];
 
 extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
-extern  struct  skill_type  skill_table [MAX_SKILL];
+extern  struct  skill_type  skill_table [MAX_SKILL+1];
 extern  struct  group_type  group_table [MAX_GROUP];
 extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;

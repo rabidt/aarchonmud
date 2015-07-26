@@ -1239,6 +1239,25 @@ void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
     free_buf(buffer);
 }
 
+void show_advanced_skills( CHAR_DATA *ch )
+{
+    int sn, counter = 0;
+    
+    ptc(ch, "Advanced skills (and spells):");
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+    {
+        int skill = get_skill_overflow(ch, sn);
+        if ( skill > 0 )
+        {
+            const char *sep = (++counter % 2 == 1 ? "\n\r  " : "    ");
+            ptc(ch, "%s%-20s %3d%%", sep, skill_table[sn].name, skill);
+        }
+    }
+    ptc(ch, "\n\r");
+    if ( counter == 0 )
+        ptc(ch, "No advanced skills found.\n\r");
+}
+
 DEF_DO_FUN(do_skills)
 {
 	BUFFER *buffer;
@@ -1267,11 +1286,17 @@ DEF_DO_FUN(do_skills)
         return;
     }
 
+    if ( !strcmp(arg, "advanced") )
+    {
+        show_advanced_skills(ch);
+        return;
+    }
+
 	if (str_prefix(arg,"all"))
 	{
 		if (!is_number(arg))
 		{
-		send_to_char("Arguments must be numerical or all.\n\r",ch);
+		send_to_char("Arguments must be numerical, advanced or all.\n\r",ch);
 		return;
 		}
 		max_lev = atoi(arg);
@@ -1288,7 +1313,7 @@ DEF_DO_FUN(do_skills)
 		argument = one_argument(argument,arg);
 		if (!is_number(arg))
 		{
-			send_to_char("Arguments must be numerical or all.\n\r",ch);
+			send_to_char("Argument must be numerical.\n\r",ch);
 			return;
 		}
 		min_lev = max_lev;
@@ -2238,7 +2263,7 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
 {
     int skill = 50 + ch->level / 4;
 
-    if (sn < -1 || sn > MAX_SKILL)
+    if (sn < -1 || sn >= MAX_SKILL)
     {
         bug("Bad sn %d in mob_get_skill.",sn);
         return 0;
@@ -2303,7 +2328,7 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 	    skill = ch->level;
 	}
 
-	else if (sn < -1 || sn > MAX_SKILL)
+	else if (sn < -1 || sn >= MAX_SKILL)
 	{
 		bug("Bad sn %d in skill_prac.",sn);
 		skill = 0;
@@ -2329,7 +2354,7 @@ static int pc_get_skill( CHAR_DATA *ch, int sn, int *overflow )
     {
         skill = ch->level;
     }
-    else if (sn < -1 || sn > MAX_SKILL)
+    else if (sn < -1 || sn >= MAX_SKILL)
     {
         bug("Bad sn %d in pc_get_skill.", sn);
         return 0;

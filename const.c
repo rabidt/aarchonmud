@@ -2741,9 +2741,9 @@ const   struct  liq_type    liq_table   []  =
 
 /*
  * The skill and spell table.
+ * Size is MAX_SKILL + 1 to allow for { NULL } terminator
  */
-
-struct  skill_type  skill_table [MAX_SKILL] =
+struct  skill_type  skill_table [MAX_SKILL + 1] =
 {
 
 /*
