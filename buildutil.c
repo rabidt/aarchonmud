@@ -432,6 +432,7 @@ DEF_DO_FUN(do_stat)
 	send_to_char("  stat <name>\n\r",ch);
 	send_to_char("  stat obj <name>\n\r",ch);
 	send_to_char("  stat mob <name>\n\r",ch);
+    send_to_char("  stat skills <mob name>\n\r",ch);
 	send_to_char("  stat room <number>\n\r",ch);
 	return;
    }
@@ -452,6 +453,18 @@ DEF_DO_FUN(do_stat)
    {
 	do_mstat(ch,string);
 	return;
+   }
+   
+   if ( !str_cmp(arg, "skills") )
+   {
+        victim = get_char_world(ch, string);
+        if ( !victim || !IS_NPC(victim) )
+        {
+            ptc(ch, "No such mob '%s'.\n\r", string);
+        }
+        ptc(ch, "Passive skills for %s:\n\r", victim->short_descr);
+        show_skills_npc(victim, FALSE, ch);
+        return;
    }
    
    /* do it the old way */

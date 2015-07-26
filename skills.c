@@ -51,6 +51,7 @@ void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
 int get_injury_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
+int mob_get_skill( CHAR_DATA *ch, int sn );
 
 bool is_class_skill( int class, int sn )
 {
@@ -1209,6 +1210,35 @@ DEF_DO_FUN(do_spells)
 	free_buf(buffer);
 }
 
+void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
+{
+    BUFFER *buffer = new_buf();
+    int sn, counter = 0;
+    
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+    {
+        if ( !active && (skill_table[sn].beats > 0 || get_stance_index(sn) >= 0) )
+            continue;
+            
+        int base_skill = mob_get_skill(ch, sn);
+        int skill = get_skill(ch, sn);
+        if ( base_skill == 0 )
+            continue;
+        
+        if ( counter++ > 0 )
+        {
+            if ( counter % 2 == 1 )
+                add_buf(buffer, "\n\r");
+            else
+                add_buf(buffer, "    ");
+        }
+        add_buff(buffer, "%-20s %3d%%(%3d%%)", skill_table[sn].name, base_skill, skill);
+    }
+    add_buf(buffer, "\n\r");
+    page_to_char(buf_string(buffer), viewer);
+    free_buf(buffer);
+}
+
 DEF_DO_FUN(do_skills)
 {
 	BUFFER *buffer;
@@ -1219,8 +1249,12 @@ DEF_DO_FUN(do_skills)
 	bool fAll = FALSE, found = FALSE;
 	char buf[MAX_STRING_LENGTH];
 
-	if (IS_NPC(ch))
-	  return;
+    if ( IS_NPC(ch) )
+    {
+        one_argument(argument, arg);
+        show_skills_npc(ch, !strcmp(arg, "all"), ch);
+        return;
+    }
 
 	if (argument[0] != '\0')
 	{
