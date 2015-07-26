@@ -3345,7 +3345,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( IS_SPELL(dt) && victim->stance == STANCE_ARCANA )
             dam -= dam/3;
         if ( (IS_SPELL(dt) || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
-            dam -= dam/2;
+        {
+            // skill overflow: improved evasion
+            dam = dam * 100 / (200 + get_skill_overflow(victim, gsn_evasion));
+        }
     }
 
     immune = FALSE;
