@@ -2165,7 +2165,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "shadowblade", THIEF|NINJA,
+        "shadowblade", NINJA,
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
@@ -2225,7 +2225,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "demolitionist", ASSASSIN|GUNSLINGER,
+        "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
         { "evasion", "high explosives" },
         { 30, 50 },
         { 100, 100 }
