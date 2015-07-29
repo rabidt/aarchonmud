@@ -252,6 +252,9 @@ void violence_update( void )
         // people assisting ch
         check_assist(ch);
 
+        /* handle affects that do things each round */
+        special_affect_update(ch);
+    
         if ( ch->stop > 0 )
         {
             ch->stop--;
@@ -260,9 +263,6 @@ void violence_update( void )
         
         check_reset_stance(ch);
 
-	/* handle affects that do things each round */
-	special_affect_update(ch);
-    
         if ( !IS_NPC(ch) )
             check_draconic_breath(ch);
         
