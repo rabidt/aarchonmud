@@ -1417,12 +1417,16 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // calculate level - needed prior to casting check
     level = ch->level;
     level = (100+chance)*level/200;
-    level = URANGE(1, level, 200);
+    // additive adjustments
+    level += (20 + ch->level) * get_skill_overflow(ch, sn) / 1000;
+    if ( is_malediction(sn) )
+        level += (20 + ch->level) * get_skill(ch, gsn_arcane_defiling) / 500;
+    // generic adjustments
+    level = mastery_adjust_level(level, get_mastery(ch, sn));
+    // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
-    level = mastery_adjust_level(level, get_mastery(ch, sn));
-    if ( is_malediction(sn) )
-        level += level * get_skill(ch, gsn_arcane_defiling) / 400;
+    level = URANGE(1, level, 200);
     
     // check if spell could be cast successfully
     // that's done via a call to the spell function with check = TRUE
