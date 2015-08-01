@@ -1014,7 +1014,8 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     
     // dual wield requires weight difference
     int dual_wield = get_skill(ch, gsn_dual_wield);
-    dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * 3/2);
+    float weightFactor = 300.0 / (200 + get_skill_overflow(ch, gsn_dual_wield));
+    dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * weightFactor);
     
     if ( improve )
         check_improve(ch, gsn_dual_wield, TRUE, 5);
