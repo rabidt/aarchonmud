@@ -1793,6 +1793,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     int dam = one_hit_damage( ch, victim, sn, NULL );
     
     dam += dam * mastery_bonus(ch, sn, 15, 25) / 100;
+    dam += dam * get_skill_overflow(ch, sn) / 500;
 
     if ( sn == gsn_bite )
     {
@@ -1810,8 +1811,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             return dam * 3/4;
     }
 
-    if ( chance(get_skill(ch, gsn_kung_fu)) )
-        dam += dam / 7;
+    dam += dam * (get_skill(ch, gsn_kung_fu) + get_skill_overflow(ch, gsn_kung_fu)) / 700;
 
     if ( sn == gsn_chop && get_eq_char(ch, WEAR_WIELD) == NULL )
         return dam;
