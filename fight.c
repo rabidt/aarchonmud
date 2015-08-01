@@ -5002,7 +5002,8 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     // offhand occupied means reduced block chance
     bool wrist_shield = offhand_occupied(ch);
 
-    int chance = 20 + get_skill(ch, gsn_shield_block) / 4;
+    int skill = get_skill(ch, gsn_shield_block) + get_skill_overflow(ch, gsn_shield_block) / 5;
+    int chance = 20 + skill / 4;
 
     if ( wrist_shield )
         chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
@@ -5085,7 +5086,7 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
 
 int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
-    int skill = get_skill(ch, gsn_dodge);
+    int skill = get_skill(ch, gsn_dodge) + get_skill_overflow(ch, gsn_dodge) / 5;
 
     if ( improve )
         check_improve( ch, gsn_dodge, TRUE, 6);
