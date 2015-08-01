@@ -42,7 +42,6 @@
 #define NUL '\0'
 /*#define ERWIN 1*/ /* Define this only if you are me */
 
-extern char * const dir_name[];   /* act_move.c */
 extern AREA_DATA * area_first; /* db.c */
 extern ROOM_INDEX_DATA *       room_index_hash         [MAX_KEY_HASH]; /* db.c */
 extern OBJ_INDEX_DATA *		   obj_index_hash          [MAX_KEY_HASH];
