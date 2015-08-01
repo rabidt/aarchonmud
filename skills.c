@@ -2359,10 +2359,13 @@ static int pc_get_skill( CHAR_DATA *ch, int sn, int *overflow )
         bug("Bad sn %d in pc_get_skill.", sn);
         return 0;
     }
-    else if ( ch->level < skill_table[sn].skill_level[ch->class] )
+    else if ( ch->level < skill_table[sn].skill_level[ch->class] || !ch->pcdata->learned[sn] )
         skill = 0;
     else
+    {
         skill = ch->pcdata->learned[sn] * skill_table[sn].cap[ch->class] / 100;
+        skill = UMAX(1, skill);
+    }
     
     total = skill;
 
