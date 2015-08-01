@@ -807,6 +807,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     CHAR_DATA *vch, *vch_next;
     int tempest;
+    bool dual_wielding = (get_eq_char(ch, WEAR_SECONDARY) != NULL);
     
     // area attacks
     if ( ch->stance == STANCE_JIHAD
@@ -829,6 +830,8 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 {
                     one_hit(ch, vch, dt, FALSE);
                     one_hit(ch, vch, dt, FALSE);
+                    if ( dual_wielding && per_chance(get_skill_overflow(ch, gsn_goblincleaver) / 2) )
+                        one_hit(ch, vch, dt, TRUE);
                 }
                 // kamikaze grants 1 additional attack against each opponent targeting you
                 else if ( ch->stance == STANCE_KAMIKAZE && vch->fighting == ch )
@@ -2377,9 +2380,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	 && !is_retribute
 	 && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-	is_retribute = TRUE;
-	one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
-	is_retribute = FALSE;
+        int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
+        is_retribute = TRUE;
+        // if retribution fails, we may get another try
+        if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
+            one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+        is_retribute = FALSE;
     }
 
     /* kung fu mastery */
@@ -3350,7 +3356,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 || stance == STANCE_DIMENSIONAL_BLADE
                 || stance == STANCE_KORINNS_INSPIRATION 
                 || stance == STANCE_PARADEMIAS_BILE )
+            {
                 dam += 5 + dam / 5;
+                dam += dam * get_skill_overflow(ch, *(stances[stance].gsn)) / 2000;
+            }
             else if ( stance == STANCE_SERPENT )
                 dam += dam / 4;
             else if ( stance == STANCE_AVERSION )
@@ -3375,7 +3384,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( victim->stance != STANCE_DEFAULT )
         {
             if ( victim->stance == STANCE_BLOODBATH )
-                dam += (20 + dam) / 4; 
+            {
+                int bonus = (20 + dam) / 4;
+                int overflow = get_skill_overflow(victim, gsn_bloodbath);
+                dam += bonus * 100 / (100 + overflow);
+            }
             else if ( victim->stance == STANCE_KAMIKAZE )
                 dam += (18 + dam) / 6;
             else if ( victim->stance == STANCE_TORTOISE
@@ -7176,6 +7189,20 @@ void check_stance(CHAR_DATA *ch)
 	return;
 
     cost = stance_cost( ch, ch->stance );
+    
+    // skill overflow bonus for shadow stances
+    if ( ch->stance == STANCE_SHADOWWALK
+        || ch->stance == STANCE_SHADOWCLAW
+        || ch->stance == STANCE_SHADOWESSENCE
+        || ch->stance == STANCE_SHADOWSOUL )
+    {
+        int overflow = get_skill_overflow(ch, *(stances[ch->stance].gsn));
+        if ( room_is_dark(ch->in_room) )
+            cost = rand_div(cost * (100 - overflow), 100);
+        else if ( room_is_dim(ch->in_room) )
+            cost = rand_div(cost * (200 - overflow), 200);
+        cost = UMAX(0, cost);
+    }
     
     if (cost > ch->move)
     {
