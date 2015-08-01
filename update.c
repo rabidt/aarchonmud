@@ -3147,7 +3147,6 @@ void msdp_update( void )
                     {
                         const char MsdpVar[] = { (char)MSDP_VAR, '\0' };
                         const char MsdpVal[] = { (char)MSDP_VAL, '\0' };
-                        extern char *const dir_name[];
 
                         strcat( buf, MsdpVar );
                         strcat( buf, dir_name[i] );

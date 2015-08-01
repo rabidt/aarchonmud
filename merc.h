@@ -5324,7 +5324,7 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 /*
  * Global Constants
  */
-extern  char *  const   dir_name        [];
+extern  const   char *  const dir_name [MAX_DIR];
 extern  const   sh_int  rev_dir         [];          /* sh_int - ROM OLC */
 extern  const   struct  spec_type   spec_table  [];
 

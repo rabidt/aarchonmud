@@ -6535,8 +6535,6 @@ bool in_pkill_battle( CHAR_DATA *ch )
     return FALSE;
 }
 
-extern char *const dir_name[];
-
 bool check_lasso( CHAR_DATA *victim );
 void check_back_leap( CHAR_DATA *victim );
 
