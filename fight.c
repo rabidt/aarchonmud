@@ -1176,6 +1176,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     int chance, mastery_chance, area_attack_sn;
+    int attacks;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1280,14 +1281,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                     
     if (ch->fighting != victim)
 	return;
-                    
-    if (number_percent() < get_skill(ch, gsn_extra_attack) * 2/3 )
-    {
-	one_hit(ch,victim,dt,FALSE);
-	if (ch->fighting != victim)
-	    return;
-    }
-
+    
     if ( wield != NULL && wield->value[0] == WEAPON_DAGGER
 	 && number_bits(4) == 0 )
     {
@@ -1296,56 +1290,61 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	    return;
     }
     
+    // bonus attacks from haste, second/third/extra attack and dex; these are affected by slow
+    int secondary_attacks = ch_dex_extrahit(ch) * 2
+        + get_skill(ch, gsn_second_attack) * 2/3
+        + get_skill(ch, gsn_third_attack) * 2/3
+        + get_skill(ch, gsn_extra_attack) * 2/3
+        + get_skill_overflow(ch, gsn_second_attack) / 3
+        + get_skill_overflow(ch, gsn_third_attack) / 3
+        + mastery_bonus(ch, gsn_second_attack, 15, 25)
+        + mastery_bonus(ch, gsn_third_attack, 15, 25);
+
     if ( IS_AFFECTED(ch, AFF_HASTE) )
+        secondary_attacks += 100;
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
+        secondary_attacks /= 2;
+    
+    for ( attacks = secondary_attacks; attacks > 0; attacks -= 100 )
     {
-        one_hit(ch,victim,dt,FALSE);
-        if (ch->fighting != victim)
+        if ( attacks < 100 && !per_chance(attacks) )
+            break;
+        one_hit(ch, victim, dt, FALSE);
+        if ( ch->fighting != victim )
             return;
     }
-
-    chance = offhand_attack_chance(ch, TRUE);
-    
-#define OFFHAND_ATTACK {one_hit(ch,victim,dt,TRUE);if(ch->fighting!=victim)return;}
-    if ( per_chance(chance) )
+    check_improve(ch, gsn_second_attack, TRUE, 5);
+    check_improve(ch, gsn_third_attack, TRUE, 5);
+                    
+    // offhand attacks
+    int offhand_chance = offhand_attack_chance(ch, TRUE);
+    if ( offhand_chance > 0 )
     {
+        int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
+        // mastery bonus
         int gsn_dual = dual_weapon_sn(ch);
         int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
-        int dex_chance = ch_dex_extrahit(ch);
-
-        // one attack for wielding an offhand weapon
-        OFFHAND_ATTACK
+        if ( mastery > 0 )
+            offhand_attacks += 5 + 10 * mastery;
+        // haste, ambidexterity and dagger
+        if ( IS_AFFECTED(ch, AFF_HASTE) )
+            offhand_attacks += 50;
+        offhand_attacks += secondary_attacks * get_skill(ch, gsn_ambidextrous) / 200;
+        if ( second != NULL && second->value[0] == WEAPON_DAGGER )
+            offhand_attacks += 5;
         
-        // mastery bonus attack
-        if ( per_chance(mastery ? 5 + 10*mastery : 0) )
-            OFFHAND_ATTACK
-
-        // extra attack is 2/3 main hand and 1/3 offhand
-        if ( per_chance(get_skill(ch, gsn_extra_attack)/3) )
-            OFFHAND_ATTACK
+        // adjust for offhand chance
+        offhand_attacks *= offhand_chance / 100.0;
         
-        // ambidexterity allows full use of second and third attack skills
-        bool ambidextrous = per_chance(get_skill(ch, gsn_ambidextrous));
-        if ( ambidextrous )
+        for ( attacks = offhand_attacks; attacks > 0; attacks -= 100 )
         {
-            if ( per_chance(get_skill(ch, gsn_second_attack) * 2/3) + dex_chance )
-                OFFHAND_ATTACK
-            if ( per_chance(get_skill(ch, gsn_third_attack) * 2/3) + dex_chance )
-                OFFHAND_ATTACK
+            if ( attacks < 100 && !per_chance(attacks) )
+                break;
+            one_hit(ch, victim, dt, TRUE);
+            if ( ch->fighting != victim )
+                return;
         }
-        else
-        {
-            // normal chance for extra offhand attack based on dex
-            if ( per_chance(dex_chance) )
-                OFFHAND_ATTACK
-        }
-
-        if ( IS_AFFECTED(ch,AFF_HASTE) && (number_bits(1) == 0 || ambidextrous) )
-                OFFHAND_ATTACK
-
-        if ( second != NULL && second->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
-                OFFHAND_ATTACK
     }
-#undef OFFHAND_ATTACK
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
     {
@@ -1395,41 +1394,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
     
-    chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
-    
-    if (IS_AFFECTED(ch,AFF_SLOW))
-        chance /= 2;
-
-    if ( number_percent( ) < chance )
-    {
-        one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_second_attack,TRUE,5);
-        if ( ch->fighting != victim )
-            return;
-    }
-    
-    chance = get_skill(ch,gsn_third_attack) * 2/3 + ch_dex_extrahit(ch);
-
-    if (IS_AFFECTED(ch,AFF_SLOW) )
-        chance = 0;
-
-    if ( number_percent( ) < chance )
-    {
-        one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_third_attack,TRUE,5);
-        if ( ch->fighting != victim )
-            return;
-    }
-
-    // second & third attack mastery
-    mastery_chance = mastery_bonus(ch, gsn_second_attack, 15, 25) + mastery_bonus(ch, gsn_third_attack, 15, 25);
-    if ( per_chance(mastery_chance) )
-    {
-        one_hit(ch, victim, dt, FALSE);
-        if ( ch->fighting != victim )
-            return;
-    }
-
     if ( per_chance(get_skill(ch, gsn_ashura))
         && ch->max_hit > 0 && !per_chance(100 * ch->hit / ch->max_hit) )
     {
