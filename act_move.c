@@ -43,11 +43,24 @@ bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
 void check_bleed( CHAR_DATA *ch, int dir );
 
 
-char *  const   dir_name    []      =
+const char * const dir_name [MAX_DIR] =
 {
-   "north", "east", "south", "west", "up", "down", "northeast", "southeast",
-   "southwest", "northwest"
+   "north", "east", "south", "west", "up", "down", "northeast", "southeast", "southwest", "northwest"
 };
+
+const char * const dir_abbr [MAX_DIR] =
+{
+   "n", "e", "s", "w", "u", "d", "ne", "se", "sw", "nw"
+};
+
+bool is_direction( const char* argument )
+{
+    int i;
+    for ( i = 0; i < MAX_DIR; i++ )
+        if ( !strcmp(argument, dir_name[i]) || !strcmp(argument, dir_abbr[i]) )
+            return TRUE;
+    return FALSE;
+}
 
 const   sh_int  rev_dir     []      =
 {
@@ -1197,7 +1210,7 @@ DEF_DO_FUN(do_unlock)
 	  return;
    }
    
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)
