@@ -794,24 +794,7 @@ DEF_DO_FUN(do_open)
 	  return;
    }
    
-   if( !str_prefix(arg,"nort") )
-	{ do_open(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_open(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_open(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_open(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_open(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_open(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_open(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_open(ch,"southwest"); return; }
-
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* open portal */
 	  if (obj->item_type == ITEM_PORTAL)
@@ -921,24 +904,7 @@ DEF_DO_FUN(do_close)
 	  return;
    }
    
-   if( !str_prefix(arg,"nort") )
-	{ do_close(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_close(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_close(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_close(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_close(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_close(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_close(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_close(ch,"southwest"); return; }
-
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)
@@ -1055,24 +1021,7 @@ DEF_DO_FUN(do_lock)
 	  return;
    }
 
-   if( !str_prefix(arg,"nort") )
-	{ do_lock(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_lock(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_lock(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_lock(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_lock(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_lock(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_lock(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_lock(ch,"southwest"); return; }
-   
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)
