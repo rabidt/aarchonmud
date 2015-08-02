@@ -1157,7 +1157,7 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
     return cost;
 }
 
-int meta_magic_adjust_wait( int wait )
+int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
 {
     if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
         wait *= 2;
@@ -1165,7 +1165,10 @@ int meta_magic_adjust_wait( int wait )
     // can't reduce below half a round (e.g. dracs)
     int min_wait = PULSE_VIOLENCE / 2;
     if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) && wait > min_wait )
-        wait = UMAX(min_wait, wait / 2);
+    {
+        float quicken_factor = 100.0 / (200 + get_skill_overflow(ch, gsn_quicken_spell));
+        wait = UMAX(min_wait, wait * quicken_factor);
+    }
 
     return wait;
 }
@@ -1440,7 +1443,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     }
 
     wait = skill_table[sn].beats * (200-chance) / 100;
-    wait = meta_magic_adjust_wait(wait);
+    wait = meta_magic_adjust_wait(ch, wait);
     /* Check for overcharge (less lag) */
     if ( overcharging )
         wait /= 4;
