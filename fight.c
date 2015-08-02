@@ -1748,7 +1748,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
     {
         // enhanced damage mastery increases bonus damage
-        dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + mastery_bonus(ch, gsn_enhanced_damage, 30, 50)) / 300;
+        int skill = get_skill(ch, gsn_enhanced_damage)
+            + get_skill_overflow(ch, gsn_enhanced_damage) / 2
+            + mastery_bonus(ch, gsn_enhanced_damage, 30, 50);
+        dam += ch->level * skill / 300;
         check_improve (ch, gsn_enhanced_damage, TRUE, 8);
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
         check_improve (ch, gsn_brutal_damage, TRUE, 8);
@@ -1771,7 +1774,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     // flanking
     else if ( victim && victim != ch && has_combat_advantage(ch, victim) )
     {
-        dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
+        int skill = get_skill(ch, gsn_flanking)
+            + get_skill_overflow(ch, gsn_flanking) / 2
+            + mastery_bonus(ch, gsn_flanking, 30, 50);
+        dam += ch->level * skill / 150;
         check_improve (ch, gsn_flanking, TRUE, 7);
     }
 
