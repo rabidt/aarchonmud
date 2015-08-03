@@ -1482,11 +1482,13 @@ DEF_DO_FUN(do_shoot_lock)
    
     skill = get_skill(ch,gsn_shoot_lock) * (ch->level + get_curr_stat(ch, STAT_LUC) + 200)/500;
    
+    /*
     if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
     {
         send_to_char("But you could damage whatever's inside!\n\r",ch);
         return;
     }
+    */
          
     if ( ( door = find_door( ch, arg ) ) >= 0 )
     {
@@ -1505,7 +1507,7 @@ DEF_DO_FUN(do_shoot_lock)
         else if (IS_SET(pexit->exit_info,EX_EASY))
             skill += 25;
           
-        if ( !IS_NPC(ch) && number_percent() > skill )
+        if ( !per_chance(skill) )
         {
             send_to_char( "You miss the lock completely.\n\r", ch);
 	        check_improve(ch,gsn_shoot_lock,FALSE,1);
