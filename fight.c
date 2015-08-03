@@ -1082,7 +1082,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
-bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat, int base_chance )
+bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
     // safety-net
     base_chance = URANGE(5, base_chance, 95);
@@ -1095,11 +1095,13 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int v
     if ( ch_stat != STAT_NONE )
         ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
     ch_roll *= 5 + ch->size;
+    ch_roll *= (500 + get_skill_overflow(ch, sn)) / 500.0;
     
     int victim_roll = -get_save(victim, TRUE);
     if ( victim_stat != STAT_NONE )
         victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
     victim_roll *= 5 + victim->size;
+    victim_roll *= (500 + get_skill_overflow(victim, sn)) / 500.0;
     
     // adjust for base chance
     if ( base_chance < 50 )
@@ -1417,7 +1419,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
-    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, gsn_boa, STAT_STR, STAT_STR, 50) )
     {
         send_to_char("You are constricted and unable to act.\n\r", victim);
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
@@ -6792,7 +6794,7 @@ bool check_lasso( CHAR_DATA *victim )
             continue;
         }
 
-        if ( combat_maneuver_check(opp, victim, STAT_DEX, STAT_AGI, 50) )
+        if ( combat_maneuver_check(opp, victim, gsn_hogtie, STAT_DEX, STAT_AGI, 50) )
         {
             act( "$n catches you!", opp, NULL, victim, TO_VICT    );
             act( "You catch $N!", opp, NULL, victim, TO_CHAR    );
