@@ -5027,7 +5027,10 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     int chance = 20 + skill / 4;
 
     if ( wrist_shield )
-        chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    {
+        int penalty = (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 10;
+        chance = (chance - UMAX(0, penalty)) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    }
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
