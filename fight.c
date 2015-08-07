@@ -3355,6 +3355,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if ( stance != STANCE_DEFAULT )
         {
+            int overflow = get_skill_overflow(ch, *(stances[stance].gsn));
             if (   stance == STANCE_BEAR 
                 || stance == STANCE_DRAGON
                 || stance == STANCE_LION
@@ -3366,7 +3367,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 || stance == STANCE_PARADEMIAS_BILE )
             {
                 dam += 5 + dam / 5;
-                dam += dam * get_skill_overflow(ch, *(stances[stance].gsn)) / 2000;
+                dam += dam * overflow / 2000;
             }
             else if ( stance == STANCE_SERPENT )
                 dam += dam / 4;
@@ -3387,6 +3388,17 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             else if ( stance == STANCE_SCORPION
                 || stance == STANCE_SHADOWESSENCE )
                 dam += 2 + dam/10;
+            // skill overflow bonus for shadow stances
+            if ( ch->stance == STANCE_SHADOWWALK
+                || ch->stance == STANCE_SHADOWCLAW
+                || ch->stance == STANCE_SHADOWESSENCE
+                || ch->stance == STANCE_SHADOWSOUL )
+            {
+                if ( room_is_dark(ch->in_room) )
+                    dam += dam * overflow / 1000;
+                else if ( room_is_dim(ch->in_room) )
+                    dam += dam * overflow / 2000;
+            }
         }
         /* victim stance can influence damage too */
         if ( victim->stance != STANCE_DEFAULT )
@@ -7200,20 +7212,6 @@ void check_stance(CHAR_DATA *ch)
 	return;
 
     cost = stance_cost( ch, ch->stance );
-    
-    // skill overflow bonus for shadow stances
-    if ( ch->stance == STANCE_SHADOWWALK
-        || ch->stance == STANCE_SHADOWCLAW
-        || ch->stance == STANCE_SHADOWESSENCE
-        || ch->stance == STANCE_SHADOWSOUL )
-    {
-        int overflow = get_skill_overflow(ch, *(stances[ch->stance].gsn));
-        if ( room_is_dark(ch->in_room) )
-            cost = rand_div(cost * (100 - overflow), 100);
-        else if ( room_is_dim(ch->in_room) )
-            cost = rand_div(cost * (200 - overflow), 200);
-        cost = UMAX(0, cost);
-    }
     
     if (cost > ch->move)
     {
