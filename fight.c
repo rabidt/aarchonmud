@@ -4819,12 +4819,11 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
         chance -= mastery_bonus(ch, gsn_hand_to_hand, 6, 10);
 
     /* two-handed weapons are harder to parry with non-twohanded */
-    if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL
-	 && IS_WEAPON_STAT(ch_weapon_obj, WEAPON_TWO_HANDS) )
+    if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL && IS_WEAPON_STAT(ch_weapon_obj, WEAPON_TWO_HANDS) )
     {
-	if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL
-	     || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
-	    chance /= 2;
+        if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
+            // skill overflow prevents parry with non-twohanded weapon completely
+            chance = chance * (100 - get_skill_overflow(ch, gsn_two_handed)) / 200;
     }
 
     if ( !can_see_combat(victim, ch) && blind_penalty(victim) )
