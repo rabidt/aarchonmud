@@ -1920,7 +1920,7 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
         return 0;
 
     bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-    bonus += get_skill( ch->leader, gsn_leadership );
+    bonus += get_skill_total(ch->leader, gsn_leadership, 0.5);
     bonus += ch->leader->level - ch->level;
     
     if ( IS_UNDEAD(ch) )
