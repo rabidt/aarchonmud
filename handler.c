@@ -238,30 +238,32 @@ int class_lookup (const char *name)
 int check_immune(CHAR_DATA *ch, int dam_type)
 {
     int immune, def, bit, found;
+    bool imm, res, vuln;
     
-    def = IS_NORMAL;
-    
-    if (dam_type == DAM_NONE)
+    if ( dam_type == DAM_NONE )
         return IS_NORMAL;
     
-    if (dam_type <= 3)
+    if ( dam_type <= 3 )
     {
-        if (IS_SET(ch->imm_flags,IMM_WEAPON))
-            def = IS_IMMUNE;
-        else if (IS_SET(ch->res_flags,RES_WEAPON))
-            def = IS_RESISTANT;
-        else if (IS_SET(ch->vuln_flags,VULN_WEAPON))
-            def = IS_VULNERABLE;
+        imm = IS_SET(ch->imm_flags, IMM_WEAPON);
+        res = IS_SET(ch->res_flags, RES_WEAPON);
+        vuln = IS_SET(ch->vuln_flags, VULN_WEAPON);
     }
     else /* magical attack */
     {
-        if (IS_SET(ch->imm_flags,IMM_MAGIC))
-            def = IS_IMMUNE;
-        else if (IS_SET(ch->res_flags,RES_MAGIC))
-            def = IS_RESISTANT;
-        else if (IS_SET(ch->vuln_flags,VULN_MAGIC))
-            def = IS_VULNERABLE;
+        imm = IS_SET(ch->imm_flags, IMM_MAGIC);
+        res = IS_SET(ch->res_flags, RES_MAGIC);
+        vuln = IS_SET(ch->vuln_flags, VULN_MAGIC);
     }
+    
+    if ( imm )
+        def = IS_IMMUNE;
+    else if ( res && !vuln )
+        def = IS_RESISTANT;
+    else if ( vuln && !res )
+        def = IS_VULNERABLE;
+    else
+        def = IS_NORMAL;
     
     /* set bits to check -- VULN etc. must ALL be the same or this will fail */
     switch (dam_type)
@@ -283,6 +285,7 @@ int check_immune(CHAR_DATA *ch, int dam_type)
     case(DAM_LIGHT):    bit = IMM_LIGHT;    break;
     case(DAM_CHARM):    bit = IMM_CHARM;    break;
     case(DAM_SOUND):    bit = IMM_SOUND;    break;
+    case(DAM_HARM):     bit = IMM_HARM;     break;
     default:        return def;
     }
     
@@ -3845,11 +3848,8 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
         roll_ch *= 2;
 
     /* alertness skill */
-    if (number_percent() < get_skill(ch, gsn_alertness))
-    {
-        roll_ch *= 2;
-        check_improve(ch,gsn_alertness,TRUE,15);
-    }    
+    roll_ch += roll_ch * get_skill_total(ch, gsn_alertness, 0.5) / 100;
+    check_improve(ch, gsn_alertness, TRUE, 15);
 
     /* now the roll */
     return number_range(0, roll_ch) > number_range(0, roll_victim * 5);

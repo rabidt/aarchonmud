@@ -94,7 +94,6 @@ void do_stare(CHAR_DATA *ch)
 
 DEF_DO_FUN(do_scan)
 {
-    extern char *const dir_name[];
     char arg1[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *scan_room;
     EXIT_DATA *pExit;
@@ -172,7 +171,6 @@ void scan_list(ROOM_INDEX_DATA *scan_room, CHAR_DATA *ch, sh_int depth,
 
 void scan_char(CHAR_DATA *victim, CHAR_DATA *ch, sh_int depth, sh_int door)
 {
-    extern char *const dir_name[];
     extern char *const distance[];
     char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
     

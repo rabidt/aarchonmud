@@ -2165,7 +2165,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "shadowblade", THIEF|NINJA,
+        "shadowblade", NINJA,
         { "shadow strike", "shadow body" },
         { 30, 50 },
         { 100, 100 }
@@ -2225,7 +2225,7 @@ const struct subclass_type subclass_table[] =
         { 100, 100 }
     },
     {
-        "demolitionist", ASSASSIN|GUNSLINGER,
+        "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
         { "evasion", "high explosives" },
         { 30, 50 },
         { 100, 100 }
@@ -2741,9 +2741,9 @@ const   struct  liq_type    liq_table   []  =
 
 /*
  * The skill and spell table.
+ * Size is MAX_SKILL + 1 to allow for { NULL } terminator
  */
-
-struct  skill_type  skill_table [MAX_SKILL] =
+struct  skill_type  skill_table [MAX_SKILL + 1] =
 {
 
 /*

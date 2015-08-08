@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         468
+#define MAX_SKILL         467
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1421,7 +1421,7 @@ struct  kill_data
 #define IMM_PETRIFY             (W)
 #define IMM_WOOD                (X)
 #define IMM_SILVER              (Y)
-#define IMM_IRON                (Z)
+#define IMM_HARM                (Z)
  
 /* RES bits for mobs */
 #define RES_SUMMON              (A)
@@ -1446,7 +1446,7 @@ struct  kill_data
 #define RES_SOUND               (T)
 #define RES_WOOD                (X)
 #define RES_SILVER              (Y)
-#define RES_IRON                (Z)
+#define RES_HARM                (Z)
  
 /* VULN bits for mobs */
 #define VULN_SUMMON             (A)
@@ -1471,7 +1471,7 @@ struct  kill_data
 #define VULN_SOUND              (T)
 #define VULN_WOOD               (X)
 #define VULN_SILVER             (Y)
-#define VULN_IRON               (Z)
+#define VULN_HARM               (Z)
  
 /* body form */
 #define FORM_EDIBLE             (A)
@@ -4131,7 +4131,7 @@ extern  struct  align_type    align_table[];
 
 extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
-extern  struct  skill_type  skill_table [MAX_SKILL];
+extern  struct  skill_type  skill_table [MAX_SKILL+1];
 extern  struct  group_type  group_table [MAX_GROUP];
 extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;
@@ -4622,7 +4622,7 @@ bool    check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
-bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat, int base_chance );
+bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );
@@ -5121,7 +5121,10 @@ void    gn_add      args( ( CHAR_DATA *ch, int gn) );
 void    gn_remove   args( ( CHAR_DATA *ch, int gn) );
 void    group_add   args( ( CHAR_DATA *ch, const char *name, bool deduct) );
 void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
+void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer );
+int get_skill_overflow( CHAR_DATA *ch, int sn );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
+int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
@@ -5323,7 +5326,7 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
 /*
  * Global Constants
  */
-extern  char *  const   dir_name        [];
+extern  const   char *  const dir_name [MAX_DIR];
 extern  const   sh_int  rev_dir         [];          /* sh_int - ROM OLC */
 extern  const   struct  spec_type   spec_table  [];
 

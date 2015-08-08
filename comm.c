@@ -52,6 +52,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <signal.h>
 #include "merc.h"
 #include "recycle.h"
@@ -153,6 +154,12 @@ int main( int argc, char **argv )
     struct timeval now_time;
     bool fCopyOver = FALSE;
 
+    /*
+     * Enable core dumps for this process
+     */
+    const struct rlimit core_limit = { RLIM_INFINITY, RLIM_INFINITY };
+    setrlimit(RLIMIT_CORE, &core_limit);
+    
     /*
      * Memory debugging if needed.
      */
