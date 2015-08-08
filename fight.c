@@ -2150,7 +2150,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     /* get the weapon skill */
     sn = get_weapon_sn_new(ch, secondary);
-    skill = 50 + get_weapon_skill(ch, sn) / 2;
+    skill = 50 + get_weapon_skill(ch, sn) / 2 + get_skill_overflow(ch, sn) / 20;
     
     check_killer( ch, victim );
 
