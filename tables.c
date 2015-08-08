@@ -397,7 +397,7 @@ const struct flag_type imm_flags[] =
         {   "petrify",      W,  TRUE    },
 	{   "wood",         X,  TRUE    },
 	{   "silver",       Y,  TRUE    },
-	{   "iron",         Z,  TRUE    },
+	{   "harm",         Z,  TRUE    },
 	{   NULL,           0,  0   }
 };
 
@@ -1062,7 +1062,7 @@ const struct flag_type res_flags[] =
 	{   "sound",    RES_SOUND,      TRUE    },
 	{   "wood",     RES_WOOD,       TRUE    },
 	{   "silver",   RES_SILVER,     TRUE    },
-	{   "iron",     RES_IRON,       TRUE    },
+	{   "harm",     RES_HARM,       TRUE    },
 	{   NULL,          0,            0    }
 };
 
@@ -1091,7 +1091,7 @@ const struct flag_type vuln_flags[] =
 	{   "sound",         VULN_SOUND,           TRUE    },
 	{   "wood",          VULN_WOOD,            TRUE    },
 	{   "silver",        VULN_SILVER,          TRUE    },
-	{   "iron",          VULN_IRON,            TRUE    },
+	{   "harm",          VULN_HARM,            TRUE    },
 	{   NULL,              0,                    0       }
 };
 

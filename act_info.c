@@ -2096,7 +2096,6 @@ DEF_DO_FUN(do_examine)
 */
 DEF_DO_FUN(do_exits)
 {
-    extern char * const dir_name[];
     char buf[MAX_STRING_LENGTH];
     EXIT_DATA *pexit;
     bool found;

@@ -221,7 +221,7 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
         power += 1;
     
     /* check if the attack stuns the opponent */
-    if ( !IS_AFFECTED(victim, AFF_ROOTS) && combat_maneuver_check(ch, victim, STAT_STR, STAT_CON, 50 + 5 * power) )
+    if ( !IS_AFFECTED(victim, AFF_ROOTS) && combat_maneuver_check(ch, victim, sn, STAT_STR, STAT_CON, 50 + 5 * power) )
     {
         if ( sn == gsn_charge )
         {
@@ -334,7 +334,7 @@ DEF_DO_FUN(do_dirt)
     start_combat(ch, victim);
     
     /* now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, chance) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_dirt, STAT_DEX, STAT_AGI, chance) )
     {
         AFFECT_DATA af;
         act("$n is blinded by the dirt in $s eyes!",victim,NULL,NULL,TO_ROOM);
@@ -403,7 +403,7 @@ DEF_DO_FUN(do_trip)
     check_killer(ch,victim);
     WAIT_STATE(ch,skill_table[gsn_trip].beats);
     
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_trip, STAT_DEX, STAT_AGI, 50) )
     {
         act("$n trips you and you go down!", ch, NULL, victim, TO_VICT);
         act("You trip $N and $N goes down!", ch, NULL, victim, TO_CHAR);
@@ -578,7 +578,7 @@ DEF_DO_FUN(do_net)
     start_combat(ch, victim);
     
     /* now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 33) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_net, STAT_DEX, STAT_AGI, 33) )
     {
         AFFECT_DATA af;
         act("$N is trapped in your net!",ch, NULL, victim, TO_CHAR);
@@ -740,7 +740,7 @@ DEF_DO_FUN(do_hogtie)
     start_combat(ch, victim);
     
     /* now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_hogtie, STAT_DEX, STAT_AGI, 50) )
     {
 	//extract_obj( rope );
         act("You hogtie $N!",ch, NULL, victim, TO_CHAR);
@@ -1491,7 +1491,7 @@ DEF_DO_FUN(do_disarm)
     }
 
     /* and now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_STR, chance) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_disarm, STAT_DEX, STAT_STR, chance) )
     {
         disarm(ch, victim, FALSE, get_mastery(ch, gsn_disarm));
         check_improve(ch, gsn_disarm, TRUE, 2);
@@ -1689,7 +1689,7 @@ DEF_DO_FUN(do_gouge)
     }
 
     /* if attack hits, we have a chance of permanent blindness */
-    if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_AGI, 20) )
+    if ( combat_maneuver_check(ch, victim, gsn_gouge, STAT_STR, STAT_AGI, 20) )
     {
         AFFECT_DATA af;
         act("$n is blinded as $s eyes are gouged out!", victim, NULL, NULL, TO_ROOM);
@@ -1741,7 +1741,7 @@ DEF_DO_FUN(do_leg_sweep)
         {
             check_killer(ch, vch);
             start_combat(ch, vch);
-            if ( per_chance(skill) && combat_maneuver_check(ch, vch, STAT_AGI, STAT_AGI, 50) )
+            if ( per_chance(skill) && combat_maneuver_check(ch, vch, gsn_leg_sweep, STAT_AGI, STAT_AGI, 50) )
             {
                 act("$n sweeps your legs out from under you!", ch, NULL, vch, TO_VICT);
                 act("You leg sweep $N and $N goes down!", ch, NULL, vch, TO_CHAR);
@@ -2364,7 +2364,8 @@ DEF_DO_FUN(do_double_strike)
         if ( stop_attack(ch, victim) )
             return;
 
-        if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
+        int rend_chance = mastery_bonus(ch, gsn_double_strike, 40, 50) + get_skill_overflow(ch, gsn_double_strike) * 2/5;
+        if ( hits == 2 && per_chance(rend_chance) )
         {
             act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
             act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
@@ -2450,7 +2451,7 @@ DEF_DO_FUN(do_spit)
     start_combat(ch, victim);
         
     /* now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_spit, STAT_DEX, STAT_AGI, 50) )
     {
         AFFECT_DATA af;
         act("$n is blinded by the glob of spit in $s eyes!",victim,NULL,NULL,TO_ROOM);
@@ -2507,7 +2508,7 @@ DEF_DO_FUN(do_choke_hold)
     start_combat(ch, victim);
     
     /* now the attack */
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_DEX, STAT_AGI, 50) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_choke_hold, STAT_DEX, STAT_AGI, 50) )
     {
         AFFECT_DATA af;
         
@@ -2620,7 +2621,7 @@ DEF_DO_FUN(do_hurl)
 
     WAIT_STATE( ch, skill_table[gsn_hurl].beats );
         
-    if ( per_chance(skill) && combat_maneuver_check(ch, victim, STAT_AGI, STAT_STR, 33) )
+    if ( per_chance(skill) && combat_maneuver_check(ch, victim, gsn_hurl, STAT_AGI, STAT_STR, 33) )
     {
         act("You hurl $N across the room!", ch, NULL, victim, TO_CHAR);
         act("$n hurls you!", ch, NULL, victim, TO_VICT);
@@ -2705,7 +2706,7 @@ DEF_DO_FUN(do_mug)
 	if ( IS_SET(ch->act, PLR_WAR) )
 	    return;
 
-        if ( combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
+        if ( combat_maneuver_check(ch, victim, gsn_mug, STAT_STR, STAT_STR, 50) )
         {
             gold   = victim->gold   * number_range(1, ch->level) / 500;
             silver = victim->silver * number_range(1,ch->level) / 500;
@@ -3958,11 +3959,10 @@ DEF_DO_FUN(do_smite)
         return;
     
     // chance to dispel if fighting opposing alignment
-    bool avenger = per_chance(get_skill(ch, gsn_holy_avenger));
-    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim)))
-        && (avenger || !number_bits(2)) )
+    int dispel_chance = 50 + get_skill(ch, gsn_holy_avenger) / 2;
+    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim))) && per_chance(dispel_chance) )
     {
-        int level = ch->level * skill / 100;
+        int level = ch->level * (skill + get_skill_overflow(ch, gsn_smite) / 4) / 100;
         act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
         if ( saves_spell(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
             send_to_char("You feel a brief tingling sensation.\n\r", victim);
@@ -4151,7 +4151,7 @@ DEF_DO_FUN(do_blast)
     check_killer(ch, victim);
     start_combat(ch, victim);
     
-    int dam = dice(2,4) + ch->level + ch->mana / 50;
+    int dam = dice(2,4) + ch->level + ch->max_mana / 40;
     dam += dam * get_focus_bonus(ch) / 100;
     
     bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);

@@ -41,13 +41,26 @@ DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
 void check_bleed( CHAR_DATA *ch, int dir );
+static bool has_boat( CHAR_DATA *ch );
 
-
-char *  const   dir_name    []      =
+const char * const dir_name [MAX_DIR] =
 {
-   "north", "east", "south", "west", "up", "down", "northeast", "southeast",
-   "southwest", "northwest"
+   "north", "east", "south", "west", "up", "down", "northeast", "southeast", "southwest", "northwest"
 };
+
+const char * const dir_abbr [MAX_DIR] =
+{
+   "n", "e", "s", "w", "u", "d", "ne", "se", "sw", "nw"
+};
+
+bool is_direction( const char* argument )
+{
+    int i;
+    for ( i = 0; i < MAX_DIR; i++ )
+        if ( !strcmp(argument, dir_name[i]) || !strcmp(argument, dir_abbr[i]) )
+            return TRUE;
+    return FALSE;
+}
 
 const   sh_int  rev_dir     []      =
 {
@@ -56,7 +69,7 @@ const   sh_int  rev_dir     []      =
 
 const   sh_int  movement_loss   [SECT_MAX]  =
 {
-   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6, 4
+   1, 2, 2, 3, 4, 6, 4, 6, 6, 10, 6, 4
 };
 
 bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
@@ -317,7 +330,27 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             else
                 check_improve(ch,gsn_climbing,FALSE,3);
         }
-                    
+
+        // swimming
+        int deep_water = 0, under_water = 0;
+        if ( in_room->sector_type == SECT_WATER_DEEP )
+            deep_water++;
+        if ( to_room->sector_type == SECT_WATER_DEEP )
+            deep_water++;
+        if ( in_room->sector_type == SECT_UNDERWATER )
+            under_water++;
+        if ( to_room->sector_type == SECT_UNDERWATER )
+            under_water++;
+        
+        int swim_chance = get_skill_overflow(ch, gsn_swimming);
+        if ( IS_AFFECTED(ch, AFF_FLYING) || has_boat(ch) || per_chance(swim_chance) )
+            move -= deep_water;
+        if ( per_chance(swim_chance) )
+            move -= under_water;
+        
+        // safety-net
+        move = UMAX(1, move);
+            
         int waitpulse = 2 + move / 6;
 
         if ( IS_AFFECTED(ch, AFF_SLOW) )
@@ -565,6 +598,15 @@ bool check_drown(CHAR_DATA *ch)
     return (ch->in_room != room);
 }
 
+static bool has_boat( CHAR_DATA *ch )
+{
+    OBJ_DATA *boat;
+    for ( boat=ch->carrying; boat; boat=boat->next_content )
+        if (boat->item_type == ITEM_BOAT)
+            return TRUE;
+    return FALSE;
+}
+
 bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
@@ -584,13 +626,8 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     
     if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
     {
-        if (IS_AFFECTED(ch, AFF_FLYING))
+        if ( IS_AFFECTED(ch, AFF_FLYING) || has_boat(ch))
             return TRUE;
-
-        OBJ_DATA *boat;
-        for ( boat=ch->carrying; boat; boat=boat->next_content )
-            if (boat->item_type == ITEM_BOAT)
-                return TRUE;
     }
 
     int chance = (100 + get_skill(ch, gsn_swimming)) / 2;
@@ -781,24 +818,7 @@ DEF_DO_FUN(do_open)
 	  return;
    }
    
-   if( !str_prefix(arg,"nort") )
-	{ do_open(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_open(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_open(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_open(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_open(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_open(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_open(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_open(ch,"southwest"); return; }
-
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* open portal */
 	  if (obj->item_type == ITEM_PORTAL)
@@ -908,24 +928,7 @@ DEF_DO_FUN(do_close)
 	  return;
    }
    
-   if( !str_prefix(arg,"nort") )
-	{ do_close(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_close(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_close(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_close(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_close(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_close(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_close(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_close(ch,"southwest"); return; }
-
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)
@@ -1042,24 +1045,7 @@ DEF_DO_FUN(do_lock)
 	  return;
    }
 
-   if( !str_prefix(arg,"nort") )
-	{ do_lock(ch,"north"); return; }
-   if( !str_prefix(arg,"sout") )
-	{ do_lock(ch,"south"); return; }
-   if( !str_prefix(arg,"eas") )
-	{ do_lock(ch,"east"); return; }
-   if( !str_prefix(arg,"wes") )
-	{ do_lock(ch,"west"); return; }
-   if( !str_cmp(arg,"nw") )
-	{ do_lock(ch,"northwest"); return; }
-   if( !str_cmp(arg,"ne") )
-	{ do_lock(ch,"northeast"); return; }
-   if( !str_cmp(arg,"se") )
-	{ do_lock(ch,"southeast"); return; }
-   if( !str_cmp(arg,"sw") )
-	{ do_lock(ch,"southwest"); return; }
-   
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)
@@ -1197,7 +1183,7 @@ DEF_DO_FUN(do_unlock)
 	  return;
    }
    
-   if ( ( obj = get_obj_here( ch, arg ) ) != NULL )
+   if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
 	  /* portal stuff */
 	  if (obj->item_type == ITEM_PORTAL)

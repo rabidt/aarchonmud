@@ -51,6 +51,7 @@ void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
 int get_injury_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
+int mob_get_skill( CHAR_DATA *ch, int sn );
 
 bool is_class_skill( int class, int sn )
 {
@@ -1209,6 +1210,54 @@ DEF_DO_FUN(do_spells)
 	free_buf(buffer);
 }
 
+void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
+{
+    BUFFER *buffer = new_buf();
+    int sn, counter = 0;
+    
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+    {
+        if ( !active && (skill_table[sn].beats > 0 || get_stance_index(sn) >= 0) )
+            continue;
+            
+        int base_skill = mob_get_skill(ch, sn);
+        int skill = get_skill(ch, sn);
+        if ( base_skill == 0 )
+            continue;
+        
+        if ( counter++ > 0 )
+        {
+            if ( counter % 2 == 1 )
+                add_buf(buffer, "\n\r");
+            else
+                add_buf(buffer, "    ");
+        }
+        add_buff(buffer, "%-20s %3d%%(%3d%%)", skill_table[sn].name, base_skill, skill);
+    }
+    add_buf(buffer, "\n\r");
+    page_to_char(buf_string(buffer), viewer);
+    free_buf(buffer);
+}
+
+void show_advanced_skills( CHAR_DATA *ch )
+{
+    int sn, counter = 0;
+    
+    ptc(ch, "Advanced skills (and spells):");
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+    {
+        int skill = get_skill_overflow(ch, sn);
+        if ( skill > 0 )
+        {
+            const char *sep = (++counter % 2 == 1 ? "\n\r  " : "    ");
+            ptc(ch, "%s%-20s %3d%%", sep, skill_table[sn].name, skill);
+        }
+    }
+    ptc(ch, "\n\r");
+    if ( counter == 0 )
+        ptc(ch, "No advanced skills found.\n\r");
+}
+
 DEF_DO_FUN(do_skills)
 {
 	BUFFER *buffer;
@@ -1219,8 +1268,12 @@ DEF_DO_FUN(do_skills)
 	bool fAll = FALSE, found = FALSE;
 	char buf[MAX_STRING_LENGTH];
 
-	if (IS_NPC(ch))
-	  return;
+    if ( IS_NPC(ch) )
+    {
+        one_argument(argument, arg);
+        show_skills_npc(ch, !strcmp(arg, "all"), ch);
+        return;
+    }
 
 	if (argument[0] != '\0')
 	{
@@ -1233,11 +1286,17 @@ DEF_DO_FUN(do_skills)
         return;
     }
 
+    if ( !strcmp(arg, "advanced") )
+    {
+        show_advanced_skills(ch);
+        return;
+    }
+
 	if (str_prefix(arg,"all"))
 	{
 		if (!is_number(arg))
 		{
-		send_to_char("Arguments must be numerical or all.\n\r",ch);
+		send_to_char("Arguments must be numerical, advanced or all.\n\r",ch);
 		return;
 		}
 		max_lev = atoi(arg);
@@ -1254,7 +1313,7 @@ DEF_DO_FUN(do_skills)
 		argument = one_argument(argument,arg);
 		if (!is_number(arg))
 		{
-			send_to_char("Arguments must be numerical or all.\n\r",ch);
+			send_to_char("Argument must be numerical.\n\r",ch);
 			return;
 		}
 		min_lev = max_lev;
@@ -2204,7 +2263,7 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
 {
     int skill = 50 + ch->level / 4;
 
-    if (sn < -1 || sn > MAX_SKILL)
+    if (sn < -1 || sn >= MAX_SKILL)
     {
         bug("Bad sn %d in mob_get_skill.",sn);
         return 0;
@@ -2269,7 +2328,7 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 	    skill = ch->level;
 	}
 
-	else if (sn < -1 || sn > MAX_SKILL)
+	else if (sn < -1 || sn >= MAX_SKILL)
 	{
 		bug("Bad sn %d in skill_prac.",sn);
 		skill = 0;
@@ -2285,71 +2344,60 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 	return URANGE(0,skill,100);
 }
 
-int pc_get_skill(CHAR_DATA *ch, int sn)
+// returns base skill for pc, as well as overflow when getting skill from multiple sources
+// passing NULL as overflow is valid (no overflow returned)
+static int pc_get_skill( CHAR_DATA *ch, int sn, int *overflow )
 {
-	int skill,race_skill,i;
-    bool has_skill = FALSE;
+    int skill, total;
 
-	if (sn == -1) /* shorthand for level based skills */
-	{
-	    skill = ch->level;
-	}
-
-	else if (sn < -1 || sn > MAX_SKILL)
-	{
-		bug("Bad sn %d in pc_get_skill.",sn);
-		skill = 0;
-	}
-
-	if (ch->level < skill_table[sn].skill_level[ch->class])
-		skill = 0;
-	else
-	{
-        skill = ch->pcdata->learned[sn];
-        if ( skill > 0 )
-        {
-            skill = (skill*skill_table[sn].cap[ch->class])/10;
-            has_skill = TRUE;
-        }
-	}
-
-	/* adjust for race skill */
-	race_skill = get_race_skill( ch, sn );
-	if ( race_skill > 0 )
+    if ( sn == -1 ) /* shorthand for level based skills */
     {
-	    skill = skill * (100 - race_skill) / 100 + race_skill * 10;
-        has_skill = TRUE;
+        skill = ch->level;
+    }
+    else if (sn < -1 || sn >= MAX_SKILL)
+    {
+        bug("Bad sn %d in pc_get_skill.", sn);
+        return 0;
+    }
+    else if ( ch->level < skill_table[sn].skill_level[ch->class] )
+        skill = 0;
+    else
+        skill = ch->pcdata->learned[sn] * skill_table[sn].cap[ch->class] / 100;
+    
+    total = skill;
+
+    /* adjust for race skill */
+    int race_skill = get_race_skill( ch, sn );
+    if ( race_skill > 0 )
+    {
+        skill = skill * (100 - race_skill) / 100 + race_skill;
+        total += race_skill;
     }
 
+    /* adjust for subclass skill */
     int subclass_skill = get_subclass_skill(ch, sn);
     if ( subclass_skill > 0 )
     {
-        skill = skill * (100 - subclass_skill) / 100 + subclass_skill * 10;
-        has_skill = TRUE;
+        skill = skill * (100 - subclass_skill) / 100 + subclass_skill;
+        total += subclass_skill;
     }
-    if ( !has_skill )
-        return 0;
     
-    // adjustment for stats below max
-	if (skill)
-	{
-		i = 3 * get_curr_stat(ch, skill_table[sn].stat_prime);
-		i+= 2 * get_curr_stat(ch, skill_table[sn].stat_second);
-		i+= get_curr_stat(ch, skill_table[sn].stat_third);
-		skill *= (i/6 + 800) / 1000.0;
-
-		if (skill<10)
-			skill = 10;
-	}
-
-	if (ch->pcdata->condition[COND_DRUNK]>10 && !IS_AFFECTED(ch, AFF_BERSERK))
-		skill = 9 * skill / 10;
-
-        skill = URANGE(1, skill/10, 100);
-
-        return skill;
+    // return overflow if required
+    if ( overflow != NULL )
+        *overflow = total - skill;
+    
+    return skill;
 }
 
+int get_skill_overflow( CHAR_DATA *ch, int sn )
+{
+    if ( IS_NPC(ch) )
+        return 0;
+
+    int overflow = 0;
+    pc_get_skill(ch, sn, &overflow);
+    return overflow;
+}
 
 /* for returning skill information */
 int get_skill(CHAR_DATA *ch, int sn)
@@ -2359,11 +2407,11 @@ int get_skill(CHAR_DATA *ch, int sn)
 	if (IS_NPC(ch))
 	    skill = mob_get_skill(ch, sn);
 	else
-	    skill = pc_get_skill(ch, sn);
+	    skill = pc_get_skill(ch, sn, NULL);
 
     if ( skill == 0 )
         return 0;
-    
+
     // generic modifier to all skills
     if ( ch->mod_skills )
     {
@@ -2374,21 +2422,31 @@ int get_skill(CHAR_DATA *ch, int sn)
             skill = skill * (100 + mod) / 100;
     }
     
+    // adjustment for stats below max
+    int statSum = 3 * get_curr_stat(ch, skill_table[sn].stat_prime);
+    statSum += 2 * get_curr_stat(ch, skill_table[sn].stat_second);
+    statSum += get_curr_stat(ch, skill_table[sn].stat_third);
+
+    float factor = (statSum/6.0 + 800) / 1000.0;
+    
+    if ( ch->pcdata && ch->pcdata->condition[COND_DRUNK] > 10 && !IS_AFFECTED(ch, AFF_BERSERK) )
+        factor *= 0.9;
+    
     if (ch->daze > 0)
     {
         if (skill_table[sn].spell_fun != spell_null)
-            skill /= 2;
+            factor *= 0.5;
         else
-            skill = skill * 2/3;
+            factor *= 0.666;
     }
     
-    /* encumberance */
-    skill = skill * (1000 - get_encumberance(ch)) / 1000;
-
     /* injury */
     // needed to avoid infinite recursion for ashura, and true grit only works a 1 hp left
     if ( sn != gsn_ashura && sn != gsn_true_grit )
-        skill = skill * (100 - get_injury_penalty(ch)) / 100;
+        factor *=  (100 - get_injury_penalty(ch)) / 100.0;
+    
+    // apply all factors in one go to reduce rounding errors
+    skill *= factor;
     
     /* poison & disease */
     if ( skill > 1 && IS_AFFECTED(ch, AFF_POISON) )
@@ -2397,6 +2455,11 @@ int get_skill(CHAR_DATA *ch, int sn)
         skill -= 1;
 
     return URANGE(1, skill, 100);
+}
+
+int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight )
+{
+    return get_skill(ch, sn) + get_skill_overflow(ch, sn) * overflow_weight;
 }
 
 /* This is used for returning the practiced % of a skill for a player */
