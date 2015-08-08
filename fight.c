@@ -5302,7 +5302,7 @@ bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( skill == 0 || ch == victim || !check_see_combat(victim, ch) )
         return FALSE;
 
-    int chance = skill * 2/3;
+    int chance = (2 * skill + get_skill_overflow(victim, gsn_quick_draw)) / 3;
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 6;
     if ( get_weapon_sn(victim) != gsn_gun )
         chance /= 2;
