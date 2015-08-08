@@ -3562,13 +3562,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int absorb = URANGE(0, max_absorb, victim->move);
         if ( absorb > 0 )
         {
-            int absorb_roll = number_range(0, absorb);
+            // true grit overflow prevents death from minor injuries
+            int absorb_ignore = victim->level * get_skill_overflow(victim, gsn_true_grit) / 100;
+            int absorb_roll = number_range(0, absorb - absorb_ignore);
             int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
             #ifdef TESTER
-            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);
+            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
             #endif
-            if ( grit_roll > absorb_roll )
+            if ( grit_roll >= absorb_roll )
             {
                 victim->move -= absorb;
                 dam -= absorb;
