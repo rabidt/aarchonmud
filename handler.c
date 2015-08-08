@@ -3848,11 +3848,8 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
         roll_ch *= 2;
 
     /* alertness skill */
-    if (number_percent() < get_skill(ch, gsn_alertness))
-    {
-        roll_ch *= 2;
-        check_improve(ch,gsn_alertness,TRUE,15);
-    }    
+    roll_ch += roll_ch * get_skill_total(ch, gsn_alertness, 0.5) / 100;
+    check_improve(ch, gsn_alertness, TRUE, 15);
 
     /* now the roll */
     return number_range(0, roll_ch) > number_range(0, roll_victim * 5);
