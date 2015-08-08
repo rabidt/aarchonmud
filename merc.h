@@ -5124,6 +5124,7 @@ void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
 void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer );
 int get_skill_overflow( CHAR_DATA *ch, int sn );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
+int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int class );
 int get_group_cost( CHAR_DATA *ch, int gn );
