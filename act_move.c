@@ -41,7 +41,7 @@ DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
 void check_bleed( CHAR_DATA *ch, int dir );
-
+static bool has_boat( CHAR_DATA *ch );
 
 const char * const dir_name [MAX_DIR] =
 {
@@ -69,7 +69,7 @@ const   sh_int  rev_dir     []      =
 
 const   sh_int  movement_loss   [SECT_MAX]  =
 {
-   1, 2, 2, 3, 4, 6, 4, 1, 6, 10, 6, 4
+   1, 2, 2, 3, 4, 6, 4, 6, 6, 10, 6, 4
 };
 
 bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
@@ -330,7 +330,27 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             else
                 check_improve(ch,gsn_climbing,FALSE,3);
         }
-                    
+
+        // swimming
+        int deep_water = 0, under_water = 0;
+        if ( in_room->sector_type == SECT_WATER_DEEP )
+            deep_water++;
+        if ( to_room->sector_type == SECT_WATER_DEEP )
+            deep_water++;
+        if ( in_room->sector_type == SECT_UNDERWATER )
+            under_water++;
+        if ( to_room->sector_type == SECT_UNDERWATER )
+            under_water++;
+        
+        int swim_chance = get_skill_overflow(ch, gsn_swimming);
+        if ( IS_AFFECTED(ch, AFF_FLYING) || has_boat(ch) || per_chance(swim_chance) )
+            move -= deep_water;
+        if ( per_chance(swim_chance) )
+            move -= under_water;
+        
+        // safety-net
+        move = UMAX(1, move);
+            
         int waitpulse = 2 + move / 6;
 
         if ( IS_AFFECTED(ch, AFF_SLOW) )
@@ -578,6 +598,15 @@ bool check_drown(CHAR_DATA *ch)
     return (ch->in_room != room);
 }
 
+static bool has_boat( CHAR_DATA *ch )
+{
+    OBJ_DATA *boat;
+    for ( boat=ch->carrying; boat; boat=boat->next_content )
+        if (boat->item_type == ITEM_BOAT)
+            return TRUE;
+    return FALSE;
+}
+
 bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
@@ -597,13 +626,8 @@ bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
     
     if ( inwater != SECT_UNDERWATER && towater != SECT_UNDERWATER )
     {
-        if (IS_AFFECTED(ch, AFF_FLYING))
+        if ( IS_AFFECTED(ch, AFF_FLYING) || has_boat(ch))
             return TRUE;
-
-        OBJ_DATA *boat;
-        for ( boat=ch->carrying; boat; boat=boat->next_content )
-            if (boat->item_type == ITEM_BOAT)
-                return TRUE;
     }
 
     int chance = (100 + get_skill(ch, gsn_swimming)) / 2;
