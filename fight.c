@@ -1298,11 +1298,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     // bonus attacks from haste, second/third/extra attack and dex; these are affected by slow
     int secondary_attacks = ch_dex_extrahit(ch) * 2
-        + get_skill(ch, gsn_second_attack) * 2/3
-        + get_skill(ch, gsn_third_attack) * 2/3
+        + get_skill_total(ch, gsn_second_attack, 0.5) * 2/3
+        + get_skill_total(ch, gsn_third_attack, 0.5) * 2/3
         + get_skill(ch, gsn_extra_attack) * 2/3
-        + get_skill_overflow(ch, gsn_second_attack) / 3
-        + get_skill_overflow(ch, gsn_third_attack) / 3
         + mastery_bonus(ch, gsn_second_attack, 15, 25)
         + mastery_bonus(ch, gsn_third_attack, 15, 25);
 
@@ -1750,8 +1748,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
     {
         // enhanced damage mastery increases bonus damage
-        int skill = get_skill(ch, gsn_enhanced_damage)
-            + get_skill_overflow(ch, gsn_enhanced_damage) / 2
+        int skill = get_skill_total(ch, gsn_enhanced_damage, 0.5)
             + mastery_bonus(ch, gsn_enhanced_damage, 30, 50);
         dam += ch->level * skill / 300;
         check_improve (ch, gsn_enhanced_damage, TRUE, 8);
@@ -1776,8 +1773,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     // flanking
     else if ( victim && victim != ch && has_combat_advantage(ch, victim) )
     {
-        int skill = get_skill(ch, gsn_flanking)
-            + get_skill_overflow(ch, gsn_flanking) / 2
+        int skill = get_skill_total(ch, gsn_flanking, 0.5)
             + mastery_bonus(ch, gsn_flanking, 30, 50);
         dam += ch->level * skill / 150;
         check_improve (ch, gsn_flanking, TRUE, 7);
@@ -1822,7 +1818,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             return dam * 3/4;
     }
 
-    dam += dam * (get_skill(ch, gsn_kung_fu) + get_skill_overflow(ch, gsn_kung_fu)) / 700;
+    dam += dam * get_skill_total(ch, gsn_kung_fu, 0.5) / 700;
 
     if ( sn == gsn_chop && get_eq_char(ch, WEAR_WIELD) == NULL )
         return dam;
@@ -5034,7 +5030,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     // offhand occupied means reduced block chance
     bool wrist_shield = offhand_occupied(ch);
 
-    int skill = get_skill(ch, gsn_shield_block) + get_skill_overflow(ch, gsn_shield_block) / 5;
+    int skill = get_skill_total(ch, gsn_shield_block, 0.2);
     int chance = 20 + skill / 4;
 
     if ( wrist_shield )
@@ -5121,7 +5117,7 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
 
 int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
-    int skill = get_skill(ch, gsn_dodge) + get_skill_overflow(ch, gsn_dodge) / 5;
+    int skill = get_skill_total(ch, gsn_dodge, 0.2);
 
     if ( improve )
         check_improve( ch, gsn_dodge, TRUE, 6);
@@ -5297,12 +5293,12 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
 
 bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int skill = get_skill(victim, gsn_quick_draw);
+    int skill = get_skill_total(victim, gsn_quick_draw, 0.5);
     
     if ( skill == 0 || ch == victim || !check_see_combat(victim, ch) )
         return FALSE;
 
-    int chance = (2 * skill + get_skill_overflow(victim, gsn_quick_draw)) / 3;
+    int chance = skill * 2/3;
     chance += (get_curr_stat(victim, STAT_DEX) - get_curr_stat(ch, STAT_DEX)) / 6;
     if ( get_weapon_sn(victim) != gsn_gun )
         chance /= 2;
