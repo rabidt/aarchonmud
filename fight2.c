@@ -2364,7 +2364,8 @@ DEF_DO_FUN(do_double_strike)
         if ( stop_attack(ch, victim) )
             return;
 
-        if ( hits == 2 && per_chance(mastery_bonus(ch, gsn_double_strike, 40, 50)) )
+        int rend_chance = mastery_bonus(ch, gsn_double_strike, 40, 50) + get_skill_overflow(ch, gsn_double_strike) * 2/5;
+        if ( hits == 2 && per_chance(rend_chance) )
         {
             act("You bury your weapons deep in $N, then rip them out sideways!", ch, NULL, victim, TO_CHAR);
             act("$n buries $s weapons deep in your body, then rips them out sideways!", ch, NULL, victim, TO_VICT);
