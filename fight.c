@@ -807,6 +807,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     CHAR_DATA *vch, *vch_next;
     int tempest;
+    bool dual_wielding = (get_eq_char(ch, WEAR_SECONDARY) != NULL);
     
     // area attacks
     if ( ch->stance == STANCE_JIHAD
@@ -829,6 +830,8 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 {
                     one_hit(ch, vch, dt, FALSE);
                     one_hit(ch, vch, dt, FALSE);
+                    if ( dual_wielding && per_chance(get_skill_overflow(ch, gsn_goblincleaver) / 2) )
+                        one_hit(ch, vch, dt, TRUE);
                 }
                 // kamikaze grants 1 additional attack against each opponent targeting you
                 else if ( ch->stance == STANCE_KAMIKAZE && vch->fighting == ch )
@@ -1014,7 +1017,8 @@ int dual_wield_skill( CHAR_DATA *ch, bool improve )
     
     // dual wield requires weight difference
     int dual_wield = get_skill(ch, gsn_dual_wield);
-    dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * 3/2);
+    float weightFactor = 300.0 / (200 + get_skill_overflow(ch, gsn_dual_wield));
+    dual_wield = dual_wield * wield_weight / UMAX(wield_weight, second_weight * weightFactor);
     
     if ( improve )
         check_improve(ch, gsn_dual_wield, TRUE, 5);
@@ -1078,7 +1082,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
-bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int victim_stat, int base_chance )
+bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
     // safety-net
     base_chance = URANGE(5, base_chance, 95);
@@ -1091,11 +1095,13 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int ch_stat, int v
     if ( ch_stat != STAT_NONE )
         ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
     ch_roll *= 5 + ch->size;
+    ch_roll *= (500 + get_skill_overflow(ch, sn)) / 500.0;
     
     int victim_roll = -get_save(victim, TRUE);
     if ( victim_stat != STAT_NONE )
         victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
     victim_roll *= 5 + victim->size;
+    victim_roll *= (500 + get_skill_overflow(victim, sn)) / 500.0;
     
     // adjust for base chance
     if ( base_chance < 50 )
@@ -1176,6 +1182,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     int chance, mastery_chance, area_attack_sn;
+    int attacks;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1280,14 +1287,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                     
     if (ch->fighting != victim)
 	return;
-                    
-    if (number_percent() < get_skill(ch, gsn_extra_attack) * 2/3 )
-    {
-	one_hit(ch,victim,dt,FALSE);
-	if (ch->fighting != victim)
-	    return;
-    }
-
+    
     if ( wield != NULL && wield->value[0] == WEAPON_DAGGER
 	 && number_bits(4) == 0 )
     {
@@ -1296,56 +1296,59 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	    return;
     }
     
+    // bonus attacks from haste, second/third/extra attack and dex; these are affected by slow
+    int secondary_attacks = ch_dex_extrahit(ch) * 2
+        + get_skill_total(ch, gsn_second_attack, 0.5) * 2/3
+        + get_skill_total(ch, gsn_third_attack, 0.5) * 2/3
+        + get_skill(ch, gsn_extra_attack) * 2/3
+        + mastery_bonus(ch, gsn_second_attack, 15, 25)
+        + mastery_bonus(ch, gsn_third_attack, 15, 25);
+
     if ( IS_AFFECTED(ch, AFF_HASTE) )
+        secondary_attacks += 100;
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
+        secondary_attacks /= 2;
+    
+    for ( attacks = secondary_attacks; attacks > 0; attacks -= 100 )
     {
-        one_hit(ch,victim,dt,FALSE);
-        if (ch->fighting != victim)
+        if ( attacks < 100 && !per_chance(attacks) )
+            break;
+        one_hit(ch, victim, dt, FALSE);
+        if ( ch->fighting != victim )
             return;
     }
-
-    chance = offhand_attack_chance(ch, TRUE);
-    
-#define OFFHAND_ATTACK {one_hit(ch,victim,dt,TRUE);if(ch->fighting!=victim)return;}
-    if ( per_chance(chance) )
+    check_improve(ch, gsn_second_attack, TRUE, 5);
+    check_improve(ch, gsn_third_attack, TRUE, 5);
+                    
+    // offhand attacks
+    int offhand_chance = offhand_attack_chance(ch, TRUE);
+    if ( offhand_chance > 0 )
     {
+        int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
+        // mastery bonus
         int gsn_dual = dual_weapon_sn(ch);
         int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
-        int dex_chance = ch_dex_extrahit(ch);
-
-        // one attack for wielding an offhand weapon
-        OFFHAND_ATTACK
+        if ( mastery > 0 )
+            offhand_attacks += 5 + 10 * mastery;
+        // haste, ambidexterity and dagger
+        if ( IS_AFFECTED(ch, AFF_HASTE) )
+            offhand_attacks += 50;
+        offhand_attacks += secondary_attacks * get_skill(ch, gsn_ambidextrous) / 200;
+        if ( second != NULL && second->value[0] == WEAPON_DAGGER )
+            offhand_attacks += 5;
         
-        // mastery bonus attack
-        if ( per_chance(mastery ? 5 + 10*mastery : 0) )
-            OFFHAND_ATTACK
-
-        // extra attack is 2/3 main hand and 1/3 offhand
-        if ( per_chance(get_skill(ch, gsn_extra_attack)/3) )
-            OFFHAND_ATTACK
+        // adjust for offhand chance
+        offhand_attacks *= offhand_chance / 100.0;
         
-        // ambidexterity allows full use of second and third attack skills
-        bool ambidextrous = per_chance(get_skill(ch, gsn_ambidextrous));
-        if ( ambidextrous )
+        for ( attacks = offhand_attacks; attacks > 0; attacks -= 100 )
         {
-            if ( per_chance(get_skill(ch, gsn_second_attack) * 2/3) + dex_chance )
-                OFFHAND_ATTACK
-            if ( per_chance(get_skill(ch, gsn_third_attack) * 2/3) + dex_chance )
-                OFFHAND_ATTACK
+            if ( attacks < 100 && !per_chance(attacks) )
+                break;
+            one_hit(ch, victim, dt, TRUE);
+            if ( ch->fighting != victim )
+                return;
         }
-        else
-        {
-            // normal chance for extra offhand attack based on dex
-            if ( per_chance(dex_chance) )
-                OFFHAND_ATTACK
-        }
-
-        if ( IS_AFFECTED(ch,AFF_HASTE) && (number_bits(1) == 0 || ambidextrous) )
-                OFFHAND_ATTACK
-
-        if ( second != NULL && second->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
-                OFFHAND_ATTACK
     }
-#undef OFFHAND_ATTACK
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
     {
@@ -1395,41 +1398,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
     
-    chance = get_skill(ch,gsn_second_attack) * 2/3 +  ch_dex_extrahit(ch);
-    
-    if (IS_AFFECTED(ch,AFF_SLOW))
-        chance /= 2;
-
-    if ( number_percent( ) < chance )
-    {
-        one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_second_attack,TRUE,5);
-        if ( ch->fighting != victim )
-            return;
-    }
-    
-    chance = get_skill(ch,gsn_third_attack) * 2/3 + ch_dex_extrahit(ch);
-
-    if (IS_AFFECTED(ch,AFF_SLOW) )
-        chance = 0;
-
-    if ( number_percent( ) < chance )
-    {
-        one_hit( ch, victim, dt, FALSE);
-        check_improve(ch,gsn_third_attack,TRUE,5);
-        if ( ch->fighting != victim )
-            return;
-    }
-
-    // second & third attack mastery
-    mastery_chance = mastery_bonus(ch, gsn_second_attack, 15, 25) + mastery_bonus(ch, gsn_third_attack, 15, 25);
-    if ( per_chance(mastery_chance) )
-    {
-        one_hit(ch, victim, dt, FALSE);
-        if ( ch->fighting != victim )
-            return;
-    }
-
     if ( per_chance(get_skill(ch, gsn_ashura))
         && ch->max_hit > 0 && !per_chance(100 * ch->hit / ch->max_hit) )
     {
@@ -1449,7 +1417,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             return;
     }
 
-    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, STAT_STR, STAT_STR, 50) )
+    if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, gsn_boa, STAT_STR, STAT_STR, 50) )
     {
         send_to_char("You are constricted and unable to act.\n\r", victim);
         act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
@@ -1499,6 +1467,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -1780,7 +1750,9 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     else
     {
         // enhanced damage mastery increases bonus damage
-        dam += ch->level * (get_skill(ch, gsn_enhanced_damage) + mastery_bonus(ch, gsn_enhanced_damage, 30, 50)) / 300;
+        int skill = get_skill_total(ch, gsn_enhanced_damage, 0.5)
+            + mastery_bonus(ch, gsn_enhanced_damage, 30, 50);
+        dam += ch->level * skill / 300;
         check_improve (ch, gsn_enhanced_damage, TRUE, 8);
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
         check_improve (ch, gsn_brutal_damage, TRUE, 8);
@@ -1803,7 +1775,9 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     // flanking
     else if ( victim && victim != ch && has_combat_advantage(ch, victim) )
     {
-        dam += ch->level * (get_skill(ch, gsn_flanking) + mastery_bonus(ch, gsn_flanking, 30, 50)) / 150;
+        int skill = get_skill_total(ch, gsn_flanking, 0.5)
+            + mastery_bonus(ch, gsn_flanking, 30, 50);
+        dam += ch->level * skill / 150;
         check_improve (ch, gsn_flanking, TRUE, 7);
     }
 
@@ -1828,6 +1802,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     int dam = one_hit_damage( ch, victim, sn, NULL );
     
     dam += dam * mastery_bonus(ch, sn, 15, 25) / 100;
+    dam += dam * get_skill_overflow(ch, sn) / 500;
 
     if ( sn == gsn_bite )
     {
@@ -1845,8 +1820,7 @@ int martial_damage( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             return dam * 3/4;
     }
 
-    if ( chance(get_skill(ch, gsn_kung_fu)) )
-        dam += dam / 7;
+    dam += dam * get_skill_total(ch, gsn_kung_fu, 0.5) / 700;
 
     if ( sn == gsn_chop && get_eq_char(ch, WEAR_WIELD) == NULL )
         return dam;
@@ -1948,7 +1922,7 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
         return 0;
 
     bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-    bonus += get_skill( ch->leader, gsn_leadership );
+    bonus += get_skill_total(ch->leader, gsn_leadership, 0.5);
     bonus += ch->leader->level - ch->level;
     
     if ( IS_UNDEAD(ch) )
@@ -2178,7 +2152,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     /* get the weapon skill */
     sn = get_weapon_sn_new(ch, secondary);
-    skill = 50 + get_weapon_skill(ch, sn) / 2;
+    skill = 50 + get_weapon_skill(ch, sn) / 2 + get_skill_overflow(ch, sn) / 20;
     
     check_killer( ch, victim );
 
@@ -2412,9 +2386,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	 && !is_retribute
 	 && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-	is_retribute = TRUE;
-	one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
-	is_retribute = FALSE;
+        int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
+        is_retribute = TRUE;
+        // if retribution fails, we may get another try
+        if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
+            one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+        is_retribute = FALSE;
     }
 
     /* kung fu mastery */
@@ -3376,6 +3353,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if ( stance != STANCE_DEFAULT )
         {
+            int overflow = get_skill_overflow(ch, *(stances[stance].gsn));
             if (   stance == STANCE_BEAR 
                 || stance == STANCE_DRAGON
                 || stance == STANCE_LION
@@ -3385,7 +3363,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 || stance == STANCE_DIMENSIONAL_BLADE
                 || stance == STANCE_KORINNS_INSPIRATION 
                 || stance == STANCE_PARADEMIAS_BILE )
+            {
                 dam += 5 + dam / 5;
+                dam += dam * overflow / 2000;
+            }
             else if ( stance == STANCE_SERPENT )
                 dam += dam / 4;
             else if ( stance == STANCE_AVERSION )
@@ -3405,12 +3386,27 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             else if ( stance == STANCE_SCORPION
                 || stance == STANCE_SHADOWESSENCE )
                 dam += 2 + dam/10;
+            // skill overflow bonus for shadow stances
+            if ( ch->stance == STANCE_SHADOWWALK
+                || ch->stance == STANCE_SHADOWCLAW
+                || ch->stance == STANCE_SHADOWESSENCE
+                || ch->stance == STANCE_SHADOWSOUL )
+            {
+                if ( room_is_dark(ch->in_room) )
+                    dam += dam * overflow / 1000;
+                else if ( room_is_dim(ch->in_room) )
+                    dam += dam * overflow / 2000;
+            }
         }
         /* victim stance can influence damage too */
         if ( victim->stance != STANCE_DEFAULT )
         {
             if ( victim->stance == STANCE_BLOODBATH )
-                dam += (20 + dam) / 4; 
+            {
+                int bonus = (20 + dam) / 4;
+                int overflow = get_skill_overflow(victim, gsn_bloodbath);
+                dam += bonus * 100 / (100 + overflow);
+            }
             else if ( victim->stance == STANCE_KAMIKAZE )
                 dam += (18 + dam) / 6;
             else if ( victim->stance == STANCE_TORTOISE
@@ -3568,13 +3564,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int absorb = URANGE(0, max_absorb, victim->move);
         if ( absorb > 0 )
         {
-            int absorb_roll = number_range(0, absorb);
+            // true grit overflow prevents death from minor injuries
+            int absorb_ignore = victim->level * get_skill_overflow(victim, gsn_true_grit) / 100;
+            int absorb_roll = number_range(0, absorb - absorb_ignore);
             int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
             #ifdef TESTER
-            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb, absorb_roll, grit_roll, grit_max);
+            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
             #endif
-            if ( grit_roll > absorb_roll )
+            if ( grit_roll >= absorb_roll )
             {
                 victim->move -= absorb;
                 dam -= absorb;
@@ -4821,12 +4819,11 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
         chance -= mastery_bonus(ch, gsn_hand_to_hand, 6, 10);
 
     /* two-handed weapons are harder to parry with non-twohanded */
-    if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL
-	 && IS_WEAPON_STAT(ch_weapon_obj, WEAPON_TWO_HANDS) )
+    if ( (ch_weapon_obj = get_eq_char(ch, WEAR_WIELD)) != NULL && IS_WEAPON_STAT(ch_weapon_obj, WEAPON_TWO_HANDS) )
     {
-	if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL
-	     || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
-	    chance /= 2;
+        if ( (victim_weapon_obj = get_eq_char(victim, WEAR_WIELD)) == NULL || !IS_WEAPON_STAT(victim_weapon_obj, WEAPON_TWO_HANDS) )
+            // skill overflow prevents parry with non-twohanded weapon completely
+            chance = chance * (100 - get_skill_overflow(ch, gsn_two_handed)) / 200;
     }
 
     if ( !can_see_combat(victim, ch) && blind_penalty(victim) )
@@ -5037,10 +5034,14 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     // offhand occupied means reduced block chance
     bool wrist_shield = offhand_occupied(ch);
 
-    int chance = 20 + get_skill(ch, gsn_shield_block) / 4;
+    int skill = get_skill_total(ch, gsn_shield_block, 0.2);
+    int chance = 20 + skill / 4;
 
     if ( wrist_shield )
-        chance = (chance - 10) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    {
+        int penalty = (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 10;
+        chance = (chance - UMAX(0, penalty)) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    }
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
@@ -5120,7 +5121,7 @@ bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
 
 int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
-    int skill = get_skill(ch, gsn_dodge);
+    int skill = get_skill_total(ch, gsn_dodge, 0.2);
 
     if ( improve )
         check_improve( ch, gsn_dodge, TRUE, 6);
@@ -5296,7 +5297,7 @@ void set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger )
 
 bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int skill = get_skill(victim, gsn_quick_draw);
+    int skill = get_skill_total(victim, gsn_quick_draw, 0.5);
     
     if ( skill == 0 || ch == victim || !check_see_combat(victim, ch) )
         return FALSE;
@@ -6807,7 +6808,7 @@ bool check_lasso( CHAR_DATA *victim )
             continue;
         }
 
-        if ( combat_maneuver_check(opp, victim, STAT_DEX, STAT_AGI, 50) )
+        if ( combat_maneuver_check(opp, victim, gsn_hogtie, STAT_DEX, STAT_AGI, 50) )
         {
             act( "$n catches you!", opp, NULL, victim, TO_VICT    );
             act( "You catch $N!", opp, NULL, victim, TO_CHAR    );

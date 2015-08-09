@@ -377,7 +377,7 @@ int hit_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].hp_gain / 100;
 
-    gain += gain * (get_skill(ch, gsn_fast_healing) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
+    gain += gain * (get_skill_total(ch, gsn_fast_healing, 0.5) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
     if ( ch->hit < ch->max_hit )
         check_improve(ch, gsn_fast_healing, TRUE, 5);
 
@@ -425,7 +425,7 @@ int mana_gain( CHAR_DATA *ch )
 
     if ( ch->position == POS_RESTING )
     {
-        gain += gain * (get_skill(ch, gsn_meditation) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
+        gain += gain * (get_skill_total(ch, gsn_meditation, 0.5) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
         if ( ch->mana < ch->max_mana )
             check_improve(ch, gsn_meditation, TRUE, 3);
     }
@@ -463,7 +463,7 @@ int move_gain( CHAR_DATA *ch )
     if ( !IS_NPC(ch) )
         gain = gain * class_table[ch->class].move_gain / 100;
 
-    gain += gain * (get_skill(ch, gsn_endurance) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
+    gain += gain * (get_skill_total(ch, gsn_endurance, 0.5) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < ch->max_move )
         check_improve(ch, gsn_endurance, TRUE, 6);
 
@@ -1043,7 +1043,7 @@ void mobile_update( void )
 void mobile_timer_update( void )
 {
     CHAR_DATA *ch;
-
+    
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
@@ -2547,6 +2547,9 @@ void update_handler( void )
     /* update some things once per hour */
     if ( current_time % HOUR == 0 )
     {
+       /* check for lboard resets at the top of the hour */
+	check_lboard_reset();
+       
         if ( hour_update )
         {
             /* update herb_resets every 6 hours */
