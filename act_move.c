@@ -267,6 +267,8 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             return ch->in_room == to_room ? door : -1;
         if ( to_room && !ap_exit_trigger(ch, to_room->area) )
             return ch->in_room == to_room ? door : -1;
+        if ( to_room && !op_move_trigger(ch) )
+            return ch->in_room == to_room ? door : -1;
     }
 
     if ( !can_move_dir(ch, door, TRUE) )
