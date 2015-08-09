@@ -137,6 +137,25 @@ bool op_try_trigger( const char *trigger, CHAR_DATA *ch )
     return found;
 }
 
+
+bool op_move_trigger( CHAR_DATA *ch )
+{
+    OBJ_DATA *obj, *next_obj;
+    bool rtn=TRUE;
+
+    for ( obj = ch->carrying ; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_MOVE) )
+        {
+            rtn = rtn && op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_MOVE); 
+        }
+    }
+
+    return rtn;
+}
+
 void op_speech_trigger( const char *argument, CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
