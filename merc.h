@@ -3217,7 +3217,7 @@ struct  mastery_group_type
 #define OTRIG_DRINK (cc)
 #define OTRIG_REST  (dd)
 #define OTRIG_SLEEP (ee)
-
+#define OTRIG_MOVE  (ff)
 /*
  * AREAprog definitions
  */
@@ -5031,6 +5031,7 @@ int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
 
 /* obj_prog.c */
+bool op_move_trigger( CHAR_DATA *ch );
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
 bool op_act_trigger( OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *trigger, int type );
 void op_speech_trigger( const char *argument, CHAR_DATA *ch );
