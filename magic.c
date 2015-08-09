@@ -1157,7 +1157,7 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
     return cost;
 }
 
-int meta_magic_adjust_wait( int wait )
+int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
 {
     if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
         wait *= 2;
@@ -1165,7 +1165,10 @@ int meta_magic_adjust_wait( int wait )
     // can't reduce below half a round (e.g. dracs)
     int min_wait = PULSE_VIOLENCE / 2;
     if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) && wait > min_wait )
-        wait = UMAX(min_wait, wait / 2);
+    {
+        float quicken_factor = 100.0 / (200 + get_skill_overflow(ch, gsn_quicken_spell));
+        wait = UMAX(min_wait, wait * quicken_factor);
+    }
 
     return wait;
 }
@@ -1417,12 +1420,16 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // calculate level - needed prior to casting check
     level = ch->level;
     level = (100+chance)*level/200;
-    level = URANGE(1, level, 200);
+    // additive adjustments
+    level += (20 + ch->level) * get_skill_overflow(ch, sn) / 1000;
+    if ( is_malediction(sn) )
+        level += (20 + ch->level) * get_skill(ch, gsn_arcane_defiling) / 500;
+    // generic adjustments
+    level = mastery_adjust_level(level, get_mastery(ch, sn));
+    // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
-    level = mastery_adjust_level(level, get_mastery(ch, sn));
-    if ( is_malediction(sn) )
-        level += level * get_skill(ch, gsn_arcane_defiling) / 400;
+    level = URANGE(1, level, 200);
     
     // check if spell could be cast successfully
     // that's done via a call to the spell function with check = TRUE
@@ -1436,7 +1443,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     }
 
     wait = skill_table[sn].beats * (200-chance) / 100;
-    wait = meta_magic_adjust_wait(wait);
+    wait = meta_magic_adjust_wait(ch, wait);
     /* Check for overcharge (less lag) */
     if ( overcharging )
         wait /= 4;
@@ -5366,7 +5373,6 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
