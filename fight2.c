@@ -1857,9 +1857,8 @@ DEF_DO_FUN(do_war_cry)
     af.where     = TO_AFFECTS;
     af.type      = gsn_war_cry;
     af.level     = level;
-    af.duration  = get_duration(gsn_war_cry, level);
+    af.duration  = get_duration(gsn_war_cry, level) * (100 + get_skill_overflow(ch, gsn_war_cry)) / 100;
     af.bitvector = 0;
-    
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
