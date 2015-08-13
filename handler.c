@@ -1867,8 +1867,6 @@ int get_heavy_armor_bonus( CHAR_DATA *ch )
 int get_heavy_armor_penalty( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_heavy_armor) + mastery_bonus(ch, gsn_heavy_armor, 30, 50);
-    if ( IS_SET(ch->form, FORM_ARMORED) )
-        skill += 30;
     return get_heavy_armor_bonus(ch) * (300 - skill) / 300;
 }
 
