@@ -548,7 +548,9 @@ DEF_DO_FUN(do_hunt)
    /*
     * Give a random direction if the player misses the die roll.
     */
-    if ( !IS_IMMORTAL(ch) && per_chance(hunt_fail_chance(skill, distance, mastery)) )
+    int fail_chance = hunt_fail_chance(skill, distance, mastery);
+    int reroll_chance = (100 - fail_chance) * get_skill_overflow(ch, gsn_hunt) / 100;
+    if ( !IS_IMMORTAL(ch) && per_chance(fail_chance) && !per_chance(reroll_chance) )
     {
         do
         {
