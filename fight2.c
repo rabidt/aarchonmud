@@ -3088,7 +3088,7 @@ void rake_char( CHAR_DATA *ch, CHAR_DATA *victim)
     if ( check_hit(ch, victim, gsn_rake, DAM_SLASH, skill) )
     {
         int razor_skill = get_skill(ch, gsn_razor_claws);
-        if ( per_chance(razor_skill) && number_bits(9) == 69 )
+        if ( per_chance(razor_skill) && number_bits(8) == 69 )
         {
             /* behead */
             act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
