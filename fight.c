@@ -637,6 +637,15 @@ void special_affect_update(CHAR_DATA *ch)
         if ( af != NULL )
             af->modifier = 0;
     }
+    
+    /* Quickling invisibility */
+    if ( ch->fighting == NULL && IS_SET(race_table[ch->race].affect_field, AFF_INVISIBLE)
+        && !IS_AFFECTED(ch, AFF_INVISIBLE) && IS_AFFECTED(ch, AFF_SNEAK) )
+    {
+        SET_AFFECT(ch, AFF_INVISIBLE);
+        send_to_char("You turn invisible once more.\n\r", ch);
+    }
+
 }
 
 /* check wether a char succumbs to his fears and tries to flee */
