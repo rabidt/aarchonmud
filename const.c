@@ -806,7 +806,7 @@ struct align_type align_table [] =
     "mummy", TRUE,
     {}, {}, {},
     {}, {RES_POISON,RES_DISEASE,RES_NEGATIVE}, {VULN_FIRE,VULN_HOLY},
-    {A,H,I,M,V}, {A,B,C,D,E,F,G,H,I,J,K}
+    {A,H,I,M,V,oo}, {A,B,C,D,E,F,G,H,I,J,K}
     },
     
     {
