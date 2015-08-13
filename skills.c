@@ -2460,6 +2460,11 @@ int get_skill(CHAR_DATA *ch, int sn)
     return URANGE(1, skill, 100);
 }
 
+int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight )
+{
+    return get_skill(ch, sn) + get_skill_overflow(ch, sn) * overflow_weight;
+}
+
 /* This is used for returning the practiced % of a skill for a player */
 int get_skill_prac(CHAR_DATA *ch, int sn)
 {
