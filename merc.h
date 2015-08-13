@@ -1517,6 +1517,7 @@ struct  kill_data
 #define FORM_CONSTRICT          (ll) //constriction attack
 #define FORM_MULTI_HEADED       (mm) //beheading resistance
 #define FORM_ARMORED            (nn) //-10 ac per level
+#define FORM_PESTILENT          (oo) //disease aura
 
 /* body parts */
 #define PART_HEAD               (A)
