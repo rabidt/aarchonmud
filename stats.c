@@ -1089,6 +1089,7 @@ DEF_DO_FUN(do_showrace)
     SFORM( FORM_CONSTRICT );
     SFORM( FORM_MULTI_HEADED );
     SFORM( FORM_ARMORED );
+    SFORM( FORM_PESTILENT );
 #undef SFORM
 
     if ( !flag_is_empty(special_forms) )

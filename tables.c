@@ -441,6 +441,7 @@ const struct flag_type form_flags[] =
     {   "constrict",    FORM_CONSTRICT,     TRUE    },
     {   "multi-headed", FORM_MULTI_HEADED,  TRUE    },
     {   "armored",      FORM_ARMORED,       TRUE    },
+    {   "pestilent",    FORM_PESTILENT,     TRUE    },
 	{   NULL,           0,          0   }
 };
 
