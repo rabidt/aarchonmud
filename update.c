@@ -1311,8 +1311,10 @@ void char_update( void )
         if (ch->must_extract)
             continue;
 
-        if ( !IS_NPC(ch) )
+        if ( !IS_NPC(ch) ) {
             update_learning(ch);
+            check_achievement(ch);
+        }
         
         /* Check for natural resistance */
         affect_strip (ch, gsn_natural_resistance);
