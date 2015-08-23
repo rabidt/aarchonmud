@@ -796,6 +796,7 @@ DEF_DO_FUN(do_master)
         printf_to_char(ch, "You forget some of the finer details about %s.\n\r", skill_table[sn].name);
         ch->pcdata->mastered[sn]--;
         ch->pcdata->smc_retrained++;
+        check_achievement(ch);
         return;
     }
     else if ( !strcmp(arg, "retrain") ) // like forget, but reclaims trains for gold
@@ -838,7 +839,7 @@ DEF_DO_FUN(do_master)
         deduct_cost(ch, cost*100);
         ch->train += reclaim;
         ch->pcdata->smc_retrained++;
-
+        check_achievement(ch);
         return;
     }
     else if ( (sn = known_skill_lookup(ch, argument)) > 0 )
@@ -911,6 +912,8 @@ DEF_DO_FUN(do_master)
             printf_to_char(ch, "You master the art of %s.\n\r", skill_table[sn].name);
         if ( ch->pcdata->mastered[sn] == 2 )
             printf_to_char(ch, "You are now a grandmaster in the art of %s.\n\r", skill_table[sn].name);
+
+        check_achievement(ch);
         return;
     }
     
