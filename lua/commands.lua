@@ -101,7 +101,19 @@ Limit (optional):
     is positive then top results are printed. If the value is negative then
     bottom results are printed.
 
-Notes: 
+Utility functions:
+    These functions can be used in Selection or Filter:
+    hasval(tbl, val1 [, val2, ...]) -- Return true if tbl has any of the 
+                                       given arguments as a value, otherwise
+                                       return false.
+    haskey(tbl, key1 [, key2, ...]) -- Return true if tbl has any of the 
+                                       given arguments as a key, otherwise 
+                                       return false. 
+    countval(tbl, val1 [, val2, ...]) -- Return total count of instances where a
+                                         value in tbl matches 1 or more of the 
+                                         given arguments.
+
+Other Notes: 
     'x' can be used optionally to qualify fields and methods. See examples.
 
     A field must be in the selection in order to be used in sort.
@@ -480,6 +492,40 @@ local function get_tokens(str)
     return tokens
 end
 
+local function new_luaq_fenv()
+    return {
+        pairs=pairs,
+        hasval=function(tbl, ...)
+            if #arg<1 then error("Must provide at least 1 value.") end
+            for k,v in pairs(tbl) do
+                for _,val in pairs(arg) do
+                    if v==val then return true end
+                end
+            end
+            return false
+        end,
+        haskey=function(tbl, ...)
+            if #arg<1 then error("Must provide at least 1 key.") end
+            for k,v in pairs(tbl) do
+                for _,key in pairs(arg) do
+                    if k==key then return true end
+                end
+            end
+            return false
+        end,
+        countval=function(tbl, ...)
+            if #arg<1 then error("Must provide at least 1 value.") end
+            local cnt=0
+            for k,v in pairs(tbl) do
+                for _,val in pairs(arg) do
+                    if v==val then cnt=cnt+1 end
+                end
+            end
+            return cnt
+        end
+    }
+end
+
 function do_luaquery( ch, argument)
     if argument=="" or argument=="help" then
         luaquery_usage(ch)
@@ -592,7 +638,7 @@ function do_luaquery( ch, argument)
         local filterfun=function(gobj)
             local vf,err=loadstring("return function(x) return "..filterarg.." end" )
             if err then error(err) return end
-            local fenv={ pairs=pairs }
+            local fenv=new_luaq_fenv() 
             local mt={ 
                 __index=function(t,k)
                     if k=="thisarea" then
@@ -637,9 +683,7 @@ function do_luaquery( ch, argument)
             if err then sendtochar(ch, err) return  end
             setfenv(vf,
                     setmetatable(
-                        {
-                            pairs=pairs
-                        }, 
+                        new_luaq_fenv(),
                         {   
                             __index=function(t,k)
                                 if type(gobj[k])=="function" then
