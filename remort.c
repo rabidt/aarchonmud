@@ -43,6 +43,7 @@ struct remort_chamber
 #define R7  64 // Astark added 12-21-12. Testing.
 #define R8  128 // Astark added 12-22-12. Testing.
 #define R9  256 // Enabled August 1 2014
+#define R10 512 // Enabled September 4 2015 (go live expected Sept 5)
 
 #define HOUR 3600
 #define DAY (24*HOUR)
@@ -50,7 +51,7 @@ struct remort_chamber
 
 /* Changed this from 15 to 16 to accommodate remort 7. We'll likely
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
-#define MAX_CHAMBER 22
+#define MAX_CHAMBER 26
 
 const struct remort_chamber chambers[] =
 {
@@ -79,6 +80,10 @@ const struct remort_chamber chambers[] =
     {"Remort: Curse of the Ages       ",   9800,    R9, FALSE},
     {"Remort: Curse of the Ages       ",  13500,    R9, FALSE},
     {"Remort: Curse of the Ages       ",  16500,    R9, FALSE},
+    {"Remort: Sundered Plains         ",  30479,   R10, FALSE},
+    {"Remort: Sundered Plains         ",  19979,   R10, FALSE},
+    {"Remort: Sundered Plains         ",  20579,   R10, FALSE},
+    {"Remort: Sundered Plains         ",  23579,   R10, TRUE},
     {NULL,			0, 0}
 };
 
