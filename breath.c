@@ -483,7 +483,7 @@ void check_draconic_breath( CHAR_DATA *ch )
         case MORPH_DRAGON_WHITE:
             act("$n breathes out a freezing cone of frost!", ch, NULL, NULL, TO_ROOM);
             act("You breathe out a cone of frost.", ch, NULL, NULL, TO_CHAR);
-            proto_draconic_breath(gsn_frost_breath, cost, ch, victim, DAM_POISON, &cold_effect, TRUE);
+            proto_draconic_breath(gsn_frost_breath, cost, ch, victim, DAM_COLD, &cold_effect, TRUE);
             break;
     }
 }
