@@ -2008,15 +2008,9 @@ DEF_SPELL_FUN(spell_bless)
     CHAR_DATA *victim;
     OBJ_DATA *obj;
     AFFECT_DATA af;
-    int bonus;
 
     SPELL_CHECK_RETURN
     
-    if (get_skill(ch, gsn_bless) >= 95 )
-        bonus = (ch->level/15);
-    else
-        bonus = 0;
-
     /* deal with the object case first */
     if (target == TARGET_OBJ)
     {
@@ -2082,12 +2076,12 @@ DEF_SPELL_FUN(spell_bless)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
-    af.modifier  = (level / 8) + bonus;
+    af.modifier  = (level + 20) / 8;
     af.bitvector = 0;
     affect_to_char( victim, &af );
 
     af.location  = APPLY_SAVES;
-    af.modifier  = 0 - level / 8;
+    af.modifier  = -(level + 20) / 8;
     affect_to_char( victim, &af );
     send_to_char( "You feel righteous.\n\r", victim );
     if ( ch != victim )
