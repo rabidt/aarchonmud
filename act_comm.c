@@ -730,6 +730,12 @@ DEF_DO_FUN(do_clantalk)
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->clan_history, buf);
+    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    {
+        open_chat_tag( ch );
+        send_to_char( buf, ch );
+        close_chat_tag( ch );
+    }
 
     argument = makedrunk(argument,ch);
     /* ACT is just unneccessary overhead here! Memnoch 03/98 */
@@ -760,6 +766,13 @@ DEF_DO_FUN(do_clantalk)
                 send_to_char(buf,d->character);
 				if ( !IS_NPC(ch) )
 					log_pers(d->character->pcdata->clan_history, buf);
+                if ( d->character->pcdata &&
+                        d->character->pcdata->guiconfig.chat_window )
+                {
+                    open_chat_tag( d->character );
+                    send_to_char( buf, d->character );
+                    close_chat_tag( d->character );
+                }
             }
         }
     }
