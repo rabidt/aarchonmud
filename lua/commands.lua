@@ -146,7 +146,7 @@ local lqtbl={
 
     area={ 
         getfun=getarealist,
-        default_sel="name"
+        default_sel={"name"}
     },
 
     op={
