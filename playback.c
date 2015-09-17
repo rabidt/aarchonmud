@@ -68,7 +68,6 @@ void comm_entry_free(COMM_ENTRY *entry)
 {
 	free_string(entry->timestamp);
 	free_string(entry->text);
-	free_string(entry->mimic_name);
 	free_string(entry->name);
 	free_mem(entry, sizeof(COMM_ENTRY) );
 }
@@ -163,8 +162,6 @@ void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry )
 
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
 {
-    char buf[MSL];
-
     /* write all the info for the new entry */
     COMM_ENTRY *entry=comm_entry_new();
 	
@@ -173,23 +170,13 @@ void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
     entry->timestamp = trim_realloc(str_dup(ctime(&current_time)));
 
     if (!IS_NPC(ch))
-      sprintf(buf,"%s%s", ch->pcdata->pre_title,ch->name);
-    else
-      sprintf(buf,"%s",ch->short_descr);
-
-    entry->name = str_dup(buf);
-    //check visibility
-    entry->invis=(IS_AFFECTED(ch, AFF_ASTRAL) || IS_AFFECTED(ch, AFF_INVISIBLE) || IS_WIZI(ch) || room_is_dark( ch->in_room));
-    //now mimic
-    if (is_mimic(ch))
     {
-        MOB_INDEX_DATA *mimic;
-		mimic = get_mimic(ch);
-        if (mimic != NULL)
-         entry->mimic_name = str_dup(mimic->short_descr);
+        entry->name = str_dup(ch->name);
     }
-    else 
-     entry->mimic_name = NULL;
+    else
+    {
+        entry->name = str_dup(ch->short_descr);
+    }
 
     /* Assign the correct history based on which channel.
     All public channels using public_history, immtalk uses
@@ -375,35 +362,12 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 			
         if (! IS_CHAN_OFF(ch, (entry->channel)) )
         {
-            if (IS_SET(ch->act, PLR_HOLYLIGHT) && entry->mimic_name != NULL)
-	    {
-                sprintf(buf,"%s::(%s{x){%c%s%s",entry->timestamp,
-                                         entry->name,
-                                         public_channel_table[entry->channel].prime_color,
-                                         entry->mimic_name,
-                                         entry->text);
-	    }
-            else if (entry->invis==TRUE && !IS_SET(ch->act, PLR_HOLYLIGHT))
-	    {
-                sprintf(buf, "%s::{%c%s%s", entry->timestamp,
-                                         public_channel_table[entry->channel].prime_color, 
-                                         "someone",
-                                         entry->text);
-	    }
-            else if (entry->mimic_name != NULL)
-	    {
-                sprintf(buf,"%s::{%c%s%s", entry->timestamp,
-                                        public_channel_table[entry->channel].prime_color,
-                                        entry->mimic_name,
-                                        entry->text);
-	    }
-            else
-	    {
-                 sprintf(buf,"%s::{%c%s%s", entry->timestamp,
-                                        public_channel_table[entry->channel].prime_color,
-                                        entry->name,
-                                        entry->text);
-	    }
+            sprintf(buf,"%s::{%c%s%s", 
+                    entry->timestamp,
+                    public_channel_table[entry->channel].prime_color,
+                    entry->name,
+                    entry->text);
+
             add_buf(output,buf);
             add_buf(output,"{x\n\r");
         }
@@ -460,12 +424,6 @@ void push_comm_history( lua_State *LS, COMM_HISTORY *history )
         lua_pushstring( LS, entry->text );
         lua_setfield( LS, -2, "text" );
 
-        lua_pushboolean( LS, entry->invis );
-        lua_setfield( LS, -2, "invis" );
-
-        lua_pushstring( LS, entry->mimic_name );
-        lua_setfield( LS, -2, "mimic_name" );
-
         lua_pushstring( LS, entry->name );
         lua_setfield( LS, -2, "name" );
 
@@ -513,17 +471,6 @@ static void load_comm_history( lua_State *LS, COMM_HISTORY *history )
 
         lua_getfield( LS, -1, "text" );
         en->text=str_dup(luaL_checkstring( LS, -1));
-        lua_pop( LS, 1);
-
-        lua_getfield( LS, -1, "invis" );
-        en->invis=lua_toboolean( LS, -1 );
-        lua_pop( LS, 1);
-
-        lua_getfield( LS, -1, "mimic_name" );
-        if ( !lua_isnil( LS, -1 ) )
-        {
-            en->mimic_name=str_dup(luaL_checkstring( LS, -1));
-        }
         lua_pop( LS, 1);
 
         lua_getfield( LS, -1, "name" );
