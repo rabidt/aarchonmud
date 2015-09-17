@@ -546,16 +546,16 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                 if (!found)
                 {
                     //sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
-                    act_new_gag( buf,
-                        ch,argument, d->character, TO_VICT,POS_SLEEPING,
-                        GAG_NCOL_CHAN, FALSE );
+                    act_new( buf,
+                        ch, argument, d->character, TO_VICT, POS_SLEEPING);
+
                     if ( d->character->pcdata && 
                             d->character->pcdata->guiconfig.chat_window )
                     {
                         open_chat_tag( d->character );
-                        act_new_gag( buf,
-                            ch,argument, d->character, TO_VICT,POS_SLEEPING,
-                            GAG_NCOL_CHAN, FALSE ); 
+                        act_new( buf,
+                            ch,argument, d->character, TO_VICT, POS_SLEEPING);
+
                         close_chat_tag( d->character );
                     }
                 }

@@ -173,8 +173,6 @@ struct comm_history_entry
     const char *timestamp;
     sh_int channel;
     const char *text;
-    bool invis;
-    const char *mimic_name;
     const char *name;
 };
 
@@ -2314,7 +2312,6 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_EQUIP      (F)
 #define GAG_AURA       (G)
 #define GAG_SUNBURN    (H)
-#define GAG_NCOL_CHAN  (I)
 
 /* channel definitions for log_chan/playback */
 extern sh_int sn_gossip;
@@ -4004,8 +4001,6 @@ struct boss_achieve_record
  * Description macros.
  */
 #define PERS(ch, looker) get_mimic_PERS(ch, looker)
-//#define PERS(ch, looker) get_mimic_PERS_new(ch, looker, NULL)
-//#define PERS(ch, looker, gagtype) get_mimic_PERS_new(ch, looker, gagtype)
 /*
 #define PERS(ch, looker)    ( can_see( looker, (ch) ) ? ( IS_NPC(ch) ? (ch)->short_descr : (ch)->name ) : "someone" )
 */
