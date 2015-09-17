@@ -688,41 +688,36 @@ bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
     return FALSE;
 }
 
-const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker )
-{
-    return get_mimic_PERS_new( ch, looker, 0);
-}
-
-const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype)
+const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker)
 {
     if ( !can_see(looker, ch) )
-	return "someone";
-    
+        return "someone";
+
     if ( IS_NPC(ch) )
-	return ch->short_descr;
+        return ch->short_descr;
 
     if ( is_mimic(ch) )
     {
-	MOB_INDEX_DATA *mimic = get_mimic( ch );
+        MOB_INDEX_DATA *mimic = get_mimic( ch );
 
-	if ( mimic != NULL )
-	{
-	    if( PLR_ACT(looker, PLR_HOLYLIGHT) )
-	    {
-		/* static since we're returning it*/
-	        static char buf[MAX_STRING_LENGTH];
+        if ( mimic != NULL )
+        {
+            if( PLR_ACT(looker, PLR_HOLYLIGHT) )
+            {
+                /* static since we're returning it*/
+                static char buf[MAX_STRING_LENGTH];
 
-	        sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
-		return buf;
-	    }
-	    else
-	        return mimic->short_descr;
-	}
+                sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
+                return buf;
+            }
+            else
+                return mimic->short_descr;
+        }
     }
     /* static since we're returning it*/
     static char buf[MAX_STRING_LENGTH];
-    //sprintf( buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
-    sprintf (buf, "%s%s%s{x", (gagtype==GAG_NCOL_CHAN)?"":ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
+
+    sprintf (buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
     return buf;
 }
 

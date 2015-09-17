@@ -2077,7 +2077,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     {
         next_char = to->next_in_room;
 
-        if ( gag_type > 0 && gag_type<GAG_NCOL_CHAN && IS_SET(to->gag, gag_type) )
+        if ( gag_type > 0 && IS_SET(to->gag, gag_type) )
             continue;
 
         if (act_wizi && !IS_IMMORTAL(to))
@@ -2139,8 +2139,8 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
                     case 'T': i = (char *) arg2; arg2_type=ACT_ARG_TEXT;    break;
                               //		case 'n': i = PERS( ch,  to  );                         break;
                               //		case 'N': i = PERS( vch, to  );                         break;
-                    case 'n': i = get_mimic_PERS_new( ch,  to, gag_type  );                         break;
-                    case 'N': i = get_mimic_PERS_new( vch,  to, gag_type  );                         break;
+                    case 'n': i = get_mimic_PERS( ch,  to );                         break;
+                    case 'N': i = get_mimic_PERS( vch,  to );                         break;
                     case 'e': i = he_she  [URANGE(0, ch  ->sex, 2)];        break;
                     case 'E': i = he_she  [URANGE(0, vch ->sex, 2)];        break;
                     case 'm': i = him_her [URANGE(0, ch  ->sex, 2)];        break;
