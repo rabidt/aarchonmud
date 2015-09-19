@@ -77,7 +77,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
     if ( !to_room )
         return FALSE;
     
-    if ( to_room->sector_type == SECT_AIR && !IS_AFFECTED(ch, AFF_FLYING) )
+    if ( show && to_room->sector_type == SECT_AIR && !IS_AFFECTED(ch, AFF_FLYING) )
     {
         if ( show )
             send_to_char("You can't fly.\n\r", ch);
@@ -105,6 +105,13 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
         return FALSE;
     }
 
+    if ( !IS_NPC(ch) && area_full(to_room->area) && !(ch->in_room && ch->in_room->area == to_room->area) )
+    {
+        if ( show )
+            send_to_char("That area is full right now.\n\r", ch);
+        return FALSE;
+    }
+    
     // guilds and clan halls
     if ( !IS_NPC(ch) )
     {

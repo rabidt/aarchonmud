@@ -1191,6 +1191,8 @@ void save_area( AREA_DATA *pArea )
         fprintf( fp, "NoQuest\n");
     if (IS_SET(pArea->area_flags,AREA_NOHIDE))
         fprintf( fp, "NoHide\n");
+    if ( IS_SET(pArea->area_flags, AREA_SOLO) )
+        fprintf(fp, "Solo\n");
 
     /* save aprogs if any */
     if (pArea->aprogs != NULL)

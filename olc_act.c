@@ -1067,7 +1067,6 @@ AEDIT( aedit_credits )
     return TRUE;
 }
 
-
 AEDIT( aedit_remort )
 {
     AREA_DATA *pArea;
