@@ -5807,6 +5807,11 @@ DEF_SPELL_FUN(spell_teleport)
             return SR_TARGET;
         }
         SPELL_CHECK_RETURN
+        if ( !can_move_room(ch, pRoomIndex, FALSE) )
+        {
+            send_to_char( "Teleport failed.\n\r", ch );
+            return TRUE;
+        }
     }    
     
     stone = get_eq_char(ch,WEAR_HOLD);
