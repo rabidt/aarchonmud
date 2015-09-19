@@ -611,7 +611,7 @@ const struct flag_type rprog_flags[] =
 
 const struct flag_type area_flags[] =
 {
-	{   "changed",      AREA_CHANGED,       TRUE    },
+	{   "changed",      AREA_CHANGED,       FALSE   },
 	/*	{   "added",        AREA_ADDED,         TRUE    }, */
 	/*	{   "loading",      AREA_LOADING,       FALSE   }, */
 	{   "remort",       AREA_REMORT,        TRUE    },
@@ -619,6 +619,7 @@ const struct flag_type area_flags[] =
 	{   "noquest",      AREA_NOQUEST,       TRUE    },
 	{   "nohide",       AREA_NOHIDE,        TRUE    },
 	{   "norepop",      AREA_NOREPOP,       TRUE    },
+    {   "solo",         AREA_SOLO,          TRUE    },
 	{   NULL,           0,          0   }
 };
 

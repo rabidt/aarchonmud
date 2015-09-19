@@ -2012,8 +2012,10 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	}
 	else if ( ch->in_room != NULL )
 	{
-            if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
-		char_to_room(ch, get_room_index(ROOM_VNUM_RECALL));
+        if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM)
+            || room_is_private(ch->in_room)
+            || area_full(ch->in_room->area) )
+            char_to_room(ch, get_room_index(ROOM_VNUM_RECALL));
 	    else
 	        char_to_room( ch, ch->in_room );
 	}

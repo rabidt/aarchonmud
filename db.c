@@ -1157,6 +1157,11 @@ void new_load_area( FILE *fp )
             break;
         case 'S':
             KEY( "Security", pArea->security, fread_number( fp ) );
+            if ( !str_cmp(word, "Solo") )
+            {
+                SET_BIT(pArea->area_flags, AREA_SOLO);
+                break;
+            }
             break;
         case 'T':
             KEY("Time", pArea->reset_time, fread_number( fp ));
