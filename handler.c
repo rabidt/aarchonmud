@@ -4581,3 +4581,7 @@ int get_stance_index( int sn )
     return -1;
 }
 
+bool area_full( AREA_DATA *pArea )
+{
+    return pArea && IS_SET(pArea->area_flags, AREA_SOLO) && pArea->nplayer > 0;
+}
