@@ -2982,11 +2982,17 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
                 act("$n sneaks up behind you and snaps your neck!", ch, NULL, victim, TO_VICT);
                 act("$n sneaks up behind $N, and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
             }
-            else if ( is_ranged_weapon(wield) )
+            else if ( wield->value[0] == WEAPON_GUN )
             {
                 act("You blow $N's brains out!", ch, NULL, victim, TO_CHAR);
                 act("$n blows your brains out!", ch, NULL, victim, TO_VICT);
                 act("$n blows $N's brains out!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else if ( wield->value[0] == WEAPON_BOW )
+            {
+                act("You plant an arrow in $N's throat!", ch, NULL, victim, TO_CHAR);
+                act("$n plants an arrow in your throat!", ch, NULL, victim, TO_VICT);
+                act("$n plants an arrow in $N's throat!", ch, NULL, victim, TO_NOTVICT);
             }
             else
             {
