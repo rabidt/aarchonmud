@@ -83,7 +83,8 @@ ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnu
         room = get_room_index( number_range( min_vnum, max_vnum ) );
         if ( room != NULL )
             if ( can_see_room(ch,room)
-                &&   !room_is_private(room)
+                //&&   !room_is_private(room)
+                &&   can_move_room(ch, room, FALSE)
                 &&   !IS_SET(room->room_flags, ROOM_PRIVATE)
                 &&   !IS_SET(room->room_flags, ROOM_SOLITARY) 
                 &&   !IS_SET(room->room_flags, ROOM_SAFE) 
@@ -194,8 +195,9 @@ DEF_DO_FUN(do_enter)
 
 	if (location == NULL
 	||  location == old_room
-	||  !can_see_room(ch,location) 
-	||  (room_is_private(location) && !IS_TRUSTED(ch,IMPLEMENTOR)))
+	||  !can_see_room(ch,location)
+    ||  !can_move_room(ch,location,false))
+	//||  (room_is_private(location) && !IS_TRUSTED(ch,IMPLEMENTOR)))
 	{
 	   act("$p doesn't seem to go anywhere.",ch,portal,NULL,TO_CHAR);
 	   return;
