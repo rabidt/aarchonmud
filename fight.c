@@ -3004,9 +3004,14 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
             }
             else
             {
+                /*
                 act("You sneak up behind $N, and slash $S throat!", ch, NULL, victim, TO_CHAR);
                 act("$n sneaks up behind you and slashes your throat!", ch, NULL, victim, TO_VICT);
                 act("$n sneaks up behind $N, and slashes $S throat!", ch, NULL, victim, TO_NOTVICT);
+                */
+                act("You drive your weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_CHAR);
+                act("$n drives $s weapon deep into your neck till it snaps!", ch, NULL, victim, TO_VICT);
+                act("$n drives $s weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_NOTVICT);
             }
             behead(ch, victim);
             check_improve(ch,gsn_assassination,TRUE,0);
@@ -6864,85 +6869,64 @@ bool check_lasso( CHAR_DATA *victim )
 void check_back_leap( CHAR_DATA *victim )
 {
     CHAR_DATA *opp, *next_opp;
-    OBJ_DATA *wield;
+    OBJ_DATA *wield, *offhand;
     int chance;
     
     if (victim == NULL || victim->in_room == NULL)
     {
-	bug("check_back_leap: NULL victim or NULL in_room", 0);
-	return;
+        bug("check_back_leap: NULL victim or NULL in_room", 0);
+        return;
     }
     
     for (opp = victim->in_room->people; opp != NULL; opp = next_opp)
     {
-	next_opp = opp->next_in_room;
+        next_opp = opp->next_in_room;
 
-	if ( opp->fighting != victim || !can_see_combat(opp, victim) || !can_attack(opp) )
-	    continue;
-	
-	wield = get_eq_char( opp, WEAR_WIELD );
-	/* ranged weapons get off one shot */
-	if ( is_ranged_weapon(wield) )
-	{
-	    act( "$n shoots at your back!", opp, NULL, victim, TO_VICT    );
-	    act( "You shoot at $N's back!", opp, NULL, victim, TO_CHAR    );
-	    act( "$n shoots at $N's back!", opp, NULL, victim, TO_NOTVICT );
-	    one_hit( opp, victim, TYPE_UNDEFINED, FALSE );
-	    CHECK_RETURN( opp, victim );
-	    if ( (wield = get_eq_char(opp, WEAR_SECONDARY)) != NULL
-		 && wield->value[0] == WEAPON_GUN && number_bits(1) )
-		one_hit( opp, victim, TYPE_UNDEFINED, TRUE );
-	    continue;
-	}
+        if ( opp->fighting != victim || !can_see_combat(opp, victim) || !can_attack(opp) )
+            continue;
 
-	chance = get_skill(opp, gsn_back_leap);
-	if ( opp->stance != STANCE_AMBUSH )
-	    chance /= 2;
+        wield = get_eq_char( opp, WEAR_WIELD );
+        offhand = get_eq_char( opp, WEAR_SECONDARY );
+        /* ranged weapons get off one shot */
+        if ( is_ranged_weapon(wield) )
+        {
+            act( "$n shoots at your back!", opp, NULL, victim, TO_VICT    );
+            act( "You shoot at $N's back!", opp, NULL, victim, TO_CHAR    );
+            act( "$n shoots at $N's back!", opp, NULL, victim, TO_NOTVICT );
+            one_hit( opp, victim, TYPE_UNDEFINED, FALSE );
+            CHECK_RETURN( opp, victim );
+            if ( is_ranged_weapon(offhand) )
+                one_hit( opp, victim, TYPE_UNDEFINED, TRUE );
+            continue;
+        }
 
-	if (number_percent() >= chance)
-	    continue;
+        chance = get_skill(opp, gsn_back_leap);
+        if ( opp->stance != STANCE_AMBUSH )
+            chance /= 2;
 
-	act( "$n leaps at your back!", opp, NULL, victim, TO_VICT    );
-	act( "You leap at $N's back!", opp, NULL, victim, TO_CHAR    );
-	act( "$n leaps at $N's back!", opp, NULL, victim, TO_NOTVICT );
-	check_improve(opp,gsn_back_leap,TRUE,1);    
+        if ( !per_chance(chance) )
+            continue;
 
-	chance = get_skill(victim, gsn_avoidance) - chance / 2;
-	if (number_percent() < chance)
-	{
-	    act( "You avoid $n!",  opp, NULL, victim, TO_VICT    );
-	    act( "$N avoids you!", opp, NULL, victim, TO_CHAR    );
-	    act( "$N avoids $n!",  opp, NULL, victim, TO_NOTVICT );
-	    check_improve(victim,gsn_avoidance,TRUE,1);
-	    continue;
-	}
+        act( "$n leaps at your back!", opp, NULL, victim, TO_VICT    );
+        act( "You leap at $N's back!", opp, NULL, victim, TO_CHAR    );
+        act( "$n leaps at $N's back!", opp, NULL, victim, TO_NOTVICT );
+        check_improve(opp, gsn_back_leap, TRUE, 1);
 
-	/* behead checking */
-	if ( wield != NULL && wield->value[0] == WEAPON_DAGGER
-	     && !number_bits(4)
-	     && (opp->stance == STANCE_AMBUSH || number_bits(1)))
-	{
-	    int chance = get_skill(opp, gsn_assassination);
-	    if (number_percent() < chance)
-	    {
-		act("$n drives $s weapon deep into your neck till it snaps!",
-		    opp,NULL,victim,TO_VICT);
-		act("You drive your weapon deep into $N's neck till it snaps!",
-		    opp,NULL,victim,TO_CHAR);
-		act("$n drives $s weapon deep into $N's neck till it snaps!",
-		    opp,NULL,victim,TO_NOTVICT);
-		behead(opp,victim);
-		check_improve(opp,gsn_assassination,TRUE,0);
-		return; 
-	    }
-	    else
-            check_improve(opp,gsn_assassination,FALSE,3);
-	}
-    
-	/* now the attacks */
-	one_hit(opp, victim, gsn_back_leap, FALSE);
-	if (opp->fighting == victim && get_eq_char(opp, WEAR_SECONDARY))
-	    one_hit(opp, victim, gsn_back_leap, TRUE);
+        chance = get_skill(victim, gsn_avoidance) - chance / 2;
+        if ( per_chance(chance) )
+        {
+            act( "You avoid $n!",  opp, NULL, victim, TO_VICT    );
+            act( "$N avoids you!", opp, NULL, victim, TO_CHAR    );
+            act( "$N avoids $n!",  opp, NULL, victim, TO_NOTVICT );
+            check_improve(victim, gsn_avoidance, TRUE, 1);
+            continue;
+        }
+
+        /* now the attacks */
+        if ( one_hit(opp, victim, gsn_back_leap, FALSE) )
+            check_assassinate(opp, victim, wield, 5);
+        if ( offhand && one_hit(opp, victim, gsn_back_leap, TRUE) )
+            check_assassinate(opp, victim, offhand, 5);
     }
 }
 
