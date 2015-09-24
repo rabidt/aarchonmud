@@ -2860,12 +2860,14 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int chance = ch->stance == STANCE_SHADOWCLAW ? 100 : 0;
+    int chance = 0;
     
     // first check whether we can behead at all - needed for skill improvement check
     if ( !wield )
     {
-        if ( ch->stance == STANCE_DEFAULT )
+        if ( ch->stance == STANCE_SHADOWCLAW )
+            chance = 100;
+        else if ( ch->stance == STANCE_DEFAULT )
             chance = get_skill(ch, gsn_razor_claws) / 2;
         if ( !chance )
             return;
@@ -2881,13 +2883,19 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         case WEAPON_AXE: chance = 25; break;
         default: return;
         }
-        chance += get_skill(ch, gsn_beheading) / 2;
-        if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
-            chance += 1;
-        if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
-            chance += 5;
-        if ( !chance )
-            return;
+        
+        if ( ch->stance == STANCE_SHADOWCLAW )
+            chance = 100;
+        else
+        {
+            chance += get_skill(ch, gsn_beheading) / 2;
+            if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
+                chance += 1;
+            if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
+                chance += 5;
+            if ( !chance )
+                return;
+        }
     }
     
     // at this stage we have a *chance* to behead, so skill might improve
