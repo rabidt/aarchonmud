@@ -466,21 +466,21 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
     WAIT_STATE( ch, skill_table[gsn_backstab].beats );
     if ( per_chance(chance) || (chance >= 2 && !IS_AWAKE(victim)) )
     {
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        
         check_improve(ch,gsn_backstab,TRUE,2);
 
-        bool hit = one_hit(ch, victim, gsn_backstab, FALSE);
-        CHECK_RETURN(ch, victim);
-
-        if ( offhand_attack_chance(ch, TRUE) > 0 )
+        if ( one_hit(ch, victim, gsn_backstab, FALSE) )
         {
-            hit = one_hit(ch, victim, gsn_backstab, TRUE) || hit;
+            check_assassinate(ch, victim, weapon, 5);
             CHECK_RETURN(ch, victim);
         }
 
-        if ( hit )
+        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_backstab, TRUE) )
         {
-            OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
-            check_assassinate(ch, victim, weapon, 4);
+            check_assassinate(ch, victim, offhand, 5);
+            CHECK_RETURN(ch, victim);
         }
     }
     else
@@ -1152,21 +1152,19 @@ DEF_DO_FUN(do_circle)
 
     if ( per_chance(chance) )
     {
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        
         check_improve(ch,gsn_circle,TRUE,3);
 
-        bool hit = one_hit(ch, victim, gsn_circle, FALSE);
+        if ( one_hit(ch, victim, gsn_circle, FALSE) )
+            check_assassinate(ch, victim, weapon, 7);
         CHECK_RETURN(ch, victim);
         
-        if ( offhand_attack_chance(ch, TRUE) > 0 )
+        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_circle, TRUE) )
         {
-            hit = one_hit(ch, victim, gsn_circle, TRUE) || hit;
+            check_assassinate(ch, victim, offhand, 7);
             CHECK_RETURN(ch, victim);
-        }
-        
-        if ( hit )
-        {
-            OBJ_DATA *weapon = number_bits(2) ? get_eq_char(ch, WEAR_WIELD) : get_eq_char(ch, WEAR_SECONDARY);
-            check_assassinate(ch, victim, weapon, 6);
         }
     }
     else
