@@ -173,7 +173,7 @@ DEF_DO_FUN(do_alias)
                 rch->pcdata->alias_sub[pos]);
             send_to_char(buf,ch);
         }
-        sprintf(buf,"(%d/%d aliases used)",pos,MAX_ALIAS);
+        sprintf(buf,"(%d/%d aliases used)\n\r",pos,MAX_ALIAS);
             send_to_char(buf,ch);
         return;
     }
