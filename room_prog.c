@@ -101,6 +101,17 @@ bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
     return TRUE;
 }
 
+bool rp_prereset_trigger( ROOM_INDEX_DATA *room )
+{
+    return rp_percent_trigger( room, NULL, NULL, NULL, NULL, NULL, RTRIG_PRERESET);
+}
+
+void rp_postreset_trigger( ROOM_INDEX_DATA *room )
+{
+    rp_percent_trigger( room, NULL, NULL, NULL, NULL, NULL, RTRIG_POSTRESET);
+    return;
+}
+
 void rp_connect_trigger( CHAR_DATA *ch )
 {
     ROOM_INDEX_DATA *room;
