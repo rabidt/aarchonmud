@@ -2508,6 +2508,9 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
     if ( !pRoom )
         return;
     
+    if ( !rp_prereset_trigger(pRoom) )
+        return;
+
     pMob        = NULL;
     last        = FALSE;
     
@@ -2803,6 +2806,8 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
     for ( mob = pRoom->people; mob != NULL; mob = mob->next_in_room )
 	arm_npc( mob );
 
+    rp_postreset_trigger( pRoom );
+
     return;
 }
 
@@ -3011,6 +3016,10 @@ int random_attack_type()
 void reset_area( AREA_DATA *pArea )
 {
     ROOM_INDEX_DATA *pRoom;
+
+    if (!ap_prereset_trigger(pArea))
+        return;
+
     int  vnum;
     
     if ( pArea == NULL )
@@ -3025,6 +3034,8 @@ void reset_area( AREA_DATA *pArea )
             reset_room(pRoom);
     }
     
+    ap_postreset_trigger(pArea);
+
     return;
 }
 
