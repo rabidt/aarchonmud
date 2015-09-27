@@ -588,6 +588,8 @@ const struct flag_type aprog_flags[] =
     {   "timer",        ATRIG_TIMER,     TRUE    },
     {   "death",        ATRIG_DEATH,     TRUE    },
     {   "connect",      ATRIG_CONNECT,   TRUE    },
+    {   "prereset",     ATRIG_PRERESET,  TRUE    },
+    {   "postreset",    ATRIG_POSTRESET, TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -606,6 +608,8 @@ const struct flag_type rprog_flags[] =
     {   "try",          RTRIG_TRY,       TRUE    },
     {   "command",      RTRIG_COMMAND,   TRUE    },
     {   "connect",      RTRIG_CONNECT,   TRUE    },
+    {   "prereset",     RTRIG_PRERESET,  TRUE    },
+    {   "postreset",    RTRIG_POSTRESET, TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

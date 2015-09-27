@@ -15,7 +15,7 @@
  * A general purpose percentage trigger. Checks if a random percentage
  * number is less than trigger phrase
  */
-bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type)
+static bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type)
 {
     if ( !HAS_ATRIG(area, type) )
         return TRUE;
@@ -107,6 +107,18 @@ bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area)
 		return TRUE;
 	
 	return ap_percent_trigger( ch->in_room->area, ch, ATRIG_ENTER);
+}
+
+bool ap_prereset_trigger( AREA_DATA *area)
+{
+    return ap_percent_trigger( area, NULL, ATRIG_PRERESET);
+}
+
+void ap_postreset_trigger( AREA_DATA *area)
+{
+    ap_percent_trigger( area, NULL, ATRIG_POSTRESET);
+
+    return;
 }
 
 void ap_boot_trigger()

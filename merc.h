@@ -3234,6 +3234,8 @@ struct  mastery_group_type
 #define ATRIG_COMMAND (M)
 #define ATRIG_DEATH (N)
 #define ATRIG_CONNECT (O)
+#define ATRIG_PRERESET (P)
+#define ATRIG_POSTRESET (Q)
 
 /*
  * ROOMprog definitions
@@ -3251,6 +3253,8 @@ struct  mastery_group_type
 #define RTRIG_TRY   (K)
 #define RTRIG_COMMAND (L)
 #define RTRIG_CONNECT (M)
+#define RTRIG_PRERESET (N)
+#define RTRIG_POSTRESET (O)
 
 struct prog_list
 {
@@ -4363,12 +4367,13 @@ void punish_spam();
 void anti_spam_interpret( CHAR_DATA *ch, const char *argument );
 
 /* area_prog.c */
-bool ap_percent_trigger(AREA_DATA *area, CHAR_DATA *ch1, int type);
 bool ap_death_trigger(CHAR_DATA *ch);
 bool ap_rexit_trigger(CHAR_DATA *ch);
 bool ap_exit_trigger(CHAR_DATA *ch, AREA_DATA *to_area);
 bool ap_renter_trigger(CHAR_DATA *ch);
 bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
+bool ap_prereset_trigger(AREA_DATA *area);
+void ap_postreset_trigger(AREA_DATA *area);
 void ap_boot_trigger();
 void ap_shutdown_trigger();
 void ap_quit_trigger(CHAR_DATA *ch);
@@ -5103,6 +5108,8 @@ bool rp_lock_trigger( CHAR_DATA *ch, int door );
 bool rp_unlock_trigger( CHAR_DATA *ch, int door );
 bool rp_move_trigger( CHAR_DATA *ch, int door );
 void rp_connect_trigger( CHAR_DATA *ch );
+bool rp_prereset_trigger( ROOM_INDEX_DATA *room );
+void rp_postreset_trigger( ROOM_INDEX_DATA *room );
 void rp_timer_trigger( ROOM_INDEX_DATA *room );
 void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
