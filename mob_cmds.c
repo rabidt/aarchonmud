@@ -1138,16 +1138,26 @@ DEF_DO_FUN(do_mpat)
 }
 
 // used by do_mptransfer and do_mpgtransfer
-void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
+bool transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
 {
+    AREA_DATA *from_area;
     if ( !victim || !victim->in_room || !location )
-        return;
+        return FALSE;
 
     if ( room_is_private(location) )
-        return;
+        return FALSE;
 
     if ( victim->fighting != NULL )
         stop_fighting( victim, TRUE );
+
+    if ( !rp_exit_trigger(victim) )
+        return FALSE;
+    if ( !ap_rexit_trigger(victim) )
+        return FALSE;
+    if ( !ap_exit_trigger(victim, location->area) )
+        return FALSE;
+
+    from_area=victim->in_room ? victim->in_room->area : NULL;
 
     char_from_room( victim );
     char_to_room( victim, location );
@@ -1156,12 +1166,14 @@ void transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location )
     
     if ( !IS_NPC(victim) )
     {
-        ap_enter_trigger(victim, location->area);
+        ap_enter_trigger(victim, from_area);
         ap_renter_trigger(victim);
         rp_enter_trigger(victim);
         op_greet_trigger(victim);
         mp_greet_trigger(victim);
     }
+
+    return TRUE;
 }
 
 /*

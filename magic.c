@@ -3911,6 +3911,7 @@ DEF_SPELL_FUN(spell_gate)
     CHAR_DATA *victim;
     bool gate_pet;
     ROOM_INDEX_DATA *to_room;
+    AREA_DATA *from_area;
 
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
@@ -3968,12 +3969,16 @@ DEF_SPELL_FUN(spell_gate)
     /* check for exit triggers */
     if ( !IS_NPC(ch) )
     {
+        if ( !rp_exit_trigger(ch) )
+            return TRUE;
         if ( !ap_rexit_trigger(ch) )
             return TRUE;
         if ( !ap_exit_trigger(ch, victim->in_room->area) )
             return TRUE;
     }
 
+    from_area=ch->in_room ? ch->in_room->area : NULL;
+    
     act("$n steps through a gate and vanishes.",ch,NULL,NULL,TO_ROOM);
     send_to_char("You step through a gate and vanish.\n\r",ch);
     char_from_room(ch);
@@ -3996,7 +4001,7 @@ DEF_SPELL_FUN(spell_gate)
 
     if ( !IS_NPC(ch) )
     {
-        ap_enter_trigger(ch, to_room->area);
+        ap_enter_trigger(ch, from_area);
         ap_renter_trigger(ch);
         rp_enter_trigger(ch);
     }
@@ -5695,6 +5700,7 @@ bool is_aggro_room( ROOM_INDEX_DATA *room, CHAR_DATA *victim )
 DEF_SPELL_FUN(spell_summon)
 {
     CHAR_DATA *victim;
+    AREA_DATA *from_area;
 
     ignore_invisible = TRUE;
     if ( (victim = get_char_world(ch, target_name)) == NULL)
@@ -5756,12 +5762,36 @@ DEF_SPELL_FUN(spell_summon)
         wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
     }
 
+    if ( !IS_NPC(victim) )
+    {
+        if ( ( !rp_exit_trigger(victim) )  ||
+             ( !ap_rexit_trigger(victim) ) ||
+             ( !ap_exit_trigger(victim, ch->in_room->area) ) )
+        {
+            /* We need to send message to summoner here. Progs should send
+               message to the victim */
+            send_to_char( "Your target can't be summoned from its location!\n\r",   ch );
+            return TRUE;
+        }
+    }
+
+    from_area=victim->in_room ? victim->in_room->area : NULL;
+
     act( "$n disappears suddenly.", victim, NULL, NULL, TO_ROOM );
     char_from_room( victim );
     char_to_room( victim, ch->in_room );
     act( "$n arrives suddenly.", victim, NULL, NULL, TO_ROOM );
     act( "$n has summoned you!", ch, NULL, victim,   TO_VICT );
     do_look( victim, "auto" );
+
+
+    if ( !IS_NPC(victim) )
+    {
+        ap_enter_trigger(victim, from_area);
+        ap_renter_trigger(victim);
+        rp_enter_trigger(victim);
+    }
+
     return TRUE;
 }
 
@@ -5769,6 +5799,7 @@ DEF_SPELL_FUN(spell_teleport)
 {
     ROOM_INDEX_DATA *pRoomIndex;
     OBJ_DATA *stone;
+    AREA_DATA *from_area;
 
     if ( !can_cast_transport(ch) )
         return SR_UNABLE;
@@ -5833,6 +5864,18 @@ DEF_SPELL_FUN(spell_teleport)
         }
     }
 
+    if ( !IS_NPC(ch) )
+    {
+        if ( !rp_exit_trigger(ch) )
+            return TRUE;
+        if ( !ap_rexit_trigger(ch) )
+            return TRUE;
+        if ( !ap_exit_trigger( ch, pRoomIndex->area) )
+            return TRUE;
+    }
+
+    from_area=ch->in_room ? ch->in_room->area : NULL;
+
     act("$n vanishes!", ch, NULL, NULL, TO_ROOM);
     char_from_room(ch);
     char_to_room(ch, pRoomIndex);
@@ -5847,6 +5890,13 @@ DEF_SPELL_FUN(spell_teleport)
         char_from_room(pet);
         char_to_room(pet, pet_location);
         act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
+    }
+
+    if ( !IS_NPC(ch) )
+    {
+        ap_enter_trigger(ch, from_area);
+        ap_renter_trigger(ch);
+        rp_enter_trigger(ch);
     }
     
     return TRUE;
@@ -5945,6 +5995,7 @@ DEF_SPELL_FUN(spell_word_of_recall)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     CHAR_DATA *pet = victim->pet;
     ROOM_INDEX_DATA *location;
+    AREA_DATA *from_area;
     int chance;
 
     if (IS_NPC(victim))
@@ -6025,7 +6076,19 @@ DEF_SPELL_FUN(spell_word_of_recall)
 
     // misgate chance when cursed but not normally
     ROOM_INDEX_DATA *victim_location = room_with_misgate(victim, location, 0);
+
+    if ( !IS_NPC(victim) )
+    {
+        if ( !rp_exit_trigger(victim) )
+            return TRUE;
+        if ( !ap_rexit_trigger(victim) )
+            return TRUE;
+        if ( !ap_exit_trigger( victim, victim_location->area) )
+            return TRUE; 
+    }
     
+    from_area=victim->in_room ? victim->in_room->area : NULL;
+
     act("$n disappears.",victim,NULL,NULL,TO_ROOM);
     char_from_room(victim);
     char_to_room(victim, victim_location);
@@ -6040,6 +6103,13 @@ DEF_SPELL_FUN(spell_word_of_recall)
         char_to_room(pet, pet_location);
         act("$n appears in the room.", pet, NULL, NULL, TO_ROOM);
     }
+
+    if ( !IS_NPC(victim) )
+    {
+        ap_enter_trigger(victim, from_area);
+        ap_renter_trigger(victim);
+        rp_enter_trigger(victim);
+    } 
     
     return TRUE;
 }

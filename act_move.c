@@ -234,6 +234,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
 {
     CHAR_DATA *fch, *fch_next;
     ROOM_INDEX_DATA *in_room, *to_room;
+    AREA_DATA *from_area;
     EXIT_DATA *pexit;
     char buf[MAX_STRING_LENGTH];
     int chance;
@@ -433,6 +434,8 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         check_bleed( ch, door );
     }
 
+    from_area=ch->in_room ? ch->in_room->area : NULL;
+
     char_from_room( ch );
     char_to_room( ch, to_room );
    
@@ -483,7 +486,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    */
    if ( !IS_NPC( ch ) )
    {
-       ap_enter_trigger( ch, in_room->area );
+       ap_enter_trigger( ch, from_area );
        ap_renter_trigger( ch );
        rp_enter_trigger( ch );
        op_greet_trigger( ch );
@@ -2657,6 +2660,7 @@ DEF_DO_FUN(do_recall)
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
     ROOM_INDEX_DATA *location;
+    AREA_DATA *from_area;
     int chance;
     int room=ROOM_VNUM_RECALL;
     int move_cost;
@@ -2828,6 +2832,8 @@ DEF_DO_FUN(do_recall)
 
     // misgate chance when cursed but not normally
     location = room_with_misgate(ch, location, 0);
+
+    from_area=ch->in_room ? ch->in_room->area : NULL;
     
 
     ch->move -= move_cost;
@@ -2840,6 +2846,12 @@ DEF_DO_FUN(do_recall)
     if (ch->pet != NULL)
         do_recall(ch->pet,"");
     
+    if (!IS_NPC(ch) )
+    {
+        ap_enter_trigger(ch, from_area);
+        ap_renter_trigger(ch);
+        rp_enter_trigger(ch);
+    }
     return;
 }
 
