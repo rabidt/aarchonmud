@@ -122,8 +122,8 @@ DEF_DO_FUN(do_enter)
 	OBJ_DATA *portal;
 	CHAR_DATA *fch, *fch_next;
 
-		old_room = ch->in_room;
-        from_area= old_room->area;
+    old_room = ch->in_room;
+    from_area= old_room ? old_room->area : NULL;
 
 	portal = get_obj_list( ch, argument,  ch->in_room->contents );
 	

@@ -5009,7 +5009,7 @@ int     r_atoi( CHAR_DATA *ch, const char *arg );
 RID *   find_mp_location( CHAR_DATA *ch, const char *arg );
 CD *    get_mp_char( CHAR_DATA *ch, const char *argument );
 OD *    get_mp_obj( CHAR_DATA *ch, const char *argument );
-void    transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location );
+bool    transfer_char( CHAR_DATA *victim, ROOM_INDEX_DATA *location );
 
 /* mt19937ar.c */
 void init_genrand( unsigned long s );
