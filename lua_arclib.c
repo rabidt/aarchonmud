@@ -334,8 +334,9 @@ static int glob_transfer (lua_State *LS)
         return 1;
     }
     
-    transfer_char( ch, location );
-    lua_pushboolean( LS, TRUE);
+    
+    bool result=transfer_char( ch, location );
+    lua_pushboolean( LS, result);
     return 1;
 }
 
@@ -351,17 +352,19 @@ static int glob_gtransfer (lua_State *LS)
         return 1;
     }
 
+    bool all_success=TRUE;
     CHAR_DATA *victim, *next_char;
     for ( victim=ch->in_room->people; victim; victim=next_char )
     {
         next_char=victim->next_in_room;
         if ( is_same_group( ch, victim ) )
         {
-            transfer_char(victim, location);
+            if (!transfer_char(victim, location))
+                all_success=FALSE;
         }
     }
 
-    lua_pushboolean( LS, TRUE);
+    lua_pushboolean( LS, all_success);
     return 1;
 }
 
