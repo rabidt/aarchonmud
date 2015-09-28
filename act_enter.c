@@ -230,6 +230,8 @@ DEF_DO_FUN(do_enter)
             return;
         if ( !ap_exit_trigger(ch, location->area) )
             return;
+        if ( !op_move_trigger(ch) )
+            return;
     }  
 
 	act("$n steps into $p.",ch,portal,NULL,TO_ROOM);
@@ -317,16 +319,16 @@ DEF_DO_FUN(do_enter)
 	 * If someone is following the char, these triggers get activated
 	 * for the followers before the char, but it's safer this way...
 	 */
-	if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
-		mp_percent_trigger( ch, NULL, NULL, 0, NULL,0, TRIG_ENTRY );
 	if ( !IS_NPC( ch ) )
     {
-		mp_greet_trigger( ch );
-        op_greet_trigger( ch );
         ap_enter_trigger( ch, from_area );
         ap_renter_trigger( ch );
         rp_enter_trigger( ch );
+        op_greet_trigger( ch );
+		mp_greet_trigger( ch );
     }
+	if ( IS_NPC( ch ) && HAS_TRIGGER( ch, TRIG_ENTRY ) )
+		mp_percent_trigger( ch, NULL, NULL, 0, NULL,0, TRIG_ENTRY );
  
 	return;
 	}
