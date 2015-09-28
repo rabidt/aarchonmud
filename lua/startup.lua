@@ -14,6 +14,7 @@ delaytbl={} -- used on the C side mostly
 
 cleanup={}
 validuds={}
+shared_tbls={}
 
 function UdCnt()
     local reg=debug.getregistry()
@@ -284,22 +285,40 @@ env_meta={
     end
 }
 
-function new_script_env(ud, objname)
+
+function new_script_env(ud, objname, share_index)
     local env=setmetatable( {}, {
             __index=function(t,k)
                 if k=="self" or k==objname then
                     return ud
+                elseif k=="shared" then
+                    return shared_tbls[share_index]
                 else
                     return env_meta.__index(t,k)
                 end
             end,
+            __newindex=share_index and function(t,k,v)
+                if k=="shared" then
+                    if not(type(v)=="table") then
+                        error("'shared' value must be a table.")
+                    end
+                    shared_tbls[share_index]=v
+                else
+                    rawset(t,k,v)
+                end
+            end,
             __metatable=0 })
+    
+    if share_index and not(shared_tbls[share_index]) then
+        shared_tbls[share_index] = {}
+    end
+
     return env
 end
 
 function mob_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "mob", CH_env_meta) 
+        envtbl[ud]=new_script_env(ud, "mob", ud.isnpc and ud.proto.area) 
     end
     setfenv(f, envtbl[ud])
     return f
@@ -307,7 +326,7 @@ end
 
 function obj_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "obj", OBJ_env_meta)
+        envtbl[ud]=new_script_env(ud, "obj", ud.proto.area)
     end
     setfenv(f, envtbl[ud])
     return f
@@ -315,7 +334,7 @@ end
 
 function area_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "area", AREA_env_meta)
+        envtbl[ud]=new_script_env(ud, "area", ud)
     end
     setfenv(f, envtbl[ud])
     return f
@@ -323,7 +342,7 @@ end
 
 function room_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "room", ROOM_env_meta)
+        envtbl[ud]=new_script_env(ud, "room", ud.area)
     end
     setfenv(f, envtbl[ud])
     return f
@@ -336,13 +355,13 @@ function interp_setup( ud, typ, desc, name)
 
     if envtbl[ud]== nil then
         if typ=="mob" then
-            envtbl[ud]=new_script_env(ud,"mob", CH_env_meta)
+            envtbl[ud]=new_script_env(ud,"mob",ud.isnpc and ud.proto.area )
         elseif typ=="obj" then
-            envtbl[ud]=new_script_env(ud,"obj", OBJ_env_meta)
+            envtbl[ud]=new_script_env(ud,"obj",ud.proto.area )
         elseif typ=="area" then
-            envtbl[ud]=new_script_env(ud,"area", AREA_env_meta)
+            envtbl[ud]=new_script_env(ud,"area",ud )
         elseif typ=="room" then
-            envtbl[ud]=new_script_env(ud,"room", ROOM_env_meta)
+            envtbl[ud]=new_script_env(ud,"room",ud.area )
         else
             error("Invalid type in interp_setup: "..typ)
         end
