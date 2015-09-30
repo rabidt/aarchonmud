@@ -2235,21 +2235,21 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
     char buf[MAX_STRING_LENGTH];
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
    
-    hp_col = (gch->hit == gch->max_hit) ? 'W' :
+    hp_col = (gch->hit >= gch->max_hit) ? 'W' :
         (gch->hit >= gch->max_hit*.85) ? 'G' :
         (gch->hit >= gch->max_hit*.66) ? 'g' :
         (gch->hit >= gch->max_hit*.50) ? 'Y' :
         (gch->hit >= gch->max_hit*.33) ? 'y' :
         (gch->hit >= gch->max_hit*.16) ? 'R' : 'r';
 
-    mn_col = (gch->mana == gch->max_mana) ? 'W' :
+    mn_col = (gch->mana >= gch->max_mana) ? 'W' :
         (gch->mana >= gch->max_mana*.85) ? 'G' :
         (gch->mana >= gch->max_mana*.66) ? 'g' :
         (gch->mana >= gch->max_mana*.50) ? 'Y' :
         (gch->mana >= gch->max_mana*.33) ? 'y' :
         (gch->mana >= gch->max_mana*.16) ? 'R' : 'r';
 
-    mv_col = (gch->move == gch->max_move) ? 'W' :
+    mv_col = (gch->move >= gch->max_move) ? 'W' :
         (gch->move >= gch->max_move*.85) ? 'G' :
         (gch->move >= gch->max_move*.66) ? 'g' :
         (gch->move >= gch->max_move*.50) ? 'Y' :
