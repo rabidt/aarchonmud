@@ -58,6 +58,7 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_ITEM27 4711 //New Smote
 #define QUEST_ITEM28 4712 //Maedhros Leggings
 #define QUEST_ITEM29 4726 //Quantum Shield
+#define QUEST_ITEM30 4900 //Astark Light
 
 /* Quest timer defines - Maedhros, Feb 8, 2007 */ 
  
@@ -80,6 +81,7 @@ QUEST_ITEM quest_item_table[] =
     { QUEST_ITEM1,  2500, "sword kings" },
     { QUEST_ITEM2,  2000, "staff ancient" },
     { QUEST_ITEM29, 2000, "quantum shield"},
+    { QUEST_ITEM30, 2000, "astarks infinite inspiration"},
     { QUEST_ITEM27,  700, "smotes blessing" },
     { QUEST_ITEM26,  700, "rimbols orb insight" },
     { QUEST_ITEM25,  600, "bobbles bughouse suit" },
@@ -117,13 +119,13 @@ char* list_quest_items()
     OBJ_INDEX_DATA *obj;
     int i;
     char * wloc;
-    
+
     list_buf[0] = '\0';
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
     {
-	qi = &(quest_item_table[i]);
-	if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
-	    continue;
+        qi = &(quest_item_table[i]);
+        if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
+            continue;
 
         if (IS_SET(obj->wear_flags, ITEM_WEAR_FINGER))
             wloc = "<finger>";
@@ -155,12 +157,14 @@ char* list_quest_items()
             wloc = "<held>";
         else if (IS_SET(obj->wear_flags, ITEM_WEAR_FLOAT ))
             wloc = "<floating>";
+        else if (obj->item_type == ITEM_LIGHT)
+            wloc = "<light>";
         else
             wloc = "<not defined>";
 
-//	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
-	sprintf( buf, "%5dqp   %-10s    %s\n\r", qi->cost, wloc, obj->short_descr);
-	strcat( list_buf, buf );
+        //	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
+        sprintf( buf, "%5dqp   %-10s    %s\n\r", qi->cost, wloc, obj->short_descr);
+        strcat( list_buf, buf );
     }
     return list_buf;
 }
