@@ -318,7 +318,7 @@ end
 
 function mob_program_setup(ud, f)
     if envtbl[ud]==nil then
-        envtbl[ud]=new_script_env(ud, "mob", ud.isnpc and ud.proto.area) 
+        envtbl[ud]=new_script_env(ud, "mob", (ud.isnpc or nil) and ud.proto.area) 
     end
     setfenv(f, envtbl[ud])
     return f
@@ -355,7 +355,7 @@ function interp_setup( ud, typ, desc, name)
 
     if envtbl[ud]== nil then
         if typ=="mob" then
-            envtbl[ud]=new_script_env(ud,"mob",ud.isnpc and ud.proto.area )
+            envtbl[ud]=new_script_env(ud,"mob",(ud.isnpc or nil) and ud.proto.area )
         elseif typ=="obj" then
             envtbl[ud]=new_script_env(ud,"obj",ud.proto.area )
         elseif typ=="area" then
