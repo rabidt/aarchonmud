@@ -2308,9 +2308,13 @@ static int CH_tprint ( lua_State *LS)
     CHAR_DATA *ud_ch=check_CH(LS, 1);
 
     lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
+    lua_insert( LS, 2);
+    /* original arg 2 is pushed to index 3 */
+    if (lua_isnone(LS,3))
+    {
+        lua_pushnil(LS);
+    }
 
-    /* Push original arg into tprintstr */
-    lua_pushvalue( LS, 2);
     lua_call( LS, 1, 1 );
 
     do_say( ud_ch, check_string(LS, -1, MIL));
@@ -5007,9 +5011,13 @@ static int OBJ_echo( lua_State *LS)
 static int OBJ_tprint ( lua_State *LS)
 {
     lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
-
-    /* Push original arg into tprintstr */
-    lua_pushvalue( LS, 2);
+    lua_insert( LS, 2);
+    /* original arg 2 is pushed to index 3 */
+    if (lua_isnone(LS,3))
+    {
+        lua_pushnil(LS);
+    }
+    
     lua_call( LS, 1, 1 );
 
     lua_pushcfunction( LS, OBJ_echo );
@@ -5674,9 +5682,13 @@ static int AREA_echo( lua_State *LS)
 static int AREA_tprint ( lua_State *LS)
 {
     lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
-
-    /* Push original arg into tprintstr */
-    lua_pushvalue( LS, 2);
+    lua_insert( LS, 2);
+    /* original arg 2 is pushed to index 3 */
+    if (lua_isnone(LS,3))
+    {
+        lua_pushnil(LS);
+    }
+    
     lua_call( LS, 1, 1 );
 
     lua_pushcfunction( LS, AREA_echo );
@@ -6112,9 +6124,13 @@ static int ROOM_echo( lua_State *LS)
 static int ROOM_tprint ( lua_State *LS)
 {
     lua_getfield( LS, LUA_GLOBALSINDEX, TPRINTSTR_FUNCTION);
-
-    /* Push original arg into tprintstr */
-    lua_pushvalue( LS, 2);
+    lua_insert( LS, 2);
+    /* original arg 2 is pushed to index 3 */
+    if (lua_isnone(LS,3))
+    {
+        lua_pushnil(LS);
+    }
+    
     lua_call( LS, 1, 1 );
 
     lua_pushcfunction( LS, ROOM_echo );
