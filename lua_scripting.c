@@ -146,7 +146,7 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, LUA_SCRIPT
             strcat( buf, ",");
         strcat( buf, scripter->arg_list[i] );
     }
-    strcat( buf, ")\n");
+    strcat( buf, ") ");
     strcat( buf, code );
     strcat( buf, "\nend");
 
@@ -192,7 +192,7 @@ bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "return function (%s,%s,%s)\n"
+    sprintf(buf, "return function (%s,%s,%s) "
             "%s\n"
             "end",
             CH1_ARG, TRIG_ARG, TRIGTYPE_ARG,
@@ -228,7 +228,7 @@ bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s)\n"
+    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s) "
             "%s\n"
             "end",
             CH1_ARG, CH2_ARG, OBJ1_ARG, OBJ2_ARG,
@@ -266,7 +266,7 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
         return FALSE;
     }
 
-    sprintf(buf, "return function (%s,%s,%s,%s,%s)"
+    sprintf(buf, "return function (%s,%s,%s,%s,%s) "
             "%s\n"
             "end",
             OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG, TRIGTYPE_ARG,
