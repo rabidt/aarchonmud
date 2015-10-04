@@ -3614,10 +3614,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
     
-    if (lethal)
-        victim->hit -= dam;
-    else if (victim->hit > 0)
-        victim->hit = UMAX(1, victim->hit - dam);
+    if ( !lethal && dam >= victim->hit )
+        dam = UMAX(0, victim->hit - 1);
+    
+    victim->hit -= dam;
     
     // finally, all absorption checked - now check for cursed wound
     if ( victim != ch && check_skill(ch, gsn_cursed_wound) && !saves_spell(victim, ch, ch->level, DAM_NEGATIVE) )
