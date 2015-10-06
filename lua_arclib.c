@@ -2955,6 +2955,17 @@ static int CH_offensive (lua_State *LS)
     return check_flag( LS, "offensive",off_flags, ud_ch->off_flags );
 }
 
+static int CH_setoffensive (lua_State *LS)
+{
+    CHAR_DATA * ud_ch = check_CH (LS, 1);
+    if (IS_NPC(ud_ch))
+    {
+        return set_flag( LS, "offensive", off_flags, ud_ch->off_flags );
+    }
+    else
+        return luaL_error( LS, "'setoffensive' for NPC only.");
+}
+
 static int CH_immune (lua_State *LS)
 { 
     CHAR_DATA * ud_ch = check_CH (LS, 1);
@@ -4711,6 +4722,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(peace, 1),
     CHMETH(restore, 1),
     CHMETH(setact, 1),
+    CHMETH(setoffensive, 1),
     CHMETH(setvuln, 1),
     CHMETH(setimmune, 1),
     CHMETH(setresist, 1),
@@ -6607,11 +6619,11 @@ static const LUA_PROP_TYPE EXIT_set_table [] =
 static const LUA_PROP_TYPE EXIT_method_table [] =
 {
     EXMETH(flag, 0),
-    EXMETH(setflag, 0),
-    EXMETH(open, 0),
-    EXMETH(close, 0),
-    EXMETH(unlock, 0),
-    EXMETH(lock, 0),
+    EXMETH(setflag, 1),
+    EXMETH(open, 1),
+    EXMETH(close, 1),
+    EXMETH(unlock, 1),
+    EXMETH(lock, 1),
     ENDPTABLE
 }; 
 
