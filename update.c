@@ -1073,6 +1073,7 @@ void weather_update( void )
         case  5:
             weather_info.sunlight = SUN_RISE;
             strcat( buf, "The sun rises in the east.\n\r" );
+            /*
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 if ( d->character != NULL && IS_AFFECTED( d->character, AFF_DARKNESS ) )
@@ -1082,6 +1083,7 @@ void weather_update( void )
                     affect_strip(d->character, gsn_blessed_darkness);
                 }
             }
+            */
             break;
 
         case  6:
