@@ -1866,7 +1866,9 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
     // trying to equip disarmed item causes lag and attacks of opportunity
     if ( IS_OBJ_STAT(obj, ITEM_DISARMED) )
     {
-        WAIT_STATE(ch, PULSE_VIOLENCE);
+        // no lag when picking up item out of combat
+        if ( ch->fighting )
+            WAIT_STATE(ch, PULSE_VIOLENCE);
         act("You bend down to pick up $p.", ch, obj, NULL, TO_CHAR);
         act("$n bends down to pick up $p.", ch, obj, NULL, TO_ROOM);
         if ( provoke_attacks(ch) )
