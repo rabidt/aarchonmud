@@ -2062,7 +2062,7 @@ DEF_SPELL_FUN(spell_bless)
     victim = (CHAR_DATA *) vo;
 
 
-    if ( is_affected( victim, sn ) || is_affected(victim, gsn_prayer) || is_affected(victim, gsn_blessed_darkness) )
+    if ( is_affected( victim, sn ) || is_affected(victim, gsn_prayer) )
     {
         if (victim == ch)
             send_to_char("You are already blessed.\n\r",ch);
