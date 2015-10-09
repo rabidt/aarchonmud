@@ -1047,7 +1047,7 @@ DEF_DO_FUN(do_snipe)
         
     if (arg[0] == '\0')
     {
-        send_to_char("Snipe who?\n\r",ch);
+        send_to_char("Snipe whom?\n\r",ch);
         return;
     }
      
