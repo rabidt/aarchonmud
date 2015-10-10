@@ -435,7 +435,6 @@ DEF_DO_FUN(do_combat)
     ch->hit = ch->max_hit;
     ch->mana = ch->max_mana;
     ch->move = ch->max_move;
-    ch->pcdata->total_wars++;
     // players only return to where they were if outside of Bastion when joining
     if ( ch->in_room->area != get_room_index(ROOM_VNUM_RECALL)->area )
         ch->was_in_room = ch->in_room;
@@ -742,10 +741,6 @@ void war_end( bool success )
             else if ( war.type == DUEL_WAR )
                 d->character->pcdata->duel_won++;
         }
-        else
-        {
-            d->character->pcdata->total_wars--;
-        }
     }
 
     war.on = FALSE;
@@ -888,7 +883,6 @@ void war_remove( CHAR_DATA *ch, bool killed )
     }
     else
     {
-        ch->pcdata->total_wars--;
         char_from_room( ch );
         return_to_room( ch, get_room_index(ROOM_VNUM_TEMPLE) );
     }

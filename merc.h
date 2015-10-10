@@ -2740,7 +2740,6 @@ struct  pc_data
 	long		bank;
 	sh_int      clan_rank; /* 0 for unguilded and loner, > 0 otherwise */
 	tflag        tag_flags;
-	int                 total_wars;
 	int		    warpoints;
 	int                 war_kills;
 	int                 armageddon_won;

@@ -845,7 +845,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "WarClassKills %d\n", ch->pcdata->class_kills );
     bprintf( buf, "WarPoints %d\n", ch->pcdata->warpoints );
     bprintf( buf, "WarTotalKills %d\n", ch->pcdata->war_kills );
-    bprintf( buf, "WarTotalWars %d\n", ch->pcdata->total_wars );
     bprintf( buf, "WarGenderKills %d\n", ch->pcdata->gender_kills );
     bprintf( buf, "WarGenderWon %d\n", ch->pcdata->gender_won );
     bprintf( buf, "WarGenderLost %d\n", ch->pcdata->gender_lost );
@@ -1428,6 +1427,9 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 
 /* flag reading special */
 #define KEYF( literal, field) if ( !str_cmp( word, literal ) ) { bread_tflag(buf, field); fMatch = TRUE; break; }
+
+/* read and discard (gobble) old value */
+#define GOBBLE( literal, value ) if ( !str_cmp(word, literal) ) { value; fMatch = TRUE; break; }
 
 void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
@@ -2388,7 +2390,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEY( "WarClassLost",ch->pcdata->class_lost,         bread_number( buf ) );
         KEY( "WarClassKills",ch->pcdata->class_kills,       bread_number( buf ) );
         KEY( "WarPoints",ch->pcdata->warpoints,             bread_number( buf ) );
-        KEY( "WarTotalWars",ch->pcdata->total_wars,         bread_number( buf ) );
+        GOBBLE( "WarTotalWars", bread_number(buf) );
         KEY( "WarGenderKills",ch->pcdata->gender_kills,     bread_number( buf ) );
         KEY( "WarGenderWon",ch->pcdata->gender_won,         bread_number( buf ) );
         KEY( "WarGenderLost",ch->pcdata->gender_lost,       bread_number( buf ) );
@@ -3349,6 +3351,21 @@ DEF_DO_FUN(do_finger)
     {
         int war;
 
+        int wars_won = wch->pcdata->armageddon_won
+            + wch->pcdata->clan_won
+            + wch->pcdata->class_won
+            + wch->pcdata->race_won
+            + wch->pcdata->religion_won
+            + wch->pcdata->gender_won
+            + wch->pcdata->duel_won;
+        int wars_lost = wch->pcdata->armageddon_lost
+            + wch->pcdata->clan_lost
+            + wch->pcdata->class_lost
+            + wch->pcdata->race_lost
+            + wch->pcdata->religion_lost
+            + wch->pcdata->gender_lost
+            + wch->pcdata->duel_lost;
+        
         /*
         if( wch->pcdata->pkpoints == 0 )
             pk = get_pkgrade_level(wch->pcdata->pkill_count);
@@ -3366,7 +3383,7 @@ DEF_DO_FUN(do_finger)
      
         sprintf(buf,
 	    "{D|{x                         {D|{x Warfare Grade: {W<<%s{W>>{x  Total Wars: %5d{x {D|{x\n\r",
-			pkgrade_table[war].grade, wch->pcdata->total_wars );
+			pkgrade_table[war].grade, wars_won + wars_lost );
         add_buf( output, buf ); 
          
         sprintf(buf,
@@ -3413,8 +3430,7 @@ DEF_DO_FUN(do_finger)
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
             wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 /
             (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success),
-	    wch->pcdata->armageddon_won + wch->pcdata->clan_won + wch->pcdata->class_won + wch->pcdata->race_won + wch->pcdata->religion_won + wch->pcdata->gender_won + wch->pcdata->duel_won,
-	    wch->pcdata->armageddon_lost + wch->pcdata->clan_lost + wch->pcdata->class_lost + wch->pcdata->race_lost + wch->pcdata->religion_lost + wch->pcdata->gender_lost + wch->pcdata->duel_lost,
+            wars_won, wars_lost,
 	    wch->pcdata->war_kills );
         add_buf( output, buf );
         
