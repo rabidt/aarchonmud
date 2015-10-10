@@ -455,7 +455,7 @@ void check_draconic_breath( CHAR_DATA *ch )
     }
         
     // bloodline determines type of breath
-    switch ( ch->pcdata->morph_race )
+    switch ( ch->pcdata ? ch->pcdata->morph_race : 0 )
     {
         default:
         case MORPH_DRAGON_RED:

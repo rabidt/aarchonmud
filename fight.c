@@ -225,6 +225,58 @@ bool provoke_attacks( CHAR_DATA *victim )
     return hit && !per_chance(25 + get_curr_stat(victim, STAT_DIS) / 4);
 }
 
+// single round violence actions
+void violence_update_char( CHAR_DATA *ch )
+{
+    CHAR_DATA *victim;
+    
+    if ( ch->stop > 0 )
+    {
+        ch->stop--;
+        return;
+    }
+    
+    check_reset_stance(ch);
+    check_draconic_breath(ch);
+    check_jump_up(ch);
+
+    if ( (victim = ch->fighting) == NULL )
+        return;
+    
+    if ( IS_AWAKE(ch) && ch->in_room == victim->in_room )
+    {
+        multi_hit(ch, victim, TYPE_UNDEFINED);
+        if ( check_skill(ch, gsn_gang_up) )
+            gangbang(victim);
+    }
+    else
+        stop_fighting( ch, FALSE );
+    
+    if ( (victim = ch->fighting) == NULL )
+        return;
+    
+    // ch rescues someone
+    check_rescue(ch);
+
+    if ( IS_NPC(ch) )
+    {
+        if ( HAS_TRIGGER(ch, TRIG_FIGHT) )
+            mp_percent_trigger(ch, victim, NULL,0, NULL,0, TRIG_FIGHT);
+        if ( ch->must_extract )
+            return;
+
+        if ( HAS_TRIGGER(ch, TRIG_HPCNT) )
+            mp_hprct_trigger(ch, victim);
+        if ( ch->must_extract )
+            return;
+
+        if ( HAS_TRIGGER(ch, TRIG_MPCNT) )
+            mp_mprct_trigger(ch, victim);
+        if ( ch->must_extract )
+            return;
+    }
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -255,17 +307,9 @@ void violence_update( void )
         /* handle affects that do things each round */
         special_affect_update(ch);
     
-        if ( ch->stop > 0 )
-        {
-            ch->stop--;
-            continue;
-        }
-        
-        check_reset_stance(ch);
+        /* the main action */
+        violence_update_char(ch);
 
-        if ( !IS_NPC(ch) )
-            check_draconic_breath(ch);
-        
         /*
         * Hunting mobs. 
         */
@@ -277,38 +321,6 @@ void violence_update( void )
         
         if ( ( victim = ch->fighting ) == NULL || ch->in_room == NULL )
             continue;
-        
-	check_jump_up(ch);
-
-        if ( IS_AWAKE(ch) && ch->in_room == victim->in_room )
-        {
-            multi_hit( ch, victim, TYPE_UNDEFINED );
-            if ( check_skill(ch, gsn_gang_up) )
-                gangbang(victim);
-        }
-        else
-            stop_fighting( ch, FALSE );
-        
-        if ( ( victim = ch->fighting ) == NULL )
-            continue;
-        
-        // ch rescues someone
-        check_rescue(ch);
-
-        if ( IS_NPC( ch ) )
-        {
-            if ( HAS_TRIGGER( ch, TRIG_FIGHT ) )
-                mp_percent_trigger( ch, victim, NULL,0, NULL,0, TRIG_FIGHT );
-            if (ch->must_extract) continue;
-
-            if ( HAS_TRIGGER( ch, TRIG_HPCNT ) )
-                mp_hprct_trigger( ch, victim );
-            if (ch->must_extract) continue;
-
-            if ( HAS_TRIGGER( ch, TRIG_MPCNT ) )
-                mp_mprct_trigger( ch, victim );
-            if (ch->must_extract) continue;
-        }
 
         op_fight_trigger( ch, victim );
     }
