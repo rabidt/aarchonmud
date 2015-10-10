@@ -4292,6 +4292,7 @@ void    stop_follower   args( ( CHAR_DATA *ch ) );
 void    nuke_pets   args( ( CHAR_DATA *ch ) );
 void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
+bool    is_allied( CHAR_DATA *ach, CHAR_DATA *bch );
 void    info_message( CHAR_DATA *ch, const char *argument, bool show_to_char );
 void    info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible );
 const char *makedrunk args( (const char *string, CHAR_DATA *ch) );
