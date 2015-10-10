@@ -1970,10 +1970,9 @@ DEF_DO_FUN(do_examine)
         send_to_char( buf, ch );
 	break;
     case ITEM_ARROWS:
-	sprintf( buf, "There are %d arrows in this pack.\n\r", obj->value[0] );
-        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
-	send_to_char( buf, ch );
-	break;
+        ptc(ch, "There are %d arrows in this pack.\n\r", obj->value[0]);
+        ptc(ch, "It has a level requirement of %d.\n\r", obj->level);
+        break;
 
     case ITEM_MONEY:
 	if (obj->value[0] == 0)
