@@ -222,7 +222,7 @@ bool provoke_attacks( CHAR_DATA *victim )
             }
         }
     }
-    return hit && !per_chance(25 + get_curr_stat(victim, STAT_DIS) / 4);
+    return hit && !per_chance(get_curr_stat(victim, STAT_DIS) / 8);
 }
 
 // single round violence actions
