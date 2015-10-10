@@ -787,7 +787,7 @@ DEF_DO_FUN(do_warsit)
     DESCRIPTOR_DATA *d;
     BUFFER *output;
     char buf[MSL];
-    int hp_percent = 0;
+    int hp_percent, mana_percent, move_percent;
 
     if ( war.on == FALSE )
     {
@@ -803,8 +803,8 @@ DEF_DO_FUN(do_warsit)
     }
 
     output = new_buf();
-    sprintf( buf, "{c%-10s %-8s %-4s %-8s %-3s %-6s %-3s %-8s %-10s %-10s{x\n\r",
-            "Name", "Gender", "%%hp", "Position", "Lvl", "Race", "Cls", "God", "Clan", "Fighting");
+    sprintf( buf, "{c%-10s %-8s %-4s %-4s %-4s %-3s %-6s %-3s %-8s %-10s %-10s{x\n\r",
+            "Name", "Gender", "hp", "mana", "move", "Lvl", "Race", "Cls", "God", "Clan", "Fighting");
     add_buf( output, buf );
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
@@ -818,12 +818,15 @@ DEF_DO_FUN(do_warsit)
         god_name = get_god_name(d->character);
 
         hp_percent = (d->character->hit*100)/d->character->max_hit;
-        sprintf( buf, "%-10s %-8s %-3d%% %-8s %3d %-6s %-3s %-8s %-10s %-10s\n\r",
+        mana_percent = (d->character->mana*100)/d->character->max_mana;
+        move_percent = (d->character->move*100)/d->character->max_move;
+        sprintf( buf, "%-10s %-8s %3d%% %3d%% %3d%% %3d %-6s %-3s %-8s %-10s %-10s\n\r",
                 d->character->name,
                 get_base_sex(d->character) == 2 ? "female"
                 : get_base_sex(d->character) == 1 ? "male" : "sexless",
                 hp_percent,
-                position_table[d->character->position].name,
+                mana_percent,
+                move_percent,
                 d->character->level,
                 pc_race_table[d->character->race].who_name,
                 class_table[d->character->class].who_name,
