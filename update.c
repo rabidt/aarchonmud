@@ -1057,15 +1057,11 @@ void mobile_timer_update( void )
     return;
 }
 
-/*
- * Update the weather.
- */
-void weather_update( void )
+void time_update()
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
-    int diff;
-
+    
     buf[0] = '\0';
 
     switch ( ++time_info.hour )
@@ -1073,17 +1069,6 @@ void weather_update( void )
         case  5:
             weather_info.sunlight = SUN_RISE;
             strcat( buf, "The sun rises in the east.\n\r" );
-            /*
-            for ( d = descriptor_list; d != NULL; d = d->next )
-            {
-                if ( d->character != NULL && IS_AFFECTED( d->character, AFF_DARKNESS ) )
-                {
-                    send_to_char("The rising of the sun drains the energy from your body.\n\r",d->character); 
-                    REMOVE_BIT( d->character->affect_field, AFF_DARKNESS );
-                    affect_strip(d->character, gsn_blessed_darkness);
-                }
-            }
-            */
             break;
 
         case  6:
@@ -1144,6 +1129,30 @@ void weather_update( void )
         time_info.month = 0;
         time_info.year++;
     }
+
+    if ( buf[0] != '\0' )
+    {
+        for ( d = descriptor_list; d != NULL; d = d->next )
+        {
+            if ( d->connected == CON_PLAYING
+                    && d->editor == ED_NONE
+                    && IS_OUTSIDE(d->character)
+                    && IS_AWAKE(d->character) )
+                send_to_char( buf, d->character );
+        }
+    }
+
+}
+
+/*
+ * Update the weather.
+ */
+void weather_update( void )
+{
+    char buf[MAX_STRING_LENGTH];
+    int diff;
+
+    buf[0] = '\0';
 
     /*
      * Weather change.
@@ -1220,6 +1229,7 @@ void weather_update( void )
 
     if ( buf[0] != '\0' )
     {
+        DESCRIPTOR_DATA *d;
         for ( d = descriptor_list; d != NULL; d = d->next )
         {
             if ( d->connected == CON_PLAYING
@@ -2429,6 +2439,7 @@ void extract_update( void )
 // separate to enable imm-forced ticks
 void core_tick()
 {
+    time_update();
     weather_update();
     char_update();
     war_update();  
