@@ -1103,3 +1103,12 @@ const char* aan(const char *s)
             return "a";
     }
 }
+
+bool is_alpha_string( const char *s )
+{
+    while ( *s != '\0' )
+        if ( !isalpha(*(s++)) )
+            return FALSE;
+    return TRUE;
+}
+
