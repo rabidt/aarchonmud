@@ -470,7 +470,6 @@ PC_DATA *new_pcdata(void)
     pcdata->class_lost              = 0;
     pcdata->duel_won                = 0;
     pcdata->duel_lost               = 0;
-    pcdata->total_wars              = 0;
     pcdata->war_kills               = 0;
     pcdata->warpoints               = 0;
     pcdata->mob_kills               = 0;
