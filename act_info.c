@@ -1698,6 +1698,41 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
     return NULL;
 }
 
+void show_content( CHAR_DATA *ch, OBJ_DATA *obj )
+{
+    switch ( obj->item_type )
+    {
+    default:
+        send_to_char( "That is not a container.\n\r", ch );
+        break;
+        
+    case ITEM_DRINK_CON:
+        if ( obj->value[1] <= 0 )
+            send_to_char( "It is empty.\n\r", ch );
+        else
+            ptc( ch, "It's filled with %d out of %d units of %s liquid.\n\r",
+                obj->value[1], obj->value[0], liq_table[obj->value[2]].liq_color );
+        break;
+        
+    case ITEM_CONTAINER:
+    case ITEM_CORPSE_NPC:
+    case ITEM_CORPSE_PC:
+        if ( I_IS_SET(obj->value[1], CONT_CLOSED) )
+            send_to_char( "It is closed.\n\r", ch );
+        else
+        {
+            act( "$p holds:", ch, obj, NULL, TO_CHAR );
+            show_list_to_char( obj->contains, ch, TRUE, TRUE );
+            if ( obj->item_type == ITEM_CONTAINER )
+            { 
+                int num_items = get_obj_number(obj);
+                printf_to_char(ch, "\n\r%d %s.\n\r", num_items, num_items == 1 ? "item" : "items");
+            }
+        }
+        break;
+    }
+}
+
 DEF_DO_FUN(do_look)
 {
     char buf  [MAX_STRING_LENGTH];
@@ -1710,7 +1745,6 @@ DEF_DO_FUN(do_look)
     const char *pdesc;
     int door;
     int number,count;
-    sh_int num_items;
     
     if ( ch->desc == NULL )
         return;
@@ -1811,46 +1845,7 @@ DEF_DO_FUN(do_look)
             return;
         }
         
-        switch ( obj->item_type )
-        {
-        default:
-            send_to_char( "That is not a container.\n\r", ch );
-            break;
-            
-        case ITEM_DRINK_CON:
-            if ( obj->value[1] <= 0 )
-            {
-                send_to_char( "It is empty.\n\r", ch );
-                break;
-            }
-	    sprintf( buf, "It's filled with %d out of %d units of %s liquid.\n\r",
-		     obj->value[1], obj->value[0],
-		     liq_table[obj->value[2]].liq_color );
-
-            send_to_char( buf, ch );
-            break;
-            
-        case ITEM_CONTAINER:
-        case ITEM_CORPSE_NPC:
-        case ITEM_CORPSE_PC:
-            if ( I_IS_SET(obj->value[1], CONT_CLOSED) )
-            {
-                send_to_char( "It is closed.\n\r", ch );
-                break;
-            }
-            
-            act( "$p holds:", ch, obj, NULL, TO_CHAR );
-            show_list_to_char( obj->contains, ch, TRUE, TRUE );
-            /* Show item count in storage boxes*/
-//            if (obj->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
-            if (obj->item_type == ITEM_CONTAINER)
-            { 
-                num_items = get_obj_number(obj);
-                printf_to_char(ch,"\n\r%d %s.\n\r",num_items,
-                        num_items == 1 ? "item" : "items");
-            }
-            break;
-        }
+        show_content(ch, obj);
         return;
     }
     
@@ -2001,16 +1996,11 @@ DEF_DO_FUN(do_examine)
 	break;
 	
         case ITEM_DRINK_CON:
-            sprintf(buf,"in %s",argument);
-            do_look( ch, buf );
-            sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
-            send_to_char( buf, ch );
-            break;
+            ptc(ch, "It has a level requirement of %d.\n\r", obj->level);
         case ITEM_CONTAINER:
         case ITEM_CORPSE_NPC:
         case ITEM_CORPSE_PC:
-            sprintf(buf,"in %s",argument);
-            do_look( ch, buf );
+            show_content(ch, obj);
 	    break;
 
 	case ITEM_WEAPON:
