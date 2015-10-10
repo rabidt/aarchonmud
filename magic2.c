@@ -2921,7 +2921,6 @@ DEF_SPELL_FUN(spell_smotes_anachronism)
     SPELL_CHECK_RETURN
     
    	CHAR_DATA *gch;
-   	CHAR_DATA *victim;
     
     act("Smote appears suddenly and slows down time!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Your prayers are answered as Smote slows down time!\n\r",ch);
@@ -2936,30 +2935,17 @@ DEF_SPELL_FUN(spell_smotes_anachronism)
         if ( gch->wait > PULSE_VIOLENCE && gch != ch )
             gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, PULSE_VIOLENCE);
         gch->daze = UMAX(gch->daze - PULSE_VIOLENCE, 0);
-        victim = gch->fighting;
         
-	if ( gch->hit  < gch->max_hit )
-	    gch->hit  += hit_gain(gch) / 10;
-	else
-	    gch->hit = gch->max_hit;
+        if ( gch->hit < gch->max_hit )
+            gch->hit += hit_gain(gch) / 10;
         
-	if ( gch->mana < gch->max_mana )
-	    gch->mana += mana_gain(gch) / 10;
-	else
-	    gch->mana = gch->max_mana;
-	
-	if ( gch->move < gch->max_move )
-	    gch->move += move_gain(gch) / 10;
-	else
-	    gch->move = gch->max_move;	
+        if ( gch->mana < gch->max_mana )
+            gch->mana += mana_gain(gch) / 10;
         
-        if ( ( victim = gch->fighting ) == NULL || ch->in_room == NULL )
-            continue;
+        if ( gch->move < gch->max_move )
+            gch->move += move_gain(gch) / 10;
         
-        if ( IS_AWAKE(gch) && gch->in_room == victim->in_room )
-            multi_hit( gch, victim, TYPE_UNDEFINED );
-	else
-	    stop_fighting( gch, FALSE );
+        violence_update_char(gch);
     }
     return TRUE;
 }

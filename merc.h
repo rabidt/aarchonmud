@@ -4589,6 +4589,7 @@ bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
 bool    is_calm( CHAR_DATA *ch );
+void    violence_update_char( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
