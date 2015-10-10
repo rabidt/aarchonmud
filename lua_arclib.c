@@ -3574,6 +3574,60 @@ static int CH_set_damrollbase (lua_State *LS)
     return 0;
 }
 
+static int CH_get_dicenumber (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't get dicenumber on PCs.");
+    lua_pushinteger( LS,
+            ud_ch->damage[DICE_NUMBER]);
+    return 1;
+}
+
+static int CH_set_dicenumber (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set dicenumber on PCs.");
+
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 1 )
+    {
+        return luaL_error( LS, "Value must be 1 or greater.");
+    }
+    ud_ch->damage[DICE_NUMBER]=val;
+
+    return 0;
+}
+
+static int CH_get_dicetype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't get dicetype on PCs.");
+    lua_pushinteger( LS,
+            ud_ch->damage[DICE_TYPE]);
+    return 1;
+}
+
+static int CH_set_dicetype (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set dicetype on PCs.");
+
+    int val=luaL_checkinteger( LS, 2);
+
+    if ( val < 1 )
+    {
+        return luaL_error( LS, "Value must be 1 or greater.");
+    }
+    ud_ch->damage[DICE_TYPE]=val;
+
+    return 0;
+}
+
 
 static int CH_set_drpcnt (lua_State *LS)
 {
@@ -4615,6 +4669,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(ingame,0),
     CHGET(shortdescr, 0),
     CHGET(longdescr, 0),    
+    CHGET(dicenumber, 0),
+    CHGET(dicetype, 0),
     ENDPTABLE
 };
 
@@ -4661,6 +4717,9 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(questpoints, SEC_NOSCRIPT),
     CHSET(ptitles, SEC_NOSCRIPT),
     CHSET(ptitle, SEC_NOSCRIPT),
+    /* NPC only */
+    CHSET(dicenumber, 5),
+    CHSET(dicetype, 5),
     ENDPTABLE
 };
 
