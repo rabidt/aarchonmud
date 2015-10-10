@@ -790,6 +790,7 @@ bool spec_guard( CHAR_DATA *ch )
 	    }		
 
         if ( victim->fighting != NULL
+            && !is_allied(ch, victim)
             && IS_SET(victim->fighting->form, FORM_SENTIENT)
             && !IS_UNDEAD(victim->fighting)
             && victim->alignment < max_evil

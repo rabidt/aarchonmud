@@ -2681,6 +2681,21 @@ bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
     return ach == bch;
 }
 
+// not as strong as grouped, but generally considered an ally
+bool is_allied( CHAR_DATA *ach, CHAR_DATA *bch )
+{
+    if ( ach == NULL || bch == NULL)
+        return FALSE;
+
+    if ( is_same_group(ach, bch) )
+        return TRUE;
+    
+    if ( IS_NPC(ach) && IS_NPC(bch) && ach->pIndexData == bch->pIndexData )
+        return TRUE;
+    
+    return FALSE;
+}
+
 /*
 * Colour setting and unsetting, way cool, Lope Oct '94
 * (most of) Lope's V2.0 update added to Aarchon Sept '98 by Quirky
