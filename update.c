@@ -970,9 +970,12 @@ void mobile_update( void )
         {
             for ( obj = ch->carrying; obj != NULL; obj = obj_next )
             {
-              obj_next = obj->next_content;
-              if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) && obj->item_type == ITEM_WEAPON )
-                  wear_obj( ch, obj, FALSE );
+                obj_next = obj->next_content;
+                if ( obj->wear_loc == WEAR_NONE && can_see_obj(ch, obj) && obj->item_type == ITEM_WEAPON )
+                {
+                    wear_obj(ch, obj, FALSE);
+                    break;
+                }
             }
         } 
 
