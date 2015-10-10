@@ -3716,7 +3716,7 @@ DEF_SPELL_FUN(spell_solar_flare)
     SPELL_CHECK_RETURN
     
     /* the better the weather, and the brighter the day more powerful */
-    dam = get_sn_damage( sn, level, ch ) / (2 + weather_info.sky + (weather_info.sunlight == SUN_LIGHT ? 0 : 1));
+    dam = get_sn_damage( sn, level, ch ) * 2 / (3 + weather_info.sky + (weather_info.sunlight == SUN_LIGHT ? 0 : 1));
     
     // some fire damage ...
     act( "You call upon the heat of the sun to sear $N's flesh!", ch, NULL, victim, TO_CHAR);
