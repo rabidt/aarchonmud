@@ -315,6 +315,9 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
 #if defined(SIM_DEBUG)
    log_string("load_char_obj: start");
 #endif
+  // safety-net against invalid filenames
+  if ( !is_alpha_string(name) )
+      return false;
   strcpy(filename, capitalize(name));
   /* search player_quit_list */
   for (mf = player_quit_list; mf != NULL; mf = mf->next)

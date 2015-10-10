@@ -5216,6 +5216,7 @@ const char * rpad( const char *argument, int width, char fill );
 const char* ltrim     args( ( const char *s ) );
 const char* aan       args( ( const char *s ) );
 bool is_empty_string( const char *s );
+bool is_alpha_string( const char *s );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );
