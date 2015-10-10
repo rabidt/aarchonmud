@@ -1269,7 +1269,7 @@ DEF_SPELL_FUN(spell_hand_of_siva)
     weapon->level=weapon_level;
     weapon->value[0] = weapon_class[i].bit ;
     
-    if ( weapon_2hands )
+    if ( weapon_2hands && weapon->value[0] != WEAPON_BOW )
         I_SET_BIT( weapon->value[4], WEAPON_TWO_HANDS );
     else
         I_REMOVE_BIT( weapon->value[4], WEAPON_TWO_HANDS );
