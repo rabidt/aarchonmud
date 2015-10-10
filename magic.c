@@ -4164,145 +4164,67 @@ DEF_SPELL_FUN(spell_heal)
 DEF_SPELL_FUN(spell_heat_metal)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    OBJ_DATA *obj_lose, *obj_next;
+    OBJ_DATA *obj, *obj_next;
     int dam = 0;
-    bool fail = TRUE;
-
-    if ( IS_SET( ch->act, PLR_WAR ) )
-    {
-        send_to_char( "Play nice!\n\r", ch );
-        return SR_UNABLE;
-    }
 
     SPELL_CHECK_RETURN
     
-    if (!saves_spell(victim, ch, level, DAM_FIRE) 
-            &&  !IS_SET(victim->imm_flags,IMM_FIRE))
+    if ( !IS_SET(victim->imm_flags, IMM_FIRE) && !saves_spell(victim, ch, level, DAM_FIRE) )
     {
-        for ( obj_lose = victim->carrying;
-                obj_lose != NULL; 
-                obj_lose = obj_next)
+        // NPCs get inherent AC bonus to simulate equipment
+        if ( IS_NPC(victim) )
+            dam += victim->pIndexData->ac_percent / 10;
+        // constructs take extra damage
+        if ( IS_SET(victim->form, FORM_CONSTRUCT) )
+            dam += 10;
+        
+        // burn damage for each object worn
+        for ( obj = victim->carrying; obj != NULL; obj = obj_next )
         {
-            obj_next = obj_lose->next_content;
-            if ( number_range(1,2 * level) > obj_lose->level 
-                    &&   !saves_spell(victim, ch, level, DAM_FIRE)
-                    &&   !IS_OBJ_STAT(obj_lose,ITEM_NONMETAL)
-                    &&   !IS_OBJ_STAT(obj_lose,ITEM_BURN_PROOF)
-                    &&   !IS_OBJ_STAT(obj_lose,ITEM_STICKY))
+            obj_next = obj->next_content;
+            if ( obj->wear_loc == WEAR_NONE || IS_OBJ_STAT(obj, ITEM_NONMETAL) )
+                continue;
+            
+            if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) && per_chance(50) )
+                continue;
+            
+            // heavy armor deals more damage
+            int obj_dam = 1 + apply_heavy_armor(obj, obj->wear_loc);
+            
+            // discipline check - failure means item is unequipped
+            if ( !IS_SET(obj->extra_flags, ITEM_NOREMOVE) && !per_chance(get_curr_stat(victim, STAT_DIS) / 2) )
             {
-                switch ( obj_lose->item_type )
+                if ( obj->item_type == ITEM_WEAPON )
                 {
-                    case ITEM_ARMOR:
-                        if (obj_lose->wear_loc != -1) /* remove the item */
-                        {
-                            if (can_drop_obj(victim,obj_lose)
-                                    &&  (obj_lose->weight / 10) < 
-                                    number_range(1,get_curr_stat(victim,STAT_DEX)/2)
-                                    &&  remove_obj( victim, obj_lose->wear_loc, TRUE ))
-                            {
-                                act("$n yelps and throws $p to the ground!",
-                                        victim,obj_lose,NULL,TO_ROOM);
-                                act("You remove and drop $p before it burns you.",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level) / 3);
-                                obj_from_char(obj_lose);
-                                obj_to_room(obj_lose, victim->in_room);
-                                fail = FALSE;
-                            }
-                            else /* stuck on the body! ouch! */
-                            {
-                                act("Your skin is seared by $p!",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level));
-                                fail = FALSE;
-                            }
-
-                        }
-                        else /* drop it if we can */
-                        {
-                            if (can_drop_obj(victim,obj_lose))
-                            {
-                                act("$n yelps and throws $p to the ground!",
-                                        victim,obj_lose,NULL,TO_ROOM);
-                                act("You and drop $p before it burns you.",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level) / 6);
-                                obj_from_char(obj_lose);
-                                obj_to_room(obj_lose, victim->in_room);
-                                fail = FALSE;
-                            }
-                            else /* cannot drop */
-                            {
-                                act("Your skin is seared by $p!",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level) / 2);
-                                fail = FALSE;
-                            }
-                        }
-                        break;
-                    case ITEM_WEAPON:
-                        if (obj_lose->wear_loc != -1) /* try to drop it */
-                        {
-                            if (IS_WEAPON_STAT(obj_lose,WEAPON_FLAMING))
-                                continue;
-
-                            if (can_drop_obj(victim,obj_lose) 
-                                    &&  remove_obj(victim,obj_lose->wear_loc,TRUE))
-                            {
-                                act("$n is burned by $p, and throws it to the ground.",
-                                        victim,obj_lose,NULL,TO_ROOM);
-                                send_to_char(
-                                        "You throw your red-hot weapon to the ground!\n\r",
-                                        victim);
-                                dam += 1;
-                                obj_from_char(obj_lose);
-                                obj_to_room(obj_lose,victim->in_room);
-                                fail = FALSE;
-                            }
-                            else /* YOWCH! */
-                            {
-                                send_to_char("Your weapon sears your flesh!\n\r",
-                                        victim);
-                                dam += number_range(1,obj_lose->level);
-                                fail = FALSE;
-                            }
-                        }
-                        else /* drop it if we can */
-                        {
-                            if (can_drop_obj(victim,obj_lose))
-                            {
-                                act("$n throws a burning hot $p to the ground!",
-                                        victim,obj_lose,NULL,TO_ROOM);
-                                act("You and drop $p before it burns you.",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level) / 6);
-                                obj_from_char(obj_lose);
-                                obj_to_room(obj_lose, victim->in_room);
-                                fail = FALSE;
-                            }
-                            else /* cannot drop */
-                            {
-                                act("Your skin is seared by $p!",
-                                        victim,obj_lose,NULL,TO_CHAR);
-                                dam += (number_range(1,obj_lose->level) / 2);
-                                fail = FALSE;
-                            }
-                        }
-                        break;
+                    act("$n screams and drops $p!", victim, obj, NULL, TO_ROOM);
+                    act("You drop $p before it burns you.", victim, obj, NULL, TO_CHAR);
+                    unequip_char(victim, obj);
+                    SET_BIT(obj->extra_flags, ITEM_DISARMED);
                 }
+                else
+                {
+                    act("$n screams and removes $p!", victim, obj, NULL, TO_ROOM);
+                    act("You remove $p before it burns you.", victim, obj, NULL, TO_CHAR);
+                    unequip_char(victim, obj);
+                }
+                // dexterity check - failure means some burn damage still applies
+                if ( !per_chance(get_curr_stat(victim, STAT_DEX) / 2) )
+                    dam += rand_div(obj_dam, 2);
             }
+            else
+                dam += obj_dam;
         }
-    } 
-    if (fail)
+    }
+    
+    if ( !dam )
     {
         send_to_char("Your spell failed to have an effect.\n\r", ch);
-        send_to_char("You feel momentarily warmer.\n\r",victim);
+        send_to_char("You feel momentarily warmer.\n\r", victim);
     }
-    else /* damage! */
+    else
     {
-        if (saves_spell(victim, ch, level, DAM_FIRE))
-            dam = 2 * dam / 3;
-        full_dam(ch,victim,dam,sn,DAM_FIRE,TRUE);
+        dam = get_sn_damage(sn, level, ch) * dam / 30;
+        full_dam(ch, victim, dam, sn, DAM_FIRE, TRUE);
     }
     return TRUE;
 }
