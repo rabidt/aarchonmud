@@ -410,7 +410,7 @@ void check_draconic_breath( CHAR_DATA *ch )
 {
     // requires draconic breath skill - low skill means longer wait
     int skill = get_skill(ch, gsn_draconic_breath);
-    if ( !skill || !per_chance(skill) )
+    if ( IS_NPC(ch) || !skill || !per_chance(skill) )
         return;
     
     // can only breathe once every 1d4 rounds
