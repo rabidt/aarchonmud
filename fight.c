@@ -2900,7 +2900,7 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
             chance = 100;
         else
         {
-            chance += get_skill(ch, gsn_beheading) / 2;
+            chance += get_skill_total(ch, gsn_beheading, 0.5) / 2;
             if ( IS_WEAPON_STAT(wield, WEAPON_SHARP) ) 
                 chance += 1;
             if ( IS_WEAPON_STAT(wield, WEAPON_VORPAL) )
@@ -2911,7 +2911,9 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     }
     
     // at this stage we have a *chance* to behead, so skill might improve
-    if ( number_bits(9) != 69 || !per_chance(chance) )
+    bool twohanded = wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS);
+    int base_probability = (twohanded ? 8 : 9);
+    if ( number_bits(base_probability) != 69 || !per_chance(chance) )
     {
         if ( wield )
             check_improve(ch, gsn_beheading, FALSE, 7);
