@@ -1585,6 +1585,12 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
             spec += 1;
     }
     
+    // penalties for certain benefitial properties
+    if ( IS_OBJ_STAT(obj, ITEM_NONMETAL) )
+        spec -= 1;
+    if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+        spec -= 1;
+    
     return spec;
 }
 
