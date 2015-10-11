@@ -102,6 +102,7 @@ const struct spell_type spell_list_cleric[] =
     { "harm", 40, NO_MAX },
     { "heal", 40, 120 },
     { "cure mortal", 80, NO_MAX },
+    { "heat metal", 100, NO_MAX },
     { "restoration", 120, NO_MAX },
     { NULL, 0, 0 }
 };
@@ -116,6 +117,7 @@ const struct spell_type spell_list_mage[] = {
     { "lightning bolt", 20, 120 },
     { "acid blast", 40, NO_MAX },
     { "energy drain", 40, NO_MAX },
+    { "heat metal", 80, NO_MAX },
     { "stop", 80, NO_MAX },
     { NULL, 0, 0 }
 };
