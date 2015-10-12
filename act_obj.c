@@ -3134,14 +3134,17 @@ OBJ_DATA *get_obj_keeper( CHAR_DATA *ch, CHAR_DATA *keeper, char *argument )
 int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
 {
     SHOP_DATA *pShop;
-    int cost;
+    long cost;
 
     if ( obj == NULL || ( pShop = keeper->pIndexData->pShop ) == NULL )
         return 0;
 
+    // use long to avoid overflow errors
+    long ocost = obj->cost;
+    
     if ( fBuy )
     {
-        cost = obj->cost * UMAX(100, pShop->profit_buy) / 100;
+        cost = ocost * UMAX(100, pShop->profit_buy) / 100;
     }
     else
     {
@@ -3153,7 +3156,7 @@ int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
         {
             if ( obj->item_type == pShop->buy_type[itype] )
             {
-                cost = obj->cost * UMIN(100, pShop->profit_sell) / 100;
+                cost = ocost * UMIN(100, pShop->profit_sell) / 100;
                 break;
             }
         }
@@ -3180,21 +3183,22 @@ int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
 
     }
 
+    if ( cost <= 0 && keeper->in_room )
+        bugf("get_cost(%d@%d, %d, %s) = %d", keeper->pIndexData->vnum, keeper->in_room->vnum, obj->pIndexData->vnum, fBuy ? "T" : "F", cost);
+    
     return cost;
 }
 
 int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
 {
     char buf[MSL];
-    int skill, new_cost;
-
-    skill = get_skill(ch, gsn_haggle) * (200 + get_skill(ch, gsn_appraise)) / 300;
-
-    new_cost = (base_cost * skill + cost * (200-skill)) / 200;
+    
+    long skill = get_skill(ch, gsn_haggle) * (200 + get_skill(ch, gsn_appraise)) / 300;
+    int new_cost = (base_cost * skill + cost * (200-skill)) / 200;
 
     if ( new_cost == cost )
         return cost;
-
+    
     sprintf( buf, "You haggle the price %s from %d to %d coins.\n\r",
             cost > new_cost ? "down" : "up",
             cost, new_cost );
