@@ -798,16 +798,38 @@ DEF_DO_FUN(do_quest)
         int luck = ch_luc_quest(ch);
         OBJ_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
         int prac_chance = IS_SET(ch->act, PLR_QUESTORHARD) ? 20 : 15;
-        if ( IS_AFFECTED(ch, AFF_FORTUNE) )
-            prac_chance += 5;
 
+        // reward_points
+        int reward_points_min = 0, reward_points_max = 0;
+        if ( IS_SET(ch->act, PLR_QUESTORHARD) )
+        {
+            reward_points_min = get_curr_stat(ch, STAT_CHA) / 12;
+            reward_points_max = 20 + luck;
+        }
+        else
+        {
+            reward_points_min = get_curr_stat(ch, STAT_CHA) / 15;
+            reward_points_max = 10 + luck;
+        }
+        reward_points = number_range(reward_points_min, reward_points_max);
+        
+        if ( IS_AFFECTED(ch, AFF_FORTUNE) )
+        {
+            prac_chance += 5;
+            int second_roll = number_range(reward_points_min, reward_points_max);
+            if ( second_roll > reward_points )
+            {
+                ptc(ch, "{YFortuna smiles on you.{x\n\r");
+                reward_points = second_roll;
+            }
+        }
+        
         // kill mob quest (completed)
         if ( ch->pcdata->questmob == -1 )
         {
             if ( IS_SET(ch->act, PLR_QUESTORHARD) )
             {
                 reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
-                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
                 if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(50, 100+luck);
@@ -816,7 +838,6 @@ DEF_DO_FUN(do_quest)
             else
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
-                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
                 if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
@@ -832,7 +853,6 @@ DEF_DO_FUN(do_quest)
             if ( IS_SET(ch->act, PLR_QUESTORHARD) )
             {
                 reward_silver = number_range( ch->level, 30*ch->level*luck );
-                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/12, 20+luck );
                 if ( per_chance(prac_chance) )
                     reward_prac = 3 + number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
@@ -841,7 +861,6 @@ DEF_DO_FUN(do_quest)
             else
             {
                 reward_silver = number_range( 1, 12*ch->level*luck );
-                reward_points = number_range( get_curr_stat(ch,STAT_CHA)/15, 10+luck );
                 if ( per_chance(prac_chance) )
                     reward_prac = number_range(1, luck/2);
                 reward_exp = number_range(10, 20+luck);
