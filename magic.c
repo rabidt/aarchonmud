@@ -4171,9 +4171,6 @@ DEF_SPELL_FUN(spell_heat_metal)
     
     if ( !IS_SET(victim->imm_flags, IMM_FIRE) && !saves_spell(victim, ch, level, DAM_FIRE) )
     {
-        // NPCs get inherent AC bonus to simulate equipment
-        if ( IS_NPC(victim) )
-            dam += victim->pIndexData->ac_percent / 10;
         // constructs take extra damage
         if ( IS_SET(victim->form, FORM_CONSTRUCT) )
             dam += 10;
