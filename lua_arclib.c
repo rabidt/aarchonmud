@@ -821,7 +821,8 @@ static int glob_getobjworld (lua_State *LS)
     lua_newtable(LS);
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {
-        if ( obj->pIndexData->vnum == num )
+        if ( obj->pIndexData->vnum == num
+                && !obj->must_extract )
         {
             if (push_OBJ( LS, obj))
                 lua_rawseti(LS, -2, index++);
@@ -855,13 +856,12 @@ static int glob_getmobworld (lua_State *LS)
     lua_newtable(LS);
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        if ( ch->pIndexData )
+        if ( ch->pIndexData 
+                && ch->pIndexData->vnum == num
+                && !ch->must_extract  )
         {
-            if ( ch->pIndexData->vnum == num )
-            {
-                if (push_CH( LS, ch))
-                    lua_rawseti(LS, -2, index++);
-            }
+            if (push_CH( LS, ch))
+                lua_rawseti(LS, -2, index++);
         }
     }
     return 1;
