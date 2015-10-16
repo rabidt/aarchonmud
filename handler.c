@@ -1820,6 +1820,9 @@ int predict_obj_ac( OBJ_DATA *obj, int itemWear )
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
         ac *= 2;
     
+    if ( IS_OBJ_STAT(obj, ITEM_NONMETAL) )
+        ac *= 0.75;
+    
     return ac;
 }
 
@@ -1832,6 +1835,9 @@ int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear )
     
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
         ac *= 2;
+    
+    if ( IS_OBJ_STAT(obj, ITEM_NONMETAL) )
+        ac *= 0.75;
     
     return ac;
 }
