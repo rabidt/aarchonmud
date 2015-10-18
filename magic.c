@@ -1835,10 +1835,14 @@ int get_obj_focus( CHAR_DATA *ch )
     
     if ( !obj || obj->item_type == ITEM_ARROWS )
         return 0;
-    else if ( has_shield )
-        return (100 + get_skill(ch, gsn_wrist_shield)) / 3;
+    
+    // non-metal held object suffers a small penalty
+    int base = IS_OBJ_STAT(obj, ITEM_NONMETAL) ? 99 : 100;
+    
+    if ( has_shield )
+        return (base + get_skill(ch, gsn_wrist_shield)) / 3;
     else
-        return 100;
+        return base;
 }
 
 int get_dagger_focus( CHAR_DATA *ch )
@@ -4173,7 +4177,7 @@ DEF_SPELL_FUN(spell_heat_metal)
     {
         // constructs take extra damage
         if ( IS_SET(victim->form, FORM_CONSTRUCT) )
-            dam += 10;
+            dam += 20;
         
         // burn damage for each object worn
         for ( obj = victim->carrying; obj != NULL; obj = obj_next )
@@ -4185,8 +4189,32 @@ DEF_SPELL_FUN(spell_heat_metal)
             if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) && per_chance(50) )
                 continue;
             
-            // heavy armor deals more damage
-            int obj_dam = 1 + apply_heavy_armor(obj, obj->wear_loc);
+            // damage depends on wear location
+            int obj_dam = 0;
+            int itemwear = wear_to_itemwear(obj->wear_loc);
+            switch ( itemwear )
+            {
+                case ITEM_WIELD:
+                    if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+                        obj_dam = 5;
+                    else
+                        obj_dam = 3;
+                    break;
+                case ITEM_WEAR_SHIELD:
+                    obj_dam = 5;
+                    break;
+                case ITEM_HOLD:
+                    obj_dam = 2;
+                    break;
+                default:
+                    obj_dam = itemwear_ac_factor(itemwear);
+                    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
+                        obj_dam *= 2;
+                    break;
+            }
+            
+            if ( obj_dam == 0 )
+                continue;
             
             // discipline check - failure means item is unequipped
             if ( !IS_SET(obj->extra_flags, ITEM_NOREMOVE) && !per_chance(get_curr_stat(victim, STAT_DIS) / 2) )
@@ -4220,7 +4248,7 @@ DEF_SPELL_FUN(spell_heat_metal)
     }
     else
     {
-        dam = get_sn_damage(sn, level, ch) * dam / 30;
+        dam = get_sn_damage(sn, level, ch) * dam / 50;
         full_dam(ch, victim, dam, sn, DAM_FIRE, TRUE);
     }
     return TRUE;
