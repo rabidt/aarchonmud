@@ -1585,6 +1585,10 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
             spec += 1;
     }
     
+    // penalties for certain benefitial properties
+    if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+        spec -= 1;
+    
     return spec;
 }
 
@@ -1625,7 +1629,12 @@ int weapon_dam_spec( int level, int weapon_class, bool twohanded )
 
 int weapon_index_dam_spec( OBJ_INDEX_DATA *obj )
 {
-    return weapon_dam_spec(obj->level, obj->value[0], IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
+    int spec = weapon_dam_spec(obj->level, obj->value[0], IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS));
+    
+    if ( IS_OBJ_STAT(obj, ITEM_NONMETAL) )
+        spec -= 1;
+    
+    return spec;
 }
 
 int average_weapon_dam( OBJ_DATA *obj )
