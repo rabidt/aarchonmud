@@ -5070,15 +5070,18 @@ bool offhand_occupied( CHAR_DATA *ch )
 
 int shield_block_chance( CHAR_DATA *ch, bool improve )
 {
-    if ( get_eq_char(ch, WEAR_SHIELD) == NULL )
+    OBJ_DATA *shield = get_eq_char(ch, WEAR_SHIELD);
+    if ( shield == NULL )
         return 0;
 
     // offhand occupied means reduced block chance
     bool wrist_shield = offhand_occupied(ch);
 
     int skill = get_skill_total(ch, gsn_shield_block, 0.2);
-    int chance = 20 + skill / 4;
-
+    // non-metal shields suffer a small block penalty
+    int base = IS_OBJ_STAT(shield, ITEM_NONMETAL) ? 79 : 80;
+    int chance = (base + skill) / 4;
+    
     if ( wrist_shield )
     {
         int penalty = (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 10;
