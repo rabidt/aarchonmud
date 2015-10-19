@@ -4195,6 +4195,7 @@ extern      tflag meta_magic;
 #define META_MAGIC_EMPOWER  (B)
 #define META_MAGIC_QUICKEN  (C)
 #define META_MAGIC_CHAIN    (D)
+#define META_MAGIC_PERMANENT (E)
 
 char *  crypt       args( ( const char *key, const char *salt ) );
 
