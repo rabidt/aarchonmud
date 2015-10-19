@@ -1182,6 +1182,8 @@ int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
     // increase based on normal duration
     for ( duration = skill_table[sn].duration; duration < DUR_EXTREME; duration++ )
         mana *= 2;
+    if ( sn == gsn_stone_skin )
+        mana *= 2;
     // decrease for combat spells
     if ( skill_table[sn].minimum_position == POS_FIGHTING )
         mana /= 2;
