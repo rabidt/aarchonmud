@@ -380,6 +380,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "pcast",      do_pcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "qcast",      do_qcast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "ccast",      do_ccast,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "permcast",   do_permcast,POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wish",       do_wish,    POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
 
    /*
