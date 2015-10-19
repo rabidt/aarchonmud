@@ -3353,6 +3353,7 @@ extern sh_int  gsn_poison;
 extern sh_int  gsn_sleep;
 extern sh_int  gsn_fly;
 extern sh_int  gsn_sanctuary;
+extern sh_int  gsn_stone_skin;
 extern sh_int  gsn_necrosis;
 extern sh_int  gsn_ritual;
 extern sh_int  gsn_word_of_recall;
@@ -4195,6 +4196,7 @@ extern      tflag meta_magic;
 #define META_MAGIC_EMPOWER  (B)
 #define META_MAGIC_QUICKEN  (C)
 #define META_MAGIC_CHAIN    (D)
+#define META_MAGIC_PERMANENT (E)
 
 char *  crypt       args( ( const char *key, const char *salt ) );
 

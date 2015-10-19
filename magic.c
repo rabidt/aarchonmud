@@ -979,6 +979,9 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
 
 int get_duration_by_type( int type, int level )
 {
+    if ( IS_SET(meta_magic, META_MAGIC_PERMANENT) )
+        return -1;
+
     int duration;
 
     switch ( type )
@@ -993,7 +996,7 @@ int get_duration_by_type( int type, int level )
 
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
         duration = duration * 3/2;
-
+    
     return duration;
 }
 
@@ -1145,6 +1148,13 @@ DEF_DO_FUN(do_ccast)
     meta_magic_cast(ch, "c", argument);
 }
 
+DEF_DO_FUN(do_permcast)
+{
+    flag_set(meta_magic, META_MAGIC_PERMANENT);
+    do_cast(ch, argument);
+    flag_clear(meta_magic);
+}
+
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
 {
     int flag;
@@ -1152,8 +1162,71 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
         if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
-            cost = cost * (200 - mastery_bonus(ch, meta_magic_sn(flag), 40, 50)) / 100;
+        {
+            int sn = meta_magic_sn(flag);
+            if ( sn )
+                cost = cost * (200 - mastery_bonus(ch, sn, 40, 50)) / 100;
+        }
 
+    return cost;
+}
+
+int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
+{
+    if ( !IS_SET(meta_magic, META_MAGIC_PERMANENT) )
+        return 0;
+    
+    int mana = skill_table[sn].min_mana + skill_table[sn].beats * 10 / PULSE_VIOLENCE;
+    int duration;
+    
+    // increase based on normal duration
+    for ( duration = skill_table[sn].duration; duration < DUR_EXTREME; duration++ )
+        mana *= 2;
+    if ( sn == gsn_stone_skin )
+        mana *= 2;
+    // decrease for combat spells
+    if ( skill_table[sn].minimum_position == POS_FIGHTING )
+        mana /= 2;
+    // decrease for extend mastery
+    mana = mana * (100 - mastery_bonus(ch, gsn_extend_spell, 20, 25)) / 100;
+    
+    return mana;
+}
+
+int apply_perm_cost( CHAR_DATA *ch, int sn )
+{
+    int cost = meta_magic_perm_cost(ch, sn);
+    if ( !cost )
+        return 0;
+    
+    // ensure that the character has a matching permanent affect
+    AFFECT_DATA *paf = affect_find(ch->affected, sn);
+    if ( !paf || paf->duration >= 0 )
+        return 0;
+    
+    // ensure we haven't applied a permanent cost already
+    int level = paf->level;
+    while ( paf != NULL && paf->type == sn )
+    {
+        if ( paf->location == APPLY_MANA && paf->modifier < 0 )
+            return 0;
+        paf = paf->next;
+    }
+    
+    // time for some fun
+    AFFECT_DATA af;
+    af.where        = TO_AFFECTS;
+    af.type         = sn;
+    af.level        = level;
+    af.duration     = -1;
+    af.bitvector    = 0;
+    af.location     = APPLY_MANA;
+    af.modifier     = -cost;
+    affect_to_char(ch, &af);
+    
+    // might have reduced max mana below current mana, due to training
+    ch->mana = UMIN(ch->mana, ch->max_mana);
+    
     return cost;
 }
 
@@ -1182,14 +1255,17 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
         if ( IS_SET(meta_magic, flag) )
         {
             int sn = meta_magic_sn(flag);
-            if ( number_bits(1) || per_chance(get_skill(ch, sn)) )
+            if ( sn )
             {
-                check_improve(ch, sn, TRUE, 3);
-            }
-            else
-            {
-                check_improve(ch, sn, FALSE, 3);
-                return FALSE;
+                if ( number_bits(1) || per_chance(get_skill(ch, sn)) )
+                {
+                    check_improve(ch, sn, TRUE, 3);
+                }
+                else
+                {
+                    check_improve(ch, sn, FALSE, 3);
+                    return FALSE;
+                }
             }
         }
 
@@ -1197,7 +1273,7 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
 }
 
 // remove invalid meta-magic effects
-void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
+void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
 {
     // can only extend spells with duration
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
@@ -1207,6 +1283,28 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type )
         {
             send_to_char("Only spells with standard durations can be extended.\n\r", ch);
             flag_remove(meta_magic, META_MAGIC_EXTEND);
+        }
+    }
+    
+    // similar for infinite spells, but further restricted to personal
+    if ( IS_SET(meta_magic, META_MAGIC_PERMANENT) )
+    {
+        int duration = skill_table[sn].duration;
+        if ( duration == DUR_NONE || duration == DUR_SPECIAL )
+        {
+            send_to_char("Only spells with standard durations can be made permanent.\n\r", ch);
+            flag_remove(meta_magic, META_MAGIC_PERMANENT);
+        }
+        else if ( target_type != TARGET_CHAR || ch != vo )
+        {
+            send_to_char("Only spells cast on yourself can be made permanent.\n\r", ch);
+            flag_remove(meta_magic, META_MAGIC_PERMANENT);
+        }
+        // must have spell grandmastered
+        else if ( get_mastery(ch, sn) < 2 )
+        {
+            send_to_char("You must achieve grandmastery level first.\n\r", ch);
+            flag_remove(meta_magic, META_MAGIC_PERMANENT);
         }
     }
     
@@ -1401,7 +1499,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     */
     
     // strip meta-magic options that are invalid for the spell & target
-    meta_magic_strip(ch, sn, target);
+    meta_magic_strip(ch, sn, target, vo);
 
     // mana cost must be calculated after meta-magic effects have been worked out
     mana = mana_cost(ch, sn, chance);
@@ -1410,6 +1508,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         mana *= 2;
     if ( was_wish_cast )
         mana = wish_cast_adjust_cost(ch, mana, sn, vo == ch);
+    mana += meta_magic_perm_cost(ch, sn);
 
     if ( ch->mana < mana )
     {
@@ -1523,6 +1622,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             return;
         }
         check_improve(ch,sn,TRUE,3);
+        
+        apply_perm_cost(ch, sn);
 
         if ( target == TARGET_CHAR )
         {
