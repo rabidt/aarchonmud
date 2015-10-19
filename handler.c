@@ -1448,6 +1448,7 @@ bool is_in_room( CHAR_DATA *ch )
 void char_from_room( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
+    bool notFound = FALSE;
     
     if ( ch == NULL || ch->in_room == NULL )
     {
@@ -1457,11 +1458,6 @@ void char_from_room( CHAR_DATA *ch )
     
     if ( !IS_NPC(ch) )
     {
-        if( --ch->in_room->area->nplayer < 0 )
-	    {
-	        bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
-	        ch->in_room->area->nplayer = 0;
-	    }
 	    /*only make this check for players or we get a crash*/
     	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) && ch->pcdata->storage_boxes>0)
         {
@@ -1511,9 +1507,20 @@ void char_from_room( CHAR_DATA *ch )
         }
         
         if ( prev == NULL )
+        {
             bugf("Char_from_room: %s not found in room %d", ch->name, ch->in_room->vnum);
+            notFound = TRUE;
+        }
     }
     
+    // decrease area count, but only if we didn't have a bug previously
+    // otherwise we'd be introducing an additional bug
+    if ( !IS_NPC(ch) && !notFound && --ch->in_room->area->nplayer < 0 )
+    {
+        bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
+        ch->in_room->area->nplayer = 0;
+    }
+        
     ch->in_room      = NULL;
     ch->next_in_room = NULL;
     ch->on       = NULL;  /* sanity check! */

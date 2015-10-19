@@ -734,11 +734,12 @@ void check_jump_up( CHAR_DATA *ch )
 void check_assist(CHAR_DATA *ch)
 {
     CHAR_DATA *rch, *rch_next, *victim;
+    ROOM_INDEX_DATA *room = ch->in_room;
     
-    if ( !(victim = ch->fighting) )
+    if ( !(victim = ch->fighting) || room == NULL )
         return;
 
-    for (rch = ch->in_room->people; rch != NULL; rch = rch_next)
+    for (rch = room->people; rch != NULL; rch = rch_next)
     {
         rch_next = rch->next_in_room;
         
@@ -797,7 +798,7 @@ void check_assist(CHAR_DATA *ch)
                     
                     target = NULL;
                     number = 0;
-                    for ( vch = ch->in_room->people; vch; vch = vch->next_in_room )
+                    for ( vch = room->people; vch; vch = vch->next_in_room )
                     {
                         if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)

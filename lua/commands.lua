@@ -2500,6 +2500,12 @@ local ptitle_list={
     "Mother",
     "Brother",
     "Sister",
+    "Constable",
+    "Commandant",
+    "Monsieur",
+    "Madame",
+    "Signore",
+    "Signora",
 }
 local ptitle_cost=200
 function quest_buy_ptitle(ch, argument)
