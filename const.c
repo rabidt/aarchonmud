@@ -4497,7 +4497,7 @@ struct  skill_type
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_stone_skin,   TAR_CHAR_SELF,      POS_STANDING,
-	NULL,              12, 18, DUR_NORMAL,
+	&gsn_stone_skin, 12, 18, DUR_NORMAL,
 	"",         "Your skin feels soft again.",  ""
 	},
 
