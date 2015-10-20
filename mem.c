@@ -293,7 +293,8 @@ OBJ_INDEX_DATA *new_obj_index( void )
     pObj->vnum          =   0;
     pObj->item_type     =   ITEM_TRASH;
     flag_clear( pObj->extra_flags );
-    flag_clear( pObj->wear_flags );
+    //flag_clear( pObj->wear_flags );
+    pObj->wear_type     =   ITEM_NO_CARRY;
     pObj->count         =   0;
     pObj->weight        =   0;
     pObj->cost          =   0;

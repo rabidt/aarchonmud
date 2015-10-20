@@ -928,7 +928,8 @@ DEF_DO_FUN(do_mpoload)
 
     obj = create_object(pObjIndex);
     check_enchant_obj( obj );
-    if ( (fWear || !fToroom) && CAN_WEAR(obj, ITEM_TAKE) )
+    //if ( (fWear || !fToroom) && CAN_WEAR(obj, ITEM_TAKE) )
+    if ( (fWear || !fToroom) && !CAN_WEAR(obj, ITEM_NO_CARRY) )
     {
 	obj_to_char( obj, ch );
 	if ( fWear )

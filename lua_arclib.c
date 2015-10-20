@@ -5045,13 +5045,13 @@ static int OBJ_extra( lua_State *LS)
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     return check_flag( LS, "extra", extra_flags, ud_obj->extra_flags );
 }
-
+/*
 static int OBJ_wear( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     return check_flag( LS, "wear", wear_flags, ud_obj->wear_flags );
 }
-
+*/
 static int OBJ_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
@@ -5567,7 +5567,8 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
     OBJMETH(extra, 0),
-    OBJMETH(wear, 0),
+    //OBJMETH(wear, 0),
+    //TODO: add weartype to props
     OBJMETH(apply, 0),
     OBJMETH(destroy, 1),
     OBJMETH(clone, 1),
@@ -6742,13 +6743,13 @@ static int OBJPROTO_adjustdamage( lua_State *LS)
     lua_pushboolean( LS, adjust_weapon_dam( ud_objp ) );
     return 1;
 }
-
+/*
 static int OBJPROTO_wear( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
     return check_flag( LS, "wear", wear_flags, ud_objp->wear_flags );
 }
-
+*/
 static int OBJPROTO_extra( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -7003,7 +7004,8 @@ static const LUA_PROP_TYPE OBJPROTO_set_table [] =
 static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
     OPMETH( extra, 0),
-    OPMETH( wear, 0),
+    //OPMETH( wear, 0),
+    //TODO: add weartype to props
     OPMETH( apply, 0),
    
     /* portal only */

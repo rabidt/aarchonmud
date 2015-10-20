@@ -260,7 +260,8 @@ void disenchant_obj( OBJ_DATA *obj )
 int get_enchant_cost( OBJ_DATA *obj )
 {
     int current_ops = get_obj_ops(obj);
-    if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+    //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+    if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
         current_ops += get_translucency_spec_penalty(obj->level);
     return 100 + current_ops * current_ops;
 }
