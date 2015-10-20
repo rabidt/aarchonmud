@@ -586,15 +586,44 @@ void load_objects( FILE *fp )
             tflag extra, wear;
             fread_tflag( fp, extra );
             fread_tflag( fp, wear );
-            
-            /* TODO: check if nosac/trans are set on wear and set them on extra */
+            if ( IS_SET( wear, ITEM_TRANSLUCENT_OLD ) )
+                SET_BIT( extra, ITEM_TRANSLUCENT_EX );
+            if ( IS_SET( wear, ITEM_NO_SAC_OLD ) )
+                SET_BIT( extra, ITEM_NO_SAC_EX );
 
+            int wear_type = (IS_SET(wear, ITEM_TAKE_OLD)) ? 
+                                ITEM_CARRY : ITEM_NO_CARRY;
+            int i;
+            for ( i=0 ; wear_types[i].name ; i++ )
+            {
+                int bit = wear_types[i].bit;
+
+                if ( bit == ITEM_TRANSLUCENT_OLD
+                        || bit == ITEM_NO_SAC_OLD
+                        || bit == ITEM_TAKE_OLD )
+                    continue;
+                if (IS_SET(wear, bit))
+                {
+                    wear_type = bit;
+                    break;
+                }
+            }
+
+            pObjIndex->wear_type = wear_type;
         }
         else
         {
             fread_tflag( fp, pObjIndex->extra_flags );
-            /* TODO: read wear_type */
+            const char *wear = fread_string( fp );
+            int wear_type = flag_lookup(wear, wear_types);
+            if ( wear_type == NO_FLAG )
+            {
+                bugf("Invalid wear type: %s", wear);
+                exit(1);
+            }
+            pObjIndex->wear_type = wear_type;
         }
+        
         pObjIndex->clan=0;
         pObjIndex->rank=0;
 
