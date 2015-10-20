@@ -390,7 +390,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || is_wimpy(ch) )
+    if ( is_wimpy(ch) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -401,7 +401,7 @@ void check_rescue( CHAR_DATA *ch )
     CHAR_DATA *attacker, *target = NULL;
     char buf[MSL];
 
-    if ( !wants_to_rescue(ch) || !can_attack(ch) )
+    if ( !wants_to_rescue(ch) || !can_attack(ch) || ch->position < POS_FIGHTING )
         return;
 
     // NPCs only have a *chance* to try a rescue
@@ -6972,7 +6972,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	   || ch == victim || ch == attacker )
 	  continue;
       if (is_safe_spell(attacker, ch, FALSE)
-	  || ch->position <= POS_SLEEPING 
+	  || ch->position < POS_FIGHTING
 	  || !check_see_combat(ch, attacker))
 	  continue;
 
