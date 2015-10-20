@@ -3359,7 +3359,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
     obj->material  = str_dup(pObjIndex->material);
     obj->item_type = pObjIndex->item_type;
     flag_copy( obj->extra_flags, pObjIndex->extra_flags );
-    flag_copy( obj->wear_flags, pObjIndex->wear_flags );
+    //flag_copy( obj->wear_flags, pObjIndex->wear_flags );
+    obj->wear_type  = pObjIndex->wear_type;
     obj->value[0]   = pObjIndex->value[0];
     obj->value[1]   = pObjIndex->value[1];
     obj->value[2]   = pObjIndex->value[2];
@@ -3515,7 +3516,8 @@ void clone_object(OBJ_DATA *parent, OBJ_DATA *clone)
     clone->description  = str_dup(parent->description);
     clone->item_type    = parent->item_type;
     flag_copy( clone->extra_flags, parent->extra_flags );
-    flag_copy( clone->wear_flags, parent->wear_flags );
+    //flag_copy( clone->wear_flags, parent->wear_flags );
+    clone->wear_type = parent->wear_type;
     clone->weight   = parent->weight;
     clone->cost     = parent->cost;
     clone->level    = parent->level;

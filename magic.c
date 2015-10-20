@@ -4349,7 +4349,6 @@ DEF_SPELL_FUN(spell_identify)
     OBJ_DATA *obj = (OBJ_DATA *) vo;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
-    int pos;
     int ac = 0;
 
     if ( (ch->level+10) < obj->level)
@@ -4371,7 +4370,8 @@ DEF_SPELL_FUN(spell_identify)
            );
     send_to_char( buf, ch );
 
-    if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+    //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+    if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
         int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
@@ -4485,20 +4485,30 @@ DEF_SPELL_FUN(spell_identify)
             break;
 
         case ITEM_ARMOR:
-            for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
             {
-                if( !IS_SET(obj->wear_flags, pos) )
-                    continue;
-                char *wear = wear_location_info(pos);
+                /*
+                for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
+                {
+                    if( !IS_SET(obj->wear_flags, pos) )
+                        continue;
+                    char *wear = wear_location_info(pos);
+                    if ( wear )
+                    {
+                        printf_to_char(ch, "%s\n\r", wear);
+                        ac = predict_obj_ac(obj, pos);
+                    }
+                }
+                */
+                const char *wear = wear_location_info(obj->wear_type);
                 if ( wear )
                 {
                     printf_to_char(ch, "%s\n\r", wear);
-                    ac = predict_obj_ac(obj, pos);
+                    ac = predict_obj_ac(obj, obj->wear_type);
                 }
+                if ( ac )
+                    printf_to_char(ch, "Armor class is %d.\n\r", ac );
+                break;
             }
-            if ( ac )
-                printf_to_char(ch, "Armor class is %d.\n\r", ac );
-            break;
 
         case ITEM_LIGHT:
             if ( obj->value[2] >= 0 )

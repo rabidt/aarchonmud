@@ -829,17 +829,19 @@ const struct flag_type extra_flags[] =
 	{   "class_ranger",        ITEM_CLASS_RANGER         , TRUE },
 	{   "class_necromancer",   ITEM_CLASS_NECROMANCER    , TRUE },
 	{   "no_extract",          ITEM_NO_EXTRACT           , TRUE },
-        {   "questeq",             ITEM_QUESTEQ              , TRUE },
-        {   "random_physical",     ITEM_RANDOM_PHYSICAL      , TRUE },
-        {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
+    {   "questeq",             ITEM_QUESTEQ              , TRUE },
+    {   "random_physical",     ITEM_RANDOM_PHYSICAL      , TRUE },
+    {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
+    {   "nosac",        ITEM_NO_SAC_EX,         TRUE },
+    {   "translucent",  ITEM_TRANSLUCENT_EX,   TRUE },
 	{   NULL,           0,          0   }
 };
 
 
 
-const struct flag_type wear_flags[] =
+const struct flag_type wear_types[] =
 {
-	{   "take",         ITEM_TAKE,          TRUE    },
+	//{   "take",         ITEM_TAKE,          TRUE    },
 	{   "finger",       ITEM_WEAR_FINGER,   TRUE    },
 	{   "neck",         ITEM_WEAR_NECK,     TRUE    },
 	{   "torso",        ITEM_WEAR_TORSO,    TRUE    },
@@ -854,8 +856,8 @@ const struct flag_type wear_flags[] =
 	{   "wrist",        ITEM_WEAR_WRIST,    TRUE    },
 	{   "wield",        ITEM_WIELD,         TRUE    },
 	{   "hold",         ITEM_HOLD,          TRUE    },
-	{   "nosac",        ITEM_NO_SAC,        TRUE    },
-	{   "translucent",  ITEM_TRANSLUCENT,   TRUE    },
+	//{   "nosac",        ITEM_NO_SAC,        TRUE    },
+	//{   "translucent",  ITEM_TRANSLUCENT,   TRUE    },
 	{   "float",        ITEM_WEAR_FLOAT,    TRUE    },
 /*    {   "twohands",            ITEM_TWO_HANDS,         TRUE    }, */
 	{   NULL,           0,          0   }

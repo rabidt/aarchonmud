@@ -293,7 +293,7 @@ bool is_questeq( OBJ_DATA *obj );
 #endif
 /* version numbers for downward compatibility
  */
-#define CURR_AREA_VERSION 4 
+#define CURR_AREA_VERSION 6 
 
 /*#define CREATOR         (MAX_LEVEL - 1)
 #define SUPREME         (MAX_LEVEL - 2)
@@ -1803,7 +1803,7 @@ struct  kill_data
 #define ITEM_STICKY         (aa)
 #define ITEM_JAMMED         (bb)        
 #define ITEM_ONE_USE        (cc)
-#define ITEM_REMORT	    (dd)
+#define ITEM_REMORT	        (dd)
 #define ITEM_TRAPPED        (ee)
 #define ITEM_EASY_DROP      (ff)
 #define ITEM_NO_EXTRACT     (gg)
@@ -1812,6 +1812,8 @@ struct  kill_data
 #define ITEM_RANDOM_CASTER  (jj)
 #define ITEM_HEAVY_ARMOR    (kk)
 #define ITEM_DISARMED       (ll)
+#define ITEM_NO_SAC_EX      (nn)
+#define ITEM_TRANSLUCENT_EX (oo)
 
 
 /* class restriction flags */
@@ -1845,7 +1847,7 @@ struct  kill_data
  * Wear flags.
  * Used in #OBJECTS.
  */
-#define ITEM_TAKE           (A)
+#define ITEM_TAKE_OLD       (A)
 #define ITEM_WEAR_FINGER    (B)
 #define ITEM_WEAR_NECK      (C)
 #define ITEM_WEAR_TORSO     (D)
@@ -1860,9 +1862,11 @@ struct  kill_data
 #define ITEM_WEAR_WRIST     (M)
 #define ITEM_WIELD          (N)
 #define ITEM_HOLD           (O)
-#define ITEM_NO_SAC         (P)
+#define ITEM_NO_SAC_OLD     (P)
 #define ITEM_WEAR_FLOAT     (Q)
-#define ITEM_TRANSLUCENT    (R)
+#define ITEM_TRANSLUCENT_OLD (R)
+#define ITEM_CARRY          (S)
+#define ITEM_NO_CARRY       (T)
 
 /* weapon class */
 #define WEAPON_EXOTIC       0
@@ -2871,7 +2875,9 @@ struct  obj_index_data
     const char* material;
 	sh_int      item_type;
 	tflag       extra_flags;
-	tflag       wear_flags;
+	//tflag       wear_flags;
+    sh_int      wear_type;
+    bool        can_take;
 	sh_int      level;
 	sh_int      count;
 	sh_int      weight;
@@ -2909,7 +2915,9 @@ struct  obj_data
     const char* description;
 	sh_int      item_type;
 	tflag         extra_flags;
-	tflag         wear_flags;
+	//tflag         wear_flags;
+    sh_int      wear_type;
+    bool        can_take;
 	sh_int      wear_loc;
 	sh_int      weight;
 	int         cost;
@@ -3994,7 +4002,8 @@ struct boss_achieve_record
 /*
  * Object macros.
  */
-#define CAN_WEAR(obj, part) (IS_SET((obj)->wear_flags,  (part)))
+//#define CAN_WEAR(obj, part) (IS_SET((obj)->wear_flags,  (part)))
+#define CAN_WEAR(obj, part) (obj->wear_type == part)
 #define IS_OBJ_STAT(obj, stat)  (IS_SET((obj)->extra_flags, (stat)))
 #define IS_WEAPON_STAT(obj,stat)(I_IS_SET((obj)->value[4],(stat)))
 #define SET_WEAPON_STAT(obj,stat) (I_SET_BIT((obj)->value[4],(stat)))

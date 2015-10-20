@@ -203,7 +203,8 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     int members;
     char buffer[100];
 
-    if ( !CAN_WEAR(obj, ITEM_TAKE) )
+    //if ( !CAN_WEAR(obj, ITEM_TAKE) )
+    if ( CAN_WEAR(obj, ITEM_NO_CARRY) )
     {
         send_to_char( "You can't take that.\n\r", ch );
         return;
@@ -2353,7 +2354,11 @@ DEF_DO_FUN(do_sacrifice)
         }
     }
 
-    if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC) || IS_OBJ_STAT(obj, ITEM_QUESTEQ) || is_relic_obj(obj) )
+    //if ( !CAN_WEAR(obj, ITEM_TAKE) || CAN_WEAR(obj, ITEM_NO_SAC) || IS_OBJ_STAT(obj, ITEM_QUESTEQ) || is_relic_obj(obj) )
+    if ( CAN_WEAR(obj, ITEM_NO_CARRY) 
+            || IS_OBJ_STAT(obj, ITEM_NO_SAC_EX)
+            || IS_OBJ_STAT(obj, ITEM_QUESTEQ)
+            || is_relic_obj(obj) )
     {
         act( "$p is not an acceptable sacrifice.", ch, obj, 0, TO_CHAR );
         return;
@@ -4509,7 +4514,8 @@ DEF_DO_FUN(do_merge)
 
     check_enchant_obj(combine_obj);
 
-    if (CAN_WEAR( combine_obj, ITEM_TAKE ))
+    //if (CAN_WEAR( combine_obj, ITEM_TAKE ))
+    if (!CAN_WEAR( combine_obj, ITEM_NO_CARRY))
         obj_to_char( combine_obj, ch );
     else
         obj_to_room( combine_obj, ch->in_room );

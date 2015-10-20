@@ -1804,7 +1804,7 @@ int itemwear_ac_factor( int itemWear )
         case ITEM_WEAR_FINGER:  return 1;//x2
     }
 }
-
+/*
 int first_itemwear( OBJ_DATA *obj )
 {
     int pos;
@@ -1816,6 +1816,7 @@ int first_itemwear( OBJ_DATA *obj )
     }
     return 0;
 }
+*/
 
 int predict_obj_ac( OBJ_DATA *obj, int itemWear )
 {
@@ -4108,14 +4109,14 @@ const char* imm_bits_name( tflag flag )
 
 const char* wear_bit_name( int flag )
 {
-    return flag_bit_name( wear_flags, flag );
+    return flag_bit_name( wear_types, flag );
 }
-
+/*
 const char* wear_bits_name( tflag flag )
 {
     return flag_bits_name( wear_flags, flag );
 }
-
+*/
 const char* form_bit_name( int flag )
 {
     return flag_bit_name( form_flags, flag );

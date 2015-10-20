@@ -127,40 +127,33 @@ char* list_quest_items()
         if ( (obj = get_obj_index(qi->vnum)) == NULL || !strcmp(qi->name,"") )
             continue;
 
-        if (IS_SET(obj->wear_flags, ITEM_WEAR_FINGER))
-            wloc = "<finger>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_NECK))
-            wloc = "<neck>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_TORSO))
-            wloc = "<torso>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_HEAD))
-            wloc = "<head>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_LEGS ))
-            wloc = "<legs>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_FEET ))
-            wloc = "<feet>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_HANDS ))
-            wloc = "<hands>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_ARMS ))
-            wloc = "<arms>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_SHIELD ))
-            wloc = "<shield>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_ABOUT ))
-            wloc = "<body>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_WAIST ))
-            wloc = "<waist>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_WRIST ))
-            wloc = "<wrist>";
-        else if (IS_SET(obj->wear_flags, ITEM_WIELD ))
-            wloc = "<weapon>";
-        else if (IS_SET(obj->wear_flags, ITEM_HOLD ))
-            wloc = "<held>";
-        else if (IS_SET(obj->wear_flags, ITEM_WEAR_FLOAT ))
-            wloc = "<floating>";
-        else if (obj->item_type == ITEM_LIGHT)
+        if (obj->item_type == ITEM_LIGHT )
+        {
             wloc = "<light>";
+        }
         else
-            wloc = "<not defined>";
+        {
+            switch(obj->wear_type)
+            {
+                case ITEM_WEAR_FINGER: wloc = "<finger>";
+                case ITEM_WEAR_NECK:   wloc = "<neck>";
+                case ITEM_WEAR_TORSO:  wloc = "<torso>";
+                case ITEM_WEAR_HEAD:   wloc = "<head>";
+                case ITEM_WEAR_LEGS:   wloc = "<legs>";
+                case ITEM_WEAR_FEET:   wloc = "<feet>";
+                case ITEM_WEAR_HANDS:  wloc = "<hands>";
+                case ITEM_WEAR_ARMS:   wloc = "<arms>";
+                case ITEM_WEAR_SHIELD: wloc = "<shield>";
+                case ITEM_WEAR_ABOUT:  wloc = "<body>";
+                case ITEM_WEAR_WAIST:  wloc = "<waist>";
+                case ITEM_WEAR_WRIST:  wloc = "<wrist>";
+                case ITEM_WIELD:       wloc = "<weapon>";
+                case ITEM_HOLD:        wloc = "<held>";
+                case ITEM_WEAR_FLOAT:  wloc = "<floating>";
+                case ITEM_LIGHT:       wloc = "<light>";
+                default:               wloc = "<not defined>";
+            }
+        }
 
         //	sprintf( buf, "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
         sprintf( buf, "%5dqp   %-10s    %s\n\r", qi->cost, wloc, obj->short_descr);

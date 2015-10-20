@@ -69,6 +69,7 @@ struct wear_location
 const struct wear_location wear_locations [] =
 {
     { WEAR_FINGER_L,    ITEM_WEAR_FINGER },
+    { WEAR_FINGER_R,    ITEM_WEAR_FINGER },
     { WEAR_NECK_1,      ITEM_WEAR_NECK },
     { WEAR_NECK_2,      ITEM_WEAR_NECK },
     { WEAR_TORSO,       ITEM_WEAR_TORSO },
@@ -90,11 +91,12 @@ const struct wear_location wear_locations [] =
 
 // computes suitable WEAR_ location based on ITEM_WEAR_ flags
 // returns number of WEAR_ locations written into wear
-int get_wear_locs( const tflag item_wear_flags, int *wear_locs )
+int get_wear_locs( const int item_wear_flag, int *wear_locs )
 {
     int i, count = 0;
     for ( i = 0; i <= MAX_WEAR_LOCATIONS; i++ )
-        if ( flag_is_set(item_wear_flags, wear_locations[i].item_wear_bit) )
+        //if ( flag_is_set(item_wear_flags, wear_locations[i].item_wear_bit) )
+        if ( item_wear_flag == wear_locations[i].item_wear_bit ) 
             wear_locs[count++] = wear_locations[i].wear_loc;
     return count;
 }
@@ -975,7 +977,8 @@ DEF_DO_FUN(do_rwear)
 	/* check some stuff about the object */
 
 	/* Takeable at all ? */	
-	if (!IS_SET(obj->wear_flags, ITEM_TAKE))
+	//if (!IS_SET(obj->wear_flags, ITEM_TAKE))
+    if (obj->wear_type == ITEM_NO_CARRY)
 	{
 		send_to_char ("This item is not even takeable.\n\r",ch);
 		return;
@@ -1011,9 +1014,10 @@ DEF_DO_FUN(do_rwear)
 	{
         // find locations where eq could be equipped
         int wear_locs[MAX_WEAR];
-        int wear_count = get_wear_locs(obj->wear_flags, wear_locs);
+        int wear_count = get_wear_locs(obj->wear_type, wear_locs);
         
-        if ( wear_count == 0 )
+        //if ( wear_count == 0 )
+        if ( obj->wear_type == ITEM_CARRY )
     	{
     		send_to_char ("This item can only be taken, not worn.\n\r",ch);
     		return;	
@@ -1737,7 +1741,8 @@ DEF_DO_FUN(do_rput)
 		return;
 	}
 		
-	if (!IS_SET(obj->wear_flags, ITEM_TAKE))
+	//if (!IS_SET(obj->wear_flags, ITEM_TAKE))
+    if ( obj->wear_type == ITEM_NO_CARRY )
 	{
 		send_to_char ("This item is not takeable. Noone would be able to get it out!\n\r",ch);
 		return;

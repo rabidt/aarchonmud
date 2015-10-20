@@ -473,7 +473,8 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     rfprintf( fp, "%s~\n",    pObjIndex->material );
     fprintf( fp, "%s ",      item_name(pObjIndex->item_type));
     fprintf( fp, "%s ",      print_tflag( pObjIndex->extra_flags ) );
-    fprintf( fp, "%s\n",     print_tflag( pObjIndex->wear_flags ) );
+    //fprintf( fp, "%s\n",     print_tflag( pObjIndex->wear_flags ) );
+    //TODO: save wear_type as string
     
     
     

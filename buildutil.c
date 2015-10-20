@@ -634,8 +634,10 @@ DEF_DO_FUN(do_ostat)
 	obj->short_descr, obj->description );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Wear bits: %s\n\rExtra bits: %s\n\r",
-	wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
+	sprintf( buf, "Wear type: %s\n\rExtra bits: %s\n\r",
+	//wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
+    wear_bit_name(obj->wear_type), extra_bits_name( obj->extra_flags ) );
+
 	send_to_char( buf, ch );
 
 	sprintf( buf, "Number: %d/%d  Weight: %d/%d/%d (10th pounds)\n\r",
