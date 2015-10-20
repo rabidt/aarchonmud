@@ -4069,6 +4069,10 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
+    op_death_trigger( ch, victim );
+    if ( victim->must_extract )
+        return;
+
     /* check for boss achievement */
     check_boss_achieve( ch, victim );
 
