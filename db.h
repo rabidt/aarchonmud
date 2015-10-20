@@ -49,6 +49,8 @@ extern int	maxSocial; /* Max number of socials */
 #define VER_NEW_PROG_FORMAT 2
 #define VER_NEW_MOB_LDESC 3
 #define VER_UPDATE_OBJ_FMT 4 /* remove durability and condition */
+#define VER_ONE_AC_VAL    4 /* somehow we used version 4 twice...*/
+#define VER_REMOVE_WEARFLAG 6
 
 /* func from db.c */
 void assign_area_vnum( int vnum );                    /* OLC */

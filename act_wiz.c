@@ -1294,7 +1294,8 @@ DEF_DO_FUN(do_oload)
     {
 	obj = create_object( pObjIndex );
 	check_enchant_obj( obj );
-	if ( CAN_WEAR(obj, ITEM_TAKE) )
+	//if ( CAN_WEAR(obj, ITEM_TAKE) )
+    if ( !CAN_WEAR(obj, ITEM_NO_CARRY))
 	    obj_to_char( obj, ch );
 	else
 	    obj_to_room( obj, ch->in_room );
@@ -3242,7 +3243,7 @@ struct
     PRFLAG( res_flags, "Resist flags." ),
     PRFLAG( vuln_flags, ""),
     PRFLAG( extra_flags, "Item extra flags." ),
-    PRFLAG( wear_flags, "" ),
+    PRFLAG( wear_types, "" ),
     PRFLAG( room_flags, "" ),
     PRFLAG( wear_loc_flags, ""),
     PRFLAG( act_flags, ""),

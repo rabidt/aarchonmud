@@ -342,7 +342,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 		send_to_char( "What wear location do you want to grep for?\n\r", ch );
 		return NULL;
 	    }
-	    if ( (value = flag_lookup(arg2, wear_flags)) == NO_FLAG )
+	    if ( (value = flag_lookup(arg2, wear_types)) == NO_FLAG )
 	    {
 		send_to_char( "That affect doesn't exist.\n\r", ch );
 		return NULL;
@@ -505,7 +505,8 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	match = (obj->diff_rating == gd->value);
 	break;
     case GREP_OBJ_WEAR:
-	match = IS_SET(obj->wear_flags, gd->value);
+	//match = IS_SET(obj->wear_flags, gd->value);
+    match = (obj->wear_type == gd->value);
 	break;
     case GREP_OBJ_EXTRA:
 	match = IS_SET(obj->extra_flags, gd->value);
@@ -1547,14 +1548,16 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     {
         spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
         // we don't use get_translucency_spec_penalty to avoid rounding issues
-        if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 2 * (10 + level);
         spec /= 10;
     }
     else /* These are objects above level 90 */
     {
         spec = 24 + 2 * (level - 90) + 4 * obj->diff_rating;
-        if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
+        if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 20 + 2 * (level - 90);
     }
     
@@ -1649,7 +1652,8 @@ int average_weapon_index_dam( OBJ_INDEX_DATA *obj )
 
 bool can_wear( OBJ_INDEX_DATA *obj )
 {
-    if ( !CAN_WEAR(obj, ITEM_TAKE) )
+    //if ( !CAN_WEAR(obj, ITEM_TAKE) )
+    if (obj->item_type == ITEM_NO_CARRY)
         return FALSE;
     
     if ( obj->item_type == ITEM_LIGHT )

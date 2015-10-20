@@ -3094,8 +3094,9 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'W':
-            KEYF( "WearFlags",   obj->wear_flags );
-            KEYF( "WeaF",    obj->wear_flags );
+            // TODO: handle old wear_flags keys WeaF and WearFlags
+            //KEYF( "WearFlags",   obj->wear_flags );
+            //KEYF( "WeaF",    obj->wear_flags );
             KEY( "WearLoc", obj->wear_loc,      bread_number( buf ) );
             KEY( "Wear",    obj->wear_loc,      bread_number( buf ) );
             KEY( "Weight",  obj->weight,        bread_number( buf ) );

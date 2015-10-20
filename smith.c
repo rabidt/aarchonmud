@@ -526,7 +526,8 @@ SM_PRICE_FUN( smith_set_sticky_price )
            != new->owner ) )
     {
         int ops = UMAX(get_obj_ops(new), get_obj_spec(new));
-        if ( CAN_WEAR(new, ITEM_TRANSLUCENT) )
+        //if ( CAN_WEAR(new, ITEM_TRANSLUCENT) )
+        if ( IS_OBJ_STAT(new, ITEM_TRANSLUCENT_EX) )
             ops += get_translucency_spec_penalty( new->level );
         *gold= ops * UMAX(4, ops-20)/4 * 75;
         *qp= ops * UMAX(4, ops-20)/16;

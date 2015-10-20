@@ -130,7 +130,7 @@ const struct olc_help_type help_table[] =
     {	"exit",		exit_flags,	 "Exit types."			 },
     {	"type",		type_flags,	 "Types of objects."		 },
     {	"extra",	extra_flags,	 "Object attributes."		 },
-    {	"wear",		wear_flags,	 "Where to wear object."	 },
+    {	"wear",		wear_types,	 "Where to wear object."	 },
     {	"spec",		spec_table,	 "Available special programs." 	 },
     {	"sex",		sex_flags,	 "Sexes."			 },
     {	"act",		act_flags,	 "Mobile attributes."		 },
@@ -2849,7 +2849,8 @@ struct wear_type
 
 const struct wear_type wear_table[] =
 {
-    {	WEAR_NONE,	ITEM_TAKE		},
+    //{	WEAR_NONE,	ITEM_TAKE		},
+    {   WEAR_NONE,  ITEM_CARRY      },
     {	WEAR_LIGHT,	ITEM_LIGHT		},
     {	WEAR_FINGER_L,	ITEM_WEAR_FINGER	},
     {	WEAR_FINGER_R,	ITEM_WEAR_FINGER	},
@@ -3023,13 +3024,14 @@ REDIT( redit_oreset )
         /*
         * Disallow loading a sword(WEAR_WIELD) into WEAR_HEAD.
         */
-        if ( !IS_SET( pObjIndex->wear_flags, wear_bit(wear_loc) ) )
+        //if ( !IS_SET( pObjIndex->wear_flags, wear_bit(wear_loc) ) )
+        if ( pObjIndex->wear_type != wear_bit(wear_loc) )
         {
             sprintf( output,
-                "%s (%d) has wear flags: [%s]\n\r",
+                "%s (%d) has wear type: [%s]\n\r",
                 capitalize( pObjIndex->short_descr ),
                 pObjIndex->vnum,
-                wear_bits_name(pObjIndex->wear_flags) );
+                wear_bit_name(pObjIndex->wear_type) );
             send_to_char( output, ch );
             return FALSE;
         }
@@ -3821,8 +3823,8 @@ OEDIT( oedit_show )
     sprintf( buf, "Level:       [%5d]\n\r", pObj->level );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wear flags:  [%s]\n\r",
-        wear_bits_name(pObj->wear_flags) );
+    sprintf( buf, "Wear type:  [%s]\n\r",
+        wear_bit_name(pObj->wear_type) );
     send_to_char( buf, ch );
     
     sprintf( buf, "Extra flags: [%s]\n\r",
@@ -4813,16 +4815,17 @@ OEDIT( oedit_wear )      /* Moved out of oedit() due to naming conflicts -- Hugi
     {
         EDIT_OBJ(ch, pObj);
         
-        if ( (value = flag_lookup(argument, wear_flags)) != NO_FLAG )
+        if ( (value = flag_lookup(argument, wear_types)) != NO_FLAG )
         {
-            TOGGLE_BIT(pObj->wear_flags, value);
+            //TOGGLE_BIT(pObj->wear_flags, value);
+            pObj->wear_type = value;
             
-            send_to_char( "Wear flag toggled.\n\r", ch);
+            send_to_char( "Wear type set.\n\r", ch);
             return TRUE;
         }
     }
     
-    send_to_char( "Syntax:  wear [flag]\n\r"
+    send_to_char( "Syntax:  wear [type]\n\r"
         "Type '? wear' for a list of flags.\n\r", ch );
     return FALSE;
 }
@@ -5077,7 +5080,8 @@ bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
             weight = 10;
         else if ( CAN_WEAR(obj,ITEM_WEAR_TORSO) )
             weight = 100;
-        if ( CAN_WEAR(obj,ITEM_TRANSLUCENT) )
+        //if ( CAN_WEAR(obj,ITEM_TRANSLUCENT) )
+        if ( IS_OBJ_STAT(obj,ITEM_TRANSLUCENT_EX) )
             weight /= 2;
     }
     else if ( obj->item_type == ITEM_WEAPON )
