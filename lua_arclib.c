@@ -1905,6 +1905,10 @@ OBJVGT( funcname, \
     return 1;\
 )
 
+OBJVGT( weartype,
+    lua_pushstring( LS, flag_bit_name( wear_types, ud_obj->wear_type) );
+    return 1;
+)
 
 OBJVGETINT( light, ITEM_LIGHT, 2 )
 
@@ -5045,13 +5049,7 @@ static int OBJ_extra( lua_State *LS)
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
     return check_flag( LS, "extra", extra_flags, ud_obj->extra_flags );
 }
-/*
-static int OBJ_wear( lua_State *LS)
-{
-    OBJ_DATA *ud_obj = check_OBJ(LS, 1);
-    return check_flag( LS, "wear", wear_flags, ud_obj->wear_flags );
-}
-*/
+
 static int OBJ_echo( lua_State *LS)
 {
     OBJ_DATA *ud_obj = check_OBJ(LS, 1);
@@ -5469,6 +5467,7 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     OBJGET(v2, 0),
     OBJGET(v3, 0),
     OBJGET(v4, 0),
+    OBJGET(weartype, 0),
     OBJGET(wearlocation, 0),
     OBJGET(contents, 0),
     OBJGET(proto, 0),
@@ -5567,8 +5566,6 @@ static const LUA_PROP_TYPE OBJ_set_table [] =
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
     OBJMETH(extra, 0),
-    //OBJMETH(wear, 0),
-    //TODO: add weartype to props
     OBJMETH(apply, 0),
     OBJMETH(destroy, 1),
     OBJMETH(clone, 1),
@@ -6743,13 +6740,7 @@ static int OBJPROTO_adjustdamage( lua_State *LS)
     lua_pushboolean( LS, adjust_weapon_dam( ud_objp ) );
     return 1;
 }
-/*
-static int OBJPROTO_wear( lua_State *LS)
-{
-    OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
-    return check_flag( LS, "wear", wear_flags, ud_objp->wear_flags );
-}
-*/
+
 static int OBJPROTO_extra( lua_State *LS)
 {
     OBJ_INDEX_DATA *ud_objp = check_OBJPROTO(LS, 1);
@@ -6914,6 +6905,7 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     OPGET( material, 0),
     OPGET( vnum, 0),
     OPGET( otype, 0),
+    OPGET( weartype, 0),
     OPGET( weight, 0),
     OPGET( rating, 0),
     OPGET( v0, 0),
