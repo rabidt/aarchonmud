@@ -3270,36 +3270,37 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
     OBJ_DATA *obj;
     int number;
     int count;
-    
+
     if ( ( obj = get_obj_here( ch, argument ) ) != NULL )
         return obj;
-    
+
     number = number_argument( argument, arg );
     count  = 0;
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {
-	if ( area )
-	{
-	    if ( obj->carried_by != NULL )
+        if ( area )
         {
-            if ( !obj->carried_by->in_room )
+            if ( obj->carried_by != NULL )
             {
-                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
-		        continue;
-		    }
-		    if ( !ch->in_room )
-            {
-                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
-                continue;
+                if ( !obj->carried_by->in_room )
+                {
+                    /* why is carried_by not in a room?
+                       who knows, but they aren't in the area! */
+                    continue;
+                }
+                if ( !ch->in_room )
+                {
+                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                    continue;
+                }
+                if ( obj->carried_by->in_room->area != ch->in_room->area )
+                    continue;
             }
-		    if ( obj->carried_by->in_room->area != ch->in_room->area )
-		        continue;
-        }
 
-	    if ( obj->in_room != NULL
-		 && obj->in_room->area != ch->in_room->area )
-		continue;
-	}
+            if ( obj->in_room != NULL
+                    && obj->in_room->area != ch->in_room->area )
+                continue;
+        }
 
         if ( can_see_obj( ch, obj ) && is_either_name( arg, obj->name, exact ) )
         {
@@ -3307,7 +3308,7 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
                 return obj;
         }
     }
-    
+
     return NULL;
 }
 
