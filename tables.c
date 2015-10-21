@@ -841,26 +841,28 @@ const struct flag_type extra_flags[] =
 
 const struct flag_type wear_types[] =
 {
-	//{   "take",         ITEM_TAKE,          TRUE    },
-	{   "finger",       ITEM_WEAR_FINGER,   TRUE    },
-	{   "neck",         ITEM_WEAR_NECK,     TRUE    },
-	{   "torso",        ITEM_WEAR_TORSO,    TRUE    },
-	{   "head",         ITEM_WEAR_HEAD,     TRUE    },
-	{   "legs",         ITEM_WEAR_LEGS,     TRUE    },
-	{   "feet",         ITEM_WEAR_FEET,     TRUE    },
-	{   "hands",        ITEM_WEAR_HANDS,    TRUE    },
-	{   "arms",         ITEM_WEAR_ARMS,     TRUE    },
-	{   "shield",       ITEM_WEAR_SHIELD,   TRUE    },
-	{   "about",        ITEM_WEAR_ABOUT,    TRUE    },
-	{   "waist",        ITEM_WEAR_WAIST,    TRUE    },
-	{   "wrist",        ITEM_WEAR_WRIST,    TRUE    },
-	{   "wield",        ITEM_WIELD,         TRUE    },
-	{   "hold",         ITEM_HOLD,          TRUE    },
-	//{   "nosac",        ITEM_NO_SAC,        TRUE    },
-	//{   "translucent",  ITEM_TRANSLUCENT,   TRUE    },
-	{   "float",        ITEM_WEAR_FLOAT,    TRUE    },
-/*    {   "twohands",            ITEM_TWO_HANDS,         TRUE    }, */
-	{   NULL,           0,          0   }
+    //{   "take",         ITEM_TAKE,          TRUE    },
+    {   "nocarry",      ITEM_NO_CARRY,      TRUE    },
+    {   "carry",        ITEM_CARRY,         TRUE    },
+    {   "finger",       ITEM_WEAR_FINGER,   TRUE    },
+    {   "neck",         ITEM_WEAR_NECK,     TRUE    },
+    {   "torso",        ITEM_WEAR_TORSO,    TRUE    },
+    {   "head",         ITEM_WEAR_HEAD,     TRUE    },
+    {   "legs",         ITEM_WEAR_LEGS,     TRUE    },
+    {   "feet",         ITEM_WEAR_FEET,     TRUE    },
+    {   "hands",        ITEM_WEAR_HANDS,    TRUE    },
+    {   "arms",         ITEM_WEAR_ARMS,     TRUE    },
+    {   "shield",       ITEM_WEAR_SHIELD,   TRUE    },
+    {   "about",        ITEM_WEAR_ABOUT,    TRUE    },
+    {   "waist",        ITEM_WEAR_WAIST,    TRUE    },
+    {   "wrist",        ITEM_WEAR_WRIST,    TRUE    },
+    {   "wield",        ITEM_WIELD,         TRUE    },
+    {   "hold",         ITEM_HOLD,          TRUE    },
+    //{   "nosac",        ITEM_NO_SAC,        TRUE    },
+    //{   "translucent",  ITEM_TRANSLUCENT,   TRUE    },
+    {   "float",        ITEM_WEAR_FLOAT,    TRUE    },
+    /*    {   "twohands",            ITEM_TWO_HANDS,         TRUE    }, */
+    {   NULL,           0,          0   }
 };
 
 /*
