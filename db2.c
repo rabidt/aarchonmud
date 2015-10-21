@@ -614,14 +614,13 @@ void load_objects( FILE *fp )
         else
         {
             fread_tflag( fp, pObjIndex->extra_flags );
-            const char *wear = fread_string( fp );
-            int wear_type = flag_lookup(wear, wear_types);
-            if ( wear_type == NO_FLAG )
+            pObjIndex->wear_type = flag_lookup(fread_word( fp ), wear_types);
+
+            if ( pObjIndex->wear_type == NO_FLAG )
             {
-                bugf("Invalid wear type: %s", wear);
+                bugf("Invalid wear type.");
                 exit(1);
             }
-            pObjIndex->wear_type = wear_type;
         }
         
         pObjIndex->clan=0;
