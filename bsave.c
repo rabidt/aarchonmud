@@ -2707,6 +2707,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     bool first;
     bool make_new;    /* update object */
     bool ignore_affects = FALSE; /* catch for old pfiles */
+    tflag ex_flag_temp;
     
     fVnum = FALSE;
     obj = NULL;
@@ -3094,9 +3095,39 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             break;
             
         case 'W':
-            // TODO: handle old wear_flags keys WeaF and WearFlags
-            //KEYF( "WearFlags",   obj->wear_flags );
-            //KEYF( "WeaF",    obj->wear_flags );
+            /* handle old format with wear flags */
+            if (!str_cmp( word, "WearFlags")
+                    || !str_cmp( word, "WeaF"))
+            {
+                tflag wear;
+                bread_tflag( buf, wear);
+                if (IS_SET( wear, ITEM_TRANSLUCENT_OLD) )
+                   SET_BIT( ex_flag_temp, ITEM_TRANSLUCENT_EX);
+                if (IS_SET( wear, ITEM_NO_SAC_OLD) )
+                   SET_BIT( ex_flag_temp, ITEM_NO_SAC_EX);
+
+                int wear_type = (IS_SET(wear, ITEM_TAKE_OLD)) ?
+                                 ITEM_CARRY : ITEM_NO_CARRY;
+
+                int i;
+                for ( i=0 ; wear_types[i].name ; i++ )
+                {
+                    int bit = wear_types[i].bit;
+                    if (bit == ITEM_TRANSLUCENT_OLD
+                            || bit == ITEM_NO_SAC_OLD
+                            || bit == ITEM_TAKE_OLD )
+                        continue;
+                    if (IS_SET(wear, bit))
+                    {
+                        wear_type = bit;
+                        break;
+                    }
+                }
+                obj->wear_type = wear_type;
+
+                fMatch = TRUE;
+                break;
+            }
             KEY( "WearLoc", obj->wear_loc,      bread_number( buf ) );
             KEY( "Wear",    obj->wear_loc,      bread_number( buf ) );
             KEY( "Weight",  obj->weight,        bread_number( buf ) );
@@ -3111,6 +3142,9 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
         bread_to_eol( buf );
     }
     }
+
+    /* in case of old format, copy over extra flags that came from wear flags*/
+    flag_set_field( obj->extra_flags, ex_flag_temp);
 }
 
 
