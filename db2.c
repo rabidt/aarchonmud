@@ -610,6 +610,7 @@ void load_objects( FILE *fp )
             }
 
             pObjIndex->wear_type = wear_type;
+            flag_copy(pObjIndex->extra_flags, extra);
         }
         else
         {
