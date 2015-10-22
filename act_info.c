@@ -653,7 +653,6 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 		}
 		send_to_char( where_name[i], ch );
 		send_to_char( format_obj_to_char( obj, ch, TRUE ), ch );
-		//if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) && tattoo != TATTOO_NONE )
         if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
 		{
 		    send_to_char( " above ", ch );
@@ -3083,7 +3082,6 @@ DEF_DO_FUN(do_equipment)
         if ( can_see_obj( ch, obj ) )
         {
             send_to_char( format_obj_to_char( obj, ch, TRUE ), ch );
-	    //if( CAN_WEAR(obj,ITEM_TRANSLUCENT) && tattoo != TATTOO_NONE )
         if ( IS_OBJ_STAT(obj,ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
 	    {
 		send_to_char( " above ", ch );
@@ -3147,7 +3145,6 @@ DEF_DO_FUN(do_compare)
             if (obj2->wear_loc != WEAR_NONE
                 &&  can_see_obj(ch,obj2)
                 &&  obj1->item_type == obj2->item_type
-                //&&  common_wear_pos(obj1->wear_flags,obj2->wear_flags) )
                 && obj1->wear_type == obj2->wear_type )
                 break;
         }
@@ -3173,7 +3170,6 @@ DEF_DO_FUN(do_compare)
     {
         msg = "You compare $p to itself.  It looks about the same.";
     }
-    //else if ( !commen_wear_pos(obj1->wear_flags, obj2->wear_flags) )
     else if ( !(obj1->wear_type == obj2->wear_type) )
     {
         msg = "You can't compare $p and $P.";
@@ -3186,10 +3182,8 @@ DEF_DO_FUN(do_compare)
             value2 += 4 * average_weapon_dam( obj2 );
         }
         // translucent eq has "hidden" ops
-        //if ( CAN_WEAR(obj1, ITEM_TRANSLUCENT) )
         if ( IS_OBJ_STAT(obj1, ITEM_TRANSLUCENT_EX) )
             value1 += get_translucency_spec_penalty( obj1->level );
-        //if ( CAN_WEAR(obj2, ITEM_TRANSLUCENT) )
         if ( IS_OBJ_STAT(obj2, ITEM_TRANSLUCENT_EX) )
             value2 += get_translucency_spec_penalty( obj2->level );
     }
@@ -3751,7 +3745,6 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 	     obj->level );
     do_say(ch, buf);
     
-    //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
@@ -3874,19 +3867,6 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         
     case ITEM_ARMOR:
         {
-            /*
-               for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-               {
-               if( !IS_SET(obj->wear_flags, pos) )
-               continue;
-               const char *wear = wear_location_info(pos);
-               if ( wear )
-               {
-               do_say(ch, wear);
-               ac = predict_obj_ac(obj, pos);
-               }
-               }
-             */
             const char *wear = wear_location_info(obj->wear_type);
             if ( wear )
             {
@@ -3929,7 +3909,6 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 	     obj->level );
     do_say(ch, buf);
     
-    //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
@@ -4052,19 +4031,6 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         
     case ITEM_ARMOR:
         {
-            /* 
-               for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-               {
-               if( !IS_SET(obj->wear_flags, pos) )
-               continue;
-               const char *wear = wear_location_info(pos);
-               if ( wear )
-               {
-               do_say(ch, wear);
-               ac = predict_obj_index_ac(obj, pos);
-               }
-               }
-             */
             const char *wear = wear_location_info(obj->wear_type);
             if ( wear )
             {
