@@ -1188,7 +1188,9 @@ int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
     if ( skill_table[sn].minimum_position == POS_FIGHTING )
         mana /= 2;
     // decrease for extend mastery
-    mana = mana * (100 - mastery_bonus(ch, gsn_extend_spell, 20, 25)) / 100;
+    int mastery = get_mastery(ch, sn) + get_mastery(ch, gsn_extend_spell) - 2;
+    int rebate = mastery >= 2 ? 25 : (mastery == 1 ? 20 : 0);
+    mana = mana * (100 - rebate) / 100;
     
     return mana;
 }
@@ -1301,9 +1303,9 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
             flag_remove(meta_magic, META_MAGIC_PERMANENT);
         }
         // must have spell grandmastered
-        else if ( get_mastery(ch, sn) < 2 )
+        else if ( get_mastery(ch, sn) + get_mastery(ch, gsn_extend_spell) < 2 )
         {
-            send_to_char("You must achieve grandmastery level first.\n\r", ch);
+            ptc(ch, "You must achieve sufficient mastery in %s and/or extend spell first.\n\r", skill_table[sn].name);
             flag_remove(meta_magic, META_MAGIC_PERMANENT);
         }
     }
