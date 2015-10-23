@@ -589,7 +589,7 @@ void special_affect_update(CHAR_DATA *ch)
     }
 
     /* divine healing */
-    if ( ch->hit < ch->max_hit && IS_AFFECTED(ch, AFF_HEAL) )
+    if ( ch->hit < hit_cap(ch) && IS_AFFECTED(ch, AFF_HEAL) )
     {
 	int heal;
 
@@ -598,13 +598,13 @@ void special_affect_update(CHAR_DATA *ch)
 	else
 	    heal = 100 + 10 * (ch->level - 90);
 
-	send_to_char( "Your wounds mend.\n\r", ch ); 
-	ch->hit = UMIN(ch->max_hit, ch->hit + heal);
+	send_to_char( "Your wounds mend.\n\r", ch );
+    gain_hit(ch, heal);
 	update_pos( ch );
     }
 
     /* replenish healing */
-    if ( ch->hit < ch->max_hit && IS_AFFECTED(ch, AFF_REPLENISH) )
+    if ( ch->hit < hit_cap(ch) && IS_AFFECTED(ch, AFF_REPLENISH) )
     {
 	int heal;
 
@@ -614,7 +614,7 @@ void special_affect_update(CHAR_DATA *ch)
 	    heal = 100 + 5 * (ch->level - 90);
 
 	send_to_char( "You replenish yourself.\n\r", ch ); 
-	ch->hit = UMIN(ch->max_hit, ch->hit + heal);
+    gain_hit(ch, heal);
 	update_pos( ch );
     }
 
@@ -3648,19 +3648,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         
         if ( dam > 0 )
         {
-            af.location  = APPLY_HIT;
+            af.location  = APPLY_HIT_CAP;
             af.modifier  = -dam;
             affect_join( victim, &af );
         }
         if ( mana_loss > 0 )
         {
-            af.location  = APPLY_MANA;
+            af.location  = APPLY_MANA_CAP;
             af.modifier  = -mana_loss;
             affect_join( victim, &af );
         }
         if ( move_loss > 0 )
         {
-            af.location  = APPLY_MOVE;
+            af.location  = APPLY_MOVE_CAP;
             af.modifier  = -move_loss;
             affect_join( victim, &af );
         }
@@ -3683,8 +3683,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             {
                 stop_fighting(victim, TRUE);
                 int hp_gain = 100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
-                victim->hit = UMIN(hp_gain, victim->max_hit);
-                victim->move = UMIN(victim->move + 100, victim->max_move);
+                victim->hit = UMIN(hp_gain, hit_cap(victim));
+                gain_move(victim, 100);
                 send_to_char("The gods have protected you from dying!\n\r", victim);
                 act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
             }
@@ -7290,8 +7290,8 @@ void check_stance(CHAR_DATA *ch)
 	 * With greater skill, the increase could be as much as 25.  *
          * Recall: the cost in moves at 100% is 10mv (as of Sept/02) */
 	incr   = UMAX( 10, 25 - (100-get_skill(ch,gsn_firewitchs_seance))/2 );
-	ch->hit   = UMIN( ch->hit + incr, ch->max_hit );
-	ch->mana  = UMIN( ch->mana + incr, ch->max_mana );
+        gain_hit(ch, incr);
+        gain_mana(ch, incr);
     }
 }
 
