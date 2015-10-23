@@ -432,9 +432,9 @@ DEF_DO_FUN(do_combat)
     ch->pcdata->warfare_hp=ch->hit;
     ch->pcdata->warfare_mana=ch->mana;
     ch->pcdata->warfare_move=ch->move;
-    ch->hit = ch->max_hit;
-    ch->mana = ch->max_mana;
-    ch->move = ch->max_move;
+    ch->hit = hit_cap(ch);
+    ch->mana = mana_cap(ch);
+    ch->move = move_cap(ch);
     // players only return to where they were if outside of Bastion when joining
     if ( ch->in_room->area != get_room_index(ROOM_VNUM_RECALL)->area )
         ch->was_in_room = ch->in_room;
@@ -626,9 +626,9 @@ void war_update( void )
             do_look( d->character, "" );
             /* Stop the Eq-Switching Cheating ... so what you're wearing
                as you enter the warzone gives you your hp/mana/move for the war. */
-            d->character->hit = d->character->max_hit;
-            d->character->mana = d->character->max_mana;
-            d->character->move = d->character->max_move;
+            d->character->hit = hit_cap(d->character);
+            d->character->mana = mana_cap(d->character);
+            d->character->move = move_cap(d->character);
         }
         return;
     }
