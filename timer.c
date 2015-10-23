@@ -45,6 +45,11 @@ static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int 
 
 void unregister_timer_node( TIMER_NODE *tmr )
 {
+    if ( tmr == NULL )
+    {
+        bugf("unregister_timer_node: tmr == NULL");
+        return;
+    }
 //    if (tmr->unregistered)
 //        bugf("unregistering already unregistered timer");
     tmr->unregistered=TRUE;
@@ -112,7 +117,7 @@ TIMER_NODE * register_ch_timer( CHAR_DATA *ch, int max )
     }
     if ( ch->trig_timer)
     {
-        bugf("Tying to register timer for %s but already registered.", ch->name);
+        bugf("Trying to register timer for %s but already registered.", ch->name);
         return NULL;
     }
 

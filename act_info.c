@@ -2237,6 +2237,10 @@ DEF_DO_FUN(do_affects)
             leadership >= 0 ? "bonus" : "penalty",
             PERS(ch->leader, ch)
         );
+    
+    if ( ch->hit_cap_delta || ch->mana_cap_delta || ch->move_cap_delta )
+        ptc(ch, "You are limited to {r%d{x hp {B%d{x mn {c%d{x mv.\n\r",
+            hit_cap(ch), mana_cap(ch), move_cap(ch));
 }
 
 DEF_DO_FUN(do_leadership)
@@ -4171,6 +4175,7 @@ DEF_DO_FUN(do_lore)
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )

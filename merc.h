@@ -1320,8 +1320,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -1968,6 +1968,9 @@ struct  kill_data
 #define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 #define APPLY_SKILLS           32
+#define APPLY_HIT_CAP          33
+#define APPLY_MANA_CAP         34
+#define APPLY_MOVE_CAP         35
 
 /*
  * Values for containers (value[1]).
@@ -2523,10 +2526,13 @@ struct  char_data
 	sh_int	    stop;
 	int      hit;
 	int      max_hit;
+    int      hit_cap_delta; // invariant: hit <= hit_cap := max_hit + hit_cap_delta
 	int      mana;
 	int      max_mana;
+    int      mana_cap_delta; // invariant: mana <= mana_cap := max_mana + mana_cap_delta
 	int      move;
 	int      max_move;
+    int      move_cap_delta; // invariant: move <= move_cap := max_move + move_cap_delta
 	long        gold;
 	long        silver;
 	int         exp;
@@ -3359,6 +3365,7 @@ extern sh_int  gsn_poison;
 extern sh_int  gsn_sleep;
 extern sh_int  gsn_fly;
 extern sh_int  gsn_sanctuary;
+extern sh_int  gsn_stone_skin;
 extern sh_int  gsn_necrosis;
 extern sh_int  gsn_ritual;
 extern sh_int  gsn_word_of_recall;
@@ -4201,6 +4208,7 @@ extern      tflag meta_magic;
 #define META_MAGIC_EMPOWER  (B)
 #define META_MAGIC_QUICKEN  (C)
 #define META_MAGIC_CHAIN    (D)
+#define META_MAGIC_PERMANENT (E)
 
 char *  crypt       args( ( const char *key, const char *salt ) );
 
@@ -5148,6 +5156,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
@@ -5202,6 +5211,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
 void set_mob_race( CHAR_DATA *ch, int race );
+void take_default_stats( CHAR_DATA *ch );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );
@@ -5294,6 +5304,13 @@ void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
 void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
+int     hit_cap( CHAR_DATA *ch );
+int     mana_cap( CHAR_DATA *ch );
+int     move_cap( CHAR_DATA *ch );
+void    gain_hit( CHAR_DATA *ch, int amount );
+void    gain_mana( CHAR_DATA *ch, int amount );
+void    gain_move( CHAR_DATA *ch, int amount );
+
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );

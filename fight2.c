@@ -124,8 +124,7 @@ DEF_DO_FUN(do_berserk)
         ch->move -= cost;
         
         /* heal a little damage */
-        ch->hit += ch->level * 2;
-        ch->hit = UMIN(ch->hit,ch->max_hit);
+        gain_hit(ch, ch->level * 2);
         
         send_to_char("Your pulse races as you are consumed by rage!\n\r",ch);
         act("$n gets a wild look in $s eyes.",ch,NULL,NULL,TO_ROOM);
@@ -996,8 +995,7 @@ DEF_DO_FUN(do_drunken_fury)
         ch->move -= cost;
         
         /* heal a little damage */
-        ch->hit += ch->level * 1;
-        ch->hit = UMIN(ch->hit,ch->max_hit);
+        gain_hit(ch, ch->level);
         
         send_to_char("You're drunk and furious!\n\r",ch);
         act("Look out world! $n is drunk and furious!",ch,NULL,NULL,TO_ROOM);

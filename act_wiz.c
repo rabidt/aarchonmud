@@ -1540,9 +1540,9 @@ void restore_char( CHAR_DATA *victim )
 {
     affect_strip_offensive( victim );
             
-    victim->hit     = victim->max_hit;
-    victim->mana    = victim->max_mana;
-    victim->move    = victim->max_move;
+    victim->hit     = hit_cap(victim);
+    victim->mana    = mana_cap(victim);
+    victim->move    = move_cap(victim);
     update_pos( victim );
 }
 
@@ -1560,12 +1560,7 @@ DEF_DO_FUN(do_restore)
         
         for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
         {
-	    affect_strip_offensive( vch );
-            
-            vch->hit    = vch->max_hit;
-            vch->mana   = vch->max_mana;
-            vch->move   = vch->max_move;
-            update_pos( vch);
+            restore_char(vch);
             act("$n has restored you.",ch,NULL,vch,TO_VICT);
         }
         
@@ -1590,9 +1585,9 @@ DEF_DO_FUN(do_restore)
             
 	    affect_strip_offensive( victim );
             
-            victim->hit     = victim->max_hit;
-            victim->mana    = victim->max_mana;
-            victim->move    = victim->max_move;
+            victim->hit     = hit_cap(victim);
+            victim->mana    = mana_cap(victim);
+            victim->move    = move_cap(victim);
             update_pos( victim);
             if (victim->in_room != NULL)
                 act("$n has restored you.",ch,NULL,victim,TO_VICT);
