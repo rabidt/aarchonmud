@@ -1207,8 +1207,7 @@ void char_update( void )
                 
                 if (healmessage)
                 {
-                    if( ch->hit < ch->max_hit || ch->mana < ch->max_mana ||
-                            ch->move < ch->max_move )
+                    if ( ch->hit < hit_cap(ch) || ch->mana < mana_cap(ch) || ch->move < move_cap(ch) )
                         send_to_char("You feel better.\n\r", ch);
                     else
                         send_to_char("You are fully healed.\n\r", ch);
