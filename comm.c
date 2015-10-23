@@ -1367,7 +1367,10 @@ void bust_a_prompt( CHAR_DATA *ch )
                     sprintf( buf2, "%d", ch->hit );
                 i = buf2; break;
             case 'H' :
-                sprintf( buf2, "%d", ch->max_hit );
+                if ( ch->hit_cap_delta )
+                    sprintf( buf2, "%d[%d]", hit_cap(ch), ch->max_hit );
+                else
+                    sprintf( buf2, "%d", ch->max_hit );
                 i = buf2; break;
             case 'm' :
                 if (insane)
@@ -1376,7 +1379,10 @@ void bust_a_prompt( CHAR_DATA *ch )
                     sprintf( buf2, "%d", ch->mana );
                 i = buf2; break;
             case 'M' :
-                sprintf( buf2, "%d", ch->max_mana );
+                if ( ch->mana_cap_delta )
+                    sprintf( buf2, "%d[%d]", mana_cap(ch), ch->max_mana );
+                else
+                    sprintf( buf2, "%d", ch->max_mana );
                 i = buf2; break;
             case 'v' :
                 if (insane)
@@ -1385,7 +1391,10 @@ void bust_a_prompt( CHAR_DATA *ch )
                     sprintf( buf2, "%d", ch->move );
                 i = buf2; break;
             case 'V' :
-                sprintf( buf2, "%d", ch->max_move );
+                if ( ch->move_cap_delta )
+                    sprintf( buf2, "%d[%d]", move_cap(ch), ch->max_move );
+                else
+                    sprintf( buf2, "%d", ch->max_move );
                 i = buf2; break;
 
                 /* Battle prompts by Brian Castle. Idea from NB's snippet. */
