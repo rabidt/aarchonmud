@@ -4370,7 +4370,6 @@ DEF_SPELL_FUN(spell_identify)
            );
     send_to_char( buf, ch );
 
-    //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
@@ -4486,19 +4485,6 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_ARMOR:
             {
-                /*
-                for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-                {
-                    if( !IS_SET(obj->wear_flags, pos) )
-                        continue;
-                    char *wear = wear_location_info(pos);
-                    if ( wear )
-                    {
-                        printf_to_char(ch, "%s\n\r", wear);
-                        ac = predict_obj_ac(obj, pos);
-                    }
-                }
-                */
                 const char *wear = wear_location_info(obj->wear_type);
                 if ( wear )
                 {

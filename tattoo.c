@@ -310,7 +310,6 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
     if ( IS_NPC(ch) )
         return TATTOO_NONE;
 
-    //if ( (obj = get_eq_char(ch, loc)) != NULL && !CAN_WEAR(obj, ITEM_TRANSLUCENT) )
     if ( (obj = get_eq_char(ch, loc)) != NULL && !IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
         return TATTOO_NONE;
 

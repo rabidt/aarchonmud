@@ -2875,7 +2875,6 @@ struct  obj_index_data
     const char* material;
 	sh_int      item_type;
 	tflag       extra_flags;
-	//tflag       wear_flags;
     sh_int      wear_type;
     bool        can_take;
 	sh_int      level;
@@ -2915,7 +2914,6 @@ struct  obj_data
     const char* description;
 	sh_int      item_type;
 	tflag         extra_flags;
-	//tflag         wear_flags;
     sh_int      wear_type;
     bool        can_take;
 	sh_int      wear_loc;
@@ -4002,7 +4000,6 @@ struct boss_achieve_record
 /*
  * Object macros.
  */
-//#define CAN_WEAR(obj, part) (IS_SET((obj)->wear_flags,  (part)))
 #define CAN_WEAR(obj, part) (obj->wear_type == part)
 #define IS_OBJ_STAT(obj, stat)  (IS_SET((obj)->extra_flags, (stat)))
 #define IS_WEAPON_STAT(obj,stat)(I_IS_SET((obj)->value[4],(stat)))

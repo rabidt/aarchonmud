@@ -2849,7 +2849,6 @@ struct wear_type
 
 const struct wear_type wear_table[] =
 {
-    //{	WEAR_NONE,	ITEM_TAKE		},
     {   WEAR_NONE,  ITEM_CARRY      },
     {	WEAR_LIGHT,	ITEM_LIGHT		},
     {	WEAR_FINGER_L,	ITEM_WEAR_FINGER	},
@@ -3024,7 +3023,6 @@ REDIT( redit_oreset )
         /*
         * Disallow loading a sword(WEAR_WIELD) into WEAR_HEAD.
         */
-        //if ( !IS_SET( pObjIndex->wear_flags, wear_bit(wear_loc) ) )
         if ( pObjIndex->wear_type != wear_bit(wear_loc) )
         {
             sprintf( output,
@@ -4817,7 +4815,6 @@ OEDIT( oedit_wear )      /* Moved out of oedit() due to naming conflicts -- Hugi
         
         if ( (value = flag_lookup(argument, wear_types)) != NO_FLAG )
         {
-            //TOGGLE_BIT(pObj->wear_flags, value);
             pObj->wear_type = value;
             
             send_to_char( "Wear type set.\n\r", ch);
@@ -5080,7 +5077,6 @@ bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
             weight = 10;
         else if ( CAN_WEAR(obj,ITEM_WEAR_TORSO) )
             weight = 100;
-        //if ( CAN_WEAR(obj,ITEM_TRANSLUCENT) )
         if ( IS_OBJ_STAT(obj,ITEM_TRANSLUCENT_EX) )
             weight /= 2;
     }

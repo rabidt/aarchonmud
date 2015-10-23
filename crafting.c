@@ -220,7 +220,6 @@ DEF_DO_FUN(do_craft)
             send_to_char("You do not carry that item.\n\r", ch);
             return;
         }
-        //int ac_factor = itemwear_ac_factor(first_itemwear(crafting));
         int ac_factor = itemwear_ac_factor(crafting->wear_type);
         if ( ac_factor == 0 )
         {

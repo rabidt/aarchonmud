@@ -635,7 +635,6 @@ DEF_DO_FUN(do_ostat)
 	send_to_char( buf, ch );
 
 	sprintf( buf, "Wear type: %s\n\rExtra bits: %s\n\r",
-	//wear_bits_name(obj->wear_flags), extra_bits_name( obj->extra_flags ) );
     wear_bit_name(obj->wear_type), extra_bits_name( obj->extra_flags ) );
 
 	send_to_char( buf, ch );

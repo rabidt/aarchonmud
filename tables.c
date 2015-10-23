@@ -832,8 +832,8 @@ const struct flag_type extra_flags[] =
     {   "questeq",             ITEM_QUESTEQ              , TRUE },
     {   "random_physical",     ITEM_RANDOM_PHYSICAL      , TRUE },
     {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
-    {   "nosac",        ITEM_NO_SAC_EX,         TRUE },
-    {   "translucent",  ITEM_TRANSLUCENT_EX,   TRUE },
+    {   "nosac",               ITEM_NO_SAC_EX            , TRUE },
+    {   "translucent",         ITEM_TRANSLUCENT_EX       , TRUE },
 	{   NULL,           0,          0   }
 };
 
@@ -841,7 +841,6 @@ const struct flag_type extra_flags[] =
 
 const struct flag_type wear_types[] =
 {
-    //{   "take",         ITEM_TAKE,          TRUE    },
     {   "nocarry",      ITEM_NO_CARRY,      TRUE    },
     {   "carry",        ITEM_CARRY,         TRUE    },
     {   "finger",       ITEM_WEAR_FINGER,   TRUE    },

@@ -95,7 +95,6 @@ int get_wear_locs( const int item_wear_flag, int *wear_locs )
 {
     int i, count = 0;
     for ( i = 0; i <= MAX_WEAR_LOCATIONS; i++ )
-        //if ( flag_is_set(item_wear_flags, wear_locations[i].item_wear_bit) )
         if ( item_wear_flag == wear_locations[i].item_wear_bit ) 
             wear_locs[count++] = wear_locations[i].wear_loc;
     return count;
@@ -977,7 +976,6 @@ DEF_DO_FUN(do_rwear)
 	/* check some stuff about the object */
 
 	/* Takeable at all ? */	
-	//if (!IS_SET(obj->wear_flags, ITEM_TAKE))
     if (obj->wear_type == ITEM_NO_CARRY)
 	{
 		send_to_char ("This item is not even takeable.\n\r",ch);
@@ -1016,7 +1014,6 @@ DEF_DO_FUN(do_rwear)
         int wear_locs[MAX_WEAR];
         int wear_count = get_wear_locs(obj->wear_type, wear_locs);
         
-        //if ( wear_count == 0 )
         if ( obj->wear_type == ITEM_CARRY )
     	{
     		send_to_char ("This item can only be taken, not worn.\n\r",ch);
@@ -1741,7 +1738,6 @@ DEF_DO_FUN(do_rput)
 		return;
 	}
 		
-	//if (!IS_SET(obj->wear_flags, ITEM_TAKE))
     if ( obj->wear_type == ITEM_NO_CARRY )
 	{
 		send_to_char ("This item is not takeable. Noone would be able to get it out!\n\r",ch);
