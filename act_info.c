@@ -2239,10 +2239,8 @@ DEF_DO_FUN(do_affects)
         );
     
     if ( ch->hit_cap_delta || ch->mana_cap_delta || ch->move_cap_delta )
-        ptc(ch, "You can gain %d/%d hp %d/%d mn %d/%d mv.\n\r",
-            hit_cap(ch), ch->max_hit,
-            mana_cap(ch), ch->max_mana,
-            move_cap(ch), ch->max_move);
+        ptc(ch, "You are limited to {r%d{x hp {B%d{x mn {c%d{x mv.\n\r",
+            hit_cap(ch), mana_cap(ch), move_cap(ch));
 }
 
 DEF_DO_FUN(do_leadership)
