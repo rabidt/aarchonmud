@@ -947,7 +947,7 @@ DEF_SPELL_FUN(spell_cannibalism)
     {
         SPELL_CHECK_RETURN
         send_to_char( "You draw magic energy from your life force.\n\r", ch );
-        ch->mana = UMIN( ch->mana + 70, ch->max_mana );
+        gain_mana(ch, 70);
         ch->hit -= 100;
         return TRUE;
     } 
@@ -992,10 +992,7 @@ DEF_SPELL_FUN(spell_cure_mortal)
     
     heal = get_sn_heal( sn, level, ch, victim ) * 2;
     heal = heal * (victim->max_hit - victim->hit) / victim->max_hit;
-    /*heal += skill_table[sn].min_mana;*/
-    heal = UMIN(heal, victim->max_hit - victim->hit);
-    
-    victim->hit = UMIN( victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
 
     if ( victim->max_hit == victim->hit )
@@ -1021,7 +1018,7 @@ DEF_SPELL_FUN(spell_cure_critical)
     int  heal;
     
     heal = get_sn_heal( sn, level, ch, victim );
-    victim->hit = UMIN( victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
 
     if ( victim->max_hit == victim->hit )
@@ -1048,7 +1045,7 @@ DEF_SPELL_FUN(spell_cure_serious)
     int heal;
     
     heal = get_sn_heal( sn, level, ch, victim );
-    victim->hit = UMIN( victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
     if ( victim->max_hit == victim->hit )
     {
@@ -1073,7 +1070,7 @@ DEF_SPELL_FUN(spell_cure_light)
     int heal;
     
     heal = get_sn_heal( sn, level, ch, victim );
-    victim->hit = UMIN( victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
 
     if ( victim->max_hit == victim->hit )
@@ -1102,8 +1099,8 @@ DEF_SPELL_FUN(spell_minor_group_heal)
     {
         if ( !is_same_group( gch, ch ) )
             continue;
-	heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
-        gch->hit = UMIN( gch->hit + heal, gch->max_hit );
+        heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
+        gain_hit(gch, heal);
         update_pos( gch );
         send_to_char( "You feel better!\n\r", gch );
 	check_sn_multiplay( ch, gch, sn );
@@ -1123,8 +1120,8 @@ DEF_SPELL_FUN(spell_group_heal)
     {
         if ( !is_same_group( gch, ch ) )
             continue;
-	heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
-        gch->hit = UMIN( gch->hit + heal, gch->max_hit );
+        heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
+        gain_hit(gch, heal);
         update_pos( gch );
         send_to_char( "You feel better!\n\r", gch );
 	check_sn_multiplay( ch, gch, sn );
@@ -1144,7 +1141,7 @@ DEF_SPELL_FUN(spell_major_group_heal)
     {
         if ( !is_same_group( gch, ch ) )
             continue;
-	heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
+        heal = get_sn_heal( sn, level, ch, gch ) * 2/3;
         gch->hit = UMIN( gch->hit + heal, gch->max_hit );
         update_pos( gch );
         send_to_char( "You feel better!\n\r", gch );
@@ -1159,7 +1156,7 @@ DEF_SPELL_FUN(spell_restoration)
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int heal = victim->max_hit - victim->hit;
+    int heal = hit_cap(victim) - victim->hit;
     double factor = 2.0;
 
     if ( !was_obj_cast )
@@ -1178,7 +1175,7 @@ DEF_SPELL_FUN(spell_restoration)
 	heal = ch->mana * factor;
 
     ch->mana -= heal/factor;
-    victim->hit = UMIN(victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
 
     if ( victim->max_hit <= victim->hit )
@@ -2478,8 +2475,7 @@ DEF_SPELL_FUN(spell_mana_heal)
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    victim->mana = UMIN( victim->mana + level, victim->max_mana );
-    update_pos( victim );
+    gain_mana(victim, level);
     send_to_char( "You are surrounded by a blue glow, and your mind tingles.\n\r", victim );
     if ( ch != victim )
         send_to_char( "Ok.\n\r", ch );
@@ -2936,14 +2932,9 @@ DEF_SPELL_FUN(spell_smotes_anachronism)
             gch->wait = UMAX(gch->wait - PULSE_VIOLENCE, PULSE_VIOLENCE);
         gch->daze = UMAX(gch->daze - PULSE_VIOLENCE, 0);
         
-        if ( gch->hit < gch->max_hit )
-            gch->hit += hit_gain(gch) / 10;
-        
-        if ( gch->mana < gch->max_mana )
-            gch->mana += mana_gain(gch) / 10;
-        
-        if ( gch->move < gch->max_move )
-            gch->move += move_gain(gch) / 10;
+        gain_hit(gch, hit_gain(gch) / 10);
+        gain_mana(gch, mana_gain(gch) / 10);
+        gain_move(gch, move_gain(gch) / 10);
         
         violence_update_char(gch);
     }
@@ -3232,19 +3223,19 @@ DEF_SPELL_FUN(spell_heal_mind)
     /* restore spell cost */
     ch->mana += skill_table[sn].min_mana;
     
-    if( ch->mana >= ch->max_mana )
+    if( ch->mana >= mana_cap(ch) )
     {
-	send_to_char("Your mind is already healed.\n\r", ch);
-	return TRUE;
+        send_to_char("Your mind cannot be healed any further.\n\r", ch);
+        return TRUE;
     }
 
-    diff = ch->max_mana - ch->mana;
+    diff = mana_cap(ch) - ch->mana;
     price = factor * diff;
     
     if ( (ch->move - 100) >= price )
     {
 	send_to_char("You levitate and feel fine.\n\r", ch);
-	ch->mana = ch->max_mana;
+    gain_mana(ch, diff);
 	ch->move -= price;
 	return TRUE;
     }
@@ -3258,7 +3249,7 @@ DEF_SPELL_FUN(spell_heal_mind)
 	return SR_UNABLE;
     }
 
-    ch->mana += afford;
+    gain_mana(ch, afford);
     ch->move -= price;
     
     send_to_char("You levitate from the ground and feel better.\n\r", ch);
@@ -3270,10 +3261,10 @@ DEF_SPELL_FUN(spell_life_force)
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int loss = UMIN(ch->hit * 9/10, victim->max_hit - victim->hit );
+    int loss = URANGE(0, hit_cap(victim) - victim->hit, ch->hit * 9/10);
 
-    ch->hit -= loss; 
-    victim->hit += loss;     
+    ch->hit -= loss;
+    gain_hit(victim, loss);
     update_pos( victim );
 
     send_to_char("You feel alive again.\n\r", victim );
@@ -3298,14 +3289,9 @@ DEF_SPELL_FUN(spell_heal_all)
 
 	act( "$n is heavily healed.", gch, NULL, NULL, TO_ROOM );
 	send_to_char( "You feel outstanding!!!\n\r", gch );
-	gch->hit = UMIN( gch->hit + 10*level, gch->max_hit );
-	gch->mana = UMIN( gch->mana + 10*level, gch->max_mana );
-	gch->move = UMIN( gch->move + 10*level, gch->max_move );
-	/*
-	if (gch->hit < gch->max_hit)   gch->hit  = gch->max_hit;
-	if (gch->mana < gch->max_mana) gch->mana = gch->max_mana;
-	if (gch->move < gch->max_move) gch->move = gch->max_move;
-	*/
+    gain_hit(ch, 10*level);
+    gain_mana(ch, 10*level);
+    gain_move(ch, 10*level);
 	update_pos( gch );
 	return TRUE;
     }
@@ -3319,14 +3305,9 @@ DEF_SPELL_FUN(spell_heal_all)
 	{
 	    act( "$n is heavily healed.", gch, NULL, NULL, TO_ROOM );
 	    send_to_char( "You feel outstanding!!!\n\r", gch );
-	    gch->hit = UMIN( gch->hit + 10*level, gch->max_hit );
-	    gch->mana = UMIN( gch->mana + 10*level, gch->max_mana );
-	    gch->move = UMIN( gch->move + 10*level, gch->max_move );
-	    /*
-	    if (gch->hit < gch->max_hit)   gch->hit  = gch->max_hit;
-	    if (gch->mana < gch->max_mana) gch->mana = gch->max_mana;
-	    if (gch->move < gch->max_move) gch->move = gch->max_move;
-	    */
+        gain_hit(gch, 10*level);
+        gain_mana(gch, 10*level);
+        gain_move(gch, 10*level);
 	    update_pos( gch );
         }
     }
@@ -3535,7 +3516,6 @@ DEF_SPELL_FUN(spell_mirror_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -4096,7 +4076,6 @@ DEF_SPELL_FUN(spell_phantasmal_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;

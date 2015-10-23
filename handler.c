@@ -409,6 +409,9 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
         case APPLY_MANA:    ch->max_mana    += mod; break;
         case APPLY_HIT:     ch->max_hit     += mod; break;
         case APPLY_MOVE:    ch->max_move    += mod; break;
+        case APPLY_HIT_CAP:     ch->hit_cap_delta   += mod; break;
+        case APPLY_MANA_CAP:    ch->mana_cap_delta  += mod; break;
+        case APPLY_MOVE_CAP:    ch->move_cap_delta  += mod; break;
             
         case APPLY_AC:
             ch->armor += mod;
@@ -450,6 +453,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
+    ch->hit_cap_delta = ch->mana_cap_delta = ch->move_cap_delta = 0;
     
     ch->armor       = 100;
     ch->heavy_armor = 0;
@@ -3946,6 +3950,9 @@ const char *affect_loc_name( int location )
     case APPLY_MANA:    return "mana";
     case APPLY_HIT:     return "hp";
     case APPLY_MOVE:    return "moves";
+    case APPLY_HIT_CAP: return "hp cap";
+    case APPLY_MANA_CAP:return "mana cap";
+    case APPLY_MOVE_CAP:return "move cap";
     case APPLY_GOLD:    return "gold";
     case APPLY_EXP:     return "experience";
     case APPLY_AC:      return "armor class";

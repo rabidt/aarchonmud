@@ -335,7 +335,7 @@ DEF_DO_FUN(do_firstaid)
 	{
            ch->mana -= mana_cost;
 	   heal = max_heal * (target->max_hit - target->hit) / UMAX(1, target->max_hit);
-	   target->hit = UMIN(target->hit + heal, target->max_hit);
+       gain_hit(target, heal);
 	   update_pos( target );
            if (ch == target)
 	   {
