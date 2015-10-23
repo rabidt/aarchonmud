@@ -1847,7 +1847,7 @@ struct  kill_data
  * Wear flags.
  * Used in #OBJECTS.
  */
-#define ITEM_TAKE_OLD       (A)
+#define ITEM_TAKE_OLD       (A) //obsolete, only used for loading old areas
 #define ITEM_WEAR_FINGER    (B)
 #define ITEM_WEAR_NECK      (C)
 #define ITEM_WEAR_TORSO     (D)
@@ -1862,9 +1862,9 @@ struct  kill_data
 #define ITEM_WEAR_WRIST     (M)
 #define ITEM_WIELD          (N)
 #define ITEM_HOLD           (O)
-#define ITEM_NO_SAC_OLD     (P)
+#define ITEM_NO_SAC_OLD     (P) //obsolete, only used for loading old areas 
 #define ITEM_WEAR_FLOAT     (Q)
-#define ITEM_TRANSLUCENT_OLD (R)
+#define ITEM_TRANSLUCENT_OLD (R) //obsolete, only used for loading old areas 
 #define ITEM_CARRY          (S)
 #define ITEM_NO_CARRY       (T)
 
