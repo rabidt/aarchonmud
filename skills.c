@@ -2231,6 +2231,8 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 
     if ( sn == gsn_brawl || sn == gsn_melee )
 	return IS_SET(ch->off_flags, OFF_AREA_ATTACK);
+    if ( sn == gsn_cursed_wound )
+        return IS_SET(ch->off_flags, OFF_WOUND);
     
     if (sn==gsn_trip)
 	return IS_SET(ch->off_flags, OFF_TRIP);
