@@ -135,23 +135,23 @@ char* list_quest_items()
         {
             switch(obj->wear_type)
             {
-                case ITEM_WEAR_FINGER: wloc = "<finger>";
-                case ITEM_WEAR_NECK:   wloc = "<neck>";
-                case ITEM_WEAR_TORSO:  wloc = "<torso>";
-                case ITEM_WEAR_HEAD:   wloc = "<head>";
-                case ITEM_WEAR_LEGS:   wloc = "<legs>";
-                case ITEM_WEAR_FEET:   wloc = "<feet>";
-                case ITEM_WEAR_HANDS:  wloc = "<hands>";
-                case ITEM_WEAR_ARMS:   wloc = "<arms>";
-                case ITEM_WEAR_SHIELD: wloc = "<shield>";
-                case ITEM_WEAR_ABOUT:  wloc = "<body>";
-                case ITEM_WEAR_WAIST:  wloc = "<waist>";
-                case ITEM_WEAR_WRIST:  wloc = "<wrist>";
-                case ITEM_WIELD:       wloc = "<weapon>";
-                case ITEM_HOLD:        wloc = "<held>";
-                case ITEM_WEAR_FLOAT:  wloc = "<floating>";
-                case ITEM_LIGHT:       wloc = "<light>";
-                default:               wloc = "<not defined>";
+                case ITEM_WEAR_FINGER: wloc = "<finger>"; break;
+                case ITEM_WEAR_NECK:   wloc = "<neck>"; break;
+                case ITEM_WEAR_TORSO:  wloc = "<torso>"; break;
+                case ITEM_WEAR_HEAD:   wloc = "<head>"; break;
+                case ITEM_WEAR_LEGS:   wloc = "<legs>"; break;
+                case ITEM_WEAR_FEET:   wloc = "<feet>"; break;
+                case ITEM_WEAR_HANDS:  wloc = "<hands>"; break;
+                case ITEM_WEAR_ARMS:   wloc = "<arms>"; break;
+                case ITEM_WEAR_SHIELD: wloc = "<shield>"; break;
+                case ITEM_WEAR_ABOUT:  wloc = "<body>"; break;
+                case ITEM_WEAR_WAIST:  wloc = "<waist>"; break;
+                case ITEM_WEAR_WRIST:  wloc = "<wrist>"; break;
+                case ITEM_WIELD:       wloc = "<weapon>"; break;
+                case ITEM_HOLD:        wloc = "<held>"; break;
+                case ITEM_WEAR_FLOAT:  wloc = "<floating>"; break;
+                case ITEM_LIGHT:       wloc = "<light>"; break;
+                default:               wloc = "<not defined>"; 
             }
         }
 

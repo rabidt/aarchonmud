@@ -3697,9 +3697,8 @@ const char* wear_location_info( int pos )
             return "It can be wielded.";
         case ITEM_WEAR_FLOAT:
             return "It would float nearby.";
-        case ITEM_TAKE_OLD:
-        case ITEM_NO_SAC_OLD:
-        case ITEM_TRANSLUCENT_OLD:
+        case ITEM_CARRY:
+        case ITEM_NO_CARRY:
             return NULL;
         default:
             sprintf( buf, "It can be worn on the %s.", wear_bit_name(pos) );
