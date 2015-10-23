@@ -1804,19 +1804,6 @@ int itemwear_ac_factor( int itemWear )
         case ITEM_WEAR_FINGER:  return 1;//x2
     }
 }
-/*
-int first_itemwear( OBJ_DATA *obj )
-{
-    int pos;
-    for( pos = 1; pos < FLAG_MAX_BIT; pos++ )
-    {
-        if( !IS_SET(obj->wear_flags, pos) || pos == ITEM_TAKE || pos == ITEM_TRANSLUCENT || pos == ITEM_NO_SAC )
-            continue;
-        return pos;
-    }
-    return 0;
-}
-*/
 
 int predict_obj_ac( OBJ_DATA *obj, int itemWear )
 {
