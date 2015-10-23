@@ -1294,7 +1294,6 @@ DEF_DO_FUN(do_oload)
     {
 	obj = create_object( pObjIndex );
 	check_enchant_obj( obj );
-	//if ( CAN_WEAR(obj, ITEM_TAKE) )
     if ( !CAN_WEAR(obj, ITEM_NO_CARRY))
 	    obj_to_char( obj, ch );
 	else

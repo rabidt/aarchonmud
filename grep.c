@@ -505,7 +505,6 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	match = (obj->diff_rating == gd->value);
 	break;
     case GREP_OBJ_WEAR:
-	//match = IS_SET(obj->wear_flags, gd->value);
     match = (obj->wear_type == gd->value);
 	break;
     case GREP_OBJ_EXTRA:
@@ -1548,7 +1547,6 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     {
         spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
         // we don't use get_translucency_spec_penalty to avoid rounding issues
-        //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
         if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 2 * (10 + level);
         spec /= 10;
@@ -1556,7 +1554,6 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     else /* These are objects above level 90 */
     {
         spec = 24 + 2 * (level - 90) + 4 * obj->diff_rating;
-        //if ( CAN_WEAR(obj, ITEM_TRANSLUCENT) )
         if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 20 + 2 * (level - 90);
     }
@@ -1652,7 +1649,6 @@ int average_weapon_index_dam( OBJ_INDEX_DATA *obj )
 
 bool can_wear( OBJ_INDEX_DATA *obj )
 {
-    //if ( !CAN_WEAR(obj, ITEM_TAKE) )
     if (obj->item_type == ITEM_NO_CARRY)
         return FALSE;
     
