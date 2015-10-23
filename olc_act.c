@@ -4005,6 +4005,15 @@ OEDIT( oedit_addaffect )
         show_help( ch, "apply" );
         return FALSE;
     }
+    else
+    {
+        int idx = index_lookup(value, apply_flags);
+        if ( !apply_flags[idx].settable )
+        {
+            ptc(ch, "Cannot set %s flag.\n\r", apply_flags[idx].name );
+            return FALSE;
+        }
+    }
     
     if ( det[0] != '\0' )
     {
