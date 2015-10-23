@@ -6996,8 +6996,6 @@ static const LUA_PROP_TYPE OBJPROTO_set_table [] =
 static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
     OPMETH( extra, 0),
-    //OPMETH( wear, 0),
-    //TODO: add weartype to props
     OPMETH( apply, 0),
    
     /* portal only */
