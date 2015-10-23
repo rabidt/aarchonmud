@@ -1386,6 +1386,7 @@ struct  kill_data
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
+#define OFF_WOUND               (dd)
 
 /* return values for check_imm */
 #define IS_NORMAL           0
