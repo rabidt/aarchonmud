@@ -182,27 +182,27 @@ DEF_DO_FUN(do_heal)
         spell = NULL;
         sn = -2;
         words = "streaaerts";
-        cost = ((ch->max_hit - ch->hit) * 30);
+        cost = ((hit_cap(ch) - ch->hit) * 30);
     }
     else if (!str_prefix(arg, "mind")) {
         spell = NULL;
         sn = -3;
         words = "beau crysania";
-        cost = ((ch->max_mana - ch->mana) * 30);
+        cost = ((mana_cap(ch) - ch->mana) * 30);
     }
     else if (!str_prefix(arg, "stamina")) {
         spell = NULL;
         sn = -4;
         words = "covet love";
-        cost = ((ch->max_move - ch->move) * 30);
+        cost = ((move_cap(ch) - ch->move) * 30);
     }
     else if (!str_prefix(arg, "all")) {
         spell = NULL;
         sn = -5;
         words = "flin dalnib";
-        cost = ((ch->max_hit - ch->hit) * 32);
-        cost += ((ch->max_mana - ch->mana) * 32);
-        cost += ((ch->max_move - ch->move) * 32);
+        cost = (hit_cap(ch) - ch->hit) * 32;
+        cost += (mana_cap(ch) - ch->mana) * 32;
+        cost += (move_cap(ch) - ch->move) * 32;
     }
     else 
     {
@@ -229,28 +229,27 @@ DEF_DO_FUN(do_heal)
     
     if (spell == NULL && sn == -1)  /* restore mana trap...kinda hackish */
     {
-        ch->mana += 100;
-        ch->mana = UMIN(ch->mana,ch->max_mana);
+        gain_mana(ch, 100);
         send_to_char("A warm glow passes through you.\n\r",ch);
         return;
     }
     switch(sn) {
     case -2: /* Full HP */
-        ch->hit = ch->max_hit;
+        ch->hit = hit_cap(ch);
         send_to_char("Your blood warms as life renewed flows through you.\n\r", ch);
         return;
     case -3: /* Full Mana */
-        ch->mana = ch->max_mana;
+        ch->mana = mana_cap(ch);
         send_to_char("Your mind tingles as your magical strength is renewed.\n\r", ch);
         return;
     case -4: /* Full Mv */
-        ch->move = ch->max_move;
+        ch->move = move_cap(ch);
         send_to_char("You feel your stamina return to you.\n\r", ch);
         return;
     case -5: /* Full All */
-        ch->hit = ch->max_hit;
-        ch->mana = ch->max_mana;
-        ch->move = ch->max_move;
+        ch->hit = hit_cap(ch);
+        ch->mana = mana_cap(ch);
+        ch->move = move_cap(ch);
         send_to_char("Your body burns with energy as you are renewed.\n\r", ch);
         return;
     case -1: break;
