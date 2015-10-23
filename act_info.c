@@ -2237,6 +2237,12 @@ DEF_DO_FUN(do_affects)
             leadership >= 0 ? "bonus" : "penalty",
             PERS(ch->leader, ch)
         );
+    
+    if ( ch->hit_cap_delta || ch->mana_cap_delta || ch->move_cap_delta )
+        ptc(ch, "You can gain %d/%d hp %d/%d mn %d/%d mv.\n\r",
+            hit_cap(ch), ch->max_hit,
+            mana_cap(ch), ch->max_mana,
+            move_cap(ch), ch->max_move);
 }
 
 DEF_DO_FUN(do_leadership)

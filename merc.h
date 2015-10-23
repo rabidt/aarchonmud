@@ -1964,6 +1964,9 @@ struct  kill_data
 #define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 #define APPLY_SKILLS           32
+#define APPLY_HIT_CAP          33
+#define APPLY_MANA_CAP         34
+#define APPLY_MOVE_CAP         35
 
 /*
  * Values for containers (value[1]).
@@ -2519,10 +2522,13 @@ struct  char_data
 	sh_int	    stop;
 	int      hit;
 	int      max_hit;
+    int      hit_cap_delta; // invariant: hit <= hit_cap := max_hit + hit_cap_delta
 	int      mana;
 	int      max_mana;
+    int      mana_cap_delta; // invariant: mana <= mana_cap := max_mana + mana_cap_delta
 	int      move;
 	int      max_move;
+    int      move_cap_delta; // invariant: move <= move_cap := max_move + move_cap_delta
 	long        gold;
 	long        silver;
 	int         exp;
@@ -5290,6 +5296,13 @@ void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
 void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
+int     hit_cap( CHAR_DATA *ch );
+int     mana_cap( CHAR_DATA *ch );
+int     move_cap( CHAR_DATA *ch );
+void    gain_hit( CHAR_DATA *ch, int amount );
+void    gain_mana( CHAR_DATA *ch, int amount );
+void    gain_move( CHAR_DATA *ch, int amount );
+
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );
