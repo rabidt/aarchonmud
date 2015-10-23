@@ -1210,7 +1210,7 @@ int apply_perm_cost( CHAR_DATA *ch, int sn )
     int level = paf->level;
     while ( paf != NULL && paf->type == sn )
     {
-        if ( paf->location == APPLY_MANA && paf->modifier < 0 )
+        if ( paf->location == APPLY_MANA_CAP && paf->modifier < 0 )
             return 0;
         paf = paf->next;
     }
@@ -1222,7 +1222,7 @@ int apply_perm_cost( CHAR_DATA *ch, int sn )
     af.level        = level;
     af.duration     = -1;
     af.bitvector    = 0;
-    af.location     = APPLY_MANA;
+    af.location     = APPLY_MANA_CAP;
     af.modifier     = -cost;
     affect_to_char(ch, &af);
     
@@ -4244,15 +4244,9 @@ DEF_SPELL_FUN(spell_heal)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
 
-    victim->hit = UMIN( victim->hit + heal, victim->max_hit );
+    gain_hit(victim, heal);
     update_pos( victim );
-    /*send_to_char( "A warm feeling fills your body.\n\r", victim );
-      if ( ch != victim )
-      send_to_char( "Ok.\n\r", ch );
-      +       printf_to_char( ch, "You heal %s.", PERS(victim) );
-      +       if (victim->hit >= victim->max_hit)
-      +          printf_to_char(ch, "%s is at full health.",PERS(victim));
-      +*/
+    
     if ( victim->max_hit <= victim->hit )
     {
         send_to_char( "You feel excellent!\n\r", victim );
@@ -5369,13 +5363,8 @@ DEF_SPELL_FUN(spell_refresh)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = get_sn_heal( sn, level, ch, victim );
-    victim->move = UMIN( victim->move + heal, victim->max_move );
-    /*if (victim->max_move == victim->move)
-      send_to_char("You feel fully refreshed!\n\r",victim);
-      else
-      send_to_char( "You feel less tired.\n\r", victim );
-      if ( ch != victim )
-      act( "$N sighs in relief.", ch, NULL,victim,TO_CHAR );*/
+    gain_move(victim, heal);
+    
     if ( victim->max_move <= victim->move )
     {
         send_to_char( "You feel fully refreshed!\n\r", victim );
