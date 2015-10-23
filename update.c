@@ -1001,7 +1001,7 @@ void mobile_update( void )
                 if ( obj->item_type == ITEM_CORPSE_PC || obj->item_type == ITEM_CORPSE_NPC
                         || IS_BETWEEN(10375,obj->pIndexData->vnum,10379) ) /* quest objs */
                     continue;
-                if ( !(obj->item_type==ITEM_NO_CARRY) 
+                if ( obj->item_type != ITEM_NO_CARRY 
                         && can_loot(ch, obj, FALSE)
                         && obj->cost > max  && obj->cost > 0)
                 {

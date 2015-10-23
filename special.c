@@ -840,7 +840,6 @@ bool spec_janitor( CHAR_DATA *ch )
 	for ( trash = ch->in_room->contents; trash != NULL; trash = trash_next )
 	{
 	trash_next = trash->next_content;
-	//if ( !IS_SET( trash->wear_flags, ITEM_TAKE ) || !can_loot(ch,trash,FALSE)
     if ( trash->wear_type == ITEM_NO_CARRY || !can_loot(ch,trash,FALSE)
 	      || trash->item_type == ITEM_CORPSE_PC || trash->item_type == ITEM_CORPSE_NPC
 	      || IS_BETWEEN(10375,trash->pIndexData->vnum,10379) )   /* quest objs */

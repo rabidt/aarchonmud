@@ -3821,7 +3821,7 @@ OEDIT( oedit_show )
     sprintf( buf, "Level:       [%5d]\n\r", pObj->level );
     send_to_char( buf, ch );
     
-    sprintf( buf, "Wear type:  [%s]\n\r",
+    sprintf( buf, "Wear type:   [%s]\n\r",
         wear_bit_name(pObj->wear_type) );
     send_to_char( buf, ch );
     
