@@ -1386,6 +1386,7 @@ struct  kill_data
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
+#define OFF_WOUND               (dd)
 
 /* return values for check_imm */
 #define IS_NORMAL           0
@@ -3221,6 +3222,7 @@ struct  mastery_group_type
 #define OTRIG_REST  (dd)
 #define OTRIG_SLEEP (ee)
 #define OTRIG_MOVE  (ff)
+#define OTRIG_DEATH (gg)
 /*
  * AREAprog definitions
  */
@@ -5049,6 +5051,7 @@ void op_speech_trigger( const char *argument, CHAR_DATA *ch );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
 void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
+void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage );
 void op_timer_trigger( OBJ_DATA *obj );
 void oprog_timer_init( OBJ_DATA *obj );
