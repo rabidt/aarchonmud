@@ -3274,36 +3274,37 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
     OBJ_DATA *obj;
     int number;
     int count;
-    
+
     if ( ( obj = get_obj_here( ch, argument ) ) != NULL )
         return obj;
-    
+
     number = number_argument( argument, arg );
     count  = 0;
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {
-	if ( area )
-	{
-	    if ( obj->carried_by != NULL )
+        if ( area )
         {
-            if ( !obj->carried_by->in_room )
+            if ( obj->carried_by != NULL )
             {
-                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
-		        continue;
-		    }
-		    if ( !ch->in_room )
-            {
-                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
-                continue;
+                if ( !obj->carried_by->in_room )
+                {
+                    /* why is carried_by not in a room?
+                       who knows, but they aren't in the area! */
+                    continue;
+                }
+                if ( !ch->in_room )
+                {
+                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                    continue;
+                }
+                if ( obj->carried_by->in_room->area != ch->in_room->area )
+                    continue;
             }
-		    if ( obj->carried_by->in_room->area != ch->in_room->area )
-		        continue;
-        }
 
-	    if ( obj->in_room != NULL
-		 && obj->in_room->area != ch->in_room->area )
-		continue;
-	}
+            if ( obj->in_room != NULL
+                    && obj->in_room->area != ch->in_room->area )
+                continue;
+        }
 
         if ( can_see_obj( ch, obj ) && is_either_name( arg, obj->name, exact ) )
         {
@@ -3311,7 +3312,7 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
                 return obj;
         }
     }
-    
+
     return NULL;
 }
 
@@ -3616,6 +3617,10 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
 /* visibility on a room -- for entering and exits */
 bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
 {
+    if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
+        && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
+        return FALSE;
+    
     if (IS_SET(pRoomIndex->room_flags, ROOM_IMP_ONLY)
         &&  get_trust(ch) < MAX_LEVEL)
         return FALSE;
@@ -3673,6 +3678,9 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     /* RT changed so that WIZ_INVIS has levels */
     if ( ch == victim )
         return SEE_CAN;
+    
+    if ( victim->in_room && !can_see_room(ch, victim->in_room) )
+        return SEE_CANT;
     
     if ( helper_visible && IS_HELPER(victim) && !combat )
         return SEE_CAN;
@@ -3877,6 +3885,10 @@ bool can_see_obj( CHAR_DATA *ch, OBJ_DATA *obj )
         return FALSE;
     
     if ( obj->must_extract )
+        return FALSE;
+    
+    ROOM_INDEX_DATA *room = get_obj_room(obj);
+    if ( room && !can_see_room(ch, room) )
         return FALSE;
     
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT) )

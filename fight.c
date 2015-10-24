@@ -390,7 +390,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
 
 bool wants_to_rescue( CHAR_DATA *ch )
 {
-    if ( ch->position < POS_FIGHTING || is_wimpy(ch) )
+    if ( is_wimpy(ch) )
         return FALSE;
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
@@ -401,7 +401,7 @@ void check_rescue( CHAR_DATA *ch )
     CHAR_DATA *attacker, *target = NULL;
     char buf[MSL];
 
-    if ( !wants_to_rescue(ch) || !can_attack(ch) )
+    if ( !wants_to_rescue(ch) || !can_attack(ch) || ch->position < POS_FIGHTING )
         return;
 
     // NPCs only have a *chance* to try a rescue
@@ -4069,6 +4069,10 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             return;
     }
 
+    op_death_trigger( ch, victim );
+    if ( victim->must_extract )
+        return;
+
     /* check for boss achievement */
     check_boss_achieve( ch, victim );
 
@@ -6158,6 +6162,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     
     off_bonus = 0;
     off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 20 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
@@ -6968,7 +6973,7 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
 	   || ch == victim || ch == attacker )
 	  continue;
       if (is_safe_spell(attacker, ch, FALSE)
-	  || ch->position <= POS_SLEEPING 
+	  || ch->position < POS_FIGHTING
 	  || !check_see_combat(ch, attacker))
 	  continue;
 
