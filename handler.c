@@ -3613,6 +3613,10 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
 /* visibility on a room -- for entering and exits */
 bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
 {
+    if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
+        && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
+        return FALSE;
+    
     if (IS_SET(pRoomIndex->room_flags, ROOM_IMP_ONLY)
         &&  get_trust(ch) < MAX_LEVEL)
         return FALSE;
@@ -3670,6 +3674,9 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     /* RT changed so that WIZ_INVIS has levels */
     if ( ch == victim )
         return SEE_CAN;
+    
+    if ( victim->in_room && !can_see_room(ch, victim->in_room) )
+        return SEE_CANT;
     
     if ( helper_visible && IS_HELPER(victim) && !combat )
         return SEE_CAN;
@@ -3874,6 +3881,10 @@ bool can_see_obj( CHAR_DATA *ch, OBJ_DATA *obj )
         return FALSE;
     
     if ( obj->must_extract )
+        return FALSE;
+    
+    ROOM_INDEX_DATA *room = get_obj_room(obj);
+    if ( room && !can_see_room(ch, room) )
         return FALSE;
     
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT) )
