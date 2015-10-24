@@ -264,13 +264,14 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_GET) )
         return;
 
-    if ( container != NULL )
-        obj_from_obj( obj );
-    else
-        obj_from_room( obj );
-
     if ( obj->item_type != ITEM_MONEY)
+    {
+        if ( container != NULL )
+            obj_from_obj( obj );
+        else
+            obj_from_room( obj );
         obj_to_char( obj, ch );
+    }
 
     /* send act messages after obj_to_char to please mprog triggers --Bobble */
     if ( container != NULL )
