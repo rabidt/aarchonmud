@@ -367,6 +367,7 @@ const struct flag_type off_flags[] =
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
     {   "petrify",          cc, TRUE    },
+    {   "wound",            dd, TRUE    },
 	{   NULL,           0,  0   }
 };
 
@@ -569,6 +570,7 @@ const struct flag_type oprog_flags[] =
     {   "sleep",        OTRIG_SLEEP,     TRUE    },
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   "move",         OTRIG_MOVE,      TRUE    },
+    {   "death",        OTRIG_DEATH,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

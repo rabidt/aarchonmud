@@ -1712,7 +1712,7 @@ DEF_DO_FUN(do_eat)
     /* Added a check so that immortals can eat anything - Astark 12-23-12 */
     if (!IS_IMMORTAL(ch))
     {
-        if (obj->level>ch->level+5)
+        if ( obj->level > ch->level )
         {
             send_to_char("Its too hard to swallow.\n\r",ch);
             return; 
