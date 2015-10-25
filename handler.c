@@ -4235,7 +4235,7 @@ ROOM_INDEX_DATA *get_obj_room(OBJ_DATA *obj)
             return optr->on->in_room;
     }
     
-    bug("Get_obj_room: Unable to find room for object %d.", obj->pIndexData->vnum);
+    //bug("Get_obj_room: Unable to find room for object %d.", obj->pIndexData->vnum);
     return NULL;                       /* Scream and run in circles. */
 }
 
