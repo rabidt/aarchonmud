@@ -4029,7 +4029,7 @@ DEF_SPELL_FUN(spell_gate)
             || victim->in_room == NULL
             || !can_see_room(ch,victim->in_room) 
             || !is_room_ingame(victim->in_room)
-            || (!IS_NPC(victim) && victim->level >= LEVEL_HERO) ) /*not trust*/
+            || (!IS_NPC(victim) && victim->level > LEVEL_HERO) ) /*not trust*/
     {
         send_to_char( "You failed completely.\n\r", ch );
         return SR_TARGET;
