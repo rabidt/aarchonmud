@@ -3617,6 +3617,9 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
 /* visibility on a room -- for entering and exits */
 bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
 {
+    if ( ch->in_room == pRoomIndex )
+        return TRUE;
+    
     if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
         && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
         return FALSE;
