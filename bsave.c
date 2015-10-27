@@ -2707,7 +2707,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     bool first;
     bool make_new;    /* update object */
     bool ignore_affects = FALSE; /* catch for old pfiles */
-    tflag ex_flag_temp;
+    bool done = FALSE;
     
     fVnum = FALSE;
     obj = NULL;
@@ -2745,7 +2745,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     iNest       = 0;
     
 
-    for ( ; ; )
+    while ( !done )
     {
         if (first)
             first = FALSE;
@@ -2921,6 +2921,8 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             
             if ( !str_cmp( word, "End" ) )
             {
+                fMatch = TRUE;
+                done = TRUE;
                 if ( !fNest || ( fVnum && obj->pIndexData == NULL ) )
                 {
                     bug( "Bread_obj: incomplete object.", 0 );
@@ -2928,7 +2930,7 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 		    /* make sure the nesting is cleared up too */
 		    if ( rgObjNest[iNest] == obj )
 			rgObjNest[iNest] = NULL;
-                    return;
+                    break;
                 }
                 else
                 {
@@ -2964,7 +2966,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                             obj_to_char( obj, ch );
                     else
                         obj_to_obj( obj, rgObjNest[iNest-1] );
-                    return;
                 }
             }
             break;
@@ -3101,11 +3102,6 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
             {
                 tflag wear;
                 bread_tflag( buf, wear);
-                if (IS_SET( wear, ITEM_TRANSLUCENT_OLD) )
-                   SET_BIT( ex_flag_temp, ITEM_TRANSLUCENT_EX);
-                if (IS_SET( wear, ITEM_NO_SAC_OLD) )
-                   SET_BIT( ex_flag_temp, ITEM_NO_SAC_EX);
-
                 int wear_type = (IS_SET(wear, ITEM_TAKE_OLD)) ?
                                  ITEM_CARRY : ITEM_NO_CARRY;
 
@@ -3144,7 +3140,10 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     }
 
     /* in case of old format, copy over extra flags that came from wear flags*/
-    flag_set_field( obj->extra_flags, ex_flag_temp);
+    if ( IS_OBJ_STAT(obj->pIndexData, ITEM_TRANSLUCENT_EX) )
+        SET_BIT(obj->extra_flags, ITEM_TRANSLUCENT_EX);
+    if ( IS_OBJ_STAT(obj->pIndexData, ITEM_NO_SAC_EX) )
+        SET_BIT(obj->extra_flags, ITEM_NO_SAC_EX);
 }
 
 
