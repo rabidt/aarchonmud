@@ -82,13 +82,41 @@ void check_equipment_align( CHAR_DATA *gch );
 
 int save_number = 0;
 
+/* hp/mana/move caps */
 
+int hit_cap( CHAR_DATA *ch )
+{
+    return ch->max_hit + ch->hit_cap_delta;
+}
+
+int mana_cap( CHAR_DATA *ch )
+{
+    return ch->max_mana + ch->mana_cap_delta;
+}
+
+int move_cap( CHAR_DATA *ch )
+{
+    return ch->max_move + ch->move_cap_delta;
+}
+
+void gain_hit( CHAR_DATA *ch, int amount )
+{
+    ch->hit = UMIN(hit_cap(ch), ch->hit + amount);
+}
+
+void gain_mana( CHAR_DATA *ch, int amount )
+{
+    ch->mana = UMIN(mana_cap(ch), ch->mana + amount);
+}
+
+void gain_move( CHAR_DATA *ch, int amount )
+{
+    ch->move = UMIN(move_cap(ch), ch->move + amount);
+}
 
 /*
  * Advancement stuff.
  */
-
-
 
 void advance_level( CHAR_DATA *ch, bool hide )
 {
@@ -150,9 +178,9 @@ void advance_level( CHAR_DATA *ch, bool hide )
     int heal_chance = 10 + UMAX(0, 90 - ch->level) / 3 + time_since_last_level / 20;
     if ( per_chance(heal_chance) )
     {
-        ch->hit = ch->max_hit;
-        ch->mana = ch->max_mana;
-        ch->move = ch->max_move;
+        ch->hit = hit_cap(ch);
+        ch->mana = mana_cap(ch);
+        ch->move = move_cap(ch);
         if (!hide)
             send_to_char("You feel yourself bursting with renewed energy!\n\r", ch);
     }
@@ -364,12 +392,7 @@ int hit_gain( CHAR_DATA *ch )
 
     /* no hp/mana healing in warfare */
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
-    {
-        if( ch->hit > ch->max_hit )
-            ch->hit = ch->max_hit;
         return 0;
-    }
-
 
     /* Increase the baseline gains by 33% - Astark 12-27-12 
        gain = (10 + ch->level) * get_curr_stat(ch, STAT_VIT); */
@@ -378,7 +401,7 @@ int hit_gain( CHAR_DATA *ch )
         gain = gain * class_table[ch->class].hp_gain / 100;
 
     gain += gain * (get_skill_total(ch, gsn_fast_healing, 0.5) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
-    if ( ch->hit < ch->max_hit )
+    if ( ch->hit < hit_cap(ch) )
         check_improve(ch, gsn_fast_healing, TRUE, 5);
 
     /* healing ratio */
@@ -397,7 +420,7 @@ int hit_gain( CHAR_DATA *ch )
     /* general factor */
     gain = adjust_gain(ch, gain, APPLY_HIT );
 
-    return UMIN( gain / 100, ch->max_hit - ch->hit );
+    return UMIN( gain / 100, hit_cap(ch) - ch->hit );
 }
 
 int mana_gain( CHAR_DATA *ch )
@@ -410,12 +433,7 @@ int mana_gain( CHAR_DATA *ch )
 
     /* no hp/mana healing in warfare */
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_WAR) )
-    {
-        if( ch->mana > ch->max_mana )
-            ch->mana = ch->max_mana;
         return 0;
-    }
-
 
     /* Increase the baseline gains by 33% - Astark 12-27-12 
        gain = (10 + ch->level) * get_curr_stat(ch, STAT_INT); */
@@ -426,7 +444,7 @@ int mana_gain( CHAR_DATA *ch )
     if ( ch->position == POS_RESTING )
     {
         gain += gain * (get_skill_total(ch, gsn_meditation, 0.5) + mastery_bonus(ch, gsn_meditation, 60, 100)) / 100;
-        if ( ch->mana < ch->max_mana )
+        if ( ch->mana < mana_cap(ch) )
             check_improve(ch, gsn_meditation, TRUE, 3);
     }
 
@@ -446,7 +464,7 @@ int mana_gain( CHAR_DATA *ch )
     /* general factor */
     gain = adjust_gain(ch, gain, APPLY_MANA);
 
-    return UMIN( gain / 100, ch->max_mana - ch->mana );
+    return UMIN( gain / 100, mana_cap(ch) - ch->mana );
 }
 
 int move_gain( CHAR_DATA *ch )
@@ -464,7 +482,7 @@ int move_gain( CHAR_DATA *ch )
         gain = gain * class_table[ch->class].move_gain / 100;
 
     gain += gain * (get_skill_total(ch, gsn_endurance, 0.5) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
-    if ( ch->move < ch->max_move )
+    if ( ch->move < move_cap(ch) )
         check_improve(ch, gsn_endurance, TRUE, 6);
 
     /* healing ratio */
@@ -483,290 +501,8 @@ int move_gain( CHAR_DATA *ch )
     /* general factor */
     gain = adjust_gain(ch, gain, APPLY_MOVE);
 
-    return UMIN( gain / 100, ch->max_move - ch->move );
+    return UMIN( gain / 100, move_cap(ch) - ch->move );
 }
-
-/* old stuff 
-   int hit_gain( CHAR_DATA *ch )
-   {
-   int gain;
-   int number;
-
-   if (ch->in_room == NULL)
-   return 0;
-
-   if ( IS_NPC(ch) )
-   {
-   gain =  5 + ch->level;
-   if (IS_AFFECTED(ch,AFF_REGENERATION))
-   gain *= 2;
-
-   switch(ch->position)
-   {
-   default :       
-   gain /= 2;          
-   break;
-   case POS_SLEEPING:  
-   gain = 3 * gain/2;
-   break;
-   case POS_RESTING:
-   break;
-   case POS_FIGHTING:  gain /= 3;
-   break;
-   }
-   if (ch->song_hearing == gsn_lust_life)
-   gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-
-
-   }
-   else
-   {
-   gain = UMAX(3,get_curr_stat(ch,STAT_VIT)/4 - 5 + ch->level/2); 
-   gain = gain * class_table[ch->class].hp_gain / 100;
-   number = number_percent();
-   if (number < get_skill(ch,gsn_fast_healing))
-   {
-   if ((ch->hit < ch->max_hit) && (number_bits(4)==0))
-   check_improve(ch,gsn_fast_healing,TRUE,10);
-   } else number =0;
-   if (ch->pcdata->condition[COND_SMOKE]<0||ch->fighting!=NULL)
-   gain += (number+ch->pcdata->condition[COND_SMOKE]) * gain / 100;
-   else
-   gain += (number+ch->pcdata->condition[COND_SMOKE]/2) * gain / 100;
-
-   if (ch->song_hearing == gsn_lust_life)
-   gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-
-   switch ( ch->position )
-   {
-   default:        gain /= 4;          break;
-   case POS_SLEEPING:                  break;
-   case POS_RESTING:   gain /= 2;          break;
-   case POS_FIGHTING:  gain /= 6;          break;
-   }
-
-   if (ch->pcdata->condition[COND_HUNGER]>0 && ch->pcdata->condition[COND_HUNGER]<20)
-   gain /= 2;
-   else if (ch->pcdata->condition[COND_HUNGER]==0)
-   if (ch->hit == 0)
-   gain = 0;
-   else
-   gain /= 4;
-
-   if (ch->pcdata->condition[COND_THIRST]>0 &&  ch->pcdata->condition[COND_THIRST] < 20 )
-   gain /= 2;
-   else if (ch->pcdata->condition[COND_THIRST]==0)
-   gain = 0;
-
-}
-
-gain = gain * ch->in_room->heal_rate / 100;
-
-if (ch->on != NULL && ch->on->item_type == ITEM_FURNITURE)
-    gain = gain * ch->on->value[3] / 100;
-
-if ( IS_AFFECTED(ch, AFF_POISON) )
-    gain /= 4;
-
-if (IS_AFFECTED(ch, AFF_PLAGUE))
-    gain /= 8;
-
-    if ((IS_AFFECTED(ch,AFF_HASTE) && !IS_SET(race_table[ch->race].affect_field, AFF_HASTE)) 
-            ||  IS_AFFECTED(ch,AFF_SLOW))
-    gain /=2 ;
-
-    number = (number_percent());
-if (number < get_skill(ch,gsn_regeneration))
-{
-    gain += number * gain / 200;
-    if ((ch->hit < ch->max_hit) && (number_bits(4)==0))
-        check_improve(ch,gsn_regeneration,TRUE,10);
-}
-
-gain += gain_mod(ch->max_hit)*gain/100;
-
-return UMIN(gain, ch->max_hit - ch->hit);
-}
-
-
-
-int mana_gain( CHAR_DATA *ch )
-{
-    int gain;
-    int number;
-
-    if (ch->in_room == NULL)
-        return 0;
-
-    if ( IS_NPC(ch) )
-    {
-        gain = 5 + ch->level;
-        switch (ch->position)
-        {
-            default:        gain /= 2;      break;
-            case POS_SLEEPING:  gain = 3 * gain/2;  break;
-            case POS_RESTING:               break;
-            case POS_FIGHTING:  gain /= 3;      break;
-        }
-        if (ch->song_hearing == gsn_lust_life)
-            gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-    }
-    else
-    {
-        gain = (2*get_curr_stat(ch,STAT_INT) + ch->level) / 8;
-
-        if (ch->position == POS_RESTING &&
-                number_percent() < get_skill(ch,gsn_meditation))
-        {
-            if ((ch->mana < ch->max_mana) && (number_bits(4)==0))
-                check_improve(ch,gsn_meditation,TRUE,10);
-            gain *= 6;
-        }
-
-        if (ch->pcdata->condition[COND_SMOKE]<0||ch->fighting!=NULL)
-            gain += (ch->pcdata->condition[COND_SMOKE]) * gain / 100;
-        else
-            gain += (ch->pcdata->condition[COND_SMOKE]/2) * gain / 100;
-
-        if (ch->song_hearing == gsn_lust_life)
-            gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-
-        if (ch->song_singing != song_null)
-            gain /= 2;
-
-        gain = class_table[ch->class].mana_gain*gain/100;
-
-        switch ( ch->position )
-        {
-            default:        gain /= 4;          break;
-            case POS_SLEEPING:                  break;
-            case POS_RESTING:   gain /= 2;          break;
-            case POS_FIGHTING:  gain /= 6;          break;
-        }
-
-        if (ch->pcdata->condition[COND_HUNGER]>0 && ch->pcdata->condition[COND_HUNGER]<20)
-            gain /= 2;
-        else if (ch->pcdata->condition[COND_HUNGER]==0)
-            gain /= 4;
-
-        if (ch->pcdata->condition[COND_THIRST]>0 &&  ch->pcdata->condition[COND_THIRST] < 20 )
-            gain /= 2;
-        else if (ch->pcdata->condition[COND_THIRST]==0)
-            gain /= 4;
-
-    }
-
-    gain = gain * ch->in_room->mana_rate / 100;
-
-    if (ch->on != NULL && ch->on->item_type == ITEM_FURNITURE)
-        gain = gain * ch->on->value[4] / 100;
-
-    if ( IS_AFFECTED( ch, AFF_POISON ) )
-        gain /= 4;
-
-    if (IS_AFFECTED(ch, AFF_PLAGUE))
-        gain /= 8;
-
-    if ((IS_AFFECTED(ch,AFF_HASTE) && !IS_SET(race_table[ch->race].affect_field, AFF_HASTE)) 
-            ||  IS_AFFECTED(ch,AFF_SLOW))
-        gain /=2 ;
-
-    number = number_percent();
-    if (number < get_skill(ch,gsn_regeneration))
-    {
-        gain += number * gain / 400;
-        if ((ch->mana < ch->max_mana) && (number_bits(4)==0))
-            check_improve(ch,gsn_regeneration,TRUE,10);
-    }
-
-    gain += gain_mod(ch->max_mana)*gain/100;
-
-    return UMIN(gain, ch->max_mana - ch->mana);
-}
-
-
-
-int move_gain( CHAR_DATA *ch )
-{
-    int gain,number;
-
-    if (ch->in_room == NULL)
-        return 0;
-
-    if ( IS_NPC(ch) )
-    {
-        gain = ch->level;
-        if (ch->song_hearing == gsn_lust_life)
-            gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-    }
-    else
-    {
-        gain = UMAX(40,get_curr_stat(ch,STAT_VIT) + ch->level)/8; 
-        if ((number=number_percent()) < get_skill(ch,gsn_endurance))
-        {
-            if ((ch->move < ch->max_move) && (number_bits(4)==0))
-                check_improve(ch,gsn_endurance,TRUE,10);
-        }else number=0;
-        if (ch->pcdata->condition[COND_SMOKE]<0||ch->fighting!=NULL)
-            gain += (number+ch->pcdata->condition[COND_SMOKE]) * gain / 100;
-        else
-            gain += (number+ch->pcdata->condition[COND_SMOKE]/2) * gain / 100;
-
-        if (ch->song_hearing == gsn_lust_life)
-            gain += number_range(1,song_level(ch->in_room->singer,gsn_lust_life))*gain/100;
-
-        switch ( ch->position )
-        {
-            case POS_SLEEPING: gain += get_curr_stat(ch,STAT_VIT)/4;      break;
-            case POS_RESTING:  gain += get_curr_stat(ch,STAT_VIT) / 8;  break;
-        }
-
-        if (ch->pcdata->condition[COND_HUNGER]>0 && ch->pcdata->condition[COND_HUNGER]<20)
-            gain /= 2;
-        else if (ch->pcdata->condition[COND_HUNGER]==0)
-            if (ch->move == 0)
-                gain = 0;
-            else
-                gain /= 4;
-
-        if (ch->pcdata->condition[COND_THIRST]>0 &&  ch->pcdata->condition[COND_THIRST] < 20 )
-            gain /= 2;
-        else if (ch->pcdata->condition[COND_THIRST]==0)
-            gain = 0;
-
-    }
-
-    if (get_carry_weight(ch) > can_carry_w(ch))
-        gain/=2;
-
-    gain = gain * ch->in_room->heal_rate/100;
-
-    if (ch->on != NULL && ch->on->item_type == ITEM_FURNITURE)
-        gain = gain * ch->on->value[3] / 100;
-
-    if ( IS_AFFECTED(ch, AFF_POISON) )
-        gain /= 4;
-
-    if (IS_AFFECTED(ch, AFF_PLAGUE))
-        gain /= 8;
-
-    if ((IS_AFFECTED(ch,AFF_HASTE) && !IS_SET(race_table[ch->race].affect_field, AFF_HASTE)) 
-            ||  IS_AFFECTED(ch,AFF_SLOW))
-        gain /=2 ;
-
-    number = number_percent();
-    if (number < get_skill(ch,gsn_regeneration))
-    {
-        gain += number * gain / 400;
-        if ((ch->mana < ch->max_mana) && (number_bits(4)==0))
-            check_improve(ch,gsn_regeneration,TRUE,10);
-    }
-
-    gain += gain_mod(ch->max_move)*gain/100;
-
-    return UMIN(gain, ch->max_move - ch->move);
-}
-*/
 
 bool starvation_immune( CHAR_DATA *ch )
 {
@@ -1456,36 +1192,23 @@ void char_update( void )
 
                 if ( !IS_NPC(ch) && (ch->position == POS_SLEEPING || ch->position == POS_RESTING) )
                 {
-                    healmessage = (ch->hit < ch->max_hit || ch->mana < ch->max_mana ||
-                            ch->move < ch->max_move);
+                    healmessage = (ch->hit < hit_cap(ch) || ch->mana < mana_cap(ch) || ch->move < move_cap(ch));
                 }
                 else healmessage = FALSE;
 
                 /* PCs heal always to consider negative healing ratio */
-                if ( !IS_NPC(ch) || ch->hit < ch->max_hit )
-                {
-                    // calculate hit_gain first, as it could modify ch->hit
-                    // happens if fast healing skill improves, and the xp causes level-up and renewal
-                    int gain = hit_gain(ch);
-                    ch->hit += gain;
-                }
+                if ( !IS_NPC(ch) || ch->hit < hit_cap(ch) )
+                    gain_hit(ch, hit_gain(ch));
 
-                if ( !IS_NPC(ch) || ch->mana < ch->max_mana )
-                {
-                    int gain = mana_gain(ch);
-                    ch->mana += gain;
-                }
+                if ( !IS_NPC(ch) || ch->mana < mana_cap(ch) )
+                    gain_mana(ch, mana_gain(ch));
 
-                if ( !IS_NPC(ch) || ch->move < ch->max_move )
-                {
-                    int gain = move_gain(ch);
-                    ch->move += gain;
-                }
-
+                if ( !IS_NPC(ch) || ch->move < move_cap(ch) )
+                    gain_move(ch, move_gain(ch));
+                
                 if (healmessage)
                 {
-                    if( ch->hit < ch->max_hit || ch->mana < ch->max_mana ||
-                            ch->move < ch->max_move )
+                    if ( ch->hit < hit_cap(ch) || ch->mana < mana_cap(ch) || ch->move < move_cap(ch) )
                         send_to_char("You feel better.\n\r", ch);
                     else
                         send_to_char("You are fully healed.\n\r", ch);

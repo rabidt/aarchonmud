@@ -2231,12 +2231,28 @@ DEF_DO_FUN(do_affects)
     else 
         send_to_char("You are not affected by any spells.\n\r",ch);
 
+    bool separated = FALSE;
+    
     if (ch->leader != NULL && ch->leader != ch && ch->leader->in_room == ch->in_room)
-        printf_to_char(ch, "You receive a %d%% damage %s from %s's leadership.\n\r",
+    {
+        printf_to_char(ch, "%sYou receive a %d%% damage %s from %s's leadership.\n\r",
+            separated ? "" : "\n\r",
             leadership,
             leadership >= 0 ? "bonus" : "penalty",
             PERS(ch->leader, ch)
         );
+        separated = TRUE;
+    }
+    
+    if ( ch->hit_cap_delta || ch->mana_cap_delta || ch->move_cap_delta )
+    {
+        ptc(ch, "%sYou are limited to {%c%d{x hp {%c%d{x mn {%c%d{x mv.\n\r",
+            separated ? "" : "\n\r",
+            prompt_color_code(ch->prompt, 'H'), hit_cap(ch),
+            prompt_color_code(ch->prompt, 'M'), mana_cap(ch),
+            prompt_color_code(ch->prompt, 'V'), move_cap(ch));
+        separated = TRUE;
+    }
 }
 
 DEF_DO_FUN(do_leadership)

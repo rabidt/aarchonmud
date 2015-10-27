@@ -264,13 +264,14 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_GET) )
         return;
 
-    if ( container != NULL )
-        obj_from_obj( obj );
-    else
-        obj_from_room( obj );
-
     if ( obj->item_type != ITEM_MONEY)
+    {
+        if ( container != NULL )
+            obj_from_obj( obj );
+        else
+            obj_from_room( obj );
         obj_to_char( obj, ch );
+    }
 
     /* send act messages after obj_to_char to please mprog triggers --Bobble */
     if ( container != NULL )
@@ -1712,7 +1713,7 @@ DEF_DO_FUN(do_eat)
     /* Added a check so that immortals can eat anything - Astark 12-23-12 */
     if (!IS_IMMORTAL(ch))
     {
-        if (obj->level>ch->level+5)
+        if ( obj->level > ch->level )
         {
             send_to_char("Its too hard to swallow.\n\r",ch);
             return; 
@@ -2401,10 +2402,10 @@ DEF_DO_FUN(do_sacrifice)
         int power = dice( obj->level, obj->level ) / 10;
         int skill = get_skill( ch, gsn_drain_life );
 
-        if ( skill > 0 && ch->hit < ch->max_hit && !PLR_ACT(ch, PLR_WAR) && obj->timer != -1 )
+        if ( skill > 0 && ch->hit < hit_cap(ch) && !PLR_ACT(ch, PLR_WAR) && obj->timer != -1 )
         {
             int hp = 2 + 2 * power * skill/100;
-            ch->hit = UMIN(ch->hit + hp, ch->max_hit);
+            gain_hit(ch, hp);
             sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
             send_to_char(buf, ch);
             change_align(ch,-2);
@@ -2413,7 +2414,7 @@ DEF_DO_FUN(do_sacrifice)
         if ( IS_AFFECTED(ch, AFF_RITUAL) ) 
         {
             int mp = skill_table[gsn_ritual].min_mana + power;
-            ch->mana = UMIN(ch->mana + mp, 11*ch->max_mana/10);
+            gain_mana(ch, mp);
             sprintf(buf,"Your sacrifice is worth %d mana.\n\r",mp);
             send_to_char(buf, ch);
             affect_strip( ch, gsn_ritual );
