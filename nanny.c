@@ -2083,6 +2083,10 @@ void enter_game ( DESCRIPTOR_DATA *d )
 
     // reimburse players for lost skills
     skill_reimburse(ch);
+    // update 'random' objects character is carrying
+    OBJ_DATA *obj;
+    for ( obj = ch->carrying; obj; obj = obj->next_content )
+        check_reenchant_obj(obj);
     
     if ( is_clan(ch) )
         do_cmotd(ch, "");
