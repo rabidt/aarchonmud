@@ -156,6 +156,45 @@ void check_enchant_obj( OBJ_DATA *obj )
         bugf("check_enchant_obj failed on obj : %d", obj->pIndexData->vnum);
 }
 
+// auto-update under-enchanted random equipment (e.g. after spec changes)
+void check_reenchant_obj( OBJ_DATA *obj )
+{
+    if ( obj == NULL )
+        return;
+    
+    if ( !IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM) 
+      && !IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM_PHYSICAL) 
+      && !IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM_CASTER))
+        return;
+    
+    int ops_left = get_obj_spec(obj) - get_obj_ops(obj);
+    if ( ops_left <= 1 )
+        return;
+    
+    // copy random flag from protoype to obj
+    if ( IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM) )
+        SET_BIT(obj->extra_flags, ITEM_RANDOM);
+    else if ( IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM_PHYSICAL) )
+        SET_BIT(obj->extra_flags, ITEM_RANDOM_PHYSICAL);
+    else if ( IS_OBJ_STAT(obj->pIndexData, ITEM_RANDOM_CASTER) )
+        SET_BIT(obj->extra_flags, ITEM_RANDOM_CASTER);
+    
+    check_enchant_obj(obj);
+    
+    if ( obj->carried_by )
+    {
+        // ensure stats on char are updated if obj is worn
+        if ( obj->wear_loc != -1 )
+            reset_char(obj->carried_by);
+        act("$p glows brightly as new enchantments manifest.", obj->carried_by, obj, NULL, TO_CHAR);
+        logpf("%s (#%d) carried by %s has been reenchanted (+%d OPs)",
+            remove_color(obj->short_descr),
+            obj->pIndexData->vnum,
+            obj->carried_by->name,
+            ops_left);
+    }
+}
+
 // to ensure we don't exceed stat hardcap
 int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
 {
