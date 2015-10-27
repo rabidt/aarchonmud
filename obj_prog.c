@@ -227,6 +227,21 @@ void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
     }
 }
 
+void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
+{
+    OBJ_DATA *obj, *next_obj;
+
+    for ( obj = ch->carrying ; obj ; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_DEATH) )
+        {
+            op_percent_trigger(NULL, obj, NULL, ch, vic, OTRIG_DEATH);
+        }
+    }
+}
+
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage)
 {
     char damstr[MSL];

@@ -124,8 +124,7 @@ DEF_DO_FUN(do_berserk)
         ch->move -= cost;
         
         /* heal a little damage */
-        ch->hit += ch->level * 2;
-        ch->hit = UMIN(ch->hit,ch->max_hit);
+        gain_hit(ch, ch->level * 2);
         
         send_to_char("Your pulse races as you are consumed by rage!\n\r",ch);
         act("$n gets a wild look in $s eyes.",ch,NULL,NULL,TO_ROOM);
@@ -996,8 +995,7 @@ DEF_DO_FUN(do_drunken_fury)
         ch->move -= cost;
         
         /* heal a little damage */
-        ch->hit += ch->level * 1;
-        ch->hit = UMIN(ch->hit,ch->max_hit);
+        gain_hit(ch, ch->level);
         
         send_to_char("You're drunk and furious!\n\r",ch);
         act("Look out world! $n is drunk and furious!",ch,NULL,NULL,TO_ROOM);
@@ -1726,6 +1724,7 @@ DEF_DO_FUN(do_leg_sweep)
         return;
     }
         
+    ptc(ch, "You sweep your leg in a wide circle!\n\r");
     WAIT_STATE(ch, skill_table[gsn_leg_sweep].beats);
     
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
@@ -1739,7 +1738,7 @@ DEF_DO_FUN(do_leg_sweep)
         {
             check_killer(ch, vch);
             start_combat(ch, vch);
-            if ( per_chance(skill) && combat_maneuver_check(ch, vch, gsn_leg_sweep, STAT_AGI, STAT_AGI, 50) )
+            if ( per_chance(skill) && combat_maneuver_check(ch, vch, gsn_leg_sweep, STAT_AGI, STAT_AGI, 40) )
             {
                 act("$n sweeps your legs out from under you!", ch, NULL, vch, TO_VICT);
                 act("You leg sweep $N and $N goes down!", ch, NULL, vch, TO_CHAR);
@@ -1754,7 +1753,7 @@ DEF_DO_FUN(do_leg_sweep)
         }
     }
     
-    if ( tally == 0 )
+    if ( tally == 0 && !per_chance(skill) )
     {
         act("$n falls to the ground in an attempt at a leg sweep.", ch, NULL, NULL, TO_ROOM);
         act("You fall to the ground in an attempt at a leg sweep.", ch, NULL, NULL, TO_CHAR);
@@ -2342,7 +2341,7 @@ DEF_DO_FUN(do_double_strike)
 
     WAIT_STATE( ch, skill_table[gsn_double_strike].beats );
 
-    if ( number_percent() > skill )
+    if ( !per_chance(skill) )
     {
 	send_to_char( "You stumble and fail.\n\r", ch );
 	check_improve( ch, gsn_double_strike, FALSE, 3 );
@@ -2397,7 +2396,7 @@ DEF_DO_FUN(do_round_swing)
 
     WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
 
-    if ( !per_chance(skill) )
+    if ( per_chance(50) && !per_chance(skill) )
     {
         send_to_char("You stumble and fall to the ground.\n\r", ch);
         act("$n tries to swing $s weapon but stumbles.", ch, NULL, NULL, TO_ROOM);
@@ -2549,6 +2548,8 @@ DEF_DO_FUN(do_roundhouse)
        return;
    }
 
+   ptc(ch, "You swing your leg in a wild kick!\n\r");
+   
    for ( vch = ch->in_room->people; vch != NULL; vch = vch_next)
    {
        vch_next = vch->next_in_room;
@@ -2564,7 +2565,7 @@ DEF_DO_FUN(do_roundhouse)
        }
    }
 
-   if (tally==0)
+   if ( tally==0 && !per_chance(skill) )
    {
       act("$n falls to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_ROOM);
       act("You fall to the ground in an attempt at a roundhouse kick.",ch,NULL,NULL,TO_CHAR);

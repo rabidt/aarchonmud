@@ -409,6 +409,9 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
         case APPLY_MANA:    ch->max_mana    += mod; break;
         case APPLY_HIT:     ch->max_hit     += mod; break;
         case APPLY_MOVE:    ch->max_move    += mod; break;
+        case APPLY_HIT_CAP:     ch->hit_cap_delta   += mod; break;
+        case APPLY_MANA_CAP:    ch->mana_cap_delta  += mod; break;
+        case APPLY_MOVE_CAP:    ch->move_cap_delta  += mod; break;
             
         case APPLY_AC:
             ch->armor += mod;
@@ -450,6 +453,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
     ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
+    ch->hit_cap_delta = ch->mana_cap_delta = ch->move_cap_delta = 0;
     
     ch->armor       = 100;
     ch->heavy_armor = 0;
@@ -3258,36 +3262,37 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
     OBJ_DATA *obj;
     int number;
     int count;
-    
+
     if ( ( obj = get_obj_here( ch, argument ) ) != NULL )
         return obj;
-    
+
     number = number_argument( argument, arg );
     count  = 0;
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {
-	if ( area )
-	{
-	    if ( obj->carried_by != NULL )
+        if ( area )
         {
-            if ( !obj->carried_by->in_room )
+            if ( obj->carried_by != NULL )
             {
-                bugf("get_obj_new: %s carried_by not NULL but in_room is.", obj->carried_by->name);
-		        continue;
-		    }
-		    if ( !ch->in_room )
-            {
-                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
-                continue;
+                if ( !obj->carried_by->in_room )
+                {
+                    /* why is carried_by not in a room?
+                       who knows, but they aren't in the area! */
+                    continue;
+                }
+                if ( !ch->in_room )
+                {
+                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                    continue;
+                }
+                if ( obj->carried_by->in_room->area != ch->in_room->area )
+                    continue;
             }
-		    if ( obj->carried_by->in_room->area != ch->in_room->area )
-		        continue;
-        }
 
-	    if ( obj->in_room != NULL
-		 && obj->in_room->area != ch->in_room->area )
-		continue;
-	}
+            if ( obj->in_room != NULL
+                    && obj->in_room->area != ch->in_room->area )
+                continue;
+        }
 
         if ( can_see_obj( ch, obj ) && is_either_name( arg, obj->name, exact ) )
         {
@@ -3295,7 +3300,7 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
                 return obj;
         }
     }
-    
+
     return NULL;
 }
 
@@ -3600,6 +3605,13 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
 /* visibility on a room -- for entering and exits */
 bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
 {
+    if ( ch->in_room == pRoomIndex )
+        return TRUE;
+    
+    if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
+        && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
+        return FALSE;
+    
     if (IS_SET(pRoomIndex->room_flags, ROOM_IMP_ONLY)
         &&  get_trust(ch) < MAX_LEVEL)
         return FALSE;
@@ -3657,6 +3669,9 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     /* RT changed so that WIZ_INVIS has levels */
     if ( ch == victim )
         return SEE_CAN;
+    
+    if ( victim->in_room && !can_see_room(ch, victim->in_room) )
+        return SEE_CANT;
     
     if ( helper_visible && IS_HELPER(victim) && !combat )
         return SEE_CAN;
@@ -3863,6 +3878,10 @@ bool can_see_obj( CHAR_DATA *ch, OBJ_DATA *obj )
     if ( obj->must_extract )
         return FALSE;
     
+    ROOM_INDEX_DATA *room = get_obj_room(obj);
+    if ( room && !can_see_room(ch, room) )
+        return FALSE;
+    
     if ( !IS_NPC(ch) && IS_SET(ch->act, PLR_HOLYLIGHT) )
         return TRUE;
     
@@ -3946,6 +3965,9 @@ const char *affect_loc_name( int location )
     case APPLY_MANA:    return "mana";
     case APPLY_HIT:     return "hp";
     case APPLY_MOVE:    return "moves";
+    case APPLY_HIT_CAP: return "hp cap";
+    case APPLY_MANA_CAP:return "mana cap";
+    case APPLY_MOVE_CAP:return "move cap";
     case APPLY_GOLD:    return "gold";
     case APPLY_EXP:     return "experience";
     case APPLY_AC:      return "armor class";
@@ -4204,7 +4226,7 @@ ROOM_INDEX_DATA *get_obj_room(OBJ_DATA *obj)
             return optr->on->in_room;
     }
     
-    bug("Get_obj_room: Unable to find room for object %d.", obj->pIndexData->vnum);
+    //bug("Get_obj_room: Unable to find room for object %d.", obj->pIndexData->vnum);
     return NULL;                       /* Scream and run in circles. */
 }
 

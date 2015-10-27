@@ -523,6 +523,7 @@ DECLARE_DO_FUN( do_ecast        );
 DECLARE_DO_FUN( do_pcast        );
 DECLARE_DO_FUN( do_qcast        );
 DECLARE_DO_FUN( do_ccast        );
+DECLARE_DO_FUN( do_permcast     );
 
 /* warfare! */
 DECLARE_DO_FUN( do_startwar     );
