@@ -319,7 +319,8 @@ int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
 float get_obj_tattoo_level( int obj_level, int level )
 {
     // average of level and object level for translucent equipment
-    return (level + obj_level) / 2.0;
+    //return (level + obj_level) / 2.0;
+    return UMIN(obj_level, level);
 }
 
 float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
