@@ -240,6 +240,7 @@ sh_int  gsn_phase;
 sh_int  gsn_plague;
 sh_int  gsn_sleep;
 sh_int  gsn_sanctuary;
+sh_int  gsn_stone_skin;
 sh_int  gsn_fly;
 sh_int  gsn_necrosis;
 sh_int  gsn_ritual;

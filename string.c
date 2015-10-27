@@ -1112,3 +1112,29 @@ bool is_alpha_string( const char *s )
     return TRUE;
 }
 
+// find color code used for displaying variable in prompt
+char prompt_color_code( const char *prompt, char var )
+{
+    if ( !prompt )
+        return 'x';
+    
+    char color_code = 'x';
+    while ( *prompt != '\0' && *(prompt+1) != '\0' )
+    {
+        switch ( *prompt )
+        {
+            case '{':
+                color_code = *(++prompt);
+                break;
+            case '%':
+                if ( *(++prompt) == var )
+                    return color_code;
+            default:
+                break;
+        }
+        prompt++;
+    }
+    
+    return color_code;
+}
+

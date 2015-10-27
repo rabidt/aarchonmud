@@ -1386,6 +1386,7 @@ struct  kill_data
 #define OFF_ARMED               (aa)
 #define OFF_CIRCLE              (bb)
 #define OFF_PETRIFY             (cc)
+#define OFF_WOUND               (dd)
 
 /* return values for check_imm */
 #define IS_NORMAL           0
@@ -1968,6 +1969,9 @@ struct  kill_data
 #define APPLY_STATS            31 // all stats (str..luc)
 // #define APPLY_COMBO              31
 #define APPLY_SKILLS           32
+#define APPLY_HIT_CAP          33
+#define APPLY_MANA_CAP         34
+#define APPLY_MOVE_CAP         35
 
 /*
  * Values for containers (value[1]).
@@ -2523,10 +2527,13 @@ struct  char_data
 	sh_int	    stop;
 	int      hit;
 	int      max_hit;
+    int      hit_cap_delta; // invariant: hit <= hit_cap := max_hit + hit_cap_delta
 	int      mana;
 	int      max_mana;
+    int      mana_cap_delta; // invariant: mana <= mana_cap := max_mana + mana_cap_delta
 	int      move;
 	int      max_move;
+    int      move_cap_delta; // invariant: move <= move_cap := max_move + move_cap_delta
 	long        gold;
 	long        silver;
 	int         exp;
@@ -3221,6 +3228,7 @@ struct  mastery_group_type
 #define OTRIG_REST  (dd)
 #define OTRIG_SLEEP (ee)
 #define OTRIG_MOVE  (ff)
+#define OTRIG_DEATH (gg)
 /*
  * AREAprog definitions
  */
@@ -3359,6 +3367,7 @@ extern sh_int  gsn_poison;
 extern sh_int  gsn_sleep;
 extern sh_int  gsn_fly;
 extern sh_int  gsn_sanctuary;
+extern sh_int  gsn_stone_skin;
 extern sh_int  gsn_necrosis;
 extern sh_int  gsn_ritual;
 extern sh_int  gsn_word_of_recall;
@@ -4201,6 +4210,7 @@ extern      tflag meta_magic;
 #define META_MAGIC_EMPOWER  (B)
 #define META_MAGIC_QUICKEN  (C)
 #define META_MAGIC_CHAIN    (D)
+#define META_MAGIC_PERMANENT (E)
 
 char *  crypt       args( ( const char *key, const char *salt ) );
 
@@ -5047,6 +5057,7 @@ void op_speech_trigger( const char *argument, CHAR_DATA *ch );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
 void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
+void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage );
 void op_timer_trigger( OBJ_DATA *obj );
 void oprog_timer_init( OBJ_DATA *obj );
@@ -5223,6 +5234,7 @@ const char * lpad( const char *argument, int width, char fill );
 const char * rpad( const char *argument, int width, char fill );
 const char* ltrim     args( ( const char *s ) );
 const char* aan       args( ( const char *s ) );
+char prompt_color_code( const char *prompt, char var );
 bool is_empty_string( const char *s );
 bool is_alpha_string( const char *s );
 
@@ -5294,6 +5306,13 @@ void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
 void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
+int     hit_cap( CHAR_DATA *ch );
+int     mana_cap( CHAR_DATA *ch );
+int     move_cap( CHAR_DATA *ch );
+void    gain_hit( CHAR_DATA *ch, int amount );
+void    gain_mana( CHAR_DATA *ch, int amount );
+void    gain_move( CHAR_DATA *ch, int amount );
+
 
 /* vshift.c */
 void shift_area( AREA_DATA *area, int shift, bool area_only );

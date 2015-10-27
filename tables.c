@@ -367,6 +367,7 @@ const struct flag_type off_flags[] =
 	{   "armed",            aa, TRUE    },
 	{   "circle",           bb, TRUE    },
     {   "petrify",          cc, TRUE    },
+    {   "wound",            dd, TRUE    },
 	{   NULL,           0,  0   }
 };
 
@@ -569,6 +570,7 @@ const struct flag_type oprog_flags[] =
     {   "sleep",        OTRIG_SLEEP,     TRUE    },
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   "move",         OTRIG_MOVE,      TRUE    },
+    {   "death",        OTRIG_DEATH,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -887,6 +889,9 @@ const struct flag_type apply_flags[] =
     {   "hp",               APPLY_HIT,      TRUE    },
     {   "mana",             APPLY_MANA,     TRUE    },
     {   "move",             APPLY_MOVE,     TRUE    },
+    {   "hp_cap",           APPLY_HIT_CAP,  FALSE   },
+    {   "mana_cap",         APPLY_MANA_CAP, FALSE   },
+    {   "move_cap",         APPLY_MOVE_CAP, FALSE   },
     {   "hitroll",          APPLY_HITROLL,  TRUE    },
     {   "damroll",          APPLY_DAMROLL,  TRUE    },
     {   "ac",               APPLY_AC,       TRUE    },
