@@ -1545,7 +1545,7 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
 
     if ( level < 90 )
     {
-        spec = 50 + (level * 19/3 + (30+level) * obj->diff_rating)/3;
+        spec = 50 + (level * 19/3 + (30+level*2/3) * obj->diff_rating)/3;
         // we don't use get_translucency_spec_penalty to avoid rounding issues
         if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 2 * (10 + level);
@@ -1553,7 +1553,7 @@ int get_obj_index_spec( OBJ_INDEX_DATA *obj, int level )
     }
     else /* These are objects above level 90 */
     {
-        spec = 24 + 2 * (level - 90) + 4 * obj->diff_rating;
+        spec = 24 + 3 * (level - 90) + 3 * obj->diff_rating;
         if (IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX))
             spec -= 20 + 2 * (level - 90);
     }
