@@ -3609,6 +3609,7 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         return TRUE;
     
     if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
+        && !IS_IMMORTAL(ch)
         && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
         return FALSE;
     
@@ -3670,7 +3671,7 @@ int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     if ( ch == victim )
         return SEE_CAN;
     
-    if ( victim->in_room && !can_see_room(ch, victim->in_room) )
+    if ( IS_NPC(victim) && victim->in_room && !can_see_room(ch, victim->in_room) )
         return SEE_CANT;
     
     if ( helper_visible && IS_HELPER(victim) && !combat )
