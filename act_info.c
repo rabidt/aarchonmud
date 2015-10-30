@@ -121,11 +121,15 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
         ||  (obj->description == NULL || obj->description[0] == '\0'))
         return buf;
     
-    // show item level and wear location unless already worn
-    if ( IS_SET(ch->comm, COMM_ITEMLEVEL) && obj->wear_loc == WEAR_NONE )
+    // show item level and type
+    if ( IS_SET(ch->comm, COMM_ITEMLEVEL) )
     {
         char lvlBuf[MSL];
-        switch ( obj->wear_type )
+        if ( obj->carried_by && obj->carried_by != ch )
+                lvlBuf[0] = '\0';
+        else if ( obj->wear_loc != WEAR_NONE )
+            sprintf(lvlBuf, "(lvl %d) ", obj->level);
+        else switch ( obj->wear_type )
         {
             case ITEM_NO_CARRY:
                 lvlBuf[0] = '\0';
