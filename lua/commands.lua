@@ -447,6 +447,7 @@ local function get_tokens(str)
             
             if ind>len 
             or (char=="," and not(instring) and not(parenslevel>0)) then
+                token=util.trim(token)
                 table.insert(tokens,token)
                 break
             --elseif char==" " and not(instring) and not(parenslevel>0) then
