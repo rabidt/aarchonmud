@@ -202,6 +202,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "description",do_description, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "delet",      do_delet,   POS_DEAD,        0,  LOG_NEVER, 0, FALSE, FALSE  },
     { "delete",     do_delete,  POS_SLEEPING,    0,  LOG_NEVER, 1, FALSE, FALSE  },
+    { "itemlevel",  do_itemlevel ,  POS_DEAD,    0,  LOG_NEVER, 1, FALSE, FALSE  },
     { "nofollow",   do_nofollow,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "noloot",     do_noloot,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "nosummon",   do_nosummon,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
