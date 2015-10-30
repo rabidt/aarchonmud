@@ -234,6 +234,7 @@ DECLARE_DO_FUN( do_intimidate );
 DECLARE_DO_FUN( do_inventory);
 DECLARE_DO_FUN( do_invis    );
 DECLARE_DO_FUN( do_invite   );
+DECLARE_DO_FUN( do_itemlevel );
 DECLARE_DO_FUN( do_jail     );
 DECLARE_DO_FUN( do_kick     );
 DECLARE_DO_FUN( do_kill     );

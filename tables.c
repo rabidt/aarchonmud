@@ -494,6 +494,7 @@ const struct flag_type comm_flags[] =
 	{   "brief",        COMM_BRIEF,         TRUE    },
 	{   "prompt",       COMM_PROMPT,        TRUE    },
 	{   "combine",      COMM_COMBINE,       TRUE    },
+    {   "itemlevel",    COMM_ITEMLEVEL,     TRUE    },
 	{   "telnet_ga",    COMM_TELNET_GA,     TRUE    },
 	{   "show_affects", COMM_SHOW_AFFECTS,  TRUE    },
 	{   "show_worth",   COMM_SHOW_WORTH,    TRUE    },  /*06/07/98*/
