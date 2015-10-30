@@ -121,6 +121,32 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
         ||  (obj->description == NULL || obj->description[0] == '\0'))
         return buf;
     
+    // show item level and wear location unless already worn
+    if ( IS_SET(ch->comm, COMM_ITEMLEVEL) && obj->wear_loc == WEAR_NONE )
+    {
+        char lvlBuf[MSL];
+        switch ( obj->wear_type )
+        {
+            case ITEM_NO_CARRY:
+                lvlBuf[0] = '\0';
+                break;
+            case ITEM_CARRY:
+                sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
+                break;
+            case ITEM_WIELD:
+                // weapon
+                sprintf(lvlBuf, "(lvl %d %s%s) ",
+                    obj->level,
+                    IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) ? "2h-" : "",
+                    flag_bit_name(weapon_class, obj->value[0]) );
+                break;
+            default:
+                sprintf(lvlBuf, "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
+                break;
+        }
+        strcat(buf, lvlBuf);
+    }
+    
     if ( IS_OBJ_STAT(obj, ITEM_INVIS)     )   strcat( buf, "(Invis) "     );
     if ( IS_AFFECTED(ch, AFF_DETECT_EVIL)
         && IS_OBJ_STAT(obj, ITEM_EVIL)   )   strcat( buf, "(Red Aura) "  );
@@ -1065,6 +1091,11 @@ DEF_DO_FUN(do_autolist)
     else
         send_to_char("compact mode   OFF    The blank line above your prompt won't be displayed.\n\r",ch);
     
+    if ( IS_SET(ch->comm, COMM_ITEMLEVEL) )
+        send_to_char("itemlevel      ON     Items level and wear location will be displayed.\n\r", ch);
+    else
+        send_to_char("itemlevel      OFF    Items level and wear location will not be displayed.\n\r", ch);
+
     if (IS_SET(ch->comm,COMM_PROMPT))
         send_to_char("prompt         ON     Your prompt will be displayed.\n\r",ch);
     else
@@ -1406,6 +1437,20 @@ DEF_DO_FUN(do_combine)
     {
         send_to_char("Combined inventory selected.\n\r",ch);
         SET_BIT(ch->comm,COMM_COMBINE);
+    }
+}
+
+DEF_DO_FUN(do_itemlevel)
+{
+    if ( IS_SET(ch->comm, COMM_ITEMLEVEL) )
+    {
+        send_to_char("Item levels will no longer be displayed.\n\r", ch);
+        REMOVE_BIT(ch->comm, COMM_ITEMLEVEL);
+    }
+    else
+    {
+        send_to_char("Item levels will now be displayed.\n\r", ch);
+        SET_BIT(ch->comm, COMM_ITEMLEVEL);
     }
 }
 
