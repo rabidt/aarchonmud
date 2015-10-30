@@ -5349,7 +5349,7 @@ bool check_quick_draw( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int skill = get_skill_total(victim, gsn_quick_draw, 0.5);
     
-    if ( skill == 0 || ch == victim || !check_see_combat(victim, ch) )
+    if ( skill == 0 || ch == victim || !can_attack(victim) || !check_see_combat(victim, ch) )
         return FALSE;
 
     int chance = skill * 2/3;
