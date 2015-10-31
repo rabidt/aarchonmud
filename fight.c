@@ -1777,6 +1777,15 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         dam += ch->level * get_skill(ch, gsn_brutal_damage) / 300;
         check_improve (ch, gsn_brutal_damage, TRUE, 8);
     }
+    
+    // prey drive
+    int prey_drive = get_skill(ch, gsn_prey_drive) + mastery_bonus(ch, gsn_prey_drive, 30, 50);
+    if ( prey_drive && victim->hit < victim->max_hit )
+    {
+        int victim_health = 100 * victim->hit / UMAX(1, victim->max_hit);
+        dam += ch->level * prey_drive / 150 * (100 - victim_health) / 100;
+        check_improve (ch, gsn_prey_drive, TRUE, 8);
+    }
 
     // holy avenger - deal bonus damage against targets of opposing alignment
     if ( per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )

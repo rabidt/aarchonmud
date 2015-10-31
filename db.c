@@ -130,6 +130,7 @@ sh_int  gsn_disarm_trap;
 sh_int  gsn_disarm;
 sh_int  gsn_enhanced_damage;
 sh_int  gsn_flanking;
+sh_int  gsn_prey_drive;
 sh_int  gsn_kick;
 sh_int  gsn_gouge;
 sh_int  gsn_chop;
