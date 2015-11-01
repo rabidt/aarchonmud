@@ -29,7 +29,7 @@ void LStbl_save( lua_State *LS, LStbl *tbl, const char *filename )
     lua_call( LS, 2, 0 );
 }
 
-void LStbl_kv_string( lua_State *LS, LStbl *tbl, const char *key, const char *val)
+void LStbl_kv_str( lua_State *LS, LStbl *tbl, const char *key, const char *val)
 {
     lua_newtable( LS );
     lua_pushstring( LS, key );
@@ -59,7 +59,7 @@ void LStbl_kv_int( lua_State *LS, LStbl *tbl, const char *key, const int val)
     lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
 }
 
-void LStbl_kv_array( lua_State *LS, LStbl *tbl, const char *key, LSarr *arr)
+void LStbl_kv_arr( lua_State *LS, LStbl *tbl, const char *key, LSarr *arr)
 {
     lua_newtable( LS );
     lua_pushstring( LS, key );
@@ -83,7 +83,7 @@ void LSarr_release( lua_State *LS, LSarr *arr )
     arr->ref=LUA_NOREF;
 }
 
-void LSarr_add_string( lua_State *LS, LSarr *arr, const char *val )
+void LSarr_add_str( lua_State *LS, LSarr *arr, const char *val )
 {
     lua_newtable( LS );
     lua_pushstring( LS, val );
@@ -95,6 +95,14 @@ void LSarr_add_int( lua_State *LS, LSarr *arr, const int val )
 {
     lua_newtable( LS );
     lua_pushinteger( LS, val );
+    lua_setfield( LS, -2, "LVAL" );
+    lua_rawseti( LS, arr->ref, lua_objlen( LS, arr->ref) + 1 );
+}
+
+void LSarr_add_tbl( lua_State *LS, LSarr *arr, LStbl *tbl )
+{
+    lua_newtable( LS );
+    lua_pushvalue( LS, tbl->ref );
     lua_setfield( LS, -2, "LVAL" );
     lua_rawseti( LS, arr->ref, lua_objlen( LS, arr->ref) + 1 );
 }
@@ -134,7 +142,7 @@ const char *LLtbl_get_kv_str( lua_State *LS, LLtbl *tbl, const char *key)
     return rtn;    
 }
 
-void LLtbl_get_kv_table( lua_State *LS, LLtbl *tbl, const char *key, LLtbl *subtbl)
+void LLtbl_get_kv_tbl( lua_State *LS, LLtbl *tbl, const char *key, LLtbl *subtbl)
 {
     lua_getfield( LS, tbl->ref, key );
     luaL_checktype( LS, -1, LUA_TTABLE );
@@ -148,6 +156,22 @@ const char *LLtbl_get_iv_str( lua_State *LS, LLtbl *tbl, int index)
     rtn=str_dup(luaL_checkstring( LS, -1 ));
     lua_pop( LS, 1);
     return rtn;
+}
+
+int LLtbl_get_iv_int( lua_State *LS, LLtbl *tbl, int index)
+{
+    int rtn;
+    lua_rawgeti( LS, tbl->ref, index);
+    rtn=luaL_checkinteger( LS, -1);
+    lua_pop(LS,1);
+    return rtn;
+}
+
+void LLtbl_get_iv_tbl( lua_State *LS, LLtbl *tbl, int index, LLtbl *subtbl)
+{
+    lua_rawgeti( LS, tbl->ref, index);
+    luaL_checktype( LS, -1, LUA_TTABLE );
+    subtbl->ref=lua_gettop( LS );
 }
     
 bool LLtbl_i_exists( lua_State *LS, LLtbl *tbl, int index )

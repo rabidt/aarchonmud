@@ -625,7 +625,7 @@ local function LSAVE_serialize( tbl, indent )
         elseif type(v.LVAL)=="table" then
             table.insert( out, "\n"..LSAVE_serialize( v.LVAL, indent.."  " ) )
         else
-            error( "Bad LVAL type" )
+            error( "Bad LVAL type: "..type(v.LVAL) )
         end
 
         table.insert( out, ",\n" )

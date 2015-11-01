@@ -219,15 +219,15 @@ void lasave_test()
     LStbl area;
     LStbl_create( LS, &area );
 
-    LStbl_kv_string( LS, &area, "Name", "Blahblah");
+    LStbl_kv_str( LS, &area, "Name", "Blahblah");
     LStbl_kv_bool( LS, &area, "Poopy", TRUE);
     LStbl_kv_int( LS, &area, "Dummies", 15);
 
     LSarr aflag;
     LSarr_create( LS, &aflag );
-    LStbl_kv_array( LS, &area, "Flags", &aflag );
-    LSarr_add_string( LS, &aflag, "flag1" );
-    LSarr_add_string( LS, &aflag, "flag2" );
+    LStbl_kv_arr( LS, &area, "Flags", &aflag );
+    LSarr_add_str( LS, &aflag, "flag1" );
+    LSarr_add_str( LS, &aflag, "flag2" );
     LSarr_add_int( LS, &aflag, 1234 );
 
     LSarr_release( LS, &aflag );
@@ -240,24 +240,79 @@ void lasave_test()
 
 void lload_test()
 {
+    int ind;
+    AREA_DATA *pArea=alloc_AREA();
     lua_State *LS=g_mud_LS;
     LLtbl area;
-    LLtbl_load( LS, &area, "Slumpy.lua");
+    LLtbl_load( LS, &area, "Test1.lua");
     
-    const char *name=LLtbl_get_kv_str( LS, &area, "Name");
-    logpf( "Name: %s", name);
-    free_string(name);
+    int file_version = LLtbl_get_kv_int( LS, &area, "Version");
+    
+    LLtbl clones;
+    LLtbl_get_kv_tbl( LS, &area, "Clones", &clones);
+    ind=0;
+    while ( LLtbl_i_exists( LS, &clones, ++ind ) )
+    {
+        pArea->clones[ind-1] = LLtbl_get_iv_int( LS, &clones, ind); 
+    }
+    LLtbl_release( LS, &clones);
+
+    pArea->name=LLtbl_get_kv_str( LS, &area, "Name");
+    pArea->builders=LLtbl_get_kv_str( LS, &area, "Builders");
+    pArea->comments=LLtbl_get_kv_str( LS, &area, "Comments");
+    pArea->min_vnum=LLtbl_get_kv_int( LS, &area, "MinVnum");
+    pArea->max_vnum=LLtbl_get_kv_int( LS, &area, "MaxVnum");
+    pArea->credits=LLtbl_get_kv_str( LS, &area, "Credits");
+    pArea->minlevel=LLtbl_get_kv_int( LS, &area, "MinLevel");
+    pArea->maxlevel=LLtbl_get_kv_int( LS, &area, "MaxLevel");
+    pArea->miniquests=LLtbl_get_kv_int( LS, &area, "Miniquests");
+    pArea->security=LLtbl_get_kv_int( LS, &area, "Security");
+    pArea->reset_time=LLtbl_get_kv_int( LS, &area, "Time" );
 
     
     LLtbl aflag;
-    LLtbl_get_kv_table( LS, &area, "Flags", &aflag);
-    int ind=0;
+    LLtbl_get_kv_tbl( LS, &area, "Flags", &aflag);
+    ind=0;
     while ( LLtbl_i_exists( LS, &aflag, ++ind) )
     {
-        logpf( "flag: %s", LLtbl_get_iv_str(LS, &aflag, ind));
+        const char *flag=LLtbl_get_iv_str( LS, &aflag, ind);
+        int bit=flag_lookup( flag, area_flags);
+        if ( bit == NO_FLAG )
+        {
+            bugf("No such area_flag: %s", flag);
+            exit(1);
+        }
+        SET_BIT( pArea->area_flags, bit);
+        free_string(flag);
     }
     LLtbl_release( LS, &aflag);
 
+    LLtbl atrigs;
+    LLtbl_get_kv_tbl( LS, &area, "ATrigs", &atrigs);
+    ind=0;
+    while ( LLtbl_i_exists( LS, &atrigs, ++ind) )
+    {
+        LLtbl atrig;
+        LLtbl_get_iv_tbl( LS, &atrigs, ind, &atrig);
+
+        PROG_LIST *pAprog = alloc_ATRIG();
+        const char *trigtype=LLtbl_get_kv_str( LS, &atrig, "Type");
+        int trigger;
+        if ( (trigger = flag_lookup( trigtype, aprog_flags)) == NO_FLAG )
+        {
+            bugf("invalid aprog_flag: '%s'", trigtype);
+            exit(1);
+        }
+        free_string(trigtype);
+
+        SET_BIT(pArea->aprog_flags, trigger);
+        pAprog->trig_type = trigger;
+        pAprog->vnum = LLtbl_get_kv_int( LS, &atrig, "Vnum");
+        pAprog->trig_phrase=LLtbl_get_kv_str(LS, &atrig, "Phrase");
+
+        LLtbl_release(LS, &atrig);
+    }
+    LLtbl_release( LS, &atrigs);
         
 
     LLtbl_release( LS, &area);

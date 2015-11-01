@@ -29,6 +29,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "lua_file.h"
 
 //#define DIF(a,b) (~((~a)|(b)))
 #define DIF(a,b,c) flag_copy(a,b); flag_remove_field(a,c)
@@ -1149,6 +1150,7 @@ void save_area( AREA_DATA *pArea )
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
 
+    /*
     if ( stat(pArea->file_name, &st) == 0 )
     {
         sprintf( buf, AREA_BACKUP_DIR "%s", pArea->file_name );
@@ -1158,56 +1160,81 @@ void save_area( AREA_DATA *pArea )
             perror("Error: ");
         }
     }
-
-    if ( !( fp = fopen( pArea->file_name, "w" ) ) )
-    {
-        bug( "Open_area: fopen", 0 );
-        log_error( pArea->file_name );
-    }
+    */
     if ( pArea->reset_time < 1 ) 
-	pArea->reset_time = 15;
+        pArea->reset_time = 15;
 
-    fprintf( fp, "#VER %d\n", CURR_AREA_VERSION );
+    lua_State *LS=g_mud_LS;
+    LStbl area;
+    LStbl_create( LS, &area );
+    LStbl_kv_int( LS, &area, "Version", CURR_AREA_VERSION);
 
+    LSarr clones;
+    LSarr_create( LS, &clones);
+    LStbl_kv_arr( LS, &area, "Clones", &clones);
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
-	if ( pArea->clones[i] > 0 )
-	    fprintf( fp, "#CLONE %d\n", pArea->clones[i] );
+        if ( pArea->clones[i] > 0 )
+            LSarr_add_int( LS, &clones, pArea->clones[i]);
+    LSarr_release( LS, &clones);
 
-    fprintf( fp, "\n#AREADATA\n" );
-    rfprintf( fp, "Name %s~\n",        pArea->name );
-    rfprintf( fp, "Builders %s~\n",    fix_string( pArea->builders ) );
-    rfprintf( fp, "Comments %s~\n",       fix_string( pArea->comments ) );
-    fprintf( fp, "VNUMs %d %d\n",     pArea->min_vnum, pArea->max_vnum );
-    rfprintf( fp, "Credits %s~\n",     pArea->credits );
+    LStbl_kv_str( LS, &area, "Name", pArea->name );
+    LStbl_kv_str( LS, &area, "Builders", fix_string( pArea->builders ) );
+    LStbl_kv_str( LS, &area, "Comments", fix_string( pArea->comments ) );
+    LStbl_kv_int( LS, &area, "MinVnum", pArea->min_vnum);
+    LStbl_kv_int( LS, &area, "MaxVnum", pArea->max_vnum);
+    LStbl_kv_str( LS, &area, "Credits", pArea->credits);
   /* Added minlevel, maxlevel, and miniquests for new areas command
      -Astark Dec 2012 */
-    fprintf( fp, "Minlevel %d\n",     pArea->minlevel ); 
-    fprintf( fp, "Maxlevel %d\n",     pArea->maxlevel );
-    fprintf( fp, "Miniquests %d\n",   pArea->miniquests );
-    fprintf( fp, "Security %d\n",     pArea->security );
-    fprintf( fp, "Time %d\n",	      pArea->reset_time );
-    if (IS_SET(pArea->area_flags,AREA_REMORT))
-        fprintf( fp, "Remort\n");
-    if (IS_SET(pArea->area_flags,AREA_NOQUEST))
-        fprintf( fp, "NoQuest\n");
-    if (IS_SET(pArea->area_flags,AREA_NOHIDE))
-        fprintf( fp, "NoHide\n");
-    if ( IS_SET(pArea->area_flags, AREA_SOLO) )
-        fprintf(fp, "Solo\n");
+    LStbl_kv_int( LS, &area, "MinLevel", pArea->minlevel);
+    LStbl_kv_int( LS, &area, "MaxLevel", pArea->maxlevel);
+    LStbl_kv_int( LS, &area, "Miniquests", pArea->miniquests);
+    LStbl_kv_int( LS, &area, "Security", pArea->security);
+    LStbl_kv_int( LS, &area, "Time", pArea->reset_time);
 
-    /* save aprogs if any */
+    LSarr aflags;
+    LSarr_create( LS, &aflags);
+    LStbl_kv_arr( LS, &area, "Flags", &aflags);
+    if (IS_SET(pArea->area_flags,AREA_REMORT))
+        LSarr_add_str( LS, &aflags, 
+                flag_bit_name(area_flags, AREA_REMORT));
+    if (IS_SET(pArea->area_flags,AREA_NOQUEST))
+        LSarr_add_str( LS, &aflags, 
+                flag_bit_name(area_flags, AREA_NOQUEST));
+    if (IS_SET(pArea->area_flags,AREA_NOHIDE))
+        LSarr_add_str( LS, &aflags, 
+                flag_bit_name(area_flags, AREA_NOHIDE));
+    if ( IS_SET(pArea->area_flags, AREA_SOLO) )
+        LSarr_add_str( LS, &aflags, 
+                flag_bit_name(area_flags, AREA_SOLO));
+    LSarr_release( LS, &aflags);
+    
+    LSarr atrigs;
+    LSarr_create( LS, &atrigs );
+    LStbl_kv_arr( LS, &area, "ATrigs", &atrigs);
+
     if (pArea->aprogs != NULL)
     {
         PROG_LIST *pAprog;
         reverse_aprog_order(pArea);
         for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
         {
-            rfprintf(fp, "AProg %s %d %s~\n", name_lookup(pAprog->trig_type, aprog_flags), pAprog->vnum, pAprog->trig_phrase);
+            LStbl atrig;
+            LStbl_create( LS, &atrig);
+            LSarr_add_tbl( LS, &atrigs, &atrig);
+            LStbl_kv_str( LS, &atrig, "Type", name_lookup(pAprog->trig_type, aprog_flags));
+            LStbl_kv_int( LS, &atrig, "Vnum", pAprog->vnum);
+            LStbl_kv_str( LS, &atrig, "Phrase", pAprog->trig_phrase);
+            LStbl_release( LS, &atrig);
         }
         reverse_aprog_order(pArea);
     }
+    LSarr_release( LS, &atrigs);
 
-    
+
+    LStbl_save( LS, &area, "Test1.lua");
+    LStbl_release( LS, &area );
+
+    if (1) return;  
     fprintf( fp, "End\n\n\n\n" );
     
     save_mobbles( fp, pArea );
