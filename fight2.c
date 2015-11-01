@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include "merc.h"
+#include "mob_stats.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
@@ -2706,32 +2707,38 @@ DEF_DO_FUN(do_mug)
 
         if ( combat_maneuver_check(ch, victim, gsn_mug, STAT_STR, STAT_STR, 50) )
         {
-            gold   = victim->gold   * number_range(1, ch->level) / 500;
-            silver = victim->silver * number_range(1,ch->level) / 500;
+            gold   = victim->gold   * number_range(1, 100) / 500;
+            silver = victim->silver * number_range(1, 100) / 500;
             
-            if ( gold <= 0 && silver <= 0 )
+            // bonus money created out of thin air
+            long bonus = 5 * level_base_wealth(victim->level) * UMIN(dam, victim->max_hit) / UMAX(1, victim->max_hit);
+            int gold_gain = gold + bonus / 100;
+            int silver_gain = silver + bonus % 100;
+            
+            if ( gold_gain <= 0 && silver_gain <= 0 )
             {
                 send_to_char( "You rifle through their purse, but you don't feel any coins.\n\r", ch );
                 return;
             }
             
-            ch->gold   += gold;
-            ch->silver += silver;
+            ch->gold   += gold_gain;
+            ch->silver += silver_gain;
             victim->silver -= silver;
             victim->gold   -= gold;
             
-            if (silver <= 0)
-                sprintf( buf, "Bingo!  You got %d gold coins.\n\r", gold );
-            else if (gold <= 0)
-                sprintf( buf, "Bingo!  You got %d silver coins.\n\r",silver);
+            if ( silver_gain <= 0 )
+                ptc(ch, "Bingo!  You got %d gold coins.\n\r", gold_gain);
+            else if ( gold_gain <= 0 )
+                ptc(ch, "Bingo!  You got %d silver coins.\n\r", silver_gain);
             else
-                sprintf(buf, "Bingo!  You got %d silver and %d gold coins.\n\r",
-                silver,gold);
-
+                ptc(ch, "Bingo!  You got %d silver and %d gold coins.\n\r", silver_gain, gold_gain);
+            
+            if ( IS_IMMORTAL(ch) )
+                ptc(ch, "Mugging bonus is %d silver and %d gold.\n\r", bonus % 100, bonus / 100);
+                
             if( !IS_NPC(ch) && !IS_NPC(victim) )
                 adjust_pkgrade( ch, victim, TRUE ); /* True means it's a theft */
             
-            send_to_char( buf, ch );
             check_improve(ch,gsn_mug,TRUE,3);
             
             if (number_percent() < skill/8)
