@@ -213,6 +213,8 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
+
+#if 0
 void lasave_test()
 {
     lua_State *LS=g_mud_LS;
@@ -319,10 +321,12 @@ void lload_test()
 
 }
 
+#endif
+
 DEF_DO_FUN(do_lboard)
 {
-    lasave_test();
-    lload_test();
+    //lasave_test();
+    //lload_test();
     lua_getglobal(g_mud_LS, "do_lboard");
     push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);

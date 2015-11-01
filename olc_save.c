@@ -375,59 +375,99 @@ Name:           save_mobble
 Purpose:        Save one mobile to file, extra-new format -- Bobble
 Called by:      save_mobbles (below).
 ****************************************************************************/
-void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
+void save_mobble( LSarr *parent, MOB_INDEX_DATA *pMobIndex )
 {
+    LStbl mobble;
+    LStbl_create( &mobble );
+    LSarr_add_tbl( parent, &mobble );
     sh_int race = pMobIndex->race;
     PROG_LIST *pMprog;
     
-    fprintf( fp, "#%d\n",       pMobIndex->vnum );
-    rfprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
-    rfprintf( fp, "SDESC %s~\n", pMobIndex->short_descr );
-    rfprintf( fp, "LDESC %s~\n", fix_string(pMobIndex->long_descr) );
-    rfprintf( fp, "DESC %s~\n",  fix_string(pMobIndex->description) );
-    rfprintf( fp, "COMMENTS %s~\n", fix_string(pMobIndex->comments) );
-    rfprintf( fp, "RACE %s~\n",  race_table[race].name );
-    fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
+    LStbl_kv_int( &mobble, "Vnum", pMobIndex->vnum );
+    LStbl_kv_str( &mobble, "Name", pMobIndex->player_name );
+    LStbl_kv_str( &mobble, "ShortDescr", pMobIndex->short_descr);
+    LStbl_kv_str( &mobble, "LongDescr", pMobIndex->long_descr);
+    LStbl_kv_str( &mobble, "Description", pMobIndex->description);
+    LStbl_kv_str( &mobble, "Comments", pMobIndex->comments);
+    LStbl_kv_str( &mobble, "Race", race_table[race].name);
+    LStbl_kv_str( &mobble, "Sex", sex_table[pMobIndex->sex].name);
     
-    // flags must come after race, apart from that order does not matter
-    FPRINT_FIELD_FLAGS("ACT",   pMobIndex->act, race_table[race].act );
-    FPRINT_FIELD_FLAGS("AFF",   pMobIndex->affect_field, race_table[race].affect_field );
-    FPRINT_FIELD_FLAGS("OFF",   pMobIndex->off_flags, race_table[race].off );
-    FPRINT_FIELD_FLAGS("IMM",   pMobIndex->imm_flags, race_table[race].imm );
-    FPRINT_FIELD_FLAGS("RES",   pMobIndex->res_flags, race_table[race].res );
-    FPRINT_FIELD_FLAGS("VULN",  pMobIndex->vuln_flags, race_table[race].vuln );
-    FPRINT_FIELD_FLAGS("FORM",  pMobIndex->form, race_table[race].form );
-    FPRINT_FIELD_FLAGS("PARTS", pMobIndex->parts, race_table[race].parts );
 
-    fprintf( fp, "LVL %d\n",    pMobIndex->level );
-    FPRINT_FIELD_INT("HP",      pMobIndex->hitpoint_percent, 100);
-    FPRINT_FIELD_INT("MANA",    pMobIndex->mana_percent, 100);
-    FPRINT_FIELD_INT("MOVE",    pMobIndex->move_percent, 100);
-    FPRINT_FIELD_INT("HIT",     pMobIndex->hitroll_percent, 100);
-    FPRINT_FIELD_INT("DAM",     pMobIndex->damage_percent, 100);
-    FPRINT_FIELD_INT("AC",      pMobIndex->ac_percent, 100);
-    FPRINT_FIELD_INT("SAVES",   pMobIndex->saves_percent, 100);
-    FPRINT_FIELD_INT("WEALTH",  pMobIndex->wealth_percent, 100);
-    
-    fprintf( fp, "DAMTYPE %s\n", attack_table[pMobIndex->dam_type].name );
-    FPRINT_FIELD_INT("STANCE",  pMobIndex->stance, STANCE_DEFAULT);
-    
-    FPRINT_FIELD_NAMED("SIZE",  pMobIndex->size, SIZE_MEDIUM, size_table[pMobIndex->size].name);
-    FPRINT_FIELD_INT("ALIGN",   pMobIndex->alignment, 0);
-    FPRINT_FIELD_INT("GROUP",   pMobIndex->group, 0);
+    if (!flag_equal(pMobIndex->act, race_table[race].act))
+        LStbl_kv_flags(&mobble, "Act", act_flags, pMobIndex->act);
+    if (!flag_equal(pMobIndex->affect_field, race_table[race].affect_field))
+        LStbl_kv_flags(&mobble, "Affects", affect_flags, pMobIndex->affect_field);
+    if (!flag_equal(pMobIndex->off_flags, race_table[race].off))
+        LStbl_kv_flags(&mobble, "Offensive", off_flags, pMobIndex->off_flags);
+    if (!flag_equal(pMobIndex->imm_flags, race_table[race].imm))
+        LStbl_kv_flags(&mobble, "Immune", imm_flags, pMobIndex->imm_flags);
+    if (!flag_equal(pMobIndex->res_flags, race_table[race].res))
+        LStbl_kv_flags(&mobble, "Resist", res_flags, pMobIndex->res_flags);
+    if (!flag_equal(pMobIndex->vuln_flags, race_table[race].vuln))
+        LStbl_kv_flags(&mobble, "Vuln", vuln_flags, pMobIndex->vuln_flags);
 
-    FPRINT_FIELD_NAMED("SPOS",  pMobIndex->start_pos, POS_STANDING, position_table[pMobIndex->start_pos].short_name);
-    FPRINT_FIELD_NAMED("DPOS",  pMobIndex->default_pos, POS_STANDING, position_table[pMobIndex->default_pos].short_name);
+    if (!flag_equal(pMobIndex->form, race_table[race].form))
+        LStbl_kv_flags(&mobble, "Form", form_flags, pMobIndex->form);
+    if (!flag_equal(pMobIndex->parts, race_table[race].parts))
+       LStbl_kv_flags(&mobble, "Parts", part_flags, pMobIndex->parts);
+
+    LStbl_kv_int(&mobble, "Level", pMobIndex->level);
+
+    if (pMobIndex->hitpoint_percent != 100)
+        LStbl_kv_int(&mobble, "HpPcnt", pMobIndex->hitpoint_percent);
+    if (pMobIndex->mana_percent != 100)
+        LStbl_kv_int(&mobble, "ManaPcnt", pMobIndex->mana_percent);
+    if (pMobIndex->move_percent != 100)
+        LStbl_kv_int(&mobble, "MovePcnt", pMobIndex->move_percent);
+    if (pMobIndex->hitroll_percent != 100)
+        LStbl_kv_int(&mobble, "HitrollPcnt", pMobIndex->hitpoint_percent);
+    if (pMobIndex->damage_percent != 100)
+        LStbl_kv_int(&mobble, "DamrollPcnt", pMobIndex->damage_percent);
+    if (pMobIndex->ac_percent != 100)
+        LStbl_kv_int(&mobble, "AcPcnt", pMobIndex->ac_percent);
+    if (pMobIndex->saves_percent != 100)
+        LStbl_kv_int(&mobble, "SavesPcnt", pMobIndex->saves_percent);
+    if (pMobIndex->wealth_percent != 100)
+        LStbl_kv_int(&mobble, "WealthPcnt", pMobIndex->wealth_percent);
+    
+    LStbl_kv_str(&mobble, "DamtypeName", attack_table[pMobIndex->dam_type].name);
+
+    if (pMobIndex->stance != STANCE_DEFAULT)
+        LStbl_kv_str(&mobble, "Stance", stances[pMobIndex->stance].name); 
+     
+    if (pMobIndex->size != SIZE_MEDIUM)
+        LStbl_kv_str(&mobble, "Size", size_table[pMobIndex->size].name);
+
+    if (pMobIndex->alignment != 0)
+        LStbl_kv_int(&mobble, "Align", pMobIndex->alignment);
+    if (pMobIndex->group != 0)
+        LStbl_kv_int(&mobble, "Group", pMobIndex->group);
+    
+
+    if (pMobIndex->start_pos != POS_STANDING)
+        LStbl_kv_str(&mobble, "StartPosition", position_table[pMobIndex->start_pos].short_name);
+    if (pMobIndex->default_pos != POS_STANDING)
+        LStbl_kv_str(&mobble, "DefaultPosition", position_table[pMobIndex->default_pos].short_name);
        
+    LSarr mtrigs;
+    LSarr_create(&mtrigs);
+    LStbl_kv_arr(&mobble, "MTrigs", &mtrigs);
     reverse_mprog_order(pMobIndex);    
     for (pMprog = pMobIndex->mprogs; pMprog; pMprog = pMprog->next)
     {
-        rfprintf(fp, "MPROG %s %d %s~\n", mprog_type_to_name(pMprog->trig_type), pMprog->vnum, pMprog->trig_phrase);
+        LStbl mtrig;
+        LStbl_create(&mtrig);
+        LSarr_add_tbl(&mtrigs, &mtrig);
+        LStbl_kv_str(&mtrig, "Type", mprog_type_to_name(pMprog->trig_type));
+        LStbl_kv_int(&mtrig, "Vnum", pMprog->vnum);
+        LStbl_kv_str(&mtrig, "Phrase", pMprog->trig_phrase);
+        LStbl_release(&mtrig);
     }
     reverse_mprog_order(pMobIndex);
-
-    fprintf( fp, "END\n\n" );
+    LSarr_release(&mtrigs);
     
+
+    LStbl_release(&mobble); 
     return;
 }
 
@@ -437,20 +477,21 @@ Name:           save_mobbles
 Purpose:        Save #MOBBLES secion of an area file.
 Called by:      save_area(olc_save.c).
 ****************************************************************************/
-void save_mobbles( FILE *fp, AREA_DATA *pArea )
+void save_mobbles( LStbl *parent, AREA_DATA *pArea )
 {
     int i;
     MOB_INDEX_DATA *pMob;
     
-    fprintf( fp, "#MOBBLES\n" );
-    
+    LSarr mobbles;
+    LSarr_create( &mobbles );
+    LStbl_kv_arr( parent, "Mobbles", &mobbles );
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pMob = get_mob_index( i )) )
-            save_mobble( fp, pMob );
+            save_mobble( &mobbles, pMob );
     }
+    LSarr_release( &mobbles );
     
-    fprintf( fp, "#0\n\n\n\n" );
     return;
 }
 
@@ -1164,53 +1205,52 @@ void save_area( AREA_DATA *pArea )
     if ( pArea->reset_time < 1 ) 
         pArea->reset_time = 15;
 
-    lua_State *LS=g_mud_LS;
     LStbl area;
-    LStbl_create( LS, &area );
-    LStbl_kv_int( LS, &area, "Version", CURR_AREA_VERSION);
+    LStbl_create( &area );
+    LStbl_kv_int( &area, "Version", CURR_AREA_VERSION);
 
     LSarr clones;
-    LSarr_create( LS, &clones);
-    LStbl_kv_arr( LS, &area, "Clones", &clones);
+    LSarr_create( &clones);
+    LStbl_kv_arr( &area, "Clones", &clones);
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
         if ( pArea->clones[i] > 0 )
-            LSarr_add_int( LS, &clones, pArea->clones[i]);
-    LSarr_release( LS, &clones);
+            LSarr_add_int( &clones, pArea->clones[i]);
+    LSarr_release( &clones);
 
-    LStbl_kv_str( LS, &area, "Name", pArea->name );
-    LStbl_kv_str( LS, &area, "Builders", fix_string( pArea->builders ) );
-    LStbl_kv_str( LS, &area, "Comments", fix_string( pArea->comments ) );
-    LStbl_kv_int( LS, &area, "MinVnum", pArea->min_vnum);
-    LStbl_kv_int( LS, &area, "MaxVnum", pArea->max_vnum);
-    LStbl_kv_str( LS, &area, "Credits", pArea->credits);
+    LStbl_kv_str( &area, "Name", pArea->name );
+    LStbl_kv_str( &area, "Builders", fix_string( pArea->builders ) );
+    LStbl_kv_str( &area, "Comments", fix_string( pArea->comments ) );
+    LStbl_kv_int( &area, "MinVnum", pArea->min_vnum);
+    LStbl_kv_int( &area, "MaxVnum", pArea->max_vnum);
+    LStbl_kv_str( &area, "Credits", pArea->credits);
   /* Added minlevel, maxlevel, and miniquests for new areas command
      -Astark Dec 2012 */
-    LStbl_kv_int( LS, &area, "MinLevel", pArea->minlevel);
-    LStbl_kv_int( LS, &area, "MaxLevel", pArea->maxlevel);
-    LStbl_kv_int( LS, &area, "Miniquests", pArea->miniquests);
-    LStbl_kv_int( LS, &area, "Security", pArea->security);
-    LStbl_kv_int( LS, &area, "Time", pArea->reset_time);
+    LStbl_kv_int( &area, "MinLevel", pArea->minlevel);
+    LStbl_kv_int( &area, "MaxLevel", pArea->maxlevel);
+    LStbl_kv_int( &area, "Miniquests", pArea->miniquests);
+    LStbl_kv_int( &area, "Security", pArea->security);
+    LStbl_kv_int( &area, "Time", pArea->reset_time);
 
     LSarr aflags;
-    LSarr_create( LS, &aflags);
-    LStbl_kv_arr( LS, &area, "Flags", &aflags);
+    LSarr_create( &aflags);
+    LStbl_kv_arr( &area, "Flags", &aflags);
     if (IS_SET(pArea->area_flags,AREA_REMORT))
-        LSarr_add_str( LS, &aflags, 
+        LSarr_add_str( &aflags, 
                 flag_bit_name(area_flags, AREA_REMORT));
     if (IS_SET(pArea->area_flags,AREA_NOQUEST))
-        LSarr_add_str( LS, &aflags, 
+        LSarr_add_str( &aflags, 
                 flag_bit_name(area_flags, AREA_NOQUEST));
     if (IS_SET(pArea->area_flags,AREA_NOHIDE))
-        LSarr_add_str( LS, &aflags, 
+        LSarr_add_str( &aflags, 
                 flag_bit_name(area_flags, AREA_NOHIDE));
     if ( IS_SET(pArea->area_flags, AREA_SOLO) )
-        LSarr_add_str( LS, &aflags, 
+        LSarr_add_str( &aflags, 
                 flag_bit_name(area_flags, AREA_SOLO));
-    LSarr_release( LS, &aflags);
+    LSarr_release( &aflags);
     
     LSarr atrigs;
-    LSarr_create( LS, &atrigs );
-    LStbl_kv_arr( LS, &area, "ATrigs", &atrigs);
+    LSarr_create( &atrigs );
+    LStbl_kv_arr( &area, "ATrigs", &atrigs);
 
     if (pArea->aprogs != NULL)
     {
@@ -1219,42 +1259,38 @@ void save_area( AREA_DATA *pArea )
         for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
         {
             LStbl atrig;
-            LStbl_create( LS, &atrig);
-            LSarr_add_tbl( LS, &atrigs, &atrig);
-            LStbl_kv_str( LS, &atrig, "Type", name_lookup(pAprog->trig_type, aprog_flags));
-            LStbl_kv_int( LS, &atrig, "Vnum", pAprog->vnum);
-            LStbl_kv_str( LS, &atrig, "Phrase", pAprog->trig_phrase);
-            LStbl_release( LS, &atrig);
+            LStbl_create( &atrig);
+            LSarr_add_tbl( &atrigs, &atrig);
+            LStbl_kv_str( &atrig, "Type", name_lookup(pAprog->trig_type, aprog_flags));
+            LStbl_kv_int( &atrig, "Vnum", pAprog->vnum);
+            LStbl_kv_str( &atrig, "Phrase", pAprog->trig_phrase);
+            LStbl_release( &atrig);
         }
         reverse_aprog_order(pArea);
     }
-    LSarr_release( LS, &atrigs);
+    LSarr_release( &atrigs);
 
 
-    LStbl_save( LS, &area, "Test1.lua");
-    LStbl_release( LS, &area );
+    
+    save_mobbles( &area, pArea );
+    //save_objects( fp, pArea );
+    //save_rooms( fp, pArea );
+    //save_specials( fp, pArea );
+    //save_resets( fp, pArea );
+    //save_shops( fp, pArea );
+    //save_bossachievements( fp, pArea );
+    //save_mobprogs( fp, pArea );
+    //save_objprogs( fp, pArea );
+	//save_areaprogs( fp, pArea );
+    //save_roomprogs( fp, pArea );
+    
+    //if ( pArea->helps && pArea->helps->first )
+    //    save_helps( fp, pArea->helps );
+    
+    
+    LStbl_save( &area, "Test1.lua");
+    LStbl_release( &area );
 
-    if (1) return;  
-    fprintf( fp, "End\n\n\n\n" );
-    
-    save_mobbles( fp, pArea );
-    save_objects( fp, pArea );
-    save_rooms( fp, pArea );
-    save_specials( fp, pArea );
-    save_resets( fp, pArea );
-    save_shops( fp, pArea );
-    save_bossachievements( fp, pArea );
-    save_mobprogs( fp, pArea );
-    save_objprogs( fp, pArea );
-	save_areaprogs( fp, pArea );
-    save_roomprogs( fp, pArea );
-    
-    if ( pArea->helps && pArea->helps->first )
-        save_helps( fp, pArea->helps );
-    
-    fprintf( fp, "#$\n" );
-    
-    fclose( fp );
     return;
 }
 
