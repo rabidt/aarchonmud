@@ -25,6 +25,7 @@ void LStbl_kv_bool( LStbl *tbl, const char *key, const bool val );
 void LStbl_kv_tbl( LStbl *tbl, const char *key, LStbl *subtbl );
 void LStbl_kv_arr( LStbl *tbl, const char *key, LSarr *arr );
 void LStbl_kv_flags( LStbl *tbl, const char *key, const struct flag_type *flag_table, const tflag f);
+void LStbl_iv_int( LStbl *tbl, int index, int value);
 
 void LSarr_create( LSarr *arr );
 void LSarr_release( LSarr *arr );

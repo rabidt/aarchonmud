@@ -27,6 +27,7 @@ void LStbl_save( LStbl *tbl, const char *filename )
 {
     lua_getglobal( LS, "LSAVE_table" );
     lua_pushvalue( LS, tbl->ref );
+    logpf("save ref: %d", tbl->ref);
     lua_pushstring( LS, filename );
     lua_call( LS, 2, 0 );
 }
@@ -77,6 +78,7 @@ void LStbl_kv_tbl( LStbl *tbl, const char *key, LStbl *subtbl )
     lua_pushstring( LS, key );
     lua_setfield( LS, -2, "LKEY" );
     lua_pushvalue( LS, subtbl->ref );
+    lua_setfield( LS, -2, "LVAL" );
     lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
 }
 
@@ -95,6 +97,16 @@ void LStbl_kv_flags( LStbl *tbl, const char *key, const struct flag_type *flag_t
         }
     }
     LSarr_release( &flags);
+}
+
+void LStbl_iv_int( LStbl *tbl, int index, int value )
+{
+    lua_newtable( LS );
+    lua_pushinteger( LS, index);
+    lua_setfield( LS, -2, "LKEY");
+    lua_pushinteger( LS, value);
+    lua_setfield( LS, -2, "LVAL");
+    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1);
 }
 /* end LStbl section */
 
