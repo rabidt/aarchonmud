@@ -565,7 +565,7 @@ void special_affect_update(CHAR_DATA *ch)
     }
 
     /* shan-ya battle madness */
-    if ( ch->fighting != NULL && !IS_AFFECTED(ch, AFF_BERSERK)
+    if ( ch->fighting != NULL && !is_affected(ch, gsn_shan_ya)
 	 && number_bits(5) == 0 && check_skill(ch, gsn_shan_ya) )
     {
 	AFFECT_DATA af;
