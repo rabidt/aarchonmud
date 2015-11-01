@@ -7,6 +7,7 @@
 #include "timer.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
+#include "lua_file.h"
 #include "interp.h"
 #include "mudconfig.h"
 
@@ -212,9 +213,61 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 
     return error;
 }  /* end of CallLuaWithTraceBack  */
+void lasave_test()
+{
+    lua_State *LS=g_mud_LS;
+    LStbl area;
+    LStbl_create( LS, &area );
+
+    LStbl_kv_string( LS, &area, "Name", "Blahblah");
+    LStbl_kv_bool( LS, &area, "Poopy", TRUE);
+    LStbl_kv_int( LS, &area, "Dummies", 15);
+
+    LSarr aflag;
+    LSarr_create( LS, &aflag );
+    LStbl_kv_array( LS, &area, "Flags", &aflag );
+    LSarr_add_string( LS, &aflag, "flag1" );
+    LSarr_add_string( LS, &aflag, "flag2" );
+    LSarr_add_int( LS, &aflag, 1234 );
+
+    LSarr_release( LS, &aflag );
+
+
+    LStbl_save( LS, &area, "Slumpy.lua");
+    LStbl_release( LS, &area );
+
+}
+
+void lload_test()
+{
+    lua_State *LS=g_mud_LS;
+    LLtbl area;
+    LLtbl_load( LS, &area, "Slumpy.lua");
+    
+    const char *name=LLtbl_get_kv_str( LS, &area, "Name");
+    logpf( "Name: %s", name);
+    free_string(name);
+
+    
+    LLtbl aflag;
+    LLtbl_get_kv_table( LS, &area, "Flags", &aflag);
+    int ind=0;
+    while ( LLtbl_i_exists( LS, &aflag, ++ind) )
+    {
+        logpf( "flag: %s", LLtbl_get_iv_str(LS, &aflag, ind));
+    }
+    LLtbl_release( LS, &aflag);
+
+        
+
+    LLtbl_release( LS, &area);
+
+}
 
 DEF_DO_FUN(do_lboard)
 {
+    lasave_test();
+    lload_test();
     lua_getglobal(g_mud_LS, "do_lboard");
     push_CH(g_mud_LS, ch);
     lua_pushstring(g_mud_LS, argument);
