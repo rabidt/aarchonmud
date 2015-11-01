@@ -3320,7 +3320,7 @@ extern  sh_int  gsn_disarm_trap;
 extern  sh_int  gsn_disarm;
 extern  sh_int  gsn_enhanced_damage;
 extern  sh_int  gsn_flanking;
-extern  sh_int  gsn_prey_drive;
+extern  sh_int  gsn_killer_instinct;
 extern  sh_int  gsn_kick;
 extern sh_int  gsn_gouge;
 extern sh_int  gsn_chop;

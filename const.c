@@ -5202,14 +5202,14 @@ struct  skill_type
     },
 
     {
-    "prey drive",
+    "killer instinct",
     { 102, 102, 102, 102, 102, 102, 102,  70, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 10,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_VIT, STAT_DEX, STAT_DIS,
-    spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_prey_drive,           0,     0, DUR_NONE,
-    "",                     "!Flanking!",    ""
+    STAT_DEX, STAT_AGI, STAT_DIS,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_killer_instinct, 0, 0, DUR_NONE,
+    "", "!Killer Instinct!", ""
     },
 
 	{
