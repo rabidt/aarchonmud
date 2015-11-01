@@ -458,7 +458,7 @@ void save_mobble( LSarr *parent, MOB_INDEX_DATA *pMobIndex )
         LStbl mtrig;
         LStbl_create(&mtrig);
         LSarr_add_tbl(&mtrigs, &mtrig);
-        LStbl_kv_str(&mtrig, "Type", mprog_type_to_name(pMprog->trig_type));
+        LStbl_kv_str(&mtrig, "Type", name_lookup(pMprog->trig_type, mprog_flags));
         LStbl_kv_int(&mtrig, "Vnum", pMprog->vnum);
         LStbl_kv_str(&mtrig, "Phrase", pMprog->trig_phrase);
         LStbl_release(&mtrig);
@@ -502,22 +502,24 @@ Purpose:	Save one object to file.
 new ROM format saving -- Hugin
 Called by:	save_objects (below).
 ****************************************************************************/
-void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
+void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
-    char buf[MAX_STRING_LENGTH];
     
-    fprintf( fp, "#%d\n",    pObjIndex->vnum );
-    rfprintf( fp, "%s~\n",    pObjIndex->name );
-    rfprintf( fp, "%s~\n",    pObjIndex->short_descr );
-    rfprintf( fp, "%s~\n",    fix_string( pObjIndex->description ) );
-    rfprintf( fp, "%s~\n",    pObjIndex->material );
+    LStbl object;
+    LStbl_create(&object);
+    LSarr_add_tbl(parent, &object);
+
+    LStbl_kv_int(&object, "Vnum", pObjIndex->vnum);
+    LStbl_kv_str(&object, "Name", pObjIndex->name);
+    LStbl_kv_str(&object, "ShortDescr", pObjIndex->short_descr);
+    LStbl_kv_str(&object, "Description", fix_string(pObjIndex->description));
+    LStbl_kv_str(&object, "Material", pObjIndex->material);
     
-    fprintf( fp, "%s ",      item_name(pObjIndex->item_type));
-    fprintf( fp, "%s ",      print_tflag( pObjIndex->extra_flags ) );
-    fprintf( fp, "%s\n", flag_bit_name( wear_types, pObjIndex->wear_type));
-    
+    LStbl_kv_str(&object, "ItemType", item_name(pObjIndex->item_type));
+    LStbl_kv_flags(&object, "Extra", extra_flags, pObjIndex->extra_flags);
+    LStbl_kv_str(&object, "WearType", flag_bit_name( wear_types, pObjIndex->wear_type));
     
     
     /*
@@ -529,14 +531,20 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     switch ( pObjIndex->item_type )
     {
     default:
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[0], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[1], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[2], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[3], buf ) );
-        fprintf( fp, "%s\n", fwrite_flag( pObjIndex->value[4], buf ) );
+        {
+        LStbl values;
+        LStbl_create(&values);
+        LStbl_kv_tbl(&object, "Values", &values);
+        int i;
+        for (i=0; i<=4; i++)
+        {
+            LStbl_iv_int(&values, i, pObjIndex->value[i]);
+        }
+        LStbl_release(&values);
         break;
+        }
         
-        
+#if 0 
     case ITEM_EXPLOSIVE:
         fprintf( fp, "%d %d %d %d %s\n",
             pObjIndex->value[0],
@@ -605,45 +613,49 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             skill_table[pObjIndex->value[3]].name : "",
             pObjIndex->value[4] );
         break;
+#endif
     }
     
-    fprintf( fp, "%d ", pObjIndex->level );
-    fprintf( fp, "%d ", pObjIndex->weight );
-    fprintf( fp, "%d ", pObjIndex->cost );
+    LStbl_kv_int( &object, "Level", pObjIndex->level);
+    LStbl_kv_int( &object, "Weight", pObjIndex->weight);
+    LStbl_kv_int( &object, "Cost", pObjIndex->cost);
     
     if (pObjIndex->clan > 0)
-        rfprintf ( fp, "C %s~\n" , clan_table[pObjIndex->clan].name );
-    
+        LStbl_kv_str(&object, "Clan", clan_table[pObjIndex->clan].name );
+
     if (pObjIndex->rank > 0 && pObjIndex->clan > 0)
-        rfprintf ( fp, "R %s~\n" , clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );      
+        LStbl_kv_str(&object, "ClanRank", clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );
+
     if (pObjIndex->combine_vnum > 0)
-	fprintf ( fp, "B %d\n", pObjIndex->combine_vnum );
+        LStbl_kv_int(&object, "CombineVnum", pObjIndex->combine_vnum);
 
     if (pObjIndex->diff_rating > 0)
-	fprintf ( fp, "G %d\n", pObjIndex->diff_rating );
+        LStbl_kv_int(&object, "Rating", pObjIndex->diff_rating);
     
+    LSarr affects;
+    LSarr_create(&affects);
+    LStbl_kv_arr(&object, "Affects", &affects);
     reverse_affect_order(pObjIndex);    
     for( pAf = pObjIndex->affected; pAf; pAf = pAf->next )
     {
+        LStbl affect;
+        LStbl_create(&affect);
+        LSarr_add_tbl(&affects, &affect);
         if (pAf->where == TO_OBJECT)
-            fprintf( fp, "A\n%d %d\n",  pAf->location, pAf->modifier );
+        {
+            LStbl_kv_str(&affect, "Where", flag_bit_name(apply_types, pAf->where));
+            LStbl_kv_str(&affect, "Location", flag_bit_name(apply_flags, pAf->location));
+            LStbl_kv_int(&affect, "Modifier", pAf->modifier);
+        }
         else
         {
-            fprintf( fp, "F\n" );
-            
             switch(pAf->where)
             {
             case TO_AFFECTS:
-                fprintf( fp, "A " );
-                break;
             case TO_IMMUNE:
-                fprintf( fp, "I " );
-                break;
             case TO_RESIST:
-                fprintf( fp, "R " );
-                break;
             case TO_VULN:
-                fprintf( fp, "V " );
+                LStbl_kv_str(&affect, "Where", flag_bit_name(apply_types, pAf->where));
                 break;
             default:
                 bug( "olc_save: Invalid Affect->where (%d)", pAf->where);
@@ -652,33 +664,54 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             
             if (pAf->bitvector == 0)
                 bug( "olc_save: bitvector == 0 for object %d", pObjIndex->vnum ); 
-            fprintf( fp, "%d %d %d\n", pAf->location, pAf->modifier, pAf->bitvector );
+
+            LStbl_kv_str(&affect, "Location", flag_bit_name(apply_flags, pAf->location));
+            LStbl_kv_int(&affect, "Modifier", pAf->modifier);
+            LStbl_kv_int(&affect, "Bitvector", pAf->bitvector);
         }
         if (pAf->detect_level != 0)
-            fprintf( fp, "D %d\n", pAf->detect_level ); 
+            LStbl_kv_int(&affect, "DetectLevel", pAf->detect_level);
+
+        LStbl_release(&affect);
     }
     reverse_affect_order(pObjIndex);
+    LSarr_release(&affects);
     
+    LSarr extradesc;
+    LSarr_create(&extradesc);
+    LStbl_kv_arr(&object, "ExtraDesc", &extradesc);
     for( pEd = pObjIndex->extra_descr; pEd; pEd = pEd->next )
     {
-        rfprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
-            fix_string( pEd->description ) );
+        LStbl ed;
+        LStbl_create(&ed);
+        LSarr_add_tbl(&extradesc, &ed);
+        LStbl_kv_str(&ed, "Keyword", pEd->keyword);
+        LStbl_kv_str(&ed, "Description", fix_string( pEd->description ));
+        LStbl_release(&ed);
     }
+    LSarr_release(&extradesc);
 
     /* save oprogs if any */
-    if (pObjIndex->oprogs != NULL)
+    LSarr otrigs;
+    LSarr_create(&otrigs);
+    LStbl_kv_arr(&object, "OTrigs", &otrigs);
+    PROG_LIST *pOprog;
+    reverse_oprog_order(pObjIndex);
+    for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
     {
-        PROG_LIST *pOprog;
-        reverse_oprog_order(pObjIndex);
-        for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
-        {
-            rfprintf(fp, "O %s %d %s~\n", name_lookup(pOprog->trig_type, oprog_flags), pOprog->vnum, pOprog->trig_phrase);
-        }
-        reverse_oprog_order(pObjIndex); 
+        LStbl otrig;
+        LStbl_create(&otrig);
+        LSarr_add_tbl(&otrigs, &otrig);
+        LStbl_kv_str(&otrig, "Type", name_lookup(pOprog->trig_type, oprog_flags));
+        LStbl_kv_int(&otrig, "Vnum", pOprog->vnum);
+        LStbl_kv_str(&otrig, "Phrase", pOprog->trig_phrase);
+        LStbl_release(&otrig);
     }
+    reverse_oprog_order(pObjIndex); 
+    LSarr_release(&otrigs);
 
-    rfprintf( fp, "N %s~\n", fix_string( pObjIndex->comments ) );
-    
+ 
+    LStbl_release(&object);   
     return;
 }
 
@@ -691,20 +724,20 @@ Purpose:	Save #OBJECTS section of an area file.
 Called by:	save_area(olc_save.c).
 Notes:         Changed for ROM OLC.
 ****************************************************************************/
-void save_objects( FILE *fp, AREA_DATA *pArea )
+void save_objects( LStbl *parent, AREA_DATA *pArea )
 {
     int i;
     OBJ_INDEX_DATA *pObj;
     
-    fprintf( fp, "#OBJECTS\n" );
-    
+    LSarr objects;
+    LSarr_create(&objects);
+    LStbl_kv_arr(parent, "Objects", &objects); 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pObj = get_obj_index( i )) )
-            save_object( fp, pObj );
+            save_object( &objects, pObj );
     }
-    
-    fprintf( fp, "#0\n\n\n\n" );
+    LSarr_release(&objects);
     return;
 }
 
@@ -1184,9 +1217,7 @@ Called by:	do_asave(olc_save.c).
 void save_area( AREA_DATA *pArea )
 {
     struct stat st = {0};
-    FILE *fp;
     int i;
-    char buf[MSL];
     
     if ( pArea == NULL || IS_SET(pArea->area_flags, AREA_CLONE) )
 	return;
@@ -1273,7 +1304,7 @@ void save_area( AREA_DATA *pArea )
 
     
     save_mobbles( &area, pArea );
-    //save_objects( fp, pArea );
+    save_objects( &area, pArea );
     //save_rooms( fp, pArea );
     //save_specials( fp, pArea );
     //save_resets( fp, pArea );
