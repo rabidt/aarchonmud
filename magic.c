@@ -3660,7 +3660,7 @@ DEF_SPELL_FUN(spell_enchant_armor)
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    return spell_enchant_obj(ch, obj, level, buf, check);
+    return spell_enchant_obj(ch, obj, level, buf, check, sn);
 }
 
 DEF_SPELL_FUN(spell_enchant_weapon)
@@ -3678,7 +3678,7 @@ DEF_SPELL_FUN(spell_enchant_weapon)
     arg = one_argument(target_name, buf);
     one_argument(arg, buf);
     
-    return spell_enchant_obj(ch, obj, level, buf, check);
+    return spell_enchant_obj(ch, obj, level, buf, check, sn);
 }
 
 /*
