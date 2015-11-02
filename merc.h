@@ -4597,10 +4597,11 @@ void    paralysis_effect args( (void *vo,int level, int dam, int target));
 /* enchant.c */
 int get_enchant_ops( OBJ_DATA *obj, int level );
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
+void enchant_obj_sn( OBJ_DATA *obj, int ops, int rand_type, int duration, int sn );
 void check_enchant_obj( OBJ_DATA *obj );
 void check_reenchant_obj( OBJ_DATA *obj );
 void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
-bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check );
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check, int sn );
 
 /* fight.c */
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
