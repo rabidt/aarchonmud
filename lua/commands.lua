@@ -410,7 +410,10 @@ local function luaq_results_con( ch, argument, header, result )
 
         table.insert( out, ("Results %d through %d (of %d)."):format( ind, toind, total) )
 
-        sendtochar( ch, table.concat( out, "\n\r").."\n\r")
+        for i,v in ipairs(out) do
+            sendtochar(ch, v.."\n\r")
+        end
+        sendtochar(ch, "\n\r")
         
         if toind==total then
             return
