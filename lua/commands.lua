@@ -1681,6 +1681,73 @@ end
 -- end findreset section
 
 -- diagnostic section
+local function unreach_diag( ch, args )
+    -- Make a list of all candidate rooms
+    local rooms={}
+    for _,area in pairs(getarealist()) do
+        for _,room in pairs(area.rooms) do
+            --if room.ingame then
+                rooms[room]=true
+            --end
+        end
+    end
+
+    -- Queue of rooms to traverse
+    local Q=Queue.new()
+    Queue.pushleft( Q, getroom(10204)  ) -- PS
+
+    while not( Queue.isempty( Q ) ) do
+        local curr=Queue.popleft( Q )
+
+        -- Don't bother with roms already done
+        if rooms[curr] then
+            rooms[curr]=nil
+
+            -- handle normal exits
+            for _,dirname in pairs(curr.exits) do
+                local toroom = curr[dirname].toroom
+                if rooms[toroom] then
+                    Queue.pushright( Q, toroom )
+                end
+            end
+            -- handle portals
+            for _,obj in pairs(curr.contents) do
+                if obj.otype=="portal" then
+                    local toroom=getroom(obj.toroom)
+                    if toroom then
+                        if rooms[toroom] then
+                            Queue.pushright( Q, toroom )
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+
+    local result={}
+    for room,_ in pairs(rooms) do
+        if room.ingame then
+            table.insert( result, room )
+        end
+    end
+    sendtochar( ch, #result )
+
+    table.sort( result, function(a,b) return a.area.name<b.area.name end )
+
+    local out={}
+    for i,room in ipairs(result) do
+        table.insert( out, ("%6d. %s [%6d] %s{x\n\r"):format(
+                    i,
+                    util.format_color_string( room.area.name, 20 ),
+                    room.vnum,
+                    room.name) )
+        if i>1000 then break end
+    end
+
+    pagetochar( ch, table.concat( out ) )
+end
+
 local function CH_diag( ch, args )
     local chs={}
     local reg=debug.getregistry()
@@ -1899,6 +1966,7 @@ diagnostic obj  -- Run OBJ diagnostic.
 diagnostic rexit -- List rooms that have no link to them from room or portal
                     Optional arg 'ingame' to show only ingame rooms.
 diagnostic rexit here -- List all exits leading to current room.
+diagnostic unreach -- List all rooms that are unreachable from the current room (by normal exit or portal).
 ]])
 end
 function do_diagnostic( ch, argument )
@@ -1917,6 +1985,8 @@ function do_diagnostic( ch, argument )
         else
             rexit_diag( ch, args )
         end
+    elseif arg1=="unreach" then
+        unreach_diag( ch, args )
     else
         diagnostic_usage( ch )
     end
