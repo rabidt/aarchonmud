@@ -4025,10 +4025,6 @@ DEF_SPELL_FUN(spell_gate)
 
     ignore_invisible = TRUE;
     if ( ( victim = get_char_world( ch, target_name ) ) == NULL 
-            || IS_TAG(ch) || IS_TAG(victim)
-            || victim->in_room == NULL
-            || !can_see_room(ch,victim->in_room) 
-            || !is_room_ingame(victim->in_room)
             || (!IS_NPC(victim) && victim->level > LEVEL_HERO) ) /*not trust*/
     {
         send_to_char( "You failed completely.\n\r", ch );
@@ -4037,6 +4033,10 @@ DEF_SPELL_FUN(spell_gate)
     ignore_invisible = FALSE;
 
     if ( !can_move_room(ch, victim->in_room, FALSE)
+            ||   IS_TAG(ch) || IS_TAG(victim)
+            ||   victim->in_room == NULL
+            ||   !can_see_room(ch,victim->in_room) 
+            ||   !is_room_ingame(victim->in_room)
             ||   IS_SET(victim->in_room->room_flags, ROOM_JAIL)
             ||   IS_SET(victim->in_room->room_flags, ROOM_NO_TELEPORT) )
     {
