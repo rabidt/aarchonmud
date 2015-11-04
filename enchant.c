@@ -213,13 +213,18 @@ int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
 
 void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
 {
+    enchant_obj_sn(obj, ops, rand_type, duration, 0);
+}
+
+void enchant_obj_sn( OBJ_DATA *obj, int ops, int rand_type, int duration, int sn )
+{
     AFFECT_DATA af;
 
     if ( obj == NULL )
         return;
 
     af.where        = TO_OBJECT;
-    af.type         = 0;
+    af.type         = sn;
     af.level        = 0;
     af.duration     = duration;
     af.bitvector    = 0;
@@ -304,7 +309,7 @@ int get_enchant_cost( OBJ_DATA *obj )
     return 100 + current_ops * current_ops;
 }
 
-bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check )
+bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check, int sn )
 {
     int cost, result, rand_type;
 
@@ -395,6 +400,6 @@ bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool
 
     /* now add the enchantments */ 
     SET_BIT(obj->extra_flags, ITEM_MAGIC);
-    enchant_obj(obj, result, rand_type, AFFDUR_DISENCHANTABLE);
+    enchant_obj_sn(obj, result, rand_type, AFFDUR_DISENCHANTABLE, sn);
     return TRUE;
 }

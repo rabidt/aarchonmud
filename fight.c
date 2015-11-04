@@ -565,7 +565,7 @@ void special_affect_update(CHAR_DATA *ch)
     }
 
     /* shan-ya battle madness */
-    if ( ch->fighting != NULL && !IS_AFFECTED(ch, AFF_BERSERK)
+    if ( ch->fighting != NULL && !is_affected(ch, gsn_shan_ya)
 	 && number_bits(5) == 0 && check_skill(ch, gsn_shan_ya) )
     {
 	AFFECT_DATA af;
@@ -1698,6 +1698,12 @@ static bool has_combat_advantage( CHAR_DATA *ch, CHAR_DATA *victim )
         || (!can_see_combat(victim, ch) && !check_skill(victim, gsn_blindfighting));
 }
 
+static int giantfeller_sizediff( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int size_diff = (victim->size - ch->size) * (1 + get_mastery(ch, gsn_giantfeller));
+    return URANGE(0, size_diff, 3);
+}
+
 /* returns the damage ch deals with one hit */
 int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
@@ -2289,20 +2295,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 		dt = gsn_pistol_whip;
 	    }
 	}
-
-	/* spears do extra damage against large opponents */
-	if ( wield->value[0] == WEAPON_SPEAR
-	     && victim->size > SIZE_MEDIUM )
-	{
-	    if ( number_percent() <= get_skill(ch, gsn_giantfeller) )
-	    {
-		dam += dam * (victim->size - SIZE_MEDIUM) / 10;
-		check_improve( ch, gsn_giantfeller, TRUE, 6 );
-	    }
-	    else
-		dam += dam * (victim->size - SIZE_MEDIUM) / 20;
-	}
-
     }
     else
     {
@@ -2310,6 +2302,21 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 	{
 	    dam += dam / 10;
 	}
+    }
+    
+    /* spears and giant feller do extra damage against larger opponents */
+    int gf_diff = giantfeller_sizediff(ch, victim);
+    if ( gf_diff > 0 )
+    {
+        int skill = get_skill_total(ch, gsn_giantfeller, 0.5);
+        if ( wield && wield->value[0] == WEAPON_SPEAR )
+            skill += 100;
+        // +5% to damage per size difference
+        if ( skill )
+        {
+            dam += dam * gf_diff * skill / 2000;
+            check_improve(ch, gsn_giantfeller, TRUE, 6);
+        }
     }
     
     // extra damage from smite attacks
@@ -2503,10 +2510,11 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         ch_roll = ch_roll * (100 + get_skill(ch, dt) + mastery_bonus(ch, dt, 80, 100)) / 500;
     }    
     
-    if ( victim->size > ch->size )
+    int gf_diff = giantfeller_sizediff(ch, victim);
+    if ( gf_diff > 0 )
     {
-        // +5% to attack roll per size difference
-        ch_roll += ch_roll * (victim->size - ch->size) * get_skill(ch, gsn_giantfeller) / 2000;
+        // +10% to attack roll per size difference
+        ch_roll += ch_roll * gf_diff * get_skill_total(ch, gsn_giantfeller, 0.5) / 1000;
         check_improve(ch, gsn_giantfeller, TRUE, 6);
     }
 
