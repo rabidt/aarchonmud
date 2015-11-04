@@ -1306,7 +1306,7 @@ const struct stance_type stances [] =
 	{ "anklebiter",       STANCE_ANKLEBITER,          0,             "", 
 	  &gsn_anklebiter,           FALSE, TRUE,         8 },
 	{ "arcana",           STANCE_ARCANA,              DAM_ENERGY,    "arcane magic", 
-	  &gsn_arcana,                TRUE, TRUE,         6 },
+	  &gsn_arcana,                TRUE, TRUE,         8 },
 	{ "dimensional blade",STANCE_DIMENSIONAL_BLADE,   0,             "", 
 	  &gsn_dimensional_blade,     FALSE, TRUE,        25 },
 	{ "elemental blade",  STANCE_ELEMENTAL_BLADE,     0,             "", 
