@@ -1091,6 +1091,12 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
         return;
     }
     
+    // check for spell mastery - enables meta-magic
+    char spell_arg[MIL];
+    one_argument(argument, spell_arg);
+    int spell_sn = find_spell(ch, spell_arg);
+    int spell_mastery = spell_sn > 0 ? get_mastery(ch, spell_sn) : 0;
+    
     // parse meta-magic flags requested
     flag_clear(meta_flag);
     for ( i = 0; i < strlen(meta_arg); i++ )
@@ -1109,7 +1115,7 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
         }
         // character has skill?
         int sn = meta_magic_sn(meta);
-        if ( get_skill(ch, sn) )
+        if ( get_skill(ch, sn) || spell_mastery >= 2 )
             flag_set(meta_flag, meta);
         else
             printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
