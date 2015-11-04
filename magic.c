@@ -1998,7 +1998,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
 int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
 {
     int edge = get_skill(ch, gsn_warmage_edge);
-    int bonus = ch->level * edge / 100;
+    if ( ch->stance == STANCE_ARCANA )
+        edge += 100;
+    int bonus = ch->level * edge / 150;
 
     // adjust for casting time
     int cast_time = skill_table[sn].beats;
@@ -2006,7 +2008,7 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
         cast_time /= 2;
     bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
 
-    return bonus;
+    return bonus * (100 + get_focus_bonus(ch)) / 100;
 }
 
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
