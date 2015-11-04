@@ -548,12 +548,25 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     return off_roll <= def_roll;
 }
 
+static void dispel_sn( CHAR_DATA *victim, int sn )
+{
+    char buf[MAX_STRING_LENGTH];
+    
+    affect_strip(victim, sn);
+    if ( skill_table[sn].msg_off )
+    {
+        send_to_char( skill_table[sn].msg_off, victim );
+        send_to_char( "\n\r", victim );
+        sprintf(buf, "The %s %s on $n vanishes.", skill_table[sn].name, IS_SPELL(sn) ? "spell" : "affect");
+        act(buf,victim,NULL,NULL,TO_ROOM);
+    }
+}
+
 /* co-routine for dispel magic and cancellation */
 
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
 {
     AFFECT_DATA *af;
-    char buf[MAX_STRING_LENGTH];
     bool found = FALSE;
 
     /* some affects are hard to dispel */
@@ -577,16 +590,7 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
                 // track if we have already found the affect, so we only attempt dispel once
                 if ( !found && !saves_dispel(dis_level, af->level, af->duration) )
                 {
-                    affect_strip(victim,sn);
-                    if ( skill_table[sn].msg_off )
-                    {
-                        send_to_char( skill_table[sn].msg_off, victim );
-                        send_to_char( "\n\r", victim );
-                        sprintf(buf, "The %s %s on $n vanishes.",
-                                skill_table[sn].name,
-                                IS_SPELL(sn) ? "spell" : "affect" );
-                        act(buf,victim,NULL,NULL,TO_ROOM);
-                    }
+                    dispel_sn(victim, sn);
                     return TRUE;
                 }
                 found = TRUE;
@@ -595,6 +599,17 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
         }
     }
     return FALSE;
+}
+
+static bool check_cancel( int dis_level, CHAR_DATA *victim, int sn )
+{
+    if ( is_offensive(sn) )
+        return check_dispel(dis_level, victim, sn);
+    if ( !is_affected(victim, sn) )
+        return FALSE;
+    // for beneficial spells we automatically succeed
+    dispel_sn(victim, sn);
+    return TRUE;
 }
 
 /* returns wether an affect can be dispelled or canceled 
@@ -2443,7 +2458,7 @@ DEF_SPELL_FUN(spell_cancellation)
 
         SPELL_CHECK_RETURN
         
-        if (can_dispel(sn) && check_dispel(level,victim,sn))
+        if ( can_dispel(sn) && check_cancel(level, victim, sn) )
             send_to_char( "Ok.\n\r", ch);
         else
             send_to_char( "Spell failed.\n\r", ch);
@@ -2454,7 +2469,7 @@ DEF_SPELL_FUN(spell_cancellation)
         
         /* begin running through the spells */
         for (sn = 1; skill_table[sn].name != NULL; sn++)
-            if (can_dispel(sn) && check_dispel(level,victim,sn))
+            if ( can_dispel(sn) && check_cancel(level, victim, sn) )
                 found = TRUE;
 
         if (found)
