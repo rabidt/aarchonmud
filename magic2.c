@@ -3812,19 +3812,20 @@ DEF_SPELL_FUN(spell_shadow_shroud)
         return SR_AFFECTED;
     }
 
-            af.where     = TO_AFFECTS;
-            af.type      = sn;
-            af.level     = level;
-            af.duration  = get_duration(sn, level);
-            af.modifier  = level / 6;
-            af.bitvector = 0;
-            af.location  = APPLY_DEX;
-            affect_to_char(victim,&af);
-            af.location  = APPLY_AGI;
-            affect_to_char(victim,&af);
-            af.location  = APPLY_LUC;
-            affect_to_char(victim,&af);
-
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.modifier  = (20 + level) / 6;
+    af.bitvector = 0;
+    af.location  = APPLY_DEX;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_AGI;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_LUC;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_HITROLL;
+    affect_to_char(victim,&af);
        
     send_to_char( "You are surrounded by darkness.\n\r", victim );
     if ( ch != victim )
