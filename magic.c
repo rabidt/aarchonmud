@@ -548,12 +548,25 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     return off_roll <= def_roll;
 }
 
+static void dispel_sn( CHAR_DATA *victim, int sn )
+{
+    char buf[MAX_STRING_LENGTH];
+    
+    affect_strip(victim, sn);
+    if ( skill_table[sn].msg_off )
+    {
+        send_to_char( skill_table[sn].msg_off, victim );
+        send_to_char( "\n\r", victim );
+        sprintf(buf, "The %s %s on $n vanishes.", skill_table[sn].name, IS_SPELL(sn) ? "spell" : "affect");
+        act(buf,victim,NULL,NULL,TO_ROOM);
+    }
+}
+
 /* co-routine for dispel magic and cancellation */
 
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
 {
     AFFECT_DATA *af;
-    char buf[MAX_STRING_LENGTH];
     bool found = FALSE;
 
     /* some affects are hard to dispel */
@@ -577,16 +590,7 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
                 // track if we have already found the affect, so we only attempt dispel once
                 if ( !found && !saves_dispel(dis_level, af->level, af->duration) )
                 {
-                    affect_strip(victim,sn);
-                    if ( skill_table[sn].msg_off )
-                    {
-                        send_to_char( skill_table[sn].msg_off, victim );
-                        send_to_char( "\n\r", victim );
-                        sprintf(buf, "The %s %s on $n vanishes.",
-                                skill_table[sn].name,
-                                IS_SPELL(sn) ? "spell" : "affect" );
-                        act(buf,victim,NULL,NULL,TO_ROOM);
-                    }
+                    dispel_sn(victim, sn);
                     return TRUE;
                 }
                 found = TRUE;
@@ -595,6 +599,17 @@ bool check_dispel( int dis_level, CHAR_DATA *victim, int sn )
         }
     }
     return FALSE;
+}
+
+static bool check_cancel( int dis_level, CHAR_DATA *victim, int sn )
+{
+    if ( is_offensive(sn) )
+        return check_dispel(dis_level, victim, sn);
+    if ( !is_affected(victim, sn) )
+        return FALSE;
+    // for beneficial spells we automatically succeed
+    dispel_sn(victim, sn);
+    return TRUE;
 }
 
 /* returns wether an affect can be dispelled or canceled 
@@ -1091,6 +1106,12 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
         return;
     }
     
+    // check for spell mastery - enables meta-magic
+    char spell_arg[MIL];
+    one_argument(argument, spell_arg);
+    int spell_sn = find_spell(ch, spell_arg);
+    int spell_mastery = spell_sn > 0 ? get_mastery(ch, spell_sn) : 0;
+    
     // parse meta-magic flags requested
     flag_clear(meta_flag);
     for ( i = 0; i < strlen(meta_arg); i++ )
@@ -1109,7 +1130,7 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
         }
         // character has skill?
         int sn = meta_magic_sn(meta);
-        if ( get_skill(ch, sn) )
+        if ( get_skill(ch, sn) || spell_mastery >= 2 )
             flag_set(meta_flag, meta);
         else
             printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
@@ -1165,7 +1186,7 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
         {
             int sn = meta_magic_sn(flag);
             if ( sn )
-                cost = cost * (200 - mastery_bonus(ch, sn, 40, 50)) / 100;
+                cost = cost * (200 - mastery_bonus(ch, sn, 40, 60)) / 100;
         }
 
     return cost;
@@ -1187,10 +1208,12 @@ int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
     // decrease for combat spells
     if ( skill_table[sn].minimum_position == POS_FIGHTING )
         mana /= 2;
-    // decrease for extend mastery
-    int mastery = get_mastery(ch, sn) + get_mastery(ch, gsn_extend_spell) - 2;
-    int rebate = mastery >= 2 ? 25 : (mastery == 1 ? 20 : 0);
-    mana = mana * (100 - rebate) / 100;
+    // decrease for extend and spell mastery
+    if ( get_skill(ch, gsn_extend_spell) > 0 )
+    {
+        mana = mana * (100 - mastery_bonus(ch, sn, 20, 30)) / 100;
+        mana = mana * (100 - mastery_bonus(ch, gsn_extend_spell, 40, 60)) / 100;
+    }
     
     return mana;
 }
@@ -1302,10 +1325,10 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
             send_to_char("Only spells cast on yourself can be made permanent.\n\r", ch);
             flag_remove(meta_magic, META_MAGIC_PERMANENT);
         }
-        // must have spell grandmastered
-        else if ( get_mastery(ch, sn) + get_mastery(ch, gsn_extend_spell) < 2 )
+        // must have extend spell or spell grandmastered
+        else if ( get_skill(ch, gsn_extend_spell) < 1 && get_mastery(ch, sn) < 2 )
         {
-            ptc(ch, "You must achieve sufficient mastery in %s and/or extend spell first.\n\r", skill_table[sn].name);
+            ptc(ch, "You must first learn extend spell or achieve grand mastery in %s.\n\r", skill_table[sn].name);
             flag_remove(meta_magic, META_MAGIC_PERMANENT);
         }
     }
@@ -1400,7 +1423,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 int mastery_adjust_cost( int cost, int mastery )
 {
     if ( mastery > 0 )
-        return cost - cost * (3 + mastery) / 20;
+        return cost - cost * (1 + mastery) / 10;
     return cost;
 }
 
@@ -2435,7 +2458,7 @@ DEF_SPELL_FUN(spell_cancellation)
 
         SPELL_CHECK_RETURN
         
-        if (can_dispel(sn) && check_dispel(level,victim,sn))
+        if ( can_dispel(sn) && check_cancel(level, victim, sn) )
             send_to_char( "Ok.\n\r", ch);
         else
             send_to_char( "Spell failed.\n\r", ch);
@@ -2446,7 +2469,7 @@ DEF_SPELL_FUN(spell_cancellation)
         
         /* begin running through the spells */
         for (sn = 1; skill_table[sn].name != NULL; sn++)
-            if (can_dispel(sn) && check_dispel(level,victim,sn))
+            if ( can_dispel(sn) && check_cancel(level, victim, sn) )
                 found = TRUE;
 
         if (found)
