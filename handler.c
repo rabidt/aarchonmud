@@ -520,6 +520,11 @@ void reset_char(CHAR_DATA *ch)
         ch->pcdata->morph_time = -1;
         morph_update(ch);
     }
+    
+    // ensure char hp/mana/move don't exceed cap
+    ch->hit = UMIN(ch->hit, hit_cap(ch));
+    ch->mana = UMIN(ch->mana, mana_cap(ch));
+    ch->move = UMIN(ch->move, move_cap(ch));
 }
 
 
