@@ -912,12 +912,14 @@ Name:		save_specials
 Purpose:	Save #SPECIALS section of area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_specials( FILE *fp, AREA_DATA *pArea )
+void save_specials( LStbl *parent, AREA_DATA *pArea )
 {
     int iHash;
     MOB_INDEX_DATA *pMobIndex;
     
-    fprintf( fp, "#SPECIALS\n" );
+    LSarr specials;
+    LSarr_create(&specials);
+    LStbl_kv_arr(parent, "Specials", &specials);
     
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -925,19 +927,19 @@ void save_specials( FILE *fp, AREA_DATA *pArea )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->spec_fun )
             {
-#if defined( VERBOSE )
-                fprintf( fp, "M %d %s Load to: %s\n", pMobIndex->vnum,
-                    spec_name_lookup( pMobIndex->spec_fun ),
-                    pMobIndex->short_descr );
-#else
-                fprintf( fp, "M %d %s\n", pMobIndex->vnum,
-                    spec_name_lookup( pMobIndex->spec_fun ) );
-#endif
+                LStbl special;
+                LStbl_create(&special);
+                LSarr_add_tbl(&specials, &special);
+
+                LStbl_kv_int(&special, "Vnum", pMobIndex->vnum);
+                LStbl_kv_str(&special, "SpecName", spec_name_lookup(pMobIndex->spec_fun));
+
+                LStbl_release(&special);
             }
         }
     }
     
-    fprintf( fp, "S\n\n\n\n" );
+    LSarr_release(&specials);
     return;
 }
 
@@ -1001,7 +1003,7 @@ Name:		save_resets
 Purpose:	Saves the #RESETS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_resets( FILE *fp, AREA_DATA *pArea )
+void save_resets( LStbl *parent,  AREA_DATA *pArea )
 {
     RESET_DATA *pReset;
     MOB_INDEX_DATA *pLastMob = NULL;
@@ -1009,9 +1011,11 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
     ROOM_INDEX_DATA *pRoom;
     char buf[MAX_STRING_LENGTH];
     int iHash;
-    
-    fprintf( fp, "#RESETS\n" );
-    
+
+    LSarr resets;
+    LSarr_create(&resets);
+    LStbl_kv_arr(parent, "Resets", &resets);
+
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
         for( pRoom = room_index_hash[iHash]; pRoom; pRoom = pRoom->next )
@@ -1020,149 +1024,79 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
             {
                 for ( pReset = pRoom->reset_first; pReset; pReset = pReset->next )
                 {
+                    LStbl rst;
+                    LStbl_create(&rst);
+                    LSarr_add_tbl(&resets, &rst);
+
+                    char cmd[2];
+                    sprintf(cmd, "%c", pReset->command);
+                    LStbl_kv_str(&rst, "Command", cmd);
                     switch ( pReset->command )
                     {
-                    default:
-                        bug( "Save_resets: bad command %c.", pReset->command );
-                        break;
-                        
-#if defined( VERBOSE )
-                    case 'M':
-                        pLastMob = get_mob_index( pReset->arg1 );
-                        fprintf( fp, "M 0 %d %d %d %d Load %s\n", 
-                            pReset->arg1,
-                            pReset->arg2,
-                            pReset->arg3,
-                            pReset->arg4,
-                            pLastMob->short_descr );
-                        break;
-                        
-                    case 'O':
-                        pLastObj = get_obj_index( pReset->arg1 );
-                        pRoom = get_room_index( pReset->arg3 );
-                        fprintf( fp, "O 0 %d 0 %d %s loaded to %s\n", 
-                            pReset->arg1,
-                            pReset->arg3,
-                            capitalize(pLastObj->short_descr),
-                            pRoom->name );
-                        break;
-                        
-                    case 'P':
-                        pLastObj = get_obj_index( pReset->arg1 );
-                        fprintf( fp, "P 0 %d %d %d %d %s put inside %s\n", 
-                            pReset->arg1,
-                            pReset->arg2,
-                            pReset->arg3,
-                            pReset->arg4,
-                            capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            pLastObj->short_descr );
-                        break;
-                        
-                    case 'G':
-                        fprintf( fp, "G 0 %d 0 %s is given to %s\n",
-                            pReset->arg1,
-                            capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
-                        if ( !pLastMob )
-                        {
-                            sprintf( buf, "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
-                            bug( buf, 0 );
-                        }
-                        break;
-                        
-                    case 'E':
-                        fprintf( fp, "E 0 %d 0 %d %s is loaded %s of %s\n",
-                            pReset->arg1,
-                            pReset->arg3,
-                            capitalize(get_obj_index( pReset->arg1 )->short_descr),
-                            flag_bit_name(wear_loc_strings, pReset->arg3),
-                            pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
-                        if ( !pLastMob )
-                        {
-                            sprintf( buf, "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
-                            bug( buf, 0 );
-                        }
-                        break;
-                        
-                    case 'D':
-                        break;
-                        
-                    case 'R':
-                        pRoom = get_room_index( pReset->arg1 );
-                        fprintf( fp, "R 0 %d %d Randomize %s\n", 
-                            pReset->arg1,
-                            pReset->arg2,
-                            pRoom->name );
-                        break;
+                        default:
+                            bug( "Save_resets: bad command %c.", pReset->command );
+                            break;
+
+                        case 'M':
+                            pLastMob = get_mob_index( pReset->arg1 );
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
+                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            LStbl_kv_int(&rst, "Arg4", pReset->arg4);
+                            break;
+
+                        case 'O':
+                            pLastObj = get_obj_index( pReset->arg1 );
+                            pRoom = get_room_index( pReset->arg3 );
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            break;
+
+                        case 'P':
+                            pLastObj = get_obj_index( pReset->arg1 );
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
+                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            LStbl_kv_int(&rst, "Arg4", pReset->arg4);
+                            break;
+
+                        case 'G':
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            if ( !pLastMob )
+                            {
+                                sprintf( buf,
+                                        "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
+                                bug( buf, 0 );
+                            }
+                            break;
+
+                        case 'E':
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            if ( !pLastMob )
+                            {
+                                sprintf( buf,
+                                        "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
+                                bug( buf, 0 );
+                            }
+                            break;
+
+                        case 'D':
+                            break;
+
+                        case 'R':
+                            pRoom = get_room_index( pReset->arg1 );
+                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
+                            break;
                     }
-#endif
-#if !defined( VERBOSE )
-                    case 'M':
-                        pLastMob = get_mob_index( pReset->arg1 );
-                        fprintf( fp, "M 0 %d %d %d %d\n", 
-                            pReset->arg1,
-                            pReset->arg2,
-                            pReset->arg3,
-                            pReset->arg4 );
-                        break;
-                        
-                    case 'O':
-                        pLastObj = get_obj_index( pReset->arg1 );
-                        pRoom = get_room_index( pReset->arg3 );
-                        fprintf( fp, "O 0 %d 0 %d\n", 
-                            pReset->arg1,
-                            pReset->arg3 );
-                        // to avoid 'unused' warning when VERBOSE flag is not set
-                        pLastObj = pLastObj;
-                        break;
-                        
-                    case 'P':
-                        pLastObj = get_obj_index( pReset->arg1 );
-                        fprintf( fp, "P 0 %d %d %d %d\n", 
-                            pReset->arg1,
-                            pReset->arg2,
-                            pReset->arg3,
-                            pReset->arg4 );
-                        break;
-                        
-                    case 'G':
-                        fprintf( fp, "G 0 %d 0\n", pReset->arg1 );
-                        if ( !pLastMob )
-                        {
-                            sprintf( buf,
-                                "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
-                            bug( buf, 0 );
-                        }
-                        break;
-                        
-                    case 'E':
-                        fprintf( fp, "E 0 %d 0 %d\n",
-                            pReset->arg1,
-                            pReset->arg3 );
-                        if ( !pLastMob )
-                        {
-                            sprintf( buf,
-                                "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
-                            bug( buf, 0 );
-                        }
-                        break;
-                        
-                    case 'D':
-                        break;
-                        
-                    case 'R':
-                        pRoom = get_room_index( pReset->arg1 );
-                        fprintf( fp, "R 0 %d %d\n", 
-                            pReset->arg1,
-                            pReset->arg2 );
-                        break;
-            }
-#endif
-        }
-        }	/* End if correct area */
-    }	/* End for pRoom */
+
+                    LStbl_release(&rst);
+                }
+            }	/* End if correct area */
+        }	/* End for pRoom */
     }	/* End for iHash */
-    fprintf( fp, "S\n\n\n\n" );
+    LSarr_release(&resets);
     return;
 }
 
@@ -1202,40 +1136,56 @@ Name:		save_shops
 Purpose:	Saves the #SHOPS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_shops( FILE *fp, AREA_DATA *pArea )
+void save_shops( LStbl *parent, AREA_DATA *pArea )
 {
     SHOP_DATA *pShopIndex;
     MOB_INDEX_DATA *pMobIndex;
     int iTrade;
     int iHash;
     
-    fprintf( fp, "#SHOPS\n" );
-    
+    LSarr shops;
+    LSarr_create(&shops);
+    LStbl_kv_arr(parent, "Shops", &shops);
+
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
         for( pMobIndex = mob_index_hash[iHash]; pMobIndex; pMobIndex = pMobIndex->next )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->pShop )
             {
+                LStbl shop;
+                LStbl_create(&shop);
+                LSarr_add_tbl(&shops, &shop);
+
                 pShopIndex = pMobIndex->pShop;
                 
-                fprintf( fp, "%d ", pShopIndex->keeper );
+                LStbl_kv_int(&shop, "Keeper", pShopIndex->keeper);
+
+                LSarr buy_types;
+                LSarr_create(&buy_types);
+                LStbl_kv_arr(&shop, "BuyTypes", &buy_types); 
                 for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
                 {
+
                     if ( pShopIndex->buy_type[iTrade] != 0 )
                     {
-                        fprintf( fp, "%d ", pShopIndex->buy_type[iTrade] );
+                        LSarr_add_str(&buy_types, 
+                                flag_bit_name(type_flags, pShopIndex->buy_type[iTrade]));
                     }
-                    else
-                        fprintf( fp, "0 ");
                 }
-                fprintf( fp, "%d %d ", pShopIndex->profit_buy, pShopIndex->profit_sell );
-                fprintf( fp, "%d %d\n", pShopIndex->open_hour, pShopIndex->close_hour );
+                LSarr_release(&buy_types);
+
+                LStbl_kv_int(&shop, "ProfitBuy", pShopIndex->profit_buy);
+                LStbl_kv_int(&shop, "ProfitSell", pShopIndex->profit_sell);
+                LStbl_kv_int(&shop, "OpenHour", pShopIndex->open_hour);
+                LStbl_kv_int(&shop, "CloseHour", pShopIndex->close_hour);
+
+                LStbl_release(&shop);
             }
         }
     }
     
-    fprintf( fp, "0\n\n\n\n" );
+    LSarr_release(&shops);
     return;
 }
 
@@ -1338,9 +1288,9 @@ void save_area( AREA_DATA *pArea )
     save_mobbles( &area, pArea );
     save_objects( &area, pArea );
     save_rooms( &area, pArea );
-    //save_specials( fp, pArea );
-    //save_resets( fp, pArea );
-    //save_shops( fp, pArea );
+    save_specials( &area, pArea );
+    save_resets( &area, pArea );
+    save_shops( &area, pArea );
     //save_bossachievements( fp, pArea );
     //save_mobprogs( fp, pArea );
     //save_objprogs( fp, pArea );
