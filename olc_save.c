@@ -750,7 +750,7 @@ Name:		save_rooms
 Purpose:	Save #ROOMS section of an area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_rooms( FILE *fp, AREA_DATA *pArea )
+void save_rooms( LStbl *parent, AREA_DATA *pArea )
 {
     ROOM_INDEX_DATA *pRoomIndex;
     EXTRA_DESCR_DATA *pEd;
@@ -758,26 +758,49 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
     int iHash;
     int door;
     
-    fprintf( fp, "#ROOMS\n" );
+    LSarr rooms;
+    LSarr_create( &rooms );
+    LStbl_kv_arr( parent, "Rooms", &rooms);
+
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
         for( pRoomIndex = room_index_hash[iHash]; pRoomIndex; pRoomIndex = pRoomIndex->next )
         {
             if ( pRoomIndex->area == pArea )
             {
-                fprintf( fp, "#%d\n",		pRoomIndex->vnum );
-                rfprintf( fp, "%s~\n",		pRoomIndex->name );
-                rfprintf( fp, "%s~\n",		fix_string( pRoomIndex->description ) );
-                fprintf( fp, "0 " );
-                fprintf( fp, "%s ",		print_tflag(pRoomIndex->room_flags) );
-                fprintf( fp, "%d\n",		pRoomIndex->sector_type );
-                
+                LStbl room;
+                LStbl_create(&room);
+                LSarr_add_tbl(&rooms, &room);
+
+                LStbl_kv_int(&room, "Vnum", pRoomIndex->vnum);
+                LStbl_kv_str(&room, "Name", pRoomIndex->name);
+                LStbl_kv_str(&room, "Description", 
+                        fix_string(pRoomIndex->description));
+
+                LStbl_kv_flags(&room, "RoomFlags", room_flags, 
+                        pRoomIndex->room_flags);
+                LStbl_kv_str(&room, "SectorType", 
+                        flag_bit_name(sector_flags, pRoomIndex->sector_type));
+
+                LSarr extra_descr;
+                LSarr_create(&extra_descr);
                 for ( pEd = pRoomIndex->extra_descr; pEd;
                 pEd = pEd->next )
                 {
-                    rfprintf( fp, "E\n%s~\n%s~\n", pEd->keyword,
-                        fix_string( pEd->description ) );
+                    LStbl ed;
+                    LStbl_create(&ed);
+                    LSarr_add_tbl(&extra_descr, &ed);
+
+                    LStbl_kv_str(&ed, "Keyword", pEd->keyword);
+                    LStbl_kv_str(&ed, "Description",
+                            fix_string(pEd->description));
+                    LStbl_release(&ed);
                 }
+                LSarr_release(&extra_descr);
+
+                LSarr exits;
+                LSarr_create(&exits);
+                LStbl_kv_arr(&room, "Exits", &exits);
                 for( door = 0; door < MAX_DIR; door++ )	/* I hate this! */
                 {
                     if ( ( pExit = pRoomIndex->exit[door] )
@@ -802,74 +825,83 @@ void save_rooms( FILE *fp, AREA_DATA *pArea )
                         else
                             REMOVE_BIT(pExit->rs_flags, EX_ISDOOR);
 			*/
-                        
-                        /* THIS SUCKS but it's backwards compatible */
-                        /* NOTE THAT EX_NOCLOSE NOLOCK etc aren't being saved */
-                        
-			/* we don't don't need that crap anymore --Bobble
-                        if ( IS_SET( pExit->rs_flags, EX_ISDOOR ) 
-                            && ( !IS_SET( pExit->rs_flags, EX_PICKPROOF ) ) 
-                            && ( !IS_SET( pExit->rs_flags, EX_NOPASS ) ) )
-                            locks = 1;
-                        if ( IS_SET( pExit->rs_flags, EX_ISDOOR )
-                            && ( IS_SET( pExit->rs_flags, EX_PICKPROOF ) )
-                            && ( !IS_SET( pExit->rs_flags, EX_NOPASS ) ) )
-                            locks = 2;
-                        if ( IS_SET( pExit->rs_flags, EX_ISDOOR )
-                            && ( !IS_SET( pExit->rs_flags, EX_PICKPROOF ) )
-                            && ( IS_SET( pExit->rs_flags, EX_NOPASS ) ) )
-                            locks = 3;
-                        if ( IS_SET( pExit->rs_flags, EX_ISDOOR )
-                            && ( IS_SET( pExit->rs_flags, EX_PICKPROOF ) )
-                            && ( IS_SET( pExit->rs_flags, EX_NOPASS ) ) )
-                            locks = 4;
-			*/
-                        
-                        fprintf( fp, "D%d\n",      pExit->orig_door );
-                        rfprintf( fp, "%s~\n",      fix_string( pExit->description ) );
-                        rfprintf( fp, "%s~\n",      pExit->keyword );
-                        fprintf( fp, "%s %d %d\n",
-                        print_tflag(pExit->rs_flags),
-                        pExit->key,
-                        pExit->u1.to_room->vnum );
+                        LStbl ex;
+                        LStbl_create(&ex);
+                        LSarr_add_tbl(&exits, &ex);
+
+                        LStbl_kv_str(&ex, "Direction", 
+                                dir_name[pExit->orig_door]);
+                        LStbl_kv_str(&ex, "Description", 
+                                fix_string(pExit->description));
+                        LStbl_kv_str(&ex, "Keyword", pExit->keyword);
+                        LStbl_kv_flags(&ex, "Flags", exit_flags, 
+                                pExit->rs_flags);
+                        LStbl_kv_int(&ex, "Key", pExit->key);
+                        LStbl_kv_int(&ex, "Destination", pExit->u1.to_room->vnum);
 			/*
                         fprintf( fp, "%d %d %d\n", locks,
                             pExit->key,
                             pExit->u1.to_room->vnum );
 			*/
+                        LStbl_release(&ex);
                     }
                 }
+                LSarr_release(&exits);
+
                 if (pRoomIndex->mana_rate != 100 || pRoomIndex->heal_rate != 100)
-                    fprintf ( fp, "M %d H %d\n",pRoomIndex->mana_rate,
-                    pRoomIndex->heal_rate);
+                {
+                    LStbl_kv_int(&room, "ManaRate", pRoomIndex->mana_rate);
+                    LStbl_kv_int(&room, "HealRate", pRoomIndex->heal_rate);
+                }
+
                 if (pRoomIndex->clan > 0)
-                    rfprintf ( fp, "C %s~\n" , clan_table[pRoomIndex->clan].name );
+                {
+                    LStbl_kv_str(&room, "Clan", clan_table[pRoomIndex->clan].name);
+                }
                 
                 if (pRoomIndex->clan_rank > 0 && pRoomIndex->clan > 0)
-                    rfprintf ( fp, "R %s~\n" , clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name );      
+                {
+                    LStbl_kv_str(&room, "ClanRank", clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name);
+
+                }
                 
                 if (!IS_NULLSTR(pRoomIndex->owner))
-                    rfprintf ( fp, "O %s~\n" , pRoomIndex->owner );
+                {
+                    LStbl_kv_str(&room, "Owner", pRoomIndex->owner);
+                }
                 
                 /* save rprogs if any */
                 if (pRoomIndex->rprogs != NULL)
                 {
+                    LSarr rprogs;
+                    LSarr_create(&rprogs);
+                    LStbl_kv_arr(&room, "RProgs", &rprogs);
+
                     PROG_LIST *pRprog;
                     reverse_rprog_order(pRoomIndex);
                     for (pRprog = pRoomIndex->rprogs; pRprog; pRprog = pRprog->next)
                     {
-                        rfprintf(fp, "P %s %d %s~\n", name_lookup(pRprog->trig_type, rprog_flags), pRprog->vnum, pRprog->trig_phrase);
+                        LStbl prog;
+                        LStbl_create(&prog);
+                        LSarr_add_tbl(&rprogs, &prog);
+                        LStbl_kv_str(&prog, "TrigType", name_lookup(pRprog->trig_type, rprog_flags));
+                        LStbl_kv_int(&prog, "Vnum", pRprog->vnum);
+                        LStbl_kv_str(&prog, "Phrase", pRprog->trig_phrase);
+
+                        LStbl_release(&prog);
                     }
                     reverse_rprog_order(pRoomIndex);
+
+                    LSarr_release(&rprogs);
                 }
 
-                rfprintf ( fp, "N %s~\n", pRoomIndex->comments );
+                LStbl_kv_str(&room, "Comments", pRoomIndex->comments);
                 
-                fprintf( fp, "S\n" );
+                LStbl_release(&room);
             }
         }
     }
-    fprintf( fp, "#0\n\n\n\n" );
+    LSarr_release(&rooms);
     return;
 }
 
@@ -1305,7 +1337,7 @@ void save_area( AREA_DATA *pArea )
     
     save_mobbles( &area, pArea );
     save_objects( &area, pArea );
-    //save_rooms( fp, pArea );
+    save_rooms( &area, pArea );
     //save_specials( fp, pArea );
     //save_resets( fp, pArea );
     //save_shops( fp, pArea );
