@@ -605,7 +605,7 @@ local function LSAVE_serialize( tbl, indent )
     for i,v in ipairs(tbl) do
         table.insert( out, indent.."  " )
         if v.LKEY then -- array don't use LKEY
-            print("LKEY: "..v.LKEY)
+            --print("LKEY: "..v.LKEY)
             if type(v.LKEY)=="number" then
                 table.insert( out, string.format( "[%d] = ", v.LKEY ) )
             elseif type(v.LKEY)=="string" then
@@ -619,7 +619,7 @@ local function LSAVE_serialize( tbl, indent )
             end
         end
 
-        print("LVAL: "..tostring(v.LVAL))
+        --print("LVAL: "..tostring(v.LVAL))
         if type(v.LVAL)=="number" or type(v.LVAL)=="boolean" then
             table.insert( out, tostring(v.LVAL) )
         elseif type(v.LVAL)=="string" then
