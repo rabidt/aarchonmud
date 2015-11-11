@@ -34,7 +34,7 @@
 //#define DIF(a,b) (~((~a)|(b)))
 #define DIF(a,b,c) flag_copy(a,b); flag_remove_field(a,c)
 
-void save_helps( FILE *fp, HELP_AREA *ha );
+void save_helps( LStbl *parent, HELP_AREA *ha );
 void save_other_helps( void );
 void save_skills();
 void reverse_mprog_order args( (MOB_INDEX_DATA *pMobIndex) );
@@ -274,92 +274,120 @@ void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
     pRoom->rprogs->next = new_rprog_list;
 }
 
-void save_mobprogs( FILE *fp, AREA_DATA *pArea )
+void save_mobprogs( LStbl *parent, AREA_DATA *pArea )
 {
     PROG_CODE *pMprog;
     int i;
     
-    fprintf(fp, "#MOBPROGS\n");
+    LSarr progs;
+    LSarr_create(&progs);
+    LStbl_kv_arr(parent, "MobProgs", &progs);
     
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
-		          fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "LUA %d\n", pMprog->is_lua);
-                  fprintf(fp, "SEC %d\n", pMprog->security);
-                  rfprintf(fp, "CODE %s~\n", fix_string(pMprog->code));
-                  fprintf(fp, "End\n");
+            LStbl prog;
+            LStbl_create(&prog);
+            LSarr_add_tbl(&progs, &prog);
+
+            LStbl_kv_int(&prog, "Vnum", i);
+            LStbl_kv_bool(&prog, "Lua", pMprog->is_lua);
+            LStbl_kv_int(&prog, "Security", pMprog->security);
+            LStbl_kv_str(&prog, "Code", fix_string(pMprog->code));
+
+            LStbl_release(&prog);
         }
     }
     
-    fprintf(fp,"#0\n\n");
+    LSarr_release(&progs);
     return;
 }
 
-void save_objprogs( FILE *fp, AREA_DATA *pArea )
+void save_objprogs( LStbl *parent, AREA_DATA *pArea )
 {
     PROG_CODE *pOprog;
     int i;
 
-    fprintf(fp, "#OBJPROGS\n");
+    LSarr progs;
+    LSarr_create(&progs);
+    LStbl_kv_arr(parent, "ObjProgs", &progs);
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pOprog = get_oprog_index(i) ) != NULL)
         {
-                  fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "SEC %d\n", pOprog->security);
-                  rfprintf(fp, "CODE %s~\n", fix_string(pOprog->code));
-                  fprintf(fp, "End\n");
+            LStbl prog;
+            LStbl_create(&prog);
+            LSarr_add_tbl(&progs, &prog);
+
+            LStbl_kv_int(&prog, "Vnum", i);
+            LStbl_kv_int(&prog, "Security", pOprog->security);
+            LStbl_kv_str(&prog, "Code", fix_string(pOprog->code));
+
+            LStbl_release(&prog);
         }
     }
 
-    fprintf(fp,"#0\n\n");
+    LSarr_release(&progs);
     return;
 }
 
-void save_areaprogs( FILE *fp, AREA_DATA *pArea )
+void save_areaprogs( LStbl *parent, AREA_DATA *pArea )
 {
     PROG_CODE *pAprog;
     int i;
 
-    fprintf(fp, "#AREAPROGS\n");
+    LSarr progs;
+    LSarr_create(&progs);
+    LStbl_kv_arr(parent, "AreaProgs", &progs);
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pAprog = get_aprog_index(i) ) != NULL)
         {
-                  fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "SEC %d\n", pAprog->security);
-                  rfprintf(fp, "CODE %s~\n", fix_string(pAprog->code));
-                  fprintf(fp, "End\n");
+            LStbl prog;
+            LStbl_create(&prog);
+            LSarr_add_tbl(&progs, &prog);
+
+            LStbl_kv_int(&prog, "Vnum", i);
+            LStbl_kv_int(&prog, "Security", pAprog->security);
+            LStbl_kv_str(&prog, "Code", fix_string(pAprog->code));
+
+            LStbl_release(&prog);
         }
     }
 
-    fprintf(fp,"#0\n\n");
+    LSarr_release(&progs);
     return;
 }
 
-void save_roomprogs( FILE *fp, AREA_DATA *pArea )
+void save_roomprogs( LStbl *parent, AREA_DATA *pArea )
 {
     PROG_CODE *pRprog;
     int i;
 
-    fprintf(fp, "#ROOMPROGS\n");
+    LSarr progs;
+    LSarr_create(&progs);
+    LStbl_kv_arr(parent, "RoomProgs", &progs);
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pRprog = get_rprog_index(i) ) != NULL)
         {
-                  fprintf(fp, "#%d\n", i);
-                  fprintf(fp, "SEC %d\n", pRprog->security);
-                  rfprintf(fp, "CODE %s~\n", fix_string(pRprog->code));
-                  fprintf(fp, "End\n");
+            LStbl prog;
+            LStbl_create(&prog);
+            LSarr_add_tbl(&progs, &prog);
+
+            LStbl_kv_int(&prog, "Vnum", i);
+            LStbl_kv_int(&prog, "Security", pRprog->security);
+            LStbl_kv_str(&prog, "Code", fix_string(pRprog->code));
+
+            LStbl_release(&prog);
         }
     }
 
-    fprintf(fp,"#0\n\n");
+    LSarr_release(&progs);
     return;
 }
 
@@ -1100,33 +1128,40 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
     return;
 }
 
-void save_bossachievements( FILE *fp, AREA_DATA *pArea )
+void save_bossachievements( LStbl *parent, AREA_DATA *pArea )
 {
     BOSSACHV *pBoss;
     MOB_INDEX_DATA *pMobIndex;
     int iHash;
     
-    fprintf( fp, "#BOSSACHV\n" );
-    
+    LSarr achvs;
+    LSarr_create(&achvs);
+    LStbl_kv_arr(parent, "BossAchievements", &achvs);
+
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
         for( pMobIndex = mob_index_hash[iHash]; pMobIndex; pMobIndex = pMobIndex->next )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->boss_achieve )
             {
+                LStbl achv;
+                LStbl_create(&achv);
+                LSarr_add_tbl(&achvs, &achv);
+
                 pBoss = pMobIndex->boss_achieve;
                 
-                fprintf( fp, "%d ", pMobIndex->vnum);
-                fprintf( fp, "%d %d %d %d\n",
-                        pBoss->exp_reward,
-                        pBoss->gold_reward,
-                        pBoss->quest_reward,
-                        pBoss->ach_reward);
+                LStbl_kv_int(&achv, "Vnum", pMobIndex->vnum);
+                LStbl_kv_int(&achv, "ExpReward", pBoss->exp_reward);
+                LStbl_kv_int(&achv, "GoldReward", pBoss->gold_reward);
+                LStbl_kv_int(&achv, "QuestReward", pBoss->quest_reward);
+                LStbl_kv_int(&achv, "AchReward", pBoss->ach_reward);
+
+                LStbl_release(&achv);
             }
         }
     }
-    
-    fprintf( fp, "0\n\n\n\n" );
+   
+    LSarr_release(&achvs); 
     return;
 }
 
@@ -1198,6 +1233,7 @@ Called by:	do_asave(olc_save.c).
 ****************************************************************************/
 void save_area( AREA_DATA *pArea )
 {
+    char buf[MSL];
     struct stat st = {0};
     int i;
     
@@ -1291,17 +1327,18 @@ void save_area( AREA_DATA *pArea )
     save_specials( &area, pArea );
     save_resets( &area, pArea );
     save_shops( &area, pArea );
-    //save_bossachievements( fp, pArea );
-    //save_mobprogs( fp, pArea );
-    //save_objprogs( fp, pArea );
-	//save_areaprogs( fp, pArea );
-    //save_roomprogs( fp, pArea );
+    save_bossachievements( &area, pArea );
+    save_mobprogs( &area, pArea );
+    save_objprogs( &area, pArea );
+	save_areaprogs( &area, pArea );
+    save_roomprogs( &area, pArea );
     
-    //if ( pArea->helps && pArea->helps->first )
-    //    save_helps( fp, pArea->helps );
+    if ( pArea->helps && pArea->helps->first )
+        save_helps( &area, pArea->helps );
     
     
-    LStbl_save( &area, "Test1.lua");
+    sprintf(buf, "%s.lua", pArea->file_name);
+    LStbl_save( &area, buf);
     LStbl_release( &area );
 
     return;
@@ -1527,23 +1564,31 @@ DEF_DO_FUN(do_asave)
 
 
 
-void save_helps( FILE *fp, HELP_AREA *ha )
+void save_helps( LStbl *parent, HELP_AREA *ha )
 {
     HELP_DATA *help = ha->first;
     
-    fprintf( fp, "#HELPS\n" );
+    LSarr helps;
+    LSarr_create(&helps);
+    LStbl_kv_arr(parent, "Helps", &helps);
     
     for ( ; help; help = help->next_area )
     {
         if(help->delete)
             continue;
         
-        rfprintf( fp, "%d %s~\n", help->level, help->keyword );
-        rfprintf( fp, "%s~\n\n", fix_string( help->text ) );
+        LStbl h;
+        LStbl_create(&h);
+        LSarr_add_tbl(&helps, &h);
+
+        LStbl_kv_int(&h, "Level", help->level);
+        LStbl_kv_str(&h, "Keyword", help->keyword);
+        LStbl_kv_str(&h, "Text", fix_string(help->text));
+
+        LStbl_release(&h);
     }
     
-    fprintf( fp, "-1 $~\n\n" );
-    
+    LSarr_release(&helps); 
     return;
 }
 
@@ -1551,23 +1596,22 @@ void save_other_helps( void )
 {
     extern HELP_AREA * had_list;
     HELP_AREA *ha;
-    FILE *fp;
-    
+    char buf[MSL];
+
     for ( ha = had_list; ha; ha = ha->next )
+    {
         if ( ha->area == NULL )
         {
-            fp = fopen( ha->filename, "w" );
-            
-            if ( !fp )
-            {
-                log_error( ha->filename );
-                return;
-            }
-            
-            save_helps( fp, ha );
-            fprintf( fp, "#$\n" );
-            fclose( fp );
+            LStbl h;
+            LStbl_create(&h);
+
+            save_helps( &h, ha );
+
+            sprintf(buf, "%s.lua", buf);
+            LStbl_save(&h, buf);
+            LStbl_release(&h);
         }
-        
-        return;
+    }
+
+    return;
 }

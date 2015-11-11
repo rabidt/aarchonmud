@@ -27,7 +27,7 @@ void LStbl_save( LStbl *tbl, const char *filename )
 {
     lua_getglobal( LS, "LSAVE_table" );
     lua_pushvalue( LS, tbl->ref );
-    logpf("save ref: %d", tbl->ref);
+    //logpf("save ref: %d", tbl->ref);
     lua_pushstring( LS, filename );
     lua_call( LS, 2, 0 );
 }
