@@ -34,7 +34,7 @@
 //#define DIF(a,b) (~((~a)|(b)))
 #define DIF(a,b,c) flag_copy(a,b); flag_remove_field(a,c)
 
-void save_helps( LStbl *parent, HELP_AREA *ha );
+void save_helps( LSF *parent, HELP_AREA *ha );
 void save_other_helps( void );
 void save_skills();
 void reverse_mprog_order args( (MOB_INDEX_DATA *pMobIndex) );
@@ -274,120 +274,104 @@ void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
     pRoom->rprogs->next = new_rprog_list;
 }
 
-void save_mobprogs( LStbl *parent, AREA_DATA *pArea )
+void save_mobprogs( LSF *lsfp, AREA_DATA *pArea )
 {
     PROG_CODE *pMprog;
     int i;
     
-    LSarr progs;
-    LSarr_create(&progs);
-    LStbl_kv_arr(parent, "MobProgs", &progs);
+    LSF_kv_tbl(lsfp, "MobProgs");
     
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pMprog = get_mprog_index(i) ) != NULL)
         {
-            LStbl prog;
-            LStbl_create(&prog);
-            LSarr_add_tbl(&progs, &prog);
+            LSF_add_tbl(lsfp);
 
-            LStbl_kv_int(&prog, "Vnum", i);
-            LStbl_kv_bool(&prog, "Lua", pMprog->is_lua);
-            LStbl_kv_int(&prog, "Security", pMprog->security);
-            LStbl_kv_str(&prog, "Code", fix_string(pMprog->code));
+            LSF_kv_int(lsfp, "Vnum", i);
+            LSF_kv_bool(lsfp, "Lua", pMprog->is_lua);
+            LSF_kv_int(lsfp, "Security", pMprog->security);
+            LSF_kv_str(lsfp, "Code", fix_string(pMprog->code));
 
-            LStbl_release(&prog);
+            LSF_end_tbl(lsfp);
         }
     }
     
-    LSarr_release(&progs);
+    LSF_end_tbl(lsfp);
     return;
 }
 
-void save_objprogs( LStbl *parent, AREA_DATA *pArea )
+void save_objprogs( LSF *lsfp, AREA_DATA *pArea )
 {
     PROG_CODE *pOprog;
     int i;
 
-    LSarr progs;
-    LSarr_create(&progs);
-    LStbl_kv_arr(parent, "ObjProgs", &progs);
+    LSF_kv_tbl(lsfp, "ObjProgs");
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pOprog = get_oprog_index(i) ) != NULL)
         {
-            LStbl prog;
-            LStbl_create(&prog);
-            LSarr_add_tbl(&progs, &prog);
+            LSF_add_tbl(lsfp);
 
-            LStbl_kv_int(&prog, "Vnum", i);
-            LStbl_kv_int(&prog, "Security", pOprog->security);
-            LStbl_kv_str(&prog, "Code", fix_string(pOprog->code));
+            LSF_kv_int(lsfp, "Vnum", i);
+            LSF_kv_int(lsfp, "Security", pOprog->security);
+            LSF_kv_str(lsfp, "Code", fix_string(pOprog->code));
 
-            LStbl_release(&prog);
+            LSF_end_tbl(lsfp);
         }
     }
 
-    LSarr_release(&progs);
+    LSF_end_tbl(lsfp);
     return;
 }
 
-void save_areaprogs( LStbl *parent, AREA_DATA *pArea )
+void save_areaprogs( LSF *lsfp, AREA_DATA *pArea )
 {
     PROG_CODE *pAprog;
     int i;
 
-    LSarr progs;
-    LSarr_create(&progs);
-    LStbl_kv_arr(parent, "AreaProgs", &progs);
+    LSF_kv_tbl(lsfp, "AreaProgs");
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pAprog = get_aprog_index(i) ) != NULL)
         {
-            LStbl prog;
-            LStbl_create(&prog);
-            LSarr_add_tbl(&progs, &prog);
+            LSF_add_tbl(lsfp);
 
-            LStbl_kv_int(&prog, "Vnum", i);
-            LStbl_kv_int(&prog, "Security", pAprog->security);
-            LStbl_kv_str(&prog, "Code", fix_string(pAprog->code));
+            LSF_kv_int(lsfp, "Vnum", i);
+            LSF_kv_int(lsfp, "Security", pAprog->security);
+            LSF_kv_str(lsfp, "Code", fix_string(pAprog->code));
 
-            LStbl_release(&prog);
+            LSF_end_tbl(lsfp);
         }
     }
 
-    LSarr_release(&progs);
+    LSF_end_tbl(lsfp);
     return;
 }
 
-void save_roomprogs( LStbl *parent, AREA_DATA *pArea )
+void save_roomprogs( LSF *lsfp, AREA_DATA *pArea )
 {
     PROG_CODE *pRprog;
     int i;
 
-    LSarr progs;
-    LSarr_create(&progs);
-    LStbl_kv_arr(parent, "RoomProgs", &progs);
+    LSF_kv_tbl(lsfp, "RoomProgs");
 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pRprog = get_rprog_index(i) ) != NULL)
         {
-            LStbl prog;
-            LStbl_create(&prog);
-            LSarr_add_tbl(&progs, &prog);
+            LSF_add_tbl(lsfp);
 
-            LStbl_kv_int(&prog, "Vnum", i);
-            LStbl_kv_int(&prog, "Security", pRprog->security);
-            LStbl_kv_str(&prog, "Code", fix_string(pRprog->code));
+            LSF_kv_int(lsfp, "Vnum", i);
+            LSF_kv_int(lsfp, "Security", pRprog->security);
+            LSF_kv_str(lsfp, "Code", fix_string(pRprog->code));
 
-            LStbl_release(&prog);
+            LSF_end_tbl(lsfp);
         }
     }
 
-    LSarr_release(&progs);
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -403,99 +387,93 @@ Name:           save_mobble
 Purpose:        Save one mobile to file, extra-new format -- Bobble
 Called by:      save_mobbles (below).
 ****************************************************************************/
-void save_mobble( LSarr *parent, MOB_INDEX_DATA *pMobIndex )
+void save_mobble( LSF *lsfp, MOB_INDEX_DATA *pMobIndex )
 {
-    LStbl mobble;
-    LStbl_create( &mobble );
-    LSarr_add_tbl( parent, &mobble );
+    LSF_add_tbl( lsfp);
     sh_int race = pMobIndex->race;
     PROG_LIST *pMprog;
     
-    LStbl_kv_int( &mobble, "Vnum", pMobIndex->vnum );
-    LStbl_kv_str( &mobble, "Name", pMobIndex->player_name );
-    LStbl_kv_str( &mobble, "ShortDescr", pMobIndex->short_descr);
-    LStbl_kv_str( &mobble, "LongDescr", pMobIndex->long_descr);
-    LStbl_kv_str( &mobble, "Description", pMobIndex->description);
-    LStbl_kv_str( &mobble, "Comments", pMobIndex->comments);
-    LStbl_kv_str( &mobble, "Race", race_table[race].name);
-    LStbl_kv_str( &mobble, "Sex", sex_table[pMobIndex->sex].name);
+    LSF_kv_int( lsfp, "Vnum", pMobIndex->vnum );
+    LSF_kv_str( lsfp, "Name", pMobIndex->player_name );
+    LSF_kv_str( lsfp, "ShortDescr", pMobIndex->short_descr);
+    LSF_kv_str( lsfp, "LongDescr", pMobIndex->long_descr);
+    LSF_kv_str( lsfp, "Description", pMobIndex->description);
+    LSF_kv_str( lsfp, "Comments", pMobIndex->comments);
+    LSF_kv_str( lsfp, "Race", race_table[race].name);
+    LSF_kv_str( lsfp, "Sex", sex_table[pMobIndex->sex].name);
     
 
     if (!flag_equal(pMobIndex->act, race_table[race].act))
-        LStbl_kv_flags(&mobble, "Act", act_flags, pMobIndex->act);
+        LSF_kv_flags(lsfp, "Act", act_flags, pMobIndex->act);
     if (!flag_equal(pMobIndex->affect_field, race_table[race].affect_field))
-        LStbl_kv_flags(&mobble, "Affects", affect_flags, pMobIndex->affect_field);
+        LSF_kv_flags(lsfp, "Affects", affect_flags, pMobIndex->affect_field);
     if (!flag_equal(pMobIndex->off_flags, race_table[race].off))
-        LStbl_kv_flags(&mobble, "Offensive", off_flags, pMobIndex->off_flags);
+        LSF_kv_flags(lsfp, "Offensive", off_flags, pMobIndex->off_flags);
     if (!flag_equal(pMobIndex->imm_flags, race_table[race].imm))
-        LStbl_kv_flags(&mobble, "Immune", imm_flags, pMobIndex->imm_flags);
+        LSF_kv_flags(lsfp, "Immune", imm_flags, pMobIndex->imm_flags);
     if (!flag_equal(pMobIndex->res_flags, race_table[race].res))
-        LStbl_kv_flags(&mobble, "Resist", res_flags, pMobIndex->res_flags);
+        LSF_kv_flags(lsfp, "Resist", res_flags, pMobIndex->res_flags);
     if (!flag_equal(pMobIndex->vuln_flags, race_table[race].vuln))
-        LStbl_kv_flags(&mobble, "Vuln", vuln_flags, pMobIndex->vuln_flags);
+        LSF_kv_flags(lsfp, "Vuln", vuln_flags, pMobIndex->vuln_flags);
 
     if (!flag_equal(pMobIndex->form, race_table[race].form))
-        LStbl_kv_flags(&mobble, "Form", form_flags, pMobIndex->form);
+        LSF_kv_flags(lsfp, "Form", form_flags, pMobIndex->form);
     if (!flag_equal(pMobIndex->parts, race_table[race].parts))
-       LStbl_kv_flags(&mobble, "Parts", part_flags, pMobIndex->parts);
+       LSF_kv_flags(lsfp, "Parts", part_flags, pMobIndex->parts);
 
-    LStbl_kv_int(&mobble, "Level", pMobIndex->level);
+    LSF_kv_int(lsfp, "Level", pMobIndex->level);
 
     if (pMobIndex->hitpoint_percent != 100)
-        LStbl_kv_int(&mobble, "HpPcnt", pMobIndex->hitpoint_percent);
+        LSF_kv_int(lsfp, "HpPcnt", pMobIndex->hitpoint_percent);
     if (pMobIndex->mana_percent != 100)
-        LStbl_kv_int(&mobble, "ManaPcnt", pMobIndex->mana_percent);
+        LSF_kv_int(lsfp, "ManaPcnt", pMobIndex->mana_percent);
     if (pMobIndex->move_percent != 100)
-        LStbl_kv_int(&mobble, "MovePcnt", pMobIndex->move_percent);
+        LSF_kv_int(lsfp, "MovePcnt", pMobIndex->move_percent);
     if (pMobIndex->hitroll_percent != 100)
-        LStbl_kv_int(&mobble, "HitrollPcnt", pMobIndex->hitpoint_percent);
+        LSF_kv_int(lsfp, "HitrollPcnt", pMobIndex->hitpoint_percent);
     if (pMobIndex->damage_percent != 100)
-        LStbl_kv_int(&mobble, "DamrollPcnt", pMobIndex->damage_percent);
+        LSF_kv_int(lsfp, "DamrollPcnt", pMobIndex->damage_percent);
     if (pMobIndex->ac_percent != 100)
-        LStbl_kv_int(&mobble, "AcPcnt", pMobIndex->ac_percent);
+        LSF_kv_int(lsfp, "AcPcnt", pMobIndex->ac_percent);
     if (pMobIndex->saves_percent != 100)
-        LStbl_kv_int(&mobble, "SavesPcnt", pMobIndex->saves_percent);
+        LSF_kv_int(lsfp, "SavesPcnt", pMobIndex->saves_percent);
     if (pMobIndex->wealth_percent != 100)
-        LStbl_kv_int(&mobble, "WealthPcnt", pMobIndex->wealth_percent);
+        LSF_kv_int(lsfp, "WealthPcnt", pMobIndex->wealth_percent);
     
-    LStbl_kv_str(&mobble, "DamtypeName", attack_table[pMobIndex->dam_type].name);
+    LSF_kv_str(lsfp, "DamtypeName", attack_table[pMobIndex->dam_type].name);
 
     if (pMobIndex->stance != STANCE_DEFAULT)
-        LStbl_kv_str(&mobble, "Stance", stances[pMobIndex->stance].name); 
+        LSF_kv_str(lsfp, "Stance", stances[pMobIndex->stance].name); 
      
     if (pMobIndex->size != SIZE_MEDIUM)
-        LStbl_kv_str(&mobble, "Size", size_table[pMobIndex->size].name);
+        LSF_kv_str(lsfp, "Size", size_table[pMobIndex->size].name);
 
     if (pMobIndex->alignment != 0)
-        LStbl_kv_int(&mobble, "Align", pMobIndex->alignment);
+        LSF_kv_int(lsfp, "Align", pMobIndex->alignment);
     if (pMobIndex->group != 0)
-        LStbl_kv_int(&mobble, "Group", pMobIndex->group);
+        LSF_kv_int(lsfp, "Group", pMobIndex->group);
     
 
     if (pMobIndex->start_pos != POS_STANDING)
-        LStbl_kv_str(&mobble, "StartPosition", position_table[pMobIndex->start_pos].short_name);
+        LSF_kv_str(lsfp, "StartPosition", position_table[pMobIndex->start_pos].short_name);
     if (pMobIndex->default_pos != POS_STANDING)
-        LStbl_kv_str(&mobble, "DefaultPosition", position_table[pMobIndex->default_pos].short_name);
+        LSF_kv_str(lsfp, "DefaultPosition", position_table[pMobIndex->default_pos].short_name);
        
-    LSarr mtrigs;
-    LSarr_create(&mtrigs);
-    LStbl_kv_arr(&mobble, "MTrigs", &mtrigs);
+    LSF_kv_tbl(lsfp, "MTrigs");
     reverse_mprog_order(pMobIndex);    
     for (pMprog = pMobIndex->mprogs; pMprog; pMprog = pMprog->next)
     {
-        LStbl mtrig;
-        LStbl_create(&mtrig);
-        LSarr_add_tbl(&mtrigs, &mtrig);
-        LStbl_kv_str(&mtrig, "Type", name_lookup(pMprog->trig_type, mprog_flags));
-        LStbl_kv_int(&mtrig, "Vnum", pMprog->vnum);
-        LStbl_kv_str(&mtrig, "Phrase", pMprog->trig_phrase);
-        LStbl_release(&mtrig);
+        LSF_add_tbl(lsfp);
+        LSF_kv_str(lsfp, "Type", name_lookup(pMprog->trig_type, mprog_flags));
+        LSF_kv_int(lsfp, "Vnum", pMprog->vnum);
+        LSF_kv_str(lsfp, "Phrase", pMprog->trig_phrase);
+        LSF_end_tbl(lsfp);
     }
     reverse_mprog_order(pMobIndex);
-    LSarr_release(&mtrigs);
+    LSF_end_tbl(lsfp); //MTrigs
     
 
-    LStbl_release(&mobble); 
+    LSF_end_tbl(lsfp); //mobble
     return;
 }
 
@@ -505,20 +483,18 @@ Name:           save_mobbles
 Purpose:        Save #MOBBLES secion of an area file.
 Called by:      save_area(olc_save.c).
 ****************************************************************************/
-void save_mobbles( LStbl *parent, AREA_DATA *pArea )
+void save_mobbles( LSF *lsfp, AREA_DATA *pArea )
 {
     int i;
     MOB_INDEX_DATA *pMob;
     
-    LSarr mobbles;
-    LSarr_create( &mobbles );
-    LStbl_kv_arr( parent, "Mobbles", &mobbles );
+    LSF_kv_tbl( lsfp, "Mobbles");
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pMob = get_mob_index( i )) )
-            save_mobble( &mobbles, pMob );
+            save_mobble( lsfp, pMob );
     }
-    LSarr_release( &mobbles );
+    LSF_end_tbl(lsfp);
     
     return;
 }
@@ -530,24 +506,22 @@ Purpose:	Save one object to file.
 new ROM format saving -- Hugin
 Called by:	save_objects (below).
 ****************************************************************************/
-void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
+void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
     
-    LStbl object;
-    LStbl_create(&object);
-    LSarr_add_tbl(parent, &object);
+    LSF_add_tbl(lsfp);
 
-    LStbl_kv_int(&object, "Vnum", pObjIndex->vnum);
-    LStbl_kv_str(&object, "Name", pObjIndex->name);
-    LStbl_kv_str(&object, "ShortDescr", pObjIndex->short_descr);
-    LStbl_kv_str(&object, "Description", fix_string(pObjIndex->description));
-    LStbl_kv_str(&object, "Material", pObjIndex->material);
+    LSF_kv_int(lsfp, "Vnum", pObjIndex->vnum);
+    LSF_kv_str(lsfp, "Name", pObjIndex->name);
+    LSF_kv_str(lsfp, "ShortDescr", pObjIndex->short_descr);
+    LSF_kv_str(lsfp, "Description", fix_string(pObjIndex->description));
+    LSF_kv_str(lsfp, "Material", pObjIndex->material);
     
-    LStbl_kv_str(&object, "ItemType", item_name(pObjIndex->item_type));
-    LStbl_kv_flags(&object, "Extra", extra_flags, pObjIndex->extra_flags);
-    LStbl_kv_str(&object, "WearType", flag_bit_name( wear_types, pObjIndex->wear_type));
+    LSF_kv_str(lsfp, "ItemType", item_name(pObjIndex->item_type));
+    LSF_kv_flags(lsfp, "Extra", extra_flags, pObjIndex->extra_flags);
+    LSF_kv_str(lsfp, "WearType", flag_bit_name( wear_types, pObjIndex->wear_type));
     
     
     /*
@@ -560,15 +534,13 @@ void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
     {
     default:
         {
-        LStbl values;
-        LStbl_create(&values);
-        LStbl_kv_tbl(&object, "Values", &values);
+        LSF_kv_tbl(lsfp, "Values");
         int i;
         for (i=0; i<=4; i++)
         {
-            LStbl_iv_int(&values, i, pObjIndex->value[i]);
+            LSF_iv_int(lsfp, i, pObjIndex->value[i]);
         }
-        LStbl_release(&values);
+        LSF_end_tbl(lsfp);
         break;
         }
         
@@ -644,36 +616,32 @@ void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
 #endif
     }
     
-    LStbl_kv_int( &object, "Level", pObjIndex->level);
-    LStbl_kv_int( &object, "Weight", pObjIndex->weight);
-    LStbl_kv_int( &object, "Cost", pObjIndex->cost);
+    LSF_kv_int( lsfp, "Level", pObjIndex->level);
+    LSF_kv_int( lsfp, "Weight", pObjIndex->weight);
+    LSF_kv_int( lsfp, "Cost", pObjIndex->cost);
     
     if (pObjIndex->clan > 0)
-        LStbl_kv_str(&object, "Clan", clan_table[pObjIndex->clan].name );
+        LSF_kv_str(lsfp, "Clan", clan_table[pObjIndex->clan].name );
 
     if (pObjIndex->rank > 0 && pObjIndex->clan > 0)
-        LStbl_kv_str(&object, "ClanRank", clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );
+        LSF_kv_str(lsfp, "ClanRank", clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );
 
     if (pObjIndex->combine_vnum > 0)
-        LStbl_kv_int(&object, "CombineVnum", pObjIndex->combine_vnum);
+        LSF_kv_int(lsfp, "CombineVnum", pObjIndex->combine_vnum);
 
     if (pObjIndex->diff_rating > 0)
-        LStbl_kv_int(&object, "Rating", pObjIndex->diff_rating);
+        LSF_kv_int(lsfp, "Rating", pObjIndex->diff_rating);
     
-    LSarr affects;
-    LSarr_create(&affects);
-    LStbl_kv_arr(&object, "Affects", &affects);
+    LSF_kv_tbl(lsfp, "Affects");
     reverse_affect_order(pObjIndex);    
     for( pAf = pObjIndex->affected; pAf; pAf = pAf->next )
     {
-        LStbl affect;
-        LStbl_create(&affect);
-        LSarr_add_tbl(&affects, &affect);
+        LSF_add_tbl(lsfp);
         if (pAf->where == TO_OBJECT)
         {
-            LStbl_kv_str(&affect, "Where", flag_bit_name(apply_types, pAf->where));
-            LStbl_kv_str(&affect, "Location", flag_bit_name(apply_flags, pAf->location));
-            LStbl_kv_int(&affect, "Modifier", pAf->modifier);
+            LSF_kv_str(lsfp, "Where", flag_bit_name(apply_types, pAf->where));
+            LSF_kv_str(lsfp, "Location", flag_bit_name(apply_flags, pAf->location));
+            LSF_kv_int(lsfp, "Modifier", pAf->modifier);
         }
         else
         {
@@ -683,7 +651,7 @@ void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
             case TO_IMMUNE:
             case TO_RESIST:
             case TO_VULN:
-                LStbl_kv_str(&affect, "Where", flag_bit_name(apply_types, pAf->where));
+                LSF_kv_str(lsfp, "Where", flag_bit_name(apply_types, pAf->where));
                 break;
             default:
                 bug( "olc_save: Invalid Affect->where (%d)", pAf->where);
@@ -693,53 +661,45 @@ void save_object( LSarr *parent, OBJ_INDEX_DATA *pObjIndex )
             if (pAf->bitvector == 0)
                 bug( "olc_save: bitvector == 0 for object %d", pObjIndex->vnum ); 
 
-            LStbl_kv_str(&affect, "Location", flag_bit_name(apply_flags, pAf->location));
-            LStbl_kv_int(&affect, "Modifier", pAf->modifier);
-            LStbl_kv_int(&affect, "Bitvector", pAf->bitvector);
+            LSF_kv_str(lsfp, "Location", flag_bit_name(apply_flags, pAf->location));
+            LSF_kv_int(lsfp, "Modifier", pAf->modifier);
+            LSF_kv_int(lsfp, "Bitvector", pAf->bitvector);
         }
         if (pAf->detect_level != 0)
-            LStbl_kv_int(&affect, "DetectLevel", pAf->detect_level);
+            LSF_kv_int(lsfp, "DetectLevel", pAf->detect_level);
 
-        LStbl_release(&affect);
+        LSF_end_tbl(lsfp);
     }
     reverse_affect_order(pObjIndex);
-    LSarr_release(&affects);
+    LSF_end_tbl(lsfp);
     
-    LSarr extradesc;
-    LSarr_create(&extradesc);
-    LStbl_kv_arr(&object, "ExtraDesc", &extradesc);
+    LSF_kv_tbl(lsfp, "ExtraDesc");
     for( pEd = pObjIndex->extra_descr; pEd; pEd = pEd->next )
     {
-        LStbl ed;
-        LStbl_create(&ed);
-        LSarr_add_tbl(&extradesc, &ed);
-        LStbl_kv_str(&ed, "Keyword", pEd->keyword);
-        LStbl_kv_str(&ed, "Description", fix_string( pEd->description ));
-        LStbl_release(&ed);
+        LSF_add_tbl(lsfp);
+        LSF_kv_str(lsfp, "Keyword", pEd->keyword);
+        LSF_kv_str(lsfp, "Description", fix_string( pEd->description ));
+        LSF_end_tbl(lsfp);
     }
-    LSarr_release(&extradesc);
+    LSF_end_tbl(lsfp);
 
     /* save oprogs if any */
-    LSarr otrigs;
-    LSarr_create(&otrigs);
-    LStbl_kv_arr(&object, "OTrigs", &otrigs);
+    LSF_kv_tbl(lsfp, "OTrigs");
     PROG_LIST *pOprog;
     reverse_oprog_order(pObjIndex);
     for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
     {
-        LStbl otrig;
-        LStbl_create(&otrig);
-        LSarr_add_tbl(&otrigs, &otrig);
-        LStbl_kv_str(&otrig, "Type", name_lookup(pOprog->trig_type, oprog_flags));
-        LStbl_kv_int(&otrig, "Vnum", pOprog->vnum);
-        LStbl_kv_str(&otrig, "Phrase", pOprog->trig_phrase);
-        LStbl_release(&otrig);
+        LSF_add_tbl(lsfp);
+        LSF_kv_str(lsfp, "Type", name_lookup(pOprog->trig_type, oprog_flags));
+        LSF_kv_int(lsfp, "Vnum", pOprog->vnum);
+        LSF_kv_str(lsfp, "Phrase", pOprog->trig_phrase);
+        LSF_end_tbl(lsfp);
     }
     reverse_oprog_order(pObjIndex); 
-    LSarr_release(&otrigs);
+    LSF_end_tbl(lsfp);
 
  
-    LStbl_release(&object);   
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -752,20 +712,18 @@ Purpose:	Save #OBJECTS section of an area file.
 Called by:	save_area(olc_save.c).
 Notes:         Changed for ROM OLC.
 ****************************************************************************/
-void save_objects( LStbl *parent, AREA_DATA *pArea )
+void save_objects( LSF *lsfp, AREA_DATA *pArea )
 {
     int i;
     OBJ_INDEX_DATA *pObj;
     
-    LSarr objects;
-    LSarr_create(&objects);
-    LStbl_kv_arr(parent, "Objects", &objects); 
+    LSF_kv_tbl(lsfp, "Objects"); 
     for( i = pArea->min_vnum; i <= pArea->max_vnum; i++ )
     {
         if ( (pObj = get_obj_index( i )) )
-            save_object( &objects, pObj );
+            save_object( lsfp, pObj );
     }
-    LSarr_release(&objects);
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -778,7 +736,7 @@ Name:		save_rooms
 Purpose:	Save #ROOMS section of an area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_rooms( LStbl *parent, AREA_DATA *pArea )
+void save_rooms( LSF *lsfp, AREA_DATA *pArea )
 {
     ROOM_INDEX_DATA *pRoomIndex;
     EXTRA_DESCR_DATA *pEd;
@@ -786,9 +744,7 @@ void save_rooms( LStbl *parent, AREA_DATA *pArea )
     int iHash;
     int door;
     
-    LSarr rooms;
-    LSarr_create( &rooms );
-    LStbl_kv_arr( parent, "Rooms", &rooms);
+    LSF_kv_tbl( lsfp, "Rooms");
 
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -796,39 +752,33 @@ void save_rooms( LStbl *parent, AREA_DATA *pArea )
         {
             if ( pRoomIndex->area == pArea )
             {
-                LStbl room;
-                LStbl_create(&room);
-                LSarr_add_tbl(&rooms, &room);
+                LSF_add_tbl(lsfp);
 
-                LStbl_kv_int(&room, "Vnum", pRoomIndex->vnum);
-                LStbl_kv_str(&room, "Name", pRoomIndex->name);
-                LStbl_kv_str(&room, "Description", 
+                LSF_kv_int(lsfp, "Vnum", pRoomIndex->vnum);
+                LSF_kv_str(lsfp, "Name", pRoomIndex->name);
+                LSF_kv_str(lsfp, "Description", 
                         fix_string(pRoomIndex->description));
 
-                LStbl_kv_flags(&room, "RoomFlags", room_flags, 
+                LSF_kv_flags(lsfp, "RoomFlags", room_flags, 
                         pRoomIndex->room_flags);
-                LStbl_kv_str(&room, "SectorType", 
+                LSF_kv_str(lsfp, "SectorType", 
                         flag_bit_name(sector_flags, pRoomIndex->sector_type));
 
-                LSarr extra_descr;
-                LSarr_create(&extra_descr);
+                
+                LSF_kv_tbl(lsfp, "ExtraDescr");
                 for ( pEd = pRoomIndex->extra_descr; pEd;
                 pEd = pEd->next )
                 {
-                    LStbl ed;
-                    LStbl_create(&ed);
-                    LSarr_add_tbl(&extra_descr, &ed);
+                    LSF_add_tbl(lsfp);
 
-                    LStbl_kv_str(&ed, "Keyword", pEd->keyword);
-                    LStbl_kv_str(&ed, "Description",
+                    LSF_kv_str(lsfp, "Keyword", pEd->keyword);
+                    LSF_kv_str(lsfp, "Description",
                             fix_string(pEd->description));
-                    LStbl_release(&ed);
+                    LSF_end_tbl(lsfp);
                 }
-                LSarr_release(&extra_descr);
+                LSF_end_tbl(lsfp);
 
-                LSarr exits;
-                LSarr_create(&exits);
-                LStbl_kv_arr(&room, "Exits", &exits);
+                LSF_kv_tbl(lsfp, "Exits");
                 for( door = 0; door < MAX_DIR; door++ )	/* I hate this! */
                 {
                     if ( ( pExit = pRoomIndex->exit[door] )
@@ -853,83 +803,78 @@ void save_rooms( LStbl *parent, AREA_DATA *pArea )
                         else
                             REMOVE_BIT(pExit->rs_flags, EX_ISDOOR);
 			*/
-                        LStbl ex;
-                        LStbl_create(&ex);
-                        LSarr_add_tbl(&exits, &ex);
+                        LSF_add_tbl(lsfp);
 
-                        LStbl_kv_str(&ex, "Direction", 
+                        LSF_kv_str(lsfp, "Direction", 
                                 dir_name[pExit->orig_door]);
-                        LStbl_kv_str(&ex, "Description", 
+                        LSF_kv_str(lsfp, "Description", 
                                 fix_string(pExit->description));
-                        LStbl_kv_str(&ex, "Keyword", pExit->keyword);
-                        LStbl_kv_flags(&ex, "Flags", exit_flags, 
+                        LSF_kv_str(lsfp, "Keyword", pExit->keyword);
+                        LSF_kv_flags(lsfp, "Flags", exit_flags, 
                                 pExit->rs_flags);
-                        LStbl_kv_int(&ex, "Key", pExit->key);
-                        LStbl_kv_int(&ex, "Destination", pExit->u1.to_room->vnum);
+                        LSF_kv_int(lsfp, "Key", pExit->key);
+                        LSF_kv_int(lsfp, "Destination", pExit->u1.to_room->vnum);
 			/*
                         fprintf( fp, "%d %d %d\n", locks,
                             pExit->key,
                             pExit->u1.to_room->vnum );
 			*/
-                        LStbl_release(&ex);
+                        LSF_end_tbl(lsfp);
                     }
                 }
-                LSarr_release(&exits);
+                LSF_end_tbl(lsfp);
 
                 if (pRoomIndex->mana_rate != 100 || pRoomIndex->heal_rate != 100)
                 {
-                    LStbl_kv_int(&room, "ManaRate", pRoomIndex->mana_rate);
-                    LStbl_kv_int(&room, "HealRate", pRoomIndex->heal_rate);
+                    LSF_kv_int(lsfp, "ManaRate", pRoomIndex->mana_rate);
+                    LSF_kv_int(lsfp, "HealRate", pRoomIndex->heal_rate);
                 }
 
                 if (pRoomIndex->clan > 0)
                 {
-                    LStbl_kv_str(&room, "Clan", clan_table[pRoomIndex->clan].name);
+                    LSF_kv_str(lsfp, "Clan", clan_table[pRoomIndex->clan].name);
                 }
                 
                 if (pRoomIndex->clan_rank > 0 && pRoomIndex->clan > 0)
                 {
-                    LStbl_kv_str(&room, "ClanRank", clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name);
+                    LSF_kv_str(lsfp, "ClanRank", clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name);
 
                 }
                 
                 if (!IS_NULLSTR(pRoomIndex->owner))
                 {
-                    LStbl_kv_str(&room, "Owner", pRoomIndex->owner);
+                    LSF_kv_str(lsfp, "Owner", pRoomIndex->owner);
                 }
                 
                 /* save rprogs if any */
                 if (pRoomIndex->rprogs != NULL)
                 {
-                    LSarr rprogs;
-                    LSarr_create(&rprogs);
-                    LStbl_kv_arr(&room, "RProgs", &rprogs);
+                    LSF_kv_tbl(lsfp, "RProgs");
 
                     PROG_LIST *pRprog;
                     reverse_rprog_order(pRoomIndex);
                     for (pRprog = pRoomIndex->rprogs; pRprog; pRprog = pRprog->next)
                     {
-                        LStbl prog;
-                        LStbl_create(&prog);
-                        LSarr_add_tbl(&rprogs, &prog);
-                        LStbl_kv_str(&prog, "TrigType", name_lookup(pRprog->trig_type, rprog_flags));
-                        LStbl_kv_int(&prog, "Vnum", pRprog->vnum);
-                        LStbl_kv_str(&prog, "Phrase", pRprog->trig_phrase);
+                        LSF_add_tbl(lsfp);
+                        
+                        LSF_kv_str(lsfp, "TrigType", name_lookup(pRprog->trig_type, rprog_flags));
+                        LSF_kv_int(lsfp, "Vnum", pRprog->vnum);
+                        LSF_kv_str(lsfp, "Phrase", pRprog->trig_phrase);
 
-                        LStbl_release(&prog);
+                        LSF_end_tbl(lsfp);
                     }
                     reverse_rprog_order(pRoomIndex);
 
-                    LSarr_release(&rprogs);
+                    LSF_end_tbl(lsfp);
                 }
 
-                LStbl_kv_str(&room, "Comments", pRoomIndex->comments);
+                LSF_kv_str(lsfp, "Comments", pRoomIndex->comments);
                 
-                LStbl_release(&room);
+                LSF_end_tbl(lsfp);
             }
         }
     }
-    LSarr_release(&rooms);
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -940,14 +885,12 @@ Name:		save_specials
 Purpose:	Save #SPECIALS section of area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_specials( LStbl *parent, AREA_DATA *pArea )
+void save_specials( LSF *lsfp, AREA_DATA *pArea )
 {
     int iHash;
     MOB_INDEX_DATA *pMobIndex;
     
-    LSarr specials;
-    LSarr_create(&specials);
-    LStbl_kv_arr(parent, "Specials", &specials);
+    LSF_kv_tbl(lsfp, "Specials");
     
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -955,19 +898,17 @@ void save_specials( LStbl *parent, AREA_DATA *pArea )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->spec_fun )
             {
-                LStbl special;
-                LStbl_create(&special);
-                LSarr_add_tbl(&specials, &special);
+                LSF_add_tbl(lsfp);
 
-                LStbl_kv_int(&special, "Vnum", pMobIndex->vnum);
-                LStbl_kv_str(&special, "SpecName", spec_name_lookup(pMobIndex->spec_fun));
+                LSF_kv_int(lsfp, "Vnum", pMobIndex->vnum);
+                LSF_kv_str(lsfp, "SpecName", spec_name_lookup(pMobIndex->spec_fun));
 
-                LStbl_release(&special);
+                LSF_end_tbl(lsfp);
             }
         }
     }
     
-    LSarr_release(&specials);
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -1031,7 +972,7 @@ Name:		save_resets
 Purpose:	Saves the #RESETS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_resets( LStbl *parent,  AREA_DATA *pArea )
+void save_resets( LSF *lsfp,  AREA_DATA *pArea )
 {
     RESET_DATA *pReset;
     MOB_INDEX_DATA *pLastMob = NULL;
@@ -1040,9 +981,7 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
     char buf[MAX_STRING_LENGTH];
     int iHash;
 
-    LSarr resets;
-    LSarr_create(&resets);
-    LStbl_kv_arr(parent, "Resets", &resets);
+    LSF_kv_tbl(lsfp, "Resets");
 
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -1052,13 +991,11 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
             {
                 for ( pReset = pRoom->reset_first; pReset; pReset = pReset->next )
                 {
-                    LStbl rst;
-                    LStbl_create(&rst);
-                    LSarr_add_tbl(&resets, &rst);
+                    LSF_add_tbl(lsfp);
 
                     char cmd[2];
                     sprintf(cmd, "%c", pReset->command);
-                    LStbl_kv_str(&rst, "Command", cmd);
+                    LSF_kv_str(lsfp, "Command", cmd);
                     switch ( pReset->command )
                     {
                         default:
@@ -1067,29 +1004,29 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
 
                         case 'M':
                             pLastMob = get_mob_index( pReset->arg1 );
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
-                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
-                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
-                            LStbl_kv_int(&rst, "Arg4", pReset->arg4);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg2", pReset->arg2);
+                            LSF_kv_int(lsfp, "Arg3", pReset->arg3);
+                            LSF_kv_int(lsfp, "Arg4", pReset->arg4);
                             break;
 
                         case 'O':
                             pLastObj = get_obj_index( pReset->arg1 );
                             pRoom = get_room_index( pReset->arg3 );
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
-                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg3", pReset->arg3);
                             break;
 
                         case 'P':
                             pLastObj = get_obj_index( pReset->arg1 );
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
-                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
-                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
-                            LStbl_kv_int(&rst, "Arg4", pReset->arg4);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg2", pReset->arg2);
+                            LSF_kv_int(lsfp, "Arg3", pReset->arg3);
+                            LSF_kv_int(lsfp, "Arg4", pReset->arg4);
                             break;
 
                         case 'G':
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
                             if ( !pLastMob )
                             {
                                 sprintf( buf,
@@ -1099,8 +1036,8 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
                             break;
 
                         case 'E':
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
-                            LStbl_kv_int(&rst, "Arg3", pReset->arg3);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg3", pReset->arg3);
                             if ( !pLastMob )
                             {
                                 sprintf( buf,
@@ -1114,29 +1051,27 @@ void save_resets( LStbl *parent,  AREA_DATA *pArea )
 
                         case 'R':
                             pRoom = get_room_index( pReset->arg1 );
-                            LStbl_kv_int(&rst, "Arg1", pReset->arg1);
-                            LStbl_kv_int(&rst, "Arg2", pReset->arg2);
+                            LSF_kv_int(lsfp, "Arg1", pReset->arg1);
+                            LSF_kv_int(lsfp, "Arg2", pReset->arg2);
                             break;
                     }
 
-                    LStbl_release(&rst);
+                    LSF_end_tbl(lsfp);
                 }
             }	/* End if correct area */
         }	/* End for pRoom */
     }	/* End for iHash */
-    LSarr_release(&resets);
+    LSF_end_tbl(lsfp);
     return;
 }
 
-void save_bossachievements( LStbl *parent, AREA_DATA *pArea )
+void save_bossachievements( LSF *lsfp, AREA_DATA *pArea )
 {
     BOSSACHV *pBoss;
     MOB_INDEX_DATA *pMobIndex;
     int iHash;
     
-    LSarr achvs;
-    LSarr_create(&achvs);
-    LStbl_kv_arr(parent, "BossAchievements", &achvs);
+    LSF_kv_tbl(lsfp, "BossAchievements");
 
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -1144,24 +1079,22 @@ void save_bossachievements( LStbl *parent, AREA_DATA *pArea )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->boss_achieve )
             {
-                LStbl achv;
-                LStbl_create(&achv);
-                LSarr_add_tbl(&achvs, &achv);
+                LSF_add_tbl(lsfp);
 
                 pBoss = pMobIndex->boss_achieve;
                 
-                LStbl_kv_int(&achv, "Vnum", pMobIndex->vnum);
-                LStbl_kv_int(&achv, "ExpReward", pBoss->exp_reward);
-                LStbl_kv_int(&achv, "GoldReward", pBoss->gold_reward);
-                LStbl_kv_int(&achv, "QuestReward", pBoss->quest_reward);
-                LStbl_kv_int(&achv, "AchReward", pBoss->ach_reward);
+                LSF_kv_int(lsfp, "Vnum", pMobIndex->vnum);
+                LSF_kv_int(lsfp, "ExpReward", pBoss->exp_reward);
+                LSF_kv_int(lsfp, "GoldReward", pBoss->gold_reward);
+                LSF_kv_int(lsfp, "QuestReward", pBoss->quest_reward);
+                LSF_kv_int(lsfp, "AchReward", pBoss->ach_reward);
 
-                LStbl_release(&achv);
+                LSF_end_tbl(lsfp);
             }
         }
     }
    
-    LSarr_release(&achvs); 
+    LSF_end_tbl(lsfp); 
     return;
 }
 
@@ -1171,16 +1104,14 @@ Name:		save_shops
 Purpose:	Saves the #SHOPS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_shops( LStbl *parent, AREA_DATA *pArea )
+void save_shops( LSF *lsfp, AREA_DATA *pArea )
 {
     SHOP_DATA *pShopIndex;
     MOB_INDEX_DATA *pMobIndex;
     int iTrade;
     int iHash;
     
-    LSarr shops;
-    LSarr_create(&shops);
-    LStbl_kv_arr(parent, "Shops", &shops);
+    LSF_kv_tbl(lsfp, "Shops");
 
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -1188,39 +1119,35 @@ void save_shops( LStbl *parent, AREA_DATA *pArea )
         {
             if ( pMobIndex && pMobIndex->area == pArea && pMobIndex->pShop )
             {
-                LStbl shop;
-                LStbl_create(&shop);
-                LSarr_add_tbl(&shops, &shop);
+                LSF_add_tbl(lsfp);
 
                 pShopIndex = pMobIndex->pShop;
                 
-                LStbl_kv_int(&shop, "Keeper", pShopIndex->keeper);
+                LSF_kv_int(lsfp, "Keeper", pShopIndex->keeper);
 
-                LSarr buy_types;
-                LSarr_create(&buy_types);
-                LStbl_kv_arr(&shop, "BuyTypes", &buy_types); 
+                LSF_kv_tbl(lsfp, "BuyTypes"); 
                 for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
                 {
 
                     if ( pShopIndex->buy_type[iTrade] != 0 )
                     {
-                        LSarr_add_str(&buy_types, 
+                        LSF_add_str(lsfp, 
                                 flag_bit_name(type_flags, pShopIndex->buy_type[iTrade]));
                     }
                 }
-                LSarr_release(&buy_types);
+                LSF_end_tbl(lsfp);
 
-                LStbl_kv_int(&shop, "ProfitBuy", pShopIndex->profit_buy);
-                LStbl_kv_int(&shop, "ProfitSell", pShopIndex->profit_sell);
-                LStbl_kv_int(&shop, "OpenHour", pShopIndex->open_hour);
-                LStbl_kv_int(&shop, "CloseHour", pShopIndex->close_hour);
+                LSF_kv_int(lsfp, "ProfitBuy", pShopIndex->profit_buy);
+                LSF_kv_int(lsfp, "ProfitSell", pShopIndex->profit_sell);
+                LSF_kv_int(lsfp, "OpenHour", pShopIndex->open_hour);
+                LSF_kv_int(lsfp, "CloseHour", pShopIndex->close_hour);
 
-                LStbl_release(&shop);
+                LSF_end_tbl(lsfp);
             }
         }
     }
     
-    LSarr_release(&shops);
+    LSF_end_tbl(lsfp);
     return;
 }
 
@@ -1254,52 +1181,47 @@ void save_area( AREA_DATA *pArea )
     if ( pArea->reset_time < 1 ) 
         pArea->reset_time = 15;
 
-    LStbl area;
-    LStbl_create( &area );
-    LStbl_kv_int( &area, "Version", CURR_AREA_VERSION);
+    sprintf(buf, "%s.lua", pArea->file_name);
+    
+    LSF *lArea=LSF_open(buf);
+    LSF_kv_int( lArea, "Version", CURR_AREA_VERSION);
 
-    LSarr clones;
-    LSarr_create( &clones);
-    LStbl_kv_arr( &area, "Clones", &clones);
+    LSF_kv_tbl( lArea, "Clones");
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
         if ( pArea->clones[i] > 0 )
-            LSarr_add_int( &clones, pArea->clones[i]);
-    LSarr_release( &clones);
+            LSF_add_int( lArea, pArea->clones[i]);
+    LSF_end_tbl( lArea);
 
-    LStbl_kv_str( &area, "Name", pArea->name );
-    LStbl_kv_str( &area, "Builders", fix_string( pArea->builders ) );
-    LStbl_kv_str( &area, "Comments", fix_string( pArea->comments ) );
-    LStbl_kv_int( &area, "MinVnum", pArea->min_vnum);
-    LStbl_kv_int( &area, "MaxVnum", pArea->max_vnum);
-    LStbl_kv_str( &area, "Credits", pArea->credits);
+    LSF_kv_str( lArea, "Name", pArea->name );
+    LSF_kv_str( lArea, "Builders", fix_string( pArea->builders ) );
+    LSF_kv_str( lArea, "Comments", fix_string( pArea->comments ) );
+    LSF_kv_int( lArea, "MinVnum", pArea->min_vnum);
+    LSF_kv_int( lArea, "MaxVnum", pArea->max_vnum);
+    LSF_kv_str( lArea, "Credits", pArea->credits);
   /* Added minlevel, maxlevel, and miniquests for new areas command
      -Astark Dec 2012 */
-    LStbl_kv_int( &area, "MinLevel", pArea->minlevel);
-    LStbl_kv_int( &area, "MaxLevel", pArea->maxlevel);
-    LStbl_kv_int( &area, "Miniquests", pArea->miniquests);
-    LStbl_kv_int( &area, "Security", pArea->security);
-    LStbl_kv_int( &area, "Time", pArea->reset_time);
+    LSF_kv_int( lArea, "MinLevel", pArea->minlevel);
+    LSF_kv_int( lArea, "MaxLevel", pArea->maxlevel);
+    LSF_kv_int( lArea, "Miniquests", pArea->miniquests);
+    LSF_kv_int( lArea, "Security", pArea->security);
+    LSF_kv_int( lArea, "Time", pArea->reset_time);
 
-    LSarr aflags;
-    LSarr_create( &aflags);
-    LStbl_kv_arr( &area, "Flags", &aflags);
+    LSF_kv_tbl( lArea, "Flags");
     if (IS_SET(pArea->area_flags,AREA_REMORT))
-        LSarr_add_str( &aflags, 
+        LSF_add_str( lArea, 
                 flag_bit_name(area_flags, AREA_REMORT));
     if (IS_SET(pArea->area_flags,AREA_NOQUEST))
-        LSarr_add_str( &aflags, 
+        LSF_add_str( lArea, 
                 flag_bit_name(area_flags, AREA_NOQUEST));
     if (IS_SET(pArea->area_flags,AREA_NOHIDE))
-        LSarr_add_str( &aflags, 
+        LSF_add_str( lArea, 
                 flag_bit_name(area_flags, AREA_NOHIDE));
     if ( IS_SET(pArea->area_flags, AREA_SOLO) )
-        LSarr_add_str( &aflags, 
+        LSF_add_str( lArea, 
                 flag_bit_name(area_flags, AREA_SOLO));
-    LSarr_release( &aflags);
+    LSF_end_tbl( lArea );
     
-    LSarr atrigs;
-    LSarr_create( &atrigs );
-    LStbl_kv_arr( &area, "ATrigs", &atrigs);
+    LSF_kv_tbl( lArea, "ATrigs");
 
     if (pArea->aprogs != NULL)
     {
@@ -1307,40 +1229,35 @@ void save_area( AREA_DATA *pArea )
         reverse_aprog_order(pArea);
         for (pAprog = pArea->aprogs; pAprog; pAprog = pAprog->next)
         {
-            LStbl atrig;
-            LStbl_create( &atrig);
-            LSarr_add_tbl( &atrigs, &atrig);
-            LStbl_kv_str( &atrig, "Type", name_lookup(pAprog->trig_type, aprog_flags));
-            LStbl_kv_int( &atrig, "Vnum", pAprog->vnum);
-            LStbl_kv_str( &atrig, "Phrase", pAprog->trig_phrase);
-            LStbl_release( &atrig);
+            LSF_add_tbl( lArea );
+            LSF_kv_str( lArea, "Type", name_lookup(pAprog->trig_type, aprog_flags));
+            LSF_kv_int( lArea, "Vnum", pAprog->vnum);
+            LSF_kv_str( lArea, "Phrase", pAprog->trig_phrase);
+            LSF_end_tbl( lArea);
         }
         reverse_aprog_order(pArea);
     }
-    LSarr_release( &atrigs);
+    LSF_end_tbl( lArea);
 
 
     
-    save_mobbles( &area, pArea );
-    save_objects( &area, pArea );
-    save_rooms( &area, pArea );
-    save_specials( &area, pArea );
-    save_resets( &area, pArea );
-    save_shops( &area, pArea );
-    save_bossachievements( &area, pArea );
-    save_mobprogs( &area, pArea );
-    save_objprogs( &area, pArea );
-	save_areaprogs( &area, pArea );
-    save_roomprogs( &area, pArea );
+    save_mobbles( lArea, pArea );
+    save_objects( lArea, pArea );
+    save_rooms( lArea, pArea );
+    save_specials( lArea, pArea );
+    save_resets( lArea, pArea );
+    save_shops( lArea, pArea );
+    save_bossachievements( lArea, pArea );
+    save_mobprogs( lArea, pArea );
+    save_objprogs( lArea, pArea );
+	save_areaprogs( lArea, pArea );
+    save_roomprogs( lArea, pArea );
     
     if ( pArea->helps && pArea->helps->first )
-        save_helps( &area, pArea->helps );
+        save_helps( lArea, pArea->helps );
     
-    
-    sprintf(buf, "%s.lua", pArea->file_name);
-    LStbl_save( &area, buf);
-    LStbl_release( &area );
-
+     
+    LSF_close(lArea);
     return;
 }
 
@@ -1564,31 +1481,27 @@ DEF_DO_FUN(do_asave)
 
 
 
-void save_helps( LStbl *parent, HELP_AREA *ha )
+void save_helps( LSF *lsfp, HELP_AREA *ha )
 {
     HELP_DATA *help = ha->first;
     
-    LSarr helps;
-    LSarr_create(&helps);
-    LStbl_kv_arr(parent, "Helps", &helps);
+    LSF_kv_tbl(lsfp, "Helps");
     
     for ( ; help; help = help->next_area )
     {
         if(help->delete)
             continue;
         
-        LStbl h;
-        LStbl_create(&h);
-        LSarr_add_tbl(&helps, &h);
+        LSF_add_tbl(lsfp);
 
-        LStbl_kv_int(&h, "Level", help->level);
-        LStbl_kv_str(&h, "Keyword", help->keyword);
-        LStbl_kv_str(&h, "Text", fix_string(help->text));
+        LSF_kv_int(lsfp, "Level", help->level);
+        LSF_kv_str(lsfp, "Keyword", help->keyword);
+        LSF_kv_str(lsfp, "Text", fix_string(help->text));
 
-        LStbl_release(&h);
+        LSF_end_tbl(lsfp);
     }
     
-    LSarr_release(&helps); 
+    LSF_end_tbl(lsfp); 
     return;
 }
 
@@ -1602,14 +1515,11 @@ void save_other_helps( void )
     {
         if ( ha->area == NULL )
         {
-            LStbl h;
-            LStbl_create(&h);
+            sprintf(buf, "%s.lua", ha->filename);
+            LSF *lsfp=LSF_open(buf);
+            save_helps(lsfp, ha);
+            LSF_close(lsfp);
 
-            save_helps( &h, ha );
-
-            sprintf(buf, "%s.lua", buf);
-            LStbl_save(&h, buf);
-            LStbl_release(&h);
         }
     }
 

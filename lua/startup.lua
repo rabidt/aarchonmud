@@ -597,55 +597,6 @@ function confirm_yes_no( DO_FUN_caller, d,
 
 end
 
-local function LSAVE_serialize( tbl, indent )
-    indent=indent or ""
-
-    local out={}
-    table.insert( out, indent.."{\n" )
-    for i,v in ipairs(tbl) do
-        table.insert( out, indent.."  " )
-        if v.LKEY then -- array don't use LKEY
-            --print("LKEY: "..v.LKEY)
-            if type(v.LKEY)=="number" then
-                table.insert( out, string.format( "[%d] = ", v.LKEY ) )
-            elseif type(v.LKEY)=="string" then
-                if tonumber(v.LKEY) then
-                    table.insert( out, string.format( "[%q] = ", v.LKEY ) )
-                else
-                    table.insert( out, string.format( "%s = ", v.LKEY ) )
-                end
-            else
-                error("Invalid type for LKEY")
-            end
-        end
-
-        --print("LVAL: "..tostring(v.LVAL))
-        if type(v.LVAL)=="number" or type(v.LVAL)=="boolean" then
-            table.insert( out, tostring(v.LVAL) )
-        elseif type(v.LVAL)=="string" then
-            table.insert( out, string.format( "%q", v.LVAL ) )
-        elseif type(v.LVAL)=="table" then
-            table.insert( out, "\n"..LSAVE_serialize( v.LVAL, indent.."  " ) )
-        else
-            error( "Bad LVAL type: "..type(v.LVAL) )
-        end
-
-        table.insert( out, ",\n" )
-    end
-    table.insert( out, indent.."}" )
-
-    return table.concat( out )
-
-end
-
-function LSAVE_table( tbl, filename )
-    --log(tprintstr(tbl))
-    local str=LSAVE_serialize( tbl )
-    local f=io.open(filename, "w")
-    f:write("return \n"..str.."\n")
-    f:close()
-end
-
 function LLOAD_table( filename )
     local f=loadfile(filename)
     local tbl=f()
