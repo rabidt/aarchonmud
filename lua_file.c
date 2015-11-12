@@ -9,146 +9,183 @@
 
 /* just some laziness here */
 #define LS g_mud_LS
+#define INDENT_SPACES 2
 
-/* LStbl section */
-void LStbl_create( LStbl *tbl )
+extern LUAREF STRING_FORMAT;
+
+struct lua_save_file
 {
-    lua_newtable( LS );
-    tbl->ref=lua_gettop( LS );
+    FILE *fp;
+    int indent_level;
+};
+
+/* LSF section */
+LSF *LSF_open(const char *filename)
+{
+    FILE *fp=fopen(filename, "w");
+    if (!fp)
+    {
+        bugf("Couldn't open lua file: %s", filename);
+        return NULL;
+    }
+    LSF *lsfp=alloc_mem(sizeof(LSF));
+
+
+    fputs("return {\n", fp);    
+    lsfp->fp=fp;
+    lsfp->indent_level=1;
+    return lsfp;
 }
 
-void LStbl_release( LStbl *tbl )
+void LSF_close(LSF *lsfp)
 {
-    lua_remove( LS, tbl->ref);
-    tbl->ref = LUA_NOREF;
-} 
+    if (!lsfp->fp)
+    {
+        bugf("LSF_close: no file pointer");
+        return;
+    }
+    
+    if (lsfp->indent_level != 1)
+    {
+        bugf("LSF_close: indent level not back at baseline");
+    }
+    else
+    {
+        fputs("}\n", lsfp->fp);
+    }
+    
+    fclose(lsfp->fp);
+    free_mem(lsfp, sizeof(LSF));
 
-void LStbl_save( LStbl *tbl, const char *filename )
-{
-    lua_getglobal( LS, "LSAVE_table" );
-    lua_pushvalue( LS, tbl->ref );
-    //logpf("save ref: %d", tbl->ref);
-    lua_pushstring( LS, filename );
-    lua_call( LS, 2, 0 );
+    return;
 }
 
-void LStbl_kv_str( LStbl *tbl, const char *key, const char *val)
+static void write_indent(LSF *lsfp)
 {
-    lua_newtable( LS );
-    lua_pushstring( LS, key );
-    lua_setfield( LS, -2, "LKEY" );
-    lua_pushstring( LS, val );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
+    fprintf(lsfp->fp, "%*s", lsfp->indent_level * INDENT_SPACES, "");
 }
 
-void LStbl_kv_bool( LStbl *tbl, const char *key, const bool val)
+static void write_key_str(LSF *lsfp, const char *key)
 {
-    lua_newtable( LS );
-    lua_pushstring( LS, key );
-    lua_setfield( LS, -2, "LKEY" );
-    lua_pushboolean( LS, val );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
+    push_ref(LS, STRING_FORMAT);
+    lua_pushstring(LS, "[%q] = ");
+    lua_pushstring(LS, key);
+    lua_call(LS, 2, 1);
+    fputs( luaL_checkstring(LS, -1), lsfp->fp);
+    lua_pop(LS,1);
 }
 
-void LStbl_kv_int( LStbl *tbl, const char *key, const int val)
+static void write_val_str(LSF *lsfp, const char *val)
 {
-    lua_newtable( LS );
-    lua_pushstring( LS, key );
-    lua_setfield( LS, -2, "LKEY" );
-    lua_pushinteger( LS, val );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
+    push_ref(LS, STRING_FORMAT);
+    lua_pushstring(LS, "%q,\n");
+    lua_pushstring(LS, val);
+    lua_call(LS, 2, 1);
+    fputs( luaL_checkstring(LS, -1), lsfp->fp);
+    lua_pop(LS,1);
 }
 
-void LStbl_kv_arr( LStbl *tbl, const char *key, LSarr *arr)
+static void write_key_int(LSF *lsfp, const int key)
 {
-    lua_newtable( LS );
-    lua_pushstring( LS, key );
-    lua_setfield( LS, -2, "LKEY" );
-    lua_pushvalue( LS, arr->ref );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
+    fprintf( lsfp->fp, "[%d] = ", key);
 }
 
-void LStbl_kv_tbl( LStbl *tbl, const char *key, LStbl *subtbl )
+static void write_val_int(LSF *lsfp, const int val)
 {
-    lua_newtable( LS );
-    lua_pushstring( LS, key );
-    lua_setfield( LS, -2, "LKEY" );
-    lua_pushvalue( LS, subtbl->ref );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1 );
+    fprintf( lsfp->fp, "%d,\n", val);
 }
 
-void LStbl_kv_flags( LStbl *tbl, const char *key, const struct flag_type *flag_table, const tflag f)
+static void write_val_bool(LSF *lsfp, const bool val)
 {
-    LSarr flags;
-    LSarr_create( &flags );
-    LStbl_kv_arr( tbl, key, &flags );
+    fprintf( lsfp->fp, "%s,\n", val ? "true,\n" : "false,\n");
+}
+
+static void write_val_tbl(LSF *lsfp)
+{
+    //fputs("\n", lsfp->fp);
+    //write_indent(lsfp);
+    fputs("{\n", lsfp->fp);
+    lsfp->indent_level+=1;
+}
+
+void LSF_add_str( LSF *lsfp, const char *val)
+{
+    write_indent(lsfp);
+    write_val_str(lsfp, val);
+}
+
+void LSF_add_int( LSF *lsfp, const int val)
+{
+    write_indent(lsfp);
+    write_val_int(lsfp, val);
+}
+
+void LSF_add_tbl( LSF *lsfp)
+{
+    write_indent(lsfp);
+    write_val_tbl(lsfp);
+}
+
+void LSF_kv_str( LSF *lsfp, const char *key, const char *val)
+{
+    write_indent(lsfp);
+    write_key_str(lsfp, key);
+    write_val_str(lsfp, val);
+}
+
+void LSF_kv_bool( LSF *lsfp, const char *key, const bool val)
+{
+    write_indent(lsfp);
+    write_key_str(lsfp, key);
+    write_val_bool(lsfp, val);
+}
+
+void LSF_kv_int( LSF *lsfp, const char *key, const int val)
+{
+    write_indent(lsfp);
+    write_key_str(lsfp, key);
+    write_val_int(lsfp, val);
+}
+
+void LSF_kv_tbl( LSF *lsfp, const char *key )
+{
+    write_indent(lsfp);
+    write_key_str(lsfp, key);
+    write_val_tbl(lsfp);
+}
+
+void LSF_end_tbl( LSF *lsfp)
+{
+    lsfp->indent_level-=1;
+    write_indent(lsfp);
+    fputs("},\n", lsfp->fp);
+}
+
+void LSF_kv_flags( LSF *lsfp, const char *key, const struct flag_type *flag_table, const tflag f)
+{
+    LSF_kv_tbl( lsfp, key);
 
     int i=0;
     for (i=0; flag_table[i].name; i++)
     {
         if (IS_SET(f, flag_table[i].bit))
         {
-            LSarr_add_str( &flags, flag_table[i].name);
+            LSF_add_str(lsfp, flag_table[i].name);
         }
     }
-    LSarr_release( &flags);
+
+    LSF_end_tbl(lsfp);
 }
 
-void LStbl_iv_int( LStbl *tbl, int index, int value )
+void LSF_iv_int( LSF *lsfp, int index, int value )
 {
-    lua_newtable( LS );
-    lua_pushinteger( LS, index);
-    lua_setfield( LS, -2, "LKEY");
-    lua_pushinteger( LS, value);
-    lua_setfield( LS, -2, "LVAL");
-    lua_rawseti( LS, tbl->ref, lua_objlen( LS, tbl->ref) + 1);
+    write_indent(lsfp);
+    write_key_int(lsfp, index);
+    write_val_int(lsfp, value);
 }
-/* end LStbl section */
+/* end LSF section */
 
-/* LSarr section */
-void LSarr_create( LSarr *arr )
-{
-    lua_newtable( LS );
-    arr->ref=lua_gettop( LS );
-}
-
-void LSarr_release( LSarr *arr )
-{
-    lua_remove( LS, arr->ref );
-    arr->ref=LUA_NOREF;
-}
-
-void LSarr_add_str( LSarr *arr, const char *val )
-{
-    lua_newtable( LS );
-    lua_pushstring( LS, val );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, arr->ref, lua_objlen( LS, arr->ref) + 1 );
-}
-
-void LSarr_add_int( LSarr *arr, const int val )
-{
-    lua_newtable( LS );
-    lua_pushinteger( LS, val );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, arr->ref, lua_objlen( LS, arr->ref) + 1 );
-}
-
-void LSarr_add_tbl( LSarr *arr, LStbl *tbl )
-{
-    lua_newtable( LS );
-    lua_pushvalue( LS, tbl->ref );
-    lua_setfield( LS, -2, "LVAL" );
-    lua_rawseti( LS, arr->ref, lua_objlen( LS, arr->ref) + 1 );
-}
-
-/* end LSarr section */
-
+#if 0
 /* LLtbl section */
 void LLtbl_load( LLtbl *tbl, const char *filename )
 {
@@ -228,3 +265,4 @@ bool LLtbl_i_exists( LLtbl *tbl, int index )
 
 
 /* end LLtbl section */
+#endif

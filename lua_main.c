@@ -22,7 +22,7 @@ int        g_LoopCheckCounter;
 /* keep these as LUAREFS for ease of use on the C side */
 static LUAREF TABLE_INSERT;
 static LUAREF TABLE_CONCAT;
-static LUAREF STRING_FORMAT;
+LUAREF STRING_FORMAT;
 
 void register_LUAREFS( lua_State *LS)
 {
@@ -100,7 +100,7 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     else
     {
         /* exit */
-        luaL_error( LS, "Interrupted infinite loop." );
+        //luaL_error( LS, "Interrupted infinite loop." );
         return;
     }
 }
