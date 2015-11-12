@@ -97,7 +97,7 @@ static void write_val_int(LSF *lsfp, const int val)
 
 static void write_val_bool(LSF *lsfp, const bool val)
 {
-    fprintf( lsfp->fp, "%s,\n", val ? "true,\n" : "false,\n");
+    fprintf( lsfp->fp, "%s,\n", val ? "true" : "false");
 }
 
 static void write_val_tbl(LSF *lsfp)
