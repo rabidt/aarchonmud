@@ -100,7 +100,7 @@ static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)
     else
     {
         /* exit */
-        //luaL_error( LS, "Interrupted infinite loop." );
+        luaL_error( LS, "Interrupted infinite loop." );
         return;
     }
 }

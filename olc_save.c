@@ -102,7 +102,7 @@ void save_area_list()
     HELP_AREA * ha;
     
     
-    if ( ( fp = fopen( "area.lst", "w" ) ) == NULL )
+    if ( ( fp = fopen( AREA_LIST, "w" ) ) == NULL )
     {
         bug( "Save_area_list: fopen", 0 );
         log_error( "area.lst" );
@@ -393,52 +393,52 @@ void save_mobble( LSF *lsfp, MOB_INDEX_DATA *pMobIndex )
     sh_int race = pMobIndex->race;
     PROG_LIST *pMprog;
     
-    LSF_kv_int( lsfp, "Vnum", pMobIndex->vnum );
-    LSF_kv_str( lsfp, "Name", pMobIndex->player_name );
-    LSF_kv_str( lsfp, "ShortDescr", pMobIndex->short_descr);
-    LSF_kv_str( lsfp, "LongDescr", pMobIndex->long_descr);
-    LSF_kv_str( lsfp, "Description", pMobIndex->description);
-    LSF_kv_str( lsfp, "Comments", pMobIndex->comments);
-    LSF_kv_str( lsfp, "Race", race_table[race].name);
-    LSF_kv_str( lsfp, "Sex", sex_table[pMobIndex->sex].name);
+    LSF_kv_int( lsfp, "vnum", pMobIndex->vnum );
+    LSF_kv_str( lsfp, "player_name", pMobIndex->player_name );
+    LSF_kv_str( lsfp, "short_descr", pMobIndex->short_descr);
+    LSF_kv_str( lsfp, "long_descr", pMobIndex->long_descr);
+    LSF_kv_str( lsfp, "description", pMobIndex->description);
+    LSF_kv_str( lsfp, "comments", pMobIndex->comments);
+    LSF_kv_str( lsfp, "race", race_table[race].name);
+    LSF_kv_str( lsfp, "sex", sex_table[pMobIndex->sex].name);
     
 
     if (!flag_equal(pMobIndex->act, race_table[race].act))
-        LSF_kv_flags(lsfp, "Act", act_flags, pMobIndex->act);
+        LSF_kv_flags(lsfp, "act", act_flags, pMobIndex->act);
     if (!flag_equal(pMobIndex->affect_field, race_table[race].affect_field))
-        LSF_kv_flags(lsfp, "Affects", affect_flags, pMobIndex->affect_field);
+        LSF_kv_flags(lsfp, "affect_field", affect_flags, pMobIndex->affect_field);
     if (!flag_equal(pMobIndex->off_flags, race_table[race].off))
-        LSF_kv_flags(lsfp, "Offensive", off_flags, pMobIndex->off_flags);
+        LSF_kv_flags(lsfp, "off_flags", off_flags, pMobIndex->off_flags);
     if (!flag_equal(pMobIndex->imm_flags, race_table[race].imm))
-        LSF_kv_flags(lsfp, "Immune", imm_flags, pMobIndex->imm_flags);
+        LSF_kv_flags(lsfp, "imm_flags", imm_flags, pMobIndex->imm_flags);
     if (!flag_equal(pMobIndex->res_flags, race_table[race].res))
-        LSF_kv_flags(lsfp, "Resist", res_flags, pMobIndex->res_flags);
+        LSF_kv_flags(lsfp, "res_flags", res_flags, pMobIndex->res_flags);
     if (!flag_equal(pMobIndex->vuln_flags, race_table[race].vuln))
-        LSF_kv_flags(lsfp, "Vuln", vuln_flags, pMobIndex->vuln_flags);
+        LSF_kv_flags(lsfp, "vuln_flags", vuln_flags, pMobIndex->vuln_flags);
 
     if (!flag_equal(pMobIndex->form, race_table[race].form))
-        LSF_kv_flags(lsfp, "Form", form_flags, pMobIndex->form);
+        LSF_kv_flags(lsfp, "form", form_flags, pMobIndex->form);
     if (!flag_equal(pMobIndex->parts, race_table[race].parts))
-       LSF_kv_flags(lsfp, "Parts", part_flags, pMobIndex->parts);
+       LSF_kv_flags(lsfp, "parts", part_flags, pMobIndex->parts);
 
-    LSF_kv_int(lsfp, "Level", pMobIndex->level);
+    LSF_kv_int(lsfp, "level", pMobIndex->level);
 
     if (pMobIndex->hitpoint_percent != 100)
-        LSF_kv_int(lsfp, "HpPcnt", pMobIndex->hitpoint_percent);
+        LSF_kv_int(lsfp, "hitpoint_percent", pMobIndex->hitpoint_percent);
     if (pMobIndex->mana_percent != 100)
-        LSF_kv_int(lsfp, "ManaPcnt", pMobIndex->mana_percent);
+        LSF_kv_int(lsfp, "mana_percent", pMobIndex->mana_percent);
     if (pMobIndex->move_percent != 100)
-        LSF_kv_int(lsfp, "MovePcnt", pMobIndex->move_percent);
+        LSF_kv_int(lsfp, "move_percent", pMobIndex->move_percent);
     if (pMobIndex->hitroll_percent != 100)
-        LSF_kv_int(lsfp, "HitrollPcnt", pMobIndex->hitpoint_percent);
+        LSF_kv_int(lsfp, "hitroll_percent", pMobIndex->hitroll_percent);
     if (pMobIndex->damage_percent != 100)
-        LSF_kv_int(lsfp, "DamrollPcnt", pMobIndex->damage_percent);
+        LSF_kv_int(lsfp, "damage_percent", pMobIndex->damage_percent);
     if (pMobIndex->ac_percent != 100)
-        LSF_kv_int(lsfp, "AcPcnt", pMobIndex->ac_percent);
+        LSF_kv_int(lsfp, "ac_percent", pMobIndex->ac_percent);
     if (pMobIndex->saves_percent != 100)
-        LSF_kv_int(lsfp, "SavesPcnt", pMobIndex->saves_percent);
+        LSF_kv_int(lsfp, "save_percent", pMobIndex->saves_percent);
     if (pMobIndex->wealth_percent != 100)
-        LSF_kv_int(lsfp, "WealthPcnt", pMobIndex->wealth_percent);
+        LSF_kv_int(lsfp, "wealth_percent", pMobIndex->wealth_percent);
     
     LSF_kv_str(lsfp, "DamtypeName", attack_table[pMobIndex->dam_type].name);
 
@@ -513,15 +513,15 @@ void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
     
     LSF_add_tbl(lsfp);
 
-    LSF_kv_int(lsfp, "Vnum", pObjIndex->vnum);
-    LSF_kv_str(lsfp, "Name", pObjIndex->name);
-    LSF_kv_str(lsfp, "ShortDescr", pObjIndex->short_descr);
-    LSF_kv_str(lsfp, "Description", fix_string(pObjIndex->description));
-    LSF_kv_str(lsfp, "Material", pObjIndex->material);
+    LSF_kv_int(lsfp, "vnum", pObjIndex->vnum);
+    LSF_kv_str(lsfp, "name", pObjIndex->name);
+    LSF_kv_str(lsfp, "short_descr", pObjIndex->short_descr);
+    LSF_kv_str(lsfp, "description", fix_string(pObjIndex->description));
+    LSF_kv_str(lsfp, "material", pObjIndex->material);
     
-    LSF_kv_str(lsfp, "ItemType", item_name(pObjIndex->item_type));
-    LSF_kv_flags(lsfp, "Extra", extra_flags, pObjIndex->extra_flags);
-    LSF_kv_str(lsfp, "WearType", flag_bit_name( wear_types, pObjIndex->wear_type));
+    LSF_kv_str(lsfp, "item_type", item_name(pObjIndex->item_type));
+    LSF_kv_flags(lsfp, "extra_flags", extra_flags, pObjIndex->extra_flags);
+    LSF_kv_str(lsfp, "wear_type", flag_bit_name( wear_types, pObjIndex->wear_type));
     
     
     /*
@@ -534,7 +534,7 @@ void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
     {
     default:
         {
-        LSF_kv_tbl(lsfp, "Values");
+        LSF_kv_tbl(lsfp, "values");
         int i;
         for (i=0; i<=4; i++)
         {
@@ -616,32 +616,32 @@ void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
 #endif
     }
     
-    LSF_kv_int( lsfp, "Level", pObjIndex->level);
-    LSF_kv_int( lsfp, "Weight", pObjIndex->weight);
-    LSF_kv_int( lsfp, "Cost", pObjIndex->cost);
+    LSF_kv_int( lsfp, "level", pObjIndex->level);
+    LSF_kv_int( lsfp, "weight", pObjIndex->weight);
+    LSF_kv_int( lsfp, "cost", pObjIndex->cost);
     
     if (pObjIndex->clan > 0)
-        LSF_kv_str(lsfp, "Clan", clan_table[pObjIndex->clan].name );
+        LSF_kv_str(lsfp, "clan", clan_table[pObjIndex->clan].name );
 
     if (pObjIndex->rank > 0 && pObjIndex->clan > 0)
-        LSF_kv_str(lsfp, "ClanRank", clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );
+        LSF_kv_str(lsfp, "rank", clan_table[pObjIndex->clan].rank_list[pObjIndex->rank].name );
 
     if (pObjIndex->combine_vnum > 0)
-        LSF_kv_int(lsfp, "CombineVnum", pObjIndex->combine_vnum);
+        LSF_kv_int(lsfp, "combine_vnum", pObjIndex->combine_vnum);
 
     if (pObjIndex->diff_rating > 0)
-        LSF_kv_int(lsfp, "Rating", pObjIndex->diff_rating);
+        LSF_kv_int(lsfp, "diff_rating", pObjIndex->diff_rating);
     
-    LSF_kv_tbl(lsfp, "Affects");
+    LSF_kv_tbl(lsfp, "affected");
     reverse_affect_order(pObjIndex);    
     for( pAf = pObjIndex->affected; pAf; pAf = pAf->next )
     {
         LSF_add_tbl(lsfp);
         if (pAf->where == TO_OBJECT)
         {
-            LSF_kv_str(lsfp, "Where", flag_bit_name(apply_types, pAf->where));
-            LSF_kv_str(lsfp, "Location", flag_bit_name(apply_flags, pAf->location));
-            LSF_kv_int(lsfp, "Modifier", pAf->modifier);
+            LSF_kv_str(lsfp, "where", flag_bit_name(apply_types, pAf->where));
+            LSF_kv_str(lsfp, "location", flag_bit_name(apply_flags, pAf->location));
+            LSF_kv_int(lsfp, "modifier", pAf->modifier);
         }
         else
         {
@@ -651,7 +651,7 @@ void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
             case TO_IMMUNE:
             case TO_RESIST:
             case TO_VULN:
-                LSF_kv_str(lsfp, "Where", flag_bit_name(apply_types, pAf->where));
+                LSF_kv_str(lsfp, "where", flag_bit_name(apply_types, pAf->where));
                 break;
             default:
                 bug( "olc_save: Invalid Affect->where (%d)", pAf->where);
@@ -661,38 +661,38 @@ void save_object( LSF *lsfp, OBJ_INDEX_DATA *pObjIndex )
             if (pAf->bitvector == 0)
                 bug( "olc_save: bitvector == 0 for object %d", pObjIndex->vnum ); 
 
-            LSF_kv_str(lsfp, "Location", flag_bit_name(apply_flags, pAf->location));
-            LSF_kv_int(lsfp, "Modifier", pAf->modifier);
-            LSF_kv_int(lsfp, "Bitvector", pAf->bitvector);
+            LSF_kv_str(lsfp, "location", flag_bit_name(apply_flags, pAf->location));
+            LSF_kv_int(lsfp, "modifier", pAf->modifier);
+            LSF_kv_int(lsfp, "bitvector", pAf->bitvector);
         }
         if (pAf->detect_level != 0)
-            LSF_kv_int(lsfp, "DetectLevel", pAf->detect_level);
+            LSF_kv_int(lsfp, "detect_level", pAf->detect_level);
 
         LSF_end_tbl(lsfp);
     }
     reverse_affect_order(pObjIndex);
     LSF_end_tbl(lsfp);
     
-    LSF_kv_tbl(lsfp, "ExtraDesc");
+    LSF_kv_tbl(lsfp, "extra_descr");
     for( pEd = pObjIndex->extra_descr; pEd; pEd = pEd->next )
     {
         LSF_add_tbl(lsfp);
-        LSF_kv_str(lsfp, "Keyword", pEd->keyword);
-        LSF_kv_str(lsfp, "Description", fix_string( pEd->description ));
+        LSF_kv_str(lsfp, "keyword", pEd->keyword);
+        LSF_kv_str(lsfp, "description", fix_string( pEd->description ));
         LSF_end_tbl(lsfp);
     }
     LSF_end_tbl(lsfp);
 
     /* save oprogs if any */
-    LSF_kv_tbl(lsfp, "OTrigs");
+    LSF_kv_tbl(lsfp, "oprogs");
     PROG_LIST *pOprog;
     reverse_oprog_order(pObjIndex);
     for (pOprog = pObjIndex->oprogs; pOprog; pOprog = pOprog->next)
     {
         LSF_add_tbl(lsfp);
-        LSF_kv_str(lsfp, "Type", name_lookup(pOprog->trig_type, oprog_flags));
-        LSF_kv_int(lsfp, "Vnum", pOprog->vnum);
-        LSF_kv_str(lsfp, "Phrase", pOprog->trig_phrase);
+        LSF_kv_str(lsfp, "trig_type", name_lookup(pOprog->trig_type, oprog_flags));
+        LSF_kv_int(lsfp, "vnum", pOprog->vnum);
+        LSF_kv_str(lsfp, "trig_phrase", pOprog->trig_phrase);
         LSF_end_tbl(lsfp);
     }
     reverse_oprog_order(pObjIndex); 
@@ -1181,9 +1181,15 @@ void save_area( AREA_DATA *pArea )
     if ( pArea->reset_time < 1 ) 
         pArea->reset_time = 15;
 
-    sprintf(buf, "%s.lua", pArea->file_name);
+    if (!str_suffix(pArea->file_name, ".are"))
+    {
+        /* converting old area file, change file name */
+        sprintf(buf, "%s.lua", pArea->file_name);
+        free_string(pArea->file_name);
+        pArea->file_name=str_dup(buf);
+    }
     
-    LSF *lArea=LSF_open(buf);
+    LSF *lArea=LSF_open(pArea->file_name);
     LSF_kv_int( lArea, "Version", CURR_AREA_VERSION);
 
     LSF_kv_tbl( lArea, "Clones");
@@ -1316,8 +1322,8 @@ DEF_DO_FUN(do_asave)
             return;
         }
         
-        save_area_list();
         save_area( pArea );
+        save_area_list();
         return;
     }
     
@@ -1326,7 +1332,6 @@ DEF_DO_FUN(do_asave)
     
     if ( !str_cmp( "world", arg1 ) )
     {
-        save_area_list();
         for( pArea = area_first; pArea; pArea = pArea->next )
         {
             /* Builder must be assigned this area. */
@@ -1345,6 +1350,7 @@ DEF_DO_FUN(do_asave)
         if ( ch )
             send_to_char( "You saved the world.\n\r", ch );
         
+        save_area_list();
         return;
     }
     
@@ -1355,7 +1361,6 @@ DEF_DO_FUN(do_asave)
     {
         char buf[MAX_INPUT_LENGTH];
         
-        save_area_list();
         
         if ( ch )
             send_to_char( "Saved zones:\n\r", ch );
@@ -1396,6 +1401,8 @@ DEF_DO_FUN(do_asave)
             else
                 log_string( "None." );
         }
+
+        save_area_list();
         return;
     }
     
@@ -1448,8 +1455,8 @@ DEF_DO_FUN(do_asave)
             return;
         }
         
-        save_area_list();
         save_area( pArea );
+        save_area_list();
         REMOVE_BIT( pArea->area_flags, AREA_CHANGED );
         send_to_char( "Area saved.\n\r", ch );
         return;
@@ -1477,9 +1484,6 @@ DEF_DO_FUN(do_asave)
     
     return;
 }
-
-
-
 
 void save_helps( LSF *lsfp, HELP_AREA *ha )
 {
