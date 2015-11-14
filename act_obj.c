@@ -4229,8 +4229,9 @@ DEF_DO_FUN(do_ignite)
         return;
     }
 
-    // level of bomb determines ease of use
-    chance = skill * (100 + ch->level) / 100 - obj->level;
+    // high-level bombs are harder to ignite - 10 level buffer to make 'create bomb' mastery useful
+    int level_diff = UMIN(0, 10 + ch->level - obj->level);
+    chance = (90 + skill + level_diff) / 2;
     chance = URANGE(5, chance, 95);
 
     if ( per_chance(chance) )
