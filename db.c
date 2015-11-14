@@ -847,7 +847,7 @@ void boot_db()
         log_string("Resetting areas");
         // reset multiple times to ensure the world isn't too empty
         {
-            int count = 3;
+            int count = 5;
             while ( count-- )
                 area_update(TRUE);
         }
