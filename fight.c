@@ -3264,6 +3264,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     int stance = ch->stance;
     int diff;
     int first_dam_type = FIRST_DAMAGE(dam_type);
+    bool is_spell = (dt > 0 && dt < TYPE_HIT && IS_SPELL(dt));
     
     if ( stop_damage(ch, victim) )
         return FALSE;
@@ -3341,7 +3342,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         // bulwark reduces both damage taken and damage dealt
         // incoming spell damage is partially reduced, outgoing not at all
-        if ( dt > 0 && dt < TYPE_HIT && IS_SPELL(dt) )
+        if ( is_spell )
             dam -= dam * get_bulwark_reduction(victim) / 200; 
         else
         {
@@ -3377,15 +3378,12 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
-    if ( dam > 1 && dt > 0 && dt < TYPE_HIT )
+    if ( dam > 1 && is_spell && victim->stance == STANCE_ARCANA )
+        dam -= dam / 3;
+    if ( dam > 1 && (is_spell || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
     {
-        if ( IS_SPELL(dt) && victim->stance == STANCE_ARCANA )
-            dam -= dam/3;
-        if ( (IS_SPELL(dt) || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
-        {
-            // skill overflow: improved evasion
-            dam = dam * 100 / (200 + get_skill_overflow(victim, gsn_evasion));
-        }
+        dam = dam * 100 / (200 + get_skill_overflow(victim, gsn_evasion));
+        dam = UMAX(1, dam);
     }
 
     immune = FALSE;
@@ -3591,6 +3589,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
+    // damage spells can also imbue eldritch cursed
+    if ( is_spell && number_range(0, victim->max_hit) < 2 * dam )
+        eldritch_curse(ch, victim);
+    
     /*
      * Hurt the victim.
      * Inform the victim of his new state.
