@@ -185,7 +185,6 @@ void LSF_iv_int( LSF *lsfp, int index, int value )
 }
 /* end LSF section */
 
-#if 0
 /* LLtbl section */
 void LLtbl_load( LLtbl *tbl, const char *filename )
 {
@@ -226,6 +225,42 @@ void LLtbl_get_kv_tbl( LLtbl *tbl, const char *key, LLtbl *subtbl)
     subtbl->ref=lua_gettop( LS );
 }
 
+void LLtbl_get_kv_flags( LLtbl *tbl, const char *key, const struct flag_type *flag_table, tflag f) 
+{
+    LLtbl flag_array;
+    LLtbl_get_kv_tbl(tbl, key, &flag_array);
+
+    int ind;
+    for (ind=1 ; LLtbl_i_exists(&flag_array, ind) ; ind++)
+    {
+        const char *flagstr=LLtbl_get_iv_str(&flag_array, ind);
+        int flagval=flag_lookup( flagstr, flag_table);
+        if (flagval == NO_FLAG)
+        {
+            bugf("Unrecognized flag: %s", flagstr);
+        }
+        else
+        {
+            SET_BIT( f, flagval);
+        }
+        free_string(flagstr);
+    }
+
+    LLtbl_release(&flag_array);
+}
+
+bool LLtbl_k_exists( LLtbl *tbl, const char *key)
+{
+    bool rtn;
+    lua_getfield( LS, tbl->ref, key );
+    if ( lua_isnil( LS, -1 ) )
+        rtn = FALSE;
+    else
+        rtn = TRUE;
+    lua_pop(LS, 1);
+    return rtn;
+}
+
 const char *LLtbl_get_iv_str( LLtbl *tbl, int index)
 {
     const char *rtn;
@@ -250,6 +285,7 @@ void LLtbl_get_iv_tbl( LLtbl *tbl, int index, LLtbl *subtbl)
     luaL_checktype( LS, -1, LUA_TTABLE );
     subtbl->ref=lua_gettop( LS );
 }
+
     
 bool LLtbl_i_exists( LLtbl *tbl, int index )
 {
@@ -265,4 +301,3 @@ bool LLtbl_i_exists( LLtbl *tbl, int index )
 
 
 /* end LLtbl section */
-#endif
