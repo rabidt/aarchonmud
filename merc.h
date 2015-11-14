@@ -4675,6 +4675,7 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
+void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );
