@@ -1391,11 +1391,11 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !was_obj_cast && per_chance(get_skill(ch, gsn_mystic_infusion)) )
     {
         int target = skill_table[sn].target;
-        if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF)
+        if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF || target == TAR_OBJ_CHAR_OFF)
             && victim != ch && victim->in_room == ch->in_room
             && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
         {
-            int dam = get_sn_damage(sn, ch->level, ch) * 0.2;
+            int dam = get_sn_damage(sn, ch->level, ch) * 0.25;
             if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
                 dam /= 2;
             deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
@@ -1404,7 +1404,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                 || target == TAR_OBJ_CHAR_DEF
                 || target == TAR_CHAR_SELF )
         {
-            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.2;
+            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
             if ( victim->hit < victim->max_hit )
             {
                 if ( ch == victim )
