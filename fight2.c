@@ -4140,7 +4140,6 @@ DEF_DO_FUN(do_gaze)
 DEF_DO_FUN(do_blast)
 {
     CHAR_DATA *victim;
-    AFFECT_DATA af;
     int skill = get_skill(ch, gsn_eldritch_blast);
 
     if ( skill == 0 )
@@ -4175,22 +4174,29 @@ DEF_DO_FUN(do_blast)
     if ( saved || IS_AFFECTED(victim, AFF_SANCTUARY) )
         dam /= 2;
     direct_damage(ch, victim, dam, gsn_eldritch_blast);
-    
-    // eldritch curse
-    if ( !saved && check_skill(ch, gsn_eldritch_curse) )
-    {
-        af.where     = TO_VULN;
-        af.type      = gsn_eldritch_curse;
-        af.level     = ch->level;
-        af.duration  = get_duration(gsn_eldritch_curse, ch->level);
-        af.location  = APPLY_SAVES;
-        af.modifier  = dice(2,4);
-        af.bitvector = VULN_MAGIC;
-        affect_join(victim, &af);
+
+    if ( !saved )
+        eldritch_curse(ch, victim);
+}
         
-        act("You are afflicted with an eldritch curse!", victim, NULL, NULL, TO_CHAR);
-        act("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM);
-    }
+void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim )
+{    
+    AFFECT_DATA af;
+
+    if ( !check_skill(ch, gsn_eldritch_curse) )
+        return;
+    
+    af.where     = TO_VULN;
+    af.type      = gsn_eldritch_curse;
+    af.level     = ch->level;
+    af.duration  = get_duration(gsn_eldritch_curse, ch->level);
+    af.location  = APPLY_SAVES;
+    af.modifier  = dice(2,4);
+    af.bitvector = VULN_MAGIC;
+    affect_join(victim, &af);
+    
+    act("You are afflicted with an eldritch curse!", victim, NULL, NULL, TO_CHAR);
+    act("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM);
 }
 
 DEF_DO_FUN(do_bomb)
