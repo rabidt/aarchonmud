@@ -2184,9 +2184,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "warpriest", CLERIC,
-        { "heroism", "divine power" },
-        { 30, 50 },
-        { 100, 100 }
+        { "heroism", "divine power", "bloodbath" },
+        { 30, 50, 70 },
+        { 100, 100, 80 }
     },
     {
         "warmage", MAGE|ILLUSIONIST,
