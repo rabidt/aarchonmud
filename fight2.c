@@ -4201,15 +4201,21 @@ void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim )
 
 DEF_DO_FUN(do_bomb)
 {
-    CHAR_DATA *victim;
+    CHAR_DATA *victim, *vnext;
     OBJ_DATA *obj;
     int dam;
+    bool bomb_area = FALSE;
     
-    if ( (victim = get_combat_victim(ch, argument)) == NULL )
-        return;
+    if ( !strcmp(argument, "ground") )
+        bomb_area = TRUE;
+    else
+    {
+        if ( (victim = get_combat_victim(ch, argument)) == NULL )
+            return;
 
-    if ( is_safe(ch, victim) )
-        return;
+        if ( is_safe(ch, victim) )
+            return;
+    }
     
     // find lit bomb
     for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
@@ -4234,12 +4240,27 @@ DEF_DO_FUN(do_bomb)
     }
 
     WAIT_STATE(ch, PULSE_VIOLENCE);
-    
     dam = dice(obj->value[0], obj->value[1]);
-    act("You throw $p at $N.", ch, obj, victim, TO_CHAR);
-    act("$n throws $p at you.", ch, obj, victim, TO_VICT);
-    act("$n throws $p at $N.", ch, obj, victim, TO_NOTVICT);
-    extract_obj(obj);
+
+    if ( bomb_area )
+    {
+        act("You throw $p and dive for cover.", ch, obj, NULL, TO_CHAR);
+        act("$n throws $p and dives for cover.", ch, obj, NULL, TO_ROOM);
+        dam = dam * 0.5 * AREA_SPELL_FACTOR;
+        for ( victim = ch->in_room->people; victim != NULL; victim = vnext)
+        {
+            vnext = victim->next_in_room;
+            if ( !is_safe_spell(ch, victim, TRUE) )
+                deal_bomb_damage(ch, victim, dam);
+        }
+    }
+    else
+    {
+        act("You throw $p at $N.", ch, obj, victim, TO_CHAR);
+        act("$n throws $p at you.", ch, obj, victim, TO_VICT);
+        act("$n throws $p at $N.", ch, obj, victim, TO_NOTVICT);
+        deal_bomb_damage(ch, victim, dam);
+    }
     
-    deal_bomb_damage(ch, victim, dam);
+    extract_obj(obj);
 }
