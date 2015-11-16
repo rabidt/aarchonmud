@@ -2323,7 +2323,7 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
     
     dam += dam * skill / 200;
     
-    if ( saves_spell(victim, NULL, dam/10, DAM_BASH) )
+    if ( saves_spell(victim, NULL, ch->level + dam/50, DAM_BASH) )
         dam /= 2;
     else
     {
