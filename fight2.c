@@ -4207,7 +4207,10 @@ DEF_DO_FUN(do_bomb)
     bool bomb_area = FALSE;
     
     if ( !strcmp(argument, "ground") )
+    {
         bomb_area = TRUE;
+        victim = NULL;
+    }
     else
     {
         if ( (victim = get_combat_victim(ch, argument)) == NULL )
