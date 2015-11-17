@@ -144,6 +144,15 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
                     IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) ? "2h-" : "",
                     flag_bit_name(weapon_class, obj->value[0]) );
                 break;
+            case ITEM_HOLD:
+                if ( obj->item_type != ITEM_ARMOR
+                    && obj->item_type != ITEM_JEWELRY
+                    && obj->item_type != ITEM_TREASURE )
+                {
+                    // same as ITEM_CARRY
+                    sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
+                    break;
+                }
             default:
                 sprintf(lvlBuf, "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
                 break;
