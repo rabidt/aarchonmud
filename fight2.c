@@ -4019,6 +4019,7 @@ DEF_DO_FUN(do_inspire)
     AFFECT_DATA af;
     CHAR_DATA *vch;
     CHAR_DATA *target = NULL;
+    bool all = FALSE;
     
     int skill = get_skill(ch, gsn_inspiring_song);
     int chance = (100 + skill) / 2;
@@ -4031,10 +4032,17 @@ DEF_DO_FUN(do_inspire)
         return;
     }
     
-    if ( argument[0] != '\0' && (target = get_char_room(ch, argument)) == NULL )
+    if ( argument[0] != '\0' )
     {
-        send_to_char("Inspire whom?\n\r", ch);
-        return;
+        char arg[MIL];
+        one_argument(argument, arg);
+        if ( !strcmp(arg, "all") )
+            all = TRUE;
+        else if ( (target = get_char_room(ch, arg)) == NULL )
+        {
+            send_to_char("Inspire whom?\n\r", ch);
+            return;
+        }
     }
     
     if ( ch->mana < cost )
@@ -4064,7 +4072,7 @@ DEF_DO_FUN(do_inspire)
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
-        if ( !is_same_group(vch, ch) && !is_same_group(vch, target) )
+        if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
             continue;
 
         send_to_char("You feel truly inspired.\n\r", vch);
