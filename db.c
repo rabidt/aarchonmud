@@ -549,7 +549,7 @@ int  top_jail_room = -1;
 * Increase MAX_STRING if you have too.
 * Tune the others only if you understand what you're doing.
 */
-#define         MAX_STRING  9000000
+#define         MAX_STRING  10000000
 #define         MAX_PERM_BLOCK  131072
 /*#define         MAX_MEM_LIST    16*/
 
