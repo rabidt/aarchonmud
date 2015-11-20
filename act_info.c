@@ -2068,7 +2068,7 @@ DEF_DO_FUN(do_examine)
         case(WEAPON_EXOTIC) : strcat(buf, "a weapon of some exotic type, ");  break;
         case(WEAPON_SWORD)  : strcat(buf, "a sword, ");  break;  
         case(WEAPON_DAGGER) : strcat(buf, "a dagger, "); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear or staff, "); break;
+        case(WEAPON_SPEAR)  : strcat(buf, "a spear, "); break;
         case(WEAPON_MACE)   : strcat(buf, "a mace or club, ");   break;
         case(WEAPON_AXE)    : strcat(buf, "an axe, ");       break;
         case(WEAPON_FLAIL)  : strcat(buf, "a flail, ");  break;
@@ -3910,7 +3910,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
         case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
         case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear or staff."); break;
+        case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
         case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
         case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
         case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
@@ -4074,7 +4074,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
         case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
         case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear or staff."); break;
+        case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
         case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
         case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
         case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
