@@ -2891,6 +2891,9 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
     int chance = 0;
+
+    if ( IS_DEAD(ch) || IS_DEAD(victim) )
+        return;
     
     // first check whether we can behead at all - needed for skill improvement check
     if ( !wield )
@@ -2974,6 +2977,9 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance )
 {
+    if ( IS_DEAD(ch) || IS_DEAD(victim) )
+        return;
+    
     // lethal hands skill allows unarmed assassination
     int skill_unarmed = get_skill(ch, gsn_lethal_hands);
     if ( !wield && !skill_unarmed )
