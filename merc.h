@@ -798,7 +798,7 @@ struct  descriptor_data
 #define TO_CHAR          3
 #define TO_ALL           4
 #define TO_ROOM_UNAUTHED 5
-
+#define TO_GROUP         6
 
 
 /*

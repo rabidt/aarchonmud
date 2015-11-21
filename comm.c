@@ -2100,6 +2100,8 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 
         if( ( type == TO_CHAR ) && to != ch )  
             continue;
+        if( type == TO_GROUP && !is_same_group(to, ch) )
+            continue;
         if( type == TO_VICT && ( to != vch || to == ch ) )
             continue;
         if( type == TO_ROOM && to == ch )

@@ -430,6 +430,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "groups",     do_groups,  POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "hide",       do_hide,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "plant",      do_plant,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "pkill",      do_pkill,   POS_SLEEPING,    0,  LOG_NEVER,  1, FALSE, FALSE  },
     { "roleplay",   do_roleplay,POS_SLEEPING,    0,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "qui",        do_qui,     POS_DEAD,    0,  LOG_NORMAL, 0, FALSE, FALSE  },
