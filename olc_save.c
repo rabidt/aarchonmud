@@ -1194,6 +1194,8 @@ void save_area( AREA_DATA *pArea )
         fprintf( fp, "NoHide\n");
     if ( IS_SET(pArea->area_flags, AREA_SOLO) )
         fprintf(fp, "Solo\n");
+    if ( IS_SET(pArea->area_flags, AREA_NOREPOP) )
+        fprintf(fp, "NoRepop\n");
 
     /* save aprogs if any */
     if (pArea->aprogs != NULL)
