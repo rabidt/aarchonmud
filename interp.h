@@ -315,6 +315,7 @@ DECLARE_DO_FUN( do_pick     );
 DECLARE_DO_FUN( do_pipe     );
 DECLARE_DO_FUN( do_pkil     );
 DECLARE_DO_FUN( do_pkill    );
+DECLARE_DO_FUN( do_plant    );
 DECLARE_DO_FUN( do_playback );
 DECLARE_DO_FUN( do_pload    );
 DECLARE_DO_FUN( do_infectious_arrow);

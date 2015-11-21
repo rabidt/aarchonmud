@@ -1184,6 +1184,170 @@ DEF_DO_FUN(do_give)
     return;
 }
 
+// used by do_steal and do_plant
+static bool check_steal( CHAR_DATA *ch, CHAR_DATA *victim, int skill )
+{
+    char buf[MAX_STRING_LENGTH];
+    
+    int chance = (skill - get_skill(victim, gsn_alertness) / 2) * 2/3;
+    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_INT)) / 8;
+    chance += (ch->level - victim->level) / 4;
+
+    if ( !IS_AWAKE(victim) )
+        chance += 20;
+    else if ( !check_see(victim,ch) )
+        chance += 10;
+    
+    chance = URANGE(5, chance, 95);
+    
+    if ( per_chance(chance) )
+        return TRUE;
+    
+    // failure - we handle this here
+    send_to_char( "Oops.\n\r", ch );
+    make_visible( ch );
+
+    if ( !IS_AWAKE(victim) )
+        send_to_char("Someone tried to steal from you.\n\r", victim);
+    else
+        act("$n tried to steal from you.", ch, NULL, victim, TO_VICT);
+    act("$n tried to steal from $N.", ch, NULL, victim, TO_NOTVICT);
+
+    switch(number_range(0,3))
+    {
+        case 0 :
+            sprintf(buf, "%s is a lousy thief!", ch->name);
+            break;
+        case 1 :
+            sprintf(buf, "%s couldn't rob %s way out of a paper bag!",
+                ch->name, (ch->sex == 2) ? "her" : "his");
+            break;
+        case 2 :
+            sprintf(buf, "%s tried to rob me!", ch->name);
+            break;
+        case 3 :
+            sprintf(buf,"Keep your hands out of there, %s!", ch->name);
+            break;
+    }
+
+    if ( !IS_AWAKE(victim) )
+        do_wake(victim, "");
+    if ( IS_AWAKE(victim) )
+        do_yell(victim, buf);
+
+    if ( IS_NPC(victim) )
+    {
+        check_improve(ch, gsn_steal, FALSE, 2);
+        multi_hit(victim, ch, TYPE_UNDEFINED);
+    }
+    else if ( IS_SET(victim->in_room->room_flags, ROOM_LAW) )
+    {
+        sprintf(buf,"$N tried to steal from %s.", victim->name);
+        wiznet(buf, ch, NULL, WIZ_FLAGS, 0, 0);
+        if ( !IS_SET(ch->act, PLR_THIEF) )
+        {
+            SET_BIT(ch->act, PLR_THIEF);
+            send_to_char("*** You are now a THIEF!! ***\n\r", ch);
+            wiznet("$N is now a THIEF!", ch, NULL, WIZ_FLAGS, 0, 0);
+        }
+    }
+    
+    return FALSE;
+}
+
+// plant an item (e.g. bomb) on a victim
+DEF_DO_FUN(do_plant)
+{
+    char arg1 [MAX_INPUT_LENGTH];
+    char arg2 [MAX_INPUT_LENGTH];
+    CHAR_DATA *victim;
+    OBJ_DATA  *obj;
+    int skill;
+    
+    if ( (skill = get_skill(ch, gsn_steal)) == 0 )
+    {
+        send_to_char("You would get caught for sure.\n\r", ch);
+        return;
+    }
+
+    argument = one_argument( argument, arg1 );
+    argument = one_argument( argument, arg2 );
+
+    if ( arg1[0] == '\0' || arg2[0] == '\0' )
+    {
+        send_to_char("Plant what on whom?\n\r", ch);
+        return;
+    }
+
+    if ( (obj = get_obj_carry(ch, arg1, ch)) == NULL )
+    {
+        send_to_char("You do not have that item.\n\r", ch);
+        return;
+    }
+
+    if ( (victim = get_char_room(ch, arg2)) == NULL )
+    {
+        send_to_char("They aren't here.\n\r", ch);
+        return;
+    }
+    
+    if ( victim == ch )
+    {
+        send_to_char("From one pocket to another?\n\r", ch);
+        return;
+    }
+    
+    if ( is_safe(ch, victim) )
+        return;
+    
+    if ( victim->fighting )
+    {
+        send_to_char("Not while they are fighting!\n\r", ch);
+        return;
+    }
+
+    if ( is_relic_obj(obj) )
+    {
+        send_to_char("You cannot give away relics!\n\r", ch);
+        return;
+    }
+
+    if ( !can_drop_obj(ch, obj) )
+    {
+        send_to_char("You can't let go of it.\n\r", ch);
+        return;
+    }
+
+    if ( victim->carry_number + get_obj_number(obj) > can_carry_n(victim) )
+    {
+        act("$N has $S hands full.", ch, NULL, victim, TO_CHAR);
+        return;
+    }
+
+    if ( get_carry_weight(victim) + get_obj_weight(obj) > can_carry_w(victim) )
+    {
+        act("$N can't carry that much weight.", ch, NULL, victim, TO_CHAR);
+        return;
+    }
+
+    if ( IS_NPC(victim) && contains_obj_recursive(obj, &is_questeq) )
+    {
+        send_to_char("You don't want to give away your quest equipment!\n\r", ch);
+        return;
+    }
+
+    WAIT_STATE(ch, skill_table[gsn_steal].beats);
+    
+    if ( check_steal(ch, victim, skill) )
+    {
+        obj_from_char(obj);
+        obj_to_char(obj, victim);
+        act("You plant $p on $N.", ch, obj, victim, TO_CHAR);
+        act("$n plants $p on $N.", ch, obj, victim, TO_GROUP);
+        check_improve(ch, gsn_steal, TRUE, 2);
+    }
+}
+
 int flag_add_malus( OBJ_DATA *weapon )
 {
     int flag, nr = 0;
@@ -2761,7 +2925,7 @@ DEF_DO_FUN(do_steal)
     char arg2 [MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
     OBJ_DATA *obj;
-    int skill, chance;
+    int skill;
 
     if (IS_NPC(ch))
         return;
@@ -2819,17 +2983,7 @@ DEF_DO_FUN(do_steal)
 
     WAIT_STATE( ch, skill_table[gsn_steal].beats );
 
-    chance = (skill - get_skill(victim, gsn_alertness) / 4) * 2/3;
-    chance += (get_curr_stat( ch, STAT_DEX ) - get_curr_stat( victim, STAT_INT )) / 8;
-    chance += (ch->level - victim->level) / 2;
-
-    if ( !IS_AWAKE(victim) )
-        chance += 20;
-    else if ( !check_see(victim,ch) )
-        chance += 10;
-
-    if (number_percent() < chance)
-        /* Successful roll */
+    if ( check_steal(ch, victim, skill) )
     {
         if ( !str_cmp( arg1, "coin"  )
                 ||   !str_cmp( arg1, "coins" )
@@ -2922,60 +3076,6 @@ DEF_DO_FUN(do_steal)
             adjust_pkgrade( ch, victim, TRUE ); /* True means it's a theft */
 
         check_improve(ch,gsn_steal,TRUE,2);
-        return;
-    }
-    else
-    {
-        /* Failed roll */
-        send_to_char( "Oops.\n\r", ch );
-
-        make_visible( ch );
-
-        if ( !IS_AWAKE(victim) )
-            send_to_char( "Someone tried to steal from you.\n\r", victim );
-        else
-            act( "$n tried to steal from you.", ch, NULL, victim, TO_VICT );
-        act( "$n tried to steal from $N.", ch, NULL, victim, TO_NOTVICT );
-
-        switch(number_range(0,3))
-        {
-            case 0 :
-                sprintf( buf, "%s is a lousy thief!", ch->name );
-                break;
-            case 1 :
-                sprintf( buf, "%s couldn't rob %s way out of a paper bag!",
-                        ch->name,(ch->sex == 2) ? "her" : "his");
-                break;
-            case 2 :
-                sprintf( buf,"%s tried to rob me!",ch->name );
-                break;
-            case 3 :
-                sprintf(buf,"Keep your hands out of there, %s!",ch->name);
-                break;
-        }
-
-        if (!IS_AWAKE(victim)) 
-            do_wake(victim,"");
-        if (IS_AWAKE(victim))
-            do_yell( victim, buf );
-
-        if ( IS_NPC(victim) )
-        {
-            check_improve(ch,gsn_steal,FALSE,2);
-            multi_hit( victim, ch, TYPE_UNDEFINED );
-        }
-        else if ( IS_SET(victim->in_room->room_flags, ROOM_LAW) )
-        {
-            sprintf(buf,"$N tried to steal from %s.", victim->name);
-            wiznet(buf, ch, NULL, WIZ_FLAGS, 0, 0);
-            if ( !IS_SET(ch->act, PLR_THIEF) )
-            {
-                SET_BIT(ch->act, PLR_THIEF);
-                send_to_char( "*** You are now a THIEF!! ***\n\r", ch );
-                wiznet("$N is now a THIEF!", ch, NULL, WIZ_FLAGS, 0, 0);
-            }
-        }
-        return;
     }
 }
 
