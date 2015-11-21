@@ -2007,7 +2007,7 @@ void aggr_update( void )
                     ||   IS_SET(ch->off_flags, OFF_DISTRACT)
                     ||   IS_AFFECTED(ch, AFF_CHARM)
                     ||   ch->position < POS_STANDING
-                    ||   ( IS_SET(ch->act, ACT_WIMPY) && IS_AWAKE(wch) )
+                    ||   is_wimpy(ch)
                     ||   !can_see( ch, wch )
                     ||   number_bits(1) == 0)
                 continue;
