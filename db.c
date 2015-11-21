@@ -1151,6 +1151,11 @@ void new_load_area( FILE *fp )
                 SET_BIT(pArea->area_flags,AREA_NOHIDE);
                 break;
             }
+            if ( !str_cmp(word, "NoRepop"))
+            {
+                SET_BIT(pArea->area_flags,AREA_NOREPOP);
+                break;
+            }
             SKEY( "Comments", pArea->comments );
             break;
         case 'R':
