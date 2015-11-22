@@ -2703,11 +2703,13 @@ DEF_DO_FUN(do_recite)
         return;
     }
 
+    /*
     if (get_skill(ch, gsn_scrolls) < 1 && !IS_SET(scroll->extra_flags, ITEM_REMORT))
     {
         send_to_char("You do not know how to recite scrolls.\n\r",ch);
         return;
     }
+    */
 
     if ( ch->level < scroll->level)
     {
@@ -2738,7 +2740,7 @@ DEF_DO_FUN(do_recite)
     act( "$n recites $p.", ch, scroll, NULL, TO_ROOM );
     act( "You recite $p.", ch, scroll, NULL, TO_CHAR );
 
-    if (number_percent() >= 20 + get_skill(ch,gsn_scrolls) * 4/5)
+    if ( !per_chance(50 + get_skill(ch, gsn_scrolls) / 2) )
     {
         send_to_char("You mispronounce a syllable.\n\r",ch);
         check_improve(ch,gsn_scrolls,FALSE,2);
@@ -2776,11 +2778,13 @@ DEF_DO_FUN(do_brandish)
         return;
     }
 
+    /*
     if (get_skill(ch, gsn_staves) < 1 && !IS_SET(staff->extra_flags, ITEM_REMORT))
     {
         send_to_char("You do not know how to brandish staves.\n\r",ch);
         return;
     }
+    */
 
     if (!can_use_obj(ch, staff))
     {
@@ -2808,8 +2812,7 @@ DEF_DO_FUN(do_brandish)
     {
         act( "$n brandishes $p.", ch, staff, NULL, TO_ROOM );
         act( "You brandish $p.",  ch, staff, NULL, TO_CHAR );
-        if ( ch->level < staff->level 
-                ||   number_percent() >= 20 + get_skill(ch,gsn_staves) * 4/5)
+        if ( ch->level < staff->level || !per_chance(50 + get_skill(ch, gsn_staves) / 2) )
         {
             act ("You fail to invoke $p.",ch,staff,NULL,TO_CHAR);
             act ("...and nothing happens.",ch,NULL,NULL,TO_ROOM);
@@ -2853,11 +2856,13 @@ DEF_DO_FUN(do_zap)
         return;
     }
 
+    /*
     if (get_skill(ch, gsn_wands) < 1 && !IS_SET(wand->extra_flags, ITEM_REMORT))
     {
         send_to_char("You do not know how to zap wands.\n\r",ch);
         return;
     }
+    */
 
     if (!can_use_obj(ch, wand))
     {
@@ -2886,8 +2891,7 @@ DEF_DO_FUN(do_zap)
         act( "$n zaps $s $p.", ch, wand, NULL, TO_ROOM );
         act( "You zap your $p.", ch, wand, NULL, TO_CHAR );
 
-        if (ch->level < wand->level 
-                ||  number_percent() >= 20 + get_skill(ch,gsn_wands) * 4/5) 
+        if ( ch->level < wand->level || !per_chance(50 + get_skill(ch, gsn_wands) / 2) )
         {
             act( "Your efforts with $p produce only smoke and sparks.",
                     ch,wand,NULL,TO_CHAR);
