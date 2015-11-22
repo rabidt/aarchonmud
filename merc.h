@@ -4961,6 +4961,7 @@ bool is_offensive( int sn );
 bool is_mental( int sn );
 bool is_blindness( int sn );
 bool is_curse( int sn );
+bool is_disease( int sn );
 int cha_max_follow( CHAR_DATA *ch );
 int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
