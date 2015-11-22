@@ -2572,7 +2572,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             /* */
             count = 0;
             for (mob = pRoomIndex->people; mob != NULL; mob = mob->next_in_room)
-                if (mob->pIndexData == pMobIndex)
+                if (mob->pIndexData == pMobIndex && !mob->must_extract)
                     
                 {
                     count++;
