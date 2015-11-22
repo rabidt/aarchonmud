@@ -796,8 +796,16 @@ DEF_SPELL_FUN(spell_animate_dead)
         mlevel = (level + cor->level * 2) / 4;
     else
         mlevel = (level * 2 + cor->level) / 4;    
+    
+    // capped to character level, regardless of spell level
+    mlevel = URANGE(1, mlevel, ch->level);
+
+    // chance to control corpse animated, harder for high-level zombies
+    // 100% chance when corpse level = caster level
+    chance = 60 + 30 * level / mlevel;
+    
     /* bonus for puppetry skill */
-    mlevel = URANGE(1, mlevel, ch->level) * (1000 + puppet_skill) / 1000;
+    mlevel = mlevel * (1000 + puppet_skill) / 1000;
     mlevel += mastery_bonus(ch, gsn_puppetry, 3, 5);
     
     /* Check number of charmees against cha */
@@ -809,9 +817,7 @@ DEF_SPELL_FUN(spell_animate_dead)
     send_to_char( "You attempt to wake the dead!\n\r", ch );
     act( "$n performs an unholy ritual to wake the dead.", ch, NULL, NULL, TO_ROOM );
     
-    chance = 100 + (level - cor->level) / 4;
-    
-    if ( number_percent() > chance ) 
+    if ( !per_chance(chance) ) 
     {
         send_to_char( "Nothing happens.\n\r", ch);
         return TRUE;
@@ -854,7 +860,7 @@ DEF_SPELL_FUN(spell_animate_dead)
     af.bitvector = AFF_ANIMATE_DEAD;
     affect_to_char( mob, &af );
     
-    if ( number_percent() > chance ) 
+    if ( !per_chance(chance) )
     {
         send_to_char( "You raise a zombie and it turns on you!\n\r", ch );
         act( "$n raises a zombie which attacks!", ch, NULL, NULL, TO_ROOM );
