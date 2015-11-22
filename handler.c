@@ -2071,7 +2071,7 @@ int count_obj_list( OBJ_INDEX_DATA *pObjIndex, OBJ_DATA *list )
     nMatch = 0;
     for ( obj = list; obj != NULL; obj = obj->next_content )
     {
-        if ( obj->pIndexData == pObjIndex )
+        if ( obj->pIndexData == pObjIndex && !obj->must_extract)
             nMatch++;
     }
     
