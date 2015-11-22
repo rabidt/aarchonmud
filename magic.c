@@ -624,7 +624,7 @@ bool can_dispel(int sn)
     if ( is_curse(sn)
         || is_blindness(sn)
         || sn == gsn_poison
-        || sn == gsn_plague || sn == gsn_necrosis )
+        || is_disease(sn) )
         return FALSE;
 
     /*
@@ -3008,6 +3008,13 @@ bool is_curse( int sn )
         || sn == gsn_eldritch_curse;
 }
 
+bool is_disease( int sn )
+{
+    return sn == gsn_plague
+        || sn == gsn_necrosis
+        || sn == gsn_decompose;
+}
+
 DEF_SPELL_FUN(spell_cure_mental)
 {
     SPELL_CHECK_RETURN
@@ -3033,22 +3040,28 @@ DEF_SPELL_FUN(spell_cure_disease)
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-
-    if ( !is_affected( victim, gsn_plague ) && !is_affected(victim, gsn_necrosis))
+    bool found = FALSE, success = FALSE;
+    int asn; // affect skill number
+    
+    for ( asn = 1; skill_table[asn].name != NULL; asn++ )
+        if ( is_disease(asn) && is_affected(victim, asn) )
+        {
+            found = TRUE;
+            if ( check_dispel(level, victim, asn) )
+                success = TRUE;
+        }
+    
+    if ( !found )
     {
-        if (victim == ch)
-            send_to_char("You aren't ill.\n\r",ch);
+        if ( victim == ch )
+            send_to_char("You aren't ill.\n\r", ch);
         else
-            act("$N doesn't appear to be diseased.",ch,NULL,victim,TO_CHAR);
+            act("$N doesn't appear to be diseased.", ch, NULL, victim, TO_CHAR);
         return SR_AFFECTED;
     }
 
-    if ( check_dispel(level,victim, gsn_plague) || 
-            check_dispel(level, victim, gsn_necrosis) )
-    {
-        /*act("Your sores vanish.",victim,NULL,NULL,TO_CHAR);*/
-        act("$n looks relieved as $s sores vanish.",victim,NULL,NULL,TO_ROOM);
-    }
+    if ( success )
+        act("$n looks relieved as $s sores vanish.", victim, NULL, NULL, TO_ROOM);
     else
         send_to_char("Spell failed.\n\r",ch);
     

@@ -3110,7 +3110,7 @@ DEF_SPELL_FUN(spell_decompose)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
     
-    if ( saves_spell(victim, ch, level, DAM_HARM) )
+    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
     {
         send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
         act( "$N resists the inevitable decay of $S body and mind.", ch, NULL, victim, TO_CHAR );
@@ -3131,7 +3131,7 @@ DEF_SPELL_FUN(spell_decompose)
     
     /* a bit damage won't harm anyone ;) */
     dam = get_sn_damage( sn, level, ch );
-    full_dam( ch, victim, dam, sn, DAM_HARM, TRUE );
+    full_dam( ch, victim, dam, sn, DAM_DISEASE, TRUE );
     return TRUE;
 }
 
