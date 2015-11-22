@@ -5147,7 +5147,7 @@ char* substr_delim(const char *s, char c_start, char c_end)
 // logs a backtrace
 void log_trace()
 {
-    const int MAX_TRACE = 32;
+    const int MAX_TRACE = 64;
     void* buffer[MAX_TRACE];
     int trace_size = backtrace (buffer, MAX_TRACE);
     char **trace_msg = backtrace_symbols (buffer, trace_size);
