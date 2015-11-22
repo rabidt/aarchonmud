@@ -3833,7 +3833,7 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     
     /* consider hide skill */
     if (!IS_NPC(victim))
-        roll_victim = roll_victim * get_skill(victim, gsn_hide) / 100;
+        roll_victim = roll_victim * get_skill_total(victim, gsn_hide, 0.5) / 100;
     
     /* easier to hide in dark rooms */
     if (room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
