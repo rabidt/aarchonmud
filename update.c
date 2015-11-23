@@ -2308,6 +2308,7 @@ void update_handler( void )
     {
         update_fighting();
         aggr_update();
+        show_violence_summary();
         death_update();
         extract_update();
         cleanup_uds();
