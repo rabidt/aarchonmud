@@ -1236,8 +1236,8 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     if ( IS_SET(victim->imm_flags, IMM_PETRIFY) || saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
         apply_petrify(victim, FALSE);
-        act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
-        act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
+        act_gag("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
         return FALSE; // still a fail
     }
 
@@ -1278,16 +1278,16 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     // chance to get petrified if not averting gaze
     if ( per_chance(10) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
     {
-        act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
-        act("$n is caught in your gaze.", ch, NULL, victim, TO_VICT);
+        act_gag("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is caught in your gaze.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
         if ( check_petrify(victim, ch) )
             return;
     }
     // also chance to petrify your opponent by gazing at them
     if ( per_chance(10) && can_see_combat(ch, victim) && check_skill(ch, gsn_petrify) )
     {
-        act("You catch $N with your gaze.", ch, NULL, victim, TO_CHAR);
-        act("$n catches you with $s gaze.", ch, NULL, victim, TO_VICT);
+        act_gag("You catch $N with your gaze.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+        act_gag("$n catches you with $s gaze.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
         check_petrify(ch, victim);
     }
     
@@ -1491,8 +1491,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, gsn_boa, STAT_STR, STAT_STR, 50) )
     {
-        send_to_char("You are constricted and unable to act.\n\r", victim);
-        act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
+        act_gag("You are constricted and unable to act.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
         WAIT_STATE(victim, PULSE_VIOLENCE);
         victim->stop++;
         int dam = martial_damage(ch, victim, gsn_boa) * 2;
@@ -2412,8 +2412,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* If oprog didn't stop the hit then do the rest of crit strike stuff */
     if ( crit )
     {
-        act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        act_gag("$p {RCRITICALLY STRIKES{x $n!", victim, wield, NULL, TO_NOTVICT, GAG_DAMAGE);
+        act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
     }
 
@@ -2692,8 +2692,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    disarm(ch, victim, FALSE, get_mastery(ch, gsn_boa));
 	if (number_bits(4)==0)
 	{
-	    send_to_char("You are too constricted to move.\n\r", victim);
-	    act("$n is constricted and unable to move.", victim,NULL,NULL,TO_ROOM);
+	    act_gag("You are too constricted to move.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+	    act_gag("$n is constricted and unable to move.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 	    WAIT_STATE(victim, 2*PULSE_VIOLENCE);
 	}
 	break;
@@ -2930,9 +2930,9 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	  || wield->value[0] == WEAPON_FLAIL)
 	 && number_bits(6) == 0 )
     {
-	act( "You hit $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_CHAR );
-	act( "$n hits you on the head, leaving you dazzled.", ch, NULL, victim, TO_VICT );
-	act( "$n hits $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_NOTVICT );
+	act_gag("You hit $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+	act_gag("$n hits you on the head, leaving you dazzled.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
+	act_gag("$n hits $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
 	DAZE_STATE( victim, 2 * PULSE_VIOLENCE );
     }
 

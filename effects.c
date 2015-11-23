@@ -118,9 +118,9 @@ void acid_effect(void *vo, int level, int dam, int target)
 		return;
 
 	if (obj->carried_by != NULL)
-		act(msg,obj->carried_by,obj,NULL,TO_ALL);
+		act_gag(msg, obj->carried_by, obj, NULL, TO_ALL, GAG_EFFECT);
 	else if (obj->in_room != NULL && obj->in_room->people != NULL)
-		act(msg,obj->in_room->people,obj,NULL,TO_ALL);
+		act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
 
 	if (obj->item_type == ITEM_ARMOR)  /* etch it */
 	{
@@ -190,8 +190,8 @@ void cold_effect(void *vo, int level, int dam, int target)
 	{
 		AFFECT_DATA af;
 
-		act("$n turns blue and shivers.",victim,NULL,NULL,TO_ROOM);
-		act("A chill sinks deep into your bones.",victim,NULL,NULL,TO_CHAR);
+		act_gag("$n turns blue and shivers.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
+		act_gag("A chill sinks deep into your bones.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
 		af.where     = TO_AFFECTS;
 		af.type      = skill_lookup("chill touch");
 		af.level     = level;
@@ -263,9 +263,9 @@ void cold_effect(void *vo, int level, int dam, int target)
 		return;
 
 	if (obj->carried_by != NULL)
-		act(msg,obj->carried_by,obj,NULL,TO_ALL);
+		act_gag(msg, obj->carried_by, obj, NULL, TO_ALL, GAG_EFFECT);
 	else if (obj->in_room != NULL && obj->in_room->people != NULL)
-		act(msg,obj->in_room->people,obj,NULL,TO_ALL);
+		act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
 
 	extract_obj(obj);
 	return;
@@ -298,9 +298,9 @@ void fire_effect(void *vo, int level, int dam, int target)
 	&&  !number_bits(2))
 	{
 	    AFFECT_DATA af;
-	    act("$n is blinded by smoke!",victim,NULL,NULL,TO_ROOM);
-	    act("Your eyes tear up from smoke...you can't see a thing!",
-		victim,NULL,NULL,TO_CHAR);
+	    act_gag("$n is blinded by smoke!", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
+	    act_gag("Your eyes tear up from smoke...you can't see a thing!",
+		victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
 	    
 	    af.where        = TO_AFFECTS;
 	    af.type         = gsn_fire_breath;
@@ -397,9 +397,9 @@ void fire_effect(void *vo, int level, int dam, int target)
 			return;
  
 	if (obj->carried_by != NULL)
-			act( msg, obj->carried_by, obj, NULL, TO_ALL );
+		act_gag(msg, obj->carried_by, obj, NULL, TO_ALL, GAG_EFFECT);
 	else if (obj->in_room != NULL && obj->in_room->people != NULL)
-		act(msg,obj->in_room->people,obj,NULL,TO_ALL);
+		act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
 
 		if (obj->contains)
 		{
@@ -452,9 +452,8 @@ void poison_effect(void *vo,int level, int dam, int target)
 	    {
 		AFFECT_DATA af;
 		
-		send_to_char("You feel poison coursing through your veins.\n\r",
-			     victim);
-		act("$n looks very ill.",victim,NULL,NULL,TO_ROOM);
+		act_gag("You feel poison coursing through your veins.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+		act_gag("$n looks very ill.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 		
 		af.where     = TO_AFFECTS;
 		af.type      = gsn_poison;
@@ -540,8 +539,8 @@ void shock_effect(void *vo,int level, int dam, int target)
 	/* daze and confused? */
 	if (!saves_spell(victim, NULL, level/4 + dam/20, DAM_LIGHTNING))
 	{
-	    send_to_char("Your muscles stop responding.\n\r",victim);
-	    act( "$n's muscles stop responding.", victim, NULL, NULL, TO_ROOM );
+	    act_gag("Your muscles stop responding.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+	    act_gag("$n's muscles stop responding.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 	    DAZE_STATE(victim, PULSE_VIOLENCE);
 	}
 
@@ -597,9 +596,9 @@ void shock_effect(void *vo,int level, int dam, int target)
 		return;
 
 	if (obj->carried_by != NULL)
-		act(msg,obj->carried_by,obj,NULL,TO_ALL);
+		act_gag(msg, obj->carried_by, obj, NULL, TO_ALL, GAG_EFFECT);
 	else if (obj->in_room != NULL && obj->in_room->people != NULL)
-		act(msg,obj->in_room->people,obj,NULL,TO_ALL);
+		act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
 
 	extract_obj(obj);
 	return;
@@ -617,8 +616,8 @@ void dumb_effect(void *vo, int level, int dam, int target)
 	{
 	    AFFECT_DATA af;
 	    
-	    act("$n is having trouble thinking.",victim,NULL,NULL,TO_ROOM);
-	    act("UuuhNnNNhhh. You're losing what's left of your feeble mind!" ,victim,NULL,NULL,TO_CHAR);
+	    act_gag("$n is having trouble thinking.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
+	    act_gag("UuuhNnNNhhh. You're losing what's left of your feeble mind!", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
 	    af.where     = TO_AFFECTS;
 	    af.type      = skill_lookup("feeblemind");
 	    af.level     = level;
@@ -645,9 +644,8 @@ void paralysis_effect(void *vo,int level, int dam, int target)
 	    {
 		AFFECT_DATA af;
 		
-		send_to_char("A paralysis poison makes your limbs feel heavy and weak.\n\r",
-			     victim);
-		act("$n is consumed by a paralysis poison.",victim,NULL,NULL,TO_ROOM);
+		act_gag("A paralysis poison makes your limbs feel heavy and weak.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+		act_gag("$n is consumed by a paralysis poison.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 		
 		af.where     = TO_AFFECTS;
 		af.type      = gsn_paralysis_poison;
