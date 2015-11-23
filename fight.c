@@ -392,8 +392,6 @@ void violence_update( void )
     /* restore the old order in char list */
     if ( reverse_order )
         reverse_char_list();
-    
-    show_violence_summary();
 }
 
 void reverse_char_list()
