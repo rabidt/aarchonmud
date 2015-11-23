@@ -281,6 +281,7 @@ void violence_update_char( CHAR_DATA *ch )
 void show_violence_summary()
 {
     CHAR_DATA *ch, *ch_next, *gch;
+    char buf[MSL];
     const char *vs, *vp;
     char punct;
 
@@ -288,33 +289,48 @@ void show_violence_summary()
     for ( ch = char_list; ch != NULL; ch = ch_next )
     {
         ch_next = ch->next;
-        if ( ch->must_extract || ch->in_room == NULL || !IS_SET(ch->gag, GAG_DAMAGE) )
+        if ( ch->must_extract || ch->in_room == NULL || IS_NPC(ch) )
             continue;
-        // aggregate round damage for entire group
-        int group_dealt = 0;
-        int group_taken = 0;
-        for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
-            if ( is_same_group(gch, ch) )
+        
+        int dam_dealt = ch->round_dam_dealt;
+        int dam_taken = ch->round_dam_taken;
+        
+        // show summarized damage messages
+        if ( dam_dealt > 0 )
+        {
+            get_damage_messages(dam_dealt, 0, &vs, &vp, &punct);
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
             {
-                group_dealt += gch->round_dam_dealt;
-                group_taken += gch->round_dam_taken;
+                if ( !IS_SET(gch->gag, GAG_DAMAGE) )
+                    continue;
+                if ( gch != ch )
+                {
+                    sprintf(buf, "$n %s $s foes%c", vp, punct);
+                    act(buf, ch, NULL, gch, TO_VICT);
+                }
+                else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                    ptc(ch, "You %s your foes for %d damage%c\n\r", vs, dam_dealt, punct);
+                else
+                    ptc(ch, "You %s your foes%c\n\r", vs, punct);
             }
-        // show combined damage message
-        if ( group_dealt > 0 )
-        {
-            get_damage_messages(group_dealt, 0, &vs, &vp, &punct);
-            if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
-                ptc(ch, "You %s your foes for %d damage%c\n\r", vs, group_dealt, punct);
-            else
-                ptc(ch, "You %s your foes%c\n\r", vs, punct);
         }
-        if ( group_taken > 0 )
+        if ( dam_taken > 0 )
         {
-            get_damage_messages(group_taken, 0, &vs, &vp, &punct);
-            if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
-                ptc(ch, "Your foes %s you for %d damage%c\n\r", vs, group_taken, punct);
-            else
-                ptc(ch, "Your foes %s you%c\n\r", vs, punct);
+            get_damage_messages(dam_taken, 0, &vs, &vp, &punct);
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            {
+                if ( !IS_SET(gch->gag, GAG_DAMAGE) )
+                    continue;
+                if ( gch != ch )
+                {
+                    sprintf(buf, "$n's foes %s $m%c", vp, punct);
+                    act(buf, ch, NULL, gch, TO_VICT);
+                }
+                else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                    ptc(ch, "Your foes %s you for %d damage%c\n\r", vs, dam_taken, punct);
+                else
+                    ptc(ch, "Your foes %s you%c\n\r", vs, punct);
+            }
         }
     }
     // reset damage dealt/received
@@ -3221,7 +3237,7 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     victim->damage_taken += dam;
     ch->damage_dealt += dam;
     #endif
-    ch->round_dam_dealt += dam;
+    get_local_leader(ch)->round_dam_dealt += dam;
     victim->round_dam_taken += dam;
 
     if ( dam > 0 )
@@ -3753,7 +3769,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( total_dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    ch->round_dam_dealt += total_dam;
+    get_local_leader(ch)->round_dam_dealt += total_dam;
     victim->round_dam_taken += total_dam;
     remember_attack(victim, ch, total_dam);
     
