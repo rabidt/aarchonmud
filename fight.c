@@ -323,7 +323,7 @@ void show_violence_summary()
                     continue;
                 if ( gch != ch )
                 {
-                    sprintf(buf, "$n's foes %s $m%c", vp, punct);
+                    sprintf(buf, "$s foes %s $n%c", vs, punct);
                     act(buf, ch, NULL, gch, TO_VICT);
                 }
                 else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
