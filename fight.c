@@ -277,6 +277,54 @@ void violence_update_char( CHAR_DATA *ch )
     }
 }
 
+// show damage dealt since last round and reset
+void show_violence_summary()
+{
+    CHAR_DATA *ch, *ch_next, *gch;
+    const char *vs, *vp;
+    char punct;
+
+    // show damage dealt/received to those who had it gagged
+    for ( ch = char_list; ch != NULL; ch = ch_next )
+    {
+        ch_next = ch->next;
+        if ( ch->must_extract || ch->in_room == NULL || !IS_SET(ch->gag, GAG_DAMAGE) )
+            continue;
+        // aggregate round damage for entire group
+        int group_dealt = 0;
+        int group_taken = 0;
+        for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            if ( is_same_group(gch, ch) )
+            {
+                group_dealt += gch->round_dam_dealt;
+                group_taken += gch->round_dam_taken;
+            }
+        // show combined damage message
+        if ( group_dealt > 0 )
+        {
+            get_damage_messages(group_dealt, 0, &vs, &vp, &punct);
+            if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                ptc(ch, "You %s your foes for %d damage%c\n\r", vs, group_dealt, punct);
+            else
+                ptc(ch, "You %s your foes%c\n\r", vs, punct);
+        }
+        if ( group_taken > 0 )
+        {
+            get_damage_messages(group_taken, 0, &vs, &vp, &punct);
+            if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                ptc(ch, "Your foes %s you for %d damage%c\n\r", vs, group_taken, punct);
+            else
+                ptc(ch, "Your foes %s you%c\n\r", vs, punct);
+        }
+    }
+    // reset damage dealt/received
+    for ( ch = char_list; ch != NULL; ch = ch->next )
+    {
+        ch->round_dam_dealt = 0;
+        ch->round_dam_taken = 0;
+    }
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -328,6 +376,8 @@ void violence_update( void )
     /* restore the old order in char list */
     if ( reverse_order )
         reverse_char_list();
+    
+    show_violence_summary();
 }
 
 void reverse_char_list()
@@ -3167,6 +3217,13 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
         start_combat(ch, victim);
     remember_attack(victim, ch, dam);
 
+    #ifdef FSTAT
+    victim->damage_taken += dam;
+    ch->damage_dealt += dam;
+    #endif
+    ch->round_dam_dealt += dam;
+    victim->round_dam_taken += dam;
+
     if ( dam > 0 )
     {
         // Sleeping victims wake up
@@ -3689,13 +3746,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
+    int total_dam = dam + mana_loss + move_loss;
     #ifdef FSTAT 
-    victim->damage_taken += dam;
-    ch->damage_dealt += dam;
-    if ( dam < 1 )
+    victim->damage_taken += total_dam;
+    ch->damage_dealt += total_dam;
+    if ( total_dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    remember_attack(victim, ch, dam + mana_loss + move_loss);
+    ch->round_dam_dealt += total_dam;
+    victim->round_dam_taken += total_dam;
+    remember_attack(victim, ch, total_dam);
     
     /* deaths door check Added by Tryste */
     if ( !IS_NPC(victim) && victim->hit < 1 )
@@ -6390,7 +6450,7 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
 /* return gagtype if any */
 int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char *punct )
 {
-    int gag_type=0;
+    int gag_type = GAG_DAMAGE;
     if (dam<100)
         if (dam < 39)
         {
@@ -6456,7 +6516,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     const char *attack;
     char *victmeter, *chmeter;
     char punct;
-    long gag_type = 0;
+    long gag_type = GAG_DAMAGE;
     int sn;
     
 #ifdef DEBUG_DAMTYPE
