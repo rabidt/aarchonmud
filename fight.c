@@ -323,7 +323,7 @@ void show_violence_summary()
                     continue;
                 if ( gch != ch )
                 {
-                    sprintf(buf, "$n's foes %s $m%c", vp, punct);
+                    sprintf(buf, "$s foes %s $n%c", vs, punct);
                     act(buf, ch, NULL, gch, TO_VICT);
                 }
                 else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
@@ -392,8 +392,6 @@ void violence_update( void )
     /* restore the old order in char list */
     if ( reverse_order )
         reverse_char_list();
-    
-    show_violence_summary();
 }
 
 void reverse_char_list()
@@ -3239,8 +3237,6 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     victim->damage_taken += dam;
     ch->damage_dealt += dam;
     #endif
-    get_local_leader(ch)->round_dam_dealt += dam;
-    victim->round_dam_taken += dam;
 
     if ( dam > 0 )
     {
@@ -3771,8 +3767,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( total_dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    get_local_leader(ch)->round_dam_dealt += total_dam;
-    victim->round_dam_taken += total_dam;
     remember_attack(victim, ch, total_dam);
     
     /* deaths door check Added by Tryste */
@@ -6548,6 +6542,10 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 #endif
     if (ch == NULL || victim == NULL)
         return;
+
+    // record damage dealt for later summaried display
+    get_local_leader(ch)->round_dam_dealt += dam;
+    victim->round_dam_taken += dam;
 
 	sprintf(buf, " for %d damage", dam);
 	#ifdef TESTER
