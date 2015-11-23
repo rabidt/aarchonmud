@@ -2321,6 +2321,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_EQUIP      (F)
 #define GAG_AURA       (G)
 #define GAG_SUNBURN    (H)
+#define GAG_DAMAGE     (I)
 
 /* channel definitions for log_chan/playback */
 extern sh_int sn_gossip;
@@ -2596,6 +2597,10 @@ struct  char_data
 	int	mana_used;
 	int	moves_used;
 	#endif
+    
+    // damage dealt and taken since last round for compressed combat info
+    int round_dam_dealt;
+    int round_dam_taken;
 
     TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
     struct lua_extra_val *luavals;
