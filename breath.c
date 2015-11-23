@@ -224,7 +224,7 @@ void slow_effect( void *vo, int level, int dam, int target )
   if (IS_AFFECTED(victim,AFF_HASTE))
   {
       if (check_dispel(level,victim,skill_lookup("haste")))
-	  act("$n is moving less quickly.",victim,NULL,NULL,TO_ROOM);
+	  act_gag("$n is moving less quickly.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
       else
 	  return;
   }
@@ -239,8 +239,8 @@ void slow_effect( void *vo, int level, int dam, int target )
     af.modifier  = -1 - level/5;
     af.bitvector = AFF_SLOW;
     affect_to_char( victim, &af );
-    send_to_char( "You feel yourself slowing d o w n...\n\r", victim );
-    act("$n starts to move in slow motion.",victim,NULL,NULL,TO_ROOM);
+    act_gag("You feel yourself slowing d o w n...", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+    act_gag("$n starts to move in slow motion.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
   }
 }
 
@@ -265,8 +265,8 @@ void ooze_effect( void *vo, int level, int dam, int target )
   af.modifier  = -11;
   af.bitvector = 0;
   affect_join( victim, &af );
-  send_to_char( "You feel slow and clumsy.\n\r", victim );
-  act("$n begins to move around clumsily.",victim,NULL,NULL,TO_ROOM);
+  act_gag("You feel slow and clumsy.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+  act_gag("$n begins to move around clumsily.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 }
 
 void plague_effect( void *vo, int level, int dam, int target )
@@ -291,8 +291,8 @@ void plague_effect( void *vo, int level, int dam, int target )
     af.modifier  = -1 - level/5;
     af.bitvector = AFF_PLAGUE;
     affect_to_char(victim, &af);
-    send_to_char("You scream in agony as plague sores erupt from your skin.\n\r",victim);
-    act("$n screams in agony as plague sores erupt from $s skin.",victim,NULL,NULL,TO_ROOM);
+    act_gag("You scream in agony as plague sores erupt from your skin.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+    act_gag("$n screams in agony as plague sores erupt from $s skin.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
   }
 }
 
@@ -318,8 +318,8 @@ void weak_effect( void *vo, int level, int dam, int target )
     af.modifier  = -1 - level/2;
     af.bitvector = AFF_WEAKEN;
     affect_to_char( victim, &af );
-    send_to_char( "You feel your strength slip away.\n\r", victim );
-    act("$n looks tired and weak.",victim,NULL,NULL,TO_ROOM);
+    act_gag("You feel your strength slip away.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+    act_gag("$n looks tired and weak.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
   }
 }
 
@@ -345,8 +345,8 @@ void curse_effect( void *vo, int level, int dam, int target )
     af.modifier  = -1 - level/5;
     af.bitvector = AFF_CURSE;
     affect_to_char( victim, &af );
-    send_to_char( "You feel unclean.\n\r", victim );
-    act("$n looks very uncomfortable.",victim,NULL,NULL,TO_ROOM);
+    act_gag("You feel unclean.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+    act_gag("$n looks very uncomfortable.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
   }
 }
 
