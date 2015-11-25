@@ -2321,6 +2321,8 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_EQUIP      (F)
 #define GAG_AURA       (G)
 #define GAG_SUNBURN    (H)
+#define GAG_DAMAGE     (I)
+#define GAG_EFFECT     (J)
 
 /* channel definitions for log_chan/playback */
 extern sh_int sn_gossip;
@@ -2596,6 +2598,10 @@ struct  char_data
 	int	mana_used;
 	int	moves_used;
 	#endif
+    
+    // damage dealt and taken since last round for compressed combat info
+    int round_dam_dealt;
+    int round_dam_taken;
 
     TIMER_NODE *trig_timer; /* should not be touched except in timer.c */
     struct lua_extra_val *luavals;
@@ -4609,6 +4615,7 @@ bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
 bool    is_calm( CHAR_DATA *ch );
+void    show_violence_summary();
 void    violence_update_char( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
