@@ -277,6 +277,70 @@ void violence_update_char( CHAR_DATA *ch )
     }
 }
 
+// show damage dealt since last round and reset
+void show_violence_summary()
+{
+    CHAR_DATA *ch, *ch_next, *gch;
+    char buf[MSL];
+    const char *vs, *vp;
+    char punct;
+
+    // show damage dealt/received to those who had it gagged
+    for ( ch = char_list; ch != NULL; ch = ch_next )
+    {
+        ch_next = ch->next;
+        if ( ch->must_extract || ch->in_room == NULL || IS_NPC(ch) )
+            continue;
+        
+        int dam_dealt = ch->round_dam_dealt;
+        int dam_taken = ch->round_dam_taken;
+        
+        // show summarized damage messages
+        if ( dam_dealt > 0 )
+        {
+            get_damage_messages(dam_dealt, 0, &vs, &vp, &punct);
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            {
+                if ( !IS_SET(gch->gag, GAG_DAMAGE) )
+                    continue;
+                if ( gch != ch )
+                {
+                    sprintf(buf, "$n %s $s foes%c", vp, punct);
+                    act(buf, ch, NULL, gch, TO_VICT);
+                }
+                else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                    ptc(ch, "You %s your foes for %d damage%c\n\r", vs, dam_dealt, punct);
+                else
+                    ptc(ch, "You %s your foes%c\n\r", vs, punct);
+            }
+        }
+        if ( dam_taken > 0 )
+        {
+            get_damage_messages(dam_taken, 0, &vs, &vp, &punct);
+            for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            {
+                if ( !IS_SET(gch->gag, GAG_DAMAGE) )
+                    continue;
+                if ( gch != ch )
+                {
+                    sprintf(buf, "$s foes %s $n%c", vs, punct);
+                    act(buf, ch, NULL, gch, TO_VICT);
+                }
+                else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
+                    ptc(ch, "Your foes %s you for %d damage%c\n\r", vs, dam_taken, punct);
+                else
+                    ptc(ch, "Your foes %s you%c\n\r", vs, punct);
+            }
+        }
+    }
+    // reset damage dealt/received
+    for ( ch = char_list; ch != NULL; ch = ch->next )
+    {
+        ch->round_dam_dealt = 0;
+        ch->round_dam_taken = 0;
+    }
+}
+
 /*
  * Control the fights going on.
  * Called periodically by update_handler.
@@ -1186,8 +1250,8 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     if ( IS_SET(victim->imm_flags, IMM_PETRIFY) || saves_physical(victim, NULL, ch->level, DAM_HARM) )
     {
         apply_petrify(victim, FALSE);
-        act("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR);
-        act("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM);
+        act_gag("Your muscles grow stiff.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is moving more stiffly.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
         return FALSE; // still a fail
     }
 
@@ -1228,16 +1292,16 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     // chance to get petrified if not averting gaze
     if ( per_chance(10) && can_see_combat(ch, victim) && check_skill(victim, gsn_petrify) )
     {
-        act("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR);
-        act("$n is caught in your gaze.", ch, NULL, victim, TO_VICT);
+        act_gag("You accidentally catch $N's gaze.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is caught in your gaze.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
         if ( check_petrify(victim, ch) )
             return;
     }
     // also chance to petrify your opponent by gazing at them
     if ( per_chance(10) && can_see_combat(ch, victim) && check_skill(ch, gsn_petrify) )
     {
-        act("You catch $N with your gaze.", ch, NULL, victim, TO_CHAR);
-        act("$n catches you with $s gaze.", ch, NULL, victim, TO_VICT);
+        act_gag("You catch $N with your gaze.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+        act_gag("$n catches you with $s gaze.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
         check_petrify(ch, victim);
     }
     
@@ -1441,8 +1505,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_SET(ch->form, FORM_CONSTRICT) && !number_bits(2) && combat_maneuver_check(ch, victim, gsn_boa, STAT_STR, STAT_STR, 50) )
     {
-        send_to_char("You are constricted and unable to act.\n\r", victim);
-        act("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM);
+        act_gag("You are constricted and unable to act.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+        act_gag("$n is constricted and unable to act.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
         WAIT_STATE(victim, PULSE_VIOLENCE);
         victim->stop++;
         int dam = martial_damage(ch, victim, gsn_boa) * 2;
@@ -2362,8 +2426,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* If oprog didn't stop the hit then do the rest of crit strike stuff */
     if ( crit )
     {
-        act("$p {RCRITICALLY STRIKES{x $n!",victim,wield,NULL,TO_NOTVICT);
-        act("{RCRITICAL STRIKE!{x",ch,NULL,victim,TO_VICT);
+        act_gag("$p {RCRITICALLY STRIKES{x $n!", victim, wield, NULL, TO_NOTVICT, GAG_DAMAGE);
+        act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
     }
 
@@ -2642,8 +2706,8 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	    disarm(ch, victim, FALSE, get_mastery(ch, gsn_boa));
 	if (number_bits(4)==0)
 	{
-	    send_to_char("You are too constricted to move.\n\r", victim);
-	    act("$n is constricted and unable to move.", victim,NULL,NULL,TO_ROOM);
+	    act_gag("You are too constricted to move.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+	    act_gag("$n is constricted and unable to move.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 	    WAIT_STATE(victim, 2*PULSE_VIOLENCE);
 	}
 	break;
@@ -2880,9 +2944,9 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	  || wield->value[0] == WEAPON_FLAIL)
 	 && number_bits(6) == 0 )
     {
-	act( "You hit $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_CHAR );
-	act( "$n hits you on the head, leaving you dazzled.", ch, NULL, victim, TO_VICT );
-	act( "$n hits $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_NOTVICT );
+	act_gag("You hit $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+	act_gag("$n hits you on the head, leaving you dazzled.", ch, NULL, victim, TO_VICT, GAG_EFFECT);
+	act_gag("$n hits $N on the head, leaving $M dazzled.", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
 	DAZE_STATE( victim, 2 * PULSE_VIOLENCE );
     }
 
@@ -3166,6 +3230,11 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     if ( ch->in_room == victim->in_room )
         start_combat(ch, victim);
     remember_attack(victim, ch, dam);
+
+    #ifdef FSTAT
+    victim->damage_taken += dam;
+    ch->damage_dealt += dam;
+    #endif
 
     if ( dam > 0 )
     {
@@ -3689,13 +3758,14 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
+    int total_dam = dam + mana_loss + move_loss;
     #ifdef FSTAT 
-    victim->damage_taken += dam;
-    ch->damage_dealt += dam;
-    if ( dam < 1 )
+    victim->damage_taken += total_dam;
+    ch->damage_dealt += total_dam;
+    if ( total_dam < 1 )
 	ch->attacks_misses +=1;
     #endif
-    remember_attack(victim, ch, dam + mana_loss + move_loss);
+    remember_attack(victim, ch, total_dam);
     
     /* deaths door check Added by Tryste */
     if ( !IS_NPC(victim) && victim->hit < 1 )
@@ -6390,7 +6460,7 @@ void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gai
 /* return gagtype if any */
 int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char *punct )
 {
-    int gag_type=0;
+    int gag_type = GAG_DAMAGE;
     if (dam<100)
         if (dam < 39)
         {
@@ -6439,7 +6509,11 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
                 else if ( dam < 600)  { *vs = "do {+UNSPEAKABLE{  things to"; *vp = "does {+UNSPEAKABLE{  things to";}
                 else if ( dam < 1000)  { *vs = "do {+{%BLASPHEMOUS{  things to"; *vp = "does {+{%BLASPHEMOUS{  things to";}
                 else if ( dam < 1500)  { *vs = "do {+{%UNBELIEVABLE{  things to"; *vp = "does {+{%UNBELIEVABLE{  things to";}
-                else    { *vs = "do {+{%INCONCEIVABLE{  things to"; *vp = "does {+{%INCONCEIVABLE{  things to";}
+                else if ( dam < 2500)  { *vs = "do {+{%INCONCEIVABLE{  things to"; *vp = "does {+{%INCONCEIVABLE{  things to";}
+                else if ( dam < 5000)   { *vs = "do {+{%--- RIDICULOUS ---{  things to"; *vp = "does {+{%--- RIDICULOUS ---{  things to";}
+                else if ( dam < 10000)  { *vs = "do {+{%--- FANTASTICAL ---{  things to"; *vp = "does {+{%--- FANTASTICAL ---{  things to";}
+                else if ( dam < 20000)  { *vs = "do {+{%--- LEGENDARY ---{  things to"; *vp = "does {+{%--- LEGENDARY ---{  things to";}
+                else                    { *vs = "do {+{%--- WHAT?! ---{  to"; *vp = "does {+{%--- WHAT?! ---{  to";}
             }
 
     *punct   = (dam < 31) ? '.' : '!';
@@ -6456,7 +6530,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     const char *attack;
     char *victmeter, *chmeter;
     char punct;
-    long gag_type = 0;
+    long gag_type = GAG_DAMAGE;
     int sn;
     
 #ifdef DEBUG_DAMTYPE
@@ -6466,6 +6540,10 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
 #endif
     if (ch == NULL || victim == NULL)
         return;
+
+    // record damage dealt for later summaried display
+    get_local_leader(ch)->round_dam_dealt += dam;
+    victim->round_dam_taken += dam;
 
 	sprintf(buf, " for %d damage", dam);
 	#ifdef TESTER
