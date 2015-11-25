@@ -3320,14 +3320,16 @@ DEF_DO_FUN(do_gag)
     if ( argument[0] == '\0' )
     {
         send_to_char("Information Gagging:\n\r", ch);
-        print_gag("  miss", GAG_MISS, ch);
-        print_gag(" wflag", GAG_WFLAG, ch);
-        print_gag("  fade", GAG_FADE, ch);
-	print_gag(" bleed", GAG_BLEED, ch);
-	print_gag("immune", GAG_IMMUNE, ch);
-	print_gag(" equip", GAG_EQUIP, ch);
-	print_gag("  aura", GAG_AURA, ch);
-	print_gag("sunburn", GAG_SUNBURN, ch);
+        print_gag("   miss", GAG_MISS, ch);
+        print_gag("  wflag", GAG_WFLAG, ch);
+        print_gag("   fade", GAG_FADE, ch);
+        print_gag("  bleed", GAG_BLEED, ch);
+        print_gag(" immune", GAG_IMMUNE, ch);
+        print_gag("  equip", GAG_EQUIP, ch);
+        print_gag("   aura", GAG_AURA, ch);
+        print_gag("sunburn", GAG_SUNBURN, ch);
+        print_gag(" damage", GAG_DAMAGE, ch);
+        print_gag(" effect", GAG_EFFECT, ch);
         return;
     }
     
@@ -3344,12 +3346,16 @@ DEF_DO_FUN(do_gag)
     if (check_gag_arg(argument, "equip", GAG_EQUIP, ch))
         return;
     if (check_gag_arg(argument, "aura", GAG_AURA, ch))
-	return;
+        return;
     if (check_gag_arg(argument, "sunburn", GAG_SUNBURN, ch))
-	return;
+        return;
+    if (check_gag_arg(argument, "damage", GAG_DAMAGE, ch))
+        return;
+    if (check_gag_arg(argument, "effect", GAG_EFFECT, ch))
+        return;
     
     send_to_char("Syntax: gag\n\r", ch);
-    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn]\n\r", ch);
+    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn|damage|effect]\n\r", ch);
 }
 
 DEF_DO_FUN(do_try)

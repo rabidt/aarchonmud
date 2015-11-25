@@ -2088,6 +2088,9 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
 
         if ( gag_type > 0 && IS_SET(to->gag, gag_type) )
             continue;
+        // aura and sunburn are also types of damage
+        if ( (gag_type == GAG_AURA || gag_type == GAG_SUNBURN) && IS_SET(to->gag, GAG_DAMAGE) )
+            continue;
 
         if (act_wizi && !IS_IMMORTAL(to))
             continue;

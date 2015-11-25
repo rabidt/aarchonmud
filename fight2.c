@@ -4210,8 +4210,8 @@ void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim )
     af.bitvector = VULN_MAGIC;
     affect_join(victim, &af);
     
-    act("You are afflicted with an eldritch curse!", victim, NULL, NULL, TO_CHAR);
-    act("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM);
+    act_gag("You are afflicted with an eldritch curse!", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+    act_gag("$n is afflicted with an eldritch curse!", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 }
 
 DEF_DO_FUN(do_bomb)
