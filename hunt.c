@@ -507,15 +507,17 @@ DEF_DO_FUN(do_hunt)
         act( "$N is here!", ch, NULL, victim, TO_CHAR );
         return;
     }
+
+    // allow hunting of any target, overwriting elude etc.
+    bool stalk_any = per_chance(get_skill_overflow(ch, gsn_stalk));
     
-    if ( IS_SET(victim->act, ACT_NO_TRACK) )
+    if ( !stalk_any && IS_SET(victim->act, ACT_NO_TRACK) )
     {
         act( "$N has left no discernable trail.", ch, NULL, victim, TO_CHAR );     
         return;
     }
     
-    if ( IS_AFFECTED(victim, AFF_NO_TRACE)
-	 && is_wilderness(ch->in_room->sector_type) )           
+    if ( !stalk_any && IS_AFFECTED(victim, AFF_NO_TRACE) && is_wilderness(ch->in_room->sector_type) )
     {
 	act( "$N has left no trace of $S passing.", ch, NULL, victim, TO_CHAR );     
 	return;
@@ -560,7 +562,7 @@ DEF_DO_FUN(do_hunt)
             || ( ch->in_room->exit[direction]->u1.to_room == NULL) );
     }
     
-    if ((chance=get_skill(victim, gsn_elude)) != 0)
+    if ( !stalk_any && (chance=get_skill(victim, gsn_elude)) > 0 )
     {
         if (number_percent() < chance/2)
         {
