@@ -481,8 +481,9 @@ DEF_DO_FUN(do_hunt)
    /*
     * Deduct some movement.
     */
-    if( ch->move > 2 )
-        ch->move -= 3;
+    int cost = 10 - mastery_bonus(ch, gsn_stalk, 6, 9);
+    if( ch->move >= cost )
+        ch->move -= cost;
     else
     {
         send_to_char( "You're too exhausted to hunt anyone!\n\r", ch );
@@ -721,8 +722,8 @@ DEF_DO_FUN(do_scout)
    /*
     * Deduct some movement.
     */
-    if ( ch->move > 2 )
-        ch->move -= 3;
+    if ( ch->move > 9 )
+        ch->move -= 10;
     else
     {
         send_to_char( "You're too exhausted to scout any further!\n\r", ch );
