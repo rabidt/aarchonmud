@@ -6835,7 +6835,7 @@ DEF_DO_FUN(do_flee)
             continue;
         
         // harder to flee from PCs
-        int entrapment_factor = (IS_NPC(opp) ? 100 : 150) + get_skill(opp, gsn_entrapment);
+        int entrapment_factor = (IS_NPC(opp) ? 100 : 150) + get_skill_total(opp, gsn_entrapment, 0.5);
         int opp_base = (100 + opp->level) * entrapment_factor / 100;
         int opp_roll = number_range(0, opp_base);
 
