@@ -2739,7 +2739,11 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     case STANCE_WITCH_HUNTING:
         if ( (IS_NPC(victim) && (IS_SET(victim->act,ACT_MAGE) || victim->spec_fun == spec_cast_mage))
              || (!IS_NPC(victim) && (victim->class == 3 || victim->class == 11 || victim->class == 14)) )
+        {
             full_dam(ch, victim, dam, gsn_witch_hunting, DAM_DROWNING, TRUE);
+            if ( per_chance(get_skill_overflow(ch, gsn_witch_hunting)) )
+                victim->mana -= UMIN(victim->mana, dam / 10);
+        }
         break;
     case STANCE_ELEMENTAL_BLADE:
 	/* additional mana cost */
