@@ -6511,13 +6511,13 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
                 else if ( dam < 300)  { *vs = "do {+SICKENING{  damage to"; *vp = "does {+SICKENING{  damage to";}
                 else if ( dam < 400)  { *vs = "do {+INSANE{  damage to"; *vp = "does {+INSANE{  damage to";}
                 else if ( dam < 600)  { *vs = "do {+UNSPEAKABLE{  things to"; *vp = "does {+UNSPEAKABLE{  things to";}
-                else if ( dam < 1000)  { *vs = "do {+{%BLASPHEMOUS{  things to"; *vp = "does {+{%BLASPHEMOUS{  things to";}
-                else if ( dam < 1500)  { *vs = "do {+{%UNBELIEVABLE{  things to"; *vp = "does {+{%UNBELIEVABLE{  things to";}
-                else if ( dam < 2500)  { *vs = "do {+{%INCONCEIVABLE{  things to"; *vp = "does {+{%INCONCEIVABLE{  things to";}
-                else if ( dam < 5000)   { *vs = "do {+{%--- RIDICULOUS ---{  things to"; *vp = "does {+{%--- RIDICULOUS ---{  things to";}
-                else if ( dam < 10000)  { *vs = "do {+{%--- FANTASTICAL ---{  things to"; *vp = "does {+{%--- FANTASTICAL ---{  things to";}
-                else if ( dam < 20000)  { *vs = "do {+{%--- LEGENDARY ---{  things to"; *vp = "does {+{%--- LEGENDARY ---{  things to";}
-                else                    { *vs = "do {+{%--- WHAT?! ---{  to"; *vp = "does {+{%--- WHAT?! ---{  to";}
+                else if ( dam < 1000)  { *vs = "do {+BLASPHEMOUS{  things to"; *vp = "does {+BLASPHEMOUS{  things to";}
+                else if ( dam < 1500)  { *vs = "do {+{%OUTRAGEOUS{  things to"; *vp = "does {+{%OUTRAGEOUS{  things to";}
+                else if ( dam < 2500)  { *vs = "do {+{%LUDICROUS{  things to"; *vp = "does {+{%LUDICROUS{  things to";}
+                else if ( dam < 4000)  { *vs = "do {+{%RIDICULOUS{  things to"; *vp = "does {+{%RIDICULOUS{  things to";}
+                else if ( dam < 6000) { *vs = "do {+{%IMPOSSIBLE{  things to"; *vp = "does {+{%IMPOSSIBLE{  things to";}
+                else if ( dam < 10000) { *vs = "do {+{%--- UNBELIEVABLE ---{  things to"; *vp = "does {+{%--- UNBELIEVABLE ---{  things to";}
+                else                   { *vs = "do {+{%--- INCONCEIVABLE ---{  things to"; *vp = "does {+{%--- INCONCEIVABLE ---{  things to";}
             }
 
     *punct   = (dam < 31) ? '.' : '!';
