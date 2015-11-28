@@ -259,7 +259,7 @@ void update_field( CHAR_DATA *ch)
     char buf[MAX_STRING_LENGTH];
     int gain,pos;
 
-    if (!IS_NPC(ch) && ch->desc == NULL) /* Linkdead PC */
+    if ( IS_NPC(ch) || ch->desc == NULL || IS_SET(ch->act, PLR_NOEXP) )
         return;
 
     gain = number_range(1, ch_int_field(ch));
