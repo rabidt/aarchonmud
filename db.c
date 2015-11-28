@@ -58,6 +58,7 @@ extern  int _filbuf     args( (FILE *) );
 
 #if !defined(OLD_RAND)
 void srandom(unsigned int);
+long genrand_int31(void);
 int getpid();
 time_t time(time_t *tloc);
 #endif
@@ -78,6 +79,7 @@ void format_race_flags( void );
 void load_area_file( FILE *fp, bool clone );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
+static void rand_test( int repeats );
 
 /*
 * Globals.
@@ -875,7 +877,8 @@ void boot_db()
         load_bans();
         log_string("Loading portals");
         load_portal_list();
-
+        log_string("RNG test");
+        rand_test(1000);
     }
 
     fBootDb = FALSE;
@@ -4723,7 +4726,8 @@ void init_mm( )
             & ((1 << 30) - 1);
     }
 #else
-    srandom(time(NULL)^getpid());
+    //srandom(time(NULL)^getpid());
+    init_genrand(time(NULL)^getpid());
 #endif
     return;
 }
@@ -4752,10 +4756,24 @@ long number_mm( void )
     piState[-1]         = iState2;
     return iRand >> 6;
 #else
-    return random() >> 6;
+    //return random() >> 6;
+    return genrand_int31();
 #endif
 }
 
+// quick test of the random number generator
+static void rand_test( int repeats )
+{
+    int i;
+    long count = 0;
+    for ( i = 0; i < repeats; i++ )
+    {
+        while ( dice(15*3, 6) < 15*13 )
+            count++;
+    }
+    count /= repeats;
+    logpf("Average / expected number of rolls to get default: %d / 1797", count);
+}
 
 /*
 * Roll some dice.
