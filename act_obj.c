@@ -1185,11 +1185,11 @@ DEF_DO_FUN(do_give)
 }
 
 // used by do_steal and do_plant
-static bool check_steal( CHAR_DATA *ch, CHAR_DATA *victim, int skill )
+static bool check_steal( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     char buf[MAX_STRING_LENGTH];
     
-    int chance = (skill - get_skill(victim, gsn_alertness) / 2) * 2/3;
+    int chance = (get_skill_total(ch, gsn_steal, 0.5) - get_skill_total(victim, gsn_alertness, 0.5) / 2) * 2/3;
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_INT)) / 8;
     chance += (ch->level - victim->level) / 4;
 
@@ -1338,7 +1338,7 @@ DEF_DO_FUN(do_plant)
 
     WAIT_STATE(ch, skill_table[gsn_steal].beats);
     
-    if ( check_steal(ch, victim, skill) )
+    if ( check_steal(ch, victim) )
     {
         obj_from_char(obj);
         obj_to_char(obj, victim);
@@ -2987,7 +2987,7 @@ DEF_DO_FUN(do_steal)
 
     WAIT_STATE( ch, skill_table[gsn_steal].beats );
 
-    if ( check_steal(ch, victim, skill) )
+    if ( check_steal(ch, victim) )
     {
         if ( !str_cmp( arg1, "coin"  )
                 ||   !str_cmp( arg1, "coins" )
