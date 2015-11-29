@@ -1108,6 +1108,32 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
     return;
 }
 
+// uniform calculation for circle, slash throat, etc.
+static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+{
+    int chance = 10 + get_skill_total(ch, sn, 0.2) / 2 + mastery_bonus(ch, sn, 12, 15);
+    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
+    // combat advantage
+    if ( !can_see_combat(victim, ch) )
+        chance += 10;
+    if ( victim->position < POS_FIGHTING )
+        chance += 10;
+    if ( victim->fighting != ch )
+        chance += 10;
+    // haste/slow
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        chance += 10;
+    else if ( IS_AFFECTED(ch, AFF_SLOW) )
+        chance -= 10;
+    if ( IS_AFFECTED(victim, AFF_HASTE) )
+        chance -= 10;
+    else if ( IS_AFFECTED(victim, AFF_SLOW) )
+        chance += 10;
+    // heavy armor penalty for both attacker and victim
+    chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 10;
+    return chance;
+}
+
 DEF_DO_FUN(do_circle)
 {
     CHAR_DATA *victim;
@@ -1134,17 +1160,7 @@ DEF_DO_FUN(do_circle)
         return;
     }
     
-    chance = chance / 2;
-    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see_combat(victim, ch) )
-        chance += 10;
-    if ( IS_AFFECTED(ch, AFF_HASTE) )
-        chance += 25;
-    if ( IS_AFFECTED(victim, AFF_HASTE) )
-        chance -= 25;
-    chance += mastery_bonus(ch, gsn_circle, 12, 15);
-    // heavy armor penalty for both attacker and victim
-    chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
+    chance = circle_chance(ch, victim, gsn_circle);
     
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
@@ -1234,16 +1250,7 @@ DEF_DO_FUN(do_slash_throat)
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
-        chance = chance / 2;
-        chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-        if ( !can_see_combat(victim, ch) )
-            chance += 10;
-        if ( IS_AFFECTED(ch, AFF_HASTE) )
-            chance += 25;
-        if ( IS_AFFECTED(victim, AFF_HASTE) )
-            chance -= 25;
-        // heavy armor penalty for both attacker and victim
-        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
+        chance = circle_chance(ch, victim, gsn_slash_throat);
     }
     
     check_killer( ch, victim );
@@ -3459,16 +3466,7 @@ DEF_DO_FUN(do_paroxysm)
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
-	chance = chance*2/3;
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see_combat(victim, ch) )
-	    chance += 10;
-	if ( IS_AFFECTED(ch, AFF_HASTE) )
-	    chance += 25;
-	if ( IS_AFFECTED(victim, AFF_HASTE) )
-	    chance -= 25;
-        // heavy armor penalty for both attacker and victim
-        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
+        chance = circle_chance(ch, victim, gsn_paroxysm);
     }
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_paroxysm].beats );
@@ -3623,16 +3621,7 @@ DEF_DO_FUN(do_rupture)
     /* can be used like backstab OR like circle.. */
     if ( ch->fighting != NULL || check_see_combat(victim, ch) )
     {
-	chance = chance*2/3;
-	chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
-	if ( !can_see_combat(victim, ch) )
-	    chance += 10;
-	if ( IS_AFFECTED(ch, AFF_HASTE) )
-	    chance += 25;
-	if ( IS_AFFECTED(victim, AFF_HASTE) )
-	    chance -= 25;
-        // heavy armor penalty for both attacker and victim
-        chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 4;
+        chance = circle_chance(ch, victim, gsn_rupture);
     }
     
     check_killer( ch, victim );
