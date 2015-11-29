@@ -2305,13 +2305,13 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	act( "$n's severed head plops on the ground.", victim, NULL, NULL, TO_ROOM );
 	damage(ch,victim, 0, gsn_beheading,0,TRUE);
         
-        /* Vodur and Astark bug fix 1-17-13. Mobs beheading players caused a crash */
-        if(!IS_NPC(ch))
-	{
-            ch->pcdata->behead_cnt += 1;
-	    update_lboard( LBOARD_BHD, ch, ch->pcdata->behead_cnt, 1);
-	}
-					 
+    CHAR_DATA *leader = get_local_leader(ch);
+    if ( !IS_NPC(leader) )
+    {
+        leader->pcdata->behead_cnt += 1;
+        update_lboard(LBOARD_BHD, leader, leader->pcdata->behead_cnt, 1);
+    }
+    
 	name = IS_NPC(victim) ? victim->short_descr : victim->name;
 	obj  = create_object_vnum(OBJ_VNUM_SEVERED_HEAD);
 	obj->timer  = -1;
