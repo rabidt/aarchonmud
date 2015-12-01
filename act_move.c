@@ -408,7 +408,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
         send_to_char( "You come out of hiding.\n\r", ch );
     }
    
-    int sneak_skill = (100 + get_skill_total(ch, gsn_sneak, 0.5)) * (200 - get_heavy_armor_penalty(ch)) / 400;
+    int sneak_skill = (100 + get_skill(ch, gsn_sneak)) * (200 - get_heavy_armor_penalty(ch)) / 400;
     if ( !IS_AFFECTED(ch, AFF_ASTRAL) && ch->invis_level < LEVEL_HERO )
     {
         if ( !IS_AFFECTED(ch, AFF_SNEAK) )
@@ -2596,7 +2596,7 @@ DEF_DO_FUN(do_hide)
     }
     
     WAIT_STATE( ch, skill_table[gsn_hide].beats );
-    if ( per_chance(get_skill(ch,gsn_hide)) )
+    if ( per_chance(50 + get_skill(ch, gsn_hide) / 2) )
     {
         // hips: need to apply affect first to get check_see to work
         af.where     = TO_AFFECTS;
