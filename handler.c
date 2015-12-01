@@ -3831,9 +3831,11 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
         get_curr_stat(victim, STAT_AGI) + 
         get_curr_stat(victim, STAT_DEX)) / 5;
     
-    /* consider hide skill */
-    if (!IS_NPC(victim))
-        roll_victim = roll_victim * get_skill_total(victim, gsn_hide, 0.5) / 100;
+    /* consider hide skill - can hide without it but poorly */
+    int hide_skill = 50 + get_skill_total(victim, gsn_hide, 0.5);
+    if ( IS_AFFECTED(victim, AFF_SNEAK) )
+        hide_skill += get_skill_overflow(victim, gsn_sneak) / 2;
+    roll_victim = roll_victim * hide_skill / 100;
     
     /* easier to hide in dark rooms */
     if (room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
