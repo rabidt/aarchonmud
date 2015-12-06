@@ -6513,9 +6513,9 @@ int get_damage_messages( int dam, int dt, const char **vs, const char **vp, char
                 else if ( dam < 600)  { *vs = "do {+UNSPEAKABLE{  things to"; *vp = "does {+UNSPEAKABLE{  things to";}
                 else if ( dam < 1000)  { *vs = "do {+BLASPHEMOUS{  things to"; *vp = "does {+BLASPHEMOUS{  things to";}
                 else if ( dam < 1500)  { *vs = "do {+{%OUTRAGEOUS{  things to"; *vp = "does {+{%OUTRAGEOUS{  things to";}
-                else if ( dam < 2500)  { *vs = "do {+{%LUDICROUS{  things to"; *vp = "does {+{%LUDICROUS{  things to";}
-                else if ( dam < 4000)  { *vs = "do {+{%RIDICULOUS{  things to"; *vp = "does {+{%RIDICULOUS{  things to";}
-                else if ( dam < 6000) { *vs = "do {+{%IMPOSSIBLE{  things to"; *vp = "does {+{%IMPOSSIBLE{  things to";}
+                else if ( dam < 2500)  { *vs = "do {+{%RIDICULOUS{  things to"; *vp = "does {+{%RIDICULOUS{  things to";}
+                else if ( dam < 4000)  { *vs = "do {+{%LUDICROUS{  things to"; *vp = "does {+{%LUDICROUS{  things to";}
+                else if ( dam < 6000)  { *vs = "do {+{%IMPOSSIBLE{  things to"; *vp = "does {+{%IMPOSSIBLE{  things to";}
                 else if ( dam < 10000) { *vs = "do {+{%--- UNBELIEVABLE ---{  things to"; *vp = "does {+{%--- UNBELIEVABLE ---{  things to";}
                 else                   { *vs = "do {+{%--- INCONCEIVABLE ---{  things to"; *vp = "does {+{%--- INCONCEIVABLE ---{  things to";}
             }
