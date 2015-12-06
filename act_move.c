@@ -1034,7 +1034,7 @@ bool has_key( CHAR_DATA *ch, int key )
    
    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
    {
-	  if ( obj->pIndexData->vnum == key )
+	  if ( obj->pIndexData->vnum == key )\
 		 return TRUE;
    }
    
@@ -2990,6 +2990,12 @@ DEF_DO_FUN(do_morph)
 		send_to_char("You can't control your lycanthropy.\n\r", ch);
     else if ( ch->race == race_dragonborn )
     {
+        if ( IS_AFFECTED(ch, AFF_CHARM) )
+        {
+            ptc(ch, "You cannot rebirth in your current state.\n\r");
+            return;
+        }
+        
         if ( strcmp(arg, "rebirth") )
         {
             ptc(ch, "To rebirth into a different random color, type 'morph rebirth'.\n\r");
