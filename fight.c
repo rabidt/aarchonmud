@@ -50,6 +50,8 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
 void handle_death( CHAR_DATA *ch, CHAR_DATA *victim );
 void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim );
+bool use_wrist_shield( CHAR_DATA *ch );
+bool offhand_occupied( CHAR_DATA *ch );
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_fstat	    );
@@ -1137,27 +1139,32 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
     bool hold = get_eq_char(ch, WEAR_HOLD) != NULL;
     bool shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    int chance = 0;
 
+    if ( shield && !use_wrist_shield(ch) )
+        return 0;
+    
     // unarmed attacks
     if ( wield == NULL )
     {
-        if ( second == NULL && !hold && !shield )
+        if ( second == NULL && !hold )
         {
-            int base = (100 + 2 * UMIN(ch->level, 100)) / 3;
-            base += (100 - base) * get_skill(ch, gsn_ambidextrous) / 100;
-            return base;
+            chance = (100 + 2 * UMIN(ch->level, 100)) / 3;
+            chance += (100 - chance) * get_skill(ch, gsn_ambidextrous) / 100;
         }
         else
             return 0;
     }
+    else
+    {
+        // armed but no offhand weapon
+        if ( second == NULL )
+            return 0;
 
-    // armed but no offhand weapon
-    if ( second == NULL )
-        return 0;
-
-    // everybody has a base chance, regardless of skill
-    int chance = (100 + 2 * dual_wield_skill(ch, improve)) / 3;
-
+        // everybody has a base chance, regardless of skill
+        chance = (100 + 2 * dual_wield_skill(ch, improve)) / 3;
+    }
+    
     if ( shield )
     {
         chance = chance * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
@@ -5172,6 +5179,14 @@ bool offhand_occupied( CHAR_DATA *ch )
         || (wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS));
 }
 
+bool use_wrist_shield( CHAR_DATA *ch )
+{
+    if ( get_eq_char(ch, WEAR_WIELD) )
+        return offhand_occupied(ch);
+    // unarmed with a shield - use as wrist shield if skilled
+    return get_skill(ch, gsn_wrist_shield) > 0;
+}
+
 int shield_block_chance( CHAR_DATA *ch, bool improve )
 {
     OBJ_DATA *shield = get_eq_char(ch, WEAR_SHIELD);
@@ -5179,7 +5194,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
         return 0;
 
     // offhand occupied means reduced block chance
-    bool wrist_shield = offhand_occupied(ch);
+    bool wrist_shield = use_wrist_shield(ch);
 
     int skill = get_skill_total(ch, gsn_shield_block, 0.2);
     // non-metal shields suffer a small block penalty
