@@ -3625,6 +3625,7 @@ DEF_SPELL_FUN(spell_enchant_arrow)
     SPELL_CHECK_RETURN
     
     /* extra mana cost based on nr of arrows */
+    nr = meta_magic_adjust_cost(ch, nr, false);
     mana = UMIN(nr, ch->mana);
     ch->mana -= mana;
     if ( number_range(1, nr) > mana )
@@ -3633,11 +3634,8 @@ DEF_SPELL_FUN(spell_enchant_arrow)
         return TRUE;
     }
 
-    /* avoid trouble */
-    if ( level > ch->level )
-        level = ch->level;
-
-    obj->level = level;
+    // prevent creation of unusable arrows due to mastery
+    obj->level = UMIN(level, ch->level);
     obj->value[1] = 10 + level;
     obj->value[2] = type;
 
