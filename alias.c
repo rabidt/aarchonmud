@@ -257,7 +257,7 @@ DEF_DO_FUN(do_unalias)
     
     argument = one_argument(argument,arg);
     
-    if (arg == '\0')
+    if (arg[0] == '\0')
     {
         send_to_char("Unalias what?\n\r",ch);
         return;
