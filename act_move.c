@@ -33,7 +33,6 @@
 #include <ctype.h>
 #include "merc.h"
 #include "tables.h"
-#include <malloc.h>
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );

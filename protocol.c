@@ -22,7 +22,6 @@
 #include <string.h>
 #include <arpa/telnet.h>
 #include <time.h>
-#include <malloc.h>
 #include <alloca.h>
 #include <ctype.h>
 
