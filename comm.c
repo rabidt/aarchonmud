@@ -79,7 +79,6 @@ void install_other_handlers ();
  */
 
 #if defined(MALLOC_DEBUG)
-#include <malloc.h>
 extern  int malloc_debug    args( ( int  ) );
 extern  int malloc_verify   args( ( void ) );
 #endif
@@ -3257,7 +3256,7 @@ void install_other_handlers ()
     static struct sigaction act;
     act.sa_handler = nasty_signal_handler;
     //act.sa_mask = ???;
-    act.sa_flags = SA_NOMASK;
+    act.sa_flags = SA_NODEFER;
 
     sigaction (SIGSEGV, &act, NULL);
     sigaction (SIGFPE, &act, NULL);

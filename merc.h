@@ -45,6 +45,10 @@
 #include <assert.h>
 #endif
 
+#ifndef __APPLE__
+#include <malloc.h>
+#endif
+
 /*
  * Accommodate old non-Ansi compilers.
  */
