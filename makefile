@@ -28,7 +28,7 @@ builder: C_FLAGS += -DBUILDER
 remort: C_FLAGS += -DREMORT 
 remort_tester: C_FLAGS += -DREMORT -DTESTER
 osx: C_FLAGS = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
-	L_FLAGS = -L/usr/local/lib -ldl -llua5.1
+osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
 
 aeaea tester builder remort remort_tester osx: $(O_FILES)
 	rm -f aeaea 
