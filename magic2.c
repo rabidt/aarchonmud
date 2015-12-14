@@ -1204,7 +1204,7 @@ DEF_SPELL_FUN(spell_hand_of_siva)
     OBJ_DATA *weapon;
     int i, weapon_level;
     char buf[MAX_STRING_LENGTH];
-    const char *arg, *arg2;
+    const char *arg;
     bool weapon_2hands = FALSE;
 
     arg = one_argument( target_name, buf ); // weapon name
@@ -1213,47 +1213,17 @@ DEF_SPELL_FUN(spell_hand_of_siva)
         
     if (weapon_class[i].name==NULL || buf[0]=='\0')
     {
-        send_to_char( "Syntax:  cast 'hand of siva' <weapon_type>\n\r"
-        "         cast 'hand of siva' <weapon_type> <level>\n\r"
-        "         cast 'hand of siva' <weapon_type> twohands <level>\n\r", ch );
+        ptc(ch, "Syntax:  cast 'hand of siva' <weapon_type> [twohands|2h]\n\r");
         return SR_SYNTAX;
     }
 
-    arg2 = one_argument( arg, buf );
+    arg = one_argument(arg, buf);
     if ( (buf[0] != '\0' && !str_prefix(buf, "twohands")) || !strcmp(buf, "2h") )
-    {
-	weapon_2hands = TRUE;
-	if( arg2[0] != '\0' )
-	    arg2 = one_argument( arg2, buf ); // level
-    }
-
-    if ( buf[0] == '\0' )
-	weapon_level = UMIN( level, ch->level );
-    else
-    {
-        if ( !is_number(buf) )
-        {
-            send_to_char( "Syntax:  cast 'hand of siva' <weapon_type>\n\r"
-                "         cast 'hand of siva' <weapon_type> <level>\n\r"
-                "         cast 'hand of siva' <weapon_type> twohands <level>\n\r", ch );
-            return SR_SYNTAX;
-        }
-        
-        weapon_level = atoi( buf );
-        if ( weapon_level > level )
-        {
-            send_to_char( "Weapon level can't be higher than spell level!\n\r", ch );
-            return SR_UNABLE;
-        }
-        else if ( weapon_level < 1 )
-        {
-            send_to_char( "Minimum weapon level is 1!\n\r", ch );
-            return SR_UNABLE;
-        }
-        weapon_level = URANGE(1, weapon_level, level);
-    }
+        weapon_2hands = TRUE;
 
     SPELL_CHECK_RETURN
+    
+    weapon_level = URANGE(1, level, LEVEL_HERO);
     
     weapon = create_object_vnum(OBJ_VNUM_SIVA_WEAPON);
         
