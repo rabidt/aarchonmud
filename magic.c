@@ -1509,6 +1509,24 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         else
             concentrate = TRUE;
     }
+    
+    /* check for explicit caster level cap */
+    int level_cap = 200;
+    if ( target_name[0] == '@' )
+    {
+        char cap_buf[MIL];
+        target_name = one_argument(target_name + 1, cap_buf);
+        if ( is_number(cap_buf) )
+        {
+            level_cap = atoi(cap_buf);
+            level_cap = URANGE(1, level_cap, 200);
+        }
+        else
+        {
+            ptc(ch, "Caster level cap must be a number (found '%s').\n\r", cap_buf);
+            return;
+        }
+    }
 
     /* Locate targets */
     if ( !get_spell_target( ch, target_name, sn, &target, &vo ) )
@@ -1553,7 +1571,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
-    level = URANGE(1, level, 200);
+    level = URANGE(1, level, level_cap);
     
     // check if spell could be cast successfully
     // that's done via a call to the spell function with check = TRUE
