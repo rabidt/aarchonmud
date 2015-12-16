@@ -4779,6 +4779,7 @@ void    affect_freeze_sn( CHAR_DATA *ch, int sn );
 void    affect_unfreeze_sn( CHAR_DATA *ch, int sn );
 void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 void    affect_strip_flag( CHAR_DATA *ch, int flag );
+void    affect_strip_permcast( CHAR_DATA *ch );
 void    affect_strip_offensive( CHAR_DATA *ch );
 void    affect_strip_obj( OBJ_DATA *obj, int sn );
 void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
