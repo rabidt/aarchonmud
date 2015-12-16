@@ -1537,6 +1537,11 @@ void affect_update( CHAR_DATA *ch )
     if ( ch == NULL || ch->in_room == NULL )
         return;
 
+    // enure permcast spells are stripped if they drop max mana below 0
+    // particularly an issue in R9
+    if ( mana_cap(ch) < 0 )
+        affect_strip_permcast(ch);
+    
     // may recover faster from maledictions than normal while resting
     // single check for all affects, as one skill may add multiple affects which should have same duration
     bool malediction_recovery = FALSE;
