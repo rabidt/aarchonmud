@@ -1277,6 +1277,31 @@ void affect_strip_flag( CHAR_DATA *ch, int flag )
 	REMOVE_AFFECT( ch, flag );
 }
 
+/* strip all permcast spell affects
+ */
+void affect_strip_permcast( CHAR_DATA *ch )
+{
+    AFFECT_DATA *paf = ch->affected;
+    bool msg_sent = false;
+    
+    while ( paf != NULL )
+        if ( paf->where == TO_AFFECTS && paf->duration == -1 && IS_SPELL(paf->type)
+            && paf->location == APPLY_MANA_CAP && paf->modifier < 0 )
+        {
+            if ( !msg_sent )
+            {
+                ptc(ch, "You cannot maintain your permanent spells any longer.\n\r");
+                msg_sent = true;
+            }
+            if ( skill_table[paf->type].msg_off )
+                ptc(ch, "%s\n\r", skill_table[paf->type].msg_off);
+            affect_strip(ch, paf->type);
+            paf = ch->affected;
+        }
+        else
+            paf = paf->next;
+}
+
 /*
  * Return true if a char is affected by a spell.
  */
