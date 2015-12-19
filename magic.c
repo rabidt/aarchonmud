@@ -203,9 +203,9 @@ int similar_spell( CHAR_DATA *ch, int spell )
     return new_spell;
 }
 
-// returns a known spell if one matches, otherwise a matching spell if one exists
+// returns a known spell if one matches and desired, otherwise a matching spell if one exists
 // returning unknown spells (if no known match exists) is essential for wish casting
-int find_spell( CHAR_DATA *ch, const char *name )
+int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred )
 {
     /* finds a spell the character can cast if possible */
     int sn, found = -1;
@@ -221,7 +221,7 @@ int find_spell( CHAR_DATA *ch, const char *name )
                 && !str_prefix(name,skill_table[sn].name)
                 && skill_table[sn].spell_fun != spell_null )
         {
-            if ( get_skill(ch, sn) > 0 )
+            if ( known_preferred && get_skill(ch, sn) > 0 )
             {
                 found = sn;
                 break;
@@ -1109,7 +1109,7 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
     // check for spell mastery - enables meta-magic
     char spell_arg[MIL];
     one_argument(argument, spell_arg);
-    int spell_sn = find_spell(ch, spell_arg);
+    int spell_sn = find_spell(ch, spell_arg, true);
     int spell_mastery = spell_sn > 0 ? get_mastery(ch, spell_sn) : 0;
     
     // parse meta-magic flags requested
@@ -1700,8 +1700,7 @@ DEF_DO_FUN(do_cast)
         return;
     }
 
-    if ((sn = find_spell(ch,arg1)) < 1
-            ||  skill_table[sn].spell_fun == spell_null
+    if ((sn = find_spell(ch, arg1, true)) < 1
             ||  (chance=get_skill(ch, sn))==0)
     {
         send_to_char( "You don't know any spells of that name.\n\r", ch );
@@ -1836,7 +1835,7 @@ DEF_DO_FUN(do_wish)
         return;
     }
 
-    if ( (sn = find_spell(ch,arg1)) < 1 || skill_table[sn].spell_fun == spell_null )
+    if ( (sn = find_spell(ch, arg1, false)) < 1 )
     {
         send_to_char( "No spell of that name exists.\n\r", ch );
         return;
