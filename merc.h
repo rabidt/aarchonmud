@@ -4945,7 +4945,7 @@ void confirm_yes_no( DESCRIPTOR_DATA *d,
         const char *no_argument);
 
 /* magic.c */
-int find_spell  args( ( CHAR_DATA *ch, const char *name) );
+int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred );
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
 int get_duration( int sn, int level );
 int get_duration_by_type( int type, int level );
