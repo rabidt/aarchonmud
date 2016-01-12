@@ -796,13 +796,22 @@ DEF_DO_FUN(do_quest)
         int reward_points_min = 0, reward_points_max = 0;
         if ( IS_SET(ch->act, PLR_QUESTORHARD) )
         {
+            /* The modulo functions below are modeled after the fractional 'practices' function.
+               With this change, you are no longer required to hit a breakpoint before having a
+               chance to earn extra QP */
             reward_points_min = get_curr_stat(ch, STAT_CHA) / 12;
+            reward_points_min += chance(get_curr_stat(ch, STAT_CHA)/12 % 12) ? 1 : 0;
+
             reward_points_max = 20 + luck;
+            reward_points_max += chance(get_curr_stat(ch, STAT_LUC)/6 % 6) ? 1 : 0;
         }
         else
         {
             reward_points_min = get_curr_stat(ch, STAT_CHA) / 15;
+            reward_points_min += chance(get_curr_stat(ch, STAT_CHA)/15 % 15) ? 1 : 0; 
+
             reward_points_max = 10 + luck;
+            reward_points_max += chance(get_curr_stat(ch, STAT_LUC)/6 % 6) ? 1 : 0;
         }
         reward_points = number_range(reward_points_min, reward_points_max);
         
