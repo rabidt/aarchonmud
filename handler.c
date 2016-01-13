@@ -3425,7 +3425,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
 
 bool has_money( CHAR_DATA *ch, int cost )
 {
-    return ch->silver + ch->gold * 100 >= cost;
+    return ch->silver + ch->gold * 100 + ch->pcdata->bank >= cost;
 }
 
 int money_weight( int silver, int gold )
