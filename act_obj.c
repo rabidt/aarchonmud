@@ -3967,7 +3967,8 @@ DEF_DO_FUN(do_identify)
     sprintf(buf, "$n says 'It costs %d gold and %d silver to identify $p.'", cost_gold, cost_silver);
     act(buf, keeper, obj, NULL, TO_ROOM);
 
-    if ( (ch->silver + ch->gold * 100) < cost )
+    int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+    if ( money < cost )
         return;
     else
         do_say(keeper, "Pleasure doing business.");
