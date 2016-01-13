@@ -3366,23 +3366,45 @@ void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )
 /* deduct cost from a character */
 void deduct_cost(CHAR_DATA *ch, int cost)
 {
-    int silver = 0, gold = 0;
+    int silver = 0, gold = 0, bank = 0;
     char buf[MSL];
     
     silver = UMIN(ch->silver,cost);
     
     if (silver < cost)
     {
-        gold = ((cost - silver + 99) / 100);
-        silver = cost - 100 * gold;
+        gold = ((cost - silver + 99) / 100); // determine how much gold we're charging. This value always rounds down
+        silver = cost - (100 * gold); // now that we know the amount of gold, the remainder is silver
+
+        /* If the player currently has less gold than what they need we will check their bank for money */
+        if (ch->gold < gold)
+        {
+            bank = gold - ch->gold; // set a variable to subtract money from the bank
+            ch->gold = 0; // set the player's gold to 0, because the item costs more than what they have
+            ch->pcdata->bank -= bank; // deduct the remaining cost from the player's bank
+        }
+        else
+        {
+            ch->gold -= gold; // if the player has enough gold, we skip the bank part
+            ch->silver -= silver; // deduct the silver as well
+        }
+    }
+    else
+    {
+        ch->silver -= silver; // if the player has enough silver, we just deduct silver and skip everything else
     }
     
-    ch->gold -= gold;
-    ch->silver -= silver;
-    
+    if (ch->pcdata->bank < 0)
+    {
+        sprintf(buf,"Deduct costs: bank %ld < 0, player: %s, room %d",
+            ch->pcdata->bank,
+            ch->name != NULL ? ch->name : "Null",
+            ch->in_room != NULL ? ch->in_room->vnum : 0);
+        bug(buf,0);
+        ch->pcdata->bank = 0;
+    }
     if (ch->gold < 0)
     {
-/*        bug("deduct costs: gold %d < 0",ch->gold); */
         sprintf(buf,"Deduct costs: gold %ld < 0, player: %s, room %d",
             ch->gold,
             ch->name != NULL ? ch->name : "Null",
@@ -3392,7 +3414,6 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     }
     if (ch->silver < 0)
     {
-/*        bug("deduct costs: silver %d < 0",ch->silver); */
         sprintf(buf,"Deduct costs: silver %ld < 0, player: %s, room %d",
             ch->silver,
             ch->name != NULL ? ch->name : "Null",
@@ -3404,7 +3425,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
 
 bool has_money( CHAR_DATA *ch, int cost )
 {
-    return ch->silver + ch->gold * 100 >= cost;
+    return ch->silver + ch->gold * 100 + ch->pcdata->bank >= cost;
 }
 
 int money_weight( int silver, int gold )
