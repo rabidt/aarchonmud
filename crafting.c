@@ -238,7 +238,8 @@ DEF_DO_FUN(do_craft)
         }
         int cost_level = 10 + crafting->level + UMAX(0, crafting->level - 90) * 9;
         int cost = cost_level * cost_level * ac_factor;
-        if ( ch->silver + ch->gold * 100 < cost )
+        int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+        if ( money < cost )
         {
             ptc(ch, "It costs %.2f gold to %s %s.\n\r",
                 cost * 0.01,
