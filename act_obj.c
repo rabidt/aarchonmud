@@ -3353,8 +3353,9 @@ DEF_DO_FUN(do_buy)
         else if (ch->pcdata->storage_boxes < MAX_STORAGE_BOX)
         {
             int cost = 5000000; //50k gold 
-            int qpcost= 250; 
-            if ( ((ch->silver + 100 * ch->gold) < cost) ||
+            int qpcost= 250;
+            int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+            if ( (money < cost) ||
                     (ch->pcdata->questpoints < qpcost) )
             {
                 sprintf(buf, "Sorry, %s, you can't afford a storage box.", ch->name);
@@ -3422,8 +3423,9 @@ DEF_DO_FUN(do_buy)
 
         cost = 10 * pet->level * pet->level;
         cost = haggle_cost( ch, cost, cost/2 );
+        int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
 
-        if ( (ch->silver + 100 * ch->gold) < cost )
+        if ( money < cost )
         {
             send_to_char( "You can't afford it.\n\r", ch );
             return;
@@ -3510,7 +3512,8 @@ DEF_DO_FUN(do_buy)
         else
             cost = haggle_cost( ch, cost, obj->cost );
 
-        if ( (ch->silver + ch->gold * 100) < cost * number )
+        int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+        if (money < cost * number )
         {
             if (number > 1)
                 act("$n tells you 'You can't afford to buy that many.",
@@ -3964,7 +3967,8 @@ DEF_DO_FUN(do_identify)
     sprintf(buf, "$n says 'It costs %d gold and %d silver to identify $p.'", cost_gold, cost_silver);
     act(buf, keeper, obj, NULL, TO_ROOM);
 
-    if ( (ch->silver + ch->gold * 100) < cost )
+    int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+    if ( money < cost )
         return;
     else
         do_say(keeper, "Pleasure doing business.");

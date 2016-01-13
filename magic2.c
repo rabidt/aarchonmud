@@ -778,7 +778,8 @@ DEF_SPELL_FUN(spell_animate_dead)
         return SR_UNABLE;
     }
 
-    cor = get_obj_list( ch, "corpse", ch->in_room->contents );
+    //cor = get_obj_list( ch, "corpse", ch->in_room->contents );
+    cor = get_obj_here(ch, "corpse");
     
     if (cor == NULL) 
     {

@@ -210,8 +210,8 @@ DEF_DO_FUN(do_heal)
             ch,NULL,mob,TO_CHAR);
         return;
     }
-    
-    if (cost > (ch->gold * 100 + ch->silver))
+    int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+    if ( money < cost)
     {
         act("$N says 'You do not have enough gold for my services.'",
             ch,NULL,mob,TO_CHAR);

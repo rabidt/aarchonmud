@@ -2095,9 +2095,10 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
     }
 
     /* log the action */
-    sprintf( buf, "%s was rewarded %d %s by mob %d.",
-         victim->name, amount, arg2,
-         IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
+    sprintf( buf, "%s was rewarded %d %s by %s (mob %d).",
+         victim->name, amount, arg2, 
+         IS_NPC(ch) ? ch->pIndexData->short_descr : "self",
+         IS_NPC(ch) ? ch->pIndexData->vnum : 0);
     log_string( buf );
     wiznet(buf,victim,NULL,WIZ_SECURE,0,0);
 
