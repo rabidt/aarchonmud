@@ -3377,7 +3377,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
         silver = cost - (100 * gold); // now that we know the amount of gold, the remainder is silver
 
         /* If the player currently has less gold than what they need we will check their bank for money */
-        if (ch->gold < gold)
+        if (ch->gold < gold && !IS_NPC(ch))
         {
             bank = gold - ch->gold; // set a variable to subtract money from the bank
             ch->gold = 0; // set the player's gold to 0, because the item costs more than what they have
@@ -3393,15 +3393,17 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     {
         ch->silver -= silver; // if the player has enough silver, we just deduct silver and skip everything else
     }
-    
-    if (ch->pcdata->bank < 0)
+    if (!IS_NPC(ch))
     {
-        sprintf(buf,"Deduct costs: bank %ld < 0, player: %s, room %d",
-            ch->pcdata->bank,
-            ch->name != NULL ? ch->name : "Null",
-            ch->in_room != NULL ? ch->in_room->vnum : 0);
-        bug(buf,0);
-        ch->pcdata->bank = 0;
+        if (ch->pcdata->bank < 0)
+        {
+            sprintf(buf,"Deduct costs: bank %ld < 0, player: %s, room %d",
+                ch->pcdata->bank,
+                ch->name != NULL ? ch->name : "Null",
+                ch->in_room != NULL ? ch->in_room->vnum : 0);
+            bug(buf,0);
+            ch->pcdata->bank = 0;
+        }
     }
     if (ch->gold < 0)
     {
