@@ -5460,7 +5460,6 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
