@@ -2309,6 +2309,8 @@ int get_subclass_skill( CHAR_DATA *ch, int sn )
 {
     if ( IS_NPC(ch) || !ch->pcdata->subclass )
         return 0;
+    if ( sn < 0 || sn >= MAX_SKILL )
+        return 0;
     
     const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
 
