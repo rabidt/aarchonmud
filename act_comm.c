@@ -1912,7 +1912,7 @@ void quit_char( CHAR_DATA *ch )
     }
     
     send_to_char("Have a good journey.\n\r",ch);
-    sprintf( log_buf, "%s has quit.", ch->name );
+    sprintf( log_buf, "%s @ %s has quit (room %d).", ch->name, ch->desc->host, ch->in_room ? ch->in_room->vnum : 0 ); 
     log_string( log_buf );
     wiznet("$N rejoins the real world.",ch,NULL,WIZ_LOGINS,0,get_trust(ch));
     

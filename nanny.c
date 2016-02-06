@@ -577,7 +577,8 @@ DEF_NANNY_FUN(get_old_password)
 		if ( check_reconnect( d, ch->name, TRUE ) )
 			return FALSE;
 
-		sprintf( buf, "%s@%s has connected.", ch->name, d->host );
+                /* Example: Astark @ 127.0.0.1 has connected (room 10204) */
+		sprintf( buf, "%s @ %s has connected (room %d).", ch->name, d->host, ch->in_room ? ch->in_room->vnum : 0 );
 		log_string( buf );
 		wiznet(buf,NULL,NULL,WIZ_SITES,0,get_trust(ch));
 

@@ -5427,6 +5427,8 @@ DEF_DO_FUN(do_achievements)
 
         d = new_descriptor();
 
+        logpf("do_achievements called by %s.", ch->name);
+
         if ( !load_char_obj(d, vicarg, TRUE) )
         {
             send_to_char("Character not found.\n\r", ch);

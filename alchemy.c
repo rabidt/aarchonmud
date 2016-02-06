@@ -145,7 +145,7 @@ void update_herb_reset()
 	nr = rot_herbs( herb_table[i].vnum );
 
 	/* print to log */
-	sprintf( buf, " %2d/%2d", herb_table[i].reset_nr, nr );
+	sprintf( buf, "  %d/%d", herb_table[i].reset_nr, nr );
 	strcat( outbuf, buf );
 
 	herb_table[i].reset_nr = 0;

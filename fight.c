@@ -4009,7 +4009,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if (!IS_NPC(victim))
     {
-        sprintf( log_buf, "%s killed by %s at %d",
+        sprintf( log_buf, "%s killed by %s (room %d)",
                 victim->name,
                 (IS_NPC(ch) ? ch->short_descr : ch->name),
                 ch->in_room->vnum );
