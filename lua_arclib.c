@@ -3,6 +3,7 @@
 #include <string.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <sqlite3.h>
 #include "merc.h"
 #include "lua_arclib.h"
 #include "lua_main.h"
@@ -12,6 +13,7 @@
 #include "religion.h"
 #include "mob_cmds.h"
 #include "interp.h"
+
 
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
@@ -1096,6 +1098,72 @@ static int mudlib_userdir( lua_State *LS)
     return 1;
 }
 
+/* dblib section */
+static sqlite3 *script_db;
+
+void init_script_db()
+{
+    int rc;
+
+    rc = sqlite3_open("script_db.db", &script_db);
+    
+    if (rc)
+    {
+        bugf("Can't open script_db: %s", sqlite3_errmsg(script_db));
+        exit(0);
+    }
+    else
+    {
+        logpf("Opened script_db successfully.");
+    }
+}
+
+static lua_State *db_exec_LS;
+static int db_rtn_tbl;
+static int db_rtn_index;
+static int db_callback( void *data, int argc, char **argv, char **azColName)
+{
+    int i;
+    
+    lua_newtable(db_exec_LS);
+    for (i=0; i<argc; i++)
+    {
+        if (argv[i])
+        {
+            lua_pushstring( db_exec_LS, argv[i]);
+            lua_setfield( db_exec_LS, -2, azColName[i]);
+        }
+    }
+    lua_rawseti(db_exec_LS, db_rtn_tbl, db_rtn_index++);
+       
+    return 0; 
+}
+
+static int dblib_exec( lua_State *LS)
+{
+    int rc;
+    char *zErrMsg = NULL;
+    const char *sql=luaL_checkstring( LS, 1);
+
+    db_exec_LS = LS;
+    lua_newtable( LS );
+    db_rtn_tbl = lua_gettop(LS);
+    db_rtn_index=1;
+
+    rc = sqlite3_exec( script_db, sql, db_callback, NULL, &zErrMsg);
+
+    if ( rc != SQLITE_OK )
+    {
+        static char buf[MSL];
+        strcpy( buf, zErrMsg);
+        return luaL_error( LS, buf); 
+    }
+
+    return 1;
+}
+
+/* end dblib section */
+
 /* return tprintstr of the given global (string arg)*/
 static int dbglib_show ( lua_State *LS)
 {
@@ -1218,6 +1286,7 @@ static int glob_arguments ( lua_State *LS)
 #define GODF( fun ) LFUN( god, fun, 9 )
 #define DBGF( fun ) LFUN( dbg, fun, 9 )
 #define UTILF( fun ) LFUN( util, fun, 0)
+#define DBF( fun ) LFUN( db, fun, 9 )
 
 GLOB_TYPE glob_table[] =
 {
@@ -1287,6 +1356,8 @@ GLOB_TYPE glob_table[] =
     UTILF(strlen_color),
     UTILF(truncate_color_string),
     UTILF(format_color_string),
+    
+    DBF(exec),
     
     DBGF(show),
 
@@ -1400,6 +1471,7 @@ void register_globals( lua_State *LS )
 
 
 /* end global section */
+
 
 /* common section */
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist )
