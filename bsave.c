@@ -3171,6 +3171,8 @@ DEF_DO_FUN(do_finger)
     }
     
     d = new_descriptor();
+
+    logpf("do_finger called by %s.", ch->name);
     
     if ( !load_char_obj(d, argument, TRUE) )
     {

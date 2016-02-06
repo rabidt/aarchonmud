@@ -710,7 +710,7 @@ else
             ( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
             ( addr >>  8 ) & 0xFF, ( addr       ) & 0xFF
            );
-    sprintf( log_buf, "Sock.sinaddr:  %s", buf );
+    sprintf( log_buf, "Connection opened by: %s", buf );
     log_string( log_buf );
 
     /* Disabled to kill the lag beast... temporarily. -Rim 9/8/98
@@ -879,7 +879,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     
     if ( maxRead <= 0 )
     {
-        sprintf( log_buf, "%s input overflow!", d->host );
+        sprintf( log_buf, "%s input overflow! (%s)", d->host, d->inlast );
         log_string( log_buf );
         write_to_descriptor( d->descriptor, "\n\r*** PUT A LID ON IT!!! ***\n\r", 0 );
         return FALSE;
@@ -1033,7 +1033,7 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
             if (++d->repeat >= 25 && d->character
                     &&  d->connected == CON_PLAYING)
             {
-                sprintf( log_buf, "%s input spamming!", d->host );
+                sprintf( log_buf, "%s input spamming (%s)!", d->host, d->inlast );
                 log_string( log_buf );
                 wiznet("Spam spam spam $N spam spam spam spam spam!",
                         d->character,NULL,WIZ_SPAM,0,get_trust(d->character));

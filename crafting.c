@@ -407,7 +407,6 @@ DEF_DO_FUN(do_extract)
         return;
     }
 
-    logpf( "%s extracted %s", ch->name, remove_color(obj->short_descr));
 
     /* The materials you get are dependent on the level and rating of the object that you extract */
     if ( obj->level < 90)
@@ -490,6 +489,7 @@ DEF_DO_FUN(do_extract)
     if ( chance(skill-5) )
     {
         extracted = create_object_vnum(material);
+        logpf( "%s extracted %s (%d) creating %s (%d)", ch->name, remove_color(obj->short_descr), obj->pIndexData->vnum, remove_color(extracted->short_descr), extracted->pIndexData->vnum );
         sprintf(buf, "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );
