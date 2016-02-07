@@ -3,6 +3,7 @@
 #include <string.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <sqlite3.h>
 #include "merc.h"
 #include "lua_arclib.h"
 #include "lua_main.h"
@@ -12,6 +13,7 @@
 #include "religion.h"
 #include "mob_cmds.h"
 #include "interp.h"
+
 
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
@@ -1096,6 +1098,117 @@ static int mudlib_userdir( lua_State *LS)
     return 1;
 }
 
+/* dblib section */
+#define SCRIPT_DB_FILE "script_db.sqlite3"
+static sqlite3 *script_db;
+
+void init_script_db()
+{
+    int rc;
+
+    rc = sqlite3_open(SCRIPT_DB_FILE, &script_db);
+    
+    if (rc)
+    {
+        bugf("Can't open script_db: %s", sqlite3_errmsg(script_db));
+        exit(0);
+    }
+    else
+    {
+        logpf("Opened script_db successfully.");
+        logpf("sqlite3 version: %s", sqlite3_libversion()); 
+    }
+}
+
+void close_script_db()
+{
+    sqlite3_close(script_db);
+}
+
+struct db_callback_data
+{
+    lua_State *LS;
+    int rtn_tbl;
+    int rtn_index;
+};
+
+static int db_callback( void *cdata, int argc, char **argv, char **azColName)
+{
+    int i;
+    struct db_callback_data *data = (struct db_callback_data *)(cdata);
+    
+    lua_newtable(data->LS);
+    for (i=0; i<argc; i++)
+    {
+        if (argv[i])
+        {
+            lua_pushstring( data->LS, argv[i]);
+            lua_setfield( data->LS, -2, azColName[i]);
+        }
+    }
+    lua_rawseti(data->LS, data->rtn_tbl, data->rtn_index++);
+       
+    return 0; 
+}
+
+//#define TRACE_DB_EXEC
+
+static int dblib_exec( lua_State *LS)
+{
+    int rc;
+    char *zErrMsg = NULL;
+    const char *sql=luaL_checkstring( LS, 1);
+    struct db_callback_data data;
+
+    data.LS = LS;
+    
+    lua_newtable( LS );
+    data.rtn_tbl = lua_gettop(LS);
+
+    data.rtn_index=1;
+
+#ifdef TRACE_DB_EXEC
+    struct timeval start_time;
+    gettimeofday( &start_time, NULL);
+#endif
+    rc = sqlite3_exec( script_db, sql, db_callback, (void *)(&data), &zErrMsg);
+
+    if ( rc != SQLITE_OK )
+    {
+        static char buf[MSL];
+        strcpy( buf, zErrMsg);
+        sqlite3_free(zErrMsg);
+
+        /* rollback any unfinished transaction */
+        if (sqlite3_get_autocommit( script_db ) == 0)
+        {
+            sqlite3_exec( script_db, "ROLLBACK", 0, 0, 0);
+        }
+
+        return luaL_error( LS, buf); 
+    }
+#ifdef TRACE_DB_EXEC
+    struct timeval end_time;
+    gettimeofday( &end_time, NULL);
+    long usecDelta = (long)end_time.tv_usec - (long)start_time.tv_usec;
+    long secDelta = (long)end_time.tv_sec - (long)start_time.tv_sec;
+
+    long usecTtl = secDelta * 1000000L + usecDelta;
+    float secTtl = usecTtl/1000000.0;
+    logpf("sec: %f, query: %s", secTtl, sql);
+#endif
+
+    return 1;
+}
+
+static int dblib_libversion( lua_State *LS)
+{
+    lua_pushstring(LS, sqlite3_libversion());
+    return 1;
+}
+
+/* end dblib section */
+
 /* return tprintstr of the given global (string arg)*/
 static int dbglib_show ( lua_State *LS)
 {
@@ -1218,6 +1331,7 @@ static int glob_arguments ( lua_State *LS)
 #define GODF( fun ) LFUN( god, fun, 9 )
 #define DBGF( fun ) LFUN( dbg, fun, 9 )
 #define UTILF( fun ) LFUN( util, fun, 0)
+#define DBF( fun ) LFUN( db, fun, 9 )
 
 GLOB_TYPE glob_table[] =
 {
@@ -1287,6 +1401,9 @@ GLOB_TYPE glob_table[] =
     UTILF(strlen_color),
     UTILF(truncate_color_string),
     UTILF(format_color_string),
+    
+    DBF(exec),
+    DBF(libversion),
     
     DBGF(show),
 
@@ -1400,6 +1517,7 @@ void register_globals( lua_State *LS )
 
 
 /* end global section */
+
 
 /* common section */
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist )

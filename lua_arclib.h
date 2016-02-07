@@ -59,6 +59,8 @@ extern LUA_OBJ_TYPE DESCRIPTOR_type;
 extern LUA_OBJ_TYPE BOSSACHV_type;
 extern LUA_OBJ_TYPE BOSSREC_type;
 
+void init_script_db();
+void close_script_db();
 void register_globals( lua_State *LS );
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );
 void free_luaval( LUA_EXTRA_VAL *luaval );
