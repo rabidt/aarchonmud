@@ -2384,9 +2384,48 @@ MSETFUN( remorts )
 
 MSETFUN( ascents )
 {
+    if ( value < 0 )
+    {
+        ptc(ch, "Ascents must be a non-negative integer.\n\r");
+        return FALSE;
+    }
     victim->pcdata->ascents = UMAX(0, value);
     return TRUE;
 }
+
+MSETFUN( god )
+{
+    // no god is represented by empty string
+    if ( !strcmp(arg3, "none") || !strcmp(arg3, "None") )
+        arg3 = "";
+    // string update - with care to avoid memory leaks
+    free_string(victim->pcdata->god_name);
+    victim->pcdata->god_name = str_dup(arg3);
+    return TRUE;
+}
+
+MSETFUN( faith )
+{
+    if ( value < 0 )
+    {
+        ptc(ch, "Faith must be a non-negative integer.\n\r");
+        return FALSE;
+    }
+    victim->pcdata->faith = value;
+    return TRUE;
+}
+
+MSETFUN( rrank )
+{
+    if ( value < 0 || value >= RELIGION_MAX_RANK )
+    {
+        ptc(ch, "Religion rank range is 0 to %d.\n\r", RELIGION_MAX_RANK - 1);
+        return FALSE;
+    }
+    victim->pcdata->religion_rank = value;
+    return TRUE;
+}
+
 
 struct
 {
@@ -2438,6 +2477,9 @@ struct
     {"namecolor", MSETPCONLY,   mset_namecolor},
     {"remorts",   MSETPCONLY,   mset_remorts},
     {"ascents",   MSETPCONLY,   mset_ascents},
+    {"god",       MSETPCONLY,   mset_god},
+    {"faith",     MSETPCONLY,   mset_faith},
+    {"rrank",     MSETPCONLY,   mset_rrank},
     {NULL,        MSETNONE,     NULL}
 };
    
