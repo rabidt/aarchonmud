@@ -816,8 +816,7 @@ int cmd_eval( int vnum, const char *line, int check,
 	case CHK_OBJTYPE:
 	    return( lval_obj != NULL && lval_obj->item_type == item_lookup( buf ) );
 	case CHK_RELIGION:
-	    return( lval_char != NULL && get_religion(lval_char) != NULL
-		    && get_religion(lval_char) == get_religion_by_name(buf) );
+	    return( lval_char != NULL && !strcmp(get_god_name(lval_char), buf) );
         case CHK_SKILLED:
 	    return( lval_char != NULL && skill_lookup(buf) != -1
 		    && get_skill(lval_char, skill_lookup(buf)) > 0 );

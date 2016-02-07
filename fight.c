@@ -4299,8 +4299,8 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         return TRUE;
     }
 
-    if ( carries_relic(victim) )
-	return FALSE;
+    //if ( carries_relic(victim) )
+    //    return FALSE;
     
     /* safe room? */
     if ( !theory && !ignore_safe && IS_SET(victim->in_room->room_flags,ROOM_SAFE) )
@@ -6390,7 +6390,7 @@ float calculate_exp_factor( CHAR_DATA *gch )
 	bonus += 10;
 
     /* religion bonus */
-    bonus += get_religion_bonus(gch);
+    //bonus += get_religion_bonus(gch);
     
     /* bonus for AFF_LEARN */
     if ( IS_AFFECTED(gch, AFF_LEARN) )
