@@ -1099,13 +1099,14 @@ static int mudlib_userdir( lua_State *LS)
 }
 
 /* dblib section */
+#define SCRIPT_DB_FILE "script_db.sqlite3"
 static sqlite3 *script_db;
 
 void init_script_db()
 {
     int rc;
 
-    rc = sqlite3_open("script_db.db", &script_db);
+    rc = sqlite3_open(SCRIPT_DB_FILE, &script_db);
     
     if (rc)
     {
