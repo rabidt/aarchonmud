@@ -740,8 +740,8 @@ void boot_db()
     log_string( "Loading clans" );
     load_clans();
 
-    log_string( "Loading religions" );
-    load_religions();
+    //log_string( "Loading religions" );
+    //load_religions();
 
 //    log_string( "Initialzing leaderboards");
   //  lboard_init();

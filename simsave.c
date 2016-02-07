@@ -10,7 +10,6 @@
 #include <time.h>
 #include "merc.h"
 #include "buffer_util.h"
-#include "religion.h"
 #include "lua_arclib.h"
 
 
@@ -707,12 +706,14 @@ void mem_sim_save_other()
 	}
 
     /* religion */
+    /*
     mf = save_religions();
     if ( mf != NULL )
     {
 	mf->next = other_save_list;
 	other_save_list = mf;
     }
+    */
 
     /* leaderboards */
     save_lboards();

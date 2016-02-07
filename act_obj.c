@@ -285,6 +285,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
         act_gag( "$n gets $p.", ch, obj, container, TO_ROOM, GAG_EQUIP );
     }
 
+    /*
     if ( is_relic_obj(obj) )
     {
         act( "The burden of $p slows you down.", ch, obj, NULL, TO_CHAR );
@@ -296,6 +297,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
         }
         return;
     }
+    */
 
     if ( obj->item_type == ITEM_MONEY)
     {
@@ -604,7 +606,7 @@ DEF_DO_FUN(do_put)
                    || get_obj_weight(obj) > (container->value[3] * 10)*/
                 || ((get_obj_number(obj)+get_obj_number(container))
                     > container->value[3])
-                || is_relic_obj(obj) )
+                /*|| is_relic_obj(obj)*/ )
         {
             send_to_char( "It won't fit.\n\r", ch );
             return;
@@ -669,7 +671,7 @@ DEF_DO_FUN(do_put)
                        &&   get_obj_weight(obj) < (container->value[3] * 10)*/
                     && ((get_obj_number(obj)+get_obj_number(container))
                         <= container->value[3])
-                    &&   !is_relic_obj(obj) )
+                    /*&&   !is_relic_obj(obj)*/ )
             {
                 if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_PUT) )
                     continue;
@@ -1072,11 +1074,13 @@ DEF_DO_FUN(do_give)
         return;
     }
 
+    /*
     if ( is_relic_obj(obj) )
     {
         send_to_char( "You cannot give away relics!\n\r", ch);
         return;
     }
+    */
 
     if ( obj->item_type == ITEM_CONTAINER )
         if (expl_in_container(obj))
@@ -1306,11 +1310,13 @@ DEF_DO_FUN(do_plant)
         return;
     }
 
+    /*
     if ( is_relic_obj(obj) )
     {
         send_to_char("You cannot give away relics!\n\r", ch);
         return;
     }
+    */
 
     if ( !can_drop_obj(ch, obj) )
     {
@@ -2521,7 +2527,7 @@ DEF_DO_FUN(do_sacrifice)
     if ( CAN_WEAR(obj, ITEM_NO_CARRY) 
             || IS_OBJ_STAT(obj, ITEM_NO_SAC_EX)
             || IS_OBJ_STAT(obj, ITEM_QUESTEQ)
-            || is_relic_obj(obj) )
+            /*|| is_relic_obj(obj)*/ )
     {
         act( "$p is not an acceptable sacrifice.", ch, obj, 0, TO_CHAR );
         return;
@@ -2618,7 +2624,7 @@ DEF_DO_FUN(do_sacrifice)
     {
         gain_faith( ch, worth );
         /* find loop-holes for faith-gaining */
-        if ( worth > 1 && get_religion(ch) != NULL )
+        if ( worth > 1 && has_god(ch) )
             logpf( "%s gains %d faith at %d for sacrificing obj %d",
                     ch->name, worth, ch->in_room->vnum, obj->pIndexData->vnum );
     }
@@ -4056,7 +4062,7 @@ DEF_DO_FUN(do_donate)
         || obj->item_type == ITEM_CORPSE_PC
         || obj->item_type == ITEM_EXPLOSIVE
         || obj->owner != NULL
-        || is_relic_obj(obj)
+        //|| is_relic_obj(obj)
         || contains_obj_recursive(obj, &is_questeq)
         || contains_obj_recursive(obj, &is_sticky_obj)
         || IS_OBJ_STAT(obj,ITEM_MELT_DROP))

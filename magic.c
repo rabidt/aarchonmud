@@ -55,7 +55,6 @@ int get_dagger_focus( CHAR_DATA *ch );
 
 /* imported functions */
 bool check_spell_disabled args( (const struct skill_type *command) );
-RELIGION_DATA *get_religion args( ( CHAR_DATA *ch ) );
 char* wear_location_info( int pos );
 
 /*
@@ -360,11 +359,13 @@ bool can_cast_transport( CHAR_DATA *ch )
         return FALSE;
     }
 
+    /*
     if ( carries_relic(ch) )
     {
         send_to_char( "Not with a relic!\n\r", ch );
         return FALSE;
     }
+    */
 
     return TRUE;
 }

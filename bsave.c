@@ -351,7 +351,13 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "Plyd %d\n",
         ch->played + (int) (current_time - ch->logon)   );
 
-    bprintf( buf, "Pray %d\n", ch->pcdata->prayed_at );
+    //bprintf( buf, "Pray %d\n", ch->pcdata->prayed_at );
+    if ( has_god(ch) )
+        bprintf(buf, "God  %s~\n", get_god_name(ch));
+    if ( ch->pcdata->faith > 0 )
+        bprintf(buf, "Faith %d\n", ch->pcdata->faith);
+    if ( ch->pcdata->religion_rank > 0 )
+        bprintf(buf, "RRank %d\n", ch->pcdata->religion_rank);
     
     bprintf( buf, "Scro %d\n",   ch->lines       );
     
@@ -1266,9 +1272,9 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
     ch->pcdata->highest_level = 0;
     ch->pcdata->qdata = NULL;
     clear_tattoos( ch->pcdata->tattoos );
-    ch->pcdata->ch_rel = get_religion_follower_data( ch->name );
-    ch->pcdata->prayed_at = current_time - 24*PULSE_TICK;
-    ch->pcdata->prayer_request = NULL;
+    //ch->pcdata->ch_rel = get_religion_follower_data( ch->name );
+    //ch->pcdata->prayed_at = current_time - 24*PULSE_TICK;
+    //ch->pcdata->prayer_request = NULL;
     ch->pcdata->combat_action = NULL;
     ch->pcdata->name_color = str_dup("");
     ch->pcdata->pre_title = str_dup("");
@@ -1975,10 +1981,12 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         break;
         
     case 'F':
+        KEY( "Faith",   ch->pcdata->faith,  bread_number(buf));
         KEY( "Field",   ch->pcdata->field,  bread_number(buf));
         
     case 'G':
         KEYF( "Gag",     ch->gag );
+        KEYS( "God",    ch->pcdata->god_name,   bread_string(buf) );
         KEY( "Gold",    ch->gold,       bread_number( buf ) );
         if ( !str_cmp( word, "Group" )  || !str_cmp(word,"Gr"))
         {
@@ -2202,12 +2210,14 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         KEYS( "Prompt",      ch->prompt,             bread_string( buf ) );
         KEYS( "Prom",    ch->prompt,     bread_string( buf ) );
 
+    /*
 	if ( !str_cmp( word, "Pray" ) )
 	{
 	    ch->pcdata->prayed_at = bread_number( buf );
 	    fMatch = TRUE;
 	    break;
 	}
+	*/
 
 	if ( !str_cmp( word, "PKCount" ) )
 	{
@@ -2274,6 +2284,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+        KEY( "RRank",   ch->pcdata->religion_rank,  bread_number(buf) );
         
         break;
         
@@ -3160,7 +3171,6 @@ DEF_DO_FUN(do_finger)
     DESCRIPTOR_DATA *d;
     CHAR_DATA *wch;
     char pkstring[5];
-    RELIGION_DATA *rel;
     
     one_argument(argument,arg);
     
@@ -3264,41 +3274,18 @@ DEF_DO_FUN(do_finger)
     add_buf( output, buf );
 
     /* revised religion */
-    if ((rel = get_religion(wch)) != NULL)
-    {
-        if (!str_cmp(wch->name, rel->god))
-            sprintf(buf, "{D|{x {W%s of %-25s{x", wch->pcdata->true_sex == 2 ? "Goddess" : "God", rel->name);
-        else if (IS_IMMORTAL(ch))
-            sprintf( buf, "{D|{x God: %-10s Rank: %-10s Faith: %-6d", rel->god, get_ch_rank_name(wch), get_faith(wch));
-        else
-            sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", rel->god, get_ch_rank_name(wch) );
-        
-        if( wch->pcdata && wch->pcdata->spouse )
-            sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
-        else
-            sprintf( buf2, "Spouse: None" );
-        	
-        strcat( buf, buf2 );
-        
-        for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );		
-    }
+    sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", get_god_name(wch), get_ch_rank_name(wch) );
+    
+    if( wch->pcdata && wch->pcdata->spouse )
+        sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
     else
-    {
-        sprintf( buf, "{D|{x God:     None        Rank: None           ");
+        sprintf( buf2, "Spouse: None" );
         
-        if( wch->pcdata && wch->pcdata->spouse )
-            sprintf( buf2, "Spouse: %-9s", wch->pcdata->spouse );
-        else
-            sprintf( buf2, "Spouse: None" );
-        	
-        strcat( buf, buf2 );
-        
-        for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
-        add_buf( output, buf );	
-    }
+    strcat( buf, buf2 );
+    
+    for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     /* Remorts, Age, Hours, Bounty */
     sprintf(buf, "{D|{x ");

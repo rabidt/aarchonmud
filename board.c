@@ -26,7 +26,6 @@
 #include "tables.h"
 #include "lookup.h"
 #include "buffer_util.h"
-#include "religion.h"
 
 /*
 
@@ -446,8 +445,6 @@ void load_boards ()
 /* Returns TRUE if the specified note is addressed to ch */
 bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note)
 {
-    RELIGION_DATA *rel;
-
    if (IS_NPC(ch))
       return FALSE;
 
@@ -491,10 +488,12 @@ bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note)
        && is_exact_name(clan_table[ch->clan].name, note->to_list) )
       return TRUE;
 
+   /*
    if ( (rel = get_religion(ch)) != NULL
 	&& is_religion_member(ch)
 	&& is_exact_name(rel->name, note->to_list) )
       return TRUE;
+   */
    
    if (is_exact_name (ch->name, note->to_list))
       return TRUE;

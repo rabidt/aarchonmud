@@ -2703,11 +2703,13 @@ DEF_DO_FUN(do_recall)
         return;
     }
 
+    /*
     if ( carries_relic(ch) )
     {
         send_to_char( "Not with a relic!\n\r", ch );
         return;
     }
+    */
 
     if ( (god_name = get_god_name(ch)) == NULL )
     {

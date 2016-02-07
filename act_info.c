@@ -2800,7 +2800,7 @@ DEF_DO_FUN(do_who)
     BUFFER *output;
     CHAR_DATA* who_array[MAX_WHO];
     int who_count, w;
-    RELIGION_DATA *rel = NULL;
+    //RELIGION_DATA *rel = NULL;
     int iClass;
     int iRace;
     int iClan;
@@ -2814,7 +2814,7 @@ DEF_DO_FUN(do_who)
     bool fClassRestrict = FALSE;
     bool fClanRestrict = FALSE;
     bool fClan = FALSE;
-    bool fReligion = FALSE;
+    //bool fReligion = FALSE;
     bool fRaceRestrict = FALSE;
     bool fImmortalOnly = FALSE;
     bool fHelperOnly = FALSE;
@@ -2918,8 +2918,8 @@ DEF_DO_FUN(do_who)
 		    {
 			if (!str_prefix(arg,"clan"))
 			    fClan = TRUE;
-			else if(!str_prefix(arg,"religion"))
-			    fReligion = TRUE;
+			//else if(!str_prefix(arg,"religion"))
+			//    fReligion = TRUE;
 			else
 			{
 			    iClan = clan_lookup(arg);
@@ -2930,9 +2930,9 @@ DEF_DO_FUN(do_who)
 			    }
 			    else				   
 			    {
-				if ( (rel=get_religion_by_name(arg)) == NULL )
+				//if ( (rel=get_religion_by_name(arg)) == NULL )
 				{
-				    send_to_char("That's not a valid race, class, clan or religion.\n\r",ch);
+				    send_to_char("That's not a valid race, class or clan.\n\r",ch);
 				    return;
 				}
 			    }
@@ -2977,10 +2977,10 @@ DEF_DO_FUN(do_who)
 	     || ( fRemortOnly && wch->pcdata->remorts == 0 )
 	     || ( fClassRestrict && !rgfClass[wch->class] )
 	     || ( fRaceRestrict && !rgfRace[wch->race])
-	     || ( fReligion && (get_religion(wch)!=get_religion(ch)) )
+	     //|| ( fReligion && (get_religion(wch)!=get_religion(ch)) )
 	     || ( fClan && !is_same_clan(ch, wch))
 	     || ( fClanRestrict && !rgfClan[wch->clan])
-	     || ( rel != NULL && get_religion(wch) != rel )
+	     //|| ( rel != NULL && get_religion(wch) != rel )
 	     || ( fTagRed && !IS_SET(wch->pcdata->tag_flags,TAG_RED) )
 	     || ( fTagBlue && !IS_SET(wch->pcdata->tag_flags,TAG_BLUE) )
 	     || ( fTagAll && !IS_TAG(wch) )

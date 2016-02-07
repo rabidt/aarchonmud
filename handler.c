@@ -2324,7 +2324,7 @@ void extract_obj( OBJ_DATA *obj )
     
     unregister_obj_timer( obj );
     obj_from_world( obj );
-    free_relic( obj );
+    //free_relic( obj );
     
     for ( obj_content = obj->contains; obj_content; obj_content = obj_next )
     {
@@ -2355,8 +2355,8 @@ bool is_sticky_obj( OBJ_DATA *obj )
 
 bool is_drop_obj( OBJ_DATA *obj )
 {
-    return IS_OBJ_STAT( obj, ITEM_EASY_DROP )
-	|| is_relic_obj( obj );
+    return IS_OBJ_STAT( obj, ITEM_EASY_DROP );
+    //  || is_relic_obj( obj );
 }
 
 bool is_questeq( OBJ_DATA *obj )
