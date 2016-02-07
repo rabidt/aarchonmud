@@ -41,8 +41,6 @@ int  hit_gain     args(( CHAR_DATA *ch ));
 int  mana_gain    args(( CHAR_DATA *ch ));
 int  move_gain    args(( CHAR_DATA *ch ));
 
-RELIGION_DATA *get_religion args(( CHAR_DATA *ch ));
-
 DECLARE_DO_FUN(do_scan      );
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_where     );
@@ -2193,23 +2191,23 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
 DEF_SPELL_FUN(spell_hand_of_god)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    RELIGION_DATA *rel;    
     
-    /* first strike */
+    /*
     if ( !IS_NPC(ch) && !IS_IMMORTAL(ch) )
     {
-	rel = get_religion(ch);
-	if( rel == NULL )
-	{
-	    send_to_char("Your faith is not strong enough to call the wrath of the gods!\n\r",ch);
-        return SR_UNABLE;
-	}
-	else if( !IS_BETWEEN( rel->min_align, ch->alignment, rel->max_align ) )
-	{
-	    send_to_char("Your god frowns upon you, and decides not to lend a hand.\n\r",ch);
-	    return SR_UNABLE;
-	}
+        RELIGION_DATA *rel = get_religion(ch);
+        if( rel == NULL )
+        {
+            send_to_char("Your faith is not strong enough to call the wrath of the gods!\n\r",ch);
+            return SR_UNABLE;
+        }
+        else if( !IS_BETWEEN( rel->min_align, ch->alignment, rel->max_align ) )
+        {
+            send_to_char("Your god frowns upon you, and decides not to lend a hand.\n\r",ch);
+            return SR_UNABLE;
+        }
     }
+    */
 
     SPELL_CHECK_RETURN
     

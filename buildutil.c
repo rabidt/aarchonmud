@@ -987,6 +987,9 @@ DEF_DO_FUN(do_mstat)
 
    if (!IS_NPC(victim))
    {
+       ptc(ch, "God: %s  Rank: %s  Faith: %d\n\r", get_god_name(victim),
+           get_ch_rank_name(victim), ch->pcdata->faith);
+      /*
       RELIGION_DATA *rel;
 
       if( (rel = get_religion(victim)) != NULL )
@@ -997,6 +1000,7 @@ DEF_DO_FUN(do_mstat)
 		ctime(&victim->pcdata->prayed_at) );
 	   send_to_char(buf,ch);
       }
+     */
    }
 
    sprintf( buf,

@@ -36,7 +36,6 @@
 #include "tables.h"
 #include "lookup.h"
 #include "buffer_util.h"
-#include "religion.h"
 #include "olc.h"
 #include "mob_stats.h"
 #include "lua_scripting.h"
@@ -1364,12 +1363,14 @@ void char_update( void )
                 }
             }
             
+            /*
             if ( ch->pcdata->prayer_request )
             {
                 ch->pcdata->prayer_request->ticks--;
                 if ( ch->pcdata->prayer_request->ticks == 0 )
                     grant_prayer(ch);
             }
+            */
         }
 
 
@@ -2253,7 +2254,7 @@ void update_handler( void )
         pulse_violence  = PULSE_VIOLENCE;
         violence_update ( );
         /* relics */
-        all_religions( &religion_relic_damage );
+        //all_religions( &religion_relic_damage );
     }
 
     if ( update_all && --pulse_point    <= 0 )
@@ -2266,8 +2267,8 @@ void update_handler( void )
         core_tick();
         
         /* clan_update(); */
-        all_religions( &religion_create_relic );
-        update_relic_bonus();
+        //all_religions( &religion_create_relic );
+        //update_relic_bonus();
     }
 
     /* check lboard reset times once a minute
@@ -2293,13 +2294,14 @@ void update_handler( void )
             if ( current_time % (6*HOUR) == 0 )
                 update_herb_reset();
 
-            /* update priests once per day */
+            /* update priests once per day
             if ( current_time % DAY == 0 )
             {
                 all_religions( &religion_update_followers );
                 all_religions( &religion_update_priests );
                 all_religions( &religion_restore_relic );
             }
+            */
         }
         hour_update = FALSE;
     }
@@ -2537,7 +2539,7 @@ void change_align (CHAR_DATA *ch, int change_by)
                 || (change_by > 0 && IS_EVIL(ch))))
         return;
 
-    change_by = adjust_align_change( ch, change_by );
+    //change_by = adjust_align_change( ch, change_by );
 
     align = (double)URANGE(-1000, ch->alignment + change_by, 1000);
 
@@ -2600,7 +2602,7 @@ void change_align (CHAR_DATA *ch, int change_by)
         }       
     }
 
-    check_religion_align( ch );
+    //check_religion_align( ch );
     check_clan_align( ch );
     check_equipment_align( ch );
     return;
@@ -2614,7 +2616,7 @@ void drop_align( CHAR_DATA *ch )
     if ( ch->alignment > -1000 )
         ch->alignment -= 1;
 
-    check_religion_align( ch );
+    //check_religion_align( ch );
     check_clan_align( ch );
     check_equipment_align( ch );
     return;

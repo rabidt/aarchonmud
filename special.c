@@ -1077,6 +1077,7 @@ bool spec_remort (CHAR_DATA *ch)
 
 bool spec_temple_guard ( CHAR_DATA *ch )
 {
+    /*
     RELIGION_DATA *rel;
     CHAR_DATA *victim, *v_next, *target;
     char buf[MSL];
@@ -1101,27 +1102,27 @@ bool spec_temple_guard ( CHAR_DATA *ch )
 	     && (is_religion_member(victim) || !carries_relic(victim)) )
 	    continue;
 
-	/* we found a target - check if it's our favourite one */
+	// we found a target - check if it's our favourite one
 	if ( carries_relic(victim) )
 	{
 	    target = victim;
 	    break;
 	}
 
-	/* only continue searching if we're not already fighting */
+	// only continue searching if we're not already fighting
 	if ( ch->fighting != NULL )
 	    continue;
 
-	/* attack highest level intruder */
+	// attack highest level intruder
 	if ( target == NULL || victim->level > target->level )
 	    target = victim;
     }
     
-    /* do we have a new target? */
+    // do we have a new target?
     if ( target == NULL || target == ch->fighting )
 	return FALSE;
 
-    /* is new target just a harmless non-believer? */
+    // is new target just a harmless non-believer?
     if ( get_religion(target) == NULL && !carries_relic(target) )
     {
 	sprintf( buf, "This is the temple of %s. Get out %s!",
@@ -1135,7 +1136,7 @@ bool spec_temple_guard ( CHAR_DATA *ch )
 	return TRUE;
     }
 
-    /* attack! */
+    // attack!
     do_religion_talk( ch, "We are under attack!" );
     sprintf( buf, "Intruders have entered the temple! In the name of %s!",
 	     rel->god );
@@ -1143,4 +1144,6 @@ bool spec_temple_guard ( CHAR_DATA *ch )
     set_fighting( ch, target );
     multi_hit( ch, target, TYPE_UNDEFINED );
     return TRUE;
+    */
+    return FALSE;
 }

@@ -128,11 +128,7 @@ typedef struct  achievement_entry ACHIEVEMENT;
 typedef struct  boss_achieve_entry BOSSACHV;
 typedef struct  boss_achieve_record BOSSREC;
 /* religion */
-typedef struct religion_data RELIGION_DATA;
-/* typedef struct religion_war_data RELIGION_WAR_DATA; */
-typedef struct follower_data FOLLOWER_DATA;
-typedef struct religion_rank_data RELIGION_RANK_DATA;
-typedef struct prayer_data PRAYER_DATA;
+// typedef struct religion_data RELIGION_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
 
@@ -2793,9 +2789,12 @@ struct  pc_data
 	int                 religion_kills;
     QUEST_DATA *qdata;
     tattoo_list tattoos;
-    FOLLOWER_DATA *ch_rel;
-    time_t prayed_at;
-    PRAYER_DATA *prayer_request;
+    //FOLLOWER_DATA *ch_rel;
+    //time_t prayed_at;
+    //PRAYER_DATA *prayer_request;
+    const char          *god_name;
+    int                 faith;
+    short               religion_rank;
 
     time_t pkill_expire; /* timestamp when you can turn it off */
 
