@@ -1150,6 +1150,8 @@ static int db_callback( void *cdata, int argc, char **argv, char **azColName)
     return 0; 
 }
 
+//#define TRACE_DB_EXEC
+
 static int dblib_exec( lua_State *LS)
 {
     int rc;
@@ -1164,6 +1166,10 @@ static int dblib_exec( lua_State *LS)
 
     data.rtn_index=1;
 
+#ifdef TRACE_DB_EXEC
+    struct timeval start_time;
+    gettimeofday( &start_time, NULL);
+#endif
     rc = sqlite3_exec( script_db, sql, db_callback, (void *)(&data), &zErrMsg);
 
     if ( rc != SQLITE_OK )
@@ -1180,6 +1186,16 @@ static int dblib_exec( lua_State *LS)
 
         return luaL_error( LS, buf); 
     }
+#ifdef TRACE_DB_EXEC
+    struct timeval end_time;
+    gettimeofday( &end_time, NULL);
+    long usecDelta = (long)end_time.tv_usec - (long)start_time.tv_usec;
+    long secDelta = (long)end_time.tv_sec - (long)start_time.tv_sec;
+
+    long usecTtl = secDelta * 1000000L + usecDelta;
+    float secTtl = usecTtl/1000000.0;
+    logpf("sec: %f, query: %s", secTtl, sql);
+#endif
 
     return 1;
 }
