@@ -1115,26 +1115,37 @@ void init_script_db()
     else
     {
         logpf("Opened script_db successfully.");
+        logpf("sqlite3 version: %s", sqlite3_libversion()); 
     }
 }
 
-static lua_State *db_exec_LS;
-static int db_rtn_tbl;
-static int db_rtn_index;
-static int db_callback( void *data, int argc, char **argv, char **azColName)
+void close_script_db()
+{
+    sqlite3_close(script_db);
+}
+
+struct db_callback_data
+{
+    lua_State *LS;
+    int rtn_tbl;
+    int rtn_index;
+};
+
+static int db_callback( void *cdata, int argc, char **argv, char **azColName)
 {
     int i;
+    struct db_callback_data *data = (struct db_callback_data *)(cdata);
     
-    lua_newtable(db_exec_LS);
+    lua_newtable(data->LS);
     for (i=0; i<argc; i++)
     {
         if (argv[i])
         {
-            lua_pushstring( db_exec_LS, argv[i]);
-            lua_setfield( db_exec_LS, -2, azColName[i]);
+            lua_pushstring( data->LS, argv[i]);
+            lua_setfield( data->LS, -2, azColName[i]);
         }
     }
-    lua_rawseti(db_exec_LS, db_rtn_tbl, db_rtn_index++);
+    lua_rawseti(data->LS, data->rtn_tbl, data->rtn_index++);
        
     return 0; 
 }
@@ -1144,21 +1155,38 @@ static int dblib_exec( lua_State *LS)
     int rc;
     char *zErrMsg = NULL;
     const char *sql=luaL_checkstring( LS, 1);
+    struct db_callback_data data;
 
-    db_exec_LS = LS;
+    data.LS = LS;
+    
     lua_newtable( LS );
-    db_rtn_tbl = lua_gettop(LS);
-    db_rtn_index=1;
+    data.rtn_tbl = lua_gettop(LS);
 
-    rc = sqlite3_exec( script_db, sql, db_callback, NULL, &zErrMsg);
+    data.rtn_index=1;
+
+    rc = sqlite3_exec( script_db, sql, db_callback, (void *)(&data), &zErrMsg);
 
     if ( rc != SQLITE_OK )
     {
         static char buf[MSL];
         strcpy( buf, zErrMsg);
+        sqlite3_free(zErrMsg);
+
+        /* rollback any unfinished transaction */
+        if (sqlite3_get_autocommit( script_db ) == 0)
+        {
+            sqlite3_exec( script_db, "ROLLBACK", 0, 0, 0);
+        }
+
         return luaL_error( LS, buf); 
     }
 
+    return 1;
+}
+
+static int dblib_libversion( lua_State *LS)
+{
+    lua_pushstring(LS, sqlite3_libversion());
     return 1;
 }
 
@@ -1358,6 +1386,7 @@ GLOB_TYPE glob_table[] =
     UTILF(format_color_string),
     
     DBF(exec),
+    DBF(libversion),
     
     DBGF(show),
 
