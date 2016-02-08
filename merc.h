@@ -3990,8 +3990,10 @@ struct boss_achieve_record
 
 #define IS_OUTSIDE(ch)      (!IS_SET((ch)->in_room->room_flags, ROOM_INDOORS))
 
-#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
-#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+//#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
+//#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+#define WAIT_STATE(ch, npulse)  wait_state(ch, npulse)
+#define DAZE_STATE(ch, npulse)  daze_state(ch, npulse)
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
@@ -4615,6 +4617,8 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check, int sn );
 
 /* fight.c */
+void    wait_state( CHAR_DATA *ch, int npulse );
+void    daze_state( CHAR_DATA *ch, int npulse );
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
