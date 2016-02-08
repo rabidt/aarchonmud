@@ -2417,9 +2417,9 @@ MSETFUN( faith )
 
 MSETFUN( rrank )
 {
-    if ( value < 0 || value >= RELIGION_MAX_RANK )
+    if ( value < 0 || value > RELIGION_MAX_RANK )
     {
-        ptc(ch, "Religion rank range is 0 to %d.\n\r", RELIGION_MAX_RANK - 1);
+        ptc(ch, "Religion rank range is 0 to %d.\n\r", RELIGION_MAX_RANK);
         return FALSE;
     }
     victim->pcdata->religion_rank = value;

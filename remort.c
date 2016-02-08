@@ -1084,6 +1084,16 @@ DEF_DO_FUN(do_ascend)
 #endif
     }
     
+    if ( ch->pcdata->religion_rank < RELIGION_MAX_RANK )
+    {
+        ptc(ch, "You need to reach the rank of %s before you can ascend.\n\r", get_religion_rank_name(RELIGION_MAX_RANK) );
+#ifdef TESTER
+        ptc(ch, "We will ignore that for testing though.\n\r");
+#else
+        return;
+#endif
+    }
+    
     if ( strcmp(argument, "confirm") )
     {
         send_to_char("To ascend, type <ascend confirm>.\n\r", ch);

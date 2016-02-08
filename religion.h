@@ -16,7 +16,7 @@ typedef struct religion_rank_data RELIGION_RANK_DATA;
 //#define RELIGION_WAR_PEACE 0
 //#define RELIGION_WAR_WAR   1
 
-#define RELIGION_MAX_RANK  6
+#define RELIGION_MAX_RANK  5
 #define RELIGION_RANK_NEO  0
 
 //struct religion_data

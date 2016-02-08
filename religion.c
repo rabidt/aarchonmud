@@ -23,7 +23,7 @@
 
 //static RELIGION_DATA *religion_list = NULL;
 
-static RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK] =
+static RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK + 1] =
 {
     {    0, "Neophyte"   },
     {   50, "Acolyte"    },
@@ -1340,7 +1340,7 @@ int follower_get_rank( FOLLOWER_DATA *fol )
 
     fol_time = current_time - fol->join_time;
 
-    for ( rank = RELIGION_MAX_RANK-1; rank > 0; rank-- )
+    for ( rank = RELIGION_MAX_RANK; rank > 0; rank-- )
 	if ( religion_ranks[rank].min_time <= fol_time
 	     && religion_ranks[rank].min_faith <= fol->faith )
 	    break;
@@ -1565,7 +1565,7 @@ const char* get_religion_rank_name( int rank )
     log_string( "get_religion_rank_name: start" );
 #endif
 
-    rank = URANGE(0, rank, RELIGION_MAX_RANK-1);
+    rank = URANGE(0, rank, RELIGION_MAX_RANK);
     return religion_ranks[rank].name;
 }
 
@@ -1616,7 +1616,7 @@ void gain_faith( CHAR_DATA *ch, int gain )
         //ch->pcdata->ch_rel->religion->god_power += gain;
         send_to_char( "You feel more faithful.\n\r", ch );
         int next_rank = ch->pcdata->religion_rank + 1;
-        if ( next_rank < RELIGION_MAX_RANK && ch->pcdata->faith >= religion_ranks[next_rank].min_faith )
+        if ( next_rank <= RELIGION_MAX_RANK && ch->pcdata->faith >= religion_ranks[next_rank].min_faith )
             ptc(ch, "You are ready to advance to the rank of %s.\n\r", get_religion_rank_name(next_rank));
     }
 
@@ -2150,7 +2150,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 	add_buf( buffer, " none" );
 
     // show the followers, sorted by rank
-    for ( rank = RELIGION_MAX_RANK-1; rank >= 0; rank-- )
+    for ( rank = RELIGION_MAX_RANK; rank >= 0; rank-- )
     {
 	sprintf( buf, "\n\r========== %-10s ==========",
 		 get_religion_rank_name(rank) );
