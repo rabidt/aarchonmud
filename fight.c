@@ -4680,11 +4680,13 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	stance == STANCE_EAGLE 
 	|| stance == STANCE_LION 
 	|| stance == STANCE_FINESSE
+	|| stance == STANCE_DECEPTION
 	|| stance == STANCE_AMBUSH
 	|| stance == STANCE_BLADE_DANCE
 	|| stance == STANCE_BLOODBATH
 	|| stance == STANCE_TARGET_PRACTICE
 	|| stance == STANCE_KAMIKAZE
+    || stance == STANCE_KAMIKAZE
         || stance == STANCE_SERPENT;
 
     /* woodland combat */
