@@ -2937,9 +2937,10 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
                 {
                     bug( "Bread_obj: incomplete object.", 0 );
                     free_obj(obj);
-		    /* make sure the nesting is cleared up too */
-		    if ( rgObjNest[iNest] == obj )
-			rgObjNest[iNest] = NULL;
+                    /* make sure the nesting is cleared up too */
+                    if ( rgObjNest[iNest] == obj )
+                        rgObjNest[iNest] = NULL;
+                    obj = NULL;
                     break;
                 }
                 else
@@ -3150,10 +3151,12 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     }
 
     /* in case of old format, copy over extra flags that came from wear flags*/
-    if ( IS_OBJ_STAT(obj->pIndexData, ITEM_TRANSLUCENT_EX) )
-        SET_BIT(obj->extra_flags, ITEM_TRANSLUCENT_EX);
-    if ( IS_OBJ_STAT(obj->pIndexData, ITEM_NO_SAC_EX) )
-        SET_BIT(obj->extra_flags, ITEM_NO_SAC_EX);
+    if ( obj ) {
+        if ( IS_OBJ_STAT(obj->pIndexData, ITEM_TRANSLUCENT_EX) )
+            SET_BIT(obj->extra_flags, ITEM_TRANSLUCENT_EX);
+        if ( IS_OBJ_STAT(obj->pIndexData, ITEM_NO_SAC_EX) )
+            SET_BIT(obj->extra_flags, ITEM_NO_SAC_EX);
+    }
 }
 
 
