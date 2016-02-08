@@ -2127,7 +2127,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // riposte - 25% chance regardless of hit or miss
     // blade barrier stance doubles that
     int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(40) )
+    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
     {
         one_hit(victim, ch, gsn_riposte, FALSE);
         CHECK_RETURN( ch, victim );
