@@ -4716,6 +4716,86 @@ static int CH_get_descriptor( lua_State *LS )
         return 0;
 }
 
+static int CH_get_godname( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'godname' for NPC.");
+    }
+
+    if (!ud_ch->pcdata->god_name)
+        return 0;
+    
+    lua_pushstring(LS, ud_ch->pcdata->god_name);
+    return 1;
+}
+
+static int CH_set_godname( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't set 'godname' for NPC.");
+    }
+
+    const char *value=check_string(LS, 2, MSL);
+    free_string(ud_ch->pcdata->god_name);
+    ud_ch->pcdata->god_name = str_dup(value);
+    return 0;
+}    
+
+static int CH_get_faith( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'faith' for NPC.");
+    }
+
+    lua_pushinteger(LS, ud_ch->pcdata->faith);
+    return 1;
+}
+
+static int CH_get_religionrank( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'religionrank' for NPC.");
+    }
+
+    lua_pushstring(LS, get_ch_rank_name(ud_ch));
+    return 1;
+}
+
+static int CH_set_religionrank( lua_State *LS )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't set 'religionrank' for NPC.");
+    }
+
+    if (ud_ch->pcdata->god_name[0] == '\0')
+    {
+        return luaL_error(LS, "Can't set 'religionrank' with no 'godname' setting.");
+    }
+
+    const char *val=check_string(LS,2,MSL);
+    int newrank=get_religion_rank_number( val );
+
+    if (newrank == -1)
+    {
+        return luaL_error(LS, "No such religion rank '%s'", val);
+    }
+
+    ud_ch->pcdata->religion_rank=newrank;
+
+    return 0;
+}
+
 static const LUA_PROP_TYPE CH_get_table [] =
 {
     CHGET(name, 0),
@@ -4782,6 +4862,9 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(scroll, 0),
     CHGET(id, 0 ),
     /* PC only */
+    CHGET(godname, 0),
+    CHGET(faith, 0),
+    CHGET(religionrank, 0),
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
     CHGET(explored, 0),
@@ -4848,6 +4931,8 @@ static const LUA_PROP_TYPE CH_set_table [] =
     CHSET(description, 5),
     CHSET(pet, 5),
     /* PC only */
+    CHSET(godname, 9),
+    CHSET(religionrank, 9),
     CHSET(questpoints, SEC_NOSCRIPT),
     CHSET(ptitles, SEC_NOSCRIPT),
     CHSET(ptitle, SEC_NOSCRIPT),
