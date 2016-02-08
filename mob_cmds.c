@@ -2068,6 +2068,7 @@ DEF_DO_FUN(do_mpqadvance)
 #define REWARD_EXP     0
 #define REWARD_QP      1
 #define REWARD_GOLD    2 
+#define REWARD_FAITH   3
 void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
 {
     int reward;
@@ -2087,6 +2088,8 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
         reward = REWARD_QP;
     else if ( !str_cmp(arg2, "gold") )
         reward = REWARD_GOLD;
+    else if ( !str_cmp(arg2, "faith") )
+        reward = REWARD_FAITH;
     else
     {
         bug( "mpreward: unknown reward type from vnum %d.",
@@ -2117,6 +2120,10 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
     case REWARD_GOLD:
         ptc( victim, "You are rewarded %d gold!\n\r", amount);
         victim->gold += amount;
+        break;
+    case REWARD_FAITH:
+        ptc( victim, "You are rewarded %d faith points!\n\r", amount);
+        victim->pcdata->faith += amount;
         break;
     default:
         bugf( "mpreward: unknown reward type (%d)", reward );

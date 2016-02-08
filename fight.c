@@ -156,6 +156,18 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
+void wait_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->wait += npulse * npulse / UMAX(1, ch->wait + npulse);
+}
+
+void daze_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->daze += npulse * npulse / UMAX(1, ch->daze + npulse);
+}
+
 // return critical chance as multiple of 0.05% (100 = 5% chance)
 int critical_chance(CHAR_DATA *ch, bool secondary)
 {
@@ -2129,7 +2141,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // riposte - 25% chance regardless of hit or miss
     // blade barrier stance doubles that
     int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(40) )
+    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
     {
         one_hit(victim, ch, gsn_riposte, FALSE);
         CHECK_RETURN( ch, victim );
@@ -4682,11 +4694,13 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	stance == STANCE_EAGLE 
 	|| stance == STANCE_LION 
 	|| stance == STANCE_FINESSE
+	|| stance == STANCE_DECEPTION
 	|| stance == STANCE_AMBUSH
 	|| stance == STANCE_BLADE_DANCE
 	|| stance == STANCE_BLOODBATH
 	|| stance == STANCE_TARGET_PRACTICE
 	|| stance == STANCE_KAMIKAZE
+    || stance == STANCE_KAMIKAZE
         || stance == STANCE_SERPENT;
 
     /* woodland combat */

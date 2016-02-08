@@ -4355,6 +4355,11 @@ DEF_DO_FUN(do_ignite)
         obj->timer = 1 + timer;
         SET_BIT(obj->extra_flags, ITEM_GLOW);
         SET_BIT(obj->extra_flags, ITEM_HUM);
+        // add 'lit' keyword
+        char buf[MSL];
+        sprintf(buf, "%s lit", obj->name);
+        free_string(obj->name);
+        obj->name = str_dup(buf);
 
         check_improve(ch,gsn_ignite,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_ignite].beats);
