@@ -459,6 +459,8 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
+    else if ( ch && ch->stance == STANCE_DECEPTION && dam_type == DAM_MENTAL )
+        hit_roll += hit_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
@@ -4834,8 +4836,8 @@ DEF_SPELL_FUN(spell_improved_invis)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.location  = APPLY_NONE;
-    af.modifier  = 0;
+    af.location  = APPLY_AC;
+    af.modifier  = -5 * (10 + level);
     af.bitvector = AFF_INVISIBLE;
     affect_to_char(ch, &af);
     send_to_char("You fade out of existence.\n\r", ch);

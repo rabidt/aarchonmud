@@ -234,7 +234,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         468
+#define MAX_SKILL         469
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3471,6 +3471,7 @@ extern sh_int  gsn_eldritch_blast;
 extern sh_int  gsn_eldritch_curse;
 extern sh_int  gsn_high_explosives;
 extern sh_int  gsn_army_of_darkness;
+extern sh_int  gsn_deception;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -3989,8 +3990,10 @@ struct boss_achieve_record
 
 #define IS_OUTSIDE(ch)      (!IS_SET((ch)->in_room->room_flags, ROOM_INDOORS))
 
-#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
-#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+//#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
+//#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+#define WAIT_STATE(ch, npulse)  wait_state(ch, npulse)
+#define DAZE_STATE(ch, npulse)  daze_state(ch, npulse)
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
@@ -4116,6 +4119,7 @@ struct stance_type
 #define STANCE_SERPENT 46
 #define STANCE_BLADE_BARRIER 47
 #define STANCE_BULLET_RAIN 48
+#define STANCE_DECEPTION 49
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
@@ -4613,6 +4617,8 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check, int sn );
 
 /* fight.c */
+void    wait_state( CHAR_DATA *ch, int npulse );
+void    daze_state( CHAR_DATA *ch, int npulse );
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
