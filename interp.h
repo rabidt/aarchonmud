@@ -360,8 +360,8 @@ DECLARE_DO_FUN( do_recruit  );
 DECLARE_DO_FUN( do_red      );
 DECLARE_DO_FUN( do_reject   );
 DECLARE_DO_FUN( do_release  );
-DECLARE_DO_FUN( do_religion );
-DECLARE_DO_FUN( do_religion_talk );
+//DECLARE_DO_FUN( do_religion );
+//DECLARE_DO_FUN( do_religion_talk );
 DECLARE_DO_FUN( do_remember );
 DECLARE_DO_FUN( do_remort   );
 DECLARE_DO_FUN( do_remove   );
@@ -580,6 +580,7 @@ DECLARE_DO_FUN( do_rforce       );
 
 DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif

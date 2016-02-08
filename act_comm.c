@@ -35,7 +35,7 @@
 #include "recycle.h"
 #include "tables.h"
 #include "special.h"
-#include "religion.h"
+//#include "religion.h"
 #include "simsave.h"
 #include "interp.h"
 #include "warfare.h"
@@ -115,7 +115,7 @@ DEF_DO_FUN(do_delete)
             remove_from_auth( ch->name );
 	    //remove_from_all_lboards( ch->name);
             rank_available(ch->clan, ch->pcdata->clan_rank, 0);
-	    religion_remove_follower( ch );
+	    //religion_remove_follower( ch );
             sprintf( filename, "%s", capitalize( ch->name ) );
 	    quit_char( ch );
 	    unlink_pfile( filename );
@@ -205,6 +205,7 @@ DEF_DO_FUN(do_channels)
             send_to_char("{LOFF{x\n\r",ch);
 	}
 
+	/*
 	if( get_religion(ch) != NULL )
 	{
           send_to_char("{9Proclaim{x       ",ch);
@@ -213,6 +214,7 @@ DEF_DO_FUN(do_channels)
           else
             send_to_char("{0OFF{x\n\r",ch);
 	}
+	*/
 
         send_to_char("{5War{x            ",ch);
         if (!IS_SET(ch->comm,COMM_NOWAR))
@@ -781,6 +783,7 @@ DEF_DO_FUN(do_clantalk)
 }
 
 /* religion channels */
+/*
 DEF_DO_FUN(do_religion_talk)
 {
     char buf[MAX_STRING_LENGTH];
@@ -874,6 +877,7 @@ DEF_DO_FUN(do_religion_talk)
     
     return;
 }
+*/
 
 DEF_DO_FUN(do_immtalk)
 {
