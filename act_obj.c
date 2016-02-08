@@ -2440,7 +2440,7 @@ int get_obj_faith_worth( OBJ_DATA *obj )
         return 0;
 
     if ( obj->item_type == ITEM_CORPSE_NPC || obj->item_type == ITEM_CORPSE_PC )
-        worth = obj->level;
+        worth = obj->level * obj->level / 40;
     else
         worth = obj->cost/100;
     /* add worth of content */
