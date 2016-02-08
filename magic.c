@@ -459,6 +459,8 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
+    else if ( ch && ch->stance == STANCE_DECEPTION && dam_type == DAM_MENTAL )
+        hit_roll += hit_roll / 3;
 
     if ( save_roll <= 0 )
         return FALSE;
