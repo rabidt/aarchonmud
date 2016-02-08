@@ -1558,7 +1558,20 @@ RELIGION_DATA *get_religion_of_guard( CHAR_DATA *guard )
     return NULL;
 }
 */
+int get_religion_rank_number( const char *name )
+{
+    int i;
 
+    for (i=0; i <= RELIGION_MAX_RANK; i++)
+    {
+        if (!strcmp(name, religion_ranks[i].name))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+    
 const char* get_religion_rank_name( int rank )
 {
 #ifdef REL_DEBUG

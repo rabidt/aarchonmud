@@ -163,6 +163,7 @@ void create_relics();
 //void remove_priest( CHAR_DATA *ch );
 //RELIGION_DATA *get_religion_of_altar( ROOM_INDEX_DATA *room );
 //RELIGION_DATA *get_religion_of_guard( CHAR_DATA *guard );
+int get_religion_rank_number( const char *);
 const char* get_religion_rank_name( int rank );
 const char* get_ch_rank_name( CHAR_DATA *ch );
 //int get_religion_bonus( CHAR_DATA *ch );
