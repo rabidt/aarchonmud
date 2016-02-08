@@ -1201,6 +1201,17 @@ static int dblib_exec( lua_State *LS)
     return 1;
 }
 
+static int dblib_escape( lua_State *LS)
+{
+    const char *val = luaL_checkstring(LS, 1);
+
+    char *result = sqlite3_mprintf("%q", val);
+    lua_pushstring(LS, result);
+    sqlite3_free(result);
+
+    return 1;
+}
+
 static int dblib_libversion( lua_State *LS)
 {
     lua_pushstring(LS, sqlite3_libversion());
@@ -1403,6 +1414,7 @@ GLOB_TYPE glob_table[] =
     UTILF(format_color_string),
     
     DBF(exec),
+    DBF(escape),
     DBF(libversion),
     
     DBGF(show),

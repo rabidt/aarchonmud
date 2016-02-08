@@ -3641,7 +3641,7 @@ DEF_DO_FUN( do_channel )
     }
     if ( !god_table[i].name )
     {
-        send_to_char("You may cannel the following blessings:", ch);
+        send_to_char("You may channel the following blessings:", ch);
         for ( i = 0; god_table[i].name; i++ )
             if ( !god_table[i].negative )
                 ptc(ch, " %s", god_table[i].name);
