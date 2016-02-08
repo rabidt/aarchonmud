@@ -34,15 +34,12 @@
 #include "merc.h"
 #include "recycle.h"
 #include "buffer_util.h"
-#include "religion.h"
 
 /* Command procedures needed */
 DECLARE_DO_FUN(do_open  );
 DECLARE_DO_FUN(do_say   );
 
-void do_hunt_relic( CHAR_DATA *ch );
-
-
+//void do_hunt_relic( CHAR_DATA *ch );
 
 struct hash_link
 {
@@ -431,11 +428,13 @@ DEF_DO_FUN(do_hunt)
     
     one_argument( argument, arg );
     
+    /*
     if ( !strcmp(arg, "relic") )
     {
 	do_hunt_relic( ch );
 	return;
     }
+    */
 
     if ( (skill = get_skill(ch, gsn_hunt)) == 0 )
     {
@@ -592,6 +591,7 @@ DEF_DO_FUN(do_hunt)
     return;
 }
 
+/*
 void do_hunt_relic( CHAR_DATA *ch )
 {
     RELIGION_DATA *rel;
@@ -651,12 +651,11 @@ void do_hunt_relic( CHAR_DATA *ch )
         return;
     }
     
-   /*
-    * Display the results of the search.
-    */
+    // Display the results of the search.
     sprintf( buf, "$p is %s from here.", dir_name[direction] );
     act( buf, ch, rel->relic_obj, NULL, TO_CHAR );
 }
+*/
 
 /* 'hunts' for a room */
 DEF_DO_FUN(do_scout)

@@ -128,11 +128,7 @@ typedef struct  achievement_entry ACHIEVEMENT;
 typedef struct  boss_achieve_entry BOSSACHV;
 typedef struct  boss_achieve_record BOSSREC;
 /* religion */
-typedef struct religion_data RELIGION_DATA;
-/* typedef struct religion_war_data RELIGION_WAR_DATA; */
-typedef struct follower_data FOLLOWER_DATA;
-typedef struct religion_rank_data RELIGION_RANK_DATA;
-typedef struct prayer_data PRAYER_DATA;
+// typedef struct religion_data RELIGION_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
 
@@ -1324,8 +1320,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -2793,9 +2789,12 @@ struct  pc_data
 	int                 religion_kills;
     QUEST_DATA *qdata;
     tattoo_list tattoos;
-    FOLLOWER_DATA *ch_rel;
-    time_t prayed_at;
-    PRAYER_DATA *prayer_request;
+    //FOLLOWER_DATA *ch_rel;
+    //time_t prayed_at;
+    //PRAYER_DATA *prayer_request;
+    const char          *god_name;
+    int                 faith;
+    short               religion_rank;
 
     time_t pkill_expire; /* timestamp when you can turn it off */
 
@@ -5177,6 +5176,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
@@ -5231,6 +5231,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
 void set_mob_race( CHAR_DATA *ch, int race );
+void take_default_stats( CHAR_DATA *ch );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );

@@ -485,6 +485,10 @@ PC_DATA *new_pcdata(void)
     pcdata->tell_history	    = pers_history_new();
     pcdata->clan_history	    = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
+    
+    pcdata->god_name = &str_empty[0];
+    pcdata->faith = 0;
+    pcdata->religion_rank = 0;
 
     new_ref(&pcdata->ptitles);
 
@@ -524,7 +528,7 @@ void free_pcdata(PC_DATA *pcdata)
     free_string(pcdata->last_host);
     free_string(pcdata->customflag);
     free_string(pcdata->spouse);
-
+    free_string(pcdata->god_name);
     
     for (i=0; i<MAX_FORGET ; i++)
     {

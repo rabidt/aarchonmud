@@ -162,11 +162,13 @@ DEF_DO_FUN(do_enter)
 	   }
 	}
 
+	/*
 	if ( carries_relic(ch) )
 	{
 	    send_to_char( "Not with a relic!\n\r", ch );
 	    return;
 	}
+	*/
 
 	stay_area = I_IS_SET(portal->value[2],GATE_STAY_AREA) != 0;
 

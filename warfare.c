@@ -978,9 +978,10 @@ void check_war_win( void )
                 sprintf( buf, "The %s have won the war!\n\r", get_base_sex(ch) == 2 ? "females" : get_base_sex(ch) == 1 ? "males" : "sexless" );
             else if ( war.type == RELIGION_WAR )
             {
-                RELIGION_DATA *rel = get_religion(ch);
-                sprintf( buf, "The %s have won the war!\n\r",
-                        rel == NULL ? "atheists" : rel->name );
+                if ( has_god(ch) )
+                    sprintf( buf, "The followers of %s have won the war!\n\r", get_god_name(ch) );
+                else
+                    sprintf( buf, "The atheists have won the war!\n\r" );
             }
             else /* paranoid */
                 sprintf( buf, "The war has been won!\n\r" );
@@ -1012,7 +1013,7 @@ bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 )
     if ( war.type == GENDER_WAR )
         return ( get_base_sex(ch1) == get_base_sex(ch2) );
     if ( war.type == RELIGION_WAR )
-        return ( get_religion(ch1) == get_religion(ch2) );
+        return strcmp(get_god_name(ch1), get_god_name(ch2)) == 0;
 
     return FALSE;
 }

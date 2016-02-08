@@ -879,7 +879,7 @@ DEF_DO_FUN(do_quest)
         do_say(questman, buf);
         
         // general adjustments
-        reward_points += reward_points * get_religion_bonus(ch) / 100;
+        //reward_points += reward_points * get_religion_bonus(ch) / 100;
         if ( cfg_enable_qp_mult )
         {
             reward_points = (int)(reward_points * cfg_qp_mult );
