@@ -988,7 +988,7 @@ DEF_DO_FUN(do_mstat)
    if (!IS_NPC(victim))
    {
        ptc(ch, "God: %s  Rank: %s  Faith: %d\n\r", get_god_name(victim),
-           get_ch_rank_name(victim), ch->pcdata->faith);
+           get_ch_rank_name(victim), victim->pcdata->faith);
       /*
       RELIGION_DATA *rel;
 
