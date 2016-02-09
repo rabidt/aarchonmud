@@ -2190,8 +2190,8 @@ const struct subclass_type subclass_table[] =
     },
     {
         "warmage", MAGE|ILLUSIONIST,
-        { "combat casting", "warmage edge" },
-        { 10, 30 },
+        { "warmage edge", "combat casting" },
+        { 30, 50 },
         { 100, 100 }
     },
     {

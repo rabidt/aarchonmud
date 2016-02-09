@@ -1589,6 +1589,9 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
     wait = skill_table[sn].beats * (200-chance) / 100;
     wait = meta_magic_adjust_wait(ch, wait);
+    // combat casting reduces all casting times
+    if ( check_skill(ch, gsn_combat_casting) )
+        wait = rand_div(wait * 4, 5);
     /* Check for overcharge (less lag) */
     if ( overcharging )
         wait /= 4;
@@ -1619,7 +1622,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
             || (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
-            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2) && !check_skill(ch, gsn_combat_casting))
+            || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
             || (concentrate && !check_concentration(ch)) )
     {
         ptc(ch, "You lost your concentration trying to cast %s.\n\r", skill_table[sn].name);
