@@ -1646,10 +1646,14 @@ const char* get_god_name( CHAR_DATA *ch )
     log_string( "get_god_name: start" );
 #endif
 
-    if ( ch->pcdata == NULL || ch->pcdata->god_name[0] == '\0' )
-        return "None";
+    if ( has_god(ch) )
+       return ch->pcdata->god_name;
+    
+    const char *god_name = clan_table[ch->clan].patron;
+    if ( god_name == NULL || god_name[0] == '\0' )
+        return "Rimbol";
     else
-        return ch->pcdata->god_name;
+        return god_name;
 }
 
 bool has_god( CHAR_DATA *ch ) {
@@ -3666,7 +3670,7 @@ DEF_DO_FUN( do_channel )
     WAIT_STATE(ch, PULSE_VIOLENCE);
     affect_strip(ch, gsn_divine_channel);
     
-    const char *god_name = has_god(ch) ? get_god_name(ch) : "Rimbol";
+    const char *god_name = get_god_name(ch);
     
     if ( per_chance(chance) )
         (*god_table[i].fun)(NULL, ch, god_name, GOD_FUNC_DEFAULT_DURATION);
