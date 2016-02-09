@@ -7153,6 +7153,7 @@ HEDIT (hedit_create)
 HEDIT( hedit_show)
 {
     HELP_DATA *pHelp;
+    char buf[MSL*4];
     
     EDIT_HELP(ch,pHelp);
     
@@ -7162,11 +7163,12 @@ HEDIT( hedit_show)
         return FALSE;
     }
     
-    printf_to_char(ch,
+    sprintf(buf,
         "Level:       [%d]\n\r"
         "Keywords: %s\n\r"
         "\n\r%s\n\r",
         pHelp->level, pHelp->keyword, pHelp->text);
+    send_to_char_new(buf, ch, TRUE); // RAW
     
     return FALSE;
 }
