@@ -1318,7 +1318,7 @@ const struct stance_type stances [] =
         { "blade barrier",    STANCE_BLADE_BARRIER,       0,             "",
             &gsn_blade_barrier,     FALSE, TRUE,          20 },
         { "bullet rain",      STANCE_BULLET_RAIN,         0,             "",
-            &gsn_bullet_rain,       FALSE, TRUE,          20 },
+            &gsn_bullet_rain,       FALSE, TRUE,          25 },
         { "deception",        STANCE_DECEPTION,           0,             "",
             &gsn_deception,         FALSE, TRUE,          12 },
 	{ NULL,               0,                          0,             "", 
