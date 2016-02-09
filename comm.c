@@ -1785,7 +1785,7 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
             for( point = txt ; *point ; point++ )
             {
                 // escape MXP
-                if ( *point == '\t' )
+                if ( *point == '\t' && *(point+1) == '<' )
                     *(point2++) = '~';
                 else
                     *(point2++) = *point;
@@ -1882,7 +1882,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
             for ( point = txt ; *point ; point++ )
             {
                 // escape MXP
-                if ( *point == '\t' )
+                if ( *point == '\t' && *(point+1) == '<' )
                     *(point2++) = '~';
                 else
                     *(point2++) = *point;
