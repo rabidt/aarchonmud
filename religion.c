@@ -1623,7 +1623,7 @@ void gain_faith( CHAR_DATA *ch, int gain )
     if ( gain <= 0 )
         return;
 
-    if ( ch != NULL && ch->pcdata != NULL )
+    if ( ch != NULL && ch->pcdata != NULL && has_god(ch) )
     {
         ch->pcdata->faith += gain;
         //ch->pcdata->ch_rel->religion->god_power += gain;
