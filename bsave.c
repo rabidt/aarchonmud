@@ -3347,13 +3347,6 @@ DEF_DO_FUN(do_finger)
         }
     }
 	
-    /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
-    add_buf( output, buf );
-
     if ( get_trust(ch) > GOD )
     {
         if (IS_IMMORTAL(wch) && ch->level <= wch->level)
@@ -3368,6 +3361,13 @@ DEF_DO_FUN(do_finger)
             add_buf( output, buf );
         }
     }
+
+    /* Date Created */
+    sprintf(buf, "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf));
+    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
+    strcat( buf, "{D|{x\n\r" );
+    add_buf( output, buf );
     
     
     if (wch->level <= LEVEL_HERO)
