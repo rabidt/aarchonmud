@@ -3460,7 +3460,6 @@ DEF_SPELL_FUN(spell_dispel_evil)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )
@@ -3472,10 +3471,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
     /* Good victims are not affected either, and are protected by their god if they have one. */
     if ( IS_GOOD(victim) )
     {
-        if( (god_name = get_god_name(victim)) == NULL )
-            god_name = "Rimbol";
-
-        sprintf(log_buf, "%s protects $N.", god_name);
+        sprintf(log_buf, "%s protects $N.", get_god_name(victim));
         act( log_buf, ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
@@ -3495,7 +3491,6 @@ DEF_SPELL_FUN(spell_dispel_good)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
-    const char *god_name;
 
     /* Neutral victims are not affected. */
     if ( IS_NEUTRAL(victim) )
@@ -3507,10 +3502,7 @@ DEF_SPELL_FUN(spell_dispel_good)
     /* Evil victims are not affected either, and are protected by their god if they have one. */
     if ( IS_EVIL(victim) )
     {
-        if( (god_name = get_god_name(victim)) == NULL )
-            god_name = "Rimbol";
-
-        sprintf(log_buf, "%s protects $N.", god_name);
+        sprintf(log_buf, "%s protects $N.", get_god_name(victim));
         act( log_buf, ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
