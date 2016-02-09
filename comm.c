@@ -1765,7 +1765,7 @@ void send_to_char( const char *txt, CHAR_DATA *ch )
     send_to_char_new( txt, ch, FALSE);
 }
 
-void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
+void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
     const  char    *point;
     char    *point2;
@@ -1780,11 +1780,22 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
     point2 = buf;
     if( txt && ch->desc )
     {
-        if( IS_SET( ch->act, PLR_COLOUR ) )
+        if ( raw )
         {
             for( point = txt ; *point ; point++ )
             {
-                if( *point == '{' && !raw )
+                // escape MXP
+                if ( *point == '\t' )
+                    *(point2++) = '~';
+                else
+                    *(point2++) = *point;
+            }
+        }
+        else if ( IS_SET(ch->act, PLR_COLOUR) )
+        {
+            for( point = txt ; *point ; point++ )
+            {
+                if( *point == '{' )
                 {
                     point++;
                     skip = colour( *point, ch, point2 );
@@ -1792,11 +1803,8 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
                         ++point2;
                     continue;
                 }
-                *point2 = *point;
-                *++point2 = '\0';
-            }           
-            *point2 = '\0';
-            write_to_buffer( ch->desc, buf, point2 - buf );
+                *(point2++) = *point;
+            }
         }
         else
         {
@@ -1807,12 +1815,11 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw)
                     point++;
                     continue;
                 }
-                *point2 = *point;
-                *++point2 = '\0';
+                *(point2++) = *point;
             }
-            *point2 = '\0';
-            write_to_buffer( ch->desc, buf, point2 - buf );
         }
+        *point2 = '\0';
+        write_to_buffer(ch->desc, buf, point2 - buf);
     }
     return;
 }
@@ -1870,7 +1877,18 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
     point2 = buf;
     if( txt && ch->desc )
     {
-        if( IS_SET( ch->act, PLR_COLOUR ) )
+        if ( raw )
+        {
+            for ( point = txt ; *point ; point++ )
+            {
+                // escape MXP
+                if ( *point == '\t' )
+                    *(point2++) = '~';
+                else
+                    *(point2++) = *point;
+            }
+        }
+        else if ( IS_SET(ch->act, PLR_COLOUR) )
         {
             for( point = txt ; *point ; point++ )
             {
@@ -1882,7 +1900,7 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                     return;
                 }
 
-                if( *point == '{' && !raw)
+                if ( *point == '{' )
                 {
                     point++;
                     skip = colour( *point, ch, point2 );
@@ -1890,34 +1908,26 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                         ++point2;
                     continue;
                 }
-                *point2 = *point;
-                *++point2 = '\0';
-
+                *(point2++) = *point;
             }           
-            *point2 = '\0';
-            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
-            strcpy( ch->desc->showstr_head, buf );
-            ch->desc->showstr_point = ch->desc->showstr_head;
-            show_string( ch->desc, "" );
         }
         else
         {
             for( point = txt ; *point ; point++ )
             {
-                if( *point == '{' && !raw )
+                if( *point == '{' )
                 {
                     point++;
                     continue;
                 }
-                *point2 = *point;
-                *++point2 = '\0';
+                *(point2++) = *point;
             }
-            *point2 = '\0';
-            ch->desc->showstr_head  = malloc( strlen( buf ) + 1 );
-            strcpy( ch->desc->showstr_head, buf );
-            ch->desc->showstr_point = ch->desc->showstr_head;
-            show_string( ch->desc, "" );
         }
+        *point2 = '\0';
+        ch->desc->showstr_head = malloc(strlen(buf) + 1);
+        strcpy(ch->desc->showstr_head, buf);
+        ch->desc->showstr_point = ch->desc->showstr_head;
+        show_string(ch->desc, "");
     }
     return;
 }
