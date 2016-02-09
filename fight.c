@@ -2046,7 +2046,14 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     bonus += ch->leader->level - ch->level;
     
     if ( IS_UNDEAD(ch) )
-        bonus += get_skill(ch->leader, gsn_army_of_darkness);
+    {
+        int dark_bonus = get_skill(ch->leader, gsn_army_of_darkness);
+        if ( room_is_dark(ch->in_room) )
+            dark_bonus *= 3;
+        else if ( room_is_dim(ch->in_room) )
+            dark_bonus *= 2;
+        bonus += dark_bonus;
+    }
 
     if (improve)
         check_improve( ch->leader, gsn_leadership, TRUE, 8 );
