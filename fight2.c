@@ -12,6 +12,7 @@ bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 
 DECLARE_DO_FUN( do_disarm_trap );
 DECLARE_DO_FUN( do_ignite );
+DECLARE_DO_FUN( do_hide );
 
 /*
 * Disarm a creature.
@@ -427,8 +428,15 @@ DEF_DO_FUN(do_trip)
 DEF_DO_FUN(do_backstab)
 {
     CHAR_DATA *victim;
+    int hips_skill = get_hips_skill(ch);
 
-    if ( argument[0] == '\0' )
+    if ( ch->fighting && !hips_skill )
+    {
+        send_position_message(ch);
+        return;
+    }
+    
+    if ( !ch->fighting && argument[0] == '\0' )
     {
         send_to_char("Backstab whom?\n\r",ch);
         return;
@@ -436,6 +444,12 @@ DEF_DO_FUN(do_backstab)
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
+    
+    if ( !can_see(ch, victim) )
+    {
+        send_to_char("You can't see your target.\n\r", ch);
+        return;
+    }
 
     if ( victim == ch )
     {
@@ -443,6 +457,14 @@ DEF_DO_FUN(do_backstab)
         return;
     }
 
+    // hips + instant backstab
+    if ( ch->fighting )
+    {
+        do_hide(ch, "");
+        if ( ch->fighting )
+            return;
+    }
+    
     backstab_char( ch, victim );
 }
 
@@ -455,7 +477,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         send_to_char("You dirty rat. Better learn how to do it properly first.\n\r", ch);
         return;
     }
-
+    
     if ( check_see_combat(victim, ch) )
     {
         chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
