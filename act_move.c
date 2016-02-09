@@ -2711,13 +2711,7 @@ DEF_DO_FUN(do_recall)
     }
     */
 
-    if ( (god_name = get_god_name(ch)) == NULL )
-    {
-	god_name = clan_table[ch->clan].patron;
-	if ( god_name == NULL || god_name[0] == '\0' )
-	    god_name = "Rimbol";
-    }
-
+    god_name = get_god_name(ch);
     sprintf(buf, "$n prays to %s for transportation!", god_name);
     act( buf, ch, 0, 0, TO_ROOM );
     

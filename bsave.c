@@ -3277,7 +3277,9 @@ DEF_DO_FUN(do_finger)
     add_buf( output, buf );
 
     /* revised religion */
-    sprintf( buf, "{D|{x God:     %-11s Rank: %-15s", get_god_name(wch), get_ch_rank_name(wch) );
+    sprintf( buf, "{D|{x God:     %-11s Rank: %-15s",
+             has_god(wch) ? get_god_name(wch) : "None",
+             get_ch_rank_name(wch) );
     
     if( wch->pcdata && wch->pcdata->spouse )
         sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
