@@ -1044,7 +1044,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	  || ch->stance==STANCE_TIGER
 	  || ch->stance==STANCE_WENDIGO
 	  || ch->stance==STANCE_BLADE_DANCE
-	  || ch->stance==STANCE_BULLET_RAIN
 	  || ch->stance==STANCE_AMBUSH
 	  || ch->stance==STANCE_RETRIBUTION
 	  || ch->stance==STANCE_PORCUPINE
@@ -1055,6 +1054,13 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	      && ch->in_room->sector_type<=SECT_AIR)) )
         one_hit(ch, victim, dt, FALSE);
 
+    if ( ch->stance==STANCE_BULLET_RAIN )
+    {
+        one_hit(ch, victim, dt, FALSE);
+        if ( dual_wielding )
+            one_hit(ch, victim, dt, TRUE);
+    }
+        
     CHECK_RETURN(ch, victim);
     if ( ch->stance==STANCE_TIGER
 	 && get_eq_char(ch, WEAR_HOLD) == NULL
@@ -2145,7 +2151,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     {
         bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
-        if ( (rapid_fire && per_chance(10)) || (bullet_rain && per_chance(33)) )
+        if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
