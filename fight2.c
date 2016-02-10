@@ -4253,7 +4253,7 @@ DEF_DO_FUN(do_bomb)
     {
         act("You throw $p and dive for cover.", ch, obj, NULL, TO_CHAR);
         act("$n throws $p and dives for cover.", ch, obj, NULL, TO_ROOM);
-        dam = dam * 0.5 * AREA_SPELL_FACTOR;
+        dam = dam * 0.75 * AREA_SPELL_FACTOR;
         for ( victim = ch->in_room->people; victim != NULL; victim = vnext)
         {
             vnext = victim->next_in_room;
