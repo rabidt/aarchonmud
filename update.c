@@ -2682,7 +2682,7 @@ void check_beast_mastery( CHAR_DATA *ch )
     MOB_INDEX_DATA *mobIndex;
     char buf[MAX_STRING_LENGTH];
     int mlevel, sector, hero_bonus;
-    int skill = get_skill(ch, gsn_beast_mastery);
+    int skill = get_skill_total(ch, gsn_beast_mastery, 0.2);
 
     if ( skill == 0 )
         return;

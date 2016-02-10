@@ -1901,7 +1901,7 @@ DEF_SPELL_FUN(spell_tree_golem)
     CHAR_DATA *mob;
     char buf[MAX_STRING_LENGTH];
     int mlevel;
-    int beast_skill = get_skill(ch, gsn_beast_mastery);
+    int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
@@ -1965,7 +1965,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     char liquid_name[MAX_STRING_LENGTH];
     int mlevel;
     int sector = ch->in_room->sector_type;
-    int beast_skill = get_skill(ch, gsn_beast_mastery);
+    int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
     mlevel = URANGE(1, level * 3/4, ch->level);
     sprintf(liquid_name, "water");
@@ -2119,7 +2119,7 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
     char buf[MAX_STRING_LENGTH];
     int mlevel, chance;
     int snake_count, max_snake;
-    int beast_skill = get_skill(ch, gsn_beast_mastery);
+    int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
     if ( ch->in_room->sector_type != SECT_FOREST)
     {
