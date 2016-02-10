@@ -156,6 +156,18 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
+void wait_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->wait += npulse * npulse / UMAX(1, ch->wait + npulse);
+}
+
+void daze_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->daze += npulse * npulse / UMAX(1, ch->daze + npulse);
+}
+
 // return critical chance as multiple of 0.05% (100 = 5% chance)
 int critical_chance(CHAR_DATA *ch, bool secondary)
 {
@@ -1566,6 +1578,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
