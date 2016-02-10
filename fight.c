@@ -2099,9 +2099,9 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         if ( check_skill(ch, gsn_elemental_strike) )
         {
             // additional mana cost
-            int mana_cost = UMIN(ch->mana, 2 + ch->level / 5);
+            int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
             ch->mana -= mana_cost;
-            int dam = dice(2*mana_cost, 6);
+            int dam = dice(2*mana_cost, 8);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
