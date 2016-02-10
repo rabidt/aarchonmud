@@ -2330,8 +2330,9 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
     int skill = get_skill(ch, gsn_high_explosives);
     
     dam += dam * skill / 200;
+    int blast_level = ch->level * 3/5 + dam / 50;
     
-    if ( saves_spell(victim, NULL, ch->level + dam/50, DAM_BASH) )
+    if ( saves_spell(victim, NULL, blast_level, DAM_BASH) )
         dam /= 2;
     else
     {
@@ -2339,8 +2340,10 @@ void deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
         act("$n is thrown to the floor by the force of the explosion!", victim, NULL, NULL, TO_ROOM);
         set_pos(victim, POS_RESTING);
         destance(victim, 0);
-        if ( per_chance(skill) )
+        if ( per_chance(skill) && !saves_physical(victim, NULL, blast_level, DAM_BASH) )
         {
+            send_to_char("You are stunned by the blast!\n\r", victim);
+            act("$n is stunned by the blast!", victim, NULL, NULL, TO_ROOM);
             WAIT_STATE(victim, PULSE_VIOLENCE);
             DAZE_STATE(victim, 2*PULSE_VIOLENCE);
         }
