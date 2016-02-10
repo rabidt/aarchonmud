@@ -3987,13 +3987,21 @@ DEF_DO_FUN(do_smite)
         return;
     
     // chance to dispel if fighting opposing alignment
-    int dispel_chance = 50 + get_skill(ch, gsn_holy_avenger) / 2;
-    if ( ((IS_GOOD(ch) && IS_EVIL(victim)) || (IS_EVIL(ch) && IS_GOOD(victim))) && per_chance(dispel_chance) )
+    if ( get_align_type(ch) != get_align_type(victim) )
     {
-        int level = ch->level * (skill + get_skill_overflow(ch, gsn_smite) / 4) / 100;
-        act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
-        if ( saves_spell(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
-            send_to_char("You feel a brief tingling sensation.\n\r", victim);
+        int dispel_chance = get_skill(ch, gsn_holy_avenger) / 2;
+        // mastery allows dispel with only one step difference
+        if ( IS_NEUTRAL(ch) || IS_NEUTRAL(victim) )
+            dispel_chance += mastery_bonus(ch, gsn_smite, 40, 50);
+        else
+            dispel_chance += 50;
+        if ( per_chance(dispel_chance) )
+        {
+            int level = ch->level * get_skill_total(ch, gsn_smite, 0.25) / 100;
+            act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
+            if ( saves_spell(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
+                send_to_char("You feel a brief tingling sensation.\n\r", victim);
+        }
     }
 
     check_improve(ch, gsn_smite, TRUE, 3);
