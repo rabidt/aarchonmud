@@ -2324,20 +2324,20 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     bool precise_shot = is_ranged_weapon(wield) && !is_spray_attack
         && (dt == gsn_snipe || dt == gsn_aim || number_bits(3) == 0)
         && per_chance(get_skill(ch, gsn_precise_shot));
-    
-    if ( precise_shot )
-    {
-        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
-    }
+    bool precise_gun = precise_shot && wield->value[0] == WEAPON_GUN;
     
     // Check for parry, dodge, etc. and fade
-    if ( !precise_shot && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    if ( !precise_gun && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
     {
         after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
     }
         
-    if ( !precise_shot && !check_hit(ch, victim, dt, dam_type, skill) )
+    if ( precise_shot )
+    {
+        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+    }
+    else if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
         if (wield != NULL)
