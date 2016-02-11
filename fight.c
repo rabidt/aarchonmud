@@ -1801,8 +1801,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             if ( get_eq_char(ch, WEAR_SHIELD) )
                 skill = skill * 2/3;
             skill = skill * (200 - get_heavy_armor_penalty(ch)) / 200;
-            // base damage is doubled at 100% skill
-            dam += dam * skill / 100;
+            // reduced bonus when tired
+            float fitness = 0.5 + 0.5 * ch->move / UMAX(1, ch->max_move);
+            // base damage is doubled at 100% skill and total fitness
+            dam += dam * fitness * skill / 100;
         }
     }
     
