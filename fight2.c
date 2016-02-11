@@ -12,6 +12,7 @@ bool  check_jam( CHAR_DATA *ch, int odds, bool offhand );
 
 DECLARE_DO_FUN( do_disarm_trap );
 DECLARE_DO_FUN( do_ignite );
+DECLARE_DO_FUN( do_hide );
 
 /*
 * Disarm a creature.
@@ -427,8 +428,15 @@ DEF_DO_FUN(do_trip)
 DEF_DO_FUN(do_backstab)
 {
     CHAR_DATA *victim;
+    int hips_skill = get_hips_skill(ch);
 
-    if ( argument[0] == '\0' )
+    if ( ch->fighting && !hips_skill )
+    {
+        send_position_message(ch);
+        return;
+    }
+    
+    if ( !ch->fighting && argument[0] == '\0' )
     {
         send_to_char("Backstab whom?\n\r",ch);
         return;
@@ -436,6 +444,12 @@ DEF_DO_FUN(do_backstab)
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
+    
+    if ( !can_see(ch, victim) )
+    {
+        send_to_char("You can't see your target.\n\r", ch);
+        return;
+    }
 
     if ( victim == ch )
     {
@@ -443,6 +457,14 @@ DEF_DO_FUN(do_backstab)
         return;
     }
 
+    // hips + instant backstab
+    if ( ch->fighting )
+    {
+        do_hide(ch, "");
+        if ( ch->fighting )
+            return;
+    }
+    
     backstab_char( ch, victim );
 }
 
@@ -455,7 +477,7 @@ void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim )
         send_to_char("You dirty rat. Better learn how to do it properly first.\n\r", ch);
         return;
     }
-
+    
     if ( check_see_combat(victim, ch) )
     {
         chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
@@ -586,7 +608,7 @@ DEF_DO_FUN(do_net)
         act("$n entraps you in a net!",ch,NULL,victim,TO_VICT);
         send_to_char("You stumble around in the net!\n\r",victim);
         check_improve(ch,gsn_net,TRUE,3);
-        WAIT_STATE(victim, PULSE_VIOLENCE); 
+        WAIT_STATE(victim, skill_table[gsn_net].beats);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_net;
@@ -749,7 +771,7 @@ DEF_DO_FUN(do_hogtie)
         send_to_char("You try to get out of the hogtie!\n\r",victim);
         check_improve(ch,gsn_hogtie,TRUE,2);
         WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
-        WAIT_STATE(victim, 2 * PULSE_VIOLENCE); 
+        WAIT_STATE(victim, skill_table[gsn_hogtie].beats);
         destance(victim, get_mastery(ch, gsn_hogtie));
         
         af.where    = TO_AFFECTS;
@@ -915,7 +937,7 @@ DEF_DO_FUN(do_aim)
                     act("$n's bullet hits you in the foot!!  The pain makes it difficult to stand on it.", ch, NULL, victim, TO_VICT);
                     act("$n's bullet hits $N in the foot, making $M hop around for a few moments.", ch, NULL, victim, TO_NOTVICT);
                 }
-                WAIT_STATE( victim, 2*PULSE_VIOLENCE );
+                WAIT_STATE( victim, skill_table[gsn_aim].beats / 2 );
                 victim->slow_move = UMAX(ch->slow_move, PULSE_VIOLENCE * 6);
                 if( number_bits(1) )
                     destance(victim, get_mastery(ch, gsn_aim));
@@ -1805,8 +1827,8 @@ DEF_DO_FUN(do_uppercut)
             act("$n stuns you with a crushing right hook!", ch, NULL, victim, TO_VICT);
             act("You stun $N with a crushing right hook!", ch, NULL, victim, TO_CHAR);
             act("$n stuns $N with a crushing right hook.", ch, NULL, victim, TO_NOTVICT);
-            DAZE_STATE(victim, PULSE_VIOLENCE * 3);
-            WAIT_STATE(victim, PULSE_VIOLENCE * 3/2);
+            DAZE_STATE(victim, skill_table[gsn_uppercut].beats * 3/2);
+            WAIT_STATE(victim, skill_table[gsn_uppercut].beats * 3/4);
             destance(victim, get_mastery(ch, gsn_uppercut));
             set_pos( victim, POS_RESTING );
         } 
@@ -2636,8 +2658,8 @@ DEF_DO_FUN(do_hurl)
         
         dam = martial_damage(ch, victim, gsn_hurl) * (3 + victim->size) / 5;
         
-        DAZE_STATE( victim, 2*PULSE_VIOLENCE );
-        WAIT_STATE( victim, PULSE_VIOLENCE );
+        DAZE_STATE( victim, 2*skill_table[gsn_hurl].beats );
+        WAIT_STATE( victim, skill_table[gsn_hurl].beats );
         full_dam(ch, victim, dam, gsn_hurl, DAM_BASH, TRUE);
         
         destance(victim, get_mastery(ch, gsn_hurl));
@@ -2833,8 +2855,8 @@ DEF_DO_FUN(do_fatal_blow)
             act( "$n stuns you with a crushing blow to your temple!", ch, NULL, victim, TO_VICT );
             act( "$n stuns $N with a crushing blow to $S temple!", ch, NULL, victim, TO_NOTVICT );
             destance(victim, get_mastery(ch, gsn_fatal_blow));
-            WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
-            DAZE_STATE( victim, 4 * PULSE_VIOLENCE );
+            WAIT_STATE( victim, skill_table[gsn_fatal_blow].beats * 3/4 );
+            DAZE_STATE( victim, skill_table[gsn_fatal_blow].beats * 3/2 );
         }
         full_dam(ch, victim, dam, gsn_fatal_blow, DAM_BASH, TRUE);
         check_improve(ch, gsn_fatal_blow, TRUE, 3);
@@ -3817,8 +3839,9 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         act("You strike $N with a quivering palm, stunning $M!", ch, NULL, victim, TO_CHAR);
         act("$n attacks you with a quivering palm strike, stunning you!", ch, NULL, victim, TO_VICT);
         act("$n stuns $N with a quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
-        DAZE_STATE( victim, 4*PULSE_VIOLENCE );
-        WAIT_STATE( victim, 2*PULSE_VIOLENCE );
+        WAIT_STATE( victim, skill_table[gsn_quivering_palm].beats );
+        DAZE_STATE( victim, skill_table[gsn_quivering_palm].beats * 2 );
+        victim->stop += 1;
         
         // bonus effect
         if ( number_bits(2) && !IS_AFFECTED(victim, AFF_FEEBLEMIND) )

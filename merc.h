@@ -1320,8 +1320,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3990,8 +3990,10 @@ struct boss_achieve_record
 
 #define IS_OUTSIDE(ch)      (!IS_SET((ch)->in_room->room_flags, ROOM_INDOORS))
 
-#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
-#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+//#define WAIT_STATE(ch, npulse)  ((ch)->wait = UMAX((ch)->wait, (npulse)))
+//#define DAZE_STATE(ch, npulse)  ((ch)->daze = UMAX((ch)->daze, (npulse)))
+#define WAIT_STATE(ch, npulse)  wait_state(ch, npulse)
+#define DAZE_STATE(ch, npulse)  daze_state(ch, npulse)
 #define get_carry_weight(ch)    ((ch)->carry_weight + (ch)->silver/100 + (ch)->gold/25)
 #define HAS_TRIGGER(ch,trig)    (IS_SET((ch)->pIndexData->mprog_flags,(trig)))
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
@@ -4357,6 +4359,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 bool    can_take_subclass( int class, int subclass );
 
 /* act_move.c */
+int get_hips_skill( CHAR_DATA *ch );
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
@@ -4615,6 +4618,8 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff );
 bool spell_enchant_obj( CHAR_DATA *ch, OBJ_DATA *obj, int level, char *arg, bool check, int sn );
 
 /* fight.c */
+void    wait_state( CHAR_DATA *ch, int npulse );
+void    daze_state( CHAR_DATA *ch, int npulse );
 bool    is_safe     args( (CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -5179,6 +5184,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
@@ -5233,6 +5239,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
 void set_mob_race( CHAR_DATA *ch, int race );
+void take_default_stats( CHAR_DATA *ch );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );
