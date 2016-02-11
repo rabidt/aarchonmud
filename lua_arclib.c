@@ -3803,6 +3803,22 @@ static int CH_set_attacktype (lua_State *LS)
     return 1;
 }
 
+static int CH_get_savesphys (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+
+    lua_pushinteger( LS, get_save(ud_ch, TRUE) );
+    return 1;
+}
+
+static int CH_get_savesmagic (lua_State *LS)
+{
+    CHAR_DATA *ud_ch=check_CH( LS, 1);
+
+    lua_pushinteger( LS, get_save(ud_ch, FALSE));
+    return 1;
+}
+
 static int CH_get_damtype (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH( LS, 1);
@@ -4831,6 +4847,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(attacktype, 0),
     CHGET(damnoun, 0),
     CHGET(damtype, 0),
+    CHGET(savesphys, 0),
+    CHGET(savesmagic, 0),
     CHGET(luc, 0),
     CHGET(clan, 0),
     CHGET(class, 0),
