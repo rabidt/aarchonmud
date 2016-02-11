@@ -2545,10 +2545,20 @@ DEF_DO_FUN(do_sneak)
     return;
 }
 
+int get_hips_skill( CHAR_DATA *ch )
+{
+    if ( room_is_dim(ch->in_room) || IS_AFFECTED(ch, AFF_SHROUD) )
+        return get_skill(ch, gsn_hips);
+    else if ( ch->stance == STANCE_SHADOWWALK )
+        return get_skill(ch, gsn_hips) * get_skill(ch, gsn_shadowwalk) / 100;
+    else
+        return 0;
+}
+
 DEF_DO_FUN(do_hide)
 {
     AFFECT_DATA af;
-    int hips_skill = get_skill(ch, gsn_hips);
+    int hips_skill = get_hips_skill(ch);
     bool hips = FALSE;
     
     send_to_char( "You attempt to hide.\n\r", ch );
@@ -2586,7 +2596,7 @@ DEF_DO_FUN(do_hide)
 
     if (ch->fighting != NULL)
     {
-        if ( hips_skill == 0 || (!room_is_dim(ch->in_room) && !IS_AFFECTED(ch, AFF_SHROUD)) )
+        if ( hips_skill == 0 )
         {
             send_to_char("I think your opponent sees you.\n\r",ch);
             return;
@@ -2608,20 +2618,33 @@ DEF_DO_FUN(do_hide)
         affect_to_char( ch, &af );
         if ( hips )
         {
+            if ( !per_chance(hips_skill) )
+            {
+                send_to_char("You fail to conceal yourself with shadows.\n\r", ch);
+                affect_strip(ch, gsn_hide);
+                return;
+            }
             CHAR_DATA *opp;
             for ( opp = ch->in_room->people; opp != NULL; opp = opp->next_in_room )
-                if ( opp->fighting == ch && check_see_combat(opp, ch) )
+            {
+                if ( !is_opponent(opp, ch) )
+                    continue;
+                if ( check_see_combat(opp, ch) )
                 {
                     act("$N spots you and your attempt to hide fails.", ch, NULL, opp, TO_CHAR);
                     affect_strip(ch, gsn_hide);
                     return;
                 }
+            }
             // successful hide-in-plain-sight, end all combat with ch
             act("$n vanishes into the shadows.", ch, NULL, NULL, TO_ROOM);
             stop_fighting(ch, TRUE);
         }
         send_to_char("You successfully hide.\n\r",ch); 
         check_improve(ch,gsn_hide,TRUE,3);
+        // hips grants lag-free hide if successful
+        if ( per_chance(hips_skill) )
+            ch->wait = 0;
     }
     else
     {
