@@ -2431,6 +2431,7 @@ struct  mob_index_data
     const char* long_descr;
     const char* description;
     const char* comments;
+    bool        skills[MAX_SKILL];
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
