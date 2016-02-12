@@ -378,6 +378,7 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
 {
     sh_int race = pMobIndex->race;
     PROG_LIST *pMprog;
+    int sn;
     
     fprintf( fp, "#%d\n",       pMobIndex->vnum );
     rfprintf( fp, "NAME %s~\n",  pMobIndex->player_name );
@@ -387,6 +388,10 @@ void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
     rfprintf( fp, "COMMENTS %s~\n", fix_string(pMobIndex->comments) );
     rfprintf( fp, "RACE %s~\n",  race_table[race].name );
     fprintf( fp, "SEX %s\n",    sex_table[pMobIndex->sex].name );
+    
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        if ( pMobIndex->skills[sn] )
+            rfprintf(fp, "SKILL %s~\n", skill_table[sn].name);
     
     // flags must come after race, apart from that order does not matter
     FPRINT_FIELD_FLAGS("ACT",   pMobIndex->act, race_table[race].act );
