@@ -156,6 +156,18 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
+void wait_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->wait += npulse * npulse / UMAX(1, ch->wait + npulse);
+}
+
+void daze_state( CHAR_DATA *ch, int npulse )
+{
+    // stacks with current timer in a limited fashion
+    ch->daze += npulse * npulse / UMAX(1, ch->daze + npulse);
+}
+
 // return critical chance as multiple of 0.05% (100 = 5% chance)
 int critical_chance(CHAR_DATA *ch, bool secondary)
 {
@@ -2310,20 +2322,20 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     bool precise_shot = is_ranged_weapon(wield) && !is_spray_attack
         && (dt == gsn_snipe || dt == gsn_aim || number_bits(3) == 0)
         && per_chance(get_skill(ch, gsn_precise_shot));
-    
-    if ( precise_shot )
-    {
-        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
-    }
+    bool precise_gun = precise_shot && wield->value[0] == WEAPON_GUN;
     
     // Check for parry, dodge, etc. and fade
-    if ( !precise_shot && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
+    if ( !precise_gun && is_normal_hit(dt) && check_avoid_hit(ch, victim, TRUE) )
     {
         after_attack(ch, victim, dt, FALSE, secondary);
         return FALSE;
     }
         
-    if ( !precise_shot && !check_hit(ch, victim, dt, dam_type, skill) )
+    if ( precise_shot )
+    {
+        act_gag("You aim precisely at $N, ignoring $S defenses.", ch, NULL, victim, TO_CHAR, GAG_MISS);
+    }
+    else if ( !check_hit(ch, victim, dt, dam_type, skill) )
     {
         /* Miss. */
         if (wield != NULL)
@@ -2451,6 +2463,22 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("$p {RCRITICALLY STRIKES{x $n!", victim, wield, NULL, TO_NOTVICT, GAG_DAMAGE);
         act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
+        // puncture effect from piercing blade
+        if ( check_skill(ch, gsn_piercing_blade) )
+        {
+            AFFECT_DATA af;
+
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_puncture;
+            af.level    = ch->level;
+            af.duration = get_duration(gsn_piercing_blade, ch->level);
+            af.location = APPLY_AC;
+            af.modifier = 5 * (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 3 : 2);
+            af.bitvector = 0;
+            affect_join(victim, &af);
+            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
+            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_WFLAG);
+        }
     }
 
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
