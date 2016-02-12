@@ -441,6 +441,15 @@ void load_mobbles( FILE *fp )
                 flag_copy(pMobIndex->form, race_table[race].form);
                 flag_copy(pMobIndex->parts, race_table[race].parts);
             }
+            else if KEY("SKILL")
+            {
+                const char *skill_name = fread_string(fp);
+                int sn = skill_lookup_exact(skill_name);
+                if ( sn < 0 )
+                    logpf("Unknown skill '%s' for mob %d.", skill_name, pMobIndex->vnum);
+                else
+                    pMobIndex->skills[sn] = TRUE;
+            }
             else if KEY("SEX")
                 pMobIndex->sex = sex_lookup(fread_word(fp));
             else if KEY("ACT")

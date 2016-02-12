@@ -5266,6 +5266,7 @@ MEDIT( medit_show )
     MOB_INDEX_DATA *pMob;
     char buf[MAX_STRING_LENGTH];
     PROG_LIST *list;
+    int sn;
     
     EDIT_MOB(ch, pMob);
     
@@ -5359,6 +5360,13 @@ MEDIT( medit_show )
     sprintf( buf, "Off:         [%s]\n\r",
         off_bits_name(pMob->off_flags) );
     send_to_char( buf, ch );
+    
+    buf[0] = '\0';
+    for ( sn = 1; sn < MAX_SKILL; sn++ )
+        if ( pMob->skills[sn] )
+            sprintf(buf + strlen(buf), " %s", skill_table[sn].name);
+    if ( buf[0] != '\0' )
+        ptc(ch, "Skills:      [%s]\n\r", buf + 1);
     
     sprintf( buf, "Size:        [%s]\n\r",
         flag_bit_name(size_flags, pMob->size) );
@@ -6688,6 +6696,23 @@ MEDIT( medit_race )
     return FALSE;
 }
 
+MEDIT( medit_skill )
+{
+    MOB_INDEX_DATA *pMob;
+    int sn;
+    
+    if ( argument[0] != '\0' && (sn = skill_lookup(argument)) > 0 )
+    {
+        EDIT_MOB( ch, pMob );
+        
+        pMob->skills[sn] = !pMob->skills[sn];
+        ptc(ch, "%s skill %s.\n\r", pMob->skills[sn] ? "Added" : "Removed", skill_table[sn].name);
+        return TRUE;
+    }
+    
+    ptc(ch, "Syntax:  skill [skill name]\n\r");
+    return FALSE;
+}
 
 MEDIT( medit_position )
 {
