@@ -2171,6 +2171,9 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
 
+    if ( ch->pIndexData->skills[sn] )
+        return TRUE;
+    
     if ( IS_AFFECTED(ch, AFF_CHARM) || IS_SET(ch->act, ACT_PET) )
 	charmed = TRUE;
     else
