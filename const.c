@@ -5817,7 +5817,7 @@ struct  skill_type
         { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
         STAT_STR, STAT_DIS, STAT_LUC,
         spell_null, TAR_IGNORE, POS_FIGHTING,
-        &gsn_piercing_blade, 0, 0, DUR_NONE,
+        &gsn_piercing_blade, 0, 0, DUR_BRIEF,
         "", "!piercing blade!", ""
     },
 
