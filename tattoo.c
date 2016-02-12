@@ -433,6 +433,7 @@ DEF_DO_FUN(do_tattoo)
     char arg2[MIL];
     char arg3[MIL];
     int loc, ID, cost;
+    bool all = FALSE;
 
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
@@ -454,81 +455,116 @@ DEF_DO_FUN(do_tattoo)
     }
     else if ( !strcmp(arg1, "buy") )
     {
-	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
-	     || !is_tattoo_loc(loc) )
-	{
-	    send_to_char( "That's not a valid location.\n\r", ch );
-	    return;
-	}
+        if ( IS_IMMORTAL(ch) && !strcmp(arg2, "all") )
+            all = TRUE;
+        else if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG || !is_tattoo_loc(loc) )
+        {
+            send_to_char( "That's not a valid location.\n\r", ch );
+            return;
+        }
 
-	if ( get_eq_char(ch, loc) != NULL )
-	{
-	    send_to_char( "You must remove your armor first!\n\r", ch );
-	    return;
-	}
+        if ( !all && get_eq_char(ch, loc) != NULL )
+        {
+            send_to_char( "You must remove your armor first!\n\r", ch );
+            return;
+        }
 
-	if ( get_tattoo_ch(ch, loc) != TATTOO_NONE )
-	{
-	    send_to_char( "You must remove your old tattoo first!\n\r", ch );
-	    return;
-	}
+        if ( !all && get_tattoo_ch(ch, loc) != TATTOO_NONE )
+        {
+            send_to_char( "You must remove your old tattoo first!\n\r", ch );
+            return;
+        }
 
-	if ( (ID = tattoo_id(arg3)) == TATTOO_NONE )
-	{
-	    send_to_char( "That's not a valid tattoo.\n\r", ch );
-	    return;
-	}
+        if ( (ID = tattoo_id(arg3)) == TATTOO_NONE )
+        {
+            send_to_char( "That's not a valid tattoo.\n\r", ch );
+            return;
+        }
 
-	if ( (cost = tattoo_cost(ID)) > ch->pcdata->questpoints )
-	{
-	    send_to_char( "You don't have enough quest points.\n\r", ch );
-	    return;
-	}
+        if ( !all && (cost = tattoo_cost(ID)) > ch->pcdata->questpoints )
+        {
+            send_to_char( "You don't have enough quest points.\n\r", ch );
+            return;
+        }
 
-	/* ok, let's add the tattoo */
-	add_tattoo( ch->pcdata->tattoos, loc, ID );
-	tattoo_modify_equip( ch, loc, TRUE, FALSE, TRUE );
-	tattoo_modify_equip( ch, loc, TRUE, FALSE, FALSE );
-	
-	logpf( "%s bought tattoo '%s' at %s for %d qp",
-	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc),cost );
-	ch->pcdata->questpoints -= cost;
-	send_to_char( "Enjoy your new tattoo!\n\r", ch );
+        /* ok, let's add the tattoo */
+        if ( !all )
+        {
+            add_tattoo( ch->pcdata->tattoos, loc, ID );
+            tattoo_modify_equip( ch, loc, TRUE, FALSE, TRUE );
+            tattoo_modify_equip( ch, loc, TRUE, FALSE, FALSE );
+            logpf( "%s bought tattoo '%s' at %s for %d qp",
+                ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc),cost );
+            ch->pcdata->questpoints -= cost;
+            send_to_char( "Enjoy your new tattoo!\n\r", ch );
+        }
+        else
+        {
+            // add tattoo to any free location
+            for ( loc = 0; loc < MAX_WEAR; loc++ )
+            {
+                if ( !is_tattoo_loc(loc) || get_tattoo_ch(ch, loc) != TATTOO_NONE )
+                    continue;
+                add_tattoo( ch->pcdata->tattoos, loc, ID );
+                logpf( "%s added tattoo '%s' at %s for free",
+                    ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc) );
+            }
+            reset_char(ch);
+            send_to_char( "Enjoy your new tattoos!\n\r", ch );
+        }
     }
     else if ( !strcmp(arg1, "remove") )
     {
-	if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG
-	     || !is_tattoo_loc(loc) )
-	{
-	    send_to_char( "That's not a valid location.\n\r", ch );
-	    return;
-	}
+        if ( IS_IMMORTAL(ch) && !strcmp(arg2, "all") )
+            all = TRUE;
+        else if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG || !is_tattoo_loc(loc) )
+        {
+            send_to_char( "That's not a valid location.\n\r", ch );
+            return;
+        }
 
-	if ( get_eq_char(ch, loc) != NULL )
-	{
-	    send_to_char( "You must remove your armor first!\n\r", ch );
-	    return;
-	}
+        if ( !all && get_eq_char(ch, loc) != NULL )
+        {
+            send_to_char( "You must remove your armor first!\n\r", ch );
+            return;
+        }
 
-	if ( (ID = get_tattoo_ch(ch, loc)) == TATTOO_NONE )
-	{
-	    send_to_char( "You don't have a tattoo there!\n\r", ch );
-	    return;
-	}
+        if ( !all && (ID = get_tattoo_ch(ch, loc)) == TATTOO_NONE )
+        {
+            send_to_char( "You don't have a tattoo there!\n\r", ch );
+            return;
+        }
 
-	/* ok, let's remove the tattoo */
-	tattoo_modify_equip( ch, loc, FALSE, TRUE, TRUE );
-	tattoo_modify_equip( ch, loc, FALSE, TRUE, FALSE );
-	remove_tattoo( ch->pcdata->tattoos, loc );
-    if ( cfg_refund_tattoos )
-        cost = tattoo_cost(ID);
-    else
-        cost = tattoo_cost(ID) * 9/10;
+        /* ok, let's remove the tattoo */
+        if ( !all )
+        {
+            tattoo_modify_equip( ch, loc, FALSE, TRUE, TRUE );
+            tattoo_modify_equip( ch, loc, FALSE, TRUE, FALSE );
+            remove_tattoo( ch->pcdata->tattoos, loc );
+            if ( cfg_refund_tattoos )
+                cost = tattoo_cost(ID);
+            else
+                cost = tattoo_cost(ID) * 9/10;
 
-	logpf( "%s removed tattoo '%s' at %s for %d qp",
-	       ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc), cost );
-	ch->pcdata->questpoints += cost;
-	printf_to_char( ch, "Tattoo removed. Refunded %d quest points.\n\r", cost );
+            logpf( "%s removed tattoo '%s' at %s for %d qp",
+                ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc), cost );
+            ch->pcdata->questpoints += cost;
+            printf_to_char( ch, "Tattoo removed. Refunded %d quest points.\n\r", cost );
+        }
+        else
+        {
+            // remove all tattoos
+            for ( loc = 0; loc < MAX_WEAR; loc++ )
+            {
+                if ( !is_tattoo_loc(loc) || (ID = get_tattoo_ch(ch, loc)) == TATTOO_NONE )
+                    continue;
+                remove_tattoo( ch->pcdata->tattoos, loc );
+                logpf( "%s removed tattoo '%s' at %s with no refund",
+                    ch->name, tattoo_name(ID), flag_bit_name(wear_loc_flags, loc) );
+            }
+            reset_char(ch);
+            printf_to_char( ch, "Tattoos removed.\n\r" );
+        }
     }
     else
 	show_tattoo_syntax( ch );
