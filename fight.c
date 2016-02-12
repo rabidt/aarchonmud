@@ -3104,7 +3104,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         return;
     
     // guns and bows can assassinate via aim or snipe
-    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) )
+    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) && per_chance(50) )
         return;
     
     // assassination mastery increases chance by up to factor 2, depending on victim's health
@@ -3142,9 +3142,9 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         {
             if ( !wield )
             {
-                act("You sneak up behind $N, and snap $S neck!", ch, NULL, victim, TO_CHAR);
+                act("You sneak up behind $N and snap $S neck!", ch, NULL, victim, TO_CHAR);
                 act("$n sneaks up behind you and snaps your neck!", ch, NULL, victim, TO_VICT);
-                act("$n sneaks up behind $N, and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
+                act("$n sneaks up behind $N and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
             }
             else if ( wield->value[0] == WEAPON_GUN )
             {
@@ -3158,13 +3158,20 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
                 act("$n plants an arrow in your throat!", ch, NULL, victim, TO_VICT);
                 act("$n plants an arrow in $N's throat!", ch, NULL, victim, TO_NOTVICT);
             }
+            else if ( wield->value[0] == WEAPON_WHIP )
+            {
+                act("You wind your whip around $N's neck and snap it!", ch, NULL, victim, TO_CHAR);
+                act("$n winds $s whip around your neck and snaps it!", ch, NULL, victim, TO_VICT);
+                act("$n winds $s whip around $N's neck and snaps it!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else if ( wield->value[0] == WEAPON_MACE || wield->value[0] == WEAPON_FLAIL )
+            {
+                act("You sneak up behind $N and bash $S brains in!", ch, NULL, victim, TO_CHAR);
+                act("$n sneaks up behind you and bashes your brains in!", ch, NULL, victim, TO_VICT);
+                act("$n sneaks up behind $N and bashes $S brains in!", ch, NULL, victim, TO_NOTVICT);
+            }
             else
             {
-                /*
-                act("You sneak up behind $N, and slash $S throat!", ch, NULL, victim, TO_CHAR);
-                act("$n sneaks up behind you and slashes your throat!", ch, NULL, victim, TO_VICT);
-                act("$n sneaks up behind $N, and slashes $S throat!", ch, NULL, victim, TO_NOTVICT);
-                */
                 act("You drive your weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_CHAR);
                 act("$n drives $s weapon deep into your neck till it snaps!", ch, NULL, victim, TO_VICT);
                 act("$n drives $s weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_NOTVICT);
