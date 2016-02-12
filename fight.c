@@ -2463,6 +2463,22 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("$p {RCRITICALLY STRIKES{x $n!", victim, wield, NULL, TO_NOTVICT, GAG_DAMAGE);
         act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
+        // puncture effect from piercing blade
+        if ( check_skill(ch, gsn_piercing_blade) )
+        {
+            AFFECT_DATA af;
+
+            af.where    = TO_AFFECTS;
+            af.type     = gsn_puncture;
+            af.level    = ch->level;
+            af.duration = get_duration(gsn_piercing_blade, ch->level);
+            af.location = APPLY_AC;
+            af.modifier = 5 * (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 3 : 2);
+            af.bitvector = 0;
+            affect_join(victim, &af);
+            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
+            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_WFLAG);
+        }
     }
 
     result = full_dam( ch, victim, dam, dt, dam_type, TRUE );
