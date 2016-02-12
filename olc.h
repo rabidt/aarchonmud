@@ -292,6 +292,7 @@ DECLARE_OLC_FUN( medit_group     );  /* ROM */
 DECLARE_OLC_FUN( medit_addmprog  );  /* ROM */
 DECLARE_OLC_FUN( medit_delmprog  );  /* ROM */
 DECLARE_OLC_FUN( medit_stance    );
+DECLARE_OLC_FUN( medit_skill     );
 DECLARE_OLC_FUN( medit_hitpoints );
 DECLARE_OLC_FUN( medit_mana      );
 DECLARE_OLC_FUN( medit_move      );
