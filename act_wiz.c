@@ -3336,6 +3336,7 @@ DEF_DO_FUN(do_repeat)
         if ( !valid_CH(ch) || ch->must_extract )
             return;
     }
+    ch->wait = 0;
 }
 
 DEF_DO_FUN(do_tick)
