@@ -1330,6 +1330,10 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         check_petrify(ch, victim);
     }
     
+    #ifdef FSTAT
+    ch->fight_rounds += 1;
+    #endif
+    
     if (IS_NPC(ch))
     {
         mob_hit(ch,victim,dt);
@@ -3106,7 +3110,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         return;
     
     // guns and bows can assassinate via aim or snipe
-    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) )
+    if ( wield && wield->value[0] != WEAPON_DAGGER && !is_ranged_weapon(wield) && per_chance(50) )
         return;
     
     // assassination mastery increases chance by up to factor 2, depending on victim's health
@@ -3144,9 +3148,9 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
         {
             if ( !wield )
             {
-                act("You sneak up behind $N, and snap $S neck!", ch, NULL, victim, TO_CHAR);
+                act("You sneak up behind $N and snap $S neck!", ch, NULL, victim, TO_CHAR);
                 act("$n sneaks up behind you and snaps your neck!", ch, NULL, victim, TO_VICT);
-                act("$n sneaks up behind $N, and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
+                act("$n sneaks up behind $N and snaps $S neck!", ch, NULL, victim, TO_NOTVICT);
             }
             else if ( wield->value[0] == WEAPON_GUN )
             {
@@ -3160,13 +3164,20 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
                 act("$n plants an arrow in your throat!", ch, NULL, victim, TO_VICT);
                 act("$n plants an arrow in $N's throat!", ch, NULL, victim, TO_NOTVICT);
             }
+            else if ( wield->value[0] == WEAPON_WHIP )
+            {
+                act("You wind your whip around $N's neck and snap it!", ch, NULL, victim, TO_CHAR);
+                act("$n winds $s whip around your neck and snaps it!", ch, NULL, victim, TO_VICT);
+                act("$n winds $s whip around $N's neck and snaps it!", ch, NULL, victim, TO_NOTVICT);
+            }
+            else if ( wield->value[0] == WEAPON_MACE || wield->value[0] == WEAPON_FLAIL )
+            {
+                act("You sneak up behind $N and bash $S brains in!", ch, NULL, victim, TO_CHAR);
+                act("$n sneaks up behind you and bashes your brains in!", ch, NULL, victim, TO_VICT);
+                act("$n sneaks up behind $N and bashes $S brains in!", ch, NULL, victim, TO_NOTVICT);
+            }
             else
             {
-                /*
-                act("You sneak up behind $N, and slash $S throat!", ch, NULL, victim, TO_CHAR);
-                act("$n sneaks up behind you and slashes your throat!", ch, NULL, victim, TO_VICT);
-                act("$n sneaks up behind $N, and slashes $S throat!", ch, NULL, victim, TO_NOTVICT);
-                */
                 act("You drive your weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_CHAR);
                 act("$n drives $s weapon deep into your neck till it snaps!", ch, NULL, victim, TO_VICT);
                 act("$n drives $s weapon deep into $N's neck till it snaps!", ch, NULL, victim, TO_NOTVICT);
@@ -3396,6 +3407,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     int diff;
     int first_dam_type = FIRST_DAMAGE(dam_type);
     bool is_spell = (dt > 0 && dt < TYPE_HIT && IS_SPELL(dt));
+    bool normal_hit = is_normal_hit(dt);
     
     if ( stop_damage(ch, victim) )
         return FALSE;
@@ -3447,7 +3459,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     * Damage modifiers.
     */
    
-    if ( dam > 1 && is_normal_hit(dt) )
+    if ( dam > 1 && normal_hit )
     {
         int armor = 100 - get_ac(victim);
         // expected reduction of 1 damage per 100 AC
@@ -3463,7 +3475,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         // heavy armor reduces all damage taken by up to 25%
         int heavy_bonus = get_heavy_armor_bonus(victim);
-        if ( is_normal_hit(dt) && ch->stance == STANCE_DIMENSIONAL_BLADE )
+        if ( normal_hit && ch->stance == STANCE_DIMENSIONAL_BLADE )
             heavy_bonus /= 2;
         dam -= dam * heavy_bonus / 400;
     }
@@ -3538,7 +3550,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
-    if ( dam > 0 && is_normal_hit(dt) )
+    if ( dam > 0 && normal_hit )
     {
         if ( stance != STANCE_DEFAULT )
         {
@@ -3622,7 +3634,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     */
 
     // non-spell damage is reduced by saves as well
-    if ( dam > 1 && is_normal_hit(dt) )
+    if ( dam > 1 && normal_hit )
     {
         bool physical = first_dam_type == DAM_BASH
             || first_dam_type == DAM_SLASH
@@ -3677,13 +3689,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     
     if (dam == 0)
     {
-	#ifdef FSTAT
-	ch->attacks_misses += 1;
-	#endif
+        #ifdef FSTAT
+        if ( normal_hit )
+            ch->attacks_misses += 1;
+        #endif
         return FALSE;
     }
     #ifdef FSTAT
-    ch->attacks_success += 1;
+    if ( normal_hit )
+        ch->attacks_success += 1;
     #endif
     
     if ( is_affected(victim, gsn_disguise)
@@ -4041,6 +4055,10 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         check_achievement(ch);
     }
 
+    #ifdef FSTAT
+    ch->mob_kills++;
+    #endif
+    
     /*
        if (!IS_NPC(ch) && !IS_SET(ch->act, PLR_WAR))
        {
@@ -7696,26 +7714,29 @@ DEF_DO_FUN(do_fstat)
 {
     if ( argument[0] != '\0' && !str_prefix( argument, "clear" ) )
     {
-	ch->attacks_success=0;
+        ch->fight_rounds=0;
+        ch->mob_kills=0;
+        ch->attacks_success=0;
         ch->attacks_misses=0;
         ch->damage_dealt=0;
         ch->damage_taken=0;
         ch->mana_used=0;
         ch->moves_used=0;
-	send_to_char("Fstat cleared.\n\r",ch);
+        send_to_char("Fstat cleared.\n\r",ch);
     }
-	
+
 	send_to_char("\n",ch);
+    printf_to_char(ch, "%-30s %20d\n", "Combat Rounds:", ch->fight_rounds);
+    printf_to_char(ch, "%-30s %20d\n", "Opponents Killed:", ch->mob_kills);
 	printf_to_char(ch, "%-30s %20d\n", "Hits:", ch->attacks_success);
 	printf_to_char(ch, "%-30s %20d\n", "Misses:", ch->attacks_misses);
 	printf_to_char(ch, "%-30s %20d\n", "Damage dealt:", ch->damage_dealt);
-	printf_to_char(ch, "%-30s %20f\n", "Avg damage per hit:", (float)ch->damage_dealt/ch->attacks_success ); 
-	printf_to_char(ch, "%-30s %20f\n", "Avg damage per attempt:", (float)ch->damage_dealt/(ch->attacks_success + ch->attacks_misses) );
+	printf_to_char(ch, "%-30s %20.0f\n", "Avg damage per hit:", (float)ch->damage_dealt/ch->attacks_success ); 
+	printf_to_char(ch, "%-30s %20.0f\n", "Avg damage per round:", (float)ch->damage_dealt/ch->fight_rounds );
 
 	send_to_char("\n",ch);
 	printf_to_char(ch, "%-30s %20d\n", "Damage taken:", ch->damage_taken);
 	printf_to_char(ch, "%-30s %20d\n", "Mana used:", ch->mana_used);
 	printf_to_char(ch, "%-30s %20d\n", "Moves used:", ch->moves_used);
 }
-	
 #endif

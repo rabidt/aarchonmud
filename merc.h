@@ -2431,6 +2431,7 @@ struct  mob_index_data
     const char* long_descr;
     const char* description;
     const char* comments;
+    bool        skills[MAX_SKILL];
     tflag       act;
     tflag       affect_field;
     sh_int      alignment;
@@ -2594,6 +2595,7 @@ struct  char_data
 	int	attacks_misses;
 	int	damage_dealt;
 	int	fight_rounds;
+    int mob_kills;
 	int	damage_taken;
 	int	mana_used;
 	int	moves_used;
