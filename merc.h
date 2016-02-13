@@ -2595,6 +2595,7 @@ struct  char_data
 	int	attacks_misses;
 	int	damage_dealt;
 	int	fight_rounds;
+    int mob_kills;
 	int	damage_taken;
 	int	mana_used;
 	int	moves_used;
@@ -5239,6 +5240,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
 void set_mob_race( CHAR_DATA *ch, int race );
+void take_default_stats( CHAR_DATA *ch );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );
