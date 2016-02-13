@@ -2406,7 +2406,7 @@ DEF_DO_FUN(do_omni)
             sprintf( idle, "    " );
         
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s\n\r",
+        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s,%s\n\r",
             d->descriptor,                          /* ID */
             wch->name,                              /* Send name through pgrep */
             wch->name,                              /* Name */
@@ -2419,7 +2419,8 @@ DEF_DO_FUN(do_omni)
                 || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
             d->host,                                /* Send IP through pgrep */
             d->host,
-            d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+            d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString,
+            d->pProtocol->pLastTTYPE ? d->pProtocol->pLastTTYPE : "");
         add_buf(output,buf);
     }
     
