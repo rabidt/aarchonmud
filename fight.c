@@ -4963,6 +4963,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
     int skill = get_skill(ch, gsn_parry);
+    bool single_weapon = get_eq_char(ch, WEAR_WIELD) && !get_eq_char(ch, WEAR_SECONDARY) && !get_eq_char(ch, WEAR_SHIELD);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -4977,6 +4978,9 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         else
             skill = unarmed_skill;
     }
+    
+    if ( single_weapon )
+        skill += get_skill(ch, gsn_bonded_blade) / 2.5;
 
     int opponent_adjust = 0;
     if ( opp )

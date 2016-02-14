@@ -2208,9 +2208,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "kensai", SAMURAI,
-        { "piercing blade", "beheading" },
-        { 10, 30 },
-        { 100, 100 }
+        { "piercing blade", "bonded blade", "beheading" },
+        { 10, 30, 50 },
+        { 100, 100, 100 }
     },
     {
         "stormlord", SAMURAI|RANGER,
@@ -5819,6 +5819,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_piercing_blade, 0, 0, DUR_BRIEF,
         "", "!piercing blade!", ""
+    },
+
+    {
+        "bonded blade",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bonded_blade, 0, 0, DUR_NONE,
+        "", "!bonded blade!", ""
     },
 
     {
