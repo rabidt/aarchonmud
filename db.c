@@ -377,6 +377,7 @@ sh_int  gsn_shadow_companion;
 sh_int  gsn_shadow_strike;
 sh_int  gsn_shadow_body;
 sh_int  gsn_piercing_blade;
+sh_int  gsn_bonded_blade;
 sh_int  gsn_lethal_hands;
 sh_int  gsn_unarmed_parry;
 sh_int  gsn_divine_channel;
