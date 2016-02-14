@@ -175,7 +175,8 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + 2 * get_skill(ch, gsn_piercing_blade)
+    int pierce = get_skill(ch, gsn_piercing_blade);
+    return get_skill(ch, gsn_critical) + (pierce ? pierce * (100 - get_heavy_armor_penalty(ch)) / 33 : 0)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
@@ -2468,7 +2469,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
         // puncture effect from piercing blade
-        if ( check_skill(ch, gsn_piercing_blade) )
+        if ( check_skill(ch, gsn_piercing_blade) && !per_chance(get_heavy_armor_penalty(ch)) )
         {
             AFFECT_DATA af;
 
@@ -2477,7 +2478,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             af.level    = ch->level;
             af.duration = get_duration(gsn_piercing_blade, ch->level);
             af.location = APPLY_AC;
-            af.modifier = 5 * (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 3 : 2);
+            af.modifier = (20 + ch->level) / (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 4 : 6);
             af.bitvector = 0;
             affect_join(victim, &af);
             act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
