@@ -2119,7 +2119,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
             // additional mana cost
             int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
             reduce_mana(ch, mana_cost);
-            int dam = dice(2*mana_cost, 8);
+            int dam = dice(2*mana_cost, 10);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
