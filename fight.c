@@ -1013,7 +1013,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("wind war");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_windwar(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1021,7 +1021,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("lightning bolt");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_lightning_bolt(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1029,7 +1029,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("call lightning");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_call_lightning(skill, ch->level, ch,victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1037,7 +1037,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("monsoon");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_monsoon(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1467,7 +1467,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
     {
-        ch->mana -= 1;
+        reduce_mana(ch, 1);
         one_hit(ch,victim,dt,FALSE);
         if (ch->fighting != victim)
             return;
@@ -2118,7 +2118,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         {
             // additional mana cost
             int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
-            ch->mana -= mana_cost;
+            reduce_mana(ch, mana_cost);
             int dam = dice(2*mana_cost, 8);
             // random damtype unless shield is active
             int strike_dt = -1;
@@ -2800,13 +2800,12 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         }
         break;
     case STANCE_ELEMENTAL_BLADE:
-	/* additional mana cost */
-	if ( ch->mana < 1 )
-	    break;
-	else
-	    ch->mana -= 1;
-    if ( check_skill(ch, gsn_elemental_strike) )
-        dam += ch->level / 3;
+        /* additional mana cost */
+        if ( ch->mana < 1 )
+            break;
+        reduce_mana(ch, 1);
+        if ( check_skill(ch, gsn_elemental_strike) )
+            dam += ch->level / 3;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
