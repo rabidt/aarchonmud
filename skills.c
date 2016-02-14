@@ -565,7 +565,9 @@ DEF_DO_FUN(do_gain)
 }
 int get_mastery( CHAR_DATA *ch, int sn )
 {
-    return ch->pcdata ? ch->pcdata->mastered[sn] : 0;
+    if ( !ch || !ch->pcdata || sn < 0 || sn >= MAX_SKILL )
+        return 0;
+    return ch->pcdata->mastered[sn];
 }
 
 int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus )
