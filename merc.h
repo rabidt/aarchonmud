@@ -4994,6 +4994,7 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
+void reduce_mana( CHAR_DATA *ch, int amount );
 
 /* magic2.c */
 void start_decompose( CHAR_DATA *ch, int level );
