@@ -4785,6 +4785,9 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( ch->stance == STANCE_DIMENSIONAL_BLADE && per_chance(50) )
+        return FALSE;
+        
     if ( check_shield(ch, victim) )
         return TRUE;
     if ( check_shield_block(ch,victim) )
