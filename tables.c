@@ -572,6 +572,7 @@ const struct flag_type oprog_flags[] =
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   "move",         OTRIG_MOVE,      TRUE    },
     {   "death",        OTRIG_DEATH,     TRUE    },
+    {   "merge",        OTRIG_MERGE,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 

@@ -4615,6 +4615,9 @@ DEF_DO_FUN(do_merge)
         return;
     }
 
+    if (!op_merge_trigger( ch, obj1, obj2 )) 
+        return;
+
     sprintf( buf, "You combine %s and %s to %s.\n\r",
             obj1->short_descr, obj2->short_descr, pObjIndex->short_descr );
     send_to_char( buf, ch );
