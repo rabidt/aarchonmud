@@ -3241,6 +3241,7 @@ struct  mastery_group_type
 #define OTRIG_SLEEP (ee)
 #define OTRIG_MOVE  (ff)
 #define OTRIG_DEATH (gg)
+#define OTRIG_MERGE (hh)
 /*
  * AREAprog definitions
  */
@@ -5088,6 +5089,7 @@ void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage );
+bool op_merge_trigger( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2);
 void op_timer_trigger( OBJ_DATA *obj );
 void oprog_timer_init( OBJ_DATA *obj );
 void oprog_setup( OBJ_DATA *obj );
