@@ -168,6 +168,14 @@ void daze_state( CHAR_DATA *ch, int npulse )
     ch->daze += npulse * npulse / UMAX(1, ch->daze + npulse);
 }
 
+// bonded blade skill effect, 0-100
+int get_bonded_blade( CHAR_DATA *ch )
+{
+    if ( !get_eq_char(ch, WEAR_WIELD) || get_eq_char(ch, WEAR_SECONDARY) || get_eq_char(ch, WEAR_SHIELD) )
+        return 0;
+    return get_skill(ch, gsn_bonded_blade);
+}
+
 // return critical chance as multiple of 0.05% (100 = 5% chance)
 int critical_chance(CHAR_DATA *ch, bool secondary)
 {
@@ -175,8 +183,8 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    int pierce = get_skill(ch, gsn_piercing_blade);
-    return get_skill(ch, gsn_critical) + (pierce ? pierce * (100 - get_heavy_armor_penalty(ch)) / 33 : 0)
+    return get_skill(ch, gsn_critical)
+        + 2 * get_bonded_blade(ch)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
@@ -2478,7 +2486,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             af.level    = ch->level;
             af.duration = get_duration(gsn_piercing_blade, ch->level);
             af.location = APPLY_AC;
-            af.modifier = (20 + ch->level) / (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 4 : 6);
+            af.modifier = ch->level;
             af.bitvector = 0;
             affect_join(victim, &af);
             act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
@@ -4963,7 +4971,6 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
     int skill = get_skill(ch, gsn_parry);
-    bool single_weapon = get_eq_char(ch, WEAR_WIELD) && !get_eq_char(ch, WEAR_SECONDARY) && !get_eq_char(ch, WEAR_SHIELD);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -4979,9 +4986,6 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
             skill = unarmed_skill;
     }
     
-    if ( single_weapon )
-        skill += get_skill(ch, gsn_bonded_blade) / 2.5;
-
     int opponent_adjust = 0;
     if ( opp )
     {
