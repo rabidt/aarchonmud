@@ -52,7 +52,7 @@ char last_command[MSL] = ""; /* Global variable to hold the last input line */
 #ifdef TESTER
 #define LT 0
 #else
-#define LT L2
+#define LT L8
 #endif
 
 /*
@@ -623,6 +623,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "edit",       do_olc,     POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "asave",      do_asave,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "alist",      do_alist,   POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "areset",     do_areset,  POS_DEAD,   LT,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "resets",     do_resets,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "redit",      do_redit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "medit",      do_medit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },

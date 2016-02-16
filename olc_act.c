@@ -884,7 +884,12 @@ AEDIT( aedit_show )
     return FALSE;
 }
 
-
+// quick command for testing
+DEF_DO_FUN( do_areset )
+{
+    reset_area(ch->in_room->area);
+    send_to_char("Area reset.\n\r", ch);
+}
 
 AEDIT( aedit_reset )
 {
