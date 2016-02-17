@@ -865,6 +865,15 @@ MEMFILE* remort_mem_save()
    return mf;
 }
 
+int subclass_count( int class )
+{
+    int sc, count = 0;
+    for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
+        if ( can_take_subclass(class, sc) )
+            count++;
+    return count;
+}
+
 void remort_begin(CHAR_DATA *ch)
 {
     int i;
@@ -881,7 +890,8 @@ void remort_begin(CHAR_DATA *ch)
     
     if (ch->desc != NULL)
     {
-        if ( ch->pcdata->ascents > 0 )
+        // allow change of subclass for the first few remorts so players can test all
+        if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
             ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
         else
             ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
