@@ -5143,6 +5143,7 @@ void remort_update args( ( void) );
 void remort_load args( ( void) );
 void remort_remove args( (CHAR_DATA *ch, bool success) );
 void remort_begin args( (CHAR_DATA *ch) );
+int subclass_count( int class );
 
 /* room_prog.c */
 bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
