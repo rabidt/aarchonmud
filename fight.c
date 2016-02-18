@@ -2128,7 +2128,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
             // additional mana cost
             int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
             reduce_mana(ch, mana_cost);
-            int dam = dice(2*mana_cost, 10);
+            int dam = dice(2*mana_cost, 12);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
@@ -2814,7 +2814,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
             break;
         reduce_mana(ch, 1);
         if ( check_skill(ch, gsn_elemental_strike) )
-            dam += ch->level / 3;
+            dam += ch->level / 2;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
