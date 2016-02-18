@@ -3962,7 +3962,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
+	spell_lightning_breath, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	&gsn_lightning_breath, 16, 4, DUR_NONE,
 	"blast of lightning",   "!Lightning Breath!",   ""
 	},
