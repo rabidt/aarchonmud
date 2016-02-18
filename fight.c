@@ -1809,6 +1809,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
     int dam;
     int level = modified_level(ch);
+    bool twohanded = wield && is_wielding_twohanded(ch, wield);
 
     /* basic damage */
     if ( IS_NPC(ch) )
@@ -1837,7 +1838,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     if ( wield != NULL )
     {
         // wielding a weapon twohanded (required or not) increases base damage
-        if ( is_wielding_twohanded(ch, wield) )
+        if ( twohanded )
         {
             dam += dam / 2;
             dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
@@ -1898,10 +1899,13 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     }
 
     // holy avenger - deal bonus damage against targets of opposing alignment
-    if ( per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
+    if ( wield && per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
-        dam += ch->level * align_diff / 3000;
+        if ( twohanded )
+            dam += ch->level * align_diff / 3000;
+        else
+            dam += ch->level * align_diff / 4000;
     }
     
     /* special attacks */
@@ -2153,13 +2157,11 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // divine retribution
-    if ( hit && check_skill(victim, gsn_divine_retribution)
-        && get_align_type(ch) != get_align_type(victim) )
+    if ( hit && check_skill(victim, gsn_divine_retribution) )
     {
-        int align_diff = ABS(ch->alignment - victim->alignment);
-        int dam = victim->level * align_diff / 2000;
+        int dam = victim->level;
         int damtype = IS_GOOD(victim) ? DAM_HOLY : IS_EVIL(victim) ? DAM_NEGATIVE : DAM_HARM;
-        if ( saves_spell(ch, victim, victim->level, damtype) )
+        if ( saves_spell(ch, victim, 2*victim->level, damtype) )
             dam /= 2;
         full_dam(victim, ch, dam, gsn_divine_retribution, damtype, TRUE);
     }
