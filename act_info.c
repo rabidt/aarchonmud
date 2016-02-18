@@ -5204,6 +5204,13 @@ DEF_DO_FUN(do_percentages)
         add_buf(output, "{D|{x\n\r");
     }
     
+    int fade = fade_chance(ch);
+    if ( fade )
+    {
+        add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
+        add_buf(output, "{D|{x\n\r");
+    }
+    
     add_buf(output, "{D:============================================================================:{x\n\r");
     page_to_char(buf_string(output), ch);
     free_buf(output);
