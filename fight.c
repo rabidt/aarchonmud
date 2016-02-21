@@ -5253,13 +5253,17 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     int skill = get_skill_total(ch, gsn_shield_block, 0.2);
     // non-metal shields suffer a small block penalty
     int base = IS_OBJ_STAT(shield, ITEM_NONMETAL) ? 79 : 80;
-    int chance = (base + skill) / 4;
+    int chance = base + skill;
     
     if ( wrist_shield )
     {
-        int penalty = (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 10;
+        int penalty = base * (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 200;
         chance = (chance - UMAX(0, penalty)) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    } else {
+        chance += base * get_skill(ch, gsn_shield_wall) / 200;
     }
+    // block chance is 20 base + skill/4; divide now to reduce rounding errors
+    chance /= 4;
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
