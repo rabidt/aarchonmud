@@ -2853,15 +2853,25 @@ void msdp_update( void )
             MSDPSetNumber( d, eMSDP_DAMROLL, GET_DAMROLL(d->character) );
             //MSDPSetNumber( d, eMSDP_AC, GET_AC(d->character) );
             MSDPSetNumber( d, eMSDP_STR, get_curr_stat(d->character, STAT_STR) );
+            MSDPSetNumber( d, eMSDP_CON, get_curr_stat(d->character, STAT_CON) );
+            MSDPSetNumber( d, eMSDP_VIT, get_curr_stat(d->character, STAT_VIT) );
+            MSDPSetNumber( d, eMSDP_AGI, get_curr_stat(d->character, STAT_AGI) );
+            MSDPSetNumber( d, eMSDP_DEX, get_curr_stat(d->character, STAT_DEX) );
             MSDPSetNumber( d, eMSDP_INT, get_curr_stat(d->character, STAT_INT) );
             MSDPSetNumber( d, eMSDP_WIS, get_curr_stat(d->character, STAT_WIS) );
-            MSDPSetNumber( d, eMSDP_DEX, get_curr_stat(d->character, STAT_DEX) );
-            MSDPSetNumber( d, eMSDP_CON, get_curr_stat(d->character, STAT_CON) );
+            MSDPSetNumber( d, eMSDP_DIS, get_curr_stat(d->character, STAT_DIS) );
+            MSDPSetNumber( d, eMSDP_CHA, get_curr_stat(d->character, STAT_CHA) );
+            MSDPSetNumber( d, eMSDP_LUC, get_curr_stat(d->character, STAT_LUC) );
             MSDPSetNumber( d, eMSDP_STR_PERM, d->character->perm_stat[STAT_STR] );
+            MSDPSetNumber( d, eMSDP_CON_PERM, d->character->perm_stat[STAT_CON] );
+            MSDPSetNumber( d, eMSDP_VIT_PERM, d->character->perm_stat[STAT_VIT] );
+            MSDPSetNumber( d, eMSDP_AGI_PERM, d->character->perm_stat[STAT_AGI] );
+            MSDPSetNumber( d, eMSDP_DEX_PERM, d->character->perm_stat[STAT_DEX] );
             MSDPSetNumber( d, eMSDP_INT_PERM, d->character->perm_stat[STAT_INT] );
             MSDPSetNumber( d, eMSDP_WIS_PERM, d->character->perm_stat[STAT_WIS] );
-            MSDPSetNumber( d, eMSDP_DEX_PERM, d->character->perm_stat[STAT_DEX] );
-            MSDPSetNumber( d, eMSDP_CON_PERM, d->character->perm_stat[STAT_CON] );
+            MSDPSetNumber( d, eMSDP_DIS_PERM, d->character->perm_stat[STAT_DIS] );
+            MSDPSetNumber( d, eMSDP_CHA_PERM, d->character->perm_stat[STAT_CHA] );
+            MSDPSetNumber( d, eMSDP_LUC_PERM, d->character->perm_stat[STAT_LUC] );
 
             /* This would be better moved elsewhere */
             if ( pOpponent != NULL )
@@ -2870,7 +2880,7 @@ void msdp_update( void )
                 MSDPSetNumber( d, eMSDP_OPPONENT_HEALTH, hit_points );
                 MSDPSetNumber( d, eMSDP_OPPONENT_HEALTH_MAX, 100 );
                 MSDPSetNumber( d, eMSDP_OPPONENT_LEVEL, pOpponent->level );
-                MSDPSetString( d, eMSDP_OPPONENT_NAME, pOpponent->name );
+                MSDPSetString( d, eMSDP_OPPONENT_NAME, IS_NPC(pOpponent) ? pOpponent->short_descr : pOpponent->name );
             }
             else /* Clear the values */
             {
