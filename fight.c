@@ -1850,8 +1850,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         /* level 90+ bonus */
         if ( !IS_NPC(ch) && level > (LEVEL_HERO - 10) )
             dam += level - (LEVEL_HERO - 10);
-        // lethal hands increase base damage by 20%
-        dam += dam * get_skill(ch, gsn_lethal_hands) / 500;
+        // lethal hands increase base damage by 25%
+        dam += dam * get_skill(ch, gsn_lethal_hands) / 400;
     }
 
     /* damage roll */
