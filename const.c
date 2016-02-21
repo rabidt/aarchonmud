@@ -2136,9 +2136,9 @@ const struct subclass_type subclass_table[] =
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
-        { "true grit", "bulwark" },
-        { 10, 30 },
-        { 100, 100 }
+        { "true grit", "shield wall", "bulwark" },
+        { 10, 20, 30 },
+        { 100, 100, 100 }
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
@@ -5687,6 +5687,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_bulwark, 0, 0, DUR_NONE,
         "", "!bulwark!", ""
+    },
+
+    {
+        "shield wall",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_STR, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shield_wall, 0, 0, DUR_NONE,
+        "", "!shield wall!", ""
     },
 
     {
