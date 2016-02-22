@@ -3209,7 +3209,9 @@ DEF_DO_FUN(do_puncture)
     WAIT_STATE(ch, skill_table[gsn_puncture].beats);
 
     /* now the attack */
-    if ( number_percent() > skill )
+    int chance = skill * (150 - dodge_chance(victim, ch, TRUE)) / 150;
+    ptc(ch, "{RChance = %d{x\n\r", chance);
+    if ( per_chance(chance) )
     {
         damage(ch,victim,0,gsn_puncture,DAM_NONE,TRUE);
         check_improve(ch,gsn_puncture,FALSE,3);
@@ -3239,8 +3241,7 @@ DEF_DO_FUN(do_puncture)
     act( "$n punctures $N's armor with a powerful blow!",
 	 ch, NULL, victim, TO_NOTVICT );
 
-    dam_message( ch, victim, dam, gsn_puncture, FALSE );
-    damage(ch,victim,dam,gsn_puncture,DAM_NONE,FALSE);
+    direct_damage(ch, victim, dam, gsn_puncture);
 
     af.where    = TO_AFFECTS;
     af.type     = gsn_puncture;
