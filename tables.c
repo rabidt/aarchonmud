@@ -1273,7 +1273,7 @@ const struct stance_type stances [] =
 	{ "bloodbath",        STANCE_BLOODBATH,           0,             "", 
 		&gsn_bloodbath,            FALSE, TRUE,  16 },
 	{ "kamikaze",         STANCE_KAMIKAZE,            0,             "", 
-		&gsn_kamikaze,             FALSE, TRUE,  25 },
+		&gsn_kamikaze,             FALSE, TRUE,  100 },
 	{ "showdown",         STANCE_SHOWDOWN,            0,             "", 
 		&gsn_showdown,             FALSE, TRUE,  6  },
 	{ "target practice",  STANCE_TARGET_PRACTICE,     0,             "", 
