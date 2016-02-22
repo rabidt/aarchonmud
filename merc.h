@@ -1584,7 +1584,7 @@ struct  kill_data
 #define AFF_SHELTER           34
 #define AFF_CHAOS_FADE        35
 #define AFF_FEEBLEMIND        36
-/* #define AFF_SPLIT             37 */ /* removed, re-use 37 when necessary */
+#define AFF_LAST_STAND        37
 #define AFF_GUARD             38
 #define AFF_RITUAL            39
 #define AFF_NECROSIS          40
