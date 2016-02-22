@@ -3210,7 +3210,6 @@ DEF_DO_FUN(do_puncture)
 
     /* now the attack */
     int chance = skill * (150 - dodge_chance(victim, ch, TRUE)) / 150;
-    ptc(ch, "{RChance = %d{x\n\r", chance);
     if ( per_chance(chance) )
     {
         damage(ch,victim,0,gsn_puncture,DAM_NONE,TRUE);
