@@ -3421,6 +3421,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( is_safe(ch, victim) )
         return FALSE;
 
+    if ( IS_AFFECTED(victim, AFF_LAST_STAND) )
+        return FALSE;
+    
     /*
     * Stop up any residual loopholes.
     */
@@ -3828,14 +3831,39 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     remember_attack(victim, ch, total_dam);
     
     /* deaths door check Added by Tryste */
-    if ( !IS_NPC(victim) && victim->hit < 1 )
+    if ( victim->hit < 1 )
     {
-        if (IS_AFFECTED(victim, AFF_DEATHS_DOOR) )
+        // can't use last stand against a character using last stand - recursion is bad
+        if ( ch != victim && !IS_AFFECTED(ch, AFF_LAST_STAND) && check_skill(victim, gsn_ashura) )
+        {
+            act("You make your last stand!", victim, NULL, NULL, TO_CHAR);
+            act("$n makes $s last stand!", victim, NULL, NULL, TO_ROOM);
+            SET_AFFECT(victim, AFF_LAST_STAND);
+            // make attacks at increasing move cost until we kill the attacker and survive,
+            // or run out of moves and die
+            int cost = 50;
+            bool offhand = offhand_attack_chance(victim, FALSE) > 0;
+            while ( victim->move >= cost && !IS_DEAD(ch) && ch->in_room == victim->in_room )
+            {
+                victim->move -= cost;
+                cost += 10;
+                one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+                if ( offhand && per_chance(33) )
+                    one_hit(victim, ch, TYPE_UNDEFINED, TRUE);
+            }
+            REMOVE_AFFECT(victim, AFF_LAST_STAND);
+            // killing attacker restores health
+            if ( IS_DEAD(ch) && victim->hit < 1 )
+                victim->hit = 1;
+        }
+        
+        if ( IS_AFFECTED(victim, AFF_DEATHS_DOOR) && victim->hit < 1 )
         {
             if ( per_chance(25) )
             {
                 stop_fighting(victim, TRUE);
-                int hp_gain = 100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
+                int hp_gain = IS_NPC(victim) ? victim->max_hit / 3 :
+                    100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
                 send_to_char("The gods have protected you from dying!\n\r", victim);

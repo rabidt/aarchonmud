@@ -317,6 +317,7 @@ const struct flag_type affect_flags[] =
     { "mana_burn",         AFF_MANA_BURN,            TRUE  },
     { "iron_maiden",       AFF_IRON_MAIDEN,          TRUE  },
     { "fleeing",           AFF_FLEE,                 FALSE },
+    { "last_stand",        AFF_LAST_STAND,           FALSE },
     { "heal",              AFF_HEAL,                 TRUE  },
     { "overcharge",        AFF_OVERCHARGE,           TRUE  },
     { "giant strength",    AFF_GIANT_STRENGTH,       TRUE  },
