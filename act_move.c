@@ -1328,8 +1328,6 @@ DEF_DO_FUN(do_unlock)
    return;
 }
 
-#define NLRETURN if ( number_percent() > chance ) \
-                 { send_to_char("\n\r", ch); return; }
 DEF_DO_FUN(do_estimate)
 {
     char buf[MAX_STRING_LENGTH];
@@ -1369,7 +1367,8 @@ DEF_DO_FUN(do_estimate)
 	return;
     }
 
-    if ( (ch->level + chance) < victim->level )
+    int ch_level = ch->level + mastery_bonus(ch, gsn_estimate, 40, 60);
+    if ( (ch_level + chance) < victim->level )
     {
 	sprintf( buf, "%s is too powerful for you to identify.\n\r" , victim->short_descr);
 	send_to_char(buf, ch);
@@ -1388,102 +1387,88 @@ DEF_DO_FUN(do_estimate)
     send_to_char( buf, ch );
 
     /* high level races are harder to judge */
-    if ( ch->level < victim->level )
-	chance -= (victim->level - ch->level)/4;
+    if ( ch_level < victim->level )
+        chance -= (victim->level - ch_level) / 4;
 
     /* let's see how much more we find out */
+    int knowledge = 0;
+    while ( knowledge < 20 && per_chance(chance) )
+        knowledge++;
 
-    NLRETURN
+    if ( knowledge-- > 0 )
+    {
+        ptc( ch, "This being is level: %d\n\r", victim->level );
+    }
+    
+    if ( knowledge-- > 0 )
+    {
+        ptc( ch, "Str: %d(%d)  Con: %d(%d)  Vit: %d(%d)  Agi: %d(%d)  Dex: %d(%d)\n\r",
+            victim->perm_stat[STAT_STR], get_curr_stat(victim, STAT_STR),
+            victim->perm_stat[STAT_CON], get_curr_stat(victim, STAT_CON),
+            victim->perm_stat[STAT_VIT], get_curr_stat(victim, STAT_VIT),
+            victim->perm_stat[STAT_AGI], get_curr_stat(victim, STAT_AGI),
+            victim->perm_stat[STAT_DEX], get_curr_stat(victim, STAT_DEX)
+            );
+        ptc( ch, "Int: %d(%d)  Wis: %d(%d)  Dis: %d(%d)  Cha: %d(%d)  Luc: %d(%d)\n\r",
+            victim->perm_stat[STAT_INT], get_curr_stat(victim, STAT_INT),
+            victim->perm_stat[STAT_WIS], get_curr_stat(victim, STAT_WIS),
+            victim->perm_stat[STAT_DIS], get_curr_stat(victim, STAT_DIS),
+            victim->perm_stat[STAT_CHA], get_curr_stat(victim, STAT_CHA),
+            victim->perm_stat[STAT_LUC], get_curr_stat(victim, STAT_LUC)
+            );
+    }
 
-    sprintf( buf, "This being is level: %d\n\r", victim->level );       
-    send_to_char( buf, ch );
-	  
-    NLRETURN
+    if ( knowledge-- > 0 )
+    {
+        ptc( ch, "Hp: %d/%d  Mana: %d/%d  Move: %d/%d\n\r",
+            victim->hit,    victim->max_hit,
+            victim->mana,   victim->max_mana,
+            victim->move,   victim->max_move
+            );
+        ptc( ch, "Armor: %d\n\r", GET_AC(victim) );
+    }
 
-    sprintf( buf,
-	     "Str: %d(%d)  Con: %d(%d)  Vit: %d(%d)  Agi: %d(%d)  Dex: %d(%d)\n\r",
-	     victim->perm_stat[STAT_STR],
-	     get_curr_stat(victim,STAT_STR),
-	     victim->perm_stat[STAT_CON],
-	     get_curr_stat(victim,STAT_CON),
-	     victim->perm_stat[STAT_VIT],
-	     get_curr_stat(victim,STAT_VIT),
-	     victim->perm_stat[STAT_AGI],
-	     get_curr_stat(victim,STAT_AGI),
-	     victim->perm_stat[STAT_DEX],
-	     get_curr_stat(victim,STAT_DEX)
-	     );
-    send_to_char( buf, ch );
+    if ( knowledge-- > 0 )
+    {
+        ptc( ch, "Hit: %d  Dam: %d  Saves: %d  Physical: %d\n\r",
+            GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE)
+            );
+        ptc( ch, "Damage: %dd%d  Type: %s\n\r",
+            victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
+            attack_table[victim->dam_type].noun
+            );
+    }
 
-    sprintf( buf,
-	     "Int: %d(%d)  Wis: %d(%d)  Dis: %d(%d)  Cha: %d(%d)  Luc: %d(%d)\n\r",
-	     victim->perm_stat[STAT_INT],
-	     get_curr_stat(victim,STAT_INT),
-	     victim->perm_stat[STAT_WIS],
-	     get_curr_stat(victim,STAT_WIS),
-	     victim->perm_stat[STAT_DIS],
-	     get_curr_stat(victim,STAT_DIS),
-	     victim->perm_stat[STAT_CHA],
-	     get_curr_stat(victim,STAT_CHA),
-	     victim->perm_stat[STAT_LUC],
-	     get_curr_stat(victim,STAT_LUC)
-	     );
-    send_to_char( buf, ch );
+    if ( knowledge-- > 0 )
+    {
+        ptc(ch, "Knows how to: %s\n\r", off_bits_name(victim->off_flags));
+    }
 
-    NLRETURN
+    if ( knowledge-- > 0 )
+    {
+        ptc(ch, "Fights in stance: %s\n\r", stances[victim->stance].name);
+    }
 
-    sprintf( buf, "Hp: %d/%d  Mana: %d/%d  Move: %d/%d\n\r",
-	     victim->hit,         victim->max_hit,
-	     victim->mana,        victim->max_mana,
-	     victim->move,        victim->max_move
-	     );
-    send_to_char( buf, ch );
-
-    sprintf( buf, "Armor: %d\n\r",
-	     GET_AC(victim)
-	     );
-    send_to_char(buf,ch);
-
-    NLRETURN
-
-    sprintf( buf, "Hit: %d  Dam: %d  Saves: %d  Physical: %d\n\r",
-	     GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE)
-	     );
-    send_to_char( buf, ch );
-
-    sprintf( buf, "Damage: %dd%d  Type: %s\n\r",
-                victim->damage[DICE_NUMBER], victim->damage[DICE_TYPE],
-                attack_table[victim->dam_type].noun
-                );
-    send_to_char(buf,ch);
-
-    NLRETURN
-
-    sprintf(buf, "Knows how to: %s\n\r", off_bits_name(victim->off_flags));
-    send_to_char(buf,ch);
-
-    NLRETURN
-
-    sprintf(buf, "Fights in stance: %s\n\r", stances[victim->stance].name );
-    send_to_char(buf,ch);
-
-    NLRETURN
-
-    sprintf(buf, "Immune to: %s\n\r", imm_bits_name(victim->imm_flags));
-    send_to_char(buf,ch);
+    // slayers are especially good at estimating weaknesses
+    if ( check_skill(ch, gsn_exploit_weakness) )
+        knowledge = 3;
+    
+    if ( knowledge-- > 0 )
+    {
+        ptc(ch, "Immune to: %s\n\r", imm_bits_name(victim->imm_flags));
+    }
   
-    NLRETURN
-    
-    sprintf(buf, "Resistant to: %s\n\r", imm_bits_name(victim->res_flags));
-    send_to_char(buf,ch);
+    if ( knowledge-- > 0 )
+    {
+        ptc(ch, "Resistant to: %s\n\r", imm_bits_name(victim->res_flags));
+    }
 
-    NLRETURN
-    
-    sprintf(buf, "Vulnerable to: %s\n\r", imm_bits_name(victim->vuln_flags));
-    send_to_char(buf,ch);
+    if ( knowledge-- > 0 )
+    {
+        ptc(ch, "Vulnerable to: %s\n\r", imm_bits_name(victim->vuln_flags));
+    }
 
 }
-#undef NLRETURN
 
 DEF_DO_FUN(do_shoot_lock)
 {
