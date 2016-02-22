@@ -3769,9 +3769,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             int absorb_roll = number_range(0, absorb - absorb_ignore);
             int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
-            #ifdef TESTER
-            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
-            #endif
+            if ( cfg_show_rolls )
+                printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
             if ( grit_roll >= absorb_roll )
             {
                 victim->move -= absorb;
