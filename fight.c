@@ -933,7 +933,19 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             vch_next = vch->next_in_room;
             if ( vch->fighting && is_same_group(vch->fighting, ch) && !is_safe_check(ch, vch, TRUE, FALSE, FALSE) )
             {
-                one_hit(ch, vch, dt, FALSE);
+                // kamikaze only grants attacks against opponents targeting you
+                if ( ch->stance == STANCE_KAMIKAZE )
+                {
+                    if ( vch->fighting == ch )
+                    {
+                        one_hit(ch, vch, dt, FALSE);
+                        // bonus off-hand attack if they are flanking
+                        if ( dual_wielding && ch->fighting != vch )
+                            one_hit(ch, vch, dt, TRUE);
+                    }
+                }
+                else
+                    one_hit(ch, vch, dt, FALSE);
                 // goblin cleaver grants 3 extra attacks (total) against each opponent
                 if ( ch->stance == STANCE_GOBLINCLEAVER )
                 {
@@ -942,9 +954,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                     if ( dual_wielding && per_chance(get_skill_overflow(ch, gsn_goblincleaver) / 2) )
                         one_hit(ch, vch, dt, TRUE);
                 }
-                // kamikaze grants 1 additional attack against each opponent targeting you
-                else if ( ch->stance == STANCE_KAMIKAZE && vch->fighting == ch )
-                    one_hit(ch, vch, dt, FALSE);
             }
         }
     }
@@ -1090,9 +1099,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, TRUE);
 
     CHECK_RETURN(ch, victim);
-    // free attack for anyone attacking a character in kamikaze - works both ways
-    if ( victim->stance==STANCE_KAMIKAZE )
-        one_hit(ch, victim, dt, FALSE);
 }
 
 // dual_axe, dual_sword, etc. used, or 0
@@ -3594,8 +3600,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 int overflow = get_skill_overflow(victim, gsn_bloodbath);
                 dam += bonus * 100 / (100 + overflow);
             }
-            else if ( victim->stance == STANCE_KAMIKAZE )
-                dam += (18 + dam) / 6;
             else if ( victim->stance == STANCE_TORTOISE
                 || victim->stance == STANCE_AVERSION )
                 dam -= dam / 3;
@@ -4721,21 +4725,18 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return TRUE;
     
     /* chance for dodge, parry etc. ? */
-    autohit =
-	vstance == STANCE_KAMIKAZE
-	|| vstance == STANCE_BLOODBATH;
+    autohit = (vstance == STANCE_BLOODBATH);
 
     finesse =
-	stance == STANCE_EAGLE 
-	|| stance == STANCE_LION 
-	|| stance == STANCE_FINESSE
-	|| stance == STANCE_DECEPTION
-	|| stance == STANCE_AMBUSH
-	|| stance == STANCE_BLADE_DANCE
-	|| stance == STANCE_BLOODBATH
-	|| stance == STANCE_TARGET_PRACTICE
-	|| stance == STANCE_KAMIKAZE
-    || stance == STANCE_KAMIKAZE
+        stance == STANCE_EAGLE 
+        || stance == STANCE_LION 
+        || stance == STANCE_FINESSE
+        || stance == STANCE_DECEPTION
+        || stance == STANCE_AMBUSH
+        || stance == STANCE_BLADE_DANCE
+        || stance == STANCE_BLOODBATH
+        || stance == STANCE_TARGET_PRACTICE
+        || stance == STANCE_KAMIKAZE
         || stance == STANCE_SERPENT;
 
     /* woodland combat */
