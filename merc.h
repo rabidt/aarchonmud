@@ -4653,6 +4653,7 @@ void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_woodland( int sector );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
 CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
