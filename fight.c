@@ -4736,6 +4736,14 @@ bool blind_penalty( CHAR_DATA *ch )
     return TRUE;
 }
 
+bool is_woodland( int sector )
+{
+    return sector == SECT_FOREST
+        || sector == SECT_FIELD
+        || sector == SECT_HILLS
+        || sector == SECT_MOUNTAIN;
+}
+
 /* checks for dodge, parry, etc. */
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 {
@@ -4767,11 +4775,7 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
         || stance == STANCE_SERPENT;
 
     /* woodland combat */
-    if ( sector == SECT_FOREST 
-	 || ((sector == SECT_FIELD 
-	      || sector == SECT_HILLS 
-	      || sector == SECT_MOUNTAIN)
-	     && number_bits(1) == 0) )
+    if ( sector == SECT_FOREST || (is_woodland(sector) && number_bits(1) == 0) )
     {
 	if ( number_percent() <= get_skill(ch, gsn_woodland_combat) )
 	{
