@@ -1903,9 +1903,9 @@ DEF_SPELL_FUN(spell_tree_golem)
     int mlevel;
     int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
-    if ( ch->in_room->sector_type != SECT_FOREST)
+    if ( !is_woodland(ch->in_room->sector_type) )
     {
-        send_to_char("Need to be in a forest for this spell to work.\n\r",ch);
+        send_to_char("Need top be in a woodland area for this spell to work.\n\r",ch);
         return SR_UNABLE;
     }
     
@@ -1915,8 +1915,12 @@ DEF_SPELL_FUN(spell_tree_golem)
         return SR_UNABLE;
     }
     
-    /* Check number of charmees against cha*/ 
-    mlevel = (6*level + beast_skill) / 8;
+    if ( ch->in_room->sector_type == SECT_FOREST )
+        mlevel = (6*level + beast_skill) / 8;
+    else
+        mlevel = (5*level + beast_skill) / 8;
+    
+    /* Check number of charmees against cha*/
     mlevel = URANGE(1, mlevel, ch->level);
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return SR_UNABLE;
@@ -1967,7 +1971,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     int sector = ch->in_room->sector_type;
     int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
-    mlevel = URANGE(1, level * 3/4, ch->level);
+    mlevel = (6*level + beast_skill) / 8;
     sprintf(liquid_name, "water");
 
     if ( sector != SECT_WATER_SHALLOW
@@ -1978,7 +1982,7 @@ DEF_SPELL_FUN(spell_water_elemental)
         OBJ_DATA *fountain = get_obj_by_type(ch->in_room->contents, ITEM_FOUNTAIN);
         if ( fountain != NULL )
         {
-            mlevel = URANGE(1, level * 2/3, ch->level);
+            mlevel = (5*level + beast_skill) / 8;
             int liquid = UMAX(0, fountain->value[2]);
             sprintf(liquid_name, "%s", liq_table[liquid].liq_name);
         }
@@ -1995,7 +1999,7 @@ DEF_SPELL_FUN(spell_water_elemental)
         return SR_UNABLE;
     }
 
-    mlevel += beast_skill / 8;
+    mlevel = URANGE(1, mlevel, ch->level);
     
     /* Check number of charmees against cha*/ 
     if ( check_cha_follow(ch, mlevel) < mlevel )
@@ -2121,9 +2125,9 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
     int snake_count, max_snake;
     int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
-    if ( ch->in_room->sector_type != SECT_FOREST)
+    if ( !is_woodland(ch->in_room->sector_type) )
     {
-        send_to_char("Need to be in a forest for this spell to work.\n\r",ch);
+        send_to_char("Need to be in a woodland area for this spell to work.\n\r",ch);
         return SR_UNABLE;
     }
     
@@ -2132,8 +2136,13 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
         send_to_char( "This war does not concern the woodland spirits.\n\r", ch);
         return SR_UNABLE;
     }
+    
+    if ( ch->in_room->sector_type == SECT_FOREST )
+        mlevel = (6*level + beast_skill) / 12;
+    else
+        mlevel = (5*level + beast_skill) / 12;
+    
     /* Check number of charmees against cha*/
-    mlevel = (5*level + beast_skill) / 10;
     mlevel = URANGE(1, mlevel, ch->level);
     max_snake = check_cha_follow( ch, mlevel );
     if ( max_snake < mlevel )
