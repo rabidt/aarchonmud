@@ -3218,20 +3218,22 @@ DEF_DO_FUN(do_puncture)
     }
 
     /* hit - how much dam? */
-    int fixed = 1 + ch->level / 3;
-    int variable = 2 + ch->level * 2/3;
-    // twohanders deal 50% more damage
+    int fixed = (5 + ch->level) * 2/3;
+    int variable = (5 + ch->level) / 3;
+    // twohanders deal 50% more base damage
     if ( IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
-        fixed *= 2;
+        fixed = 5 + ch->level;
     dam = fixed + number_range(0, variable);
-    // dual-wielding allows damage reroll (+16.6% effectively)
+    // dual-wielding adds variable damage twice
     if ( get_eq_char(ch, WEAR_SECONDARY) != NULL )
-    {
-        int reroll = fixed + number_range(0, variable);
-        dam = UMAX(dam, reroll);
-    }
+        dam += number_range(0, variable);
+    // damroll helps as well
+    dam += get_damroll(ch) / 12;
     // mastery bonus
     dam += dam * mastery_bonus(ch, gsn_puncture, 20, 25) / 100;
+    // sanc reduces damage by 25%
+    if ( IS_AFFECTED(victim, AFF_SANCTUARY) )
+        dam -= dam / 4;
 
     act( "You puncture $N's armor with a powerful blow!",
 	 ch, NULL, victim, TO_CHAR );
