@@ -198,10 +198,7 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     WAIT_STATE(ch, skill_table[sn].beats);
     
     /* check whether a blow hits */
-    int chance_hit = (skill + 100) / 2 - get_skill(victim, gsn_dodge) / 3;
-    chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see_combat( ch, victim ) )
-        chance_hit /= 2;
+    int chance_hit = dodge_adjust_chance(ch, victim, skill);
     
     if ( !per_chance(chance_hit) )
     {
@@ -1700,7 +1697,7 @@ DEF_DO_FUN(do_gouge)
     WAIT_STATE(ch, skill_table[gsn_gouge].beats);
     
     /* now the attack */
-    int chance = skill - get_skill(victim, gsn_dodge) / 3;
+    int chance = dodge_adjust_chance(ch, victim, skill);
     if ( per_chance(chance) )
     {
         int dam = martial_damage(ch, victim, gsn_gouge);
@@ -1809,8 +1806,7 @@ DEF_DO_FUN(do_uppercut)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
     
-    chance = skill - get_skill(victim, gsn_dodge) / 3;
-    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
+    chance = dodge_adjust_chance(ch, victim, skill);
     
     WAIT_STATE( ch, skill_table[gsn_uppercut].beats );
     check_killer(ch,victim);
@@ -2688,7 +2684,7 @@ DEF_DO_FUN(do_mug)
 {
     char buf  [MAX_STRING_LENGTH];
     CHAR_DATA *victim;
-    int skill;
+    int skill, chance;
     int dam;
     int gold, silver;
     
@@ -2715,15 +2711,14 @@ DEF_DO_FUN(do_mug)
     if (is_safe(ch,victim))
         return;
 
-    skill -= get_skill(victim, gsn_dodge) / 3;
-    skill += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_DEX)) / 4;
+    chance = dodge_adjust_chance(ch, victim, skill);
     
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_mug].beats );
     
     /* Successful roll */
     
-    if ( per_chance(skill) )
+    if ( per_chance(chance) )
     {
         dam = martial_damage(ch, victim, gsn_mug);
         
@@ -2770,7 +2765,7 @@ DEF_DO_FUN(do_mug)
             
             check_improve(ch,gsn_mug,TRUE,3);
             
-            if (number_percent() < skill/8)
+            if ( per_chance(10) )
             {
                 OBJ_DATA *obj_check;
                 OBJ_DATA *obj_found = NULL;
@@ -2829,8 +2824,7 @@ DEF_DO_FUN(do_fatal_blow)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
         
-    chance = skill - get_skill(victim, gsn_dodge)/3;
-    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim,STAT_AGI)) / 8;
+    chance = dodge_adjust_chance(ch, victim, skill);
         
     check_killer(ch,victim);
     WAIT_STATE( ch, skill_table[gsn_fatal_blow].beats );
@@ -3209,7 +3203,7 @@ DEF_DO_FUN(do_puncture)
     WAIT_STATE(ch, skill_table[gsn_puncture].beats);
 
     /* now the attack */
-    int chance = skill * (150 - dodge_chance(victim, ch, TRUE)) / 150;
+    int chance = dodge_adjust_chance(ch, victim, skill);
     if ( !per_chance(chance) )
     {
         damage(ch,victim,0,gsn_puncture,DAM_NONE,TRUE);
@@ -3790,7 +3784,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     
     one_argument(argument, arg);
     
-    if (get_skill(ch,gsn_quivering_palm)==0)
+    if ( (skill=get_skill(ch, gsn_quivering_palm)) == 0 )
     {
         send_to_char( "You don't know that skill.\n\r", ch );
         return;
@@ -3817,11 +3811,7 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
     start_combat(ch, victim);
         
     /* check whether a blow hits and whether it stuns */
-    skill = (get_skill(ch, gsn_quivering_palm) + 100) / 2;
-    chance_hit = skill - get_skill(victim, gsn_dodge) / 3;
-    chance_hit += (get_curr_stat(ch, STAT_AGI) - get_curr_stat(victim, STAT_AGI)) / 8;
-    if ( !can_see_combat( ch, victim ) )
-	chance_hit /= 2;
+    chance_hit = dodge_adjust_chance(ch, victim, skill);
         
     /* check if the blow hits */
     if ( !per_chance(chance_hit) )

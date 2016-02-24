@@ -1253,6 +1253,15 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     return success;
 }
 
+// adjust hit-chance by dodge, used by a few special attacks that don't target AC
+int dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
+{
+    int adjusted = chance * (150 - dodge_chance(victim, ch, TRUE)) / 150;
+    if ( cfg_show_rolls )
+        ptc(ch, "dodge-adjusted chance = %d%%\n\r", adjusted);
+    return adjusted;
+}
+
 // apply petrification effect (petrified or only slowed)
 void apply_petrify(CHAR_DATA *ch, bool full)
 {
