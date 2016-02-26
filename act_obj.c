@@ -2369,7 +2369,7 @@ DEF_DO_FUN(do_wear)
         {
             obj_next = obj->next_content;
             if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
-                if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
+                if (op_percent_trigger( arg, obj, NULL, ch, NULL, OTRIG_WEAR) )
                 {
                     wear_obj( ch, obj, FALSE );
                     if ( ch->wait > 0 )
@@ -2386,7 +2386,7 @@ DEF_DO_FUN(do_wear)
             return;
         }
 
-        if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
+        if (op_percent_trigger( arg, obj, NULL, ch, NULL, OTRIG_WEAR) )
             wear_obj( ch, obj, TRUE );
         else
             return;
