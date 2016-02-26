@@ -1055,7 +1055,7 @@ DEF_DO_FUN(do_autolist)
     else
         send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
-    if (!IS_SET(ch->act,PLR_NOEXP))
+    if (IS_SET(ch->act,PLR_NOEXP))
         send_to_char("noexp          ON     You won't gain experience points.\n\r",ch);
     else
         send_to_char("noexp          OFF    You will gain experience points.\n\r",ch);
