@@ -595,6 +595,8 @@ void mobile_special_update( void )
         if ( is_wait_based(ch->spec_fun) && ch->wait == 0 )
         {
             (*ch->spec_fun)( ch );
+            // PCs 'use up' one pulse to process input, we mimic this here
+            ch->wait++;
         }
     }
     sprintf( last_mprog, "(Finished) mobile_special_update" );
