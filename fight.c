@@ -940,7 +940,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                     {
                         one_hit(ch, vch, dt, FALSE);
                         // bonus off-hand attack if they are flanking
-                        if ( dual_wielding && ch->fighting != vch )
+                        if ( ch->fighting != vch && per_chance(offhand_attack_chance(ch, TRUE)) )
                             one_hit(ch, vch, dt, TRUE);
                     }
                 }
