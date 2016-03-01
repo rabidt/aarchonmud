@@ -452,10 +452,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (get_obj_focus(ch) + get_dagger_focus(ch))) / 500;
-    else
-        hit_roll = (level + 10) * 6/5;
+    hit_roll = get_spell_penetration(ch, level);
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
