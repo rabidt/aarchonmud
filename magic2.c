@@ -2699,6 +2699,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
     int dam, main_dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR / 4;
+    ROOM_INDEX_DATA *room = ch->in_room;
     
     if ( !ch->fighting )
     {
@@ -2711,7 +2712,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
     act("Rimbol channels the power of earth to form an avalanche!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Rimbol answers your prayers by bringing forth Earth's power!\n\r",ch);
     
-    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    for ( vch = room->people; vch != NULL; vch = vch_next )
     {
 	dam = main_dam;
         vch_next = vch->next_in_room;
@@ -2728,7 +2729,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
     act("Rimbol summons the tornado's winds to slash down his foes!",ch,NULL,NULL,TO_ROOM);
     send_to_char("Your prayers are answered by Rimbol's powerful tornado!\n\r",ch);
     
-    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    for ( vch = room->people; vch != NULL; vch = vch_next )
     {
 	dam = main_dam;
         vch_next = vch->next_in_room;
@@ -2750,7 +2751,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
     act("The raging fire within Rimbol's soul incinerates his enemies!",ch,NULL,NULL,TO_ROOM);
     send_to_char("The raging fire within Rimbol's soul incinerates your enemies!\n\r",ch);
     
-    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    for ( vch = room->people; vch != NULL; vch = vch_next )
     {
 	dam = main_dam;
         vch_next = vch->next_in_room;
@@ -2767,7 +2768,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
     act("The magical waters rise up and engulf those in its path!",ch,NULL,NULL,TO_ROOM);
     send_to_char("The waters rise up and engulf your enemies!\n\r",ch);
     
-    for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
+    for ( vch = room->people; vch != NULL; vch = vch_next )
     {
 	dam = main_dam;
         vch_next = vch->next_in_room;
