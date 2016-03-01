@@ -405,10 +405,10 @@ int get_save(CHAR_DATA *ch, bool physical)
     }
     else
     {
-        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
-        save_factor = 250 - physical_factor;
+        int physical_factor = class_table[ch->class].attack_factor * 3/5 + class_table[ch->class].defense_factor / 2;
+        save_factor = 210 - physical_factor;
         // tweak so physically oriented classes get better physical and worse magic saves
-        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
+        save_factor += (physical_factor - 110) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (level + 10) * save_factor/100;
     
