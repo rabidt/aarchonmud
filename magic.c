@@ -405,10 +405,10 @@ int get_save(CHAR_DATA *ch, bool physical)
     }
     else
     {
-        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
-        save_factor = 250 - physical_factor;
+        int physical_factor = class_table[ch->class].attack_factor * 3/5 + class_table[ch->class].defense_factor / 2;
+        save_factor = 210 - physical_factor;
         // tweak so physically oriented classes get better physical and worse magic saves
-        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
+        save_factor += (physical_factor - 110) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (level + 10) * save_factor/100;
     
@@ -452,10 +452,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (get_obj_focus(ch) + get_dagger_focus(ch))) / 500;
-    else
-        hit_roll = (level + 10) * 6/5;
+    hit_roll = get_spell_penetration(ch, level);
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
@@ -2047,6 +2044,8 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
     if ( ch->stance == STANCE_ARCANA )
         edge += 100;
     int bonus = ch->level * edge / 150;
+    // damroll from affects applies here as well
+    bonus += dice(ch->damroll / 4, 4);
 
     // adjust for casting time
     int cast_time = skill_table[sn].beats;

@@ -234,7 +234,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         469
+#define MAX_SKILL         471
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1584,7 +1584,7 @@ struct  kill_data
 #define AFF_SHELTER           34
 #define AFF_CHAOS_FADE        35
 #define AFF_FEEBLEMIND        36
-/* #define AFF_SPLIT             37 */ /* removed, re-use 37 when necessary */
+#define AFF_LAST_STAND        37
 #define AFF_GUARD             38
 #define AFF_RITUAL            39
 #define AFF_NECROSIS          40
@@ -3241,6 +3241,7 @@ struct  mastery_group_type
 #define OTRIG_SLEEP (ee)
 #define OTRIG_MOVE  (ff)
 #define OTRIG_DEATH (gg)
+#define OTRIG_MERGE (hh)
 /*
  * AREAprog definitions
  */
@@ -3445,6 +3446,7 @@ extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
 extern sh_int  gsn_heavy_armor;
 extern sh_int  gsn_bulwark;
+extern sh_int  gsn_shield_wall;
 extern sh_int  gsn_massive_swing;
 extern sh_int  gsn_riposte;
 extern sh_int  gsn_blade_barrier;
@@ -3458,6 +3460,7 @@ extern sh_int  gsn_shadow_companion;
 extern sh_int  gsn_shadow_strike;
 extern sh_int  gsn_shadow_body;
 extern sh_int  gsn_piercing_blade;
+extern sh_int  gsn_bonded_blade;
 extern sh_int  gsn_lethal_hands;
 extern sh_int  gsn_unarmed_parry;
 extern sh_int  gsn_divine_channel;
@@ -4650,6 +4653,7 @@ void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
 void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_woodland( int sector );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
 CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
@@ -4665,6 +4669,7 @@ bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance );
+int     dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );
@@ -4968,6 +4973,8 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
+int get_obj_focus( CHAR_DATA *ch );
+int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
@@ -4994,6 +5001,7 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type );
+void reduce_mana( CHAR_DATA *ch, int amount );
 
 /* magic2.c */
 void start_decompose( CHAR_DATA *ch, int level );
@@ -5086,6 +5094,7 @@ void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage );
+bool op_merge_trigger( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2);
 void op_timer_trigger( OBJ_DATA *obj );
 void oprog_timer_init( OBJ_DATA *obj );
 void oprog_setup( OBJ_DATA *obj );
@@ -5139,6 +5148,7 @@ void remort_update args( ( void) );
 void remort_load args( ( void) );
 void remort_remove args( (CHAR_DATA *ch, bool success) );
 void remort_begin args( (CHAR_DATA *ch) );
+int subclass_count( int class );
 
 /* room_prog.c */
 bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
@@ -5237,6 +5247,7 @@ int max_hmm_train( int level );
 int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
+int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );

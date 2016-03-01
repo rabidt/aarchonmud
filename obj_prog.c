@@ -242,6 +242,17 @@ void op_death_trigger( CHAR_DATA *ch, CHAR_DATA *vic )
     }
 }
 
+bool op_merge_trigger( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2)
+{
+    if (!op_percent_trigger(NULL, obj1, obj2, ch, NULL, OTRIG_MERGE))
+        return FALSE;
+
+    if (!op_percent_trigger(NULL, obj2, obj1, ch, NULL, OTRIG_MERGE))
+        return FALSE;
+
+    return TRUE;
+}
+
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage)
 {
     char damstr[MSL];

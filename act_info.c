@@ -1055,7 +1055,7 @@ DEF_DO_FUN(do_autolist)
     else
         send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
-    if (!IS_SET(ch->act,PLR_NOEXP))
+    if (IS_SET(ch->act,PLR_NOEXP))
         send_to_char("noexp          ON     You won't gain experience points.\n\r",ch);
     else
         send_to_char("noexp          OFF    You will gain experience points.\n\r",ch);
@@ -5079,14 +5079,19 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {cWimpy:{x %3d%% {cCalm:{x%3d%%",
+    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
+        get_spell_penetration(ch, ch->level));
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+    /* Wimpy, Calm */
+    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%",
         ch->wimpy,
         ch->calm);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
-
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
@@ -5202,6 +5207,13 @@ DEF_DO_FUN(do_percentages)
             heavy_bonus,
             get_heavy_armor_penalty(ch)
         );
+        add_buf(output, "{D|{x\n\r");
+    }
+    
+    int fade = fade_chance(ch);
+    if ( fade )
+    {
+        add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
         add_buf(output, "{D|{x\n\r");
     }
     

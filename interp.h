@@ -70,6 +70,7 @@ DECLARE_DO_FUN( do_allow    );
 DECLARE_DO_FUN( do_answer   );
 DECLARE_DO_FUN( do_appraise );
 DECLARE_DO_FUN( do_areas    );
+DECLARE_DO_FUN( do_areset   );
 DECLARE_DO_FUN( do_as       );
 DECLARE_DO_FUN( do_ascend   );
 DECLARE_DO_FUN( do_ashift   );

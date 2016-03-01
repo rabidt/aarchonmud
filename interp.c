@@ -48,7 +48,12 @@ char last_command[MSL] = ""; /* Global variable to hold the last input line */
 #define LOG_ALWAYS  1
 #define LOG_NEVER   2
 
-
+// for commands that anyone can use on testport
+#ifdef TESTER
+#define LT 0
+#else
+#define LT L8
+#endif
 
 /*
  * Log-all switch.
@@ -527,11 +532,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "portal",     do_portal,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reboo",      do_reboo,   POS_DEAD,   ML,  LOG_NORMAL, 0, FALSE, FALSE  },
     { "reboot",     do_reboot,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-#ifdef TESTER
-    { "repeat",     do_repeat,  POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
-#else
-    { "repeat",     do_repeat,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
-#endif
+    { "repeat",     do_repeat,  POS_DEAD,   LT,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "reserve",    do_reserve, POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "set",        do_set,     POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "setskill",   do_setskill,POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -552,11 +553,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "pardon",     do_pardon,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "parole",     do_parole,  POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "purge",      do_purge,   POS_DEAD,   L9,  LOG_ALWAYS, 1, FALSE, FALSE  },
-#ifdef TESTER
-    { "restore",    do_restore, POS_DEAD,   0,  LOG_ALWAYS, 1, FALSE, FALSE  },
-#else
-    { "restore",    do_restore, POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
-#endif
+    { "restore",    do_restore, POS_DEAD,   LT,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "sedit",      do_sedit,   POS_DEAD,   L4,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "sla",        do_sla,     POS_DEAD,   L3,  LOG_NORMAL, 0, TRUE, FALSE },
     { "slay",       do_slay,    POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -575,7 +572,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "where",      do_where,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "mwhere",     do_mwhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "owhere",     do_owhere,  POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "peace",      do_peace,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "peace",      do_peace,   POS_DEAD,   LT,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "echo",       do_recho,   POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "return",     do_return,  POS_DEAD,   L6,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "snoop",      do_snoop,   POS_DEAD,   L5,  LOG_ALWAYS, 1, FALSE, FALSE  },
@@ -626,6 +623,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "edit",       do_olc,     POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "asave",      do_asave,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "alist",      do_alist,   POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
+    { "areset",     do_areset,  POS_DEAD,   LT,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "resets",     do_resets,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "redit",      do_redit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "medit",      do_medit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },

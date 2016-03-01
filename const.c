@@ -2136,9 +2136,9 @@ const struct subclass_type subclass_table[] =
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
-        { "true grit", "bulwark" },
-        { 10, 30 },
-        { 100, 100 }
+        { "true grit", "shield wall", "bulwark" },
+        { 10, 20, 30 },
+        { 100, 100, 100 }
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
@@ -2208,9 +2208,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "kensai", SAMURAI,
-        { "piercing blade", "beheading" },
-        { 10, 30 },
-        { 100, 100 }
+        { "bonded blade", "piercing blade", "beheading" },
+        { 10, 30, 50 },
+        { 100, 100, 100 }
     },
     {
         "stormlord", SAMURAI|RANGER,
@@ -2270,7 +2270,7 @@ const struct subclass_type subclass_table[] =
         "beastmaster", RANGER,
         { "beast mastery", "water elemental", "chain spell" },
         { 10, 50, 70 },
-        { 100, 90, 80 }
+        { 100, 100, 80 }
     },
     {
         "defiler", NECROMANCER,
@@ -3962,7 +3962,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
+	spell_lightning_breath, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
 	&gsn_lightning_breath, 16, 4, DUR_NONE,
 	"blast of lightning",   "!Lightning Breath!",   ""
 	},
@@ -5690,6 +5690,17 @@ struct  skill_type
     },
 
     {
+        "shield wall",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_STR, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shield_wall, 0, 0, DUR_NONE,
+        "", "!shield wall!", ""
+    },
+
+    {
         "massive swing",  
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
@@ -5819,6 +5830,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_piercing_blade, 0, 0, DUR_BRIEF,
         "", "!piercing blade!", ""
+    },
+
+    {
+        "bonded blade",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_DIS, STAT_CON,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_bonded_blade, 0, 0, DUR_NONE,
+        "", "!bonded blade!", ""
     },
 
     {
@@ -6806,7 +6828,7 @@ struct  skill_type
 	{
 	"estimate",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 57, 66, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_STANDING,
@@ -7345,7 +7367,7 @@ struct  skill_type
 	{
 	"kamikaze",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,
