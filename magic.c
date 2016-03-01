@@ -2044,6 +2044,8 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
     if ( ch->stance == STANCE_ARCANA )
         edge += 100;
     int bonus = ch->level * edge / 150;
+    // damroll from affects applies here as well
+    bonus += dice(ch->damroll / 4, 4);
 
     // adjust for casting time
     int cast_time = skill_table[sn].beats;
