@@ -2634,6 +2634,9 @@ struct  pc_data
     int      perm_hit;
     int      perm_mana;
     int      perm_move;
+    int      temp_hit;
+    int      temp_mana;
+    int      temp_move;
 
     BOSSREC *boss_achievements;
 
