@@ -5078,14 +5078,19 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {cWimpy:{x %3d%% {cCalm:{x%3d%%",
+    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
+        get_spell_penetration(ch, ch->level));
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+
+    /* Wimpy, Calm */
+    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%",
         ch->wimpy,
         ch->calm);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
-
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
