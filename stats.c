@@ -1511,11 +1511,12 @@ int modified_level( CHAR_DATA *ch )
     return URANGE(1, level, max);
 }
 
-int get_pc_hitdice( int level )
+int get_hero_bonus( int level )
 {
     int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
-    hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
-    return level + hero_bonus;
+    if ( hero_bonus < 4 )
+        return hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
+    return 10 + 4 * (hero_bonus - 4);
 }
 
 /* Bobble: recalculate a PC's permanent hp/mana/move
@@ -1526,8 +1527,8 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
 {
     int new_hp, new_mana, new_move;
     int trained_hp_bonus, trained_mana_bonus, trained_move_bonus;
-    int level_factor, train_factor, stat_factor, class_factor;
-    int max_train, softcap;
+    int train_factor, stat_factor, class_factor;
+    int max_train, softcap, hero_bonus;
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
@@ -1535,14 +1536,13 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     int level = modified_level(ch);
 
-    level_factor = get_pc_hitdice(level);
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     max_train = max_hmm_train(level);
     
     /* calculate hp */
     stat_factor = 100 + get_curr_stat(ch, STAT_CON);
     class_factor = class_table[ch->class].hp_gain;
-    new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
+    new_hp = 100 + level * stat_factor * class_factor / 1000;
     /* size and form bonus */
     new_hp += (level + 10) * (ch->size - SIZE_MEDIUM);
     if ( IS_SET(ch->form, FORM_TOUGH) )
@@ -1558,7 +1558,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     /* calculate mana */
     stat_factor = 100 + get_curr_stat(ch, STAT_WIS);
     class_factor = class_table[ch->class].mana_gain;
-    new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
+    new_mana = 100 + level * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_WISE) )
         new_mana += level * 10;
@@ -1571,7 +1571,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     /* calculate move */
     stat_factor = 100 + get_curr_stat(ch, STAT_AGI);
     class_factor = class_table[ch->class].move_gain;
-    new_move = 100 + level_factor * stat_factor * class_factor / 1000;
+    new_move = 100 + level * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_AGILE) )
         new_move += level * 10;
@@ -1587,12 +1587,15 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     ch->pcdata->perm_hit = new_hp;
     ch->pcdata->perm_mana = new_mana;
     ch->pcdata->perm_move = new_move;
-    ch->pcdata->trained_hit_bonus = trained_hp_bonus;
-    ch->pcdata->trained_mana_bonus = trained_mana_bonus;
-    ch->pcdata->trained_move_bonus = trained_move_bonus;
     ch->max_hit = new_hp + trained_hp_bonus + ch->pcdata->temp_hit;
     ch->max_mana = new_mana + trained_mana_bonus + ch->pcdata->temp_mana;
     ch->max_move = new_move + trained_move_bonus + ch->pcdata->temp_move;
+    
+    /* last of all hero bonus - applies to everything */
+    hero_bonus = get_hero_bonus(level);
+    ch->max_hit += ch->max_hit * hero_bonus / 100;
+    ch->max_mana += ch->max_mana * hero_bonus / 100;
+    ch->max_move += ch->max_move * hero_bonus / 100;
 }
 
 void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
@@ -1606,9 +1609,9 @@ void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
         return;
     }
 
-    base_hp = ch->max_hit - ch->pcdata->trained_hit_bonus;
-    base_mana = ch->max_mana - ch->pcdata->trained_mana_bonus;
-    base_move = ch->max_move - ch->pcdata->trained_move_bonus;
+    base_hp = ch->pcdata->perm_hit + ch->pcdata->temp_hit;
+    base_mana = ch->pcdata->perm_mana + ch->pcdata->temp_mana;
+    base_move = ch->pcdata->perm_move + ch->pcdata->temp_move;
 
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     // hp
