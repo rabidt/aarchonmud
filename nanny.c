@@ -1200,7 +1200,10 @@ static int nanny_show_subclasses( CHAR_DATA *ch )
             count++;
         }
     }
-    ptc(ch, "{x ]\n\r{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+    ptc(ch, "{x ]\n\r");
+    if ( count == ch->pcdata->remorts )
+        ptc(ch, "{RWARNING: This time your choice of subclass will be final!{x\n\r");
+    ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
     return count;
 }
 

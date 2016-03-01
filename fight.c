@@ -168,6 +168,14 @@ void daze_state( CHAR_DATA *ch, int npulse )
     ch->daze += npulse * npulse / UMAX(1, ch->daze + npulse);
 }
 
+// bonded blade skill effect, 0-100
+int get_bonded_blade( CHAR_DATA *ch )
+{
+    if ( !get_eq_char(ch, WEAR_WIELD) || get_eq_char(ch, WEAR_SECONDARY) || get_eq_char(ch, WEAR_SHIELD) )
+        return 0;
+    return get_skill(ch, gsn_bonded_blade);
+}
+
 // return critical chance as multiple of 0.05% (100 = 5% chance)
 int critical_chance(CHAR_DATA *ch, bool secondary)
 {
@@ -175,7 +183,8 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical) + 2 * get_skill(ch, gsn_piercing_blade)
+    return get_skill(ch, gsn_critical)
+        + 2 * get_bonded_blade(ch)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
 }
 
@@ -924,7 +933,19 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             vch_next = vch->next_in_room;
             if ( vch->fighting && is_same_group(vch->fighting, ch) && !is_safe_check(ch, vch, TRUE, FALSE, FALSE) )
             {
-                one_hit(ch, vch, dt, FALSE);
+                // kamikaze only grants attacks against opponents targeting you
+                if ( ch->stance == STANCE_KAMIKAZE )
+                {
+                    if ( vch->fighting == ch )
+                    {
+                        one_hit(ch, vch, dt, FALSE);
+                        // bonus off-hand attack if they are flanking
+                        if ( ch->fighting != vch && per_chance(offhand_attack_chance(ch, TRUE)) )
+                            one_hit(ch, vch, dt, TRUE);
+                    }
+                }
+                else
+                    one_hit(ch, vch, dt, FALSE);
                 // goblin cleaver grants 3 extra attacks (total) against each opponent
                 if ( ch->stance == STANCE_GOBLINCLEAVER )
                 {
@@ -933,9 +954,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                     if ( dual_wielding && per_chance(get_skill_overflow(ch, gsn_goblincleaver) / 2) )
                         one_hit(ch, vch, dt, TRUE);
                 }
-                // kamikaze grants 1 additional attack against each opponent targeting you
-                else if ( ch->stance == STANCE_KAMIKAZE && vch->fighting == ch )
-                    one_hit(ch, vch, dt, FALSE);
             }
         }
     }
@@ -1013,7 +1031,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("wind war");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_windwar(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1021,7 +1039,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("lightning bolt");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_lightning_bolt(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1029,7 +1047,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("call lightning");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_call_lightning(skill, ch->level, ch,victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1037,7 +1055,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 skill=skill_lookup("monsoon");
                 if ( per_chance(get_skill(ch,skill)) )
                 {
-                    ch->mana-=skill_table[skill].min_mana/2;
+                    reduce_mana(ch, skill_table[skill].min_mana/2);
                     spell_monsoon(skill, ch->level, ch, victim, TARGET_CHAR, FALSE);
                 }
                 break;
@@ -1081,9 +1099,6 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         one_hit(ch, victim, dt, TRUE);
 
     CHECK_RETURN(ch, victim);
-    // free attack for anyone attacking a character in kamikaze - works both ways
-    if ( victim->stance==STANCE_KAMIKAZE )
-        one_hit(ch, victim, dt, FALSE);
 }
 
 // dual_axe, dual_sword, etc. used, or 0
@@ -1236,6 +1251,15 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     }
     
     return success;
+}
+
+// adjust hit-chance by dodge, used by a few special attacks that don't target AC
+int dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
+{
+    int adjusted = chance * (150 - dodge_chance(victim, ch, TRUE)) / 150;
+    if ( cfg_show_rolls )
+        ptc(ch, "dodge-adjusted chance = %d%%\n\r", adjusted);
+    return adjusted;
 }
 
 // apply petrification effect (petrified or only slowed)
@@ -1467,7 +1491,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_AFFECTED(ch, AFF_MANTRA) && ch->mana > 0 )
     {
-        ch->mana -= 1;
+        reduce_mana(ch, 1);
         one_hit(ch,victim,dt,FALSE);
         if (ch->fighting != victim)
             return;
@@ -1802,6 +1826,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
 {
     int dam;
     int level = modified_level(ch);
+    bool twohanded = wield && is_wielding_twohanded(ch, wield);
 
     /* basic damage */
     if ( IS_NPC(ch) )
@@ -1830,7 +1855,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     if ( wield != NULL )
     {
         // wielding a weapon twohanded (required or not) increases base damage
-        if ( is_wielding_twohanded(ch, wield) )
+        if ( twohanded )
         {
             dam += dam / 2;
             dam += ch->level * mastery_bonus(ch, gsn_two_handed, 15, 25) / 100;
@@ -1842,8 +1867,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         /* level 90+ bonus */
         if ( !IS_NPC(ch) && level > (LEVEL_HERO - 10) )
             dam += level - (LEVEL_HERO - 10);
-        // lethal hands increase base damage by 20%
-        dam += dam * get_skill(ch, gsn_lethal_hands) / 500;
+        // lethal hands increase base damage by 25%
+        dam += dam * get_skill(ch, gsn_lethal_hands) / 400;
     }
 
     /* damage roll */
@@ -1891,10 +1916,13 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     }
 
     // holy avenger - deal bonus damage against targets of opposing alignment
-    if ( per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
+    if ( wield && per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
-        dam += ch->level * align_diff / 3000;
+        if ( twohanded )
+            dam += ch->level * align_diff / 3000;
+        else
+            dam += ch->level * align_diff / 4000;
     }
     
     /* special attacks */
@@ -2120,8 +2148,8 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         {
             // additional mana cost
             int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
-            ch->mana -= mana_cost;
-            int dam = dice(2*mana_cost, 8);
+            reduce_mana(ch, mana_cost);
+            int dam = dice(2*mana_cost, 12);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
@@ -2146,13 +2174,11 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
     
     // divine retribution
-    if ( hit && check_skill(victim, gsn_divine_retribution)
-        && get_align_type(ch) != get_align_type(victim) )
+    if ( hit && check_skill(victim, gsn_divine_retribution) )
     {
-        int align_diff = ABS(ch->alignment - victim->alignment);
-        int dam = victim->level * align_diff / 2000;
+        int dam = victim->level;
         int damtype = IS_GOOD(victim) ? DAM_HOLY : IS_EVIL(victim) ? DAM_NEGATIVE : DAM_HARM;
-        if ( saves_spell(ch, victim, victim->level, damtype) )
+        if ( saves_spell(ch, victim, 2*victim->level, damtype) )
             dam /= 2;
         full_dam(victim, ch, dam, gsn_divine_retribution, damtype, TRUE);
     }
@@ -2470,7 +2496,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         act_gag("{RCRITICAL STRIKE!{x", ch, NULL, victim, TO_VICT, GAG_DAMAGE);
         check_improve(ch,gsn_critical,TRUE,2);
         // puncture effect from piercing blade
-        if ( check_skill(ch, gsn_piercing_blade) )
+        if ( check_skill(ch, gsn_piercing_blade) && !per_chance(get_heavy_armor_penalty(ch)) )
         {
             AFFECT_DATA af;
 
@@ -2479,7 +2505,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             af.level    = ch->level;
             af.duration = get_duration(gsn_piercing_blade, ch->level);
             af.location = APPLY_AC;
-            af.modifier = 5 * (IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) ? 3 : 2);
+            af.modifier = ch->level;
             af.bitvector = 0;
             affect_join(victim, &af);
             act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
@@ -2802,13 +2828,12 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         }
         break;
     case STANCE_ELEMENTAL_BLADE:
-	/* additional mana cost */
-	if ( ch->mana < 1 )
-	    break;
-	else
-	    ch->mana -= 1;
-    if ( check_skill(ch, gsn_elemental_strike) )
-        dam += ch->level / 3;
+        /* additional mana cost */
+        if ( ch->mana < 1 )
+            break;
+        reduce_mana(ch, 1);
+        if ( check_skill(ch, gsn_elemental_strike) )
+            dam += ch->level / 2;
 	/* if weapon damage can be matched.. */
 	if ( wield != NULL )
 	{
@@ -3384,14 +3409,6 @@ bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
     return success;
 }
 
-static int get_bulwark_reduction( CHAR_DATA *ch )
-{
-    int skill = get_skill(ch, gsn_bulwark);
-    if ( !skill || !is_calm(ch) )
-        return 0;
-    return shield_block_chance(ch, FALSE) * skill / 100;
-}
-
 /*
 * Inflict full damage from a hit.
 */
@@ -3415,6 +3432,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( is_safe(ch, victim) )
         return FALSE;
 
+    if ( IS_AFFECTED(victim, AFF_LAST_STAND) )
+        return FALSE;
+    
     /*
     * Stop up any residual loopholes.
     */
@@ -3477,22 +3497,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         int heavy_bonus = get_heavy_armor_bonus(victim);
         if ( normal_hit && ch->stance == STANCE_DIMENSIONAL_BLADE )
             heavy_bonus /= 2;
-        dam -= dam * heavy_bonus / 400;
-    }
-    
-    // bulwark skill
-    if ( dam > 1 )
-    {
-        // bulwark reduces both damage taken and damage dealt
-        // incoming spell damage is partially reduced, outgoing not at all
-        if ( is_spell )
-            dam -= dam * get_bulwark_reduction(victim) / 200; 
-        else
-        {
-            int ch_bw = get_bulwark_reduction(ch) / 2;
-            int victim_bw = get_bulwark_reduction(victim);
-            dam -= dam * (victim_bw + (100 - victim_bw) * ch_bw / 100) / 100;
-        }
+        // bulwark skill increases reduction to 40%
+        dam -= dam * heavy_bonus / (400 - get_skill(victim, gsn_bulwark) * 1.5);
     }
     
     if ( dam > 1 && !IS_NPC(victim) && victim->pcdata->condition[COND_DRUNK] > 10 )
@@ -3608,8 +3614,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 int overflow = get_skill_overflow(victim, gsn_bloodbath);
                 dam += bonus * 100 / (100 + overflow);
             }
-            else if ( victim->stance == STANCE_KAMIKAZE )
-                dam += (18 + dam) / 6;
             else if ( victim->stance == STANCE_TORTOISE
                 || victim->stance == STANCE_AVERSION )
                 dam -= dam / 3;
@@ -3776,9 +3780,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             int absorb_roll = number_range(0, absorb - absorb_ignore);
             int grit_max = (victim->move << get_mastery(victim, gsn_true_grit)) * grit/100;
             int grit_roll = number_range(0, grit_max);
-            #ifdef TESTER
-            printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
-            #endif
+            if ( cfg_show_rolls )
+                printf_to_char(victim, "True Grit: absorb-roll(%d) = %d vs %d = grit-roll(%d)\n\r", absorb-absorb_ignore, absorb_roll, grit_roll, grit_max);
             if ( grit_roll >= absorb_roll )
             {
                 victim->move -= absorb;
@@ -3838,14 +3841,39 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     remember_attack(victim, ch, total_dam);
     
     /* deaths door check Added by Tryste */
-    if ( !IS_NPC(victim) && victim->hit < 1 )
+    if ( victim->hit < 1 )
     {
-        if (IS_AFFECTED(victim, AFF_DEATHS_DOOR) )
+        // can't use last stand against a character using last stand - recursion is bad
+        if ( ch != victim && !IS_AFFECTED(ch, AFF_LAST_STAND) && check_skill(victim, gsn_ashura) )
+        {
+            act("You make your last stand!", victim, NULL, NULL, TO_CHAR);
+            act("$n makes $s last stand!", victim, NULL, NULL, TO_ROOM);
+            SET_AFFECT(victim, AFF_LAST_STAND);
+            // make attacks at increasing move cost until we kill the attacker and survive,
+            // or run out of moves and die
+            int cost = 50;
+            bool offhand = offhand_attack_chance(victim, FALSE) > 0;
+            while ( victim->move >= cost && !IS_DEAD(ch) && ch->in_room == victim->in_room )
+            {
+                victim->move -= cost;
+                cost += 10;
+                one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+                if ( offhand && per_chance(33) )
+                    one_hit(victim, ch, TYPE_UNDEFINED, TRUE);
+            }
+            REMOVE_AFFECT(victim, AFF_LAST_STAND);
+            // killing attacker restores health
+            if ( IS_DEAD(ch) && victim->hit < 1 )
+                victim->hit = 1;
+        }
+        
+        if ( IS_AFFECTED(victim, AFF_DEATHS_DOOR) && victim->hit < 1 )
         {
             if ( per_chance(25) )
             {
                 stop_fighting(victim, TRUE);
-                int hp_gain = 100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
+                int hp_gain = IS_NPC(victim) ? victim->max_hit / 3 :
+                    100 + (10 + victim->pcdata->remorts) * get_pc_hitdice(victim->level);
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
                 send_to_char("The gods have protected you from dying!\n\r", victim);
@@ -4719,6 +4747,14 @@ bool blind_penalty( CHAR_DATA *ch )
     return TRUE;
 }
 
+bool is_woodland( int sector )
+{
+    return sector == SECT_FOREST
+        || sector == SECT_FIELD
+        || sector == SECT_HILLS
+        || sector == SECT_MOUNTAIN;
+}
+
 /* checks for dodge, parry, etc. */
 bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 {
@@ -4735,29 +4771,22 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 	return TRUE;
     
     /* chance for dodge, parry etc. ? */
-    autohit =
-	vstance == STANCE_KAMIKAZE
-	|| vstance == STANCE_BLOODBATH;
+    autohit = (vstance == STANCE_BLOODBATH);
 
     finesse =
-	stance == STANCE_EAGLE 
-	|| stance == STANCE_LION 
-	|| stance == STANCE_FINESSE
-	|| stance == STANCE_DECEPTION
-	|| stance == STANCE_AMBUSH
-	|| stance == STANCE_BLADE_DANCE
-	|| stance == STANCE_BLOODBATH
-	|| stance == STANCE_TARGET_PRACTICE
-	|| stance == STANCE_KAMIKAZE
-    || stance == STANCE_KAMIKAZE
+        stance == STANCE_EAGLE 
+        || stance == STANCE_LION 
+        || stance == STANCE_FINESSE
+        || stance == STANCE_DECEPTION
+        || stance == STANCE_AMBUSH
+        || stance == STANCE_BLADE_DANCE
+        || stance == STANCE_BLOODBATH
+        || stance == STANCE_TARGET_PRACTICE
+        || stance == STANCE_KAMIKAZE
         || stance == STANCE_SERPENT;
 
     /* woodland combat */
-    if ( sector == SECT_FOREST 
-	 || ((sector == SECT_FIELD 
-	      || sector == SECT_HILLS 
-	      || sector == SECT_MOUNTAIN)
-	     && number_bits(1) == 0) )
+    if ( sector == SECT_FOREST || (is_woodland(sector) && number_bits(1) == 0) )
     {
 	if ( number_percent() <= get_skill(ch, gsn_woodland_combat) )
 	{
@@ -4787,6 +4816,9 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_phantasmal( ch, victim, show ) )
         return TRUE;
 
+    if ( ch->stance == STANCE_DIMENSIONAL_BLADE && per_chance(50) )
+        return FALSE;
+        
     if ( check_shield(ch, victim) )
         return TRUE;
     if ( check_shield_block(ch,victim) )
@@ -4976,7 +5008,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         else
             skill = unarmed_skill;
     }
-
+    
     int opponent_adjust = 0;
     if ( opp )
     {
@@ -5264,13 +5296,17 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     int skill = get_skill_total(ch, gsn_shield_block, 0.2);
     // non-metal shields suffer a small block penalty
     int base = IS_OBJ_STAT(shield, ITEM_NONMETAL) ? 79 : 80;
-    int chance = (base + skill) / 4;
+    int chance = base + skill;
     
     if ( wrist_shield )
     {
-        int penalty = (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 10;
+        int penalty = base * (100 - get_skill_overflow(ch, gsn_wrist_shield)) / 200;
         chance = (chance - UMAX(0, penalty)) * (100 + get_skill(ch, gsn_wrist_shield)) / 300;
+    } else {
+        chance += base * get_skill(ch, gsn_shield_wall) / 200;
     }
+    // block chance is 20 base + skill/4; divide now to reduce rounding errors
+    chance /= 4;
     
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;

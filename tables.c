@@ -317,6 +317,7 @@ const struct flag_type affect_flags[] =
     { "mana_burn",         AFF_MANA_BURN,            TRUE  },
     { "iron_maiden",       AFF_IRON_MAIDEN,          TRUE  },
     { "fleeing",           AFF_FLEE,                 FALSE },
+    { "last_stand",        AFF_LAST_STAND,           FALSE },
     { "heal",              AFF_HEAL,                 TRUE  },
     { "overcharge",        AFF_OVERCHARGE,           TRUE  },
     { "giant strength",    AFF_GIANT_STRENGTH,       TRUE  },
@@ -572,6 +573,7 @@ const struct flag_type oprog_flags[] =
     {   "wake",         OTRIG_WAKE,      TRUE    },
     {   "move",         OTRIG_MOVE,      TRUE    },
     {   "death",        OTRIG_DEATH,     TRUE    },
+    {   "merge",        OTRIG_MERGE,     TRUE    },
     {   NULL,           0,          TRUE    }
 };
 
@@ -1271,8 +1273,8 @@ const struct stance_type stances [] =
 	  &gsn_ambush,               FALSE, TRUE,        25 },
 	{ "bloodbath",        STANCE_BLOODBATH,           0,             "", 
 		&gsn_bloodbath,            FALSE, TRUE,  16 },
-	{ "kamikaze",         STANCE_KAMIKAZE,            0,             "", 
-		&gsn_kamikaze,             FALSE, TRUE,  25 },
+	{ "kamikaze",         STANCE_KAMIKAZE,            DAM_BASH,      "smash", 
+		&gsn_kamikaze,             TRUE, TRUE,  100 },
 	{ "showdown",         STANCE_SHOWDOWN,            0,             "", 
 		&gsn_showdown,             FALSE, TRUE,  6  },
 	{ "target practice",  STANCE_TARGET_PRACTICE,     0,             "", 
