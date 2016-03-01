@@ -406,9 +406,9 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
         case APPLY_LEVEL:   ch->mod_level   += mod; break;
             
         case APPLY_SEX:     ch->sex         += mod; break;
-        case APPLY_MANA:    ch->max_mana    += mod; break;
-        case APPLY_HIT:     ch->max_hit     += mod; break;
-        case APPLY_MOVE:    ch->max_move    += mod; break;
+        case APPLY_MANA:    ch->max_mana    += mod; if ( ch->pcdata ) ch->pcdata->temp_mana += mod; break;
+        case APPLY_HIT:     ch->max_hit     += mod; if ( ch->pcdata ) ch->pcdata->temp_hit += mod; break;
+        case APPLY_MOVE:    ch->max_move    += mod; if ( ch->pcdata ) ch->pcdata->temp_move += mod; break;
         case APPLY_HIT_CAP:     ch->hit_cap_delta   += mod; break;
         case APPLY_MANA_CAP:    ch->mana_cap_delta  += mod; break;
         case APPLY_MOVE_CAP:    ch->move_cap_delta  += mod; break;
@@ -450,9 +450,9 @@ void reset_char(CHAR_DATA *ch)
     
     ch->mod_skills = 0;
     ch->mod_level = 0;
-    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
-    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
-    ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
+    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->temp_hit = 0;
+    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->temp_mana = 0;
+    ch->max_move = ch->pcdata->perm_move = ch->pcdata->temp_move = 0;
     ch->hit_cap_delta = ch->mana_cap_delta = ch->move_cap_delta = 0;
     
     ch->armor       = 100;
