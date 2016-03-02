@@ -4245,6 +4245,7 @@ DEF_DO_FUN(do_lore)
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
@@ -5069,23 +5070,29 @@ DEF_DO_FUN(do_attributes)
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Magic{x:   %4d        {CSaves Phys{x:   %4d",
+    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
-        get_save(ch, FALSE),
-        get_save(ch, TRUE));
+        get_save(ch, TRUE),
+        get_save(ch, FALSE));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {cWimpy:{x %3d%% {cCalm:{x%3d%%",
+    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
-        ch->wimpy,
-        ch->calm);
+        get_spell_penetration(ch, ch->level));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
+    /* Wimpy, Calm */
+    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
+        ch->wimpy,
+        ch->calm,
+        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE));
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
