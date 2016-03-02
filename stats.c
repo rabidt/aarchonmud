@@ -424,6 +424,24 @@ int get_damroll( CHAR_DATA *ch )
     return damroll;
 }
 
+int get_spell_penetration( CHAR_DATA *ch, int level )
+{
+    if ( ch )
+    {
+        float sp = (level + 10) * (400 + get_curr_stat(ch, STAT_INT)) / 500.0;
+        // higher attack factor means stronger focus on physical attacks
+        sp *= (500 - class_table[ch->class].attack_factor) / 400.0;
+        // hitroll from items / buffs helps as well
+        sp += ch->hitroll / 4.0;
+        // bonus for using focus object
+        int focus = get_obj_focus(ch) + get_dagger_focus(ch);
+        sp += sp * UMIN(focus, 100) / 500.0;
+        return sp;
+    }
+    else
+        return (level + 10) * 6/5;
+}
+
 int max_hmm_train( int level )
 {
   int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
