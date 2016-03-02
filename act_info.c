@@ -5069,10 +5069,10 @@ DEF_DO_FUN(do_attributes)
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Magic{x:   %4d        {CSaves Phys{x:   %4d",
+    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
-        get_save(ch, FALSE),
-        get_save(ch, TRUE));
+        get_save(ch, TRUE),
+        get_save(ch, FALSE));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
@@ -5086,9 +5086,10 @@ DEF_DO_FUN(do_attributes)
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
     /* Wimpy, Calm */
-    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%",
+    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
         ch->wimpy,
-        ch->calm);
+        ch->calm,
+        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
