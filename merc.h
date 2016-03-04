@@ -5235,6 +5235,7 @@ int ch_luc_quest        args((CHAR_DATA *ch));
 void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
+int get_pc_hitdice( int level );
 int get_hero_bonus( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 void update_flags( CHAR_DATA *ch );
