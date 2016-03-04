@@ -1320,8 +1320,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -2652,9 +2652,6 @@ struct  pc_data
     sh_int      trained_hit;
     sh_int      trained_mana;
     sh_int      trained_move;
-    int         trained_hit_bonus;
-    int         trained_mana_bonus;
-    int         trained_move_bonus;
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
@@ -4976,10 +4973,13 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
+int get_obj_focus( CHAR_DATA *ch );
+int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
-int get_spell_bonus_damage( CHAR_DATA *ch, int sn );
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
 int get_sn_damage( int sn, int level, CHAR_DATA *ch );
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
@@ -5197,6 +5197,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
@@ -5235,6 +5236,7 @@ void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
 int get_pc_hitdice( int level );
+int get_hero_bonus( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 void update_flags( CHAR_DATA *ch );
 void calc_stats( CHAR_DATA *ch );
@@ -5247,6 +5249,7 @@ int max_hmm_train( int level );
 int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
+int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );

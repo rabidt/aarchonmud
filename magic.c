@@ -405,10 +405,10 @@ int get_save(CHAR_DATA *ch, bool physical)
     }
     else
     {
-        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
-        save_factor = 250 - physical_factor;
+        int physical_factor = class_table[ch->class].attack_factor * 3/5 + class_table[ch->class].defense_factor / 2;
+        save_factor = 210 - physical_factor;
         // tweak so physically oriented classes get better physical and worse magic saves
-        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
+        save_factor += (physical_factor - 110) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (level + 10) * save_factor/100;
     
@@ -452,10 +452,7 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (get_obj_focus(ch) + get_dagger_focus(ch))) / 500;
-    else
-        hit_roll = (level + 10) * 6/5;
+    hit_roll = get_spell_penetration(ch, level);
 
     if ( ch && ch->stance == STANCE_INQUISITION )
         hit_roll += hit_roll / 3;
@@ -2042,32 +2039,44 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     return dam * number_range(90, 110) / 100;
 }
 
-int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg )
 {
     int edge = get_skill(ch, gsn_warmage_edge);
     if ( ch->stance == STANCE_ARCANA )
         edge += 100;
     int bonus = ch->level * edge / 150;
+    // damroll from affects applies here as well
+    if ( avg )
+        bonus += (ch->damroll / 4) * 2.5;
+    else
+        bonus += dice(ch->damroll / 4, 4);
 
     // adjust for casting time
-    int cast_time = skill_table[sn].beats;
-    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
-        cast_time /= 2;
     bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
 
     return bonus * (100 + get_focus_bonus(ch)) / 100;
 }
 
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn )
+{
+    int cast_time = skill_table[sn].beats;
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
+        cast_time /= 2;
+    return get_spell_bonus_damage(ch, cast_time, FALSE);
+}
+
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
 {
-    int dam;
+    int dam, bonus;
 
     if ( sn < 1 || sn >= MAX_SKILL )
         return 0;
 
     dam = get_spell_damage( skill_table[sn].min_mana, skill_table[sn].beats, level );
     dam = adjust_spell_damage(dam, ch);
-    dam += get_spell_bonus_damage(ch, sn);
+    bonus = get_spell_bonus_damage_sn(ch, sn);
+    // bonus can at most double the spell damage
+    dam += UMIN(bonus, dam);
 
     return dam;
 }
@@ -5459,7 +5468,6 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
             sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
