@@ -3870,9 +3870,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             if ( per_chance(25) )
             {
                 stop_fighting(victim, TRUE);
-                int level = modified_level(victim);
-                int hp_gain = IS_NPC(victim) ? victim->max_hit / 3 :
-                    100 + (10 + victim->pcdata->remorts) * level * (100 + get_hero_bonus(level)) / 100;
+                int hp_gain = victim->max_hit / 3;
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
                 send_to_char("The gods have protected you from dying!\n\r", victim);
