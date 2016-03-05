@@ -797,13 +797,11 @@ void check_jump_up( CHAR_DATA *ch )
 	 || !can_attack(ch) )
       return;
 
-    chance = 25 + ch->level/4 + get_curr_stat(ch, STAT_AGI)/8
-	+ get_skill(ch, gsn_jump_up) / 4;
-    if ( ch->daze > 0 )
-        chance /= 2;
-
+    chance = get_curr_stat(ch, STAT_AGI) / 8 + get_skill(ch, gsn_jump_up) / 2 + mastery_bonus(ch, gsn_jump_up, 15, 25);
+    chance -= chance * get_heavy_armor_penalty(ch) / 100;
+    
     if ( is_affected(ch, gsn_hogtie) )
-        chance *= 2/3;
+        chance /= 2;
 
     if (number_percent() < chance)
     {
