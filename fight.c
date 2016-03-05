@@ -1606,6 +1606,8 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks += 150;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
     for ( ; attacks > 0; attacks -= 100 )
     {
@@ -3965,6 +3967,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if ( dam > victim->max_hit / 4 )
             send_to_char( "That really did HURT!\n\r", victim );
         if ( victim->hit < victim->max_hit / 4 
+            && dam > victim->level / 4
             && !IS_SET(victim->gag, GAG_BLEED))
             send_to_char( "You sure are BLEEDING!\n\r", victim );
         break;
