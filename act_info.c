@@ -5218,6 +5218,34 @@ DEF_DO_FUN(do_percentages)
     return;
 }
 
+// breakdown of hp/mana/move calculation
+DEF_DO_FUN(do_breakdown)
+{
+    if ( IS_NPC(ch) )
+        return;
+    
+    ptc(ch, "               {rHitpoints{x     {BMana{x       {cMoves{x\n\r");
+    ptc(ch, "%-15s%6d%12d%12d\n\r", "Natural",
+        ch->pcdata->perm_hit, ch->pcdata->perm_mana, ch->pcdata->perm_move);
+    
+    ptc(ch, "%-15s%6d%12d%12d\n\r", "Equipment",
+        ch->pcdata->temp_hit, ch->pcdata->temp_mana, ch->pcdata->temp_move);
+    
+    float hero_bonus = get_hero_factor(modified_level(ch)) - 1;
+    int hero_hit = ch->pcdata->temp_hit * hero_bonus;
+    int hero_mana = ch->pcdata->temp_mana * hero_bonus;
+    int hero_move = ch->pcdata->temp_move * hero_bonus;
+    if ( hero_hit || hero_mana || hero_move )
+        ptc(ch, "%-15s%6d%12d%12d\n\r", "Hero-Bonus", hero_hit, hero_mana, hero_move);
+
+    int train_hit  = ch->max_hit  - (ch->pcdata->perm_hit  + ch->pcdata->temp_hit  + hero_hit);
+    int train_mana = ch->max_mana - (ch->pcdata->perm_mana + ch->pcdata->temp_mana + hero_mana);
+    int train_move = ch->max_move - (ch->pcdata->perm_move + ch->pcdata->temp_move + hero_move);
+    if ( train_hit || train_mana || train_move )
+        ptc(ch, "%-15s%6d%12d%12d\n\r", "Training", train_hit, train_mana, train_move);
+
+}
+
 DEF_DO_FUN(do_helper)
 {
         CHAR_DATA *victim;
