@@ -1518,12 +1518,12 @@ int get_pc_hitdice( int level )
     return level + hero_bonus;
 }
 
-float get_hero_factor( int level )
+int get_hero_factor( int level )
 {
     int hlevel = UMAX(0, level - (LEVEL_HERO - 10));
     // advancement: 1,1,2,2,3,3,4,4,5,5
     int hero_bonus = (hlevel + 1) / 2 * (hlevel / 2 + 1);
-    return (100 + hero_bonus) / 100.0;
+    return 100 + hero_bonus;
 }
 
 int softcap_adjust( int trained, int cap )
@@ -1593,10 +1593,10 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     ch->pcdata->perm_mana = new_mana;
     ch->pcdata->perm_move = new_move;
     
-    float hero_factor = get_hero_factor(level);
-    ch->max_hit = new_hp + ch->pcdata->temp_hit * hero_factor;
-    ch->max_mana = new_mana + ch->pcdata->temp_mana * hero_factor;
-    ch->max_move = new_move + ch->pcdata->temp_move * hero_factor;
+    int hero_factor = get_hero_factor(level);
+    ch->max_hit = new_hp + ch->pcdata->temp_hit * hero_factor / 100;
+    ch->max_mana = new_mana + ch->pcdata->temp_mana * hero_factor / 100;
+    ch->max_move = new_move + ch->pcdata->temp_move * hero_factor / 100;
     
     /* trained hp/mana/move, subject to cap */
     ch->max_hit += softcap_adjust(trained_hp_bonus, ch->max_hit / 2);
@@ -1615,10 +1615,10 @@ void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
         return;
     }
 
-    float hero_factor = get_hero_factor(modified_level(ch));
-    base_hp = ch->pcdata->perm_hit + ch->pcdata->temp_hit * hero_factor;
-    base_mana = ch->pcdata->perm_mana + ch->pcdata->temp_mana * hero_factor;
-    base_move = ch->pcdata->perm_move + ch->pcdata->temp_move * hero_factor;
+    int hero_factor = get_hero_factor(modified_level(ch));
+    base_hp = ch->pcdata->perm_hit + ch->pcdata->temp_hit * hero_factor / 100;
+    base_mana = ch->pcdata->perm_mana + ch->pcdata->temp_mana * hero_factor / 100;
+    base_move = ch->pcdata->perm_move + ch->pcdata->temp_move * hero_factor / 100;
 
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     // hp
