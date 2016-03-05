@@ -1520,11 +1520,9 @@ int get_pc_hitdice( int level )
 
 float get_hero_factor( int level )
 {
-    int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
-    if ( hero_bonus < 4 )
-        hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
-    else
-        hero_bonus = 10 + 4 * (hero_bonus - 4);
+    int hlevel = UMAX(0, level - (LEVEL_HERO - 10));
+    // advancement: 1,1,2,2,3,3,4,4,5,5
+    int hero_bonus = (hlevel + 1) / 2 * (hlevel / 2 + 1);
     return (100 + hero_bonus) / 100.0;
 }
 
