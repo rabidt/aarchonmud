@@ -5231,15 +5231,14 @@ DEF_DO_FUN(do_breakdown)
     ptc(ch, "%-15s%6d%12d%12d\n\r", "Equipment",
         ch->pcdata->temp_hit, ch->pcdata->temp_mana, ch->pcdata->temp_move);
     
-    float hero_bonus = get_hero_factor(modified_level(ch)) - 1;
-    int hero_hit = ch->pcdata->temp_hit * hero_bonus;
-    int hero_mana = ch->pcdata->temp_mana * hero_bonus;
-    int hero_move = ch->pcdata->temp_move * hero_bonus;
+    int hero_bonus = get_hero_factor(modified_level(ch)) - 100;
+    int hero_hit = ch->pcdata->temp_hit * hero_bonus / 100;
+    int hero_mana = ch->pcdata->temp_mana * hero_bonus / 100;
+    int hero_move = ch->pcdata->temp_move * hero_bonus / 100;
     if ( hero_hit || hero_mana || hero_move )
     {
         ptc(ch, "%-15s%6d%12d%12d      (%d%%)\n\r", "Hero-Bonus",
-            hero_hit, hero_mana, hero_move,
-            (int)(hero_bonus * 100 + 0.5));
+            hero_hit, hero_mana, hero_move, hero_bonus);
     }
 
     int train_hit  = ch->max_hit  - (ch->pcdata->perm_hit  + ch->pcdata->temp_hit  + hero_hit);
