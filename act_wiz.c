@@ -2956,31 +2956,18 @@ DEF_DO_FUN(do_avatar)
   ch->exp = exp_per_level(ch) * UMAX(1, ch->level);
 
   /* Forces the player to remove all so they need the right level eq */
-
-  if(ch->level < 100)
-  {
-	for ( obj = ch->carrying; obj != NULL; obj = obj_next )
-	{
-	    obj_next = obj->next_content;
-	  if (obj->wear_loc != WEAR_NONE && can_see_obj (ch, obj))
-      {
-        remove_obj (ch, obj->wear_loc, TRUE);
-	  }
-	}
-
-/* old code has some weird display bug where it tries to remove obj in your inventory even though it's not
-equipped. - Astark 6/12
-
-    for (obj =ch->carrying; obj; obj = obj_next)
+    for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {
-      obj_next = obj->next_content;
-        remove_obj (ch, obj->wear_loc, TRUE);
-     
+        obj_next = obj->next_content;
+        if ( obj->wear_loc != WEAR_NONE && obj->level > ch->level )
+        {
+            unequip_char( ch, obj );
+            act( "You stop using $p.", ch, obj, NULL, TO_CHAR );
+        }
     }
-*/
 
-  }
   /* save_char_obj(ch);  save character */
+  reset_char(ch);
   force_full_save();
   return;
 }
