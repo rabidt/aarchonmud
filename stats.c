@@ -436,6 +436,9 @@ int get_spell_penetration( CHAR_DATA *ch, int level )
         // bonus for using focus object
         int focus = get_obj_focus(ch) + get_dagger_focus(ch);
         sp += sp * UMIN(focus, 100) / 500.0;
+        // inquisition
+        if ( ch && ch->stance == STANCE_INQUISITION )
+            sp += sp / 3;
         return sp;
     }
     else
