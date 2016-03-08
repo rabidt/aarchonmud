@@ -5069,7 +5069,7 @@ DEF_DO_FUN(do_attributes)
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
+    sprintf( buf, "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
         get_save(ch, TRUE),
         get_save(ch, FALSE));
@@ -5078,7 +5078,7 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {CSpell Pierce{x: %4d",
+    sprintf( buf, "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
