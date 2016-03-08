@@ -1547,9 +1547,8 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
 {
     int new_hp, new_mana, new_move;
     int trained_hp_bonus, trained_mana_bonus, trained_move_bonus;
-    int hp_bonus, mana_bonus, move_bonus, softcap;
     int level_factor, train_factor, stat_factor, class_factor;
-    int max_train;
+    int max_train, softcap;
     
     /* PCs only */
     if (IS_NPC(ch) || ch->pcdata == NULL)
@@ -1557,11 +1556,6 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     int level = modified_level(ch);
 
-    // "temporary" bonuses (eq/tattoos/affects with +hp/mana/move)
-    hp_bonus = ch->max_hit - ch->pcdata->perm_hit - ch->pcdata->trained_hit_bonus;
-    mana_bonus = ch->max_mana - ch->pcdata->perm_mana - ch->pcdata->trained_mana_bonus;
-    move_bonus = ch->max_move - ch->pcdata->perm_move - ch->pcdata->trained_move_bonus;
-    
     level_factor = get_pc_hitdice(level);
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     max_train = max_hmm_train(level);
@@ -1578,7 +1572,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;
     if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_hp_bonus += 2 * UMIN(max_train,ch->pcdata->trained_hit);
-    softcap = (new_hp + hp_bonus) / 2;
+    softcap = (new_hp + ch->pcdata->temp_hit) / 2;
     if (trained_hp_bonus > softcap)
         trained_hp_bonus = softcap + (trained_hp_bonus - softcap) / 5;
     
@@ -1591,7 +1585,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
         new_mana += level * 10;
     /* train bonus */
     trained_mana_bonus = UMIN(max_train,ch->pcdata->trained_mana) * train_factor * class_factor / 2000;
-    softcap = (new_mana + mana_bonus) / 2;
+    softcap = (new_mana + ch->pcdata->temp_mana) / 2;
     if (trained_mana_bonus > softcap)
         trained_mana_bonus = softcap + (trained_mana_bonus - softcap) / 5;
     
@@ -1606,7 +1600,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     trained_move_bonus = UMIN(max_train,ch->pcdata->trained_move) * train_factor * class_factor / 2000;
     if ( IS_SET(ch->form, FORM_CONSTRUCT) )
         trained_move_bonus += UMIN(max_train,ch->pcdata->trained_move);
-    softcap = (new_move + move_bonus) / 2;
+    softcap = (new_move + ch->pcdata->temp_move) / 2;
     if (trained_move_bonus > softcap)
         trained_move_bonus = softcap + (trained_move_bonus - softcap) / 5;
     
@@ -1617,9 +1611,9 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     ch->pcdata->trained_hit_bonus = trained_hp_bonus;
     ch->pcdata->trained_mana_bonus = trained_mana_bonus;
     ch->pcdata->trained_move_bonus = trained_move_bonus;
-    ch->max_hit = new_hp + hp_bonus + trained_hp_bonus;
-    ch->max_mana = new_mana + mana_bonus + trained_mana_bonus;
-    ch->max_move = new_move + move_bonus + trained_move_bonus;
+    ch->max_hit = new_hp + trained_hp_bonus + ch->pcdata->temp_hit;
+    ch->max_mana = new_mana + trained_mana_bonus + ch->pcdata->temp_mana;
+    ch->max_move = new_move + trained_move_bonus + ch->pcdata->temp_move;
 }
 
 void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
