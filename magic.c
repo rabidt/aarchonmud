@@ -1762,7 +1762,7 @@ int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self )
     return UMAX(1, mana * factor * (1-rebate));
 }
 
-void show_wishes( CHAR_DATA *ch )
+void show_wishes( CHAR_DATA *ch, bool all )
 {
     BUFFER *buffer;
     char buf[MAX_STRING_LENGTH];
@@ -1802,7 +1802,8 @@ void show_wishes( CHAR_DATA *ch )
     }
 
     buffer = new_buf();
-    for ( level = 0; level <= LEVEL_HERO; level++ )
+    int max_level = all ? LEVEL_HERO : ch->level;
+    for ( level = 0; level <= max_level; level++ )
         if (spell_list[level][0] != '\0')
             add_buf(buffer, spell_list[level]);
     add_buf(buffer,"\n\r");
@@ -1832,7 +1833,7 @@ DEF_DO_FUN(do_wish)
     
     if ( !strcmp(arg1, "list") )
     {
-        show_wishes(ch);
+        show_wishes(ch, !strcmp(target_name, "all"));
         return;
     }
 

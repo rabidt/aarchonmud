@@ -1845,7 +1845,7 @@ DEF_DO_FUN(do_sset)
 
 bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
 {
-    int max_value = IS_IMMORTAL(victim) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->class, stat);
+    int max_value = (IS_IMMORTAL(victim) || IS_NPC(victim)) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->class, stat);
     if ( value < 1 || value > max_value )
     {
         ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, max_value);
@@ -1853,7 +1853,8 @@ bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
     }
 
     victim->perm_stat[stat] = value;
-    victim->pcdata->original_stats[stat] = value;
+    if ( !IS_NPC(victim) )
+        victim->pcdata->original_stats[stat] = value;
     return TRUE;
 }
 #define MSETSTAT( statname, statval ) MSETFUN( statname ) \
@@ -2578,7 +2579,7 @@ DEF_DO_FUN(do_mset)
             {
                 ptc(ch, "%s not set.\n\r", arg2 );
             }
-                
+            reset_char(victim);
             return;
         }
     }
