@@ -3393,19 +3393,6 @@ DEF_DO_FUN(do_consider)
 	    diff += 2 + victim->level/20;
     }
 
-    /*
-    if (IS_NPC(victim))
-    {
-        level = victim->level;
-        armor = (victim->armor[0]+victim->armor[1]+victim->armor[2]+victim->armor[3])/4;
-        hp = victim->hit;
-        dam = (victim->damage[0]*(victim->damage[1]+1))/2 + GET_DAMROLL(victim) + GET_HITROLL(victim);
-        diff += ((hp-level*level)/(level+1))/(3+level/15);
-        diff += (dam-level)/(2+level/30);
-        diff += (100 - armor - 6*level)/(level+10);
-    }
-    */
-
     /* reduce diff a bit to make difference more distinguishable */
     diff = diff * 2/3;
 

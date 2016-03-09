@@ -3601,7 +3601,7 @@ static int CH_set_acpcnt (lua_State *LS)
         luaL_error(LS, "Can't set acpcnt on PCs.");
 
     /* analogous to mob_base_ac */
-    ud_ch->armor = 100 + ( ud_ch->level * -6 ) * luaL_checkinteger( LS, 2 ) / 100;
+    ud_ch->armor = ( ud_ch->level * -6 ) * luaL_checkinteger( LS, 2 ) / 100;
     return 0;
 }
 
