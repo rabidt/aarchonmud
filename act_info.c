@@ -5230,7 +5230,7 @@ DEF_DO_FUN(do_breakdown)
     if ( IS_NPC(ch) )
         return;
     
-    ptc(ch, "               {rHitpoints{x     {BMana{x       {cMoves{x\n\r");
+    ptc(ch, "%25s%16s%16s\n\r", "{rHitpts{x", "{BMana{x", "{cMoves{x");
     ptc(ch, "%-15s%6d%12d%12d\n\r", "Natural",
         ch->pcdata->perm_hit, ch->pcdata->perm_mana, ch->pcdata->perm_move);
     
@@ -5243,7 +5243,7 @@ DEF_DO_FUN(do_breakdown)
     int hero_move = ch->pcdata->temp_move * hero_bonus / 100;
     if ( hero_hit || hero_mana || hero_move )
     {
-        ptc(ch, "%-15s%6d%12d%12d      (%d%%)\n\r", "Hero-Bonus",
+        ptc(ch, "%-15s%6d%12d%12d       (%d%%)\n\r", "Hero-Bonus",
             hero_hit, hero_mana, hero_move, hero_bonus);
     }
 
@@ -5252,7 +5252,19 @@ DEF_DO_FUN(do_breakdown)
     int train_move = ch->max_move - (ch->pcdata->perm_move + ch->pcdata->temp_move + hero_move);
     if ( train_hit || train_mana || train_move )
         ptc(ch, "%-15s%6d%12d%12d\n\r", "Training", train_hit, train_mana, train_move);
-
+    
+    int nat_sp = get_save(ch, TRUE) - ch->saving_throw;
+    int nat_sm = get_save(ch, FALSE) - ch->saving_throw;
+    int nat_hitroll = get_hitroll(ch) - ch->hitroll;
+    int nat_damroll = get_damroll(ch) - ch->damroll;
+    int nat_armor = get_ac(ch) - ch->armor;
+    
+    ptc(ch, "\n\r%25s%16s%16s%16s\n\r", "{CArmor{x", "{CSaves P/M{x", "{CHitroll{x", "{CDamroll{x");
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Natural",
+        nat_armor, nat_sp, nat_sm, nat_hitroll, nat_damroll);
+    
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Equip/Buffs",
+        ch->armor, ch->saving_throw, ch->saving_throw, ch->hitroll, ch->damroll);
 }
 
 DEF_DO_FUN(do_helper)
