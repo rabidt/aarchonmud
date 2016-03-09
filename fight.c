@@ -2594,7 +2594,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 {
     CHAR_DATA *opp;
     int ch_roll, victim_roll;
-    int victim_ac;
 
     if ( ch == victim )
 	return TRUE;
@@ -2624,12 +2623,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( number_bits(3) == 0 )
 	return TRUE;
 
-    /* ac */
-    victim_ac = GET_AC(victim)/10;
-
     /* basic values */
     ch_roll = GET_HITROLL(ch);
-    victim_roll = 10 - victim_ac;
+    victim_roll = GET_AC(victim) / -10;
 
     /* special skill adjustment */
     if ( (dt < TYPE_HIT && IS_SPELL(dt))
@@ -3477,7 +3473,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    
     if ( dam > 1 && normal_hit )
     {
-        int armor = 100 - get_ac(victim);
+        int armor = -get_ac(victim);
         // expected reduction of 1 damage per 100 AC
         int armor_absorb = number_range(0, armor/50);
         if ( armor_absorb > dam/2 )

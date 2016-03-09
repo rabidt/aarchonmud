@@ -330,7 +330,7 @@ CHAR_DATA *new_char (void)
 	ch->prefix          = &str_empty[0];
 	ch->logon                   = current_time;
 	ch->lines                   = PAGELEN;
-	ch->armor                   = 100;
+	ch->armor                   = 0;
 	ch->hunting					= NULL;
 	ch->aggressors				= NULL;
     ch->pet                     = NULL;

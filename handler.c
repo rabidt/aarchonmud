@@ -455,7 +455,7 @@ void reset_char(CHAR_DATA *ch)
     ch->max_move = ch->pcdata->perm_move = ch->pcdata->temp_move = 0;
     ch->hit_cap_delta = ch->mana_cap_delta = ch->move_cap_delta = 0;
     
-    ch->armor       = 100;
+    ch->armor       = 0;
     ch->heavy_armor = 0;
     
     ch->hitroll     = 0;
