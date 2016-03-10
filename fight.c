@@ -797,13 +797,11 @@ void check_jump_up( CHAR_DATA *ch )
 	 || !can_attack(ch) )
       return;
 
-    chance = 25 + ch->level/4 + get_curr_stat(ch, STAT_AGI)/8
-	+ get_skill(ch, gsn_jump_up) / 4;
-    if ( ch->daze > 0 )
-        chance /= 2;
-
+    chance = get_curr_stat(ch, STAT_AGI) / 8 + get_skill(ch, gsn_jump_up) / 2 + mastery_bonus(ch, gsn_jump_up, 15, 25);
+    chance -= chance * get_heavy_armor_penalty(ch) / 100;
+    
     if ( is_affected(ch, gsn_hogtie) )
-        chance *= 2/3;
+        chance /= 2;
 
     if (number_percent() < chance)
     {
@@ -2088,9 +2086,7 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     if ( IS_UNDEAD(ch) )
     {
         int dark_bonus = get_skill(ch->leader, gsn_army_of_darkness);
-        if ( room_is_dark(ch->in_room) )
-            dark_bonus *= 3;
-        else if ( room_is_dim(ch->in_room) )
+        if ( weather_info.sunlight == SUN_DARK || room_is_dim(ch->in_room) )
             dark_bonus *= 2;
         bonus += dark_bonus;
     }
@@ -2598,7 +2594,6 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 {
     CHAR_DATA *opp;
     int ch_roll, victim_roll;
-    int victim_ac;
 
     if ( ch == victim )
 	return TRUE;
@@ -2628,12 +2623,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( number_bits(3) == 0 )
 	return TRUE;
 
-    /* ac */
-    victim_ac = GET_AC(victim)/10;
-
     /* basic values */
     ch_roll = GET_HITROLL(ch);
-    victim_roll = 10 - victim_ac;
+    victim_roll = GET_AC(victim) / -10;
 
     /* special skill adjustment */
     if ( (dt < TYPE_HIT && IS_SPELL(dt))
@@ -3481,7 +3473,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
    
     if ( dam > 1 && normal_hit )
     {
-        int armor = 100 - get_ac(victim);
+        int armor = -get_ac(victim);
         // expected reduction of 1 damage per 100 AC
         int armor_absorb = number_range(0, armor/50);
         if ( armor_absorb > dam/2 )

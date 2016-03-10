@@ -3572,7 +3572,7 @@ void clear_char( CHAR_DATA *ch )
     ch->prompt                  = &str_empty[0];
     ch->logon           = current_time;
     ch->lines           = PAGELEN;
-    ch->armor           = 100;
+    ch->armor           = 0;
     ch->position        = POS_STANDING;
     ch->hit         = 20;
     ch->max_hit         = 20;

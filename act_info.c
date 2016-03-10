@@ -3393,19 +3393,6 @@ DEF_DO_FUN(do_consider)
 	    diff += 2 + victim->level/20;
     }
 
-    /*
-    if (IS_NPC(victim))
-    {
-        level = victim->level;
-        armor = (victim->armor[0]+victim->armor[1]+victim->armor[2]+victim->armor[3])/4;
-        hp = victim->hit;
-        dam = (victim->damage[0]*(victim->damage[1]+1))/2 + GET_DAMROLL(victim) + GET_HITROLL(victim);
-        diff += ((hp-level*level)/(level+1))/(3+level/15);
-        diff += (dam-level)/(2+level/30);
-        diff += (100 - armor - 6*level)/(level+10);
-    }
-    */
-
     /* reduce diff a bit to make difference more distinguishable */
     diff = diff * 2/3;
 
@@ -5070,7 +5057,7 @@ DEF_DO_FUN(do_attributes)
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
+    sprintf( buf, "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
         get_save(ch, TRUE),
         get_save(ch, FALSE));
@@ -5079,7 +5066,7 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {CSpell Pierce{x: %4d",
+    sprintf( buf, "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
@@ -5231,22 +5218,21 @@ DEF_DO_FUN(do_breakdown)
     if ( IS_NPC(ch) )
         return;
     
-    ptc(ch, "               {rHitpoints{x     {BMana{x       {cMoves{x\n\r");
+    ptc(ch, "%25s%16s%16s\n\r", "{rHitpts{x", "{BMana{x", "{cMoves{x");
     ptc(ch, "%-15s%6d%12d%12d\n\r", "Natural",
         ch->pcdata->perm_hit, ch->pcdata->perm_mana, ch->pcdata->perm_move);
     
     ptc(ch, "%-15s%6d%12d%12d\n\r", "Equipment",
         ch->pcdata->temp_hit, ch->pcdata->temp_mana, ch->pcdata->temp_move);
     
-    float hero_bonus = get_hero_factor(modified_level(ch)) - 1;
-    int hero_hit = ch->pcdata->temp_hit * hero_bonus;
-    int hero_mana = ch->pcdata->temp_mana * hero_bonus;
-    int hero_move = ch->pcdata->temp_move * hero_bonus;
+    int hero_bonus = get_hero_factor(modified_level(ch)) - 100;
+    int hero_hit = ch->pcdata->temp_hit * hero_bonus / 100;
+    int hero_mana = ch->pcdata->temp_mana * hero_bonus / 100;
+    int hero_move = ch->pcdata->temp_move * hero_bonus / 100;
     if ( hero_hit || hero_mana || hero_move )
     {
-        ptc(ch, "%-15s%6d%12d%12d      (%d%%)\n\r", "Hero-Bonus",
-            hero_hit, hero_mana, hero_move,
-            (int)(hero_bonus * 100 + 0.5));
+        ptc(ch, "%-15s%6d%12d%12d       (%d%%)\n\r", "Hero-Bonus",
+            hero_hit, hero_mana, hero_move, hero_bonus);
     }
 
     int train_hit  = ch->max_hit  - (ch->pcdata->perm_hit  + ch->pcdata->temp_hit  + hero_hit);
@@ -5254,7 +5240,19 @@ DEF_DO_FUN(do_breakdown)
     int train_move = ch->max_move - (ch->pcdata->perm_move + ch->pcdata->temp_move + hero_move);
     if ( train_hit || train_mana || train_move )
         ptc(ch, "%-15s%6d%12d%12d\n\r", "Training", train_hit, train_mana, train_move);
-
+    
+    int nat_sp = get_save(ch, TRUE) - ch->saving_throw;
+    int nat_sm = get_save(ch, FALSE) - ch->saving_throw;
+    int nat_hitroll = get_hitroll(ch) - ch->hitroll;
+    int nat_damroll = get_damroll(ch) - ch->damroll;
+    int nat_armor = get_ac(ch) - ch->armor;
+    
+    ptc(ch, "\n\r%25s%16s%16s%16s\n\r", "{CArmor{x", "{CSaves P/M{x", "{CHitroll{x", "{CDamroll{x");
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Natural",
+        nat_armor, nat_sp, nat_sm, nat_hitroll, nat_damroll);
+    
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Equip/Buffs",
+        ch->armor, ch->saving_throw, ch->saving_throw, ch->hitroll, ch->damroll);
 }
 
 DEF_DO_FUN(do_helper)

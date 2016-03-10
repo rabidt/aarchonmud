@@ -688,10 +688,9 @@ void mobile_update( void )
                 if( mp_percent_trigger( ch, NULL, NULL,0, NULL,0, TRIG_RANDOM ) )
                     continue;
             }
-        } else if ( ch->position == POS_RESTING && ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
+        } else if ( ch->position == POS_RESTING && ch->wait == 0 && ch->daze == 0 && can_attack(ch) )
         {
             do_stand(ch, "");
-            WAIT_STATE(ch, PULSE_VIOLENCE/2);
         }
 
         /* This if check was added to make mobs that were recently disarmed
