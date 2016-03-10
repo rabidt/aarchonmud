@@ -2062,6 +2062,7 @@ DEF_DO_FUN(do_stand)
 		 act("$n stands on $p.",ch,obj,NULL,TO_ROOM);
 	  }
         set_pos(ch, POS_STANDING);
+      provoke_attacks(ch);  
 	  break;
 	  
    case POS_STANDING:

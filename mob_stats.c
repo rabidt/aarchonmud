@@ -80,8 +80,7 @@ int level_base_ac( int level )
 
 int mob_base_ac( MOB_INDEX_DATA *pMobIndex, int level )
 {    
-    int ac = level_base_ac( level ) * pMobIndex->ac_percent / 100;
-    return 100 + ac;
+    return level_base_ac( level ) * pMobIndex->ac_percent / 100;
 }
 
 // saves
