@@ -2084,9 +2084,7 @@ int get_leadership_bonus( CHAR_DATA *ch, bool improve )
     if ( IS_UNDEAD(ch) )
     {
         int dark_bonus = get_skill(ch->leader, gsn_army_of_darkness);
-        if ( room_is_dark(ch->in_room) )
-            dark_bonus *= 3;
-        else if ( room_is_dim(ch->in_room) )
+        if ( weather_info.sunlight == SUN_DARK || room_is_dim(ch->in_room) )
             dark_bonus *= 2;
         bonus += dark_bonus;
     }
