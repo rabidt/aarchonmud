@@ -4987,9 +4987,9 @@ DEF_DO_FUN(do_worth)
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Achieve Pts: {c%6d{x        Storage Boxes:   %-2d",
+    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
-        ch->pcdata->achpoints,
+        ch->pcdata->faith,
         ch->pcdata->storage_boxes);
 
     for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
