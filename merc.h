@@ -5081,6 +5081,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
+bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj );
 int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
