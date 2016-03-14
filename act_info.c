@@ -2170,7 +2170,7 @@ DEF_DO_FUN(do_exits)
             &&   (! ( IS_SET(pexit->exit_info, EX_HIDDEN)
                       && IS_SET(pexit->exit_info, EX_CLOSED ) ) 
                   || IS_IMMORTAL(ch) ) 
-            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
+            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || PLR_ACT(ch, PLR_HOLYLIGHT) ) )
         {
             found = TRUE;
             if ( fAuto )
