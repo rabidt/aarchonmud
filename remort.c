@@ -1020,16 +1020,19 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 {
     char buf[MSL];
 
-    if ( ch->pcdata->remorts < MAX_REMORT )
-    {
-        send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
-        return;
-    }
-
     if ( !IS_HERO(ch) )
     {
         send_to_char( "You haven't reached your maximum level yet.\n\r", ch );
         return;
+    }
+
+       
+    if ( ch->pcdata->remorts < MAX_REMORT )
+    {
+        send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
+        send_to_char( "To advance to the next remort level, use <remort signup>.\n\r", ch );
+        if ( ch->pcdata->remorts < 1 )
+            return;
     }
 
     // half cost of initial remort
