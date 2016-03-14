@@ -9,7 +9,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "lua_scripting.h"
-
+#include "interp.h"
 
 /*
  * A general purpose percentage trigger. Checks if a random percentage
@@ -73,6 +73,59 @@ bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *t
             && ( obj ? !obj->must_extract : TRUE )
             && ( ch1 ? !ch1->must_extract : TRUE )
             && ( ch2 ? !ch2->must_extract : TRUE ) );
+}
+
+/* similar to act trigger but it needs its own logic in the end */
+bool op_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
+{
+    PROG_LIST *prg;
+    OBJ_DATA *obj;
+    OBJ_DATA *next_obj;
+    bool continu;
+
+    if ( !ch->in_room )
+    {
+        bugf("op_command_trigger: ch->in_room NULL for %s", ch->name);
+        return TRUE;
+    }
+
+    for ( obj = ch->in_room->contents; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_COMMAND) )
+        {
+            for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+            {
+                if ( prg->trig_type == OTRIG_COMMAND && !str_cmp(cmd_table[cmd].name, prg->trig_phrase) )
+                {
+                    continu = lua_obj_program(cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
+                    if ( !continu )
+                        return FALSE;
+                }
+            }
+        }
+    }
+
+    for ( obj = ch->carrying; obj != NULL; obj = next_obj )
+    {
+        next_obj = obj->next_content;
+
+        if ( HAS_OTRIG(obj, OTRIG_COMMAND) )
+        {
+            for ( prg = obj->pIndexData->oprogs; prg != NULL; prg = prg->next )
+            {
+                if ( prg->trig_type == OTRIG_COMMAND && !str_cmp(cmd_table[cmd].name, prg->trig_phrase) )
+                {
+                    continu = lua_obj_program(cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
+                    if ( !continu )
+                        return FALSE;
+                }
+            }
+        }
+    }
+
+    return TRUE;
 }
 
 /* similar to act trigger, but we need to return whether or not any matching trigger was found */

@@ -564,6 +564,7 @@ const struct flag_type oprog_flags[] =
     {   "fight",        OTRIG_FIGHT,     TRUE    },
     {   "hit",          OTRIG_HIT,       TRUE    },
     {   "prehit",       OTRIG_PREHIT,    TRUE    },
+    {   "command",      OTRIG_COMMAND,   TRUE    },
     {   "quaff",        OTRIG_QUAFF,     TRUE    },
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
