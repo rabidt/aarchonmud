@@ -842,6 +842,9 @@ void interpret( CHAR_DATA *ch, const char *argument )
     if ( mp_command_trigger( ch, cmd, argument ) )
         return;
 
+    if ( !op_command_trigger( ch, cmd, argument ) )
+        return;
+
     /*
     * Log and snoop.
     */
