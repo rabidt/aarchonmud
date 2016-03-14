@@ -836,14 +836,17 @@ void interpret( CHAR_DATA *ch, const char *argument )
     if ( cmd == -1 )
 	return;
 
-    if ( !rp_command_trigger( ch, cmd, argument ) )
-        return;
+    if ( cmd_table[cmd].level <= LEVEL_HERO )
+    {
+        if ( !rp_command_trigger( ch, cmd, argument ) )
+            return;
 
-    if ( mp_command_trigger( ch, cmd, argument ) )
-        return;
+        if ( mp_command_trigger( ch, cmd, argument ) )
+            return;
 
-    if ( !op_command_trigger( ch, cmd, argument ) )
-        return;
+        if ( !op_command_trigger( ch, cmd, argument ) )
+            return;
+    }
 
     /*
     * Log and snoop.
