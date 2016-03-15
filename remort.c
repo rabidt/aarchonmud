@@ -1082,11 +1082,6 @@ DEF_DO_FUN(do_ascend)
     if ( IS_NPC(ch) )
         return;
 
-#ifndef TESTER
-    ptc(ch, "Ascension system coming late 2015. Stay tuned.\n\r");
-    return;
-#endif
-    
     if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
     {
         ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
