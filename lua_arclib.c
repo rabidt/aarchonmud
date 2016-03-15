@@ -755,10 +755,28 @@ static int glob_clearloopcount (lua_State *LS)
 
 static int glob_log (lua_State *LS)
 {
-    char buf[MSL];
-    sprintf(buf, "LUA::%s", check_fstring( LS, 1, MIL));
+    const char *msg = check_string(LS, 1, MIL);
+    const char *chan=NULL;
+    int wiznet_chan = -1;
+    if (!lua_isnone(LS, 2))
+    {
+        chan = check_string(LS, 2, MIL);
+        wiznet_chan = wiznet_lookup(chan);
+        if (wiznet_chan == -1)
+        {
+            return luaL_error(LS, "No such wiznet channel: %s", chan);
+        }
+    }
 
+    char buf[MSL];
+    sprintf(buf, "LUA::%s:%s", chan ? chan : "",  msg);
     log_string(buf);
+
+    if (wiznet_chan != -1)
+    {
+        wiznet(buf, NULL, NULL, wiznet_chan, 0, 0);
+    }
+
     return 0;
 }
 
