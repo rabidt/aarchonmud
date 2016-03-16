@@ -761,7 +761,16 @@ static int glob_log (lua_State *LS)
     if (!lua_isnone(LS, 2))
     {
         chan = check_string(LS, 2, MIL);
-        wiznet_chan = wiznet_lookup(chan);
+        int i;
+        for (i=0; wiznet_table[i].name; i++)
+        {
+            if (!strcmp(wiznet_table[i].name, chan))
+            {
+                wiznet_chan = wiznet_table[i].flag;
+                break;
+            }
+        }
+
         if (wiznet_chan == -1)
         {
             return luaL_error(LS, "No such wiznet channel: %s", chan);
