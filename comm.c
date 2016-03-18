@@ -3316,5 +3316,8 @@ PARENT
 #ifdef BUILDER
 "BUILDER defined\n\r"
 #endif
+#ifdef ARC_TEST
+"ARC_TEST defined\n\r"
+#endif
 ;
 
