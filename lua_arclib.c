@@ -1125,6 +1125,32 @@ static int mudlib_userdir( lua_State *LS)
     return 1;
 }
 
+static int mudlib_getbuildflags( lua_State *LS)
+{
+    lua_newtable(LS);
+#ifdef BUILDER
+    lua_pushboolean(LS, TRUE);
+    lua_setfield(LS, -2, "BUILDER");
+#endif
+
+#ifdef REMORT
+    lua_pushboolean(LS, TRUE);
+    lua_setfield(LS, -2, "REMORT");
+#endif
+
+#ifdef TESTER
+    lua_pushboolean(LS, TRUE);
+    lua_setfield(LS, -2, "TESTER");
+#endif
+
+#ifdef ARC_TEST
+    lua_pushboolean(LS, TRUE);
+    lua_setfield(LS, -2, "ARC_TEST");
+#endif
+
+    return 1;
+}
+
 /* dblib section */
 #define SCRIPT_DB_FILE "script_db.sqlite3"
 static sqlite3 *script_db;
@@ -1393,7 +1419,7 @@ GLOB_TYPE glob_table[] =
     GFUN(echoaround,    0),
     GFUN(gecho,         0),
     GFUN(pagetochar,    0),
-    GFUN( arguments,    0),
+    GFUN(arguments,     0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
     GFUN(getobjlist,    9),
@@ -1409,8 +1435,8 @@ GLOB_TYPE glob_table[] =
     GFUN(start_con_handler, 9),
     GFUN(forceget,      SEC_NOSCRIPT),
     GFUN(forceset,      SEC_NOSCRIPT),
-    GFUN(getluatype,    SEC_NOSCRIPT),
-    GFUN(getglobals,    SEC_NOSCRIPT),
+    GFUN(getluatype,    9),
+    GFUN(getglobals,    9),
 #ifdef TESTER
     GFUN(do_luaquery,   9),
 #else
@@ -1453,6 +1479,7 @@ GLOB_TYPE glob_table[] =
 
     LFUN( mud, luadir,      SEC_NOSCRIPT ),
     LFUN( mud, userdir,     SEC_NOSCRIPT ),
+    LFUN( mud, getbuildflags, 9),
     
     ENDGTABLE
 };

@@ -1,7 +1,12 @@
+local build_flags = mud.getbuildflags()
+
 package.path = mud.luadir() .. "?.lua"
 
 glob_tprintstr=require "tprint"
 require "serialize"
+if build_flags['ARC_TEST'] then
+  JSON = require "JSON"
+end
 glob_util=require "utilities"
 require "leaderboard"
 require "commands"
@@ -75,6 +80,15 @@ function glob_awardptitle( ch, ptitle)
 
     table.insert(lst, ptitle)
     table.sort(lst)
+end
+
+if build_flags['ARC_TEST'] then
+  function dump_JSON(value, filename)
+    local f = io.open(filename, "w")
+    local json = JSON:encode_pretty(value)
+    f:write(json)
+    f:close()
+  end
 end
 
 function SaveTable( name, tbl, areaFname )
@@ -234,6 +248,10 @@ main_lib={  require=require,
 		setmetatable=setmetatable,
         --getmetatable=getmetatable
 }
+
+if build_flags['ARC_TEST'] then
+  main_lib['dump_JSON'] = dump_JSON
+end
 
 -- add script_globs to main_lib
 for k,v in pairs(script_globs) do
