@@ -470,7 +470,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
     }
     else  /* channel message sent, turn channel on if it isn't already */
     {
-        if (!IS_NPC(ch) && ch->level < chan->min_level && ch->pcdata->remorts == 0 )
+        if (!IS_NPC(ch) && ch->level < chan->min_level && ch->pcdata->remorts == 0 && ch->pcdata->ascents == 0 )
         {
 	    printf_to_char( ch, "You can't use %s channel until level %d.\n\r", chan->name, chan->min_level);
             return;
