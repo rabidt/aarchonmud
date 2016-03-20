@@ -2272,7 +2272,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         NPC_OFF(gch, OFF_RESCUE) || PLR_ACT(gch, PLR_AUTORESCUE) ? "{WR{x" : " ",
         is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
         IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
-        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        IS_AFFECTED(gch, AFF_GIANT_STRENGTH) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
         IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
         IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
         is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
