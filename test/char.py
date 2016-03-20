@@ -168,7 +168,9 @@ class Immortal(Character):
         if os.path.exists("../../area/arc_text.json"):
             os.remove("../../area/arc_test.json")
         cmd = "dump_JSON({}, 'arc_test.json')".format(expr)
-        self.send_luai(cmd)
+        resp = self.send_luai(cmd)
+        if "LUA error for lua_interpret" in resp:
+            raise Exception("Luai error")
         val = json.load(open("../../area/arc_test.json","r"))
         return val
 
