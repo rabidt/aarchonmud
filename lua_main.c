@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "timer.h"
+#include "lsqlite3.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "interp.h"
@@ -691,6 +692,9 @@ void open_lua ()
     }
 
     luaL_openlibs (LS);    /* open all standard libraries */
+
+    lua_pushcfunction(LS, luaopen_lsqlite3);
+    lua_call(LS, 0, 0);
 
     /* call as Lua function because we need the environment  */
     lua_pushcfunction(LS, RegisterLuaRoutines);
