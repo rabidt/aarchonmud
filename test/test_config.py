@@ -9,3 +9,5 @@ IMM_PW = getpass.getpass()
 MOB_GET_VNUM = 10256
 MOB_GET_NAME = "el cid"
 
+OBJ_VNUM = 31405
+OBJ_NAME = "barbecued ribs juicy"

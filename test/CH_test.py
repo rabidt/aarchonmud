@@ -1,6 +1,7 @@
 import re
 import unittest
 from test_setup import imm
+from char import Character
 import test_config
 
 
@@ -10,7 +11,9 @@ def get_luai_val(expr):
         val = imm.luai_get_val(expr)
     finally:
         imm.close_luai()
+
     return val
+
 
 class Get(unittest.TestCase):
     def check_get(self, prop_name):
@@ -292,5 +295,157 @@ class Get(unittest.TestCase):
 
     def test_CH_get_dicetype(self):
         self.check_mob_get("dicetype")
+
+    def test_CH_get_clanrank(self):
+        lua_crank = get_luai_val("self.clanrank")
+
+        stat = imm.mob_stat(imm.name)
+        clan = stat['clan']
+        rank = stat['clanrank'] 
+
+        resp = imm.send("clanreport %s rank"%(clan)+"\n\n\n\n\n" )
+        m = re.search("Detail for rank (\d+) - %s"%(rank.capitalize()), resp)
+        stat_crank = int(m.group(1))
+        
+        self.assertEqual(stat_crank, lua_crank)
+
+    def test_CH_get_isimmort(self):
+        val = get_luai_val("self.isimmort")
+        self.assertTrue(val)
+
+        char2 = Character("isimmtest", "blah1")
+        char2.create_or_connect()
+
+        val = get_luai_val("getpc('{}').isimmort".format(char2.name))
+        self.assertFalse(val)
+    
+        val = get_luai_val("getmobworld({})[1].isimmort".format(
+            test_config.MOB_GET_VNUM))
+        self.assertFalse(val)
+
+    def test_CH_get_isfollow(self):
+        imm.send("fol self")
+
+        val = get_luai_val("self.isfollow")
+        self.assertFalse(val)
+
+        imm.load_mob(test_config.MOB_GET_VNUM)
+        imm.send("follow " + test_config.MOB_GET_NAME)
+
+        val = get_luai_val("self.isfollow")
+        self.assertTrue(val)
+
+    def test_CH_get_isactive(self):
+        imm.send("sleep")
+
+        val = get_luai_val("self.isactive")
+        self.assertFalse(val)
+
+        imm.send("stand")
+        val = get_luai_val("self.isactive")
+        self.assertTrue(val)
+
+    def test_CH_get_groupsize(self):
+        char2 = Character("grsizetest", "blah1")
+        char2.create_or_connect()
+
+        imm.clear_group()
+        imm.send("fol self")
+        val = get_luai_val("self.groupsize")
+        self.assertEqual(val, 0)
+
+        imm.send("trans " + char2.name)
+        imm.send("force {} follow {}".format(char2.name, imm.name))
+        imm.send("group {}".format(char2.name))
+
+        val = get_luai_val("self.groupsize")
+        self.assertEqual(val, 1)
+
+    def test_CH_get_proto(self):
+        val = get_luai_val("getmobworld({})[1].proto.vnum == {}".format(
+            test_config.MOB_GET_VNUM, test_config.MOB_GET_VNUM))
+
+        self.assertTrue(val)
+
+class Method(unittest.TestCase):
+    def test_CH_method_mobhere(self):
+        val = get_luai_val("self:mobhere(123)")
+        self.assertFalse(val)
+
+        imm.load_mob(test_config.MOB_GET_VNUM)
+
+        val = get_luai_val("self:mobhere({})".format(test_config.MOB_GET_VNUM))
+        self.assertTrue(val)
+
+    def test_CH_method_objhere(self):
+        imm.open_luai()
+        imm.send_luai("for _,v in pairs(getobjworld({})) do " 
+                        "v:destroy() " 
+                        "end".format(test_config.OBJ_VNUM))
+        imm.close_luai()
+
+        val = get_luai_val("self:objhere({})".format(test_config.OBJ_VNUM))
+        self.assertFalse(val)
+
+        val = get_luai_val("self:objhere('{}')".format(test_config.OBJ_NAME))
+        self.assertFalse(val)
+
+        imm.load_obj(test_config.OBJ_VNUM)
+        imm.send("drop " + test_config.OBJ_NAME)
+
+        val = get_luai_val("self:objhere({})".format(test_config.OBJ_VNUM))
+        self.assertTrue(val)
+
+        val = get_luai_val("self:objhere('{}')".format(test_config.OBJ_NAME))
+        self.assertTrue(val)
+
+    def test_CH_method_mobexists(self):
+        imm.open_luai()
+        imm.send_luai("for _,v in pairs(getmobworld({})) do "
+                        "v:destroy() "
+                      "end".format(test_config.MOB_GET_VNUM))
+        imm.close_luai()
+
+        val = get_luai_val("self:mobexists('{}')".format(test_config.MOB_GET_NAME))
+        self.assertFalse(val)
+
+        imm.load_mob(test_config.MOB_GET_VNUM)
+        val = get_luai_val("self:mobexists('{}')".format(test_config.MOB_GET_NAME))
+        self.assertTrue(val)
+
+    def test_CH_method_objexists(self):
+        imm.open_luai()
+        imm.send_luai("for _,v in pairs(getobjworld({})) do " 
+                        "v:destroy() " 
+                        "end".format(test_config.OBJ_VNUM))
+        imm.close_luai()
+
+        val = get_luai_val("self:objexists('{}')".format(test_config.OBJ_NAME))
+        self.assertFalse(val)
+
+        imm.load_obj(test_config.OBJ_VNUM)
+
+        val = get_luai_val("self:objexists('{}')".format(test_config.OBJ_NAME))
+        self.assertTrue(val)
+
+    def test_CH_method_affected(self):
+        imm.open_luai()
+        imm.send_luai("for _,v in pairs(getmobworld({})) do "
+                        "v:destroy() "
+                      "end".format(test_config.MOB_GET_VNUM))
+        imm.close_luai()
+
+        imm.load_mob(test_config.MOB_GET_VNUM)
+
+        val = get_luai_val("getmobworld({})[1]:affected('haste')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertFalse(val)
+        
+        for i in range(5):
+            imm.send("cast haste " + test_config.MOB_GET_NAME)
+        
+        val = get_luai_val("getmobworld({})[1]:affected('haste')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertTrue(val)
 
 
