@@ -2186,13 +2186,14 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         CHECK_RETURN( ch, victim );
     }
     
-    // rapid fire - 10% chance of additional follow-up attack
+    // rapid fire - chance of additional follow-up attack
     if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
         bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
+            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
         }
