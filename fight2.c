@@ -850,19 +850,7 @@ DEF_DO_FUN(do_aim)
         send_to_char( "You haven't the foggiest idea how.\n\r", ch );
         return; 
     }
-        
-    if (is_affected(ch, gsn_tumbling))
-    {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
-        return;
-    }
-    if (is_affected(ch, gsn_berserk))
-    {
-        send_to_char("You're too enraged to aim.\n\r", ch);
-        return;
-    }    
-        
-
+    
     for (i = 0; aim_targets[i][0]; i++)
                 if (!strcmp(arg, aim_targets[i]))
                 {
