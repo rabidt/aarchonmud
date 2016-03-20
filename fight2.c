@@ -2394,9 +2394,15 @@ DEF_DO_FUN(do_round_swing)
     OBJ_DATA *wield;
     int skill;
 
-    if ( (wield = get_eq_char(ch, WEAR_WIELD)) == NULL
-	 || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS)
-	 || wield->value[0] == WEAPON_GUN )
+    wield = get_eq_char(ch, WEAR_WIELD);
+    
+    if ( is_ranged_weapon(wield) )
+    {
+        ptc(ch, "That's not how you use a ranged weapon!\n\r");
+        return;
+    }
+    
+    if ( wield == NULL || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
     {
 	send_to_char( "You need to wield a two-handed weapon.\n\r", ch );
 	return;
