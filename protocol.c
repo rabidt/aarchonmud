@@ -2070,6 +2070,24 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                if ( !bStopCyclicTTYPE )
                   Write(apDescriptor, RequestTTYPE);
             }
+            else
+            {
+               /* TTYPE cycling over, do some finalizing */
+               if (PrefixString("mudportal", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+               {
+                   /* last TTYPE of mudportal is the actual player IP */
+                   //::ffff:73.170.78.193
+                   if ( strlen(pClientName) < 8 )
+                   {
+                       bugf("pClientName length to short: %s", pClientName);
+                   }     
+                   else
+                   {
+                       free_string(apDescriptor->host);
+                       apDescriptor->host = str_dup(&(pClientName[7]));
+                   }
+               }
+            }
 
             if ( PrefixString("Mudlet", pClientName) )
             {
