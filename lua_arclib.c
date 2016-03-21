@@ -4789,6 +4789,36 @@ static int CH_set_godname( lua_State *LS )
     return 0;
 }    
 
+static int CH_get_ascents(lua_State *LS)
+{
+    CHAR_DATA *ud_ch = check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'ascents' for NPC.");
+    }
+    lua_pushinteger(LS, ud_ch->pcdata->ascents);
+    return 1;
+}
+
+static int CH_get_subclass(lua_State *LS)
+{
+    CHAR_DATA *ud_ch = check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'subclass' for NPC.");
+    }
+
+    if (!ud_ch->pcdata->subclass)
+    {
+        return 0;
+    }
+    else
+    {
+        lua_pushstring(LS, subclass_table[ud_ch->pcdata->subclass].name);
+        return 1;
+    }
+}
+
 static int CH_get_faith( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4910,6 +4940,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(godname, 0),
     CHGET(faith, 0),
     CHGET(religionrank, 0),
+    CHGET(ascents, 0),
+    CHGET(subclass, 0),
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
     CHGET(explored, 0),
