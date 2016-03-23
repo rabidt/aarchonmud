@@ -2891,7 +2891,7 @@ DEF_DO_FUN(do_showskill)
     {
         show_skill_points(buffer);
     }
-    else if (group > 0)  /* Argument was a valid group name. */
+    else if (group >= 0)  /* Argument was a valid group name. */
     {
         int sn;
         
