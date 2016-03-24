@@ -4697,6 +4697,7 @@ bool    provoke_attacks( CHAR_DATA *victim );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
