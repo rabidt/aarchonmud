@@ -211,8 +211,13 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
             check_lose_stance(ch);
         set_pos(ch, POS_RESTING);
         return;
-    } 
+    }
+    
+    bash_effect(ch, victim, sn);
+}
 
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+{
     // bash < shield bash < charge, and non-wrist shield helps too
     int power = (sn == gsn_charge ? 4 : sn == gsn_shield_bash ? 2 : 1);
     if ( sn != gsn_bash && !offhand_occupied(ch) )
@@ -249,8 +254,9 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     {
         act("You slam into $N, but to no effect!", ch, NULL, victim, TO_CHAR);
         act("$n slams into $N, who stands like a rock!", ch, NULL, victim, TO_NOTVICT);
-        act("You withstand $n's $t with ease.", ch, action, victim, TO_VICT);
-        check_lose_stance(ch);
+        act("You withstand $n's $t with ease.", ch, skill_table[sn].name, victim, TO_VICT);
+        if ( ch->stance != STANCE_RHINO )
+            check_lose_stance(ch);
     }
     check_improve(ch, sn, TRUE, 3);
 

@@ -2745,7 +2745,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int dam, old_wait, dt = DAM_BASH;
+    int dam, dt = DAM_BASH;
 
     if ( ch->stance == 0 )
 	return;
@@ -2755,13 +2755,13 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     switch ( ch->stance )
     {
     case STANCE_RHINO:
-	if (number_bits(2) != 0) 
-	    break;
-	old_wait = ch->wait;
-	if ( get_skill(ch, gsn_bash) > 0 )
-	    do_bash(ch, "\0");
-	ch->wait = old_wait;
-	break;
+        if ( number_bits(3) == 0 )
+        {
+            CHAR_DATA *vch = ch->fighting;
+            if ( vch && vch->position >= POS_FIGHTING )
+                bash_effect(ch, vch, gsn_bash);
+        }
+        break;
     case STANCE_SCORPION:
 	if (number_bits(2)==0)
 	    poison_effect((void *)victim, ch->level, number_range(3,8), TARGET_CHAR);
