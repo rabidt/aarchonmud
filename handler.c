@@ -660,6 +660,41 @@ bool is_either_name( const char *str, const char *namelist, bool exact )
 	return is_name( str, namelist );
 }
 
+bool match_obj( OBJ_DATA *obj, const char *arg )
+{
+    char header[MSL], last;
+    int flag;
+    
+    if ( !obj || !arg || *arg == '\0' )
+        return FALSE;
+    
+    // split into header + last char
+    strcpy(header, arg);
+    header[strlen(arg)-1] = '\0';
+    last = arg[strlen(arg)-1];
+    
+    // match by level (e.g. "get all.90+")
+    if ( last == '+' && is_number(header) )
+        return obj->level >= atoi(header);
+    if ( last == '-' && is_number(header) )
+        return obj->level <= atoi(header);
+    if ( is_number(arg) )
+        return obj->level == atoi(arg);
+    
+    // match by item type
+    for ( flag = 0; type_flags[flag].name != NULL; flag++ )
+        if ( !strcmp(type_flags[flag].name, arg) )
+            return obj->item_type == type_flags[flag].bit;
+    
+    // match by wear location
+    for ( flag = 0; wear_types[flag].name != NULL; flag++ )
+        if ( !strcmp(wear_types[flag].name, arg) )
+            return CAN_WEAR(obj, wear_types[flag].bit);
+        
+    // match by name
+    return is_name(arg, obj->name);
+}
+
 bool is_mimic( CHAR_DATA *ch )
 {
     return is_affected( ch, gsn_mimic )
