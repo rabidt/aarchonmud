@@ -2420,7 +2420,10 @@ DEF_DO_FUN(do_round_swing)
 	return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
+    int swing_time = skill_table[gsn_round_swing].beats;
+    int mastery = mastery_bonus(ch, gsn_round_swing, 20, 25);
+    swing_time = rand_div(swing_time * (100 - mastery), 100);
+    WAIT_STATE( ch, swing_time );
 
     if ( per_chance(50) && !per_chance(skill) )
     {
