@@ -2591,6 +2591,8 @@ DEF_DO_FUN(do_roundhouse)
 	       tally++;
 	       full_dam(ch,vch,dam,gsn_roundhouse, DAM_BASH, TRUE);
 	   }
+        else
+           full_dam(ch, vch, 0, gsn_roundhouse, DAM_BASH, TRUE);
        }
    }
 
