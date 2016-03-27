@@ -3049,12 +3049,12 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     {
         switch ( wield->value[0] )
         {
-        case WEAPON_EXOTIC: chance = 0; break;
+        case WEAPON_EXOTIC:
         case WEAPON_DAGGER:
         case WEAPON_POLEARM: chance = 1; break;
         case WEAPON_SWORD: chance = 5; break;
         case WEAPON_AXE: chance = 25; break;
-        default: return;
+        default: chance = 0; break;
         }
         
         if ( ch->stance == STANCE_SHADOWCLAW )
@@ -3105,6 +3105,11 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
         act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
         act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
+    }
+    else if ( wield->value[0] == WEAPON_MACE || wield->value[0] == WEAPON_FLAIL )
+    {
+        act("$n's head is bashed in by $p.", victim, wield, NULL, TO_ROOM);
+        act("Your head is bashed in by $p.", victim, wield, NULL, TO_CHAR);
     }
     else
     {
