@@ -1363,6 +1363,14 @@ DEF_DO_FUN(do_skills)
 		found = TRUE;
 		level = skill_table[sn].skill_level[ch->class];
 		prac = ch->pcdata->learned[sn];
+
+                if (number_bits(1))
+                {
+                    /* April Fools */
+                    sprintf(buf,"%-21s %3d%%(%3d%%) ",
+                        skill_table[sn].name, prac, 1);
+                }
+                else /* End */
 		sprintf(buf,"%-21s %3d%%(%3d%%) ",
 			skill_table[sn].name, prac, get_skill(ch, sn));
 		

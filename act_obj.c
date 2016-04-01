@@ -4255,6 +4255,10 @@ DEF_DO_FUN(do_withdraw)
 
     ch->gold += amnt;
     ch->pcdata->bank -= amnt;
+    /* April Fools */
+    sprintf( buf, "Mo' Money, Mo' Problems. Amirite?");
+    act_tell_char( banker, ch, buf);
+    /* End */
     sprintf( buf, "%s, your account now contains: %ld coins,", ch->name, ch->pcdata->bank );
     /*do_say( banker, buf );*/
     act_tell_char( banker, ch, buf );
