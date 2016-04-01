@@ -4406,7 +4406,7 @@ const char *str_dup( const char *str )
     
     char *str_new = alloc_mem( strlen(str) + 1 );
     strcpy( str_new, str );
-    remember_str_dup( str_new );
+    //remember_str_dup( str_new );
     return str_new;
 }
 
