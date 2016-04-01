@@ -1653,7 +1653,9 @@ const char* get_god_name( CHAR_DATA *ch )
     if ( god_name == NULL || god_name[0] == '\0' )
         return "Rimbol";
     else
-        return god_name;
+        /* April Fools */
+          return "Maedhros";
+//        return god_name;
 }
 
 bool has_god( CHAR_DATA *ch ) {

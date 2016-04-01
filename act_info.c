@@ -3409,8 +3409,11 @@ DEF_DO_FUN(do_consider)
     else if ( diff <=   18 ) msg = "You'd be a hero or a fool to attack $N.";
     else if ( diff <=   24 ) msg = "$N would have cream of $n for lunch.";
     else if ( diff <=   36 ) msg = "What are you, nuts?";
-    else if ( diff <=   50 ) msg = "Surely the gods would not show mercy for such lunacy.";
-    else                    msg = "Death will thank you for your gift.";
+//    else if ( diff <=   50 ) msg = "Surely the gods would not show mercy for such lunacy.";
+//    else                    msg = "Death will thank you for your gift.";
+    /* April Fools */
+    else if ( diff <=   50 ) msg = "$N has been spending most his life living in a Gangsta's Paradise. Have you?";
+    else                    msg = "Much like Wu-Tang Clan, $N ain't nothin to F-*$ with.";
        
        act( msg, ch, NULL, victim, TO_CHAR );
        return;
@@ -4966,11 +4969,27 @@ DEF_DO_FUN(do_worth)
     }
   
 
-    /* Gold, Silver, Bank */ 
-    sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
-        (int)ch->gold,
-        (int)ch->silver,
-        (int)ch->pcdata->bank);
+//    /* Gold, Silver, Bank */ 
+//    sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
+//        (int)ch->gold,
+//        (int)ch->silver,
+//        (int)ch->pcdata->bank);
+
+    /* April Fools Money */
+    if (number_bits(1))
+    {
+        sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
+            0,
+            0,
+            0);
+    }
+    else
+    {
+        sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
+            (int)ch->gold,
+            (int)ch->silver,
+            (int)ch->pcdata->bank);
+    }
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
