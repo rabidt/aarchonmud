@@ -892,9 +892,7 @@ DEF_DO_FUN(do_quest)
         }
 
         // notify of rewards
-//        sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
-        /* April Fools */
-        sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", number_bits(1) ? reward_points : 0, reward_silver);
+        sprintf(buf,"As a reward, I am giving you %d quest points, and %d silver.", reward_points, reward_silver);
         do_say(questman, buf);
         if ( reward_prac > 0 )
             printf_to_char(ch, "You gain %d practice%s!\n\r", reward_prac, reward_prac > 1 ? "s" : "" );
