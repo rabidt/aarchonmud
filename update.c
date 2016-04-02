@@ -806,15 +806,6 @@ void time_update()
 
     switch ( ++time_info.hour )
     {
-        /* April Fools */
-        case  2:
-            if (number_bits(1))
-            {
-              strcat( buf, "Maedhros begins snooping you.\n\r" );
-              break;
-            }
-        /* end */
-
         case  5:
             weather_info.sunlight = SUN_RISE;
             strcat( buf, "The sun rises in the east.\n\r" );
