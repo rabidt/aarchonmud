@@ -616,5 +616,3 @@ function confirm_yes_no( DO_FUN_caller, d,
     start_con_handler( d, confirm_handler)
 
 end
-
-log(glob_tprintstr(sqlite))
