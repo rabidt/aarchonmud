@@ -668,7 +668,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     time_t timer;
     time (&timer);
 
-    init_script_db();
     init_genrand (timer);
     type_init( LS );
 
