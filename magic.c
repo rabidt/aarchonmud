@@ -3945,26 +3945,25 @@ DEF_SPELL_FUN(spell_faerie_fog)
 
 DEF_SPELL_FUN(spell_floating_disc)
 {
-    OBJ_DATA *disc, *floating;
-
-    floating = get_eq_char(ch,WEAR_FLOAT);
-    if (floating != NULL && IS_OBJ_STAT(floating,ITEM_NOREMOVE))
-    {
-        act("You can't remove $p.",ch,floating,NULL,TO_CHAR);
-        return SR_UNABLE;
-    }
-
     SPELL_CHECK_RETURN
     
-    disc = create_object_vnum(OBJ_VNUM_DISC);
-    disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
-    disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
-    disc->timer     = get_duration(sn, level); 
+    AFFECT_DATA af;
 
-    act("$n has created a floating black disc.",ch,NULL,NULL,TO_ROOM);
-    send_to_char("You create a floating disc.\n\r",ch);
-    obj_to_char(disc,ch);
-    wear_obj(ch,disc,TRUE);
+    if ( is_affected(ch, gsn_floating_disc) )
+    {
+        send_to_char("You cannot have more than one disc.\n\r",ch);
+        return SR_AFFECTED;
+    }
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_WEIGHT;
+    af.modifier  = (20 + level) * 5;
+    af.bitvector = 0;
+    affect_to_char( ch, &af );
+    send_to_char( "A disc made of force starts to float next to you.\n\r", ch );
+    act( "A disc made of force starts to float next to $n.", ch, NULL, NULL, TO_ROOM );
     return TRUE;
 }
 

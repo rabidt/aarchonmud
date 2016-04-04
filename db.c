@@ -257,6 +257,7 @@ sh_int  gsn_haste;
 sh_int  gsn_giant_strength;
 sh_int  gsn_slow;
 sh_int  gsn_iron_maiden;
+sh_int  gsn_floating_disc;
 
 /* new gsns */
 
