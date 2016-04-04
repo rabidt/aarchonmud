@@ -582,10 +582,10 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /* Added a base value of 100 to the maximum weight that can be carried. Currently 
-       low strength characters are at a severe disadvantage - Astark 12-27-12  */
-
-    return ch_str_carry(ch) * 10 + ch->level * 25 + 100;
+    AFFECT_DATA *float_aff = affect_find(ch->affected, gsn_floating_disc);
+    int float_bonus = float_aff ? float_aff->modifier : 0;
+    
+    return (ch_str_carry(ch) + float_bonus) * 10 + ch->level * 25 + 100;
 }
 
 
