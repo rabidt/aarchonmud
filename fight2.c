@@ -4215,7 +4215,7 @@ void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim )
 {    
     AFFECT_DATA af;
 
-    if ( !check_skill(ch, gsn_eldritch_curse) )
+    if ( ch == victim || !check_skill(ch, gsn_eldritch_curse) )
         return;
     
     af.where     = TO_VULN;
