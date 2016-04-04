@@ -3392,6 +3392,7 @@ extern sh_int  gsn_haste;
 extern sh_int  gsn_giant_strength;
 extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
+extern sh_int  gsn_floating_disc;
 
 /* new gsns */
 extern sh_int  gsn_axe;
