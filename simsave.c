@@ -193,7 +193,6 @@ void final_player_save()
   player_save_state = SAVE_STATE_NOSAVE;
   /* call any aprog shutdown scripts */
   ap_shutdown_trigger();
-  close_script_db();
 #if defined(SIM_DEBUG)
    log_string("final_player_save: done");
 #endif

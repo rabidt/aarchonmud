@@ -139,6 +139,16 @@ function LoadTable(name, areaFname)
   return f()
 end
 
+local script_db = sqlite3.open("script_db.sqlite3")
+glob_db = {}
+for _,v in ipairs({
+  "errcode", "errmsg", "exec", "nrows", "prepare", "rows", "urows"
+  }) do
+  glob_db[v] = function(ignore, ...)
+    return script_db[v](script_db, ...)
+  end
+end
+
 -- Standard functionality available for any env type
 -- doesn't require access to env variables
 function MakeLibProxy(tbl)
@@ -233,8 +243,14 @@ main_lib={  require=require,
         --  metatables.
 		setmetatable=setmetatable,
         --getmetatable=getmetatable
-    sqlite3 = sqlite3,
 }
+local sqlite3_codes = {}
+for k,v in pairs(sqlite3) do
+  if type(v) == "number" then 
+    sqlite3_codes[k] = v
+  end
+end
+main_lib.sqlite3 = sqlite3_codes 
 
 -- add script_globs to main_lib
 for k,v in pairs(script_globs) do
@@ -288,12 +304,15 @@ env_meta={
 
 
 function new_script_env(ud, objname, share_index)
-    local env=setmetatable( {}, {
+    local env = {}
+    setmetatable( env, {
             __index=function(t,k)
                 if k=="self" or k==objname then
                     return ud
                 elseif k=="shared" then
                     return shared_tbls[share_index]
+                elseif k=="_G" then
+                    return env 
                 else
                     return env_meta.__index(t,k)
                 end
