@@ -2186,13 +2186,14 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         CHECK_RETURN( ch, victim );
     }
     
-    // rapid fire - 10% chance of additional follow-up attack
+    // rapid fire - chance of additional follow-up attack
     if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
         bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
+            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
         }
@@ -2744,7 +2745,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int dam, old_wait, dt = DAM_BASH;
+    int dam, dt = DAM_BASH;
 
     if ( ch->stance == 0 )
 	return;
@@ -2754,13 +2755,13 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     switch ( ch->stance )
     {
     case STANCE_RHINO:
-	if (number_bits(2) != 0) 
-	    break;
-	old_wait = ch->wait;
-	if ( get_skill(ch, gsn_bash) > 0 )
-	    do_bash(ch, "\0");
-	ch->wait = old_wait;
-	break;
+        if ( number_bits(3) == 0 )
+        {
+            CHAR_DATA *vch = ch->fighting;
+            if ( vch && vch->position >= POS_FIGHTING )
+                bash_effect(ch, vch, gsn_bash);
+        }
+        break;
     case STANCE_SCORPION:
 	if (number_bits(2)==0)
 	    poison_effect((void *)victim, ch->level, number_range(3,8), TARGET_CHAR);
@@ -3048,12 +3049,12 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     {
         switch ( wield->value[0] )
         {
-        case WEAPON_EXOTIC: chance = 0; break;
+        case WEAPON_EXOTIC:
         case WEAPON_DAGGER:
         case WEAPON_POLEARM: chance = 1; break;
         case WEAPON_SWORD: chance = 5; break;
         case WEAPON_AXE: chance = 25; break;
-        default: return;
+        default: chance = 0; break;
         }
         
         if ( ch->stance == STANCE_SHADOWCLAW )
@@ -3104,6 +3105,11 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
         act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
         act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
+    }
+    else if ( wield->value[0] == WEAPON_MACE || wield->value[0] == WEAPON_FLAIL )
+    {
+        act("$n's head is bashed in by $p.", victim, wield, NULL, TO_ROOM);
+        act("Your head is bashed in by $p.", victim, wield, NULL, TO_CHAR);
     }
     else
     {

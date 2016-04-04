@@ -1603,12 +1603,14 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     if (is_affected(ch, gsn_choke_hold) && number_bits(3) == 0)
     {
         send_to_char( "You choke and your spell fumbles.\n\r", ch);
+        act("$n chokes and $s spell fumbles.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }
     else if (is_affected(ch, gsn_slash_throat) && number_bits(2) == 0)
     {
         send_to_char( "You can't speak and your spell fails.\n\r", ch);
+        act("$n can't speak and $s spell fails.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }

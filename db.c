@@ -2491,6 +2491,9 @@ void area_update( bool all )
                 if ( pArea->nplayer > 0 && pArea->age < pArea->reset_time )
                     continue;
             }
+            // don't reset remort with player in it
+            if ( pArea->nplayer > 0 && IS_SET(pArea->area_flags, AREA_REMORT) )
+                continue;
         }
         // reset
         reset_area(pArea);
