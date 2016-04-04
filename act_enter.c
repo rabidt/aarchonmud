@@ -140,7 +140,7 @@ DEF_DO_FUN(do_enter)
 		return;
 	}
 
-	if (!IS_TRUSTED(ch,LEVEL_IMMORTAL) && !I_IS_SET(portal->value[2],GATE_NOCURSE)
+	if (!IS_TRUSTED(ch,LEVEL_IMMORTAL) && I_IS_SET(portal->value[2],GATE_NOCURSE)
 	&&  (IS_AFFECTED(ch,AFF_CURSE)
 	||  (IS_SET(old_room->room_flags,ROOM_NO_RECALL) && !I_IS_SET(portal->value[2],GATE_IGNORE_NO_RECALL))))
 	{
