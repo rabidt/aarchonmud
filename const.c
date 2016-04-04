@@ -3661,9 +3661,9 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
-	NULL,             40, 24, DUR_EXTREME,
-	"",         "!Floating disc!",  ""
+	spell_floating_disc,    TAR_CHAR_SELF,     POS_STANDING,
+	&gsn_floating_disc, 40, 24, DUR_EXTREME,
+	"",         "The disc floating next to you dissipates.",  ""
 	},
 
 	{
