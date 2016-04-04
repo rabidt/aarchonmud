@@ -211,8 +211,13 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
             check_lose_stance(ch);
         set_pos(ch, POS_RESTING);
         return;
-    } 
+    }
+    
+    bash_effect(ch, victim, sn);
+}
 
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+{
     // bash < shield bash < charge, and non-wrist shield helps too
     int power = (sn == gsn_charge ? 4 : sn == gsn_shield_bash ? 2 : 1);
     if ( sn != gsn_bash && !offhand_occupied(ch) )
@@ -249,8 +254,9 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     {
         act("You slam into $N, but to no effect!", ch, NULL, victim, TO_CHAR);
         act("$n slams into $N, who stands like a rock!", ch, NULL, victim, TO_NOTVICT);
-        act("You withstand $n's $t with ease.", ch, action, victim, TO_VICT);
-        check_lose_stance(ch);
+        act("You withstand $n's $t with ease.", ch, skill_table[sn].name, victim, TO_VICT);
+        if ( ch->stance != STANCE_RHINO )
+            check_lose_stance(ch);
     }
     check_improve(ch, sn, TRUE, 3);
 
@@ -850,19 +856,7 @@ DEF_DO_FUN(do_aim)
         send_to_char( "You haven't the foggiest idea how.\n\r", ch );
         return; 
     }
-        
-    if (is_affected(ch, gsn_tumbling))
-    {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
-        return;
-    }
-    if (is_affected(ch, gsn_berserk))
-    {
-        send_to_char("You're too enraged to aim.\n\r", ch);
-        return;
-    }    
-        
-
+    
     for (i = 0; aim_targets[i][0]; i++)
                 if (!strcmp(arg, aim_targets[i]))
                 {
@@ -2406,9 +2400,15 @@ DEF_DO_FUN(do_round_swing)
     OBJ_DATA *wield;
     int skill;
 
-    if ( (wield = get_eq_char(ch, WEAR_WIELD)) == NULL
-	 || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS)
-	 || wield->value[0] == WEAPON_GUN )
+    wield = get_eq_char(ch, WEAR_WIELD);
+    
+    if ( is_ranged_weapon(wield) )
+    {
+        ptc(ch, "That's not how you use a ranged weapon!\n\r");
+        return;
+    }
+    
+    if ( wield == NULL || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
     {
 	send_to_char( "You need to wield a two-handed weapon.\n\r", ch );
 	return;
@@ -2420,7 +2420,10 @@ DEF_DO_FUN(do_round_swing)
 	return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
+    int swing_time = skill_table[gsn_round_swing].beats;
+    int mastery = mastery_bonus(ch, gsn_round_swing, 20, 25);
+    swing_time = rand_div(swing_time * (100 - mastery), 100);
+    WAIT_STATE( ch, swing_time );
 
     if ( per_chance(50) && !per_chance(skill) )
     {
@@ -2588,6 +2591,8 @@ DEF_DO_FUN(do_roundhouse)
 	       tally++;
 	       full_dam(ch,vch,dam,gsn_roundhouse, DAM_BASH, TRUE);
 	   }
+        else
+           full_dam(ch, vch, 0, gsn_roundhouse, DAM_BASH, TRUE);
        }
    }
 
