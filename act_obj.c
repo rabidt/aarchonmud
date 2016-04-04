@@ -373,7 +373,7 @@ DEF_DO_FUN(do_get)
             for ( obj = ch->in_room->contents; obj != NULL; obj = obj_next )
             {
                 obj_next = obj->next_content;
-                if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+                if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                         &&   can_see_obj( ch, obj ) )
                 {
                     found = TRUE;
@@ -477,7 +477,7 @@ DEF_DO_FUN(do_get)
             for ( obj = container->contains; obj != NULL; obj = obj_next )
             {
                 obj_next = obj->next_content;
-                if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+                if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                         &&   can_see_obj( ch, obj ) )
                 {
                     found = TRUE;
@@ -657,7 +657,7 @@ DEF_DO_FUN(do_put)
         {
             obj_next = obj->next_content;
 
-            if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+            if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                     &&   can_see_obj( ch, obj )
                     /* Changed by Vodur
                        &&   WEIGHT_MULT(obj) == 100*/
@@ -870,7 +870,7 @@ DEF_DO_FUN(do_drop)
         {
             obj_next = obj->next_content;
 
-            if ( ( arg[3] == '\0' || is_name( &arg[4], obj->name ) )
+            if ( ( arg[3] == '\0' || match_obj(obj, &arg[4]) )
                     &&   can_see_obj( ch, obj )
                     &&   obj->wear_loc == WEAR_NONE
                     &&   can_drop_obj( ch, obj ) )
