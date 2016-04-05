@@ -26,7 +26,7 @@ bool op_percent_trigger(
         return TRUE;
     }
 
-    if ( !HAS_OTRIG(obj, type) )
+    if ( !IS_VALID(obj) || !HAS_OTRIG(obj, type) )
         return TRUE;
 
     PROG_LIST *prg;
