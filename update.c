@@ -2955,6 +2955,8 @@ void validate_all()
 {
     CHAR_DATA *ch, *ch_next, *dch, *lch;
     DESCRIPTOR_DATA *desc, *desc_next;
+    AREA_DATA *pArea;
+    ROOM_INDEX_DATA *pRoom;
     
     // characters
     for ( ch = char_list; ch; ch = ch_next )
@@ -3012,6 +3014,12 @@ void validate_all()
                 continue;
             }
         }
+        if ( ch->in_room && !is_in_room(ch) )
+        {
+            bugf("validate_all: ch (%s) not in assigned room (#%d)", ch->name, ch->in_room->vnum);
+            ch->in_room = NULL;
+            continue;
+        }
     }
     // descriptors
     for ( desc = descriptor_list; desc; desc = desc_next )
@@ -3038,6 +3046,37 @@ void validate_all()
                 desc->character = NULL;
                 continue;
             }
+        }
+    }
+    // areas and rooms
+    for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
+    {
+        // count players
+        int player_count = 0;
+        int vnum;
+        for ( vnum = pArea->min_vnum; vnum <= pArea->max_vnum; vnum++ )
+        {
+            if ( (pRoom = get_room_index(vnum)) != NULL )
+            {
+                for ( ch = pRoom->people; ch != NULL; ch = ch_next )
+                {
+                    ch_next = ch->next_in_room;
+                    if ( ch->in_room != pRoom )
+                    {
+                        bugf("validate_all: ch (%s) in wrong room (#%d != #%d)", ch->name, ch->in_room ? ch->in_room->vnum : 0, pRoom->vnum);
+                        remove_from_room_list(ch, pRoom);
+                        continue;
+                    }
+                    if ( !IS_NPC(ch) )
+                        player_count++;
+                }
+            }
+        }
+        if ( pArea->nplayer != player_count )
+        {
+            bugf("validate_all: wrong player count (%d != %d) in area %s (#%d-#%d)",
+                pArea->nplayer, player_count, pArea->name, pArea->min_vnum, pArea->max_vnum);
+            pArea->nplayer = player_count;
         }
     }
 }
