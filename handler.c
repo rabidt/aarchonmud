@@ -1511,13 +1511,36 @@ bool is_in_room( CHAR_DATA *ch )
     return FALSE;
 }
 
+bool remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
+{
+    CHAR_DATA *prev;
+    
+    if ( ch == pRoom->people )
+    {
+        pRoom->people = ch->next_in_room;
+        return TRUE;
+    }
+    
+    for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
+    {
+        if ( prev->next_in_room == ch )
+        {
+            prev->next_in_room = ch->next_in_room;
+            return TRUE;
+        }
+    }
+    
+    bugf("remove_from_room_list: %s not found in room #%d", ch->name, pRoom->vnum);
+    return FALSE;
+}
+
 /*
  * Move a char out of a room.
  */
 void char_from_room( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
-    bool notFound = FALSE;
+    bool found;
     
     if ( ch == NULL || ch->in_room == NULL )
     {
@@ -1558,33 +1581,11 @@ void char_from_room( CHAR_DATA *ch )
     if ( IS_SET(ch->form, FORM_BRIGHT) )
 	--ch->in_room->light;
     
-    if ( ch == ch->in_room->people )
-    {
-        ch->in_room->people = ch->next_in_room;
-    }
-    else
-    {
-        CHAR_DATA *prev;
-        
-        for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
-        {
-            if ( prev->next_in_room == ch )
-            {
-                prev->next_in_room = ch->next_in_room;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bugf("Char_from_room: %s not found in room %d", ch->name, ch->in_room->vnum);
-            notFound = TRUE;
-        }
-    }
+    found = remove_from_room_list(ch, ch->in_room);
     
     // decrease area count, but only if we didn't have a bug previously
     // otherwise we'd be introducing an additional bug
-    if ( !IS_NPC(ch) && !notFound && --ch->in_room->area->nplayer < 0 )
+    if ( !IS_NPC(ch) && found && --ch->in_room->area->nplayer < 0 )
     {
         bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
         ch->in_room->area->nplayer = 0;

@@ -4804,6 +4804,7 @@ void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap );
+bool    remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
