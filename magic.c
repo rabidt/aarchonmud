@@ -3815,11 +3815,35 @@ DEF_SPELL_FUN(spell_fireball)
 
 DEF_SPELL_FUN(spell_fireproof)
 {
+    OBJ_DATA *obj;
+    AFFECT_DATA af;
+    char arg[MSL];
+    
+    one_argument(target_name, arg);
+    
+    if ( arg[0] == '\0' )
+    {
+        // find first object that's not burnproof already
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( !IS_OBJ_STAT(obj,ITEM_BURN_PROOF) )
+                break;
+        if ( obj == NULL )
+        {
+            send_to_char("All your items are already protected.\n\r", ch);
+            return SR_TARGET;
+        }
+    }
+    else if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+    {
+        if ( (obj = get_obj_wear(ch, arg)) == NULL )
+        {
+            send_to_char("You aren't carrying that.\n\r",ch);
+            return SR_TARGET;
+        }
+    }
+    
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *obj = (OBJ_DATA *) vo;
-    AFFECT_DATA af;
-
     if (IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
     {
         act("$p is already protected from burning.",ch,obj,NULL,TO_CHAR);
