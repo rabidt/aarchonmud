@@ -890,11 +890,7 @@ void remort_begin(CHAR_DATA *ch)
     
     if (ch->desc != NULL)
     {
-        // allow change of subclass for the first few remorts so players can test all
-        if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
-            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
-        else
-            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+        ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_REMORT_BEGIN;
     }
     else
     {
