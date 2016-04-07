@@ -52,6 +52,7 @@ DECLARE_NANNY_FUN(get_old_password);
 DECLARE_NANNY_FUN(confirm_new_name);
 DECLARE_NANNY_FUN(get_new_password);
 DECLARE_NANNY_FUN(confirm_new_password);
+DECLARE_NANNY_FUN(nanny_remort_begin);
 DECLARE_NANNY_FUN(get_new_race);
 DECLARE_NANNY_FUN(get_new_sex);
 DECLARE_NANNY_FUN(get_new_class);
@@ -282,7 +283,11 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 		    bug( "Nanny: bad d->connected %d.", d->connected );
 		    close_socket( d );
 		    return;
-		    
+
+        case CON_REMORT_BEGIN:
+            nanny_remort_begin(d, argument);
+            break;
+
         case CON_GET_NEW_SUBCLASS:
             if (get_new_subclass(d, argument)) get_new_race(d, argument);
             break;
@@ -769,8 +774,16 @@ DEF_NANNY_FUN(get_creation_mode)
 	return FALSE;
 }
  
-
-
+DEF_NANNY_FUN(nanny_remort_begin)
+{
+    CHAR_DATA *ch = d->character;
+    
+    // allow change of subclass for the first few remorts so players can test all
+    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
+        return get_new_subclass(d, argument);
+    else
+        return get_new_race(d, argument);
+}
 
 DEF_NANNY_FUN(get_new_race)
 {
