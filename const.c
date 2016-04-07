@@ -3628,7 +3628,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_fireproof,    TAR_OBJ_INV,        POS_STANDING,
+	spell_fireproof,    TAR_IGNORE_OBJ,        POS_STANDING,
 	NULL,             10, 12, DUR_EXTREME,
 	"",         "", "$p's protective aura fades."
 	},
