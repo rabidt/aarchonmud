@@ -3825,7 +3825,6 @@ DEF_SPELL_FUN(spell_astarks_rejuvenation)
     
     CHAR_DATA *gch;
     int heal;
-    int refr;
     int sn1;    
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -3833,11 +3832,9 @@ DEF_SPELL_FUN(spell_astarks_rejuvenation)
         if ( !is_same_group( gch, ch ) )
             continue;
 
-        heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
-        gch->hit = UMIN( gch->hit + heal, gch->max_hit );
-        
-        refr = get_sn_heal( sn, level, ch, gch ) * 4/15;
-        gch->move = UMIN( gch->move + refr, gch->max_move );
+        heal = get_sn_heal(sn, level, ch, gch);
+        gain_hit(gch, heal * 6/15);
+        gain_move(gch, heal * 4/15);
 
         update_pos( gch );
 
