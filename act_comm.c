@@ -1834,15 +1834,17 @@ void log_bugs(char *str)
 
 DEF_DO_FUN(do_bug)
 {
-    append_file( ch, BUG_FILE, argument );
-    send_to_char( "Bug logged.\n\r", ch );
+    //append_file( ch, BUG_FILE, argument );
+    //send_to_char( "Bug logged.\n\r", ch );
+    send_to_char("Please report bugs on the Bugs board, using the {gboard{x and {gnote{x commands.\n\r", ch);
     return;
 }
 
 DEF_DO_FUN(do_typo)
 {
-    append_file( ch, TYPO_FILE, argument );
-    send_to_char( "Typo logged.\n\r", ch );
+    //append_file( ch, TYPO_FILE, argument );
+    //send_to_char( "Typo logged.\n\r", ch );
+    send_to_char("Please report typos on the Bugs board, using the {gboard{x and {gnote{x commands.\n\r", ch);
     return;
 }
 
