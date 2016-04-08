@@ -4681,6 +4681,12 @@ DEF_DO_FUN(do_sire)
         send_to_char( "That's not a corpse.\n\r", ch );
         return;
     }
+    
+    if ( !can_loot(ch, corpse, TRUE) )
+    {
+        send_to_char( "You don't own that corpse.\n\r", ch);
+        return;
+    }
 
     if ( ch->pet != NULL )
     {
