@@ -785,6 +785,12 @@ DEF_SPELL_FUN(spell_animate_dead)
         return SR_TARGET;
     }
     
+    if ( !can_loot(ch, cor, TRUE) )
+    {
+        send_to_char( "You don't own that corpse.\n\r", ch);
+        return SR_UNABLE;
+    }    
+    
     if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) || IS_SET(ch->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Not in this room.\n\r",ch);
