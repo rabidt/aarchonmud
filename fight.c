@@ -6022,8 +6022,11 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
     {
         act( "$n crumbles to dust.", victim, NULL, NULL, TO_ROOM );
         drop_eq( victim );
-        obj_to_room( create_money(victim->gold, victim->silver), victim->in_room );
-        victim->gold = victim->silver = 0;
+        if ( victim->gold || victim->silver )
+        {
+            obj_to_room( create_money(victim->gold, victim->silver), victim->in_room );
+            victim->gold = victim->silver = 0;
+        }
     }
     else if ( IS_NPC(victim) || !IS_SET(kill_room->room_flags, ROOM_ARENA) )
     {
