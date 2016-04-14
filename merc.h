@@ -4653,7 +4653,7 @@ bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
-void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
+bool    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool    is_woodland( int sector );

@@ -4026,6 +4026,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     OBJ_DATA *corpse;
     bool killed_in_war = FALSE;
     bool morgue = FALSE;
+    bool can_loot = FALSE;
 
     /* safety-net */
     if ( victim->just_killed )
@@ -4276,8 +4277,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         morgue = (bool) (!IS_NPC(victim) && (IS_NPC(ch) || (ch==victim) ));
 
-
-        raw_kill( victim, ch, morgue );
+        can_loot = raw_kill( victim, ch, morgue );
 
         /* dump the flags */
         if (ch != victim && !is_same_clan(ch,victim))
@@ -4293,6 +4293,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     /* RT new auto commands */
 
     if ( !IS_NPC(ch)
+            && can_loot
             && (corpse = get_obj_list(ch,"corpse",ch->in_room->contents)) != NULL
             && corpse->item_type == ITEM_CORPSE_NPC
             && can_see_obj(ch,corpse)
@@ -5998,16 +5999,17 @@ void death_cry( CHAR_DATA *ch )
 }
 
 
-
-void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
+// returns TRUE if corpse is created in local room => autoloot/gold
+bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 {
     ROOM_INDEX_DATA *kill_room = victim->in_room;
+    bool corpse_created = FALSE;
     
     /* backup in case hp goes below 1 */
     if (NOT_AUTHED(victim))
     {
         bug( "raw_kill: killing unauthed", 0 );
-        return;
+        return FALSE;
     }
     
     stop_fighting( victim, TRUE );
@@ -6018,19 +6020,24 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 	 (victim->pIndexData->vnum == MOB_VNUM_VAMPIRE
 	  || IS_SET(victim->form, FORM_INSTANT_DECAY)) )
     {
-	act( "$n crumbles to dust.", victim, NULL, NULL, TO_ROOM );
-	drop_eq( victim );
+        act( "$n crumbles to dust.", victim, NULL, NULL, TO_ROOM );
+        drop_eq( victim );
+        obj_to_room( create_money(victim->gold, victim->silver), victim->in_room );
+        victim->gold = victim->silver = 0;
     }
     else if ( IS_NPC(victim) || !IS_SET(kill_room->room_flags, ROOM_ARENA) )
-	make_corpse( victim, killer, to_morgue);
+    {
+        make_corpse( victim, killer, to_morgue);
+        corpse_created = !to_morgue;
+    }
     
     if ( IS_NPC(victim) )
     {
         victim->pIndexData->killed++;
         kill_table[URANGE(0, victim->level, MAX_LEVEL-1)].killed++;
         extract_char( victim, TRUE );
-	update_room_fighting( kill_room );
-        return;
+        update_room_fighting( kill_room );
+        return corpse_created;
     }
 
     victim->pcdata->condition[COND_HUNGER] =
@@ -6047,7 +6054,7 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
     victim->mana    = UMAX( 1, victim->mana );
     victim->move    = UMAX( 1, victim->move );
     update_room_fighting( kill_room );
-    return;
+    return corpse_created;
 }
 
 /* check if the gods have mercy on a character */
