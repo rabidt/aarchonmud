@@ -1883,9 +1883,9 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             if (percent > 0 && !IS_AFFECTED(ch,AFF_POISON)
                 &&  !IS_AFFECTED(ch,AFF_PLAGUE))
             {
-                ch->hit += (short)((ch->max_hit - ch->hit) * percent / 100);
-                ch->mana += (short)((ch->max_mana - ch->mana) * percent / 100);
-                ch->move += (short)((ch->max_move - ch->move)* percent / 100);
+                gain_hit(ch, (ch->max_hit - ch->hit) * percent / 100);
+                gain_mana(ch, (ch->max_mana - ch->mana) * percent / 100);
+                gain_move(ch, (ch->max_move - ch->move) * percent / 100);
             }
 
 	    /* highest level not always saved */
