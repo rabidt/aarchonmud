@@ -2297,7 +2297,7 @@ DEF_DO_FUN(do_bite)
                 /*damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);*/
                 if (number_bits(4) == 0)
 		    drop_align( ch );
-                ch->hit += dam/5;
+                gain_hit(ch, dam/5);
             }
         }
         else

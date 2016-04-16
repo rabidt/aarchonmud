@@ -3211,9 +3211,6 @@ DEF_SPELL_FUN(spell_heal_mind)
 
     SPELL_CHECK_RETURN
     
-    /* restore spell cost */
-    ch->mana += skill_table[sn].min_mana;
-    
     if( ch->mana >= mana_cap(ch) )
     {
         send_to_char("Your mind cannot be healed any further.\n\r", ch);
