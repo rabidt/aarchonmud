@@ -2796,7 +2796,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->hit += dam;
+	gain_hit(ch, dam);
 	break;
     case STANCE_VAMPIRE_HUNTING:
 	if ((IS_NPC(victim) && IS_SET(victim->act,ACT_UNDEAD))
@@ -2885,7 +2885,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->hit += dam/2;
+	gain_hit(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_MANASUCK))
@@ -2899,7 +2899,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->mana += dam/2;
+	gain_mana(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_MOVESUCK))
@@ -2913,7 +2913,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->move += dam/2;
+	gain_move(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_DUMB))

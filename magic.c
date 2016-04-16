@@ -1403,7 +1403,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                 || target == TAR_CHAR_SELF )
         {
             int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
-            if ( victim->hit < victim->max_hit )
+            if ( victim->hit < hit_cap(victim) )
             {
                 if ( ch == victim )
                     ptc(ch, "Your mystic infusion restores some of your health.\n\r");
@@ -1412,7 +1412,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                     act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
                     act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
                 }
-                victim->hit += UMIN(victim->max_hit - victim->hit, heal);
+                gain_hit(victim, heal);
             }
         }
     }
@@ -3771,8 +3771,8 @@ DEF_SPELL_FUN(spell_energy_drain)
     /* drain from victim and add to caster */
     victim->mana -= drain_mana;
     victim->move -= drain_move;
-    ch->mana += drain_mana / 5;
-    ch->move += drain_move / 5;
+    gain_mana(ch, drain_mana / 5);
+    gain_move(ch, drain_move / 5);
 
     send_to_char("You feel your life slipping away!\n\r",victim);
     send_to_char("Wow....what a rush!\n\r",ch);
