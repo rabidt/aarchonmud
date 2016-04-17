@@ -7484,7 +7484,7 @@ void check_song(CHAR_DATA *ch)
         // increment player
         ch->move += incr;
         // check group members next
-        for ( gch = ch->in_room; gch != NULL; gch = gch->next_in_room )
+        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         {
             if (is_same_group(gch, ch))
             {
