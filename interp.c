@@ -460,6 +460,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "recruit",    do_recruit, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reject",     do_reject, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "remort",     do_remort, POS_STANDING,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
+    { "sing",       do_sing, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE    },
     { "stare",      do_stare,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE }, 
     { "stance",     do_stance,    POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "stancelist", do_stance_list,  POS_DEAD, 0, LOG_NORMAL, 1, FALSE, TRUE },

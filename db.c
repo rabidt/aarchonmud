@@ -483,6 +483,9 @@ sh_int  gsn_quicken_spell;
 sh_int  gsn_chain_spell;
 sh_int  gsn_wish;
 
+/* songs */
+sh_int  gsn_combat_symphony;
+
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
 
