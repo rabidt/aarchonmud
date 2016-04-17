@@ -234,12 +234,12 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         471
-#define MAX_GROUP          79 /* accurate oct 2013 */
+#define MAX_SKILL         472
+#define MAX_GROUP          81 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
-#define MAX_CLASS          15
+#define MAX_CLASS          16
 #define MAX_PC_RACE        76
 #define MAX_BOARD          12
 #define MAX_CLAN           12
@@ -2585,7 +2585,8 @@ struct  char_data
 	sh_int      default_pos;
     sh_int        mprog_delay;
     const char* hunting;
-	sh_int  stance;
+	sh_int      stance;
+  sh_int      song;
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
@@ -3688,6 +3689,9 @@ extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
 extern sh_int  gsn_wish;
 
+/* songs */
+extern sh_int  gsn_combat_symphony;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
 
@@ -4128,6 +4132,18 @@ struct stance_type
 #define STANCE_BULLET_RAIN 48
 #define STANCE_DECEPTION 49
 
+struct song_type
+{
+  const char* name;
+  int         key;
+  sh_int *    gsn;
+  int         cost;
+};
+
+/* Values for songs in tables.c. Same as stances */
+#define SONG_DEFAULT 0
+#define SONG_COMBAT_SYMPHONY 1
+
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
@@ -4149,6 +4165,7 @@ struct stance_type
 
 /* warfare.c */
 extern const struct stance_type   stances[];
+extern const struct song_type     songs[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
 extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
