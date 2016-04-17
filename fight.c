@@ -143,6 +143,7 @@ void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_stance  args( ( CHAR_DATA *ch ) );
+void  check_song    args( ( CHAR_DATA *ch ) );
 void  warfare       args( ( char *argument ) );
 void  add_war_kills args( ( CHAR_DATA *ch ) );
 void  war_end       args( ( bool success ) );
