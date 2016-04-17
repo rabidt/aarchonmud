@@ -7478,7 +7478,7 @@ void check_song(CHAR_DATA *ch)
     if ( ch->song == SONG_COMBAT_SYMPHONY )
     {
         int incr;
-        CHARDATA *gch;
+        CHAR_DATA *gch;
         incr = UMAX( 5, 20 - (100-get_skill(ch,gsn_combat_symphony))/2 );
         // increment player
         ch->move += incr;
