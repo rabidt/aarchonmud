@@ -7482,13 +7482,23 @@ void check_song(CHAR_DATA *ch)
         CHAR_DATA *gch;
         incr = UMAX( 5, 20 - (100-get_skill(ch,gsn_combat_symphony))/2 );
         // increment player
-        ch->move += incr;
+        if ( ch->move < (ch->max_move - incr + 5) ) 
+        {
+            ch->move += incr;
+        } else {
+            ch->move = ch->max_move;
+        }
         // check group members next
         for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         {
             if (is_same_group(gch, ch))
             {
-                gch->move += incr;
+                if ( gch->move < (gch->max_move - incr + 5) ) 
+                {
+                    gch->move += incr;
+                } else {
+                    gch->move = gch->max_move;
+                }
             }
         }
     } 
