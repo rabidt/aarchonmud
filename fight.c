@@ -1368,11 +1368,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     check_stance(ch);
 
-    // song stuff, will put it in its own function eventually
-    if ( ch->song == SONG_COMBAT_SYMPHONY ) {
-            ch->mana -= 200;
-    }
-    
+    // song stuff
+    check_song(ch);
+
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
@@ -7453,6 +7451,46 @@ DEF_DO_FUN(do_murder)
 
     multi_hit (ch, victim, TYPE_UNDEFINED); 
     return;    
+}
+
+int song_cost( CHAR_DATA *ch, int song )
+{
+    int sn = *(songs[song].gsn);
+    int skill = get_skill(ch, sn);
+    int cost = songs[song].cost * (140-skill)/40;
+
+    // can add mastery later if needed
+    return cost;
+}
+
+void check_song(CHAR_DATA *ch)
+{
+    int cost;
+
+    if (ch->song == 0) return;
+
+    cost = song_cost( ch, ch->song );
+
+    // deduct mana from cost
+    ch->mana -= cost;
+
+    // add moves to group members
+    if ( ch->song == SONG_COMBAT_SYMPHONY )
+    {
+        int incr;
+        CHARDATA *gch;
+        incr = UMAX( 5, 20 - (100-get_skill(ch,gsn_combat_symphony))/2 );
+        // increment player
+        ch->move += incr;
+        // check group members next
+        for ( gch = ch->in_room; gch != NULL; gch = gch->next_in_room )
+        {
+            if (is_same_group(gch, ch))
+            {
+                gch->move += incr;
+            }
+        }
+    } 
 }
 
 int stance_cost( CHAR_DATA *ch, int stance )
