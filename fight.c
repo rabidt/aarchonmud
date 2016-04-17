@@ -106,6 +106,7 @@ DECLARE_DO_FUN(do_rescue    );
 DECLARE_DO_FUN(do_mug       );
 DECLARE_DO_FUN(do_crush     );
 DECLARE_DO_FUN(do_unjam     );
+DECLARE_DO_FUN(do_sing      );
 
 DECLARE_SPELL_FUN( spell_windwar        );
 DECLARE_SPELL_FUN( spell_lightning_bolt );
@@ -1366,6 +1367,11 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     second = get_eq_char ( ch, WEAR_SECONDARY );
     
     check_stance(ch);
+
+    // song stuff, will put it in its own function eventually
+    if ( ch->song == SONG_COMBAT_SYMPHONY ) {
+            ch->mana -= 200;
+    }
     
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
@@ -7524,6 +7530,64 @@ void check_stance(CHAR_DATA *ch)
 	incr   = UMAX( 10, 25 - (100-get_skill(ch,gsn_firewitchs_seance))/2 );
         gain_hit(ch, incr);
         gain_mana(ch, incr);
+    }
+}
+
+// completely ripped off do_stance. not ashamed
+DEF_DO_FUN(do_sing)
+{
+    int i;
+
+    if (argument[0] == '\0')
+    {
+        if (ch->song == 0)
+        {
+            send_to_char("What song do you wish to sing?\n\r", ch);
+        } else {
+            send_to_char("You are no longer singing.\n\r", ch);
+            ch->song = 0;
+        }
+        return;
+    }
+
+    // only search known songs
+    for ( i = 0; songs[i].name != NULL; i++ )
+    {
+        if ( !str_prefix(argument, songs[i].name) && get_skill(ch, *(songs[i].gsn)) )
+        {
+            break;
+        }
+    }
+    if ( songs[i].name == NULL )
+    {
+        if (ch->song && songs[ch->song].name)
+        {
+            char buffer[80];
+            if (sprintf(buffer, "You don't know that song so you continue to sing %s.\n\r", songs[ch->song].name) > 0)
+            {
+                send_to_char(buffer, ch);
+                return;
+            }
+        }
+
+        send_to_char("You don't know that song.\n\r", ch);
+        return;
+    }
+
+    if ( ch->song == i )
+    {
+        send_to_char("You're already singing that song\n\r", ch);
+        return;
+    }
+
+    ch->song = i;
+
+    printf_to_char(ch, "You begin singing the %s.\n\r", songs[i].name);
+    if ( ch->fighting != NULL )
+    {
+        char buf[MSL];
+        sprintf( buf, "$n begins to sing the %s.", songs[i].name);
+        act( buf, ch, NULL, NULL, TO_ROOM );
     }
 }
 
