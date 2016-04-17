@@ -1328,6 +1328,13 @@ const struct stance_type stances [] =
 		NULL,                      FALSE, FALSE,  0  }
 };
 
+const struct song_type songs [] =
+{
+    {"default",               SONG_DEFAULT,            NULL,                 0  },
+    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony, 20 },
+    { NULL,                   0,                       NULL,                 0  }
+};
+
 const char* spell_target_names[] =
 {
     "ignore",
