@@ -3637,14 +3637,14 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* song bonus */
     if ( dam > 0 && normal_hit )
     {
-        singing_dev_ant = false // devestating anthem
+        singing_dev_ant = false; // devestating anthem
         for ( gch = ch->in_room->people; gch != NULL; gch = ch->next_in_room ) // loop to see if anyone in group is singing it
         {
             if (is_same_group(ch, gch))
             {
                 if (gch->song == SONG_DEVESTATING_ANTHEM || ch->song == SONG_DEVESTATING_ANTHEM)
                 {
-                    singing_dev_ant = true
+                    singing_dev_ant = true;
                 }
             }
         }
