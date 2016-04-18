@@ -485,6 +485,7 @@ sh_int  gsn_wish;
 
 /* songs */
 sh_int  gsn_combat_symphony;
+sh_int  gsn_devestating_anthem;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
