@@ -3646,7 +3646,12 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 if (gch->song == SONG_DEVESTATING_ANTHEM)
                 {
                     singing_dev_ant = true;
+                    break;
+                } else {
+                    continue;
                 }
+            } else {
+                continue;
             }
         }
         if (singing_dev_ant)
@@ -7505,7 +7510,7 @@ void check_song(CHAR_DATA *ch)
         CHAR_DATA *gch;
         incr = UMAX( 5, 20 - (100-get_skill(ch,gsn_combat_symphony))/2 );
         // increment player
-        if ( ch->move < (ch->max_move - incr + 5) ) 
+        if ( ch->move < (ch->max_move - incr + 5) ) // make sure we don't go over max moves
         {
             ch->move += incr;
         } else {
@@ -7514,9 +7519,9 @@ void check_song(CHAR_DATA *ch)
         // check group members next
         for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         {
-            if (is_same_group(gch, ch))
+            if (is_same_group(gch, ch)) // same group, not same room
             {
-                if ( gch->move < (gch->max_move - incr + 5) ) 
+                if ( gch->move < (gch->max_move - incr + 5) ) // make sure we don't go over max moves
                 {
                     gch->move += incr;
                 } else {
