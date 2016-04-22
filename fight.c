@@ -157,6 +157,7 @@ bool is_normal_hit( int dt );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
+bool is_one_singer( CHAR_DATA *ch );
 
 void wait_state( CHAR_DATA *ch, int npulse )
 {
@@ -3642,7 +3643,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         {
             if (is_same_group(ch, gch))
             {
-                if (gch->song == SONG_DEVESTATING_ANTHEM || ch->song == SONG_DEVESTATING_ANTHEM)
+                if (gch->song == SONG_DEVESTATING_ANTHEM)
                 {
                     singing_dev_ant = true;
                 }
@@ -7524,6 +7525,25 @@ void check_song(CHAR_DATA *ch)
             }
         }
     } 
+}
+
+bool is_one_singer( CHAR_DATA *ch )
+{
+    /* we only want one singer, if more than one disable all songs */
+    bool other_singer = false;
+    CHAR_DATA *gch;
+
+    if ( ch->song != 0 )
+    {
+        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+        {
+            if ( gch->song != 0 )
+            {
+                other_singer = true; // more than one singer
+            }
+        }
+    }
+    return other_singer;
 }
 
 int stance_cost( CHAR_DATA *ch, int stance )
