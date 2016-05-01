@@ -2136,9 +2136,9 @@ const struct subclass_type subclass_table[] =
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
-        { "true grit", "bulwark" },
-        { 10, 30 },
-        { 100, 100 }
+        { "true grit", "shield wall", "bulwark" },
+        { 10, 20, 30 },
+        { 100, 100, 100 }
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
@@ -2270,7 +2270,7 @@ const struct subclass_type subclass_table[] =
         "beastmaster", RANGER,
         { "beast mastery", "water elemental", "chain spell" },
         { 10, 50, 70 },
-        { 100, 90, 80 }
+        { 100, 100, 80 }
     },
     {
         "defiler", NECROMANCER,
@@ -3628,7 +3628,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_fireproof,    TAR_OBJ_INV,        POS_STANDING,
+	spell_fireproof,    TAR_IGNORE_OBJ,        POS_STANDING,
 	NULL,             10, 12, DUR_EXTREME,
 	"",         "", "$p's protective aura fades."
 	},
@@ -3661,9 +3661,9 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
-	spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
-	NULL,             40, 24, DUR_EXTREME,
-	"",         "!Floating disc!",  ""
+	spell_floating_disc,    TAR_CHAR_SELF,     POS_STANDING,
+	&gsn_floating_disc, 40, 24, DUR_EXTREME,
+	"",         "The disc floating next to you dissipates.",  ""
 	},
 
 	{
@@ -5449,7 +5449,7 @@ struct  skill_type
 	{
 	"jump up",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -5471,7 +5471,7 @@ struct  skill_type
 	{
 	"round swing",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_IGNORE,     POS_FIGHTING,
@@ -5482,7 +5482,7 @@ struct  skill_type
 	{
 	"puncture",
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 4,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 4,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 	spell_null,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
@@ -5687,6 +5687,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_bulwark, 0, 0, DUR_NONE,
         "", "!bulwark!", ""
+    },
+
+    {
+        "shield wall",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_STR, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shield_wall, 0, 0, DUR_NONE,
+        "", "!shield wall!", ""
     },
 
     {
@@ -6817,7 +6828,7 @@ struct  skill_type
 	{
 	"estimate",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 57, 66, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,     TAR_IGNORE,     POS_STANDING,
@@ -7356,7 +7367,7 @@ struct  skill_type
 	{
 	"kamikaze",  
 	{ 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
 	{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
 	STAT_NONE, STAT_NONE, STAT_NONE,
 		spell_null,             TAR_IGNORE,             POS_FIGHTING,

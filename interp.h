@@ -90,6 +90,7 @@ DECLARE_DO_FUN( do_avatar);
 DECLARE_DO_FUN( do_backstab );
 DECLARE_DO_FUN( do_balance  );
 DECLARE_DO_FUN( do_blackjack );
+DECLARE_DO_FUN( do_breakdown );
 DECLARE_DO_FUN( do_circle   );
 DECLARE_DO_FUN( do_classes  );
 DECLARE_DO_FUN( do_bamfin   );

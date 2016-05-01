@@ -456,7 +456,10 @@ DEF_DO_FUN(do_tattoo)
     else if ( !strcmp(arg1, "buy") )
     {
         if ( IS_IMMORTAL(ch) && !strcmp(arg2, "all") )
+        {
             all = TRUE;
+            loc = -1; // to stop compiler warnings
+        }
         else if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG || !is_tattoo_loc(loc) )
         {
             send_to_char( "That's not a valid location.\n\r", ch );
@@ -516,7 +519,10 @@ DEF_DO_FUN(do_tattoo)
     else if ( !strcmp(arg1, "remove") )
     {
         if ( IS_IMMORTAL(ch) && !strcmp(arg2, "all") )
+        {
             all = TRUE;
+            loc = -1; // to stop compiler warnings
+        }
         else if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG || !is_tattoo_loc(loc) )
         {
             send_to_char( "That's not a valid location.\n\r", ch );

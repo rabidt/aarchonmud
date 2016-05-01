@@ -436,7 +436,10 @@ void game_loop_unix( int control )
             if ( d->character != NULL && d->character->wait > 0 )
             {
                 --d->character->wait;
-                continue;
+                // always accept input from switched imms
+                // this prevents input-lock by mprogs that induce wait
+                if ( !IS_NPC(d->character) )
+                    continue;
             }
 
             if ( d->character != NULL && check_fear(d->character) )

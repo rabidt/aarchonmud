@@ -519,9 +519,9 @@ DEF_DO_FUN(do_warstatus)
 void war_update( void )
 {
     char buf[MSL];
-    DESCRIPTOR_DATA *d;
     ROOM_INDEX_DATA *random;
     int count = 0;
+    CHAR_DATA *ch;
 
     if (current_time > auto_war_time && war.on == FALSE)
     {
@@ -581,13 +581,12 @@ void war_update( void )
             return;
         }
 
-        for ( d = descriptor_list; d != NULL; d = d->next )
+        // traverse char_list to catch linkdead players
+        for ( ch = char_list; ch; ch = ch->next )
         {
-            if ( !(IS_PLAYING(d->connected))
-                    || d->character == NULL
-                    || !IS_SET( d->character->act, PLR_WAR ) )
+            if ( !PLR_ACT(ch, PLR_WAR) )
                 continue;
-            if ( !is_same_team( war.first_combatant, d->character ) )
+            if ( !is_same_team( war.first_combatant, ch ) )
                 break;
             count++;
         }
@@ -612,23 +611,23 @@ void war_update( void )
         sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare_to_all( buf );
         war.started = TRUE;
-        for ( d = descriptor_list; d != NULL; d = d->next )
+        for ( ch = char_list; ch; ch = ch->next )
         {
-            if ( d->character == NULL || !IS_SET( d->character->act, PLR_WAR ) )
+            if ( !PLR_ACT(ch, PLR_WAR) )
                 continue;
 
             if (war.type==DUEL_WAR)
                 random = get_room_index( number_range( DUEL_ROOM_FIRST, DUEL_ROOM_LAST ) );
             else
                 random = get_room_index( number_range( WAR_ROOM_FIRST, WAR_ROOM_LAST ) );
-            char_from_room( d->character );
-            char_to_room ( d->character, random );
-            do_look( d->character, "" );
+            char_from_room( ch );
+            char_to_room ( ch, random );
+            do_look( ch, "" );
             /* Stop the Eq-Switching Cheating ... so what you're wearing
                as you enter the warzone gives you your hp/mana/move for the war. */
-            d->character->hit = hit_cap(d->character);
-            d->character->mana = mana_cap(d->character);
-            d->character->move = move_cap(d->character);
+            ch->hit = hit_cap(ch);
+            ch->mana = mana_cap(ch);
+            ch->move = move_cap(ch);
         }
         return;
     }
@@ -673,8 +672,7 @@ DEF_DO_FUN(do_nowar)
 
 void war_end( bool success )
 {
-    DESCRIPTOR_DATA *d;
-    CHAR_DATA *rch;
+    CHAR_DATA *ch;
     int points=0;
     char buf[80];
 
@@ -683,11 +681,11 @@ void war_end( bool success )
     if ( !success && war.owner )
     {
         // refund owner
-        for ( rch = char_list; rch; rch=rch->next )
-            if ( !IS_NPC(rch) && rch->id == war.owner )
+        for ( ch = char_list; ch; ch = ch->next )
+            if ( !IS_NPC(ch) && ch->id == war.owner )
             {
-                ptc( rch, "You are refunded your %d qp fee.\n\r", war.cost );   
-                rch->pcdata->questpoints += war.cost;
+                ptc( ch, "You are refunded your %d qp fee.\n\r", war.cost );   
+                ch->pcdata->questpoints += war.cost;
                 break;
             }
         // no award for anyone - that would be an exploit
@@ -699,47 +697,45 @@ void war_end( bool success )
         sprintf(buf, "You are awarded %d quest points.\n\r", points);
     }
 
-    for ( d = descriptor_list; d != NULL; d = d->next )
+    for ( ch = char_list; ch; ch = ch->next )
     {
-        if ( (!IS_PLAYING(d->connected))
-                || d->character == NULL || IS_NPC(d->character)
-                || !IS_SET( d->character->act, PLR_WAR ) )
+        if ( !PLR_ACT(ch, PLR_WAR) )
             continue;
-
+        
         if ( points )
         {
-            send_to_char(buf, d->character);
-            d->character->pcdata->questpoints += points;
+            send_to_char(buf, ch);
+            ch->pcdata->questpoints += points;
         }
 
-        stop_fighting( d->character, TRUE );
-        char_from_room( d->character );
-        return_to_room( d->character, get_room_index(success ? WAR_ROOM_WINNER : ROOM_VNUM_TEMPLE) );
-        REMOVE_BIT( d->character->act, PLR_WAR );
-        affect_strip(d->character, 0);
-        affect_unfreeze_sn(d->character, 0);
-        d->character->hit = UMAX(1, d->character->pcdata->warfare_hp);
-        d->character->move = d->character->pcdata->warfare_move;
-        d->character->mana = d->character->pcdata->warfare_mana;
-        update_pos( d->character );
-        do_look( d->character, "" );
+        stop_fighting( ch, TRUE );
+        char_from_room( ch );
+        return_to_room( ch, get_room_index(success ? WAR_ROOM_WINNER : ROOM_VNUM_TEMPLE) );
+        REMOVE_BIT( ch->act, PLR_WAR );
+        affect_strip(ch, 0);
+        affect_unfreeze_sn(ch, 0);
+        ch->hit = UMAX(1, ch->pcdata->warfare_hp);
+        ch->move = ch->pcdata->warfare_move;
+        ch->mana = ch->pcdata->warfare_mana;
+        update_pos( ch );
+        do_look( ch, "" );
 
         if ( success )
         {
             if ( war.type == ARMAGEDDON_WAR )
-                d->character->pcdata->armageddon_won++;
+                ch->pcdata->armageddon_won++;
             else if ( war.type == CLAN_WAR )
-                d->character->pcdata->clan_won++;
+                ch->pcdata->clan_won++;
             else if ( war.type == RACE_WAR )
-                d->character->pcdata->race_won++;
+                ch->pcdata->race_won++;
             else if ( war.type == CLASS_WAR )
-                d->character->pcdata->class_won++;
+                ch->pcdata->class_won++;
             else if ( war.type == GENDER_WAR )
-                d->character->pcdata->gender_won++;
+                ch->pcdata->gender_won++;
             else if ( war.type == RELIGION_WAR )
-                d->character->pcdata->religion_won++;
+                ch->pcdata->religion_won++;
             else if ( war.type == DUEL_WAR )
-                d->character->pcdata->duel_won++;
+                ch->pcdata->duel_won++;
         }
     }
 
@@ -784,7 +780,7 @@ void add_war_kills( CHAR_DATA *ch )
 
 DEF_DO_FUN(do_warsit)
 {
-    DESCRIPTOR_DATA *d;
+    CHAR_DATA *wch;
     BUFFER *output;
     char buf[MSL];
     int hp_percent, mana_percent, move_percent;
@@ -806,33 +802,29 @@ DEF_DO_FUN(do_warsit)
     sprintf( buf, "{c%-10s %-8s %-4s %-4s %-4s %-3s %-6s %-3s %-8s %-10s %-10s{x\n\r",
             "Name", "Gender", "hp", "mana", "move", "Lvl", "Race", "Cls", "God", "Clan", "Fighting");
     add_buf( output, buf );
-    for ( d = descriptor_list; d != NULL; d = d->next )
+    
+    for ( wch = char_list; wch; wch = wch->next )
     {
-        const char *god_name;
-
-        if ( !(IS_PLAYING(d->connected))
-                || d->character == NULL
-                || !IS_SET( d->character->act, PLR_WAR ) )
+        if ( !PLR_ACT(wch, PLR_WAR) )
             continue;
 
-        god_name = get_god_name(d->character);
+        const char *god_name = get_god_name(wch);
 
-        hp_percent = (d->character->hit*100)/d->character->max_hit;
-        mana_percent = (d->character->mana*100)/d->character->max_mana;
-        move_percent = (d->character->move*100)/d->character->max_move;
+        hp_percent = (wch->hit*100) / wch->max_hit;
+        mana_percent = (wch->mana*100) / wch->max_mana;
+        move_percent = (wch->move*100) / wch->max_move;
         sprintf( buf, "%-10s %-8s %3d%% %3d%% %3d%% %3d %-6s %-3s %-8s %-10s %-10s\n\r",
-                d->character->name,
-                get_base_sex(d->character) == 2 ? "female"
-                : get_base_sex(d->character) == 1 ? "male" : "sexless",
+                wch->name,
+                get_base_sex(wch) == 2 ? "female" : get_base_sex(wch) == 1 ? "male" : "sexless",
                 hp_percent,
                 mana_percent,
                 move_percent,
-                d->character->level,
-                pc_race_table[d->character->race].who_name,
-                class_table[d->character->class].who_name,
+                wch->level,
+                pc_race_table[wch->race].who_name,
+                class_table[wch->class].who_name,
                 god_name ? god_name : "none",
-                (d->character->clan) ? clan_table[d->character->clan].name : "",
-                (d->character->fighting) ? d->character->fighting->name : "" );
+                (wch->clan) ? clan_table[wch->clan].name : "",
+                (wch->fighting) ? wch->fighting->name : "" );
         add_buf( output, buf );
     }
     page_to_char( buf_string(output), ch );
@@ -841,7 +833,7 @@ DEF_DO_FUN(do_warsit)
 
 void war_remove( CHAR_DATA *ch, bool killed )
 {
-    DESCRIPTOR_DATA *d;
+    CHAR_DATA *wch;
     char buf[MSL];
 
     if (IS_NPC(ch) || !IS_SET( ch->act, PLR_WAR ) )
@@ -912,13 +904,10 @@ void war_remove( CHAR_DATA *ch, bool killed )
     /* replace first_combatant if that was the person removed */
     if ( ch == war.first_combatant )
     {
-        for ( d = descriptor_list; d != NULL; d = d->next )
-            if ( d->character != NULL
-                    && !IS_NPC( d->character )
-                    && IS_SET( d->character->act, PLR_WAR )
-                    && d->character != ch )
+        for ( wch = char_list; wch; wch = wch->next )
+            if ( PLR_ACT(wch, PLR_WAR) && wch != ch )
             {
-                war.first_combatant = d->character;
+                war.first_combatant = wch;
                 break;
             }
         if ( ch == war.first_combatant )
@@ -934,9 +923,8 @@ void war_remove( CHAR_DATA *ch, bool killed )
 
 void check_war_win( void )
 {
-    CHAR_DATA *ch;
+    CHAR_DATA *ch, *wch;
     char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
     int count=0;
 
     /* war must start before it can be won */
@@ -954,14 +942,11 @@ void check_war_win( void )
     }
     else
     {
-        for ( d = descriptor_list; d != NULL; d = d->next )
+        for ( wch = char_list; wch; wch = wch->next )
         {
-            if ( !(IS_PLAYING(d->connected) )
-                    || d->character == NULL
-                    || !IS_SET( d->character->act, PLR_WAR )
-                    || d->character == ch )
+            if ( !PLR_ACT(wch, PLR_WAR) || wch == ch )
                 continue;
-            if ( !is_same_team( ch, d->character ) )
+            if ( !is_same_team( ch, wch ) )
                 break;
             count++;
         }
@@ -996,14 +981,14 @@ void check_war_win( void )
 
 bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 )
 {
+    if ( ch1 == ch2 )
+        return TRUE;
     if ( IS_NPC(ch1) || IS_NPC(ch2) )
         return FALSE;
     if ( war.type == ARMAGEDDON_WAR )
         return FALSE;
     if ( war.type == DUEL_WAR )
         return FALSE;
-    if ( ch1 == ch2 )
-        return TRUE;
     if ( war.type == CLAN_WAR )
         return ( ch1->clan == ch2->clan );
     if ( war.type == RACE_WAR )

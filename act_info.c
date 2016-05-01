@@ -1055,7 +1055,7 @@ DEF_DO_FUN(do_autolist)
     else
         send_to_char("nocancel       OFF    Players can cancel your spells.\n\r",ch);
 
-    if (!IS_SET(ch->act,PLR_NOEXP))
+    if (IS_SET(ch->act,PLR_NOEXP))
         send_to_char("noexp          ON     You won't gain experience points.\n\r",ch);
     else
         send_to_char("noexp          OFF    You will gain experience points.\n\r",ch);
@@ -2170,7 +2170,7 @@ DEF_DO_FUN(do_exits)
             &&   (! ( IS_SET(pexit->exit_info, EX_HIDDEN)
                       && IS_SET(pexit->exit_info, EX_CLOSED ) ) 
                   || IS_IMMORTAL(ch) ) 
-            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
+            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || PLR_ACT(ch, PLR_HOLYLIGHT) ) )
         {
             found = TRUE;
             if ( fAuto )
@@ -3392,19 +3392,6 @@ DEF_DO_FUN(do_consider)
 	if ( IS_SET(victim->off_flags, OFF_FAST) )
 	    diff += 2 + victim->level/20;
     }
-
-    /*
-    if (IS_NPC(victim))
-    {
-        level = victim->level;
-        armor = (victim->armor[0]+victim->armor[1]+victim->armor[2]+victim->armor[3])/4;
-        hp = victim->hit;
-        dam = (victim->damage[0]*(victim->damage[1]+1))/2 + GET_DAMROLL(victim) + GET_HITROLL(victim);
-        diff += ((hp-level*level)/(level+1))/(3+level/15);
-        diff += (dam-level)/(2+level/30);
-        diff += (100 - armor - 6*level)/(level+10);
-    }
-    */
 
     /* reduce diff a bit to make difference more distinguishable */
     diff = diff * 2/3;
@@ -5000,9 +4987,9 @@ DEF_DO_FUN(do_worth)
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Achieve Pts: {c%6d{x        Storage Boxes:   %-2d",
+    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
-        ch->pcdata->achpoints,
+        ch->pcdata->faith,
         ch->pcdata->storage_boxes);
 
     for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
@@ -5069,23 +5056,29 @@ DEF_DO_FUN(do_attributes)
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CA{crmor {CC{class{x: %5d        {CSaves Magic{x:   %4d        {CSaves Phys{x:   %4d",
+    sprintf( buf, "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
-        get_save(ch, FALSE),
-        get_save(ch, TRUE));
+        get_save(ch, TRUE),
+        get_save(ch, FALSE));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHit{croll:{x      %4d        {CDam{croll:{x       %4d        {cWimpy:{x %3d%% {cCalm:{x%3d%%",
+    sprintf( buf, "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
-        ch->wimpy,
-        ch->calm);
+        get_spell_penetration(ch, ch->level));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
+    /* Wimpy, Calm */
+    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
+        ch->wimpy,
+        ch->calm,
+        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE));
+
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
@@ -5216,6 +5209,49 @@ DEF_DO_FUN(do_percentages)
     free_buf(output);
 
     return;
+}
+
+// breakdown of hp/mana/move calculation
+DEF_DO_FUN(do_breakdown)
+{
+    if ( IS_NPC(ch) )
+        return;
+    
+    ptc(ch, "%25s%16s%16s\n\r", "{rHitpts{x", "{BMana{x", "{cMoves{x");
+    ptc(ch, "%-15s%6d%12d%12d\n\r", "Natural",
+        ch->pcdata->perm_hit, ch->pcdata->perm_mana, ch->pcdata->perm_move);
+    
+    ptc(ch, "%-15s%6d%12d%12d\n\r", "Equipment",
+        ch->pcdata->temp_hit, ch->pcdata->temp_mana, ch->pcdata->temp_move);
+    
+    int hero_bonus = get_hero_factor(modified_level(ch)) - 100;
+    int hero_hit = ch->pcdata->temp_hit * hero_bonus / 100;
+    int hero_mana = ch->pcdata->temp_mana * hero_bonus / 100;
+    int hero_move = ch->pcdata->temp_move * hero_bonus / 100;
+    if ( hero_hit || hero_mana || hero_move )
+    {
+        ptc(ch, "%-15s%6d%12d%12d       (%d%%)\n\r", "Hero-Bonus",
+            hero_hit, hero_mana, hero_move, hero_bonus);
+    }
+
+    int train_hit  = ch->max_hit  - (ch->pcdata->perm_hit  + ch->pcdata->temp_hit  + hero_hit);
+    int train_mana = ch->max_mana - (ch->pcdata->perm_mana + ch->pcdata->temp_mana + hero_mana);
+    int train_move = ch->max_move - (ch->pcdata->perm_move + ch->pcdata->temp_move + hero_move);
+    if ( train_hit || train_mana || train_move )
+        ptc(ch, "%-15s%6d%12d%12d\n\r", "Training", train_hit, train_mana, train_move);
+    
+    int nat_sp = get_save(ch, TRUE) - ch->saving_throw;
+    int nat_sm = get_save(ch, FALSE) - ch->saving_throw;
+    int nat_hitroll = get_hitroll(ch) - ch->hitroll;
+    int nat_damroll = get_damroll(ch) - ch->damroll;
+    int nat_armor = get_ac(ch) - ch->armor;
+    
+    ptc(ch, "\n\r%25s%16s%16s%16s\n\r", "{CArmor{x", "{CSaves P/M{x", "{CHitroll{x", "{CDamroll{x");
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Natural",
+        nat_armor, nat_sp, nat_sm, nat_hitroll, nat_damroll);
+    
+    ptc(ch, "%-15s%6d%7d/%4d%12d%12d\n\r", "Equip/Buffs",
+        ch->armor, ch->saving_throw, ch->saving_throw, ch->hitroll, ch->damroll);
 }
 
 DEF_DO_FUN(do_helper)

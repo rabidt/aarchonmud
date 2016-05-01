@@ -160,6 +160,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "leadership", do_leadership,  POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "lhistory",   do_lhistory,POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "percentages", do_percentages, POS_DEAD, 0, LOG_NORMAL, 1, FALSE, TRUE },
+    { "breakdown",  do_breakdown, POS_DEAD,  0,  LOG_NORMAL, 1, FALSE, TRUE   },
     { "scan",       do_scan,    POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "survey",     do_survey,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "skill",      do_skill,   POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -623,7 +624,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "edit",       do_olc,     POS_DEAD,   L2,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "asave",      do_asave,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "alist",      do_alist,   POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
-    { "areset",     do_areset,  POS_DEAD,   LT,  LOG_ALWAYS, 1, TRUE, FALSE  },
+    { "areset",     do_areset,  POS_DEAD,   LT,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "resets",     do_resets,  POS_DEAD,   L9,  LOG_NORMAL, 1, TRUE, FALSE  },
     { "redit",      do_redit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
     { "medit",      do_medit,   POS_DEAD,   L9,  LOG_ALWAYS, 1, TRUE, FALSE  },
@@ -835,11 +836,17 @@ void interpret( CHAR_DATA *ch, const char *argument )
     if ( cmd == -1 )
 	return;
 
-    if ( !rp_command_trigger( ch, cmd, argument ) )
-        return;
+    if ( cmd_table[cmd].level <= LEVEL_HERO )
+    {
+        if ( !rp_command_trigger( ch, cmd, argument ) )
+            return;
 
-    if ( mp_command_trigger( ch, cmd, argument ) )
-        return;
+        if ( mp_command_trigger( ch, cmd, argument ) )
+            return;
+
+        if ( !op_command_trigger( ch, cmd, argument ) )
+            return;
+    }
 
     /*
     * Log and snoop.

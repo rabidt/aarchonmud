@@ -50,6 +50,7 @@ void show_class_skills( CHAR_DATA *ch, const char *argument );
 void show_skill_points( BUFFER *buffer );
 void show_mastery_groups( int skill, BUFFER *buffer );
 int get_injury_penalty( CHAR_DATA *ch );
+int get_sickness_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
 int mob_get_skill( CHAR_DATA *ch, int sn );
 
@@ -1202,9 +1203,9 @@ DEF_DO_FUN(do_spells)
 	}
 
     // show injury penalty
-    int penalty = get_injury_penalty(ch);
+    int penalty = get_injury_penalty(ch) + get_sickness_penalty(ch);
     if ( penalty > 0 )
-        printf_to_char(ch, "{rNote: Your spells are reduced by up to %d%% due to injury.{x\n\r", penalty);
+        printf_to_char(ch, "{rNote: Your spells are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
 
 	buffer = new_buf();
 	for (level = 0; level < LEVEL_HERO + 1; level++)
@@ -1443,9 +1444,9 @@ DEF_DO_FUN(do_skills)
 	}
 
 	// show injury penalty
-    int penalty = get_injury_penalty(ch);
+    int penalty = get_injury_penalty(ch) + get_sickness_penalty(ch);
     if ( penalty > 0 )
-        printf_to_char(ch, "{rNote: Your skills are reduced by up to %d%% due to injury.{x\n\r", penalty);
+        printf_to_char(ch, "{rNote: Your skills are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
 
     /* let's show exotic */
     printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -1));
@@ -2169,6 +2170,16 @@ int get_injury_penalty( CHAR_DATA *ch )
     return URANGE(0, penalty / 20, 50);
 }
 
+int get_sickness_penalty( CHAR_DATA *ch )
+{
+    int penalty = 0;
+    if ( IS_AFFECTED(ch, AFF_POISON) )
+        penalty += 1;
+    if ( IS_AFFECTED(ch, AFF_PLAGUE) )
+        penalty += 1;
+    return penalty;
+}
+
 int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
@@ -2464,10 +2475,7 @@ int get_skill(CHAR_DATA *ch, int sn)
     skill *= factor;
     
     /* poison & disease */
-    if ( skill > 1 && IS_AFFECTED(ch, AFF_POISON) )
-        skill -= 1;    
-    if ( skill > 1 && IS_AFFECTED(ch, AFF_PLAGUE) )
-        skill -= 1;
+    skill -= get_sickness_penalty(ch);
 
     return URANGE(1, skill, 100);
 }
@@ -2891,7 +2899,7 @@ DEF_DO_FUN(do_showskill)
     {
         show_skill_points(buffer);
     }
-    else if (group > 0)  /* Argument was a valid group name. */
+    else if (group >= 0)  /* Argument was a valid group name. */
     {
         int sn;
         
