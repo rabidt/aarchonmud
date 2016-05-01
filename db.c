@@ -257,6 +257,7 @@ sh_int  gsn_haste;
 sh_int  gsn_giant_strength;
 sh_int  gsn_slow;
 sh_int  gsn_iron_maiden;
+sh_int  gsn_floating_disc;
 
 /* new gsns */
 
@@ -364,6 +365,7 @@ sh_int  gsn_evasion;
 sh_int  gsn_evasive;
 sh_int  gsn_heavy_armor;
 sh_int  gsn_bulwark;
+sh_int  gsn_shield_wall;
 sh_int  gsn_massive_swing;
 sh_int  gsn_riposte;
 sh_int  gsn_blade_barrier;
@@ -2490,6 +2492,9 @@ void area_update( bool all )
                 if ( pArea->nplayer > 0 && pArea->age < pArea->reset_time )
                     continue;
             }
+            // don't reset remort with player in it
+            if ( pArea->nplayer > 0 && IS_SET(pArea->area_flags, AREA_REMORT) )
+                continue;
         }
         // reset
         reset_area(pArea);
@@ -3571,7 +3576,7 @@ void clear_char( CHAR_DATA *ch )
     ch->prompt                  = &str_empty[0];
     ch->logon           = current_time;
     ch->lines           = PAGELEN;
-    ch->armor           = 100;
+    ch->armor           = 0;
     ch->position        = POS_STANDING;
     ch->hit         = 20;
     ch->max_hit         = 20;

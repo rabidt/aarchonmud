@@ -352,6 +352,25 @@ function do_changelog( ch, argument )
         end
 
         for i=start,fin do
+            do
+                local page_num, cont
+                if ((i % PAGE_SIZE) == 1) then
+                    page_num = ((i-1) / PAGE_SIZE) + 1
+                elseif (i == start) then
+                    page_num = math.floor(i / PAGE_SIZE) + 1
+                    cont = true
+                end
+                if page_num then
+                    local out = ("{w%s %3sPAGE %3d%3s %s{x\n\r"):format(
+                        ("-"):rep(20),
+                        cont and "..." or "",
+                        page_num,
+                        cont and "..." or "",
+                        ("-"):rep(20)
+                    )
+                    sendtochar(ch, out)
+                end
+            end
             show_change_entry( ch, i, getindexcolor(i))
         end
         return

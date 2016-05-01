@@ -373,7 +373,7 @@ DEF_DO_FUN(do_get)
             for ( obj = ch->in_room->contents; obj != NULL; obj = obj_next )
             {
                 obj_next = obj->next_content;
-                if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+                if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                         &&   can_see_obj( ch, obj ) )
                 {
                     found = TRUE;
@@ -477,7 +477,7 @@ DEF_DO_FUN(do_get)
             for ( obj = container->contains; obj != NULL; obj = obj_next )
             {
                 obj_next = obj->next_content;
-                if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+                if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                         &&   can_see_obj( ch, obj ) )
                 {
                     found = TRUE;
@@ -657,7 +657,7 @@ DEF_DO_FUN(do_put)
         {
             obj_next = obj->next_content;
 
-            if ( ( arg1[3] == '\0' || is_name( &arg1[4], obj->name ) )
+            if ( ( arg1[3] == '\0' || match_obj(obj, &arg1[4]) )
                     &&   can_see_obj( ch, obj )
                     /* Changed by Vodur
                        &&   WEIGHT_MULT(obj) == 100*/
@@ -870,7 +870,7 @@ DEF_DO_FUN(do_drop)
         {
             obj_next = obj->next_content;
 
-            if ( ( arg[3] == '\0' || is_name( &arg[4], obj->name ) )
+            if ( ( arg[3] == '\0' || match_obj(obj, &arg[4]) )
                     &&   can_see_obj( ch, obj )
                     &&   obj->wear_loc == WEAR_NONE
                     &&   can_drop_obj( ch, obj ) )
@@ -2369,7 +2369,7 @@ DEF_DO_FUN(do_wear)
         {
             obj_next = obj->next_content;
             if ( obj->wear_loc == WEAR_NONE && can_see_obj( ch, obj ) )
-                if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
+                if (op_percent_trigger( arg, obj, NULL, ch, NULL, OTRIG_WEAR) )
                 {
                     wear_obj( ch, obj, FALSE );
                     if ( ch->wait > 0 )
@@ -2386,7 +2386,7 @@ DEF_DO_FUN(do_wear)
             return;
         }
 
-        if (op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_WEAR) )
+        if (op_percent_trigger( arg, obj, NULL, ch, NULL, OTRIG_WEAR) )
             wear_obj( ch, obj, TRUE );
         else
             return;
@@ -4679,6 +4679,12 @@ DEF_DO_FUN(do_sire)
             corpse->item_type != ITEM_CORPSE_PC )
     {
         send_to_char( "That's not a corpse.\n\r", ch );
+        return;
+    }
+    
+    if ( !can_loot(ch, corpse, TRUE) )
+    {
+        send_to_char( "You don't own that corpse.\n\r", ch);
         return;
     }
 

@@ -405,10 +405,10 @@ int get_save(CHAR_DATA *ch, bool physical)
     }
     else
     {
-        int physical_factor = class_table[ch->class].attack_factor + class_table[ch->class].defense_factor/2;
-        save_factor = 250 - physical_factor;
+        int physical_factor = class_table[ch->class].attack_factor * 3/5 + class_table[ch->class].defense_factor / 2;
+        save_factor = 210 - physical_factor;
         // tweak so physically oriented classes get better physical and worse magic saves
-        save_factor += (physical_factor - 150) * (physical ? 2 : -1) * 2/3;
+        save_factor += (physical_factor - 110) * (physical ? 2 : -1) * 2/3;
     }
     saves -= (level + 10) * save_factor/100;
     
@@ -452,14 +452,9 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 
     /* now the resisted roll */
     save_roll = -get_save(victim, FALSE);
-    if ( ch && !was_obj_cast )
-        hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_INT) + (get_obj_focus(ch) + get_dagger_focus(ch))) / 500;
-    else
-        hit_roll = (level + 10) * 6/5;
+    hit_roll = get_spell_penetration(ch, level);
 
-    if ( ch && ch->stance == STANCE_INQUISITION )
-        hit_roll += hit_roll / 3;
-    else if ( ch && ch->stance == STANCE_DECEPTION && dam_type == DAM_MENTAL )
+    if ( ch && ch->stance == STANCE_DECEPTION && dam_type == DAM_MENTAL )
         hit_roll += hit_roll / 3;
 
     if ( save_roll <= 0 )
@@ -1408,7 +1403,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                 || target == TAR_CHAR_SELF )
         {
             int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
-            if ( victim->hit < victim->max_hit )
+            if ( victim->hit < hit_cap(victim) )
             {
                 if ( ch == victim )
                     ptc(ch, "Your mystic infusion restores some of your health.\n\r");
@@ -1417,7 +1412,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                     act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
                     act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
                 }
-                victim->hit += UMIN(victim->max_hit - victim->hit, heal);
+                gain_hit(victim, heal);
             }
         }
     }
@@ -1608,12 +1603,14 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     if (is_affected(ch, gsn_choke_hold) && number_bits(3) == 0)
     {
         send_to_char( "You choke and your spell fumbles.\n\r", ch);
+        act("$n chokes and $s spell fumbles.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }
     else if (is_affected(ch, gsn_slash_throat) && number_bits(2) == 0)
     {
         send_to_char( "You can't speak and your spell fails.\n\r", ch);
+        act("$n can't speak and $s spell fails.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }
@@ -1767,7 +1764,7 @@ int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self )
     return UMAX(1, mana * factor * (1-rebate));
 }
 
-void show_wishes( CHAR_DATA *ch )
+void show_wishes( CHAR_DATA *ch, bool all )
 {
     BUFFER *buffer;
     char buf[MAX_STRING_LENGTH];
@@ -1807,7 +1804,8 @@ void show_wishes( CHAR_DATA *ch )
     }
 
     buffer = new_buf();
-    for ( level = 0; level <= LEVEL_HERO; level++ )
+    int max_level = all ? LEVEL_HERO : ch->level;
+    for ( level = 0; level <= max_level; level++ )
         if (spell_list[level][0] != '\0')
             add_buf(buffer, spell_list[level]);
     add_buf(buffer,"\n\r");
@@ -1837,7 +1835,7 @@ DEF_DO_FUN(do_wish)
     
     if ( !strcmp(arg1, "list") )
     {
-        show_wishes(ch);
+        show_wishes(ch, !strcmp(target_name, "all"));
         return;
     }
 
@@ -2041,32 +2039,44 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     return dam * number_range(90, 110) / 100;
 }
 
-int get_spell_bonus_damage( CHAR_DATA *ch, int sn )
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg )
 {
     int edge = get_skill(ch, gsn_warmage_edge);
     if ( ch->stance == STANCE_ARCANA )
         edge += 100;
     int bonus = ch->level * edge / 150;
+    // damroll from affects applies here as well
+    if ( avg )
+        bonus += (ch->damroll / 4) * 2.5;
+    else
+        bonus += dice(ch->damroll / 4, 4);
 
     // adjust for casting time
-    int cast_time = skill_table[sn].beats;
-    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
-        cast_time /= 2;
     bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
 
     return bonus * (100 + get_focus_bonus(ch)) / 100;
 }
 
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn )
+{
+    int cast_time = skill_table[sn].beats;
+    if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
+        cast_time /= 2;
+    return get_spell_bonus_damage(ch, cast_time, FALSE);
+}
+
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
 {
-    int dam;
+    int dam, bonus;
 
     if ( sn < 1 || sn >= MAX_SKILL )
         return 0;
 
     dam = get_spell_damage( skill_table[sn].min_mana, skill_table[sn].beats, level );
     dam = adjust_spell_damage(dam, ch);
-    dam += get_spell_bonus_damage(ch, sn);
+    bonus = get_spell_bonus_damage_sn(ch, sn);
+    // bonus can at most double the spell damage
+    dam += UMIN(bonus, dam);
 
     return dam;
 }
@@ -3761,8 +3771,8 @@ DEF_SPELL_FUN(spell_energy_drain)
     /* drain from victim and add to caster */
     victim->mana -= drain_mana;
     victim->move -= drain_move;
-    ch->mana += drain_mana / 5;
-    ch->move += drain_move / 5;
+    gain_mana(ch, drain_mana / 5);
+    gain_move(ch, drain_move / 5);
 
     send_to_char("You feel your life slipping away!\n\r",victim);
     send_to_char("Wow....what a rush!\n\r",ch);
@@ -3805,11 +3815,35 @@ DEF_SPELL_FUN(spell_fireball)
 
 DEF_SPELL_FUN(spell_fireproof)
 {
+    OBJ_DATA *obj;
+    AFFECT_DATA af;
+    char arg[MSL];
+    
+    one_argument(target_name, arg);
+    
+    if ( arg[0] == '\0' )
+    {
+        // find first object that's not burnproof already
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( !IS_OBJ_STAT(obj,ITEM_BURN_PROOF) )
+                break;
+        if ( obj == NULL )
+        {
+            send_to_char("All your items are already protected.\n\r", ch);
+            return SR_TARGET;
+        }
+    }
+    else if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+    {
+        if ( (obj = get_obj_wear(ch, arg)) == NULL )
+        {
+            send_to_char("You aren't carrying that.\n\r",ch);
+            return SR_TARGET;
+        }
+    }
+    
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *obj = (OBJ_DATA *) vo;
-    AFFECT_DATA af;
-
     if (IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
     {
         act("$p is already protected from burning.",ch,obj,NULL,TO_CHAR);
@@ -3935,26 +3969,25 @@ DEF_SPELL_FUN(spell_faerie_fog)
 
 DEF_SPELL_FUN(spell_floating_disc)
 {
-    OBJ_DATA *disc, *floating;
-
-    floating = get_eq_char(ch,WEAR_FLOAT);
-    if (floating != NULL && IS_OBJ_STAT(floating,ITEM_NOREMOVE))
-    {
-        act("You can't remove $p.",ch,floating,NULL,TO_CHAR);
-        return SR_UNABLE;
-    }
-
     SPELL_CHECK_RETURN
     
-    disc = create_object_vnum(OBJ_VNUM_DISC);
-    disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
-    disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
-    disc->timer     = get_duration(sn, level); 
+    AFFECT_DATA af;
 
-    act("$n has created a floating black disc.",ch,NULL,NULL,TO_ROOM);
-    send_to_char("You create a floating disc.\n\r",ch);
-    obj_to_char(disc,ch);
-    wear_obj(ch,disc,TRUE);
+    if ( is_affected(ch, gsn_floating_disc) )
+    {
+        send_to_char("You cannot have more than one disc.\n\r",ch);
+        return SR_AFFECTED;
+    }
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_WEIGHT;
+    af.modifier  = (20 + level) * 5;
+    af.bitvector = 0;
+    affect_to_char( ch, &af );
+    send_to_char( "A disc made of force starts to float next to you.\n\r", ch );
+    act( "A disc made of force starts to float next to $n.", ch, NULL, NULL, TO_ROOM );
     return TRUE;
 }
 

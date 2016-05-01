@@ -3292,6 +3292,15 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             obj->value[0], obj->value[1]);
         send_to_char( buf, ch );
         break;
+
+    case ITEM_EXPLOSIVE:
+        sprintf( buf,
+            "[v0] Number of Dice: [%d]\n\r"
+            "[v1] Type of Dice: [%d]\n\r",
+            obj->value[0],
+            obj->value[1]);
+        send_to_char( buf, ch );
+        break;
     }
     
     return;
@@ -3644,6 +3653,23 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 		break;
 	    }
 	break;
+    
+    case ITEM_EXPLOSIVE:
+    switch ( value_num )
+        {
+        default:
+        do_help( ch, "ITEM_EXPLOSIVE" );
+        return FALSE;
+        case 0:
+        send_to_char( "NUMBER OF DICE SET.\n\r\n\r", ch );
+        pObj->value[0] = atoi( argument );
+        break;
+        case 1:
+        send_to_char( "TYPE OF DICE SET.\n\r\n\r", ch );
+        pObj->value[1] = atoi( argument );
+        break;
+        }
+    break;
     }
     
     show_obj_values( ch, pObj );
@@ -5179,6 +5205,15 @@ bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj )
         return FALSE;
 }
 
+bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj )
+{
+    // #dice
+    pObj->value[0] = 2 * (25 + pObj->level * 3/4);
+    // type of dice
+    pObj->value[1] = 20;
+    return TRUE;
+}
+
 /* Sets values for Armor Class based on level, and also
  * cost by using adjust drop or adjust shop.
  * Check the table above for values in case they need to
@@ -5237,6 +5272,11 @@ OEDIT( oedit_adjust )
     else if ( pObj->item_type == ITEM_WEAPON )
     {
         if ( adjust_weapon_dam(pObj) )
+            send_to_char("Damage has been adjusted.\n\r", ch);
+    }
+    else if ( pObj->item_type == ITEM_EXPLOSIVE )
+    {
+        if ( adjust_bomb_dam(pObj) )
             send_to_char("Damage has been adjusted.\n\r", ch);
     }
     
