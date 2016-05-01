@@ -1803,6 +1803,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
                     ch,NULL,WIZ_LINKS,0,0);
                 d->connected = CON_PLAYING;
                 MXPSendTag( d, "<VERSION>" );
+                gui_login_setup( d->character );
        /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
 	//	remove_from_quit_list( ch->name );
