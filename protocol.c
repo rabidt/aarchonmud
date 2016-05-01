@@ -2079,12 +2079,24 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                    //::ffff:73.170.78.193
                    if ( strlen(pClientName) < 8 )
                    {
-                       bugf("pClientName length to short: %s", pClientName);
+                       bugf("pClientName length too short: %s", pClientName);
                    }     
                    else
                    {
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(&(pClientName[7]));
+                   }
+               }
+               else if (PrefixString("ArcWeb", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+               {
+                   if ( strlen(pClientName) < 8 ) 
+                   {
+                       bugf("pClientName length too short: %s", pClientName);
+                   }
+                   else
+                   {
+                       free_string(apDescriptor->host);
+                       apDescriptor->host = str_dup(pClientName);
                    }
                }
             }
