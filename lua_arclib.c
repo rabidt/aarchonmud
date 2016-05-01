@@ -755,10 +755,37 @@ static int glob_clearloopcount (lua_State *LS)
 
 static int glob_log (lua_State *LS)
 {
-    char buf[MSL];
-    sprintf(buf, "LUA::%s", check_fstring( LS, 1, MIL));
+    const char *msg = check_string(LS, 1, MIL);
+    const char *chan=NULL;
+    int wiznet_chan = -1;
+    if (!lua_isnone(LS, 2))
+    {
+        chan = check_string(LS, 2, MIL);
+        int i;
+        for (i=0; wiznet_table[i].name; i++)
+        {
+            if (!strcmp(wiznet_table[i].name, chan))
+            {
+                wiznet_chan = wiznet_table[i].flag;
+                break;
+            }
+        }
 
+        if (wiznet_chan == -1)
+        {
+            return luaL_error(LS, "No such wiznet channel: %s", chan);
+        }
+    }
+
+    char buf[MSL];
+    sprintf(buf, "LUA::%s:%s", chan ? chan : "",  msg);
     log_string(buf);
+
+    if (wiznet_chan != -1)
+    {
+        wiznet(buf, NULL, NULL, wiznet_chan, 0, 0);
+    }
+
     return 0;
 }
 
@@ -1099,125 +1126,26 @@ static int mudlib_userdir( lua_State *LS)
 }
 
 /* dblib section */
-#define SCRIPT_DB_FILE "script_db.sqlite3"
-static sqlite3 *script_db;
-
-void init_script_db()
-{
-    int rc;
-
-    rc = sqlite3_open(SCRIPT_DB_FILE, &script_db);
-    
-    if (rc)
-    {
-        bugf("Can't open script_db: %s", sqlite3_errmsg(script_db));
-        exit(0);
-    }
-    else
-    {
-        logpf("Opened script_db successfully.");
-        logpf("sqlite3 version: %s", sqlite3_libversion()); 
-    }
+#define dbfunc(FUNC) \
+static int dblib_ ## FUNC (lua_State *LS) \
+{\
+    int narg=lua_gettop(LS);\
+    lua_getglobal(LS, "glob_db");\
+    lua_getfield(LS, -1, #FUNC);\
+    lua_remove(LS, -2);\
+    lua_insert(LS, 1);\
+    lua_call(LS, narg, LUA_MULTRET);\
+    \
+    return lua_gettop(LS);\
 }
-
-void close_script_db()
-{
-    sqlite3_close(script_db);
-}
-
-struct db_callback_data
-{
-    lua_State *LS;
-    int rtn_tbl;
-    int rtn_index;
-};
-
-static int db_callback( void *cdata, int argc, char **argv, char **azColName)
-{
-    int i;
-    struct db_callback_data *data = (struct db_callback_data *)(cdata);
-    
-    lua_newtable(data->LS);
-    for (i=0; i<argc; i++)
-    {
-        if (argv[i])
-        {
-            lua_pushstring( data->LS, argv[i]);
-            lua_setfield( data->LS, -2, azColName[i]);
-        }
-    }
-    lua_rawseti(data->LS, data->rtn_tbl, data->rtn_index++);
-       
-    return 0; 
-}
-
-//#define TRACE_DB_EXEC
-
-static int dblib_exec( lua_State *LS)
-{
-    int rc;
-    char *zErrMsg = NULL;
-    const char *sql=luaL_checkstring( LS, 1);
-    struct db_callback_data data;
-
-    data.LS = LS;
-    
-    lua_newtable( LS );
-    data.rtn_tbl = lua_gettop(LS);
-
-    data.rtn_index=1;
-
-#ifdef TRACE_DB_EXEC
-    struct timeval start_time;
-    gettimeofday( &start_time, NULL);
-#endif
-    rc = sqlite3_exec( script_db, sql, db_callback, (void *)(&data), &zErrMsg);
-
-    if ( rc != SQLITE_OK )
-    {
-        static char buf[MSL];
-        strcpy( buf, zErrMsg);
-        sqlite3_free(zErrMsg);
-
-        /* rollback any unfinished transaction */
-        if (sqlite3_get_autocommit( script_db ) == 0)
-        {
-            sqlite3_exec( script_db, "ROLLBACK", 0, 0, 0);
-        }
-
-        return luaL_error( LS, buf); 
-    }
-#ifdef TRACE_DB_EXEC
-    struct timeval end_time;
-    gettimeofday( &end_time, NULL);
-    long usecDelta = (long)end_time.tv_usec - (long)start_time.tv_usec;
-    long secDelta = (long)end_time.tv_sec - (long)start_time.tv_sec;
-
-    long usecTtl = secDelta * 1000000L + usecDelta;
-    float secTtl = usecTtl/1000000.0;
-    logpf("sec: %f, query: %s", secTtl, sql);
-#endif
-
-    return 1;
-}
-
-static int dblib_escape( lua_State *LS)
-{
-    const char *val = luaL_checkstring(LS, 1);
-
-    char *result = sqlite3_mprintf("%q", val);
-    lua_pushstring(LS, result);
-    sqlite3_free(result);
-
-    return 1;
-}
-
-static int dblib_libversion( lua_State *LS)
-{
-    lua_pushstring(LS, sqlite3_libversion());
-    return 1;
-}
-
+dbfunc(errcode);
+dbfunc(errmsg);
+dbfunc(exec);
+dbfunc(nrows);
+dbfunc(prepare);
+dbfunc(rows);
+dbfunc(urows);
+#undef dbfunc
 /* end dblib section */
 
 /* return tprintstr of the given global (string arg)*/
@@ -1413,9 +1341,13 @@ GLOB_TYPE glob_table[] =
     UTILF(truncate_color_string),
     UTILF(format_color_string),
     
+    DBF(errcode),
+    DBF(errmsg),
     DBF(exec),
-    DBF(escape),
-    DBF(libversion),
+    DBF(nrows),
+    DBF(prepare),
+    DBF(rows),
+    DBF(urows),
     
     DBGF(show),
 
@@ -3601,7 +3533,7 @@ static int CH_set_acpcnt (lua_State *LS)
         luaL_error(LS, "Can't set acpcnt on PCs.");
 
     /* analogous to mob_base_ac */
-    ud_ch->armor = 100 + ( ud_ch->level * -6 ) * luaL_checkinteger( LS, 2 ) / 100;
+    ud_ch->armor = ( ud_ch->level * -6 ) * luaL_checkinteger( LS, 2 ) / 100;
     return 0;
 }
 
@@ -4762,6 +4694,36 @@ static int CH_set_godname( lua_State *LS )
     return 0;
 }    
 
+static int CH_get_ascents(lua_State *LS)
+{
+    CHAR_DATA *ud_ch = check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'ascents' for NPC.");
+    }
+    lua_pushinteger(LS, ud_ch->pcdata->ascents);
+    return 1;
+}
+
+static int CH_get_subclass(lua_State *LS)
+{
+    CHAR_DATA *ud_ch = check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'subclass' for NPC.");
+    }
+
+    if (!ud_ch->pcdata->subclass)
+    {
+        return 0;
+    }
+    else
+    {
+        lua_pushstring(LS, subclass_table[ud_ch->pcdata->subclass].name);
+        return 1;
+    }
+}
+
 static int CH_get_faith( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4883,6 +4845,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     CHGET(godname, 0),
     CHGET(faith, 0),
     CHGET(religionrank, 0),
+    CHGET(ascents, 0),
+    CHGET(subclass, 0),
     CHGET(clanrank, 0),
     CHGET(remorts, 0),
     CHGET(explored, 0),

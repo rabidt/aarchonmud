@@ -234,7 +234,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         470
+#define MAX_SKILL         471
 #define MAX_GROUP          79 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -718,6 +718,7 @@ struct penalty_data
 */
 #define CON_LUA_HANDLER         16
 #define CON_GET_NEW_SUBCLASS    17
+#define CON_REMORT_BEGIN        18
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -1584,7 +1585,7 @@ struct  kill_data
 #define AFF_SHELTER           34
 #define AFF_CHAOS_FADE        35
 #define AFF_FEEBLEMIND        36
-/* #define AFF_SPLIT             37 */ /* removed, re-use 37 when necessary */
+#define AFF_LAST_STAND        37
 #define AFF_GUARD             38
 #define AFF_RITUAL            39
 #define AFF_NECROSIS          40
@@ -2634,6 +2635,9 @@ struct  pc_data
     int      perm_hit;
     int      perm_mana;
     int      perm_move;
+    int      temp_hit;
+    int      temp_mana;
+    int      temp_move;
 
     BOSSREC *boss_achievements;
 
@@ -2649,9 +2653,6 @@ struct  pc_data
     sh_int      trained_hit;
     sh_int      trained_mana;
     sh_int      trained_move;
-    int         trained_hit_bonus;
-    int         trained_mana_bonus;
-    int         trained_move_bonus;
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
@@ -3390,6 +3391,7 @@ extern sh_int  gsn_haste;
 extern sh_int  gsn_giant_strength;
 extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
+extern sh_int  gsn_floating_disc;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -3444,6 +3446,7 @@ extern sh_int  gsn_fatal_blow;
 extern sh_int  gsn_two_handed;
 extern sh_int  gsn_heavy_armor;
 extern sh_int  gsn_bulwark;
+extern sh_int  gsn_shield_wall;
 extern sh_int  gsn_massive_swing;
 extern sh_int  gsn_riposte;
 extern sh_int  gsn_blade_barrier;
@@ -4628,6 +4631,7 @@ bool    is_safe_spell   args( (CHAR_DATA *ch, CHAR_DATA *victim, bool area ) );
 bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
 bool    is_calm( CHAR_DATA *ch );
+bool    can_attack( CHAR_DATA *ch );
 void    show_violence_summary();
 void    violence_update_char( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
@@ -4648,9 +4652,10 @@ bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
-void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
+bool    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
+bool    is_woodland( int sector );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
 CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
@@ -4666,6 +4671,7 @@ bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance );
+int     dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
 int     stance_cost( CHAR_DATA *ch, int stance );
@@ -4692,6 +4698,7 @@ bool    provoke_attacks( CHAR_DATA *victim );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
@@ -4767,6 +4774,7 @@ int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
+bool    match_obj( OBJ_DATA *obj, const char *arg );
 bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
@@ -4796,6 +4804,7 @@ void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap );
+bool    remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
@@ -4969,10 +4978,13 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type );
 bool saves_dispel( int dis_level, int spell_level, int duration );
 bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char *arg, bool check );
+int get_obj_focus( CHAR_DATA *ch );
+int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
-int get_spell_bonus_damage( CHAR_DATA *ch, int sn );
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
 int get_sn_damage( int sn, int level, CHAR_DATA *ch );
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
@@ -5073,6 +5085,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
+bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj );
 int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
@@ -5083,6 +5096,7 @@ bool op_move_trigger( CHAR_DATA *ch );
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
 bool op_act_trigger( OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *trigger, int type );
 void op_speech_trigger( const char *argument, CHAR_DATA *ch );
+bool op_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
 void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );
@@ -5228,6 +5242,7 @@ void compute_mob_stats  args( (CHAR_DATA *mob) );
 int stat_gain           args( (CHAR_DATA *ch, int stat) );
 int modified_level( CHAR_DATA *ch );
 int get_pc_hitdice( int level );
+int get_hero_factor( int level );
 void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 void update_flags( CHAR_DATA *ch );
 void calc_stats( CHAR_DATA *ch );
@@ -5240,6 +5255,7 @@ int max_hmm_train( int level );
 int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );
+int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );

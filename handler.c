@@ -406,9 +406,9 @@ void add_apply(CHAR_DATA *ch, int mod, int location)
         case APPLY_LEVEL:   ch->mod_level   += mod; break;
             
         case APPLY_SEX:     ch->sex         += mod; break;
-        case APPLY_MANA:    ch->max_mana    += mod; break;
-        case APPLY_HIT:     ch->max_hit     += mod; break;
-        case APPLY_MOVE:    ch->max_move    += mod; break;
+        case APPLY_MANA:    ch->max_mana    += mod; if ( ch->pcdata ) ch->pcdata->temp_mana += mod; break;
+        case APPLY_HIT:     ch->max_hit     += mod; if ( ch->pcdata ) ch->pcdata->temp_hit += mod; break;
+        case APPLY_MOVE:    ch->max_move    += mod; if ( ch->pcdata ) ch->pcdata->temp_move += mod; break;
         case APPLY_HIT_CAP:     ch->hit_cap_delta   += mod; break;
         case APPLY_MANA_CAP:    ch->mana_cap_delta  += mod; break;
         case APPLY_MOVE_CAP:    ch->move_cap_delta  += mod; break;
@@ -450,12 +450,12 @@ void reset_char(CHAR_DATA *ch)
     
     ch->mod_skills = 0;
     ch->mod_level = 0;
-    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->trained_hit_bonus = 0;
-    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->trained_mana_bonus = 0;
-    ch->max_move = ch->pcdata->perm_move = ch->pcdata->trained_move_bonus = 0;
+    ch->max_hit = ch->pcdata->perm_hit = ch->pcdata->temp_hit = 0;
+    ch->max_mana = ch->pcdata->perm_mana = ch->pcdata->temp_mana = 0;
+    ch->max_move = ch->pcdata->perm_move = ch->pcdata->temp_move = 0;
     ch->hit_cap_delta = ch->mana_cap_delta = ch->move_cap_delta = 0;
     
-    ch->armor       = 100;
+    ch->armor       = 0;
     ch->heavy_armor = 0;
     
     ch->hitroll     = 0;
@@ -582,10 +582,10 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /* Added a base value of 100 to the maximum weight that can be carried. Currently 
-       low strength characters are at a severe disadvantage - Astark 12-27-12  */
-
-    return ch_str_carry(ch) * 10 + ch->level * 25 + 100;
+    AFFECT_DATA *float_aff = affect_find(ch->affected, gsn_floating_disc);
+    int float_bonus = float_aff ? float_aff->modifier : 0;
+    
+    return (ch_str_carry(ch) + float_bonus) * 10 + ch->level * 25 + 100;
 }
 
 
@@ -658,6 +658,41 @@ bool is_either_name( const char *str, const char *namelist, bool exact )
 	return is_exact_name( str, namelist );
     else
 	return is_name( str, namelist );
+}
+
+bool match_obj( OBJ_DATA *obj, const char *arg )
+{
+    char header[MSL], last;
+    int flag;
+    
+    if ( !obj || !arg || *arg == '\0' )
+        return FALSE;
+    
+    // split into header + last char
+    strcpy(header, arg);
+    header[strlen(arg)-1] = '\0';
+    last = arg[strlen(arg)-1];
+    
+    // match by level (e.g. "get all.90+")
+    if ( last == '+' && is_number(header) )
+        return obj->level >= atoi(header);
+    if ( last == '-' && is_number(header) )
+        return obj->level <= atoi(header);
+    if ( is_number(arg) )
+        return obj->level == atoi(arg);
+    
+    // match by item type
+    for ( flag = 0; type_flags[flag].name != NULL; flag++ )
+        if ( !strcmp(type_flags[flag].name, arg) )
+            return obj->item_type == type_flags[flag].bit;
+    
+    // match by wear location
+    for ( flag = 0; wear_types[flag].name != NULL; flag++ )
+        if ( !strcmp(wear_types[flag].name, arg) )
+            return CAN_WEAR(obj, wear_types[flag].bit);
+        
+    // match by name
+    return is_name(arg, obj->name);
 }
 
 bool is_mimic( CHAR_DATA *ch )
@@ -1476,13 +1511,36 @@ bool is_in_room( CHAR_DATA *ch )
     return FALSE;
 }
 
+bool remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
+{
+    CHAR_DATA *prev;
+    
+    if ( ch == pRoom->people )
+    {
+        pRoom->people = ch->next_in_room;
+        return TRUE;
+    }
+    
+    for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
+    {
+        if ( prev->next_in_room == ch )
+        {
+            prev->next_in_room = ch->next_in_room;
+            return TRUE;
+        }
+    }
+    
+    bugf("remove_from_room_list: %s not found in room #%d", ch->name, pRoom->vnum);
+    return FALSE;
+}
+
 /*
  * Move a char out of a room.
  */
 void char_from_room( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
-    bool notFound = FALSE;
+    bool found;
     
     if ( ch == NULL || ch->in_room == NULL )
     {
@@ -1523,33 +1581,11 @@ void char_from_room( CHAR_DATA *ch )
     if ( IS_SET(ch->form, FORM_BRIGHT) )
 	--ch->in_room->light;
     
-    if ( ch == ch->in_room->people )
-    {
-        ch->in_room->people = ch->next_in_room;
-    }
-    else
-    {
-        CHAR_DATA *prev;
-        
-        for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
-        {
-            if ( prev->next_in_room == ch )
-            {
-                prev->next_in_room = ch->next_in_room;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bugf("Char_from_room: %s not found in room %d", ch->name, ch->in_room->vnum);
-            notFound = TRUE;
-        }
-    }
+    found = remove_from_room_list(ch, ch->in_room);
     
     // decrease area count, but only if we didn't have a bug previously
     // otherwise we'd be introducing an additional bug
-    if ( !IS_NPC(ch) && !notFound && --ch->in_room->area->nplayer < 0 )
+    if ( !IS_NPC(ch) && found && --ch->in_room->area->nplayer < 0 )
     {
         bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
         ch->in_room->area->nplayer = 0;

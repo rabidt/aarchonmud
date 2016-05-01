@@ -890,11 +890,7 @@ void remort_begin(CHAR_DATA *ch)
     
     if (ch->desc != NULL)
     {
-        // allow change of subclass for the first few remorts so players can test all
-        if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
-            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_SUBCLASS;
-        else
-            ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_GET_NEW_RACE;
+        ch->desc->connected = CREATION_REMORT * MAX_CON_STATE + CON_REMORT_BEGIN;
     }
     else
     {
@@ -1020,16 +1016,19 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 {
     char buf[MSL];
 
-    if ( ch->pcdata->remorts < MAX_REMORT )
-    {
-        send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
-        return;
-    }
-
     if ( !IS_HERO(ch) )
     {
         send_to_char( "You haven't reached your maximum level yet.\n\r", ch );
         return;
+    }
+
+       
+    if ( ch->pcdata->remorts < MAX_REMORT )
+    {
+        send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
+        send_to_char( "To advance to the next remort level, use <remort signup>.\n\r", ch );
+        if ( ch->pcdata->remorts < 1 )
+            return;
     }
 
     // half cost of initial remort
@@ -1079,11 +1078,6 @@ DEF_DO_FUN(do_ascend)
     if ( IS_NPC(ch) )
         return;
 
-#ifndef TESTER
-    ptc(ch, "Ascension system coming late 2015. Stay tuned.\n\r");
-    return;
-#endif
-    
     if ( ch->level < LEVEL_HERO || ch->pcdata->remorts < MAX_REMORT )
     {
         ptc(ch, "You need to reach level %d before you can ascend.\n\r", LEVEL_HERO);
