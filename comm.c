@@ -2213,7 +2213,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         colourconv( pbuff, buf, to );
         if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
-            show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
         }
         else

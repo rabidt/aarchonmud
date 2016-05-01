@@ -522,25 +522,6 @@ function findpath( start, finish )
     return result
 end
 
-function show_image_to_char( ch, txt )
-    -- Asssume it's a MXP url already
-    local url=string.match( txt, '\t<a href="(.-)">')
-    if url==nil then return end
-
-    local imgfile=url:find("[^/]-%.gif") or
-                  url:find("[^/]-%.jpg") or
-                  url:find("[^/]-%.jpeg") or
-                  url:find("[^/]-%.png")
-
-    if imgfile==nil then return end
-
-    local path=url:sub(1, imgfile-1)
-    local filename=url:sub(imgfile)
-
-    local snd=string.format( '\n\r\t<image %s url="%s">\n\r', filename, path)
-    sendtochar( ch, snd )
-end
-
 function start_con_handler( d, fun, ... )
     forceset(d, "constate", "lua_handler")
     forceset(d, "conhandler", coroutine.create( fun ) )
