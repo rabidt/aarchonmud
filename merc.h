@@ -2808,8 +2808,6 @@ struct  pc_data
     
     struct {
         bool chat_window;
-        bool show_images;
-        bool image_window;
     } guiconfig;
 
     LUAREF ptitles;
@@ -4023,6 +4021,7 @@ struct boss_achieve_record
 	
 #define IS_WAITING_FOR_AUTH(ch) (!IS_NPC(ch) && ch->desc && get_auth_state( ch ) == AUTH_ONLINE && IS_SET(ch->act, PLR_UNAUTHED) ) 
 #define IS_TAG(ch) (!IS_NPC(ch) && IS_SET((ch)->pcdata->tag_flags, TAG_PLAYING))
+#define USE_CHAT_WIN(ch) ( ch->pcdata && ch->pcdata->guiconfig.chat_window)
 
 /*
  * Object macros.
