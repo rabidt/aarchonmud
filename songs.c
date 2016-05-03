@@ -20,6 +20,7 @@
 #include "special.h"
 #include "mudconfig.h"
 #include "mob_stats.h"
+#include "interp.h"
 
 DEF_DO_FUN(do_wail)
 {
