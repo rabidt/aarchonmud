@@ -115,7 +115,7 @@ DEF_DO_FUN(do_sing)
     if ( ch->song == SONG_COMBAT_SYMPHONY )
     {
         af.where     = TO_AFFECTS;
-        af.type      = "Song";
+        af.type      = sn;
         af.level     = ch->level;
         af.duration  = 0;
         af.location  = APPLY_HITROLL;
