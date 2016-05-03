@@ -75,6 +75,7 @@ void check_shadow_companion( CHAR_DATA *ch );
 void validate_all();
 void check_clan_align( CHAR_DATA *gch );
 void check_equipment_align( CHAR_DATA *gch );
+void check_bard_song( CHAR_DATA *ch );
 
 
 /* used for saving */
