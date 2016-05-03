@@ -98,7 +98,7 @@ DEF_DO_FUN(do_sing)
 
     if ( ch->song == i )
     {
-        send_to_char("You're already singing that song\n\r", ch);
+        send_to_char("You're already singing that song.\n\r", ch);
         return;
     }
 
