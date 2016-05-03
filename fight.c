@@ -107,6 +107,7 @@ DECLARE_DO_FUN(do_mug       );
 DECLARE_DO_FUN(do_crush     );
 DECLARE_DO_FUN(do_unjam     );
 DECLARE_DO_FUN(do_sing      );
+DECLARE_DO_FUN(do_scream    );
 
 DECLARE_SPELL_FUN( spell_windwar        );
 DECLARE_SPELL_FUN( spell_lightning_bolt );
@@ -7492,6 +7493,7 @@ int song_cost( CHAR_DATA *ch, int song )
     return cost;
 }
 
+/*
 void check_song(CHAR_DATA *ch)
 {
     int cost;
@@ -7531,10 +7533,12 @@ void check_song(CHAR_DATA *ch)
         }
     } 
 }
+*/
 
+/*
 bool is_one_singer( CHAR_DATA *ch )
 {
-    /* we only want one singer, if more than one disable all songs */
+    // we only want one singer, if more than one disable all songs
     bool other_singer = false;
     CHAR_DATA *gch;
 
@@ -7550,6 +7554,7 @@ bool is_one_singer( CHAR_DATA *ch )
     }
     return other_singer;
 }
+*/
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {
