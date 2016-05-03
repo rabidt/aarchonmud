@@ -1572,7 +1572,7 @@ DEF_DO_FUN(do_scream)
     
     chance = (100 + get_skill(ch,gsn_scream)) / 2;
 
-    if ( check_hits(ch, victim, gsn_scream, DAM_SOUND, chance) )
+    if ( check_hit(ch, victim, gsn_scream, DAM_SOUND, chance) )
     {
         dam = martial_damage( ch, victim, gsn_scream );
 
