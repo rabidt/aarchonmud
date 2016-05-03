@@ -107,7 +107,7 @@ DECLARE_DO_FUN(do_mug       );
 DECLARE_DO_FUN(do_crush     );
 DECLARE_DO_FUN(do_unjam     );
 DECLARE_DO_FUN(do_sing      );
-DECLARE_DO_FUN(do_scream    );
+DECLARE_DO_FUN(do_wail      );
 
 DECLARE_SPELL_FUN( spell_windwar        );
 DECLARE_SPELL_FUN( spell_lightning_bolt );
