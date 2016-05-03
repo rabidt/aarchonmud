@@ -144,7 +144,6 @@ void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
 void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 void  check_stance  args( ( CHAR_DATA *ch ) );
-void  check_song    args( ( CHAR_DATA *ch ) );
 void  warfare       args( ( char *argument ) );
 void  add_war_kills args( ( CHAR_DATA *ch ) );
 void  war_end       args( ( bool success ) );
@@ -158,7 +157,6 @@ bool is_normal_hit( int dt );
 bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
                     bool area, bool quiet, bool theory );
 bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
-bool is_one_singer( CHAR_DATA *ch );
 
 void wait_state( CHAR_DATA *ch, int npulse )
 {
@@ -1370,9 +1368,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     second = get_eq_char ( ch, WEAR_SECONDARY );
     
     check_stance(ch);
-
-    // song stuff
-    check_song(ch);
 
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
@@ -3428,8 +3423,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     int first_dam_type = FIRST_DAMAGE(dam_type);
     bool is_spell = (dt > 0 && dt < TYPE_HIT && IS_SPELL(dt));
     bool normal_hit = is_normal_hit(dt);
-    bool singing_dev_ant; // devestating anthem
-    CHAR_DATA *gch; // to check group members for songs
     
     if ( stop_damage(ch, victim) )
         return FALSE;
@@ -3634,31 +3627,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         /* massive swing penalty */
         if ( dt == gsn_massive_swing )
             dam /= 2;
-    }
-
-    /* song bonus */
-    if ( dam > 0 && normal_hit )
-    {
-        singing_dev_ant = false; // devestating anthem
-        for ( gch = ch->in_room->people; gch != NULL; gch = ch->next_in_room ) // loop to see if anyone in group is singing it
-        {
-            if (is_same_group(ch, gch))
-            {
-                if (gch->song == SONG_DEVESTATING_ANTHEM)
-                {
-                    singing_dev_ant = true;
-                    break;
-                } else {
-                    continue;
-                }
-            } else {
-                continue;
-            }
-        }
-        if (singing_dev_ant)
-        {
-            dam += 5 + dam / 5;
-        }
     }
 
     /* religion bonus */
@@ -7483,80 +7451,6 @@ DEF_DO_FUN(do_murder)
     return;    
 }
 
-int song_cost( CHAR_DATA *ch, int song )
-{
-    int sn = *(songs[song].gsn);
-    int skill = get_skill(ch, sn);
-    int cost = songs[song].cost * (140-skill)/40;
-
-    // can add mastery later if needed
-    return cost;
-}
-
-
-void check_song(CHAR_DATA *ch)
-{
-    /*
-    int cost;
-
-    if (ch->song == 0) return;
-
-    cost = song_cost( ch, ch->song );
-
-    // deduct mana from cost
-    ch->mana -= cost;
-
-    // add moves to group members
-    if ( ch->song == SONG_COMBAT_SYMPHONY )
-    {
-        int incr;
-        CHAR_DATA *gch;
-        incr = UMAX( 5, 20 - (100-get_skill(ch,gsn_combat_symphony))/2 );
-        // increment player
-        if ( ch->move < (ch->max_move - incr + 5) ) // make sure we don't go over max moves
-        {
-            ch->move += incr;
-        } else {
-            ch->move = ch->max_move;
-        }
-        // check group members next
-        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-        {
-            if (is_same_group(gch, ch)) // same group, not same room
-            {
-                if ( gch->move < (gch->max_move - incr + 5) ) // make sure we don't go over max moves
-                {
-                    gch->move += incr;
-                } else {
-                    gch->move = gch->max_move;
-                }
-            }
-        }
-    }
-    */
-}
-
-
-
-bool is_one_singer( CHAR_DATA *ch )
-{
-    // we only want one singer, if more than one disable all songs
-    bool other_singer = false;
-    CHAR_DATA *gch;
-
-    if ( ch->song != 0 )
-    {
-        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-        {
-            if ( gch->song != 0 )
-            {
-                other_singer = true; // more than one singer
-            }
-        }
-    }
-    return other_singer;
-}
-
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {
@@ -7633,64 +7527,6 @@ void check_stance(CHAR_DATA *ch)
 	incr   = UMAX( 10, 25 - (100-get_skill(ch,gsn_firewitchs_seance))/2 );
         gain_hit(ch, incr);
         gain_mana(ch, incr);
-    }
-}
-
-// completely ripped off do_stance. not ashamed
-DEF_DO_FUN(do_sing)
-{
-    int i;
-
-    if (argument[0] == '\0')
-    {
-        if (ch->song == 0)
-        {
-            send_to_char("What song do you wish to sing?\n\r", ch);
-        } else {
-            send_to_char("You are no longer singing.\n\r", ch);
-            ch->song = 0;
-        }
-        return;
-    }
-
-    // only search known songs
-    for ( i = 0; songs[i].name != NULL; i++ )
-    {
-        if ( !str_prefix(argument, songs[i].name) && get_skill(ch, *(songs[i].gsn)) )
-        {
-            break;
-        }
-    }
-    if ( songs[i].name == NULL )
-    {
-        if (ch->song && songs[ch->song].name)
-        {
-            char buffer[80];
-            if (sprintf(buffer, "You don't know that song so you continue to sing %s.\n\r", songs[ch->song].name) > 0)
-            {
-                send_to_char(buffer, ch);
-                return;
-            }
-        }
-
-        send_to_char("You don't know that song.\n\r", ch);
-        return;
-    }
-
-    if ( ch->song == i )
-    {
-        send_to_char("You're already singing that song\n\r", ch);
-        return;
-    }
-
-    ch->song = i;
-
-    printf_to_char(ch, "You begin singing the %s.\n\r", songs[i].name);
-    if ( ch->fighting != NULL )
-    {
-        char buf[MSL];
-        sprintf( buf, "$n begins to sing the %s.", songs[i].name);
-        act( buf, ch, NULL, NULL, TO_ROOM );
     }
 }
 
