@@ -483,7 +483,7 @@ sh_int  gsn_quicken_spell;
 sh_int  gsn_chain_spell;
 sh_int  gsn_wish;
 
-sh_int  gsn_scream;
+sh_int  gsn_wail;
 
 /* songs */
 sh_int  gsn_combat_symphony;
