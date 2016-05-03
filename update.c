@@ -3092,7 +3092,7 @@ void check_bard_song(CHAR_DATA *ch)
 
     af = affect_find(ch->affected, gsn_combat_symphony);
 
-   if (af)
+   if (af != NULL)
    {
         reaf.where     = TO_AFFECTS;
         reaf.type      = gsn_combat_symphony;
