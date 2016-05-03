@@ -3689,7 +3689,7 @@ extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
 extern sh_int  gsn_wish;
 
-extern sh_int  gsn_scream;
+extern sh_int  gsn_wail;
 
 /* songs */
 extern sh_int  gsn_combat_symphony;
