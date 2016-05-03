@@ -3087,12 +3087,10 @@ void validate_all()
 
 void check_bard_song(CHAR_DATA *ch)
 {
-    AFFECT_DATA *af;
     AFFECT_DATA reaf;
 
-    af = affect_find(ch->affected, gsn_combat_symphony);
 
-   if (af != NULL)
+   if (ch->song == SONG_COMBAT_SYMPHONY)
    {
         reaf.where     = TO_AFFECTS;
         reaf.type      = gsn_combat_symphony;
