@@ -3094,6 +3094,7 @@ void check_bard_song(CHAR_DATA *ch)
 
     if (af != NULL)
     {
+        send_to_char("we're testing this \n\t", ch);
         reaf.where     = TO_AFFECTS;
         reaf.type      = gsn_combat_symphony;
         reaf.level     = ch->level;
