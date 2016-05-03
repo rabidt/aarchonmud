@@ -7991,14 +7991,14 @@ struct  skill_type
     },
 
     {    
-    "scream",  
+    "wail",  
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-        &gsn_scream,                      0,     12, DUR_NONE,
-        "scream",                 "!Scream!",       ""
+        &gsn_wail,                      0,     12, DUR_NONE,
+        "wail",                 "!Wail!",       ""
     },
 
     /* songs */
