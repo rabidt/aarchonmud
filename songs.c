@@ -121,6 +121,6 @@ DEF_DO_FUN(do_sing)
         af.location  = APPLY_HITROLL;
         af.modifier  = (ch->level + 20) / 8;
         af.bitvector = 0;
-        affect_to_char(ch, &af)
+        affect_to_char(ch, &af);
     }
 }
