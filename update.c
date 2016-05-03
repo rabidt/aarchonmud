@@ -3088,19 +3088,20 @@ void validate_all()
 void check_bard_song(CHAR_DATA *ch)
 {
     AFFECT_DATA *af;
+    AFFECT_DATA *reaf;
 
     af = affect_find(ch->affected, gsn_combat_symphony);
 
     switch(af)
     {
         case 'combat symphony':
-            af.where     = TO_AFFECTS;
-            af.type      = gsn_combat_symphony;
-            af.level     = ch->level;
-            af.duration  = 0;
-            af.location  = APPLY_HITROLL;
-            af.modifier  = (ch->level + 20) / 8;
-            af.bitvector = 0;
-            affect_to_char(ch, &af);
+            reaf.where     = TO_AFFECTS;
+            reaf.type      = gsn_combat_symphony;
+            reaf.level     = ch->level;
+            reaf.duration  = 0;
+            reaf.location  = APPLY_HITROLL;
+            reaf.modifier  = (ch->level + 20) / 8;
+            reaf.bitvector = 0;
+            affect_to_char(ch, &reaf);
     }    
 }
