@@ -20,7 +20,7 @@ DEF_DO_FUN(do_wail)
     int skill;
     int dam, chance;
 
-    if ((skill = get_skill(ch,gsn_scream)) == 0)
+    if ((skill = get_skill(ch,gsn_wail)) == 0)
     {
         send_to_char("You scream your lungs out without effect.\n\r", ch);
         return;
@@ -30,17 +30,17 @@ DEF_DO_FUN(do_wail)
         return;
 
     
-    chance = (100 + get_skill(ch,gsn_scream)) / 2;
+    chance = (100 + get_skill(ch,gsn_wail)) / 2;
 
-    if ( check_hit(ch, victim, gsn_scream, DAM_SOUND, chance) )
+    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
     {
-        dam = martial_damage( ch, victim, gsn_scream );
+        dam = martial_damage( ch, victim, gsn_wail );
 
-        full_dam(ch, victim, dam, gsn_scream, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_scream, TRUE, 3);
+        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, TRUE, 3);
     } else {
-        damage( ch, victim, 0, gsn_scream, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_scream, FALSE, 3);
+        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, FALSE, 3);
     }
     return;
 }
