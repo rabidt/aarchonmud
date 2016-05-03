@@ -33,6 +33,7 @@
 #include <time.h>
 #include "merc.h"
 #include "interp.h"
+#include "songs.h"
 
 bool    check_disabled (const struct cmd_type *command);
 DISABLED_DATA *disabled_first;
