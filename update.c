@@ -1585,6 +1585,9 @@ void affect_update( CHAR_DATA *ch )
         }
     }
 
+    /* songs */
+    check_bard_song(ch);
+
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
         decompose_update(ch, 0);
@@ -3080,4 +3083,24 @@ void validate_all()
             pArea->nplayer = player_count;
         }
     }
+}
+
+void check_bard_song(CHAR_DATA *ch)
+{
+    AFFECT_DATA af;
+
+    af = affect_find(ch->affected, gsn_combat_symphony);
+
+    switch(af)
+    {
+        case 'combat symphony':
+            af.where     = TO_AFFECTS;
+            af.type      = gsn_combat_symphony;
+            af.level     = ch->level;
+            af.duration  = 0;
+            af.location  = APPLY_HITROLL;
+            af.modifier  = (ch->level + 20) / 8;
+            af.bitvector = 0;
+            affect_to_char(ch, &af);
+    }    
 }
