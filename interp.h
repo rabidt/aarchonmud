@@ -412,7 +412,6 @@ DECLARE_DO_FUN( do_showskill);
 DECLARE_DO_FUN( do_showsubclass);
 DECLARE_DO_FUN( do_shutdow  );
 DECLARE_DO_FUN( do_shutdown );
-DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_sire     );
 DECLARE_DO_FUN( do_sit      );
 DECLARE_DO_FUN( do_skill    );
@@ -528,6 +527,11 @@ DECLARE_DO_FUN( do_pcast        );
 DECLARE_DO_FUN( do_qcast        );
 DECLARE_DO_FUN( do_ccast        );
 DECLARE_DO_FUN( do_permcast     );
+
+/* bard skills */
+DECLARE_DO_FUN( do_sing     );
+DECLARE_DO_FUN( do_wail     );
+
 
 /* warfare! */
 DECLARE_DO_FUN( do_startwar     );
