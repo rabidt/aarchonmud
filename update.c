@@ -3091,9 +3091,8 @@ void check_bard_song(CHAR_DATA *ch)
     AFFECT_DATA reaf;
 
     af = affect_find(ch->affected, gsn_combat_symphony);
-    send_to_char(af.ToString("C"), ch);
 
-   if (af == gsn_combat_symphony)
+   if (af.type == gsn_combat_symphony)
    {
         reaf.where     = TO_AFFECTS;
         reaf.type      = gsn_combat_symphony;
