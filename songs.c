@@ -14,6 +14,38 @@
 #include <stdlib.h>
 #include "merc.h"
 
+DEF_DO_FUN(do_wail)
+{
+    CHAR_DATA *victim;
+    int skill;
+    int dam, chance;
+
+    if ((skill = get_skill(ch,gsn_scream)) == 0)
+    {
+        send_to_char("You scream your lungs out without effect.\n\r", ch);
+        return;
+    }
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL)
+        return;
+
+    
+    chance = (100 + get_skill(ch,gsn_scream)) / 2;
+
+    if ( check_hit(ch, victim, gsn_scream, DAM_SOUND, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_scream );
+
+        full_dam(ch, victim, dam, gsn_scream, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_scream, TRUE, 3);
+    } else {
+        damage( ch, victim, 0, gsn_scream, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_scream, FALSE, 3);
+    }
+    return;
+}
+
+
 // completely ripped off do_stance. not ashamed
 DEF_DO_FUN(do_sing)
 {
