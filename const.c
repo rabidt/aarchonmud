@@ -8140,7 +8140,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard basics",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0 },
-    { "dagger", "scream" }
+    { "dagger", "wail" }
     },	
 
 	{

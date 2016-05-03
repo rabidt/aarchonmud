@@ -58,6 +58,7 @@ DEF_DO_FUN(do_wail)
 DEF_DO_FUN(do_sing)
 {
     int i;
+    AFFECT_DATA af;
 
     if (argument[0] == '\0')
     {
@@ -109,5 +110,17 @@ DEF_DO_FUN(do_sing)
         char buf[MSL];
         sprintf( buf, "$n begins to sing the %s.", songs[i].name);
         act( buf, ch, NULL, NULL, TO_ROOM );
+    }
+
+    if ( ch->song == SONG_COMBAT_SYMPHONY )
+    {
+        af.where     = TO_AFFECTS;
+        af.type      = "Song";
+        af.level     = ch->level;
+        af.duration  = 0;
+        af.location  = APPLY_HITROLL;
+        af.modifier  = (ch->level + 20) / 8;
+        af.bitvector = 0;
+        affect_to_char(ch, &af)
     }
 }
