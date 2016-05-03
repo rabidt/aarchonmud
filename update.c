@@ -3088,7 +3088,7 @@ void validate_all()
 void check_bard_song(CHAR_DATA *ch)
 {
     AFFECT_DATA *af;
-    AFFECT_DATA *reaf;
+    AFFECT_DATA reaf;
 
     af = affect_find(ch->affected, gsn_combat_symphony);
 
