@@ -43,6 +43,7 @@
 #include "mudconfig.h"
 #include "warfare.h"
 #include "special.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -75,7 +76,6 @@ void check_shadow_companion( CHAR_DATA *ch );
 void validate_all();
 void check_clan_align( CHAR_DATA *gch );
 void check_equipment_align( CHAR_DATA *gch );
-void check_bard_song( CHAR_DATA *ch );
 
 
 /* used for saving */
@@ -1586,7 +1586,7 @@ void affect_update( CHAR_DATA *ch )
     }
 
     /* songs */
-    check_bard_song(ch);
+    check_bard_song(ch); // from songs.c
 
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
@@ -3085,20 +3085,3 @@ void validate_all()
     }
 }
 
-void check_bard_song(CHAR_DATA *ch)
-{
-    AFFECT_DATA reaf;
-
-
-   if (ch->song == SONG_COMBAT_SYMPHONY)
-   {
-        reaf.where     = TO_AFFECTS;
-        reaf.type      = gsn_combat_symphony;
-        reaf.level     = ch->level;
-        reaf.duration  = 0;
-        reaf.location  = APPLY_HITROLL;
-        reaf.modifier  = (ch->level + 20) / 8;
-        reaf.bitvector = 0;
-        affect_to_char(ch, &reaf);
-    }    
-}

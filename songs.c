@@ -21,6 +21,7 @@
 #include "mudconfig.h"
 #include "mob_stats.h"
 #include "interp.h"
+#include "songs.h"
 
 DEF_DO_FUN(do_wail)
 {
@@ -123,4 +124,22 @@ DEF_DO_FUN(do_sing)
         af.bitvector = 0;
         affect_to_char(ch, &af);
     }
+}
+
+void check_bard_song(CHAR_DATA *ch)
+{
+    AFFECT_DATA reaf;
+
+
+   if (ch->song == SONG_COMBAT_SYMPHONY)
+   {
+        reaf.where     = TO_AFFECTS;
+        reaf.type      = gsn_combat_symphony;
+        reaf.level     = ch->level;
+        reaf.duration  = 0;
+        reaf.location  = APPLY_HITROLL;
+        reaf.modifier  = (ch->level + 20) / 8;
+        reaf.bitvector = 0;
+        affect_to_char(ch, &reaf);
+    }    
 }

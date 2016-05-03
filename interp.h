@@ -528,11 +528,6 @@ DECLARE_DO_FUN( do_qcast        );
 DECLARE_DO_FUN( do_ccast        );
 DECLARE_DO_FUN( do_permcast     );
 
-/* bard skills */
-DECLARE_DO_FUN( do_sing     );
-DECLARE_DO_FUN( do_wail     );
-
-
 /* warfare! */
 DECLARE_DO_FUN( do_startwar     );
 DECLARE_DO_FUN( do_nowar        );
