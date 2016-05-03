@@ -7493,9 +7493,10 @@ int song_cost( CHAR_DATA *ch, int song )
     return cost;
 }
 
-/*
+
 void check_song(CHAR_DATA *ch)
 {
+    /*
     int cost;
 
     if (ch->song == 0) return;
@@ -7531,11 +7532,12 @@ void check_song(CHAR_DATA *ch)
                 }
             }
         }
-    } 
+    }
+    */
 }
-*/
 
-/*
+
+
 bool is_one_singer( CHAR_DATA *ch )
 {
     // we only want one singer, if more than one disable all songs
@@ -7554,7 +7556,7 @@ bool is_one_singer( CHAR_DATA *ch )
     }
     return other_singer;
 }
-*/
+
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {
