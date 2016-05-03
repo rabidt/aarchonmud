@@ -1,0 +1,52 @@
+diff -r 44198b08ddec lua/commands.lua
+--- a/lua/commands.lua	Sun Jul 27 15:01:20 2014 +1200
++++ b/lua/commands.lua	Sun Jul 27 09:45:34 2014 -0700
+@@ -1142,6 +1142,9 @@
+ --end mudconfig section
+ 
+ -- perfmon section
++local overs={}
++
++local highest=0
+ local lastpulse
+ local pulsetbl={}
+ local pulseind=1
+@@ -1152,6 +1155,10 @@
+ local hourtbl={}
+ local hourind=1
+ function log_perf( val )
++    highest=math.max(highest,val)
++    if ( val > 99 ) then
++        overs[os.time()]=val
++    end
+     lastpulse=val
+     pulsetbl[pulseind]=val
+ 
+@@ -1229,14 +1236,25 @@
+   %3d Seconds:  %f
+   %3d Minutes:  %f
+   %3d Hours:    %f
++
++  Highest:      %f
+ ]]):format( 1, lastpulse,
+             #pulsetbl, avg(pulsetbl),
+             #sectbl, avg(sectbl),
+             #mintbl, avg(mintbl),
+-            #hourtbl, avg(hourtbl) ) )
++            #hourtbl, avg(hourtbl),
++            highest ) )
+ 
++    local sorted={}
++    for k,v in pairs(overs) do
++        table.insert( sorted, { k=k, v=v } )
++    end
++
++    table.sort( sorted, function(a,b) return a.k<b.k end)
++    for _,v in pairs(sorted) do
++        sendtochar( ch, os.date("%x %X", v.k ).." "..v.v.."\n\r" )
++    end
+ end
+-
+ --end perfmon section
+ 
+ -- findreset section
