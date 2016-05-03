@@ -3535,7 +3535,7 @@ void gui_login_setup( CHAR_DATA *ch )
     else if (USE_CHAT_WIN(ch))
     {
         /* Probably only get here if they reconnect from a different client */
-        ch->pcdata->guiconfig.chat_window=TRUE;
+        ch->pcdata->guiconfig.chat_window=FALSE;
         close_chat_window( ch );
         ptc( ch, "{CDisabling chat window.\n\r");
     }
