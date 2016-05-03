@@ -1,0 +1,223 @@
+diff -r 08da802ad460 -r b9d24475c3c0 db.c
+--- a/db.c	Sat Jun 28 21:42:54 2014 -0700
++++ b/db.c	Mon Jun 30 10:20:03 2014 +0400
+@@ -53,7 +53,6 @@
+ #include "olc.h"
+ #include "buffer_util.h"
+ #include "mob_stats.h"
+-#include "lua_arclib.h"
+ 
+ extern  int _filbuf     args( (FILE *) );
+ 
+diff -r 08da802ad460 -r b9d24475c3c0 lua/startup.lua
+--- a/lua/startup.lua	Sat Jun 28 21:42:54 2014 -0700
++++ b/lua/startup.lua	Mon Jun 30 10:20:03 2014 +0400
+@@ -10,6 +10,9 @@
+ interptbl={} -- key is game object pointer, table of desc=desc pointer, name=char name
+ delaytbl={} -- used on the C side mostly
+ 
++cleanup={}
++validuds={}
++
+ function UdCnt()
+     local reg=debug.getregistry()
+ 
+diff -r 08da802ad460 -r b9d24475c3c0 lua_arclib.c
+--- a/lua_arclib.c	Sat Jun 28 21:42:54 2014 -0700
++++ b/lua_arclib.c	Mon Jun 30 10:20:03 2014 +0400
+@@ -8477,6 +8477,12 @@
+     }
+ }
+ 
++void cleanup_uds()
++{
++    lua_newtable( g_mud_LS );
++    lua_setglobal( g_mud_LS, "cleanup" );
++} 
++
+ #define REF_FREED -1
+ 
+ #define declb( LTYPE , CTYPE , TPREFIX ) \
+@@ -8488,7 +8494,16 @@
+ \
+ bool valid_ ## LTYPE ( CTYPE *ud )\
+ {\
+-    return (( LTYPE ## _wrapper *)ud)->ref != REF_FREED;\
++    bool rtn;\
++    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
++    lua_pushlightuserdata( g_mud_LS, ud );\
++    lua_gettable( g_mud_LS, -2 );\
++    if (lua_isnil( g_mud_LS, -1 ))\
++        rtn=FALSE;\
++    else\
++        rtn=TRUE;\
++    lua_pop( g_mud_LS, 2 ); /* pop result and validuds */\
++    return rtn;\
+ }\
+ \
+ CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
+@@ -8512,6 +8527,11 @@
+         bugf( "NULL ud passed to push_" #LTYPE );\
+         return FALSE;\
+     }\
++    if ( ! valid_ ## LTYPE ( ud ) )\
++    {\
++        bugf( "Invalid " #CTYPE " in push_" #LTYPE );\
++        return FALSE;\
++    }\
+     int ref=(( LTYPE ## _wrapper *)ud)->ref;\
+     if (ref==REF_FREED)\
+         return FALSE;\
+@@ -8529,13 +8549,29 @@
+     wrap->ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );\
+     LTYPE ## _type.count++;\
+     memset( wrap, 0, sizeof( CTYPE ) );\
++    /* register in validuds table for valid checks later on */\
++    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
++    lua_pushlightuserdata( g_mud_LS, wrap );\
++    lua_pushboolean( g_mud_LS, TRUE );\
++    lua_settable( g_mud_LS, -3 );\
++    lua_pop( g_mud_LS, 1 );\
+     return wrap;\
+ }\
+ \
+ void free_ ## LTYPE ( CTYPE * ud )\
+ {\
++    if ( ! valid_ ## LTYPE ( ud ) )\
++    {\
++        bugf( "Invalid " #CTYPE " in free_" #LTYPE );\
++        return;\
++    }\
+     LTYPE ## _wrapper *wrap=ud;\
+     int ref=wrap->ref;\
++    if ( ref == REF_FREED )\
++    {\
++        bugf( "Tried to free already freed " #LTYPE );\
++        return;\
++    }\
+     /* destroy env */\
+     lua_getglobal( g_mud_LS, "envtbl" );\
+     push_ ## LTYPE ( g_mud_LS, ud );\
+@@ -8543,9 +8579,20 @@
+     lua_settable( g_mud_LS, -3 );\
+     lua_pop( g_mud_LS, 1 ); /* pop envtbl */\
+     \
++    /* move to cleanup table */\
++    lua_getglobal( g_mud_LS, "cleanup" );\
++    push_ ## LTYPE ( g_mud_LS, ud );\
++    luaL_ref( g_mud_LS, -2 );\
++    \
+     wrap->ref=REF_FREED;\
+     luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );\
+     LTYPE ## _type.count--;\
++    /* unregister from validuds table */\
++    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );\
++    lua_pushlightuserdata( g_mud_LS, ud );\
++    lua_pushnil( g_mud_LS );\
++    lua_settable( g_mud_LS, -3 );\
++    lua_pop( g_mud_LS, 1 );\
+ }\
+ \
+ int count_ ## LTYPE ( void )\
+@@ -8573,7 +8620,7 @@
+     return count;\
+ }\
+ \
+-int newindex_ ## LTYPE ( lua_State *LS )\
++static int newindex_ ## LTYPE ( lua_State *LS )\
+ {\
+     CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+     const char *arg=check_string( LS, 2, MIL );\
+@@ -8619,7 +8666,7 @@
+     return 0;\
+ }\
+ \
+-int index_ ## LTYPE ( lua_State *LS )\
++static int index_ ## LTYPE ( lua_State *LS )\
+ {\
+     CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+     const char *arg=luaL_checkstring( LS, 2 );\
+diff -r 08da802ad460 -r b9d24475c3c0 lua_arclib.h
+--- a/lua_arclib.h	Sat Jun 28 21:42:54 2014 -0700
++++ b/lua_arclib.h	Mon Jun 30 10:20:03 2014 +0400
+@@ -59,12 +59,18 @@
+ 
+ void register_globals( lua_State *LS );
+ 
++/* moved to merc.h cause what if a file calls 
++   valid_CH without including lua_arclib.h?
++   It assumes int and doesn't work right.
++   */
++/*
+ #define declf( ltype, ctype ) \
+ ctype * check_ ## ltype ( lua_State *LS, int index ); \
+ bool    is_ ## ltype ( lua_State *LS, int index ); \
+ bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
+ ctype * alloc_ ## ltype (void) ;\
+ void    free_ ## ltype ( ctype * ud );\
++bool valid_ ## ltype ( ctype *ud );
+ 
+ declf(CH, CHAR_DATA)
+ declf(OBJ, OBJ_DATA)
+@@ -83,6 +89,7 @@
+ declf(AFFECT, AFFECT_DATA)
+ declf(HELP, HELP_DATA)
+ declf(DESCRIPTOR, DESCRIPTOR_DATA)
++*/
+ #undef declf
+ 
+ #endif
+diff -r 08da802ad460 -r b9d24475c3c0 merc.h
+--- a/merc.h	Sat Jun 28 21:42:54 2014 -0700
++++ b/merc.h	Mon Jun 30 10:20:03 2014 +0400
+@@ -24,6 +24,7 @@
+ *   By using this code, you have agreed to follow the terms of the     *
+ *   ROM license, in the file Rom24/doc/rom.license             *
+ ***************************************************************************/
++#include <lua.h>
+ #include "protocol.h"
+ #include "timer.h"
+ 
+@@ -4725,3 +4726,31 @@
+ #define ACT_ARG_TEXT 2
+ #define ACT_ARG_CHARACTER 3
+ 
++
++#define declf( ltype, ctype ) \
++ctype * check_ ## ltype ( lua_State *LS, int index ); \
++bool    is_ ## ltype ( lua_State *LS, int index ); \
++bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
++ctype * alloc_ ## ltype (void) ;\
++void    free_ ## ltype ( ctype * ud );\
++bool    valid_ ## ltype ( ctype *ud );\
++int     count_ ## ltype ( void );
++
++declf(CH, CHAR_DATA)
++declf(OBJ, OBJ_DATA)
++declf(AREA, AREA_DATA)
++declf(ROOM, ROOM_INDEX_DATA)
++declf(EXIT, EXIT_DATA)
++declf(RESET, RESET_DATA)
++declf(MOBPROTO, MOB_INDEX_DATA)
++declf(OBJPROTO, OBJ_INDEX_DATA)
++declf(PROG, PROG_CODE)
++declf(MTRIG, PROG_LIST)
++declf(OTRIG, PROG_LIST)
++declf(ATRIG, PROG_LIST)
++declf(RTRIG, PROG_LIST)
++declf(SHOP, SHOP_DATA)
++declf(AFFECT, AFFECT_DATA)
++declf(HELP, HELP_DATA)
++declf(DESCRIPTOR, DESCRIPTOR_DATA)
++#undef declf
+diff -r 08da802ad460 -r b9d24475c3c0 update.c
+--- a/update.c	Sat Jun 28 21:42:54 2014 -0700
++++ b/update.c	Mon Jun 30 10:20:03 2014 +0400
+@@ -2659,6 +2659,7 @@
+         aggr_update();
+         death_update();
+         extract_update();
++        cleanup_uds();
+     }
+ 
+     tail_chain( );
