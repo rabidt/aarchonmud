@@ -7990,6 +7990,17 @@ struct  skill_type
     "slam", "!mummy slam!",  ""
     },
 
+    {    
+    "scream",  
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_NONE, STAT_NONE, STAT_NONE,
+        spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
+        &gsn_scream,                      0,     12, DUR_NONE,
+        "scream",                 "!Scream!",       ""
+    },
+
     /* songs */
     {
     "combat symphony",
@@ -8129,7 +8140,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard basics",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0 },
-    { "dagger", "inspiring song" }
+    { "dagger", "scream" }
     },	
 
 	{
