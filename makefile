@@ -1,5 +1,5 @@
 CC      = gcc
-PROF	= -I/usr/include/lua5.1 -L/usr/lib -O
+PROF	= -I/home/m256ada/include -L/home/m256ada/lib -O
 NOCRYPT =
 MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
