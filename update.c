@@ -3092,9 +3092,8 @@ void check_bard_song(CHAR_DATA *ch)
 
     af = affect_find(ch->affected, gsn_combat_symphony);
 
-    if (af != NULL)
-    {
-        send_to_char("we're testing this \n\t", ch);
+   // if (af != NULL)
+    //{
         reaf.where     = TO_AFFECTS;
         reaf.type      = gsn_combat_symphony;
         reaf.level     = ch->level;
@@ -3103,5 +3102,5 @@ void check_bard_song(CHAR_DATA *ch)
         reaf.modifier  = (ch->level + 20) / 8;
         reaf.bitvector = 0;
         affect_to_char(ch, &reaf);
-    }    
+ //   }    
 }
