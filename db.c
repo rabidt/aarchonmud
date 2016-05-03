@@ -483,7 +483,8 @@ sh_int  gsn_quicken_spell;
 sh_int  gsn_chain_spell;
 sh_int  gsn_wish;
 
-/* songs */
+/* songs/bard skills */
+sh_int  gsn_wail;
 sh_int  gsn_combat_symphony;
 sh_int  gsn_devestating_anthem;
 
