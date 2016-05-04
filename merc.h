@@ -1557,7 +1557,7 @@ struct  kill_data
 #define AFF_DETECT_HIDDEN      6
 #define AFF_DETECT_GOOD        7
 #define AFF_SANCTUARY          8
-#define AFF_FADE	       9
+#define AFF_FADE	             9
 #define AFF_INFRARED          10
 #define AFF_CURSE             11
 #define AFF_ASTRAL            12
@@ -1629,6 +1629,7 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
+#define AFF_SONG              81
 
 
 /*

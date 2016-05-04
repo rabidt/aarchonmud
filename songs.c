@@ -115,14 +115,7 @@ DEF_DO_FUN(do_sing)
 
     if ( ch->song == SONG_COMBAT_SYMPHONY )
     {
-        af.where     = TO_AFFECTS;
-        af.type      = gsn_combat_symphony;
-        af.level     = ch->level;
-        af.duration  = 0;
-        af.location  = APPLY_HITROLL;
-        af.modifier  = (ch->level + 20) / 8;
-        af.bitvector = 0;
-        affect_to_char(ch, &af);
+        apply_combat_symphony_affect(ch);
     }
 }
 
@@ -133,13 +126,19 @@ void check_bard_song(CHAR_DATA *ch)
 
    if (ch->song == SONG_COMBAT_SYMPHONY)
    {
-        reaf.where     = TO_AFFECTS;
-        reaf.type      = gsn_combat_symphony;
-        reaf.level     = ch->level;
-        reaf.duration  = 0;
-        reaf.location  = APPLY_HITROLL;
-        reaf.modifier  = (ch->level + 20) / 8;
-        reaf.bitvector = 0;
-        affect_to_char(ch, &reaf);
+        apply_combat_symphony_affect(ch);
     }    
+}
+
+void apply_combat_symphony_affect(CHAR_DATA *ch)
+{
+    AFFECT_DATA *af;
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_combat_symphony;
+    af.level     = ch->level;
+    af.duration  = 0;
+    af.location  = APPLY_HITROLL;
+    af.modifier  = (ch->level + 20) / 8;
+    af.bitvector = AFF_SONG;
+    affect_to_char(ch, &af);
 }
