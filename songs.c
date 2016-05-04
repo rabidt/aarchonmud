@@ -80,6 +80,7 @@ DEF_DO_FUN(do_sing)
         } else {
             send_to_char("You are no longer singing.\n\r", ch);
             ch->song = 0;
+            remove_bard_song(ch);
         }
         return;
     }
@@ -136,4 +137,12 @@ void check_bard_song(CHAR_DATA *ch)
    {
         apply_combat_symphony_affect(ch);
     }    
+}
+
+void remove_bard_song( CHAR_DATA *ch )
+{
+    if ( IS_AFFECTED(ch, AFF_SONG ) )
+    {
+        REMOVE_BIT(ch->affect_field, AFF_SONG);
+    }
 }
