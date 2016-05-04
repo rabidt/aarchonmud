@@ -78,9 +78,9 @@ DEF_DO_FUN(do_sing)
         {
             send_to_char("What song do you wish to sing?\n\r", ch);
         } else {
+            remove_bard_song(ch);
             send_to_char("You are no longer singing.\n\r", ch);
             ch->song = 0;
-            remove_bard_song(ch);
         }
         return;
     }
@@ -143,6 +143,6 @@ void remove_bard_song( CHAR_DATA *ch )
 {
     if ( IS_AFFECTED(ch, AFF_SONG ) )
     {
-        REMOVE_BIT(ch->affect_field, AFF_SONG);
+        affect_strip_flag(ch, AFF_SONG);
     }
 }
