@@ -56,7 +56,7 @@ DEF_DO_FUN(do_wail)
 
 void apply_combat_symphony_affect(CHAR_DATA *ch)
 {
-    AFFECT_DATA *af;
+    AFFECT_DATA af;
     af.where     = TO_AFFECTS;
     af.type      = gsn_combat_symphony;
     af.level     = ch->level;
@@ -71,7 +71,6 @@ void apply_combat_symphony_affect(CHAR_DATA *ch)
 DEF_DO_FUN(do_sing)
 {
     int i;
-    AFFECT_DATA af;
 
     if (argument[0] == '\0')
     {
