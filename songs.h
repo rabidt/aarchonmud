@@ -28,6 +28,6 @@
 DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_wail     );
 
-void check_bard_song( CHAR_DATA *ch );
-void remove_bard_song( CHAR_DATA *ch );
 void apply_combat_symphony_affect( CHAR_DATA *ch );
+void check_bard_song( CHAR_DATA *ch );
+//void remove_bard_song( CHAR_DATA *ch );

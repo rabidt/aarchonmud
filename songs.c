@@ -54,6 +54,18 @@ DEF_DO_FUN(do_wail)
     return;
 }
 
+void apply_combat_symphony_affect(CHAR_DATA *ch)
+{
+    AFFECT_DATA *af;
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_combat_symphony;
+    af.level     = ch->level;
+    af.duration  = 0;
+    af.location  = APPLY_HITROLL;
+    af.modifier  = (ch->level + 20) / 8;
+    af.bitvector = AFF_SONG;
+    affect_to_char(ch, &af);
+}
 
 // completely ripped off do_stance. not ashamed
 DEF_DO_FUN(do_sing)
@@ -121,24 +133,8 @@ DEF_DO_FUN(do_sing)
 
 void check_bard_song(CHAR_DATA *ch)
 {
-    AFFECT_DATA reaf;
-
-
    if (ch->song == SONG_COMBAT_SYMPHONY)
    {
         apply_combat_symphony_affect(ch);
     }    
-}
-
-void apply_combat_symphony_affect(CHAR_DATA *ch)
-{
-    AFFECT_DATA *af;
-    af.where     = TO_AFFECTS;
-    af.type      = gsn_combat_symphony;
-    af.level     = ch->level;
-    af.duration  = 0;
-    af.location  = APPLY_HITROLL;
-    af.modifier  = (ch->level + 20) / 8;
-    af.bitvector = AFF_SONG;
-    affect_to_char(ch, &af);
 }
