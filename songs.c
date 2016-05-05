@@ -155,7 +155,7 @@ void check_bard_song(CHAR_DATA *ch)
     if (song != 0)
     {   
         // if they're fighting we'll deduct cost in fight.c
-        if (ch->position != POS_FIGHTING)
+        if (ch->fighting != NULL)
         {
             deduct_song_cost(ch);
         }
@@ -168,11 +168,14 @@ void remove_bard_song( CHAR_DATA *ch )
 {   
     CHAR_DATA *gch;
 
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    if (ch->song != 0)
     {
-        if ( is_same_group(gch, ch) && IS_AFFECTED(gch, AFF_SONG) )
+        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
         {
-            affect_strip_flag(gch, AFF_SONG);
+            if ( is_same_group(gch, ch) && IS_AFFECTED(gch, AFF_SONG) )
+            {
+                affect_strip_flag(gch, AFF_SONG);
+            }
         }
     }
 }
