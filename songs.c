@@ -83,7 +83,7 @@ void apply_bard_song_affect_to_group(CHAR_DATA *ch)
     {
         if ( is_same_group(ch, gch) )
         {
-            apply_bard_song_affect(gch, song)
+            apply_bard_song_affect(gch, song);
         }
     }
 }
