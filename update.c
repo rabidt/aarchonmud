@@ -1586,7 +1586,10 @@ void affect_update( CHAR_DATA *ch )
     }
 
     /* songs */
-    check_bard_song(ch); // from songs.c
+    if (ch->song != 0)
+    {
+        check_bard_song(ch); // from songs.c
+    }
 
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
