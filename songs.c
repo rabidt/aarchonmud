@@ -74,10 +74,9 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
     }
 }
 
-void apply_bard_song_affect_to_group(CHAR_DATA *ch)
+void apply_bard_song_affect_to_group(CHAR_DATA *ch, int song)
 {
     CHAR_DATA *gch;
-    int song = ch->song;
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
@@ -146,13 +145,14 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
-    apply_bard_song_affect_to_group(ch);
+    apply_bard_song_affect_to_group(ch, ch->song);
     
 }
 
 void check_bard_song(CHAR_DATA *ch)
 {
-    if (ch->song != SONG_DEFAULT)
+    int song = ch->song;
+    if (song != SONG_DEFAULT)
     {   
         // if they're fighting we'll deduct cost in fight.c
         if (ch->position != POS_FIGHTING)
@@ -160,7 +160,7 @@ void check_bard_song(CHAR_DATA *ch)
             deduct_song_cost(ch);
         }
 
-        apply_bard_song_affect_to_group(ch);
+        apply_bard_song_affect_to_group(ch, song);
     }
 }
 
