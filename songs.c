@@ -153,8 +153,13 @@ DEF_DO_FUN(do_sing)
 void check_bard_song(CHAR_DATA *ch)
 {
     if (ch->song != SONG_DEFAULT)
-    {
-        deduct_song_cost(ch);
+    {   
+        // if they're fighting we'll deduct cost in fight.c
+        if (ch->position != POS_FIGHTING)
+        {
+            deduct_song_cost(ch);
+        }
+
         apply_bard_song_affect_to_group(ch);
     }
 }
@@ -194,6 +199,6 @@ void deduct_song_cost( CHAR_DATA *ch )
         send_to_char("You are too tired to keep singing that song.\n\r", ch);
         ch->song == 0;
     } else {
-        ch->move -= cost;
+        ch->mana -= cost;
     }
 }
