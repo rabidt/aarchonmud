@@ -38,6 +38,7 @@
 #include "special.h"
 #include "mudconfig.h"
 #include "mob_stats.h"
+#include "songs.h"
 
 extern WAR_DATA war;
 
@@ -1366,7 +1367,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     second = get_eq_char ( ch, WEAR_SECONDARY );
     
     check_stance(ch);
-
+    deduct_song_cost(ch);
 
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )

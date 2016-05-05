@@ -197,7 +197,7 @@ void deduct_song_cost( CHAR_DATA *ch )
     if (cost > ch->mana)
     {
         send_to_char("You are too tired to keep singing that song.\n\r", ch);
-        ch->song == 0;
+        ch->song = 0;
     } else {
         ch->mana -= cost;
     }
