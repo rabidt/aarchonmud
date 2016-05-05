@@ -31,3 +31,4 @@ DECLARE_DO_FUN( do_wail     );
 void apply_combat_symphony_affect( CHAR_DATA *ch );
 void check_bard_song( CHAR_DATA *ch );
 void remove_bard_song( CHAR_DATA *ch );
+void deduct_song_cost( CHAR_DATA *ch );

@@ -54,17 +54,21 @@ DEF_DO_FUN(do_wail)
     return;
 }
 
-void apply_combat_symphony_affect(CHAR_DATA *ch)
+void apply_bard_song_affect(CHAR_DATA *ch, song)
 {
     AFFECT_DATA af;
-    af.where     = TO_AFFECTS;
-    af.type      = gsn_combat_symphony;
-    af.level     = ch->level;
-    af.duration  = 0;
-    af.location  = APPLY_HITROLL;
-    af.modifier  = (ch->level + 20) / 8;
-    af.bitvector = AFF_SONG;
-    affect_to_char(ch, &af);
+
+    if (song == SONG_COMBAT_SYMPHONY)
+    {
+        af.where     = TO_AFFECTS;
+        af.type      = gsn_combat_symphony;
+        af.level     = ch->level;
+        af.duration  = 0;
+        af.location  = APPLY_HITROLL;
+        af.modifier  = (ch->level + 20) / 8;
+        af.bitvector = AFF_SONG;
+        affect_to_char(ch, &af);
+    }
 }
 
 // completely ripped off do_stance. not ashamed
@@ -125,18 +129,17 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
-    if ( ch->song == SONG_COMBAT_SYMPHONY )
-    {
-        apply_combat_symphony_affect(ch);
-    }
+    // make sure any songs already applied are taken away first
+    remove_bard_song(ch);
+
+    apply_bard_song_affect(ch, ch->song);
+    
 }
 
 void check_bard_song(CHAR_DATA *ch)
 {
-   if (ch->song == SONG_COMBAT_SYMPHONY)
-   {
-        apply_combat_symphony_affect(ch);
-    }    
+
+    apply_bard_song_affect(ch, ch->song);    
 }
 
 void remove_bard_song( CHAR_DATA *ch )
@@ -145,4 +148,13 @@ void remove_bard_song( CHAR_DATA *ch )
     {
         affect_strip_flag(ch, AFF_SONG);
     }
+}
+
+int song_cost( CHAR_DATA *ch )
+{
+    int sn = *(songs[song].gsn);
+    int skill = get_skill(ch, sn);
+    int cost = songs[song].cost * (140-skill)/40;
+
+    return cost;
 }
