@@ -1437,9 +1437,6 @@ void char_update( void )
         }
     }
 
-    /* songs */
-    check_bard_song(ch); // from songs.c
-
     return;
 }
 
@@ -1592,6 +1589,9 @@ void affect_update( CHAR_DATA *ch )
     if ( is_affected(ch, gsn_decompose) )
         decompose_update(ch, 0);
 
+    /* songs */
+    check_bard_song(ch); // from songs.c
+    
     /*
      *   Careful with the damages here,
      *   MUST NOT refer to ch after damage taken,
