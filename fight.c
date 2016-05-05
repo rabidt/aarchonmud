@@ -3554,6 +3554,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
+    /* check songs next */
+    if ( dam > 0 && normal_hit )
+    {
+        if (ch->AFF_DEVESTATING_ANTHEM)
+        {
+            dam += 5 + dam / 5;
+        }
+    }
+
     if ( dam > 0 && normal_hit )
     {
         if ( stance != STANCE_DEFAULT )
