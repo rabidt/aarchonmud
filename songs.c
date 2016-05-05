@@ -85,7 +85,7 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
         af.level     = ch->level;
         af.duration  = 0;
         af.location  = APPLY_NONE;
-        af.modifier  = 0
+        af.modifier  = 0;
         af.bitvector = AFF_DEVESTATING_ANTHEM;
         affect_to_char(ch, &af);   
     }
