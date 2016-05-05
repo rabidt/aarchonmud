@@ -155,7 +155,7 @@ void check_bard_song(CHAR_DATA *ch)
     if (song != 0)
     {   
         // if they're fighting we'll deduct cost in fight.c
-        if (ch->fighting != NULL)
+        if (ch->fighting == NULL)
         {
             deduct_song_cost(ch);
         }
