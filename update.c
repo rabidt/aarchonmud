@@ -1437,6 +1437,9 @@ void char_update( void )
         }
     }
 
+    /* songs */
+    check_bard_song(ch); // from songs.c
+
     return;
 }
 
@@ -1584,9 +1587,6 @@ void affect_update( CHAR_DATA *ch )
             affect_remove( ch, paf );
         }
     }
-
-    /* songs */
-    //check_bard_song(ch); // from songs.c
 
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
@@ -2183,7 +2183,6 @@ void core_tick()
     war_update();  
     quest_update();  
     obj_update();
-    check_bard_song();
 }
 
 /*
