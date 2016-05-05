@@ -1630,7 +1630,7 @@ struct  kill_data
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
 #define AFF_SONG              81
-
+#define AFF_DEVESTATING_ANTHEM 82
 
 /*
  * Sex.
