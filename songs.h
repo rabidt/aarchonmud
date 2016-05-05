@@ -29,7 +29,7 @@ DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_wail     );
 
 void apply_bard_song_affect(CHAR_DATA *ch, int song);
-void apply_bard_song_affect_to_group(CHAR_DATA *ch);
+void apply_bard_song_affect_to_group(CHAR_DATA *ch, int song);
 void check_bard_song( CHAR_DATA *ch );
 void remove_bard_song( CHAR_DATA *ch );
 void deduct_song_cost( CHAR_DATA *ch );
