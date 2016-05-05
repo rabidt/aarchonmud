@@ -79,7 +79,7 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
         af.modifier  = 0;
         af.bitvector = AFF_SONG;
         affect_to_char(ch, &af);  
-
+        
         af.where     = TO_AFFECTS;
         af.type      = gsn_devestating_anthem;
         af.level     = ch->level;
