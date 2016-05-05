@@ -1586,8 +1586,7 @@ void affect_update( CHAR_DATA *ch )
     }
 
     /* songs */
-
-    check_bard_song(ch); // from songs.c
+    //check_bard_song(ch); // from songs.c
 
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
@@ -2184,6 +2183,7 @@ void core_tick()
     war_update();  
     quest_update();  
     obj_update();
+    check_bard_song();
 }
 
 /*
