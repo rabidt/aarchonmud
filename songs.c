@@ -74,13 +74,14 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
     }
 }
 
-void apply_bard_song_affect_to_group(CHAR_DATA *ch, int song)
+void apply_bard_song_affect_to_group(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
+    int song = ch->song;
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group(ch, gch) )
+        if ( is_same_group(gch, ch) )
         {
             apply_bard_song_affect(gch, song);
         }
@@ -145,7 +146,7 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
-    apply_bard_song_affect_to_group(ch, ch->song);
+    apply_bard_song_affect_to_group(ch);
     
 }
 
@@ -160,7 +161,7 @@ void check_bard_song(CHAR_DATA *ch)
             deduct_song_cost(ch);
         }
 
-        apply_bard_song_affect_to_group(ch, song);
+        apply_bard_song_affect_to_group(ch);
     }
 }
 
@@ -170,7 +171,7 @@ void remove_bard_song( CHAR_DATA *ch )
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group(ch, gch) && IS_AFFECTED(gch, AFF_SONG) )
+        if ( is_same_group(gch, ch) && IS_AFFECTED(gch, AFF_SONG) )
         {
             affect_strip_flag(gch, AFF_SONG);
         }
