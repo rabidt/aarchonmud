@@ -58,6 +58,9 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
 
+    // make sure any songs already applied are taken away first
+    remove_bard_song(ch);
+
     if (song == SONG_COMBAT_SYMPHONY)
     {
         af.where     = TO_AFFECTS;
@@ -68,6 +71,20 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
         af.modifier  = (ch->level + 20) / 8;
         af.bitvector = AFF_SONG;
         affect_to_char(ch, &af);
+    }
+}
+
+void apply_bard_song_affect_to_group(CHAR_DATA *ch)
+{
+    CHAR_DATA *gch;
+    int song = ch->song;
+
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(ch, gch) )
+        {
+            apply_bard_song_affect(gch, song)
+        }
     }
 }
 
@@ -129,17 +146,14 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
-    // make sure any songs already applied are taken away first
-    remove_bard_song(ch);
-
-    apply_bard_song_affect(ch, ch->song);
+    apply_bard_song_affect_to_group(ch);
     
 }
 
 void check_bard_song(CHAR_DATA *ch)
 {
 
-    apply_bard_song_affect(ch, ch->song);    
+    apply_bard_song_affect_to_group(ch);    
 }
 
 void remove_bard_song( CHAR_DATA *ch )
