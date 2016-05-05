@@ -153,7 +153,7 @@ DEF_DO_FUN(do_sing)
 void check_bard_song(CHAR_DATA *ch)
 {
     int song = ch->song;
-    if (song != SONG_DEFAULT)
+    if (song != 0)
     {   
         // if they're fighting we'll deduct cost in fight.c
         if (ch->position != POS_FIGHTING)
