@@ -54,7 +54,7 @@ DEF_DO_FUN(do_wail)
     return;
 }
 
-void apply_bard_song_affect(CHAR_DATA *ch, song)
+void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
 
