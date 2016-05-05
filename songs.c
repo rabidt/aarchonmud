@@ -151,7 +151,8 @@ void remove_bard_song( CHAR_DATA *ch )
 }
 
 int song_cost( CHAR_DATA *ch )
-{
+{   
+    int song = ch->song;
     int sn = *(songs[song].gsn);
     int skill = get_skill(ch, sn);
     int cost = songs[song].cost * (140-skill)/40;
