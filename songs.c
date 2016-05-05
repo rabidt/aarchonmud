@@ -152,8 +152,11 @@ DEF_DO_FUN(do_sing)
 
 void check_bard_song(CHAR_DATA *ch)
 {
-
-    apply_bard_song_affect_to_group(ch);    
+    if (ch->song != SONG_DEFAULT)
+    {
+        deduct_song_cost(ch);
+        apply_bard_song_affect_to_group(ch);
+    }
 }
 
 void remove_bard_song( CHAR_DATA *ch )
@@ -177,4 +180,20 @@ int song_cost( CHAR_DATA *ch )
     int cost = songs[song].cost * (140-skill)/40;
 
     return cost;
+}
+
+void deduct_song_cost( CHAR_DATA *ch )
+{
+    int cost;
+
+    if (ch->song == 0) return;
+
+    cost = song_cost(ch);
+    if (cost > ch->mana)
+    {
+        send_to_char("You are too tired to keep singing that song.\n\r", ch);
+        ch->song == 0;
+    } else {
+        ch->move -= cost;
+    }
 }
