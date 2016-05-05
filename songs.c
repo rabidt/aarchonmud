@@ -157,10 +157,15 @@ void check_bard_song(CHAR_DATA *ch)
 }
 
 void remove_bard_song( CHAR_DATA *ch )
-{
-    if ( IS_AFFECTED(ch, AFF_SONG ) )
+{   
+    CHAR_DATA *gch;
+
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        affect_strip_flag(ch, AFF_SONG);
+        if ( is_same_group(ch, gch) && IS_AFFECTED(gch, AFF_SONG) )
+        {
+            affect_strip_flag(gch, AFF_SONG);
+        }
     }
 }
 
