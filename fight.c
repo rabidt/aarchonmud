@@ -3559,6 +3559,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         if (IS_AFFECTED(ch, AFF_DEVESTATING_ANTHEM))
         {
+            send_to_char("This is the devestating anthem +damage\n\r", ch);
             dam += 5 + dam / 5;
         }
     }
