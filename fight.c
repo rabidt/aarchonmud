@@ -706,6 +706,15 @@ void special_affect_update(CHAR_DATA *ch)
 	update_pos( ch );
     }
 
+    /* song move refresh from combat symphony */
+    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
+    {
+        int heal = 5;
+
+        gain_move(ch, heal);
+        update_pos( ch );
+    } 
+
     /* Infectious Arrow - DOT - Damage over time */
     if ( is_affected(ch, gsn_infectious_arrow) )
     {
