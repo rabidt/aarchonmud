@@ -1540,6 +1540,9 @@ void affect_update( CHAR_DATA *ch )
     if ( ch == NULL || ch->in_room == NULL )
         return;
 
+    /* songs */
+    check_bard_song(ch); // from songs.c
+    
     // enure permcast spells are stripped if they drop max mana below 0
     // particularly an issue in R9
     if ( mana_cap(ch) < 0 )
@@ -1588,9 +1591,6 @@ void affect_update( CHAR_DATA *ch )
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
         decompose_update(ch, 0);
-
-    /* songs */
-    check_bard_song(ch); // from songs.c
     
     /*
      *   Careful with the damages here,

@@ -78,8 +78,6 @@ int system();
 typedef short   int         sh_int;
 typedef unsigned char           bool;
 
-
-
 /*
  * Structure types.
  */
