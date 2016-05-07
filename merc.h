@@ -1629,6 +1629,7 @@ struct  kill_data
 #define AFF_PETRIFIED         80
 #define AFF_SONG              81
 #define AFF_DEVESTATING_ANTHEM 82
+#define AFF_REFRESH           83
 
 /*
  * Sex.
