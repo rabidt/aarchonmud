@@ -58,9 +58,6 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
 
-    // make sure any songs already applied are taken away first
-    remove_bard_song(ch);
-    
     if (song == SONG_COMBAT_SYMPHONY)
     {
         af.where     = TO_AFFECTS;
@@ -161,6 +158,8 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
+    // make sure any songs already applied are taken away first
+    remove_bard_song(ch);
     apply_bard_song_affect_to_group(ch);
     
 }
