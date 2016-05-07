@@ -1425,6 +1425,8 @@ void char_update( void )
             }
         }
 
+        /* songs */
+        check_bard_song( ch ); // from songs.c
         affect_update( ch );
         qset_update( ch );
 
@@ -1544,9 +1546,6 @@ void affect_update( CHAR_DATA *ch )
     // particularly an issue in R9
     if ( mana_cap(ch) < 0 )
         affect_strip_permcast(ch);
-
-    /* songs */
-    check_bard_song(ch); // from songs.c
     
     // may recover faster from maledictions than normal while resting
     // single check for all affects, as one skill may add multiple affects which should have same duration
