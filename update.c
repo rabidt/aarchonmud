@@ -1425,10 +1425,11 @@ void char_update( void )
             }
         }
 
-        /* songs */
-        check_bard_song( ch ); // from songs.c
+        
         affect_update( ch );
         qset_update( ch );
+        /* songs */
+        check_bard_song( ch ); // from songs.c
 
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
