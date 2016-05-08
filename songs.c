@@ -166,7 +166,11 @@ int check_bard_room(CHAR_DATA *ch)
     {
         if ( is_same_group(gch, ch) )
         {
-            song = gch->song;
+            if (gch->song != 0)
+            {
+                song = gch->song;
+                break;
+            }
         }
     }
     return song;
