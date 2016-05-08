@@ -188,12 +188,17 @@ void check_bard_song(CHAR_DATA *ch)
             deduct_song_cost(ch);
         }
     }
+    int group_song = check_bard_room(ch);
     if ( IS_AFFECTED(ch, AFF_SONG) )
     {
-        int group_song = check_bard_room(ch);
         if (group_song == 0)
         {
             remove_bard_song(ch);
+        }
+    } else {
+        if (group_song != 0)
+        {
+            apply_bard_song_affect(ch, group_song);
         }
     }
 }
