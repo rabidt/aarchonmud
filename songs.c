@@ -175,7 +175,7 @@ int check_bard_room(CHAR_DATA *ch)
 void check_bard_song(CHAR_DATA *ch)
 {
     int song = ch->song;
-    int group_song = check_bard_room(ch);
+    
     if (song != 0)
     {   
         // if they're fighting we'll deduct cost in fight.c
@@ -184,8 +184,14 @@ void check_bard_song(CHAR_DATA *ch)
             deduct_song_cost(ch);
         }
     }
-    remove_bard_song(ch);
-    apply_bard_song_affect(ch, group_song);
+    if ( IS_AFFECTED(ch, AFF_SONG) )
+    {
+        int group_song = check_bard_room(ch);
+        if (group_song == 0)
+        {
+            remove_bard_song(ch);
+        }
+    }
 }
 
 void remove_bard_song(CHAR_DATA *ch)
