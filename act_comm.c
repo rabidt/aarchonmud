@@ -2402,7 +2402,7 @@ DEF_DO_FUN(do_group)
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
     change_leader(victim, ch);
-    check_bard_song(victim);
+    check_bard_song(ch);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
