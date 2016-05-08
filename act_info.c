@@ -4855,9 +4855,10 @@ DEF_DO_FUN(do_score)
 
 
     /* Position and Stance */
-    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x",
+    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
         positionbuf, 
-        ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name) );
+        ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
+        ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
@@ -4883,7 +4884,7 @@ DEF_DO_FUN(do_score)
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:     %3d/%3d        Weight: %-5d/%5d        Encumbered: %s",
+    sprintf( buf, "{D|{x Items:     %3d/%3d       Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         (int)get_carry_weight(ch)/10,
