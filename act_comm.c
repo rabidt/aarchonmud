@@ -39,6 +39,7 @@
 #include "simsave.h"
 #include "interp.h"
 #include "warfare.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -2401,6 +2402,7 @@ DEF_DO_FUN(do_group)
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
     change_leader(victim, ch);
+    check_bard_song(victim);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
