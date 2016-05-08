@@ -33,3 +33,4 @@ void apply_bard_song_affect_to_group(CHAR_DATA *ch);
 void check_bard_song( CHAR_DATA *ch );
 void remove_bard_song( CHAR_DATA *ch );
 void deduct_song_cost( CHAR_DATA *ch );
+void remove_bard_song_group( CHAR_DATA *ch );

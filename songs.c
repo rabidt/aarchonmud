@@ -169,6 +169,7 @@ int check_bard_room(CHAR_DATA *ch)
             song = gch->song;
         }
     }
+    return song;
 }
 
 void check_bard_song(CHAR_DATA *ch)
