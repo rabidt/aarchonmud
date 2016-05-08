@@ -58,28 +58,22 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
 
+    af.where     = TO_AFFECTS;
+    af.level     = ch->level;
+    af.duration  = -1;
+    af.location  = APPLY_NONE;
+    af.modifier  = 0;
+    af.bitvector = AFF_SONG;
     if (song == SONG_COMBAT_SYMPHONY)
     {
-        af.where     = TO_AFFECTS;
         af.type      = gsn_combat_symphony;
-        af.level     = ch->level;
-        af.duration  = 0;
-        af.location  = APPLY_NONE;
-        af.modifier  = 0;
-        af.bitvector = AFF_SONG;
         affect_to_char(ch, &af);
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
     else if (song == SONG_DEVESTATING_ANTHEM)
     {
-        af.where     = TO_AFFECTS;
         af.type      = gsn_devestating_anthem;
-        af.level     = ch->level;
-        af.duration  = 0;
-        af.location  = APPLY_NONE;
-        af.modifier  = 0;
-        af.bitvector = AFF_SONG;
         affect_to_char(ch, &af);  
         af.bitvector = AFF_DEVESTATING_ANTHEM;
         affect_to_char(ch, &af);   
@@ -111,7 +105,7 @@ DEF_DO_FUN(do_sing)
         {
             send_to_char("What song do you wish to sing?\n\r", ch);
         } else {
-            remove_bard_song(ch);
+            remove_bard_song_group(ch);
             send_to_char("You are no longer singing.\n\r", ch);
             ch->song = 0;
         }
@@ -159,14 +153,28 @@ DEF_DO_FUN(do_sing)
     }
 
     // make sure any songs already applied are taken away first
-    remove_bard_song(ch);
+    remove_bard_song_group(ch);
     apply_bard_song_affect_to_group(ch);
     
+}
+
+int check_bard_room(CHAR_DATA *ch)
+{
+    CHAR_DATA *gch;
+    int song = 0;
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) )
+        {
+            song = gch->song;
+        }
+    }
 }
 
 void check_bard_song(CHAR_DATA *ch)
 {
     int song = ch->song;
+    int group_song = check_bard_room(ch);
     if (song != 0)
     {   
         // if they're fighting we'll deduct cost in fight.c
@@ -174,12 +182,20 @@ void check_bard_song(CHAR_DATA *ch)
         {
             deduct_song_cost(ch);
         }
+    }
+    remove_bard_song(ch);
+    apply_bard_song_affect(ch, group_song);
+}
 
-        apply_bard_song_affect_to_group(ch);
+void remove_bard_song(CHAR_DATA *ch)
+{
+    if ( IS_AFFECTED(ch, AFF_SONG) )
+    {
+        affect_strip_flag(ch, AFF_SONG);
     }
 }
 
-void remove_bard_song( CHAR_DATA *ch )
+void remove_bard_song_group( CHAR_DATA *ch )
 {   
     CHAR_DATA *gch;
 
