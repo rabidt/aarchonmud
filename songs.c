@@ -164,10 +164,9 @@ int check_bard_room(CHAR_DATA *ch)
     int song = 0;
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        CHAR_DATA *next_ch = gch->next_in_room;
         if ( is_same_group(gch, ch) )
         {
-            if (gch->song != 0 && gch->level > next_ch->level)
+            if (gch->song != 0)
             {
                 song = gch->song;
                 break;
