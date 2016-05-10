@@ -84,10 +84,11 @@ void apply_bard_song_affect_to_group(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
     int song = ch->song;
+    CHAR_DATA *leader = ch->leader;
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group(gch, ch) )
+        if ( is_same_group(gch, ch) && leader == NULL)
         {
             apply_bard_song_affect(gch, song);
         }
