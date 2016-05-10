@@ -204,7 +204,7 @@ void check_bard_song(CHAR_DATA *ch, bool group)
             {
                 apply_bard_song_affect(ch, group_song);
             } else {
-                apply_bard_song_affect_to_group(ch, group_song)
+                apply_bard_song_affect_to_group(ch);
             }
         }
     }
