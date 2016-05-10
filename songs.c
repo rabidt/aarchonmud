@@ -161,13 +161,15 @@ DEF_DO_FUN(do_sing)
 int check_bard_room(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
+    CHAR_DATA *pch_level = 0;
     int song = 0;
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( is_same_group(gch, ch) )
         {
-            if (gch->song != 0)
+            if (gch->song != 0 && gch->level > pch_level)
             {
+                pch = gch->level;
                 song = gch->song;
                 break;
             }
