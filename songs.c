@@ -154,7 +154,7 @@ DEF_DO_FUN(do_sing)
 
     // make sure any songs already applied are taken away first
     remove_bard_song_group(ch);
-    apply_bard_song_affect_to_group(ch);
+    check_bard_song(ch);
     
 }
 
