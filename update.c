@@ -1429,7 +1429,7 @@ void char_update( void )
         affect_update( ch );
         qset_update( ch );
         /* songs */
-        check_bard_song( ch ); // from songs.c
+        check_bard_song( ch, FALSE ); // from songs.c
 
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
