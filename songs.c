@@ -154,7 +154,7 @@ DEF_DO_FUN(do_sing)
 
     // make sure any songs already applied are taken away first
     remove_bard_song_group(ch);
-    check_bard_song(ch);
+    check_bard_song(ch, TRUE);
     
 }
 
@@ -162,7 +162,7 @@ int check_bard_room(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
     int *pch_level = 0;
-    int song = 0;
+    int song = 0;   
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( is_same_group(gch, ch) )
@@ -178,7 +178,7 @@ int check_bard_room(CHAR_DATA *ch)
     return song;
 }
 
-void check_bard_song(CHAR_DATA *ch)
+void check_bard_song(CHAR_DATA *ch, bool group)
 {
     int song = ch->song;
     
@@ -200,7 +200,12 @@ void check_bard_song(CHAR_DATA *ch)
     } else {
         if (group_song != 0)
         {
-            apply_bard_song_affect(ch, group_song);
+            if (group)
+            {
+                apply_bard_song_affect(ch, group_song);
+            } else {
+                apply_bard_song_affect_to_group(ch, group_song)
+            }
         }
     }
 }
