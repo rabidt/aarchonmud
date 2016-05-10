@@ -169,7 +169,7 @@ int check_bard_room(CHAR_DATA *ch)
         {
             if (gch->song != 0 && gch->level > pch_level)
             {
-                pch = gch->level;
+                pch_level = gch->level;
                 song = gch->song;
                 break;
             }
