@@ -54,6 +54,79 @@ DEF_DO_FUN(do_wail)
     return;
 }
 
+DEF_DO_FUN(do_fox)
+{
+    AFFECT_DATA af;
+    CHAR_DATA *vch;
+    CHAR_DATA *target = NULL;
+    bool all = FALSE;
+    
+    int skill = get_skill(ch, gsn_foxs_cunning);
+    int chance = (100 + skill) / 2;
+    int cost = skill_table[gsn_foxs_cunning].min_mana * 200 / (100 + skill);
+    int level = ch->level * (100 + skill) / 200;
+    
+    if ( !skill )
+    {
+        send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( argument[0] != '\0' )
+    {
+        char arg[MIL];
+        one_argument(argument, arg);
+        if ( !strcmp(arg, "all") )
+            all = TRUE;
+        else if ( (target = get_char_room(ch, arg)) == NULL )
+        {
+            send_to_char("Inspire whom?\n\r", ch);
+            return;
+        }
+    }
+    
+    if ( ch->mana < cost )
+    {
+        send_to_char("You have run out of inspiration.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE( ch, skill_table[gsn_foxs_cunning].beats );
+
+    if ( !per_chance(chance) )
+    {
+        ch->mana -= cost/2;
+        send_to_char("Your song isn't very inspirational.\n\r", ch);
+        return;
+    }
+        
+    ch->mana -= cost;
+    send_to_char("You sing an inspiring melody!\n\r", ch);
+    act("$n sings an inspiring melody!", ch, NULL, NULL, TO_ROOM);
+        
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_foxs_cunning;
+    af.level     = level;
+    af.duration  = get_duration(gsn_foxs_cunning, level);
+    af.bitvector = AFF_PASSIVE_SONG;
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
+    {
+        if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
+            continue;
+
+        send_to_char("You feel truly inspired.\n\r", vch);
+        if ( vch != ch )
+            act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
+        
+        remove_passive_bard_song(vch);
+
+        af.modifier = 5 + level / 9;
+        af.location = APPLY_WISDOM;
+        affect_to_char(vch, &af);
+    }
+}
+
 void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
@@ -250,5 +323,13 @@ void deduct_song_cost( CHAR_DATA *ch )
         ch->song = 0;
     } else {
         ch->mana -= cost;
+    }
+}
+
+void remove_passive_bard_song( CHAR_DATA *ch )
+{
+    if (IS_AFFECTED(ch, AFF_PASSIVE_SONG))
+    {
+        affect_strip_flag(ch, AFF_PASSIVE_SONG)
     }
 }
