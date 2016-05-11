@@ -1336,6 +1336,7 @@ const struct song_type songs [] =
     {"default",               SONG_DEFAULT,            NULL,                    0  },
     {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    20 },
     {"devestating anthem",    SONG_DEVESTATING_ANTHEM, &gsn_devestating_anthem, 30 },
+    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    40 },
     { NULL,                   0,                       NULL,                    0  }
 };
 

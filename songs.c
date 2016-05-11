@@ -304,6 +304,13 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
         af.bitvector = AFF_DEVESTATING_ANTHEM;
         affect_to_char(ch, &af);   
     }
+    else if (song == SONG_REFLECTIVE_HYMN)
+    {
+        af.type      = gsn_reflective_hymn;
+        affect_to_char(ch, &af);
+        af.bitvector = AFF_REFLECTIVE_HYMN;
+        affect_to_char(ch, &af);
+    }
 }
 
 void apply_bard_song_affect_to_group(CHAR_DATA *ch)
