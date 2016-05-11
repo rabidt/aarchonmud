@@ -122,7 +122,7 @@ DEF_DO_FUN(do_fox)
         remove_passive_bard_song(vch);
 
         af.modifier = 5 + level / 9;
-        af.location = APPLY_WISDOM;
+        af.location = APPLY_WIS;
         affect_to_char(vch, &af);
     }
 }
