@@ -338,7 +338,9 @@ const struct flag_type affect_flags[] =
     { "petrified",         AFF_PETRIFIED,            TRUE  },
     { "song",              AFF_SONG,                 TRUE  },
     { "devestating anthem",AFF_DEVESTATING_ANTHEM,   TRUE  },
+    { "reflective hymn",   AFF_REFLECTIVE_HYMN,      TRUE  },
     { "refresh",           AFF_REFRESH,              TRUE  },
+    { "passive song",      AFF_PASSIVE_SONG,         TRUE  },
     { NULL,                0,                        0     }
 };
 
