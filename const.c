@@ -8418,7 +8418,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{
-	"drifter",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 20, -1, -1 },
+	"drifter",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 20, -1, -1, 1 },
 	{ "know alignment", "locate object", "cure poison", "detect hidden",
 	  "fear" }
 	},
