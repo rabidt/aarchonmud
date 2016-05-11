@@ -8537,7 +8537,7 @@ struct group_type group_table[MAX_GROUP] =
 
     /* bard groups other than default/basics */
     {
-        "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 }, 
+        "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 10 }, 
         { "bear's endurance", "fox's cunning", "cat's grace", "inspiring song" }
     }
 
