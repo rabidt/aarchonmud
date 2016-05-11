@@ -115,7 +115,7 @@ DEF_DO_FUN(do_fox)
         if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
             continue;
 
-        send_to_char("You gain the fox's cunning..\n\r", vch);
+        send_to_char("You gain the fox's cunning.\n\r", vch);
         if ( vch != ch )
             act("Your song gives $N the fox's cunning.", ch, NULL, vch, TO_CHAR);
         
@@ -188,7 +188,7 @@ DEF_DO_FUN(do_bear)
         if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
             continue;
 
-        send_to_char("You gain the bear's endurance..\n\r", vch);
+        send_to_char("You gain the bear's endurance.\n\r", vch);
         if ( vch != ch )
             act("Your song gives $N the bear's endurance.", ch, NULL, vch, TO_CHAR);
         
@@ -196,6 +196,79 @@ DEF_DO_FUN(do_bear)
 
         af.modifier = 5 + level / 9;
         af.location = APPLY_CON;
+        affect_to_char(vch, &af);
+    }
+}
+
+DEF_DO_FUN(do_Cat)
+{
+    AFFECT_DATA af;
+    CHAR_DATA *vch;
+    CHAR_DATA *target = NULL;
+    bool all = FALSE;
+    
+    int skill = get_skill(ch, gsn_cats_grace);
+    int chance = (100 + skill) / 2;
+    int cost = skill_table[gsn_cats_grace].min_mana * 200 / (100 + skill);
+    int level = ch->level * (100 + skill) / 200;
+    
+    if ( !skill )
+    {
+        send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( argument[0] != '\0' )
+    {
+        char arg[MIL];
+        one_argument(argument, arg);
+        if ( !strcmp(arg, "all") )
+            all = TRUE;
+        else if ( (target = get_char_room(ch, arg)) == NULL )
+        {
+            send_to_char("Give cat's grace to whom?\n\r", ch);
+            return;
+        }
+    }
+    
+    if ( ch->mana < cost )
+    {
+        send_to_char("You have run out of grace.\n\r", ch);
+        return;
+    }
+    
+    WAIT_STATE( ch, skill_table[gsn_cats_grace].beats );
+
+    if ( !per_chance(chance) )
+    {
+        ch->mana -= cost/2;
+        send_to_char("Your song isn't very graceful.\n\r", ch);
+        return;
+    }
+        
+    ch->mana -= cost;
+    send_to_char("You sing a graceful melody!\n\r", ch);
+    act("$n sings a graceful song!", ch, NULL, NULL, TO_ROOM);
+        
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_cats_grace;
+    af.level     = level;
+    af.duration  = get_duration(gsn_cats_grace, level);
+    af.bitvector = AFF_PASSIVE_SONG;
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
+    {
+        if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
+            continue;
+
+        send_to_char("You gain the cat's grace.\n\r", vch);
+        if ( vch != ch )
+            act("Your song gives $N the cat's grace.", ch, NULL, vch, TO_CHAR);
+        
+        remove_passive_bard_song(vch);
+
+        af.modifier = 5 + level / 9;
+        af.location = APPLY_AGI;
         affect_to_char(vch, &af);
     }
 }

@@ -29,6 +29,7 @@ DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_wail     );
 DECLARE_DO_FUN( do_fox      );
 DECLARE_DO_FUN( do_bear     );
+DECLARE_DO_FUN( do_cat      );
 
 
 void apply_bard_song_affect(CHAR_DATA *ch, int song);
