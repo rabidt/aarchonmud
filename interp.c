@@ -412,6 +412,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "sing",       do_sing, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "wail",       do_wail, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "fox",        do_fox,  POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "bear",       do_bear, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+
 
     /* war commands. */
     { "startwar",   do_startwar,POS_DEAD,       L8,  LOG_ALWAYS, 1, FALSE, FALSE},
