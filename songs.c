@@ -330,6 +330,6 @@ void remove_passive_bard_song( CHAR_DATA *ch )
 {
     if (IS_AFFECTED(ch, AFF_PASSIVE_SONG))
     {
-        affect_strip_flag(ch, AFF_PASSIVE_SONG)
+        affect_strip_flag(ch, AFF_PASSIVE_SONG);
     }
 }
