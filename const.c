@@ -8503,7 +8503,7 @@ struct group_type group_table[MAX_GROUP] =
         "rimbols invocation" }
 	},
 
-        /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec */
+        /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Brd */
 	{
         "heroic rites", { -1, 6, 9, 8, -1, -1, 6, -1, -1, -1, 8, -1, -1, -1, -1 },
         { "shadow shroud", "unearth", "hallow", "astarks rejuvenation",
@@ -8537,7 +8537,7 @@ struct group_type group_table[MAX_GROUP] =
 
     /* bard groups other than default/basics */
     {
-        "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 10 }, 
+        "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 }, 
         { "bear's endurance", "fox's cunning", "cat's grace", "inspiring song" }
     }
 
