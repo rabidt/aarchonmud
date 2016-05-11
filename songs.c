@@ -200,7 +200,7 @@ DEF_DO_FUN(do_bear)
     }
 }
 
-DEF_DO_FUN(do_Cat)
+DEF_DO_FUN(do_cat)
 {
     AFFECT_DATA af;
     CHAR_DATA *vch;
