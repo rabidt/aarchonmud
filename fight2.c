@@ -4074,6 +4074,7 @@ DEF_DO_FUN(do_inspire)
     {
         ch->mana -= cost/2;
         send_to_char("Your song isn't very inspirational.\n\r", ch);
+        check_improve(ch, gsn_inspiring_song, FALSE, 3);
         return;
     }
         
@@ -4111,6 +4112,7 @@ DEF_DO_FUN(do_inspire)
         af.modifier *= 10;
         af.location = APPLY_AC;
         affect_to_char(vch, &af);
+        check_improve(ch, gsn_inspiring_song, TRUE, 3);
     }
 }
 
