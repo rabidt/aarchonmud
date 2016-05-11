@@ -97,6 +97,7 @@ DEF_DO_FUN(do_fox)
     {
         ch->mana -= cost/2;
         send_to_char("Your song isn't very cunning.\n\r", ch);
+        check_improve(ch, gsn_foxs_cunning, FALSE, 3);
         return;
     }
         
@@ -124,6 +125,8 @@ DEF_DO_FUN(do_fox)
         af.modifier = 5 + level / 9;
         af.location = APPLY_WIS;
         affect_to_char(vch, &af);
+        check_improve(ch, gsn_foxs_cunning, TRUE, 3);
+
     }
 }
 
@@ -170,6 +173,7 @@ DEF_DO_FUN(do_bear)
     {
         ch->mana -= cost/2;
         send_to_char("Your song isn't very enduring.\n\r", ch);
+        check_improve(ch, gsn_bears_endurance, FALSE, 3);
         return;
     }
         
@@ -197,6 +201,7 @@ DEF_DO_FUN(do_bear)
         af.modifier = 5 + level / 9;
         af.location = APPLY_CON;
         affect_to_char(vch, &af);
+        check_improve(ch, gsn_bears_endurance, TRUE, 3);
     }
 }
 
@@ -243,6 +248,7 @@ DEF_DO_FUN(do_cat)
     {
         ch->mana -= cost/2;
         send_to_char("Your song isn't very graceful.\n\r", ch);
+        check_improve(ch, gsn_cats_grace, FALSE, 3);
         return;
     }
         
@@ -270,6 +276,7 @@ DEF_DO_FUN(do_cat)
         af.modifier = 5 + level / 9;
         af.location = APPLY_AGI;
         affect_to_char(vch, &af);
+        check_improve(ch, gsn_cats_grace, TRUE, 3);
     }
 }
 
