@@ -8535,6 +8535,12 @@ struct group_type group_table[MAX_GROUP] =
         { "anklebiter", "bite", "trip", "disarm", "mug", "dirt kicking" }
     },
 
+    /* bard groups other than default/basics */
+    {
+        "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 }, 
+        { "bear's endurance", "fox's cunning", "cat's grace", "inspiring song" }
+    }
+
 };
 
 const struct mastery_group_type mastery_group_table[] =
