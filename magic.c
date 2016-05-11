@@ -1027,8 +1027,15 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
             || target != TARGET_CHAR
             || vo == NULL
             || !IS_AFFECTED(victim, AFF_REFLECTION)
-            || number_bits(3) )
+            || !IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN) )
         return vo;
+
+    if (IS_AFFECTED(victim, AFF_REFLECTION) && number_bits(3))
+    {
+        return vo;
+    } else if (IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN) && number_bits(5)) {
+        return vo;
+    }
 
     act( "The aura around $N reflects your spell back on you!", ch, NULL, victim, TO_CHAR );
     act( "The aura around you reflects $n's spell back on $m!", ch, NULL, victim, TO_VICT );
