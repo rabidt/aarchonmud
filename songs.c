@@ -419,6 +419,7 @@ void check_bard_song(CHAR_DATA *ch)
         if (ch->fighting == NULL)
         {
             deduct_song_cost(ch);
+            check_improve(ch, songs[song].gsn, TRUE, 3);
         }
     }
     int group_song = check_bard_room(ch);
