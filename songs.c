@@ -134,9 +134,9 @@ DEF_DO_FUN(do_bear)
     CHAR_DATA *target = NULL;
     bool all = FALSE;
     
-    int skill = get_skill(ch, gsn_bears_cunning);
+    int skill = get_skill(ch, gsn_bears_endurance);
     int chance = (100 + skill) / 2;
-    int cost = skill_table[gsn_bears_cunning].min_mana * 200 / (100 + skill);
+    int cost = skill_table[gsn_bears_endurance].min_mana * 200 / (100 + skill);
     int level = ch->level * (100 + skill) / 200;
     
     if ( !skill )
@@ -164,7 +164,7 @@ DEF_DO_FUN(do_bear)
         return;
     }
     
-    WAIT_STATE( ch, skill_table[gsn_bears_cunning].beats );
+    WAIT_STATE( ch, skill_table[gsn_bears_endurance].beats );
 
     if ( !per_chance(chance) )
     {
@@ -178,9 +178,9 @@ DEF_DO_FUN(do_bear)
     act("$n sings an enduring song!", ch, NULL, NULL, TO_ROOM);
         
     af.where     = TO_AFFECTS;
-    af.type      = gsn_bears_cunning;
+    af.type      = gsn_bears_endurance;
     af.level     = level;
-    af.duration  = get_duration(gsn_bears_cunning, level);
+    af.duration  = get_duration(gsn_bears_endurance, level);
     af.bitvector = AFF_PASSIVE_SONG;
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
