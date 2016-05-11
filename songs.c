@@ -80,14 +80,14 @@ DEF_DO_FUN(do_fox)
             all = TRUE;
         else if ( (target = get_char_room(ch, arg)) == NULL )
         {
-            send_to_char("Inspire whom?\n\r", ch);
+            send_to_char("Give fox's cunning to whom?\n\r", ch);
             return;
         }
     }
     
     if ( ch->mana < cost )
     {
-        send_to_char("You have run out of inspiration.\n\r", ch);
+        send_to_char("You have run out of cunning.\n\r", ch);
         return;
     }
     
@@ -96,13 +96,13 @@ DEF_DO_FUN(do_fox)
     if ( !per_chance(chance) )
     {
         ch->mana -= cost/2;
-        send_to_char("Your song isn't very inspirational.\n\r", ch);
+        send_to_char("Your song isn't very cunning.\n\r", ch);
         return;
     }
         
     ch->mana -= cost;
-    send_to_char("You sing an inspiring melody!\n\r", ch);
-    act("$n sings an inspiring melody!", ch, NULL, NULL, TO_ROOM);
+    send_to_char("You sing a cunning melody!\n\r", ch);
+    act("$n sings a cunning song!", ch, NULL, NULL, TO_ROOM);
         
     af.where     = TO_AFFECTS;
     af.type      = gsn_foxs_cunning;
@@ -115,9 +115,9 @@ DEF_DO_FUN(do_fox)
         if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
             continue;
 
-        send_to_char("You feel truly inspired.\n\r", vch);
+        send_to_char("You gain the fox's cunning..\n\r", vch);
         if ( vch != ch )
-            act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
+            act("Your song gives $N the fox's cunning.", ch, NULL, vch, TO_CHAR);
         
         remove_passive_bard_song(vch);
 
