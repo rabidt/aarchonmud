@@ -5,6 +5,7 @@
 #include <time.h>
 #include "merc.h"
 #include "mob_stats.h"
+#include "songs.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
@@ -4084,7 +4085,7 @@ DEF_DO_FUN(do_inspire)
     af.type      = gsn_inspiring_song;
     af.level     = level;
     af.duration  = get_duration(gsn_inspiring_song, level);
-    af.bitvector = 0;
+    af.bitvector = AFF_PASSIVE_SONG;
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
@@ -4095,7 +4096,7 @@ DEF_DO_FUN(do_inspire)
         if ( vch != ch )
             act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
         
-        affect_strip(vch, gsn_inspiring_song);
+        remove_passive_bard_song(vch);
 
         af.modifier = 5 + level / 9;
         af.location = APPLY_STATS;

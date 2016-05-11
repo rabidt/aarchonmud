@@ -487,6 +487,7 @@ sh_int  gsn_wish;
 sh_int  gsn_wail;
 sh_int  gsn_combat_symphony;
 sh_int  gsn_devestating_anthem;
+sh_int  foxs_cunning;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
