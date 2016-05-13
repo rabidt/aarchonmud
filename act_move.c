@@ -2031,7 +2031,15 @@ DEF_DO_FUN(do_stand)
 	  
         set_pos(ch, POS_STANDING);
           if (!IS_NPC(ch))
+          {
+            if (IS_AFFECTED(ch, AFF_LULLABY))
+            {
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
+            } else
+            {
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            }
+          }
 	  do_look(ch,"auto");
 	  break;
 	  
@@ -2158,8 +2166,15 @@ DEF_DO_FUN(do_rest)
 		 act("$n wakes up and rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_RESTING;
+      {
           if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            if (IS_AFFECTED(ch, AFF_LULLABY))
+            {
+                ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
+            } else {
+                ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            }
+       }
 
          if ( IS_AFFECTED(ch, AFF_SHELTER) )
                  for (gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -2203,7 +2218,14 @@ DEF_DO_FUN(do_rest)
 	  }
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
+          {
+            if (IS_AFFECTED(ch, AFF_LULLABY))
+            {
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
+            } else {
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            }  
+          }
 	  break;
 	  
    case POS_SITTING:
@@ -2229,7 +2251,14 @@ DEF_DO_FUN(do_rest)
 	  }
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
+          {
+            if (IS_AFFECTED(ch, AFF_LULLABY))
+            { 
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
+            } else {
               ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            }
+          }
 	  break;
    }
    
@@ -2340,8 +2369,15 @@ DEF_DO_FUN(do_sit)
                         act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_RESTING);
                 }
         
-        if ( !IS_NPC(ch) )
-            ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+          {
+            if (IS_AFFECTED(ch, AFF_LULLABY))
+            { 
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
+            } else {
+              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+            }
+          }
     }
     else
     {
