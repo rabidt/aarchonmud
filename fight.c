@@ -1378,6 +1378,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     check_stance(ch);
     deduct_song_cost(ch);
 
+
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
@@ -1392,6 +1393,12 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         area_attack_sn = gsn_melee;
     }
     mastery_chance = mastery_bonus(ch, area_attack_sn, 30, 50);
+
+    if (chance == 0 && IS_AFFECTED(ch,AFF_DEADLY_DANCE))
+    {
+        chance = 50;
+    }
+
 
     if ( per_chance(chance) )
     {
@@ -1419,7 +1426,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             }
         }
         /* improve skill */
-        if ( found )
+        if ( found && area_attack_sn != NULL )
             check_improve(ch, area_attack_sn, TRUE, 3);
     }
 
