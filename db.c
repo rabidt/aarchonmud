@@ -487,6 +487,8 @@ sh_int  gsn_wish;
 sh_int  gsn_wail;
 sh_int  gsn_combat_symphony;
 sh_int  gsn_devestating_anthem;
+sh_ing  gsn_lullaby;
+
 sh_int  gsn_reflective_hymn;
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;

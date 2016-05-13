@@ -1632,6 +1632,7 @@ struct  kill_data
 #define AFF_REFLECTIVE_HYMN   83
 #define AFF_REFRESH           84
 #define AFF_PASSIVE_SONG      85
+#define AFF_LULLABY           86
 
 /*
  * Sex.
@@ -3697,6 +3698,7 @@ extern sh_int  gsn_wail;
 extern sh_int  gsn_combat_symphony;
 extern sh_int  gsn_devestating_anthem;
 extern sh_int  gsn_reflective_hymn;
+extern sh_int  gsn_lullaby;
 
 extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
@@ -4155,6 +4157,7 @@ struct song_type
 #define SONG_COMBAT_SYMPHONY    1
 #define SONG_DEVESTATING_ANTHEM 2
 #define SONG_REFLECTIVE_HYMN    3
+#define SONG_LULLABY            4
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
