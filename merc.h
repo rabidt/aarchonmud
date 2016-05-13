@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         479
+#define MAX_SKILL         480
 #define MAX_GROUP          82 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1633,6 +1633,7 @@ struct  kill_data
 #define AFF_REFRESH           84
 #define AFF_PASSIVE_SONG      85
 #define AFF_LULLABY           86
+#define AFF_DEADLY_DANCE      87
 
 /*
  * Sex.
@@ -3699,6 +3700,7 @@ extern sh_int  gsn_combat_symphony;
 extern sh_int  gsn_devestating_anthem;
 extern sh_int  gsn_reflective_hymn;
 extern sh_int  gsn_lullaby;
+extern sh_int  gsn_deadly_dance;
 
 extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
@@ -4158,6 +4160,7 @@ struct song_type
 #define SONG_DEVESTATING_ANTHEM 2
 #define SONG_REFLECTIVE_HYMN    3
 #define SONG_LULLABY            4
+#define SONG_DEADLY_DANCE       5
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0

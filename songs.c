@@ -318,6 +318,13 @@ void apply_bard_song_affect(CHAR_DATA *ch, int song)
         af.bitvector = AFF_LULLABY;
         affect_to_char(ch, &af);  
     }
+    else if (song == SONG_DEADLY_DANCE)
+    {
+        af.type      = gsn_deadly_dance;
+        affect_to_char(ch, &af);
+        af.bitvector = AFF_DEADLY_DANCE;
+        affect_to_char(ch, &af);     
+    }
 }
 
 void apply_bard_song_affect_to_group(CHAR_DATA *ch)
