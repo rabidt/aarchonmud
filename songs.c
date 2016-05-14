@@ -96,7 +96,7 @@ void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int dam
     
     for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
     {
-        if ( is_opponent(ch,vch) && vch != victim)
+        if ( is_opponent(ch,vch) && vch != victim )
         {
             if ( check_hit(ch, vch, gsn, damtype, chance) )
             {
@@ -125,13 +125,19 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
         chance = (100 + get_skill(ch,gsn)) / 2;
     }
 
-    if (per_chance(chance))
+    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
     {
-        one_hit(ch, victim, gsn, FALSE);
-        check_improve(ch, gsn, TRUE, 3);
-    } else {
-        damage( ch, vch, 0, gsn, DAM_NONE, TRUE);
-        check_improve(ch, gsn, FALSE, 3);   
+        if ( is_opponent(ch, vch) && vch != victim )
+        {
+            if (per_chance(chance))
+            {
+                one_hit(ch, victim, gsn, FALSE);
+                check_improve(ch, gsn, TRUE, 3);
+            } else {
+                damage( ch, vch, 0, gsn, DAM_NONE, TRUE);
+                check_improve(ch, gsn, FALSE, 3);   
+            }
+        }
     }
 
 }
