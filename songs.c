@@ -53,7 +53,18 @@ DEF_DO_FUN(do_wail)
     }
 
     // make this a room skill if affected by deadly dance
+    
+    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
+    
+    return;
+}
+
+void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim int gsn, int damtype)
+{
     CHAR_DATA *vch;
+    int dam, chance;
+
+    chance = (100 + get_skill(ch,gsn)) / 2;
 
     if (IS_AFFECTED(ch, AFF_DEADLY_DANCE))
     {
@@ -61,20 +72,19 @@ DEF_DO_FUN(do_wail)
         {
             if ( is_opponent(ch,vch) && vch != victim)
             {
-                if ( check_hit(ch, vch, gsn_wail, DAM_SOUND, chance) )
+                if ( check_hit(ch, vch, gsn, damtype, chance) )
                 {
-                    dam = martial_damage( ch, vch, gsn_wail );
+                    dam = martial_damage( ch, vch, gsn );
             
-                    full_dam(ch, vch, dam, gsn_wail, DAM_SOUND, TRUE);
-                    check_improve(ch, gsn_wail, TRUE, 3);
+                    full_dam(ch, vch, dam, gsn, damtype, TRUE);
+                    check_improve(ch, gsn, TRUE, 3);
                 } else {
-                    damage( ch, vch, 0, gsn_wail, DAM_SOUND, TRUE);
-                    check_improve(ch, gsn_wail, FALSE, 3);
+                    damage( ch, vch, 0, gsn, damtype, TRUE);
+                    check_improve(ch, gsn, FALSE, 3);
                 }   
             }
         }
     }
-    return;
 }
 
 DEF_DO_FUN(do_fox)
