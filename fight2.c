@@ -558,13 +558,13 @@ DEF_DO_FUN(do_headbutt)
 
         full_dam(ch,victim, dam, gsn_headbutt,dam_type,TRUE);
         check_improve(ch,gsn_headbutt,TRUE,3);
-        add_deadly_dance_attacks(ch, victim, gsn_headbutt, dam_type);
     }
     else
     {
         damage( ch, victim, 0, gsn_headbutt,DAM_BASH,TRUE);
         check_improve(ch,gsn_headbutt,FALSE,3);
     }
+    add_deadly_dance_attacks(ch, victim, gsn_headbutt, dam_type);
     return;
 }
 
@@ -938,7 +938,6 @@ DEF_DO_FUN(do_aim)
             default:
                 bug("AIM: invalid aim_target: %d", aim_target);
             }
-            add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_aim);
         }
         check_jam(ch, 1, secondgun);
         check_improve(ch, gsn_aim, TRUE, 3);
@@ -948,7 +947,8 @@ DEF_DO_FUN(do_aim)
         damage( ch, victim, 0, gsn_aim,DAM_NONE,TRUE);
         check_improve(ch, gsn_aim, FALSE, 3);
     }
-        
+    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_aim);
+    
     return;
 }
 
@@ -1828,13 +1828,13 @@ DEF_DO_FUN(do_uppercut)
             set_pos( victim, POS_RESTING );
         } 
         full_dam(ch, victim, dam, gsn_uppercut, DAM_BASH, TRUE);
-        add_deadly_dance_attacks(ch, victim, gsn_uppercut, DAM_BASH);
     }
     else
     {
         full_dam(ch, victim, 0, gsn_uppercut, DAM_BASH, TRUE);
         check_improve(ch, gsn_uppercut, FALSE, 3);
     }
+    add_deadly_dance_attacks(ch, victim, gsn_uppercut, DAM_BASH);
 }
 
 DEF_DO_FUN(do_war_cry)
