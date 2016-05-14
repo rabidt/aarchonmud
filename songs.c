@@ -118,9 +118,11 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
     int dam, chance;
     if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
 
-    if (gsn == gsn_circle) 
+    if (gsn == gsn_circle || gsn == gsn_slash_throat) 
     {
-        chance = circle_chance(ch, victim, gsn_circle);
+        chance = circle_chance(ch, victim, gsn);
+    } else if (gsn == gsn_double_strike) {
+        chance = get_skill(ch, gsn);
     } else {
         chance = (100 + get_skill(ch,gsn)) / 2;
     }
