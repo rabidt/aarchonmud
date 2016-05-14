@@ -937,6 +937,7 @@ DEF_DO_FUN(do_aim)
             default:
                 bug("AIM: invalid aim_target: %d", aim_target);
             }
+            add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_aim);
         }
         check_jam(ch, 1, secondgun);
         check_improve(ch, gsn_aim, TRUE, 3);
@@ -1826,6 +1827,7 @@ DEF_DO_FUN(do_uppercut)
             set_pos( victim, POS_RESTING );
         } 
         full_dam(ch, victim, dam, gsn_uppercut, DAM_BASH, TRUE);
+        add_deadly_dance_attacks(ch, victim, gsn_uppercut, DAM_BASH);
     }
     else
     {
