@@ -66,25 +66,48 @@ void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int dam
 
     chance = (100 + get_skill(ch,gsn)) / 2;
 
-    if (IS_AFFECTED(ch, AFF_DEADLY_DANCE))
+    if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
+    
+    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
     {
-        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
+        if ( is_opponent(ch,vch) && vch != victim)
         {
-            if ( is_opponent(ch,vch) && vch != victim)
+            if ( check_hit(ch, vch, gsn, damtype, chance) )
             {
-                if ( check_hit(ch, vch, gsn, damtype, chance) )
-                {
-                    dam = martial_damage( ch, vch, gsn );
-            
-                    full_dam(ch, vch, dam, gsn, damtype, TRUE);
-                    check_improve(ch, gsn, TRUE, 3);
-                } else {
-                    damage( ch, vch, 0, gsn, damtype, TRUE);
-                    check_improve(ch, gsn, FALSE, 3);
-                }   
-            }
+                dam = martial_damage( ch, vch, gsn );
+        
+                full_dam(ch, vch, dam, gsn, damtype, TRUE);
+                check_improve(ch, gsn, TRUE, 3);
+            } else {
+                damage( ch, vch, 0, gsn, damtype, TRUE);
+                check_improve(ch, gsn, FALSE, 3);
+            }   
         }
     }
+}
+
+void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn)
+{
+    CHAR_DATA *vch;
+    int dam, chance;
+    if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
+
+    if (gsn == gsn_circle) 
+    {
+        chance = circle_chance(ch, victim, gsn_circle);
+    } else {
+        chance = (100 + get_skill(ch,gsn)) / 2;
+    }
+
+    if (per_chance(chance))
+    {
+        one_hit(ch, victim, gsn, FALSE);
+        check_improve(ch, gsn, TRUE, 3);
+    } else {
+        damage( ch, vch, 0, gsn, DAM_NONE, TRUE);
+        check_improve(ch, gsn, FALSE, 3);   
+    }
+
 }
 
 DEF_DO_FUN(do_fox)

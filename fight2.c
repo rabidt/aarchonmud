@@ -1203,6 +1203,7 @@ DEF_DO_FUN(do_circle)
         damage( ch, victim, 0, gsn_circle, DAM_NONE,TRUE);
     }
     
+    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_circle);
     return;
 }
 
