@@ -1445,6 +1445,8 @@ DEF_DO_FUN(do_kick)
         check_improve(ch,gsn_kick,FALSE,3);
     }
 
+    add_deadly_dance_attacks(ch, victim, gsn_kick, DAM_BASH);
+
     return;
 }
 
@@ -2251,6 +2253,9 @@ DEF_DO_FUN(do_chop)
             damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
             check_improve(ch,gsn_chop,FALSE,3);
         }
+
+        add_deadly_dance_attacks(ch, victim, gsn_chop, DAM_SLASH);
+
         return;
 }
 
@@ -2305,6 +2310,8 @@ DEF_DO_FUN(do_bite)
             damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,FALSE,3);
         }
+
+        add_deadly_dance_attacks(ch, victim, gsn_bite, DAM_PIERCE);
         return;
 }
 
