@@ -2400,6 +2400,7 @@ DEF_DO_FUN(do_double_strike)
             int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
             deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE);
         }
+        add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_double_strike);
     }
 }
 
