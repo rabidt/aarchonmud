@@ -2312,6 +2312,7 @@ DEF_DO_FUN(do_bite)
         }
 
         add_deadly_dance_attacks(ch, victim, gsn_bite, DAM_PIERCE);
+
         return;
 }
 
