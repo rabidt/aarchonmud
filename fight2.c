@@ -558,6 +558,7 @@ DEF_DO_FUN(do_headbutt)
 
         full_dam(ch,victim, dam, gsn_headbutt,dam_type,TRUE);
         check_improve(ch,gsn_headbutt,TRUE,3);
+        add_deadly_dance_attacks(ch, victim, gsn_headbutt, dam_type);
     }
     else
     {
