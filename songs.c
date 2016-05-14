@@ -59,7 +59,7 @@ DEF_DO_FUN(do_wail)
     return;
 }
 
-void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim int gsn, int damtype)
+void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype)
 {
     CHAR_DATA *vch;
     int dam, chance;
