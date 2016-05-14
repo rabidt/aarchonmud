@@ -131,7 +131,7 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
         {
             if (per_chance(chance))
             {
-                one_hit(ch, victim, gsn, FALSE);
+                one_hit(ch, vch, gsn, FALSE);
                 check_improve(ch, gsn, TRUE, 3);
             } else {
                 damage( ch, vch, 0, gsn, DAM_NONE, TRUE);
