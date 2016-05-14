@@ -57,7 +57,7 @@ DEF_DO_FUN(do_wail)
 
     if (IS_AFFECTED(ch, AFF_DEADLY_DANCE))
     {
-        for (vch = room->people; vch != NULL; vch = vch->next_in_room)
+        for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
         {
             if ( is_opponent(ch,vch) && vch != victim)
             {
