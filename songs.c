@@ -23,6 +23,32 @@
 #include "interp.h"
 #include "songs.h"
 
+// uniform calculation for circle, slash throat, etc.
+static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+{
+    int chance = 10 + get_skill_total(ch, sn, 0.2) / 2 + mastery_bonus(ch, sn, 12, 15);
+    chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
+    // combat advantage
+    if ( !can_see_combat(victim, ch) )
+        chance += 10;
+    if ( victim->position < POS_FIGHTING )
+        chance += 10;
+    if ( victim->fighting != ch )
+        chance += 10;
+    // haste/slow
+    if ( IS_AFFECTED(ch, AFF_HASTE) )
+        chance += 10;
+    else if ( IS_AFFECTED(ch, AFF_SLOW) )
+        chance -= 10;
+    if ( IS_AFFECTED(victim, AFF_HASTE) )
+        chance -= 10;
+    else if ( IS_AFFECTED(victim, AFF_SLOW) )
+        chance += 10;
+    // heavy armor penalty for both attacker and victim
+    chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 10;
+    return chance;
+}
+
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
