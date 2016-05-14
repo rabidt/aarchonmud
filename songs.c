@@ -51,6 +51,29 @@ DEF_DO_FUN(do_wail)
         damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
         check_improve(ch, gsn_wail, FALSE, 3);
     }
+
+    // make this a room skill if affected by deadly dance
+    CHAR_DATA *vch;
+
+    if (IS_AFFECTED(ch, AFF_DEADLY_DANCE))
+    {
+        for (vch = room->people; vch != NULL; vch = vch->next_in_room)
+        {
+            if ( is_opponent(ch,vch) && vch != victim)
+            {
+                if ( check_hit(ch, vch, gsn_wail, DAM_SOUND, chance) )
+                {
+                    dam = martial_damage( ch, vch, gsn_wail );
+            
+                    full_dam(ch, vch, dam, gsn_wail, DAM_SOUND, TRUE);
+                    check_improve(ch, gsn_wail, TRUE, 3);
+                } else {
+                    damage( ch, vch, 0, gsn_wail, DAM_SOUND, TRUE);
+                    check_improve(ch, gsn_wail, FALSE, 3);
+                }   
+            }
+        }
+    }
     return;
 }
 
