@@ -564,7 +564,7 @@ DEF_DO_FUN(do_headbutt)
         damage( ch, victim, 0, gsn_headbutt,DAM_BASH,TRUE);
         check_improve(ch,gsn_headbutt,FALSE,3);
     }
-    add_deadly_dance_attacks(ch, victim, gsn_headbutt, dam_type);
+    add_deadly_dance_attacks(ch, victim, gsn_headbutt, DAM_BASH);
     return;
 }
 
@@ -948,7 +948,7 @@ DEF_DO_FUN(do_aim)
         check_improve(ch, gsn_aim, FALSE, 3);
     }
     add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_aim);
-    
+
     return;
 }
 
