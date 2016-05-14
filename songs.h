@@ -40,3 +40,4 @@ void deduct_song_cost( CHAR_DATA *ch );
 void remove_bard_song_group( CHAR_DATA *ch );
 void remove_passive_bard_song( CHAR_DATA *ch );
 void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype);
+void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn);
