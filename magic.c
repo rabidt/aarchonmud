@@ -2647,7 +2647,7 @@ DEF_SPELL_FUN(spell_charm_person)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-    int mlevel;
+    int mlevel, coercion_chance;
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
@@ -2691,6 +2691,8 @@ DEF_SPELL_FUN(spell_charm_person)
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
+    coercion_chance = get_skill(ch, gsn_coercion) / 2;
+
     /* PCs are harder to charm */
     if ( saves_spell(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
@@ -2698,6 +2700,11 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
+        if (per_chance(coercion_chance))
+        {   
+            act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+            return FALSE;
+        }
         return TRUE;
     }
 
