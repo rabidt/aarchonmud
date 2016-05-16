@@ -489,11 +489,12 @@ sh_int  gsn_combat_symphony;
 sh_int  gsn_devestating_anthem;
 sh_int  gsn_lullaby;
 sh_int  gsn_deadly_dance;
-
 sh_int  gsn_reflective_hymn;
+
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;
 sh_int  gsn_cats_grace;
+sh_int  gsn_coercion;
 
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
