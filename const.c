@@ -8385,7 +8385,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{ 
-	"enhancement",      { 10, 10, 5, 3, -1, 5, -1, 9, 5, -1, 6, 5, 10, 10, 5 },
+	"enhancement",      { 10, 10, 5, 3, -1, 5, -1, 9, 5, -1, 6, 5, 10, 10, 5, 1 },
 	{ "giant strength", "haste", "infravision", "refresh", "mantra" }
 	},
 
@@ -8435,7 +8435,7 @@ struct group_type group_table[MAX_GROUP] =
         },
 	
 	{
-	"transportation",   { 15, 10, 6, 6, -1, 9, 8, 13, 8, 8, 7, 9, 15, 10, 6 },
+	"transportation",   { 15, 10, 6, 6, -1, 9, 8, 13, 8, 8, 7, 9, 15, 10, 6, 1 },
 	{ "astral projection", "fly", "gate", "nexus", "pass door", "portal", 
 	  "summon", "teleport", "word of recall", "breathe water"}
 	},
