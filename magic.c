@@ -2703,8 +2703,10 @@ DEF_SPELL_FUN(spell_charm_person)
         if (per_chance(coercion_chance))
         {   
             act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+            check_improve(ch, gsn_coercion, TRUE, 3);
             return FALSE;
         }
+        check_improve(ch, gsn_coercion, FALSE, 3);
         return TRUE;
     }
 
