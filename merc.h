@@ -1820,6 +1820,7 @@ struct  kill_data
 #define ITEM_DISARMED       (ll)
 #define ITEM_NO_SAC_EX      (nn)
 #define ITEM_TRANSLUCENT_EX (oo)
+#define ITEM_INSTRUMENT     (pp)
 
 
 /* class restriction flags */

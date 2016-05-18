@@ -847,6 +847,7 @@ const struct flag_type extra_flags[] =
     {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
     {   "nosac",               ITEM_NO_SAC_EX            , TRUE },
     {   "translucent",         ITEM_TRANSLUCENT_EX       , TRUE },
+    {   "instrument",          ITEM_INSTRUMENT           , TRUE },
 	{   NULL,           0,          0   }
 };
 
