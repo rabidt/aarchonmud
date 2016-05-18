@@ -426,6 +426,7 @@ DECLARE_DO_FUN( do_sneak    );
 DECLARE_DO_FUN( do_snoop    );
 DECLARE_DO_FUN( do_social   );
 DECLARE_DO_FUN( do_socials  );
+DECLARE_DO_FUN( do_song_list);
 DECLARE_DO_FUN( do_south    );
 DECLARE_DO_FUN( do_southeast);
 DECLARE_DO_FUN( do_southwest);

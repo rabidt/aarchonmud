@@ -4503,6 +4503,29 @@ DEF_DO_FUN(do_disguise)
     check_improve( ch, gsn_disguise, TRUE, 3 );
 }
 
+DEF_DO_FUN(do_song_list)
+{
+    int i, skill, sn;
+    char buf[MSL];
+
+    send_to_char( "You know the following songs:\n\r", ch );
+
+    for (i = 1; songs[i].name != NULL; i++)
+    {
+        sn = *(songs[i].gsn);
+        skill = get_skill(ch, sn);
+        if ( skill == 0 )
+            continue;
+
+        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmn\n\r",
+                songs[i].name,
+                get_skill_prac(ch, sn), skill,
+                song_cost(ch, i));
+        send_to_char( buf, ch );
+    }
+}
+
+
 DEF_DO_FUN(do_stance_list)
 {
     int i, skill, sn;
