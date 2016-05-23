@@ -1570,6 +1570,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        level += UMAX(1, level/16);
     level = URANGE(1, level, level_cap);
     
     // check if spell could be cast successfully
@@ -2037,6 +2039,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         dam += dam / 4;
 
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        dam += dam / 8;
+
     return dam * number_range(90, 110) / 100;
 }
 
@@ -2114,6 +2119,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         heal += heal / 4;
+
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        heal += heal / 8;
 
     return heal;
 }
