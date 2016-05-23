@@ -343,6 +343,7 @@ const struct flag_type affect_flags[] =
     { "passive song",      AFF_PASSIVE_SONG,         TRUE  },
     { "lullaby",           AFF_LULLABY,              TRUE  },
     { "deadly dance",      AFF_DEADLY_DANCE,         TRUE  },
+    { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -1344,6 +1345,7 @@ const struct song_type songs [] =
     {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    40 },
     {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5  },
     {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       40 },
+    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      35 },
     { NULL,                   0,                       NULL,                    0  }
 };
 

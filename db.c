@@ -490,6 +490,7 @@ sh_int  gsn_devestating_anthem;
 sh_int  gsn_lullaby;
 sh_int  gsn_deadly_dance;
 sh_int  gsn_reflective_hymn;
+sh_int  gsn_arcane_anthem;
 
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;
