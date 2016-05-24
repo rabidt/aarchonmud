@@ -4204,3 +4204,139 @@ DEF_DO_FUN(do_bomb)
     
     extract_obj(obj);
 }
+
+/* new way of doing kick/chop/bite. These should probably be somewhere else, but I can't think of where */
+
+void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack)
+{
+    CHAR_DATA *victim;
+    int dam, chance;
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+
+    // anyone can kick
+    chance = (100 + get_skill(ch, gsn_kick)) / 2;
+
+    mastery_adjusted_wait(ch, gsn_kick);
+
+    if ( check_hit(ch, victim, gsn_kick, DAM_BASH, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_kick );
+
+        full_dam(ch,victim, dam, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,TRUE,3);
+    }
+    else
+    {
+        damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
+        check_improve(ch,gsn_kick,FALSE,3);
+    }
+
+    if (!auto_attack)
+    {
+        add_deadly_dance_attacks(ch, victim, gsn_kick, DAM_BASH);
+    }
+
+    return;
+}
+
+void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack)
+{
+    CHAR_DATA *victim;
+    int dam, chance;
+    
+    if (get_skill(ch,gsn_chop)==0)
+    {
+        send_to_char(
+            "You better leave the martial arts to fighters.\n\r", ch );
+        return;
+    }
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+        
+        chance = get_skill(ch, gsn_chop);
+        
+        check_killer(ch,victim);
+        mastery_adjusted_wait(ch, gsn_chop);
+
+        if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
+        {
+            dam = martial_damage( ch, victim, gsn_chop );
+            full_dam(ch,victim, dam, gsn_chop,DAM_SLASH,TRUE);
+            check_improve(ch,gsn_chop,TRUE,3);
+        }
+        else
+        {
+            damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
+            check_improve(ch,gsn_chop,FALSE,3);
+        }
+
+        if (!auto_attack)
+        {
+            add_deadly_dance_attacks(ch, victim, gsn_chop, DAM_SLASH);
+        }
+
+        return;
+}
+
+void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack)
+{
+    CHAR_DATA *victim;
+    int dam, chance;
+    
+    chance=get_skill(ch, gsn_bite);
+    chance=UMAX(chance,get_skill(ch, gsn_venom_bite));
+    chance=UMAX(chance,get_skill(ch, gsn_vampiric_bite));
+    
+    if ( IS_SET(ch->parts, PART_FANGS) )
+    chance = (chance + 100) / 2;
+
+    if (chance==0)
+    {
+        send_to_char("Your teeth aren't that strong.\n\r", ch );
+        return;
+    }
+    
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+        return;
+        
+        mastery_adjusted_wait(ch, gsn_bite);
+        check_killer(ch,victim);
+
+        if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
+        {
+            dam = martial_damage( ch, victim, gsn_bite );
+            full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
+            check_improve(ch,gsn_bite,TRUE,3);
+        CHECK_RETURN(ch, victim);
+        
+            if (get_skill(ch,gsn_venom_bite)>number_percent())
+        {
+                poison_effect(victim, ch->level,dam,TARGET_CHAR);
+        }
+            else if (get_skill(ch,gsn_vampiric_bite)>number_percent())
+            {
+                /*dam = 1 + ch->level/2;*/
+                act("$n drains the life from $N.",ch,NULL,victim,TO_NOTVICT);
+                act("You feel $N drawing your life away.",victim,NULL,ch,TO_CHAR);
+                /*damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);*/
+                if (number_bits(4) == 0)
+            drop_align( ch );
+                gain_hit(ch, dam/5);
+            }
+        }
+        else
+        {
+            damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
+            check_improve(ch,gsn_bite,FALSE,3);
+        }
+
+        if (!auto_attack)
+        {
+            add_deadly_dance_attacks(ch, victim, gsn_bite, DAM_PIERCE);
+        }
+
+        return;
+}

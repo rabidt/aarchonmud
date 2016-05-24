@@ -4745,6 +4745,13 @@ void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
 void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim );
+static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
+
+/* we're moving out some do_kick stuff from kung fu to fight2.c */
+void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack);
+void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack);
+void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack);
+
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );
