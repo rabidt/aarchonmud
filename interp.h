@@ -610,8 +610,3 @@ DECLARE_DO_FUN( do_path);
 DECLARE_DO_FUN( do_guiconfig);
 DECLARE_DO_FUN( do_changelog);
 DECLARE_DO_FUN( do_ptitle);
-
-/* we're moving out some do_kick stuff from kung fu */
-void execute_kick(CHAR_DATA *ch, const char *argument, bool auto);
-void execute_chop(CHAR_DATA *ch, const char *argument, bool auto);
-void execute_bite(CHAR_DATA *ch, const char *argument, bool auto);
