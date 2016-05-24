@@ -1125,7 +1125,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 // uniform calculation for circle, slash throat, etc.
-static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
     int chance = 10 + get_skill_total(ch, sn, 0.2) / 2 + mastery_bonus(ch, sn, 12, 15);
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
