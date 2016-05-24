@@ -43,6 +43,6 @@ void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int dam
 void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn);
 
 /* we're moving out some do_kick stuff from kung fu */
-void execute_kick(CHAR_DATA *ch, const char *argument, bool auto);
-void execute_chop(CHAR_DATA *ch, const char *argument, bool auto);
-void execute_bite(CHAR_DATA *ch, const char *argument, bool auto);
+void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack);
+void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack);
+void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack);
