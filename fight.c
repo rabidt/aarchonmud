@@ -1010,7 +1010,8 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	    break;
 	}
 	if ( !found && get_skill(ch, gsn_bite) > 0 )
-	    do_bite( ch, "" );
+	    //do_bite( ch, "" );
+        execute_bite(ch, "", TRUE);
 	ch->wait = wait;
     }
 
@@ -1521,9 +1522,12 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 	&& number_percent() < get_skill (ch, gsn_kung_fu) )
     {
         chance=ch->wait;
-        do_chop(ch, "");
+        //do_chop(ch, "");
+        /* new way to account for songs */
+        execute_chop(ch, "", TRUE);
         if (ch->fighting != NULL)
-            do_kick(ch, "");
+            //do_kick(ch, "");
+            execute_kick(ch, "", TRUE);
         ch->wait = chance;
         check_improve(ch,gsn_kung_fu,TRUE,5);
 	if ( ch->fighting != victim )
@@ -1533,7 +1537,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if (number_percent() < get_skill(ch, gsn_maul))
     {
         chance = ch->wait;
-        do_bite(ch, "");
+        //do_bite(ch, "");
+        execute_bite(ch, "", TRUE);
         ch->wait = chance;
 	if ( ch->fighting != victim )
 	    return;
