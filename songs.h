@@ -41,6 +41,7 @@ void remove_bard_song_group( CHAR_DATA *ch );
 void remove_passive_bard_song( CHAR_DATA *ch );
 void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype);
 void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn);
+int song_cost( CHAR_DATA *ch, int song );
 
 /* we're moving out some do_kick stuff from kung fu */
 void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack);
