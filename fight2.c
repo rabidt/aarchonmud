@@ -1424,7 +1424,7 @@ void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
 
 DEF_DO_FUN(do_kick)
 {
-    execute_kick(ch, argument, FALSE)
+    execute_kick(ch, argument, FALSE);
 }
 
 DEF_DO_FUN(do_disarm)
