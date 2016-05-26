@@ -559,16 +559,23 @@ int song_cost( CHAR_DATA *ch, int song )
 
 void deduct_song_cost( CHAR_DATA *ch )
 {
-    int cost;
+    int cost, instrument;
 
     if (ch->song == 0) return;
 
+    instrument = get_eq_char(ch, WEAR_HOLD);
     cost = song_cost(ch, ch->song);
+
+    if (IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
+    {
+        cost = (cost*100)/7;
+    }
 
     if (cost > ch->mana)
     {
         send_to_char("You are too tired to keep singing that song.\n\r", ch);
         ch->song = 0;
+        remove_bard_song_group(ch);
     } else {
         ch->mana -= cost;
     }
