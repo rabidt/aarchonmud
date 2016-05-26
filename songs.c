@@ -559,17 +559,19 @@ int song_cost( CHAR_DATA *ch, int song )
 
 void deduct_song_cost( CHAR_DATA *ch )
 {
-    int cost;
+    int cost, skill;
     OBJ_DATA *instrument;
 
     if (ch->song == 0) return;
 
     instrument = get_eq_char(ch, WEAR_HOLD);
+    skill = get_skill(ch, gsn_instrument)
     cost = song_cost(ch, ch->song);
 
-    if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
-    {
-        cost = (cost*7)/10;
+    if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) && skill > 0)
+    {   
+        cost -= (cost*3*skill)/1000;
+        check_improve(ch, gsn_instrument, TRUE, 3);
     }
 
     if (cost > ch->mana)
