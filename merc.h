@@ -3709,6 +3709,7 @@ extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
 extern sh_int  gsn_cats_grace;
 extern sh_int  gsn_coercion;
+extern sh_int  gsn_instrument;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
