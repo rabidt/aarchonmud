@@ -2107,10 +2107,10 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
     {
-    "bard", "Brd", STAT_CHA, {STAT_DEX, STAT_AGI},
+    "bard", "Brd", STAT_CHA, {STAT_DEX, STAT_WIS},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
     OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
-    75, 100, 100,  110, 70, 110,
+    75, 100, 100,  95, 115, 75,
     "bard basics", "bard default"
     }
 };
