@@ -565,7 +565,7 @@ void deduct_song_cost( CHAR_DATA *ch )
     if (ch->song == 0) return;
 
     instrument = get_eq_char(ch, WEAR_HOLD);
-    skill = get_skill(ch, gsn_instrument)
+    skill = get_skill(ch, gsn_instrument);
     cost = song_cost(ch, ch->song);
 
     if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) && skill > 0)
