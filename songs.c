@@ -569,7 +569,7 @@ void deduct_song_cost( CHAR_DATA *ch )
 
     if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
     {
-        cost = (cost*100)/7;
+        cost = (cost*7)/10;
     }
 
     if (cost > ch->mana)
