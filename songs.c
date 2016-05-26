@@ -89,7 +89,7 @@ void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int dam
 void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn)
 {
     CHAR_DATA *vch;
-    int dam, chance;
+    int chance;
     if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
 
     if (gsn == gsn_circle || gsn == gsn_slash_throat) 
@@ -559,8 +559,9 @@ int song_cost( CHAR_DATA *ch, int song )
 
 void deduct_song_cost( CHAR_DATA *ch )
 {
-    int cost, instrument;
-
+    int cost;
+    OBJ_DATA *instrument;
+    
     if (ch->song == 0) return;
 
     instrument = get_eq_char(ch, WEAR_HOLD);
