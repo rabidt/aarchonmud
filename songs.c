@@ -561,13 +561,13 @@ void deduct_song_cost( CHAR_DATA *ch )
 {
     int cost;
     OBJ_DATA *instrument;
-    
+
     if (ch->song == 0) return;
 
     instrument = get_eq_char(ch, WEAR_HOLD);
     cost = song_cost(ch, ch->song);
 
-    if (IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
+    if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
     {
         cost = (cost*100)/7;
     }
