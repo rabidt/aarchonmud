@@ -337,7 +337,7 @@ const struct flag_type affect_flags[] =
     { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { "petrified",         AFF_PETRIFIED,            TRUE  },
     { "song",              AFF_SONG,                 TRUE  },
-    { "devestating anthem",AFF_DEVESTATING_ANTHEM,   TRUE  },
+    { "devastating anthem",AFF_DEVASTATING_ANTHEM,   TRUE  },
     { "reflective hymn",   AFF_REFLECTIVE_HYMN,      TRUE  },
     { "refresh",           AFF_REFRESH,              TRUE  },
     { "passive song",      AFF_PASSIVE_SONG,         TRUE  },
@@ -1341,7 +1341,7 @@ const struct song_type songs [] =
 {
     {"default",               SONG_DEFAULT,            NULL,                    0  },
     {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    20 },
-    {"devestating anthem",    SONG_DEVESTATING_ANTHEM, &gsn_devestating_anthem, 30 },
+    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 30 },
     {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    40 },
     {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5  },
     {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       40 },
