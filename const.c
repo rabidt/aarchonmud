@@ -2689,8 +2689,33 @@ char *  const           title_table [MAX_CLASS][23] =
 	"Lichemaster",
 	"Demigod of Creation",
 	"God of Life and Death"
-	}
+	},
 
+    {
+    "Citizen",
+    "Genial Newbie",
+    "Diva",
+    "Artist",
+    "Busker",
+    "Vocalist",
+    "Crooner",
+    "Musician",
+    "Jongleur",
+    "Minstrel",
+    "Balladeer",
+    "Serenader",
+    "Songwriter",
+    "Chronicler",
+    "Raconteur",
+    "Master of the Ballad",
+    "Soul of Love and Bravery",
+    "Troubador",
+    "Grand Artist",
+    "Bard Hero",
+    "Grand Bard Hero",   
+    "Demigod of Song",
+    "God of Tragedy and Comedy"
+    }
 };
 
 /*
@@ -8014,13 +8039,13 @@ struct  skill_type
     },
 
     {
-    "devestating anthem",
+    "devastating anthem",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_devestating_anthem,                  0,      0, DUR_NONE,
+    &gsn_devastating_anthem,                  0,      0, DUR_NONE,
     "",     "",   ""
     },
 

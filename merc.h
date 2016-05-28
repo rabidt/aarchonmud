@@ -1628,7 +1628,7 @@ struct  kill_data
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
 #define AFF_SONG              81
-#define AFF_DEVESTATING_ANTHEM 82
+#define AFF_DEVASTATING_ANTHEM 82
 #define AFF_REFLECTIVE_HYMN   83
 #define AFF_REFRESH           84
 #define AFF_PASSIVE_SONG      85
@@ -3699,7 +3699,7 @@ extern sh_int  gsn_wail;
 
 /* songs */
 extern sh_int  gsn_combat_symphony;
-extern sh_int  gsn_devestating_anthem;
+extern sh_int  gsn_devastating_anthem;
 extern sh_int  gsn_reflective_hymn;
 extern sh_int  gsn_lullaby;
 extern sh_int  gsn_deadly_dance;
@@ -4162,7 +4162,7 @@ struct song_type
 /* Values for songs in tables.c. Same as stances */
 #define SONG_DEFAULT            0
 #define SONG_COMBAT_SYMPHONY    1
-#define SONG_DEVESTATING_ANTHEM 2
+#define SONG_DEVASTATING_ANTHEM 2
 #define SONG_REFLECTIVE_HYMN    3
 #define SONG_LULLABY            4
 #define SONG_DEADLY_DANCE       5
