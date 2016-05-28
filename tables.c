@@ -1340,12 +1340,12 @@ const struct stance_type stances [] =
 const struct song_type songs [] =
 {
     {"default",               SONG_DEFAULT,            NULL,                    0  },
-    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    20 },
-    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 30 },
-    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    40 },
+    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    15 },
+    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 23 },
+    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    22 },
     {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5  },
-    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       40 },
-    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      35 },
+    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       28 },
+    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      26 },
     { NULL,                   0,                       NULL,                    0  }
 };
 
