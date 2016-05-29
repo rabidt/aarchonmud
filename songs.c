@@ -23,42 +23,10 @@
 #include "interp.h"
 #include "songs.h"
 
-void normal_wail_damage(CHAR_DATA *ch, CHAR_DATA *victim, bool chance)
+void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
 {
-    int dam;
+    int song = ch->song;
 
-    if ( chance )
-    {
-        dam = martial_damage( ch, victim, gsn_wail );
-
-        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_wail, TRUE, 3);
-    } else {
-        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_wail, FALSE, 3);
-    }
-
-    // make this a room skill if affected by deadly dance
-    
-    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
-}
-
-DEF_DO_FUN(do_wail)
-{
-    CHAR_DATA *victim;
-    int skill, song = ch->song;
-    int chance = (100 + get_skill(ch,gsn_wail)) / 2;
-
-    if ((skill = get_skill(ch,gsn_wail)) == 0)
-    {
-        send_to_char("You scream your lungs out without effect.\n\r", ch);
-        return;
-    }
-
-    if ( (victim = get_combat_victim(ch, argument)) == NULL)
-        return;   
-
-    // custom affects for different songs char is singing
     if (song == SONG_DEVASTATING_ANTHEM)
     {
         WAIT_STATE(ch, skill_table[gsn_wail].beats);
@@ -74,56 +42,81 @@ DEF_DO_FUN(do_wail)
         AFFECT_DATA af;
         int level = ch->level, sn = gsn_lullaby,;
 
-        if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
+        if ( IS_UNDEAD(victim) )
         {
-            normal_wail_damage(ch, victim, TRUE);
-
-            if ( IS_UNDEAD(victim) )
-            {
-                send_to_char("The undead never sleep!\n\r", ch );
-                return;
-            }
+            send_to_char("The undead never sleep!\n\r", ch );
+            return;
+        }
     
-            if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
-            {
-                act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
-                return;
-            }
+        if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+        {
+            act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+            return;
+        }
     
-            if ( saves_spell(victim, ch, level, DAM_MENTAL)
-                    || number_bits(2)
-                    || (!IS_NPC(victim) && number_bits(2))
-                    || IS_IMMORTAL(victim) )
-            {
-                send_to_char("Your song failed to have an effect.\n\r", ch );
-                return TRUE;
-            }
-            if ( IS_AWAKE(victim) )
-            {
-                send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
-                act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
-                stop_fighting( victim, TRUE );
-                set_pos( victim, POS_SLEEPING );
-            }
-    
-            if ( victim->pcdata != NULL )
-                victim->pcdata->pkill_timer = 
-                    UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
-    
-            af.where     = TO_AFFECTS;
-            af.type      = sn;
-            af.level     = level;
-            af.duration  = 1;
-            af.location  = APPLY_NONE;
-            af.modifier  = 0;
-            af.bitvector = AFF_SLEEP;
-            affect_join( victim, &af );
-    
+        if ( saves_spell(victim, ch, level, DAM_MENTAL)
+                || number_bits(2)
+                || (!IS_NPC(victim) && number_bits(2))
+                || IS_IMMORTAL(victim) )
+        {
+            send_to_char("Your song failed to have an effect.\n\r", ch );
             return TRUE;
         }
-        normal_wail_damage(ch, victim, FALSE);
+        if ( IS_AWAKE(victim) )
+        {
+            send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
+            act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
+            stop_fighting( victim, TRUE );
+            set_pos( victim, POS_SLEEPING );
+        }
+    
+        if ( victim->pcdata != NULL )
+            victim->pcdata->pkill_timer = 
+                UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
+    
+        af.where     = TO_AFFECTS;
+        af.type      = sn;
+        af.level     = level;
+        af.duration  = 1;
+        af.location  = APPLY_NONE;
+        af.modifier  = 0;
+        af.bitvector = AFF_SLEEP;
+        affect_join( victim, &af );
+    
+        return TRUE;
+    }
+}
+
+DEF_DO_FUN(do_wail)
+{
+    CHAR_DATA *victim;
+    int skill, song = ch->song, dam;
+    int chance = (100 + get_skill(ch,gsn_wail)) / 2;
+
+    if ((skill = get_skill(ch,gsn_wail)) == 0)
+    {
+        send_to_char("You scream your lungs out without effect.\n\r", ch);
+        return;
     }
 
+    if ( (victim = get_combat_victim(ch, argument)) == NULL)
+        return;
+
+    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_wail );
+
+        add_song_wail_affects(ch, victim);
+        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, TRUE, 3);
+    } else {
+        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, FALSE, 3);
+    }
+
+    // make this a room skill if affected by deadly dance
+    
+    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
     return;
 }
 
