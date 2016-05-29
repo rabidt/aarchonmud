@@ -23,12 +23,11 @@
 #include "interp.h"
 #include "songs.h"
 
-void normal_wail_damage(CHAR_DATA *ch, CHAR_DATA *victim)
+void normal_wail_damage(CHAR_DATA *ch, CHAR_DATA *victim, bool chance)
 {
-    int dam, chance;
-    chance = (100 + get_skill(ch,gsn_wail)) / 2;
+    int dam;
 
-    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
+    if ( chance )
     {
         dam = martial_damage( ch, victim, gsn_wail );
 
@@ -47,8 +46,8 @@ void normal_wail_damage(CHAR_DATA *ch, CHAR_DATA *victim)
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
-    int skill;
-    int song = ch->song;
+    int skill, song = ch->song;
+    int chance = (100 + get_skill(ch,gsn_wail)) / 2;
 
     if ((skill = get_skill(ch,gsn_wail)) == 0)
     {
@@ -73,52 +72,56 @@ DEF_DO_FUN(do_wail)
     else if (song == SONG_LULLABY)
     {
         AFFECT_DATA af;
-        int level = ch->level, sn = gsn_lullaby;
+        int level = ch->level, sn = gsn_lullaby,;
 
-        normal_wail_damage(ch, victim);
-        
-        if ( IS_UNDEAD(victim) )
+        if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
         {
-            send_to_char("The undead never sleep!\n\r", ch );
-            return;
-        }
+            normal_wail_damage(ch, victim, TRUE);
+
+            if ( IS_UNDEAD(victim) )
+            {
+                send_to_char("The undead never sleep!\n\r", ch );
+                return;
+            }
     
-        if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
-        {
-            act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
-            return;
-        }
+            if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+            {
+                act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+                return;
+            }
     
-        if ( saves_spell(victim, ch, level, DAM_MENTAL)
-                || number_bits(2)
-                || (!IS_NPC(victim) && number_bits(2))
-                || IS_IMMORTAL(victim) )
-        {
-            send_to_char("Your song failed to have an effect.\n\r", ch );
+            if ( saves_spell(victim, ch, level, DAM_MENTAL)
+                    || number_bits(2)
+                    || (!IS_NPC(victim) && number_bits(2))
+                    || IS_IMMORTAL(victim) )
+            {
+                send_to_char("Your song failed to have an effect.\n\r", ch );
+                return TRUE;
+            }
+            if ( IS_AWAKE(victim) )
+            {
+                send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
+                act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
+                stop_fighting( victim, TRUE );
+                set_pos( victim, POS_SLEEPING );
+            }
+    
+            if ( victim->pcdata != NULL )
+                victim->pcdata->pkill_timer = 
+                    UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
+    
+            af.where     = TO_AFFECTS;
+            af.type      = sn;
+            af.level     = level;
+            af.duration  = 1;
+            af.location  = APPLY_NONE;
+            af.modifier  = 0;
+            af.bitvector = AFF_SLEEP;
+            affect_join( victim, &af );
+    
             return TRUE;
         }
-        if ( IS_AWAKE(victim) )
-        {
-            send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
-            act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
-            stop_fighting( victim, TRUE );
-            set_pos( victim, POS_SLEEPING );
-        }
-    
-        if ( victim->pcdata != NULL )
-            victim->pcdata->pkill_timer = 
-                UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
-    
-        af.where     = TO_AFFECTS;
-        af.type      = sn;
-        af.level     = level;
-        af.duration  = 1;
-        af.location  = APPLY_NONE;
-        af.modifier  = 0;
-        af.bitvector = AFF_SLEEP;
-        affect_join( victim, &af );
-    
-        return TRUE;
+        normal_wail_damage(ch, victim, FALSE);
     }
 
     return;
