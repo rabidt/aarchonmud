@@ -107,13 +107,13 @@ DEF_DO_FUN(do_wail)
         add_song_wail_affects(ch, victim);
         return;
     }
-    
+
     if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
     {
         dam = martial_damage( ch, victim, gsn_wail );
 
-        add_song_wail_affects(ch, victim);
         full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
+        add_song_wail_affects(ch, victim);
         check_improve(ch, gsn_wail, TRUE, 3);
     } else {
         damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
