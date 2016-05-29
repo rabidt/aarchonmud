@@ -41,6 +41,8 @@ DEF_DO_FUN(do_wail)
     // custom affects for different songs char is singing
     if (song == SONG_DEVASTATING_ANTHEM)
     {
+        WAIT_STATE(ch, skill_table[gsn_wail].beats);
+
         one_hit(ch, victim, gsn_wail, FALSE);
         check_improve(ch, gsn_wail, TRUE, 3);
 
