@@ -102,6 +102,12 @@ DEF_DO_FUN(do_wail)
     if ( (victim = get_combat_victim(ch, argument)) == NULL)
         return;
 
+    if ( song == SONG_DEVASTATING_ANTHEM)
+    {
+        add_song_wail_affects(ch, victim);
+        return;
+    }
+    
     if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
     {
         dam = martial_damage( ch, victim, gsn_wail );
