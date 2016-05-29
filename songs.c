@@ -54,10 +54,6 @@ DEF_DO_FUN(do_wail)
         AFFECT_DATA af;
         int level = ch->level, sn = gsn_lullaby;
 
-        if ( IS_AFFECTED(victim, AFF_SLEEP) )
-        {
-            continue;
-        }
         if ( IS_UNDEAD(victim) )
         {
             send_to_char("The undead never sleep!\n\r", ch );
