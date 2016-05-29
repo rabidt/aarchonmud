@@ -26,6 +26,7 @@
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
+    int skill;
     int song = ch->song;
 
     if ((skill = get_skill(ch,gsn_wail)) == 0)
@@ -47,7 +48,7 @@ DEF_DO_FUN(do_wail)
         return;
     }
 
-    int skill, dam, chance;
+    int dam, chance;
     chance = (100 + get_skill(ch,gsn_wail)) / 2;
 
     if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
