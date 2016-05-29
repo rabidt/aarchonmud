@@ -21,7 +21,6 @@
 #include "mudconfig.h"
 #include "mob_stats.h"
 #include "interp.h"
-#include "magic.h"
 #include "songs.h"
 
 DEF_DO_FUN(do_wail)
@@ -52,7 +51,9 @@ DEF_DO_FUN(do_wail)
     }
     else if (song == SONG_LULLABY)
     {
-        AFFECT_DATA *af;
+        AFFECT_DATA af;
+        int level = ch->level, sn = gsn_lullaby;
+
         if ( IS_AFFECTED(victim, AFF_SLEEP) )
         {
             continue;
@@ -60,13 +61,13 @@ DEF_DO_FUN(do_wail)
         if ( IS_UNDEAD(victim) )
         {
             send_to_char("The undead never sleep!\n\r", ch );
-            return SR_IMMUNE;
+            return;
         }
     
         if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
         {
             act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
-            return SR_IMMUNE;
+            return;
         }
     
         if ( saves_spell(victim, ch, level, DAM_MENTAL)
@@ -90,8 +91,8 @@ DEF_DO_FUN(do_wail)
                 UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
     
         af.where     = TO_AFFECTS;
-        af.type      = gsn_lullaby;
-        af.level     = ch->level;
+        af.type      = sn;
+        af.level     = level;
         af.duration  = 1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
