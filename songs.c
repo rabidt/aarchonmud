@@ -26,8 +26,8 @@
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
-    int skill;
-    int dam, chance;
+    int skill, dam, chance;
+    int song = ch->song;
 
     if ((skill = get_skill(ch,gsn_wail)) == 0)
     {
@@ -41,9 +41,19 @@ DEF_DO_FUN(do_wail)
     
     chance = (100 + get_skill(ch,gsn_wail)) / 2;
 
+    // custom affects for different songs char is singing
+    if (song == SONG_DEVASTATING_ANTHEM)
+    {
+        one_hit(ch, victim, gsn_wail, FALSE);
+        check_improve(ch, gsn_wail, TRUE, 3);
+
+        add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_wail);
+        return;
+    }
+
     if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
     {
-        dam = martial_damage( ch, victim, gsn_wail );
+        if (dam != NULL) dam = martial_damage( ch, victim, gsn_wail );
 
         full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
         check_improve(ch, gsn_wail, TRUE, 3);

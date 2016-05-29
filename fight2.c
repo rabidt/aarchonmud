@@ -3932,6 +3932,8 @@ DEF_DO_FUN(do_power_attack)
     // bonus damage is calculated in one_hit
     one_hit(ch, victim, gsn_power_attack, FALSE);
     check_improve(ch, gsn_power_attack, TRUE, 3);
+
+    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_power_attack);
 }
 
 DEF_DO_FUN(do_inspire)
