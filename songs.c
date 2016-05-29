@@ -40,7 +40,7 @@ void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
     else if (song == SONG_LULLABY)
     {
         AFFECT_DATA af;
-        int level = ch->level, sn = gsn_lullaby,;
+        int level = ch->level, sn = gsn_lullaby;
 
         if ( IS_UNDEAD(victim) )
         {
