@@ -2692,7 +2692,7 @@ char *  const           title_table [MAX_CLASS][23] =
 	},
 
     {
-    "Citizen",
+    "Vagrant",
     "Genial Newbie",
     "Diva",
     "Artist",
