@@ -23,6 +23,27 @@
 #include "interp.h"
 #include "songs.h"
 
+void normal_wail_damage(CHAR_DATA *ch, CHAR_DATA *victim)
+{
+    int dam, chance;
+    chance = (100 + get_skill(ch,gsn_wail)) / 2;
+
+    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_wail );
+
+        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, TRUE, 3);
+    } else {
+        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
+        check_improve(ch, gsn_wail, FALSE, 3);
+    }
+
+    // make this a room skill if affected by deadly dance
+    
+    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
+}
+
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
@@ -54,6 +75,8 @@ DEF_DO_FUN(do_wail)
         AFFECT_DATA af;
         int level = ch->level, sn = gsn_lullaby;
 
+        normal_wail_damage(ch, victim);
+        
         if ( IS_UNDEAD(victim) )
         {
             send_to_char("The undead never sleep!\n\r", ch );
@@ -98,24 +121,6 @@ DEF_DO_FUN(do_wail)
         return TRUE;
     }
 
-    int dam, chance;
-    chance = (100 + get_skill(ch,gsn_wail)) / 2;
-
-    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
-    {
-        dam = martial_damage( ch, victim, gsn_wail );
-
-        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_wail, TRUE, 3);
-    } else {
-        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_wail, FALSE, 3);
-    }
-
-    // make this a room skill if affected by deadly dance
-    
-    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
-    
     return;
 }
 
