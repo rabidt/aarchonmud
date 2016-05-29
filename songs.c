@@ -21,6 +21,7 @@
 #include "mudconfig.h"
 #include "mob_stats.h"
 #include "interp.h"
+#include "magic.h"
 #include "songs.h"
 
 DEF_DO_FUN(do_wail)
@@ -89,8 +90,8 @@ DEF_DO_FUN(do_wail)
                 UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
     
         af.where     = TO_AFFECTS;
-        af.type      = sn;
-        af.level     = level;
+        af.type      = gsn_lullaby;
+        af.level     = ch->level;
         af.duration  = 1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
