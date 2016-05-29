@@ -49,6 +49,56 @@ DEF_DO_FUN(do_wail)
         add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_wail);
         return;
     }
+    else if (song == SONG_LULLABY)
+    {
+        AFFECT_DATA *af;
+        if ( IS_AFFECTED(victim, AFF_SLEEP) )
+        {
+            continue;
+        }
+        if ( IS_UNDEAD(victim) )
+        {
+            send_to_char("The undead never sleep!\n\r", ch );
+            return SR_IMMUNE;
+        }
+    
+        if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
+        {
+            act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
+            return SR_IMMUNE;
+        }
+    
+        if ( saves_spell(victim, ch, level, DAM_MENTAL)
+                || number_bits(2)
+                || (!IS_NPC(victim) && number_bits(2))
+                || IS_IMMORTAL(victim) )
+        {
+            send_to_char("Your song failed to have an effect.\n\r", ch );
+            return TRUE;
+        }
+        if ( IS_AWAKE(victim) )
+        {
+            send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
+            act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
+            stop_fighting( victim, TRUE );
+            set_pos( victim, POS_SLEEPING );
+        }
+    
+        if ( victim->pcdata != NULL )
+            victim->pcdata->pkill_timer = 
+                UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
+    
+        af.where     = TO_AFFECTS;
+        af.type      = sn;
+        af.level     = level;
+        af.duration  = 1;
+        af.location  = APPLY_NONE;
+        af.modifier  = 0;
+        af.bitvector = AFF_SLEEP;
+        affect_join( victim, &af );
+    
+        return TRUE;
+    }
 
     int dam, chance;
     chance = (100 + get_skill(ch,gsn_wail)) / 2;
