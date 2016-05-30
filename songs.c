@@ -85,6 +85,12 @@ void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
     
         return TRUE;
     }
+    else if (song == SONG_COMBAT_SYMPHONY)
+    {
+        int drain = -10;
+        gain_move(victim, drain);
+        update_pos(victim);
+    }
 }
 
 DEF_DO_FUN(do_wail)
