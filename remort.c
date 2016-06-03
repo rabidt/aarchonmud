@@ -987,7 +987,6 @@ void remort_complete(CHAR_DATA *ch)
 	ch->pcdata->condition[3] = 72;
     }
     ch->pcdata->condition[4] = 0;
-    ch->pcdata->condition[5] = 0;
     ch->stance = 0;
     
     if (! IS_SET(ch->act, PLR_TITLE))
