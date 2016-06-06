@@ -43,6 +43,7 @@
 #include "religion.h"
 #include "lua_scripting.h"
 #include "tattoo.h"
+#include "songs.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);

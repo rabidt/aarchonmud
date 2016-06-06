@@ -60,7 +60,7 @@ void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
                 || IS_IMMORTAL(victim) )
         {
             send_to_char("Your song failed to have an effect.\n\r", ch );
-            return TRUE;
+            return;
         }
         if ( IS_AWAKE(victim) )
         {
@@ -83,7 +83,7 @@ void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
         af.bitvector = AFF_SLEEP;
         affect_join( victim, &af );
     
-        return TRUE;
+        return;
     }
     else if (song == SONG_COMBAT_SYMPHONY)
     {
