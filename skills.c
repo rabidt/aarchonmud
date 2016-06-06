@@ -186,6 +186,22 @@ void update_skill_costs()
     }
 }
 
+// check for issues with skills - checked during startup
+void verify_skills()
+{
+    int sn, class;
+    // check level gained
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        for ( class = 0; class < MAX_CLASS; class++ )
+        {
+            int level = skill_table[sn].skill_level[class];
+            if ( level < 1 || level > 102 )
+                logpf("Skill %s gained at level %d (%s)", skill_table[sn].name, level, class_table[class].name);
+        }
+    }
+}
+
 CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
 {
     CHAR_DATA *trainer;

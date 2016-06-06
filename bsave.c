@@ -1442,6 +1442,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
     char str_buf[MAX_STRING_LENGTH];
+    char last_word[256] = {};
     const char *word;
     bool fMatch;
     int count = 0;
@@ -2429,10 +2430,12 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	
     if ( !fMatch )
     {
-        bug( "Bread_char: no match.", 0 );
-        bug( word, 0 );
+        bugf( "Bread_char: no match for %s (previous=%s)", word, last_word );
         bread_to_eol( buf );
     }
+    else
+        strncpy(last_word, word, sizeof(last_word) - 1);
+    
     }
 
 #if defined(SIM_DEBUG)
