@@ -2168,12 +2168,14 @@ DEF_DO_FUN(do_rest)
 	  ch->position = POS_RESTING;
       {
           if (!IS_NPC(ch))
+          {
             if (IS_AFFECTED(ch, AFF_LULLABY))
             {
                 ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
             } else {
                 ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
             }
+          }
        }
 
          if ( IS_AFFECTED(ch, AFF_SHELTER) )

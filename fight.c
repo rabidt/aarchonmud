@@ -1325,7 +1325,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 */
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    int chance, mastery_chance, area_attack_sn;
+    int chance, mastery_chance, area_attack_sn = 0;
     int attacks;
     OBJ_DATA *wield;
     OBJ_DATA *second;
@@ -1427,7 +1427,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             }
         }
         /* improve skill */
-        if ( found && area_attack_sn != NULL )
+        if ( found && area_attack_sn != 0 )
             check_improve(ch, area_attack_sn, TRUE, 3);
     }
 
