@@ -23,83 +23,68 @@
 #include "interp.h"
 #include "songs.h"
 
-void add_song_wail_affects(CHAR_DATA *ch, CHAR_DATA *victim)
+void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 {
     int song = ch->song;
 
-    if (song == SONG_DEVASTATING_ANTHEM)
+    if ( is_safe(ch, victim) )
+        return;
+    
+    if ( saves_physical(victim, ch, ch->level, DAM_SOUND) )
     {
-        WAIT_STATE(ch, skill_table[gsn_wail].beats);
-
-        one_hit(ch, victim, gsn_wail, FALSE);
-        check_improve(ch, gsn_wail, TRUE, 3);
-
-        add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_wail);
+        // half damage and no extra effects
+        full_dam(ch, victim, dam/2, gsn_wail, DAM_SOUND, TRUE);
         return;
     }
-    else if (song == SONG_LULLABY)
+
+    full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
+    
+    // bonus based on current song
+    if ( song == SONG_LULLABY )
     {
         AFFECT_DATA af;
-        int level = ch->level, sn = gsn_lullaby;
+        int level = ch->level;
 
-        if ( IS_UNDEAD(victim) )
-        {
-            send_to_char("The undead never sleep!\n\r", ch );
+        if ( IS_UNDEAD(victim) || IS_SET(victim->imm_flags, IMM_SLEEP) || IS_IMMORTAL(victim) )
             return;
-        }
     
-        if ( IS_SET(victim->imm_flags, IMM_SLEEP) )
-        {
-            act( "$N finds you quite boring, but can't be put to sleep.", ch, NULL, victim, TO_CHAR );
-            return;
-        }
-    
-        if ( saves_spell(victim, ch, level, DAM_MENTAL)
+        if ( saves_spell(victim, ch, ch->level, DAM_MENTAL)
                 || number_bits(2)
-                || (!IS_NPC(victim) && number_bits(2))
-                || IS_IMMORTAL(victim) )
-        {
-            send_to_char("Your song failed to have an effect.\n\r", ch );
+                || (!IS_NPC(victim) && number_bits(1)) )
             return;
-        }
-        if ( IS_AWAKE(victim) )
-        {
-            send_to_char( "You feel very sleepy ..... zzzzzz.\n\r", victim );
-            act( "$n goes to sleep.", victim, NULL, NULL, TO_ROOM );
-            stop_fighting( victim, TRUE );
-            set_pos( victim, POS_SLEEPING );
-        }
-    
-        if ( victim->pcdata != NULL )
-            victim->pcdata->pkill_timer = 
-                UMAX(victim->pcdata->pkill_timer, 10 * PULSE_VIOLENCE);
+
+        send_to_char("You feel very sleepy ..... zzzzzz.\n\r", victim);
+        act("$n goes to sleep.", victim, NULL, NULL, TO_ROOM);
+        stop_fighting(victim, TRUE);
+        set_pos(victim, POS_SLEEPING);
     
         af.where     = TO_AFFECTS;
-        af.type      = sn;
+        af.type      = gsn_sleep;
         af.level     = level;
         af.duration  = 1;
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_SLEEP;
         affect_join( victim, &af );
-    
-        return;
     }
-    else if (song == SONG_COMBAT_SYMPHONY)
+    else if ( song == SONG_REFLECTIVE_HYMN )
     {
-        int drain = -10;
-        gain_move(victim, drain);
-        update_pos(victim);
+        // TODO
+    }
+    else if ( song == SONG_COMBAT_SYMPHONY )
+    {
+        int drain = dam / 5;
+        victim->move = UMAX(0, victim->move - drain);
     }
 }
 
+// basic damage, plus extra effect based on current song
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
-    int skill, song = ch->song, dam;
-    int chance = (100 + get_skill(ch,gsn_wail)) / 2;
+    int skill, song = ch->song, dam, level;
 
-    if ((skill = get_skill(ch,gsn_wail)) == 0)
+    if ( (skill = get_skill(ch, gsn_wail)) == 0 )
     {
         send_to_char("You scream your lungs out without effect.\n\r", ch);
         return;
@@ -107,29 +92,49 @@ DEF_DO_FUN(do_wail)
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL)
         return;
-
-    if ( song == SONG_DEVASTATING_ANTHEM)
+    
+    // wailing costs both mana and moves - part magic, part big lungs
+    // bonus cost based on current mana/move
+    float mastery_factor = (100 + mastery_bonus(ch, gsn_wail, 20, 25)) / 100.0;
+    int mana_cost = skill_table[gsn_wail].min_mana + ch->mana * mastery_factor / 100;
+    int move_cost = skill_table[gsn_wail].min_mana + ch->move * mastery_factor / 100;
+    
+    if ( ch->mana < mana_cost || ch->move < move_cost )
     {
-        add_song_wail_affects(ch, victim);
+        send_to_char("You are too exhausted to wail effectively.\n\r", ch);
         return;
     }
 
-    if ( check_hit(ch, victim, gsn_wail, DAM_SOUND, chance) )
-    {
-        dam = martial_damage( ch, victim, gsn_wail );
-
-        full_dam(ch, victim, dam, gsn_wail, DAM_SOUND, TRUE);
-        add_song_wail_affects(ch, victim);
-        check_improve(ch, gsn_wail, TRUE, 3);
-    } else {
-        damage( ch, victim, 0, gsn_wail, DAM_SOUND, TRUE);
-        check_improve(ch, gsn_wail, FALSE, 3);
-    }
+    reduce_mana(ch,  mana_cost);
+    ch->move -= move_cost;
+    WAIT_STATE(ch, skill_table[gsn_wail].beats);
+    
+    level = ch->level * (100 + skill) / 200;
+    dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
+    // cost-based bonus damage
+    dam += dice(2 * (mana_cost + move_cost), 4);
+    // song-based bonus
+    if ( song == SONG_DEVASTATING_ANTHEM )
+        dam *= 1.2;
+    else if ( song == SONG_ARCANE_ANTHEM )
+        // higher level means harder to resist
+        level = UMIN(level * 1.5, 200);
 
     // make this a room skill if affected by deadly dance
-    
-    add_deadly_dance_attacks(ch, victim, gsn_wail, DAM_SOUND);
-    return;
+    if ( song == SONG_DEADLY_DANCE )
+    {
+        CHAR_DATA *vch, *vch_next;
+        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+        {
+            vch_next = vch->next_in_room;
+            if ( vch == victim || is_opponent(ch, vch) )
+                wail_at(ch, vch, level, dam * AREA_SPELL_FACTOR);
+        }
+    }
+    else
+        wail_at(ch, victim, level, dam);
+        
+    check_improve(ch, gsn_wail, TRUE, 3);
 }
 
 void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype)
