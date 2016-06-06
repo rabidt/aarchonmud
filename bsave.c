@@ -565,6 +565,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
+    
+    if ( ch->song != SONG_DEFAULT )
+        bprintf( buf, "Song %d\n", ch->song );
 
     bprintf( buf, "GuiC %d %d %d\n", ch->pcdata->guiconfig.chat_window,
                                      ch->pcdata->guiconfig.show_images,
@@ -2330,6 +2333,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
         }
 
+        KEY( "Song",    ch->song,   bread_number( buf ) );
         KEY( "Stance",  ch->stance, bread_number( buf ) );
         
         if ( !str_cmp(word, "Subclass") )
