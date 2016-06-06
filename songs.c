@@ -73,7 +73,7 @@ void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
     }
     else if ( song == SONG_COMBAT_SYMPHONY )
     {
-        int drain = dam / 5;
+        int drain = dam / 2;
         victim->move = UMAX(0, victim->move - drain);
     }
 }
@@ -82,7 +82,7 @@ void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 DEF_DO_FUN(do_wail)
 {
     CHAR_DATA *victim;
-    int skill, song = ch->song, dam, level;
+    int skill, song = ch->song;
 
     if ( (skill = get_skill(ch, gsn_wail)) == 0 )
     {
@@ -93,11 +93,11 @@ DEF_DO_FUN(do_wail)
     if ( (victim = get_combat_victim(ch, argument)) == NULL)
         return;
     
-    // wailing costs both mana and moves - part magic, part big lungs
+    // wailing consumes both mana and moves - part magic, part big lungs
     // bonus cost based on current mana/move
     float mastery_factor = (100 + mastery_bonus(ch, gsn_wail, 20, 25)) / 100.0;
-    int mana_cost = skill_table[gsn_wail].min_mana + ch->mana * mastery_factor / 100;
-    int move_cost = skill_table[gsn_wail].min_mana + ch->move * mastery_factor / 100;
+    int mana_cost = skill_table[gsn_wail].min_mana + ch->mana * mastery_factor / 200;
+    int move_cost = skill_table[gsn_wail].min_mana + ch->move * mastery_factor / 200;
     
     if ( ch->mana < mana_cost || ch->move < move_cost )
     {
@@ -109,17 +109,18 @@ DEF_DO_FUN(do_wail)
     ch->move -= move_cost;
     WAIT_STATE(ch, skill_table[gsn_wail].beats);
     
-    level = ch->level * (100 + skill) / 200;
-    dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
-    // cost-based bonus damage
-    dam += dice(2 * (mana_cost + move_cost), 4);
+    int level = ch->level * (100 + skill) / 200;
+    int dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
+    // cost-based bonus damage to primary target
+    int bonus = dice(2 * (mana_cost + move_cost), 4);
     // song-based bonus
     if ( song == SONG_DEVASTATING_ANTHEM )
-        dam *= 1.2;
+        dam *= 1.5;
     else if ( song == SONG_ARCANE_ANTHEM )
         // higher level means harder to resist
         level = UMIN(level * 1.5, 200);
 
+    wail_at(ch, victim, level, dam + bonus);
     // make this a room skill if affected by deadly dance
     if ( song == SONG_DEADLY_DANCE )
     {
@@ -127,13 +128,10 @@ DEF_DO_FUN(do_wail)
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
         {
             vch_next = vch->next_in_room;
-            if ( vch == victim || is_opponent(ch, vch) )
+            if ( is_opponent(ch, vch) && vch != victim )
                 wail_at(ch, vch, level, dam * AREA_SPELL_FACTOR);
         }
     }
-    else
-        wail_at(ch, victim, level, dam);
-        
     check_improve(ch, gsn_wail, TRUE, 3);
 }
 
