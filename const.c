@@ -2107,10 +2107,10 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
     {
-    "bard", "Brd", STAT_CHA, {STAT_DEX, STAT_WIS},
+    "bard", "Brd", STAT_CHA, {STAT_DEX, STAT_LUC},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
     OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
-    75, 100, 100,  95, 115, 75,
+    75, 90, 100,  95, 110, 85,
     "bard basics", "bard default"
     }
 };
@@ -8018,11 +8018,11 @@ struct  skill_type
     {    
     "wail",  
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,   2 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 3,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-        &gsn_wail,                      2,     12, DUR_NONE,
+        &gsn_wail,                      0,     12, DUR_NONE,
         "wail",                 "!Wail!",       ""
     },
 
