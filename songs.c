@@ -495,21 +495,26 @@ DEF_DO_FUN(do_sing)
 {
     int i;
 
-    if (argument[0] == '\0')
+    if ( argument[0] == '\0' )
     {
-        if (ch->song == 0)
+        send_to_char("What song do you wish to sing?\n\r", ch);
+        return;
+    }
+    if ( !strcmp(argument, "stop") )
+    {
+        if ( ch->song == SONG_DEFAULT )
         {
-            send_to_char("What song do you wish to sing?\n\r", ch);
-        } else {
-            remove_bard_song_group(ch);
-            send_to_char("You are no longer singing.\n\r", ch);
-            ch->song = 0;
+            send_to_char("You already stopped singing.\n\r", ch);
+            return;
         }
+        remove_bard_song_group(ch);
+        send_to_char("You are no longer singing.\n\r", ch);
+        ch->song = SONG_DEFAULT;
         return;
     }
 
     // only search known songs
-    for ( i = 0; songs[i].name != NULL; i++ )
+    for ( i = 1; songs[i].name != NULL; i++ )
     {
         if ( !str_prefix(argument, songs[i].name) && get_skill(ch, *(songs[i].gsn)) )
         {
