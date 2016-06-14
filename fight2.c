@@ -4200,6 +4200,7 @@ DEF_DO_FUN(do_blast)
     
     int dam = dice(2,4) + ch->level + ch->max_mana / 40;
     dam += dam * get_focus_bonus(ch) / 100;
+    dam += get_spell_bonus_damage(ch, skill_table[gsn_eldritch_blast].beats, FALSE);
     
     bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);
     
