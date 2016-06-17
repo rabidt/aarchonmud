@@ -1326,7 +1326,7 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     int chance, mastery_chance, area_attack_sn = 0;
-    int attacks;
+    int attacks, offhand_chance;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1375,10 +1375,10 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     wield = get_eq_char( ch, WEAR_WIELD );
     second = get_eq_char ( ch, WEAR_SECONDARY );
+    offhand_chance = offhand_attack_chance(ch, TRUE);
     
     check_stance(ch);
     deduct_song_cost(ch);
-
 
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
@@ -1395,13 +1395,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     }
     mastery_chance = mastery_bonus(ch, area_attack_sn, 30, 50);
 
-    if (chance == 0 && IS_AFFECTED(ch,AFF_DEADLY_DANCE))
-    {
-        chance = 50;
-    }
-
-
-    if ( per_chance(chance) )
+    if ( chance || IS_AFFECTED(ch, AFF_DEADLY_DANCE) )
     {
         /* For each opponent beyond the first there's an extra attack */
         CHAR_DATA *vch, *vch_next;
@@ -1414,15 +1408,22 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 && !is_safe_check(ch, vch, TRUE, FALSE, FALSE)
                 && ch->fighting != vch )
             {
-                one_hit(ch, vch, dt, FALSE);
                 found = TRUE;
-                // chance for extra (offhand if possible) attack
-                if ( per_chance(mastery_chance) )
+                if ( per_chance(chance) )
                 {
-                    if ( !wield || second )
-                        one_hit(ch, vch, dt, TRUE);
-                    else if ( number_bits(1) )
+                    one_hit(ch, vch, dt, FALSE);
+                    // extra attack from mastery
+                    if ( !offhand_chance && per_chance(mastery_chance / 2) )
                         one_hit(ch, vch, dt, FALSE);
+                    else if ( offhand_chance && per_chance(mastery_chance) )
+                        one_hit(ch, vch, dt, TRUE);
+                }
+                // bonus attacks from deadly dance
+                if ( IS_AFFECTED(ch, AFF_DEADLY_DANCE) && per_chance(wield ? 75 : 100) )
+                {
+                    one_hit(ch, vch, dt, FALSE);
+                    if ( per_chance(offhand_chance / 2) )
+                        one_hit(ch, vch, dt, TRUE);
                 }
             }
         }
@@ -1477,7 +1478,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     check_improve(ch, gsn_third_attack, TRUE, 5);
                     
     // offhand attacks
-    int offhand_chance = offhand_attack_chance(ch, TRUE);
     if ( offhand_chance > 0 )
     {
         int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;

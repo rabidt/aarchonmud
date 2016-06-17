@@ -1150,6 +1150,33 @@ int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     return chance;
 }
 
+void circle_char( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
+{
+    if ( per_chance(chance) )
+    {
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        
+        check_improve(ch, gsn_circle, TRUE, 3);
+
+        if ( one_hit(ch, victim, gsn_circle, FALSE) )
+            check_assassinate(ch, victim, weapon, 7);
+        CHECK_RETURN(ch, victim);
+        
+        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_circle, TRUE) )
+        {
+            check_assassinate(ch, victim, offhand, 7);
+            CHECK_RETURN(ch, victim);
+        }
+    }
+    else
+    {
+        act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
+        check_improve(ch, gsn_circle, FALSE, 3);
+        damage( ch, victim, 0, gsn_circle, DAM_NONE, TRUE);
+    }
+}
+
 DEF_DO_FUN(do_circle)
 {
     CHAR_DATA *victim;
@@ -1181,32 +1208,30 @@ DEF_DO_FUN(do_circle)
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
 
-    if ( per_chance(chance) )
-    {
-        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
-        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
-        
-        check_improve(ch,gsn_circle,TRUE,3);
-
-        if ( one_hit(ch, victim, gsn_circle, FALSE) )
-            check_assassinate(ch, victim, weapon, 7);
-        CHECK_RETURN(ch, victim);
-        
-        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_circle, TRUE) )
-        {
-            check_assassinate(ch, victim, offhand, 7);
-            CHECK_RETURN(ch, victim);
-        }
-    }
-    else
-    {
-        act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
-        check_improve(ch,gsn_circle,FALSE,3);
-        damage( ch, victim, 0, gsn_circle, DAM_NONE,TRUE);
-    }
+    circle_char(ch, victim, chance);
     
-    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_circle);
-    return;
+    if ( IS_AFFECTED(ch, AFF_DEADLY_DANCE) )
+    {
+        CHAR_DATA *vch, *vch_next;
+        int secondary_count = 0;
+        // trade regular attacks for circle attacks against secondary targets
+        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+        {
+            vch_next = vch->next_in_room;
+            if ( vch->fighting != NULL
+                && is_same_group(vch->fighting, ch)
+                && !is_safe_spell(ch, vch, TRUE)
+                && vch != victim )
+            {
+                circle_char(ch, vch, chance);
+                secondary_count++;
+            }
+        }
+        if ( secondary_count >= 4 )
+            ch->stop += 2;
+        else
+            ch->stop += rand_div(secondary_count, 2);
+    }
 }
 
 
