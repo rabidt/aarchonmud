@@ -462,6 +462,11 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
    for ( fch = in_room->people; fch != NULL; fch = fch_next )
    {
        fch_next = fch->next_in_room;
+       // ensure that fch_next won't leave room by following fch - can cause follow bug
+       // e.g. if B,D follow A, C follows B and room order is B-C-D when A leaves
+       // invariant now is that move_char will move all ancestors based on this room's follow-graph
+       while ( fch_next && fch_next->master != ch )
+           fch_next = fch_next->next_in_room;
        
        if ( fch->master == ch && IS_AFFECTED(fch, AFF_CHARM) && fch->position < POS_STANDING )
            do_stand(fch, "");
