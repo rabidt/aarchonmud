@@ -135,6 +135,7 @@ DEF_DO_FUN(do_wail)
     check_improve(ch, gsn_wail, TRUE, 3);
 }
 
+/*
 void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype)
 {
     CHAR_DATA *vch;
@@ -191,8 +192,8 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
             }
         }
     }
-
 }
+*/
 
 void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {

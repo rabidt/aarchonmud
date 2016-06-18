@@ -564,8 +564,6 @@ DEF_DO_FUN(do_headbutt)
         damage( ch, victim, 0, gsn_headbutt,DAM_BASH,TRUE);
         check_improve(ch,gsn_headbutt,FALSE,3);
     }
-    add_deadly_dance_attacks(ch, victim, gsn_headbutt, DAM_BASH);
-    return;
 }
 
 DEF_DO_FUN(do_net)
@@ -947,9 +945,6 @@ DEF_DO_FUN(do_aim)
         damage( ch, victim, 0, gsn_aim,DAM_NONE,TRUE);
         check_improve(ch, gsn_aim, FALSE, 3);
     }
-    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_aim);
-
-    return;
 }
 
 
@@ -1833,7 +1828,6 @@ DEF_DO_FUN(do_uppercut)
         full_dam(ch, victim, 0, gsn_uppercut, DAM_BASH, TRUE);
         check_improve(ch, gsn_uppercut, FALSE, 3);
     }
-    add_deadly_dance_attacks(ch, victim, gsn_uppercut, DAM_BASH);
 }
 
 DEF_DO_FUN(do_war_cry)
@@ -2318,7 +2312,6 @@ DEF_DO_FUN(do_double_strike)
             int dt_rend = TYPE_HIT + 102; // see attack_table in const.c
             deal_damage(ch, victim, dam, dt_rend, DAM_SLASH, TRUE, TRUE);
         }
-        add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_double_strike);
     }
 }
 
@@ -3957,8 +3950,6 @@ DEF_DO_FUN(do_power_attack)
     // bonus damage is calculated in one_hit
     one_hit(ch, victim, gsn_power_attack, FALSE);
     check_improve(ch, gsn_power_attack, TRUE, 3);
-
-    add_deadly_dance_attacks_with_one_hit(ch, victim, gsn_power_attack);
 }
 
 DEF_DO_FUN(do_inspire)
@@ -4306,13 +4297,6 @@ void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack)
         damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
         check_improve(ch,gsn_kick,FALSE,3);
     }
-
-    if (!auto_attack)
-    {
-        add_deadly_dance_attacks(ch, victim, gsn_kick, DAM_BASH);
-    }
-
-    return;
 }
 
 void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack)
@@ -4346,13 +4330,6 @@ void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack)
             damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
             check_improve(ch,gsn_chop,FALSE,3);
         }
-
-        if (!auto_attack)
-        {
-            add_deadly_dance_attacks(ch, victim, gsn_chop, DAM_SLASH);
-        }
-
-        return;
 }
 
 void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack)
@@ -4406,11 +4383,4 @@ void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack)
             damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,FALSE,3);
         }
-
-        if (!auto_attack)
-        {
-            add_deadly_dance_attacks(ch, victim, gsn_bite, DAM_PIERCE);
-        }
-
-        return;
 }
