@@ -253,6 +253,10 @@ void violence_update_char( CHAR_DATA *ch )
 {
     CHAR_DATA *victim;
     
+    // stance cost must be paid each round while in combat
+    if ( ch->fighting )
+        check_stance(ch);
+    
     if ( ch->stop > 0 )
     {
         ch->stop--;
@@ -1365,8 +1369,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     wield = get_eq_char( ch, WEAR_WIELD );
     second = get_eq_char ( ch, WEAR_SECONDARY );
     
-    check_stance(ch);
-    
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
@@ -1587,9 +1589,6 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     wield = get_eq_char(ch, WEAR_WIELD);
     second = get_eq_char(ch, WEAR_SECONDARY);
     shield = get_eq_char(ch, WEAR_SHIELD);
-
-    /* mobs must check their stances too */
-    check_stance(ch);
 
     /* high level mobs get more attacks */
     attacks = level_base_attacks(ch->level);
