@@ -3897,7 +3897,7 @@ DEF_SPELL_FUN(spell_faerie_fire)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    af.modifier  = 2 * level;
+    af.modifier  = 2 * (level + 20);
     af.bitvector = AFF_FAERIE_FIRE;
     affect_to_char( victim, &af );
     send_to_char( "You are surrounded by a pink outline.\n\r", victim );
@@ -4051,7 +4051,7 @@ DEF_SPELL_FUN(spell_frenzy)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.modifier  = level / 6;
+    af.modifier  = (level + 20) / 8;
     af.bitvector = AFF_BERSERK;
 
     af.location  = APPLY_HITROLL;
@@ -4060,7 +4060,7 @@ DEF_SPELL_FUN(spell_frenzy)
     af.location  = APPLY_DAMROLL;
     affect_to_char(victim,&af);
 
-    af.modifier  = 10 * (level / 12);
+    af.modifier  = 10 * ((level + 20) / 16);
     af.location  = APPLY_AC;
     affect_to_char(victim,&af);
 
