@@ -3956,6 +3956,7 @@ struct boss_achieve_record
  */
 #define IS_NPC(ch)      (IS_SET((ch)->act, ACT_IS_NPC))
 #define IS_IMMORTAL(ch)     (get_trust(ch) >= LEVEL_IMMORTAL)
+#define IS_PLAYER(ch)   (!IS_NPC(ch) && !IS_IMMORTAL(ch))
 #define IS_HERO(ch)     ((!IS_NPC((ch))&&((ch)->level >= ((LEVEL_HERO - 10)+((ch)->pcdata->remorts)))))
 #define IS_HELPER(ch)   (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER))
 #define IS_ACTIVE_HELPER(ch)    (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER) && !IS_SET((ch)->act, PLR_INACTIVE_HELPER))

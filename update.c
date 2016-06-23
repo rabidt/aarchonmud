@@ -3067,7 +3067,7 @@ void validate_all()
                         remove_from_room_list(ch, pRoom);
                         continue;
                     }
-                    if ( !IS_NPC(ch) )
+                    if ( IS_PLAYER(ch) )
                         player_count++;
                 }
             }
