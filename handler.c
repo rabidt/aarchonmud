@@ -1585,7 +1585,7 @@ void char_from_room( CHAR_DATA *ch )
     
     // decrease area count, but only if we didn't have a bug previously
     // otherwise we'd be introducing an additional bug
-    if ( !IS_NPC(ch) && found && --ch->in_room->area->nplayer < 0 )
+    if ( IS_PLAYER(ch) && found && --ch->in_room->area->nplayer < 0 )
     {
         bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
         ch->in_room->area->nplayer = 0;
@@ -1627,16 +1627,20 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     pRoomIndex->people  = ch;
 
     
-    if ( !IS_NPC(ch) )
+    if ( IS_PLAYER(ch) )
     {
-        if (ch->in_room->area->empty)
+        if ( ch->in_room->area->empty )
         {
             ch->in_room->area->empty = FALSE;
             ch->in_room->area->age = 0;
         }
         ++ch->in_room->area->nplayer;
-	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
-	  load_storage_boxes(ch);
+    }
+    
+    if ( !IS_NPC(ch) )
+    {
+        if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) )
+            load_storage_boxes(ch);
     }
     
     if ( ( obj = get_eq_char( ch, WEAR_LIGHT ) ) != NULL
