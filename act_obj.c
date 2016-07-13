@@ -1169,6 +1169,7 @@ DEF_DO_FUN(do_give)
     // NPCs typically don't want items, so we drop them to prevent lots of possible screw-ups
     // where players give the wrong items to the wrong NPCs
     if ( !give_trigger_activated 
+            && obj->carried_by == victim /* could have moved from ACT triggers */
             && !is_mprog_running() && !g_LuaScriptInProgress
             && !HAS_OTRIG( obj, OTRIG_GIVE ) 
             && IS_NPC(victim) 
