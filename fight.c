@@ -3356,35 +3356,6 @@ void direct_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int sn )
     }
 }
 
-// same as direct_damage(), but accepts dam_type instead of sn
-static void direct_damage_dt( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, int sn )
-{
-    dam = URANGE( 0, dam, victim->hit - 1 );
-    victim->hit -= dam;
-
-    check_killer(ch, victim);
-    if ( ch->in_room == victim->in_room )
-        start_combat(ch, victim);
-    remember_attack(victim, ch, dam);
-
-    #ifdef FSTAT
-    victim->damage_taken += dam;
-    ch->damage_dealt += dam;
-    #endif
-
-    if ( dam > 0 )
-    {
-        // Sleeping victims wake up
-        if ( IS_AFFECTED(victim, AFF_SLEEP) )
-            affect_strip_flag( victim, AFF_SLEEP );
-        if ( victim->position == POS_SLEEPING )
-            set_pos( victim, POS_RESTING );
-        
-        if ( sn > 0 )
-            dam_message(ch,victim,dam,sn,FALSE);
-    }
-}
-
 /*
 * Inflict reduced damage from a hit.
 */
@@ -3788,17 +3759,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 direct_damage( ch, ch, iron_dam, skill_lookup("iron maiden") );
             else
                 direct_damage( ch, ch, iron_dam, 0 );
-        }
-    }
-
-    // mini maiden returns part of the damage as well
-    if ( IS_AFFECTED(ch, AFF_MINI_MAIDEN) && ch != victim )
-    {
-        int mini_dam = dam/6;
-
-        if ( mini_dam > 0 )
-        {
-            direct_damage_dt( ch, ch, mini_dam, first_dam_type, gsn_reflective_bubble );
         }
     }
 

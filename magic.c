@@ -1027,7 +1027,6 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
             || target != TARGET_CHAR
             || vo == NULL
             || !IS_AFFECTED(victim, AFF_REFLECTION)
-            || !IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN)
             || number_bits(3) )
         return vo;
 
