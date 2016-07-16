@@ -343,6 +343,7 @@ const struct flag_type affect_flags[] =
     { "passive song",      AFF_PASSIVE_SONG,         TRUE  },
     { "lullaby",           AFF_LULLABY,              TRUE  },
     { "deadly dance",      AFF_DEADLY_DANCE,         TRUE  },
+    { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { NULL,                0,                        0     }
 };
 
