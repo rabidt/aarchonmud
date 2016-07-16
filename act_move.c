@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include "merc.h"
 #include "tables.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -2032,13 +2033,7 @@ DEF_DO_FUN(do_stand)
         set_pos(ch, POS_STANDING);
           if (!IS_NPC(ch))
           {
-            if (IS_AFFECTED(ch, AFF_LULLABY))
-            {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
-            } else
-            {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-            }
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
           }
 	  do_look(ch,"auto");
 	  break;
@@ -2169,12 +2164,7 @@ DEF_DO_FUN(do_rest)
       {
           if (!IS_NPC(ch))
           {
-            if (IS_AFFECTED(ch, AFF_LULLABY))
-            {
-                ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
-            } else {
-                ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-            }
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
           }
        }
 
@@ -2221,12 +2211,7 @@ DEF_DO_FUN(do_rest)
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
           {
-            if (IS_AFFECTED(ch, AFF_LULLABY))
-            {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
-            } else {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-            }  
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0; 
           }
 	  break;
 	  
@@ -2254,12 +2239,7 @@ DEF_DO_FUN(do_rest)
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
           {
-            if (IS_AFFECTED(ch, AFF_LULLABY))
-            { 
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
-            } else {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-            }
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
           }
 	  break;
    }
@@ -2373,12 +2353,7 @@ DEF_DO_FUN(do_sit)
         
           if (!IS_NPC(ch))
           {
-            if (IS_AFFECTED(ch, AFF_LULLABY))
-            { 
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 2;
-            } else {
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
-            }
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
           }
     }
     else
@@ -2476,6 +2451,12 @@ DEF_DO_FUN(do_sleep)
 		 }
 		 ch->position = POS_SLEEPING;
 	  }
+      if (ch->song != 0)
+      {
+         ch->song = SONG_DEFAULT;
+         remove_bard_song_group(ch);
+         send_to_char("You are no longer singing.\n\r", ch);
+      }
 	  break;
 	  
    case POS_FIGHTING:
