@@ -71,22 +71,22 @@ static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
     {
         AFFECT_DATA af;
 
-        if (IS_AFFECTED(victim, AFF_MINI_MAIDEN))
+        if (IS_AFFECTED(victim, AFF_IRON_MAIDEN))
         {
             return;
         }
 
         if (saves_spell(victim, ch, level, DAM_MENTAL))
         {
-            send_to_char( "Your damage is being reflected back to you!\n\r", victim );
-            act( "$n is encased in a reflective bubble!", victim, NULL, NULL, TO_ROOM );
+            send_to_char( "You're being tortured with 1000 needles!\n\r", victim );
+            act( "$n is being tortured by 1000 needles!", victim, NULL, NULL, TO_ROOM );
             af.where     = TO_AFFECTS;
-            af.type      = gsn_reflective_bubble;
+            af.type      = gsn_iron_maiden;
             af.level     = level;
             af.duration  = 0;
             af.location  = 0;
             af.modifier  = 0;
-            af.bitvector = AFF_MINI_MAIDEN;
+            af.bitvector = AFF_IRON_MAIDEN;
             affect_to_char( victim, &af );
         }
     }
