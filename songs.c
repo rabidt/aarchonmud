@@ -23,10 +23,9 @@
 #include "interp.h"
 #include "songs.h"
 
-static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
+static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 {
     int song = ch->song;
-    int level = ch->level;
 
     if ( is_safe(ch, victim) )
         return;
@@ -76,7 +75,7 @@ static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
             return;
         }
 
-        if (saves_spell(victim, ch, level, DAM_MENTAL))
+        if ( !saves_spell(victim, ch, level, DAM_MENTAL) )
         {
             send_to_char( "You're being tortured with 1000 needles!\n\r", victim );
             act( "$n is being tortured by 1000 needles!", victim, NULL, NULL, TO_ROOM );
@@ -139,7 +138,7 @@ DEF_DO_FUN(do_wail)
         // higher level means harder to resist
         level = UMIN(level * 1.5, 200);
 
-    wail_at(ch, victim, dam + bonus);
+    wail_at(ch, victim, level, dam + bonus);
     // make this a room skill if affected by deadly dance
     if ( song == SONG_DEADLY_DANCE )
     {
@@ -148,7 +147,7 @@ DEF_DO_FUN(do_wail)
         {
             vch_next = vch->next_in_room;
             if ( is_opponent(ch, vch) && vch != victim )
-                wail_at(ch, vch, dam * AREA_SPELL_FACTOR);
+                wail_at(ch, vch, level, dam * AREA_SPELL_FACTOR);
         }
     }
     check_improve(ch, gsn_wail, TRUE, 3);
@@ -336,6 +335,9 @@ DEF_DO_FUN(do_sing)
     }
 
     ch->song = i;
+    // starting a song/switching takes time
+    // in particular this prevents spamming for reflective hymn refresh
+    WAIT_STATE(ch, PULSE_VIOLENCE);
 
     printf_to_char(ch, "You begin singing the %s.\n\r", songs[i].name);
     if ( ch->fighting != NULL )
