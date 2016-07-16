@@ -2232,6 +2232,31 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     }
 }
 
+// attacks can sometimes be reflected back to the attacked, similar to reflection
+bool check_reflect_attack( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( ch == victim || !IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN) || number_bits(2) )
+        return FALSE;
+    act_gag("Your attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_CHAR, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding you.", ch, NULL, victim, TO_VICT, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_NOTVICT, GAG_FADE);
+    // attack reflected - this may destroy the affect in a burst of sound
+    AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_REFLECTIVE_HYMN);
+    if ( aff )
+    {
+        int reflect = aff->level * 5;
+        int attack = ch->level * (IS_NPC(ch) ? 2 : 4); // simple estimate for damage
+        if ( number_range(0, reflect) < number_range(0, attack) )
+        {
+            act("The sound-bubble surrounding you bursts.", victim, NULL, NULL, TO_CHAR);
+            act("The sound-bubble surrounding $n bursts.", victim, NULL, NULL, TO_ROOM);
+            affect_strip_flag(victim, AFF_REFLECTIVE_HYMN);
+            deal_damage(victim, ch, reflect, gsn_reflective_hymn, DAM_SOUND, TRUE, TRUE);
+        }
+    }
+    return TRUE;
+}
+
 /*
 * Hit one guy once.
 */
@@ -4839,6 +4864,9 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_mirror( ch, victim, show ) )
         return TRUE;
     if ( check_phantasmal( ch, victim, show ) )
+        return TRUE;
+    
+    if ( check_reflect_attack( ch, victim ) )
         return TRUE;
 
     if ( ch->stance == STANCE_DIMENSIONAL_BLADE && per_chance(50) )
