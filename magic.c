@@ -5835,6 +5835,7 @@ DEF_SPELL_FUN(spell_summon)
     }
     if ( IS_TAG(ch)
             || IS_REMORT(ch)
+            || PLR_ACT(ch, PLR_WAR)
             || IS_SET(ch->in_room->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(ch->in_room->room_flags, ROOM_ARENA))
     {
