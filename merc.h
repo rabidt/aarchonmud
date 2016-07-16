@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         480
+#define MAX_SKILL         481
 #define MAX_GROUP          82 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1635,6 +1635,7 @@ struct  kill_data
 #define AFF_LULLABY           86
 #define AFF_DEADLY_DANCE      87
 #define AFF_ARCANE_ANTHEM     88
+#define AFF_MINI_MAIDEN       89
 
 /*
  * Sex.
@@ -3710,6 +3711,7 @@ extern sh_int  gsn_bears_endurance;
 extern sh_int  gsn_cats_grace;
 extern sh_int  gsn_coercion;
 extern sh_int  gsn_instrument;
+extern sh_int  gsn_reflective_bubble;
 
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
@@ -4747,12 +4749,6 @@ void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
 void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim );
 int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
-
-/* we're moving out some do_kick stuff from kung fu to fight2.c */
-void execute_kick(CHAR_DATA *ch, const char *argument, bool auto_attack);
-void execute_chop(CHAR_DATA *ch, const char *argument, bool auto_attack);
-void execute_bite(CHAR_DATA *ch, const char *argument, bool auto_attack);
-
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );

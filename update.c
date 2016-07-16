@@ -1240,7 +1240,13 @@ void char_update( void )
         {
             if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
             {
-                ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
+                int deep_sleep_gain = 1;
+                // 50% chance to get another deep sleep if AFF_LULLABY
+                if (IS_AFFECTED(ch, AFF_LULLABY) && number_bits(1))
+                {
+                    deep_sleep_gain = 2;
+                }
+                ch->pcdata->condition[COND_DEEP_SLEEP] += deep_sleep_gain;
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
