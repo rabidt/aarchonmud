@@ -23,14 +23,15 @@
 #include "interp.h"
 #include "songs.h"
 
-void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
+static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int dam )
 {
     int song = ch->song;
+    int level = ch->level;
 
     if ( is_safe(ch, victim) )
         return;
     
-    if ( saves_physical(victim, ch, ch->level, DAM_SOUND) )
+    if ( saves_physical(victim, ch, level, DAM_SOUND) )
     {
         // half damage and no extra effects
         full_dam(ch, victim, dam/2, gsn_wail, DAM_SOUND, TRUE);
@@ -43,12 +44,11 @@ void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
     if ( song == SONG_LULLABY )
     {
         AFFECT_DATA af;
-        int level = ch->level;
 
         if ( IS_UNDEAD(victim) || IS_SET(victim->imm_flags, IMM_SLEEP) || IS_IMMORTAL(victim) )
             return;
     
-        if ( saves_spell(victim, ch, ch->level, DAM_MENTAL)
+        if ( saves_spell(victim, ch, level, DAM_MENTAL)
                 || number_bits(2)
                 || (!IS_NPC(victim) && number_bits(1)) )
             return;
@@ -69,7 +69,26 @@ void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
     }
     else if ( song == SONG_REFLECTIVE_HYMN )
     {
-        // TODO
+        AFFECT_DATA af;
+
+        if (IS_AFFECTED(victim, AFF_MINI_MAIDEN))
+        {
+            return;
+        }
+
+        if (saves_spell(victim, ch, level, DAM_MENTAL))
+        {
+            send_to_char( "Your damage is being reflected back to you!\n\r", victim );
+            act( "$n is encased in a reflective bubble!", victim, NULL, NULL, TO_ROOM );
+            af.where     = TO_AFFECTS;
+            af.type      = gsn_reflective_bubble;
+            af.level     = level;
+            af.duration  = 0;
+            af.location  = 0;
+            af.modifier  = 0;
+            af.bitvector = AFF_MINI_MAIDEN;
+            affect_to_char( victim, &af );
+        }
     }
     else if ( song == SONG_COMBAT_SYMPHONY )
     {
@@ -120,7 +139,7 @@ DEF_DO_FUN(do_wail)
         // higher level means harder to resist
         level = UMIN(level * 1.5, 200);
 
-    wail_at(ch, victim, level, dam + bonus);
+    wail_at(ch, victim, dam + bonus);
     // make this a room skill if affected by deadly dance
     if ( song == SONG_DEADLY_DANCE )
     {
@@ -129,7 +148,7 @@ DEF_DO_FUN(do_wail)
         {
             vch_next = vch->next_in_room;
             if ( is_opponent(ch, vch) && vch != victim )
-                wail_at(ch, vch, level, dam * AREA_SPELL_FACTOR);
+                wail_at(ch, vch, dam * AREA_SPELL_FACTOR);
         }
     }
     check_improve(ch, gsn_wail, TRUE, 3);
@@ -195,7 +214,7 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
 }
 */
 
-void apply_bard_song_affect(CHAR_DATA *ch, int song)
+static void apply_bard_song_affect(CHAR_DATA *ch, int song)
 {
     AFFECT_DATA af;
 
@@ -408,6 +427,12 @@ int song_cost( CHAR_DATA *ch, int song )
     int sn = *(songs[song].gsn);
     int skill = get_skill(ch, sn);
     int cost = songs[song].cost * (140-skill)/40;
+
+    // more expensive if not fighting/standing
+    if (ch->position == POS_RESTING || ch->position == POS_SITTING)
+    {
+        cost = cost * 1.5;
+    }
 
     return cost;
 }

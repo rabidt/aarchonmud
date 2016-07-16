@@ -32,7 +32,6 @@ DECLARE_DO_FUN( do_bear     );
 DECLARE_DO_FUN( do_cat      );
 
 
-void apply_bard_song_affect(CHAR_DATA *ch, int song);
 void apply_bard_song_affect_to_group(CHAR_DATA *ch);
 void check_bard_song( CHAR_DATA *ch );
 void remove_bard_song( CHAR_DATA *ch );
