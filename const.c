@@ -8149,17 +8149,6 @@ struct  skill_type
     },
 
     {
-    "reflective bubble", 
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_null,   TAR_VIS_CHAR_OFF,      POS_FIGHTING,
-    &gsn_reflective_bubble, 60, 12, DUR_BRIEF,
-    "reflective bubble",         "Your reflective bubble pops.",  ""
-    },
-
-    {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
