@@ -2224,13 +2224,7 @@ DEF_DO_FUN(do_mphit)
     CHAR_DATA *victim;
 
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
-    {
-        bugf( "do_mphit: no victim found for %s(%d), argument: %s",
-                ch->name,
-                IS_NPC(ch) ? ch->pIndexData->vnum : 0,
-                argument);
-	    return;
-    }
-
-    one_hit( ch, victim, TYPE_UNDEFINED, FALSE );
+        victim = ch->fighting;
+    if ( victim != NULL )
+        one_hit( ch, victim, TYPE_UNDEFINED, FALSE );
 }
