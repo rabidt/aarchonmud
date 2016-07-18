@@ -148,7 +148,17 @@ void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 u_short port;
 int control;
 
+#ifdef UNITTEST
 int main( int argc, char **argv )
+{
+    RunAllTests();
+    return 0;
+}
+
+int aarchon_main( int argc, char **argv )
+#else
+int main( int argc, char **argv )
+#endif
 {
     struct timeval now_time;
     bool fCopyOver = FALSE;
@@ -227,8 +237,11 @@ int main( int argc, char **argv )
 
     /* check aprog boot triggers */
     ap_boot_trigger();
-
+#ifdef LIVETEST 
+    RunAllTests();
+#else
     game_loop_unix( control );
+#endif
     close (control);
 
     /*
