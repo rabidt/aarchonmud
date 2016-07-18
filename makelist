@@ -1,2 +1,0 @@
-ls -l *.c > list.txt
-ls -l *.h >> list.txt
