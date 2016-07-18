@@ -87,11 +87,11 @@ unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
 		$(L_FLAGS)
 	./aeaea_unittest
 
-_live_tests:
+_live_tests: $(OBJDIR)
 	./tests/make-live-tests.sh > ./tests/LiveTests.c
 	$(CC) -c $(C_FLAGS) -o $(OBJDIR)/LiveTests.o ./tests/LiveTests.c
 
-_unit_tests:
+_unit_tests: $(OBJDIR)
 	./tests/make-unit-tests.sh > ./tests/UnitTests.c
 	$(CC) -c $(C_FLAGS) -o $(OBJDIR)/UnitTests.o ./tests/UnitTests.c
 
