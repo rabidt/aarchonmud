@@ -476,6 +476,13 @@ void check_bard_song(CHAR_DATA *ch)
     {
         remove_bard_song(ch);
         apply_bard_song_affect(ch, ch->song, ch->level);
+
+        // remove cost if not fighting
+        if (ch->fighting == NULL)
+        {
+            deduct_song_cost(ch);
+            check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
+        }
         return;
     }
 
