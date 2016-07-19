@@ -213,12 +213,16 @@ void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int
 }
 */
 
-static void apply_bard_song_affect(CHAR_DATA *ch, int song)
+static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
 {
     AFFECT_DATA af;
 
+    // since song_num is a pointer (I think?) need to redeclare as int so
+    // that the #define SONG_* check will work
+    int song = song_num;
+
     af.where     = TO_AFFECTS;
-    af.level     = ch->level;
+    af.level     = level;
     af.duration  = -1;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
@@ -264,22 +268,25 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song)
         affect_to_char(ch, &af);
         af.bitvector = AFF_ARCANE_ANTHEM;
         affect_to_char(ch, &af);     
-    } 
+    }
 }
 
+/*
 void apply_bard_song_affect_to_group(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
     int song = ch->song;
+    int bard_level = ch->level;
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( is_same_group(gch, ch) )
         {
-            apply_bard_song_affect(gch, song);
+            apply_bard_song_affect(gch, song, bard_level);
         }
     }
 }
+*/
 
 // completely ripped off do_stance. not ashamed
 DEF_DO_FUN(do_sing)
@@ -298,9 +305,10 @@ DEF_DO_FUN(do_sing)
             send_to_char("You already stopped singing.\n\r", ch);
             return;
         }
-        remove_bard_song_group(ch);
+        //remove_bard_song_group(ch);
         send_to_char("You are no longer singing.\n\r", ch);
         ch->song = SONG_DEFAULT;
+        check_bard_song_group(ch);
         return;
     }
 
@@ -348,15 +356,70 @@ DEF_DO_FUN(do_sing)
     }
 
     // make sure any songs already applied are taken away first
-    remove_bard_song_group(ch);
-    apply_bard_song_affect_to_group(ch);
+    check_bard_song_group(ch);
+    //remove_bard_song_group(ch);
+    //apply_bard_song_affect_to_group(ch);
     
 }
 
-int check_bard_room(CHAR_DATA *ch)
+
+void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
+{
+    *level = 0;
+    *song = 0;
+
+    CHAR_DATA *gch;
+
+    // first pick the leader's song
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) && gch->leader != NULL)
+        {
+            if (gch->leader->song !=0)
+            {
+                *level = gch->leader->level;
+                *song = gch->leader->song;
+            }
+        }
+    }
+
+    // we found our leader's song, return out
+    if (*level != 0 && *song != 0) return;
+
+    // then, if leader not singing, pick a "random" song
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) )
+        {
+            if (gch->song != 0)
+            {
+                *level = gch->level;
+                *song = gch->song;
+            }
+        }
+    }
+}
+
+/*
+int get_bard_song(CHAR_DATA *ch)
 {
     CHAR_DATA *gch;
-    int song = 0;
+    int song;
+
+    // first pick the leader's song
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) && gch->leader != NULL)
+        {
+            if (gch->leader->song !=0)
+            {
+                song = gch->leader->song;
+                return song;
+            }
+        }
+    }
+
+    // then, if leader not singing, pick a "random" song
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( is_same_group(gch, ch) )
@@ -364,37 +427,78 @@ int check_bard_room(CHAR_DATA *ch)
             if (gch->song != 0)
             {
                 song = gch->song;
-                break;
+                return song;
             }
         }
     }
-    return song;
+    return 0;
 }
+
+int get_bard_level(CHAR_DATA *ch)
+{
+    CHAR_DATA *gch;
+    int bard_level;
+
+    // first pick the leader's level
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) && gch->leader != NULL )
+        {
+            if (gch->leader->song !=0)
+            {
+                bard_level = gch->level;
+                return bard_level;
+            }
+        }
+    }
+
+    // then, if leader not singing, pick a "random" bard level
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) )
+        {
+            if (gch->song != 0 )
+            {
+                bard_level = gch->level;
+                return bard_level;
+            }
+        }
+    }
+    return 0;
+}
+*/
 
 void check_bard_song(CHAR_DATA *ch)
 {
-    int song = ch->song;
-    
-    if (song != 0)
-    {   
-        // if they're fighting we'll deduct cost in fight.c
-        if (ch->fighting == NULL)
-        {
-            deduct_song_cost(ch);
-            check_improve(ch, *(songs[song].gsn), TRUE, 3);
-        }
-    }
-    int group_song = check_bard_room(ch);
-    if ( IS_AFFECTED(ch, AFF_SONG) )
+
+     // first check to assign bard song to himself
+    if (ch->song != 0)
     {
-        if (group_song == 0)
-        {
-            remove_bard_song(ch);
-        }
+        remove_bard_song(ch);
+        apply_bard_song_affect(ch, ch->song, ch->level);
+        return;
+    }
+
+    int song, level;
+    get_bard_level_and_song(ch, &level, &song);
+
+    if (song == 0)
+    {
+        remove_bard_song(ch);
     } else {
-        if (group_song != 0)
+        remove_bard_song(ch);
+        apply_bard_song_affect(ch, song, level);
+    }
+}
+
+void check_bard_song_group(CHAR_DATA *ch)
+{
+    CHAR_DATA *gch;
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( is_same_group(gch, ch) )
         {
-            apply_bard_song_affect(ch, group_song);
+            check_bard_song(gch);
         }
     }
 }
