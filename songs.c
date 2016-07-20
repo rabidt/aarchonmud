@@ -217,52 +217,49 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
 {
     AFFECT_DATA af;
 
-    // since song_num is a pointer (I think?) need to redeclare as int so
-    // that the #define SONG_* check will work
-    int song = song_num;
-
     af.where     = TO_AFFECTS;
     af.level     = level;
     af.duration  = -1;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
     af.bitvector = AFF_SONG;
-    if (song == SONG_COMBAT_SYMPHONY)
+    
+    if (song_num == SONG_COMBAT_SYMPHONY)
     {
         af.type      = gsn_combat_symphony;
         affect_to_char(ch, &af);
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
-    else if (song == SONG_DEVASTATING_ANTHEM)
+    else if (song_num == SONG_DEVASTATING_ANTHEM)
     {
         af.type      = gsn_devastating_anthem;
         affect_to_char(ch, &af);  
         af.bitvector = AFF_DEVASTATING_ANTHEM;
         affect_to_char(ch, &af);   
     }
-    else if (song == SONG_REFLECTIVE_HYMN)
+    else if (song_num == SONG_REFLECTIVE_HYMN)
     {
         af.type      = gsn_reflective_hymn;
         affect_to_char(ch, &af);
         af.bitvector = AFF_REFLECTIVE_HYMN;
         affect_to_char(ch, &af);
     }
-    else if (song == SONG_LULLABY)
+    else if (song_num == SONG_LULLABY)
     {
         af.type      = gsn_lullaby;
         affect_to_char(ch, &af);
         af.bitvector = AFF_LULLABY;
         affect_to_char(ch, &af);  
     }
-    else if (song == SONG_DEADLY_DANCE)
+    else if (song_num == SONG_DEADLY_DANCE)
     {
         af.type      = gsn_deadly_dance;
         affect_to_char(ch, &af);
         af.bitvector = AFF_DEADLY_DANCE;
         affect_to_char(ch, &af);     
     }
-    else if (song == SONG_ARCANE_ANTHEM)
+    else if (song_num == SONG_ARCANE_ANTHEM)
     {
         af.type      = gsn_arcane_anthem;
         affect_to_char(ch, &af);
