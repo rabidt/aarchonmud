@@ -38,6 +38,7 @@
 #include "special.h"
 #include "mudconfig.h"
 #include "mob_stats.h"
+#include "songs.h"
 
 extern WAR_DATA war;
 
@@ -252,6 +253,10 @@ bool provoke_attacks( CHAR_DATA *victim )
 void violence_update_char( CHAR_DATA *ch )
 {
     CHAR_DATA *victim;
+    
+    // stance cost must be paid each round while in combat
+    if ( ch->fighting )
+        check_stance(ch);
     
     if ( ch->stop > 0 )
     {
@@ -704,6 +709,15 @@ void special_affect_update(CHAR_DATA *ch)
     gain_hit(ch, heal);
 	update_pos( ch );
     }
+
+    /* song move refresh from combat symphony */
+    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
+    {
+        int heal = 5;
+
+        gain_move(ch, heal);
+        update_pos( ch );
+    } 
 
     /* Infectious Arrow - DOT - Damage over time */
     if ( is_affected(ch, gsn_infectious_arrow) )
@@ -1314,8 +1328,8 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 */
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    int chance, mastery_chance, area_attack_sn;
-    int attacks;
+    int chance, mastery_chance, area_attack_sn = 0;
+    int attacks, offhand_chance;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1364,9 +1378,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     wield = get_eq_char( ch, WEAR_WIELD );
     second = get_eq_char ( ch, WEAR_SECONDARY );
+    offhand_chance = offhand_attack_chance(ch, TRUE);
     
-    check_stance(ch);
-    
+    deduct_song_cost(ch);
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
@@ -1382,7 +1396,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     }
     mastery_chance = mastery_bonus(ch, area_attack_sn, 30, 50);
 
-    if ( per_chance(chance) )
+    if ( chance || IS_AFFECTED(ch, AFF_DEADLY_DANCE) )
     {
         /* For each opponent beyond the first there's an extra attack */
         CHAR_DATA *vch, *vch_next;
@@ -1395,20 +1409,27 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 && !is_safe_check(ch, vch, TRUE, FALSE, FALSE)
                 && ch->fighting != vch )
             {
-                one_hit(ch, vch, dt, FALSE);
                 found = TRUE;
-                // chance for extra (offhand if possible) attack
-                if ( per_chance(mastery_chance) )
+                if ( per_chance(chance) )
                 {
-                    if ( !wield || second )
-                        one_hit(ch, vch, dt, TRUE);
-                    else if ( number_bits(1) )
+                    one_hit(ch, vch, dt, FALSE);
+                    // extra attack from mastery
+                    if ( !offhand_chance && per_chance(mastery_chance / 2) )
                         one_hit(ch, vch, dt, FALSE);
+                    else if ( offhand_chance && per_chance(mastery_chance) )
+                        one_hit(ch, vch, dt, TRUE);
+                }
+                // bonus attacks from deadly dance
+                if ( IS_AFFECTED(ch, AFF_DEADLY_DANCE) && per_chance(wield ? 75 : 100) )
+                {
+                    one_hit(ch, vch, dt, FALSE);
+                    if ( per_chance(offhand_chance / 2) )
+                        one_hit(ch, vch, dt, TRUE);
                 }
             }
         }
         /* improve skill */
-        if ( found )
+        if ( found && area_attack_sn != 0 )
             check_improve(ch, area_attack_sn, TRUE, 3);
     }
 
@@ -1458,7 +1479,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     check_improve(ch, gsn_third_attack, TRUE, 5);
                     
     // offhand attacks
-    int offhand_chance = offhand_attack_chance(ch, TRUE);
     if ( offhand_chance > 0 )
     {
         int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
@@ -1504,6 +1524,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     {
         chance=ch->wait;
         do_chop(ch, "");
+
         if (ch->fighting != NULL)
             do_kick(ch, "");
         ch->wait = chance;
@@ -1587,9 +1608,6 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     wield = get_eq_char(ch, WEAR_WIELD);
     second = get_eq_char(ch, WEAR_SECONDARY);
     shield = get_eq_char(ch, WEAR_SHIELD);
-
-    /* mobs must check their stances too */
-    check_stance(ch);
 
     /* high level mobs get more attacks */
     attacks = level_base_attacks(ch->level);
@@ -2188,13 +2206,14 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         CHECK_RETURN( ch, victim );
     }
     
-    // rapid fire - 10% chance of additional follow-up attack
+    // rapid fire - chance of additional follow-up attack
     if ( is_normal_hit(dt) && is_ranged_weapon(wield) && !IS_SET(wield->extra_flags, ITEM_JAMMED) )
     {
         bool rapid_fire = check_skill(ch, gsn_rapid_fire);
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
+            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
         }
@@ -2212,6 +2231,31 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
                 one_hit(ch, opp, gsn_massive_swing, secondary);
         }
     }
+}
+
+// attacks can sometimes be reflected back to the attacked, similar to reflection
+bool check_reflect_attack( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( ch == victim || !IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN) || number_bits(2) )
+        return FALSE;
+    act_gag("Your attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_CHAR, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding you.", ch, NULL, victim, TO_VICT, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_NOTVICT, GAG_FADE);
+    // attack reflected - this may destroy the affect in a burst of sound
+    AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_REFLECTIVE_HYMN);
+    if ( aff )
+    {
+        int reflect = aff->level * 5;
+        int attack = ch->level * (IS_NPC(ch) ? 2 : 4); // simple estimate for damage
+        if ( number_range(0, reflect) < number_range(0, attack) )
+        {
+            act("The sound-bubble surrounding you bursts.", victim, NULL, NULL, TO_CHAR);
+            act("The sound-bubble surrounding $n bursts.", victim, NULL, NULL, TO_ROOM);
+            affect_strip_flag(victim, AFF_REFLECTIVE_HYMN);
+            deal_damage(victim, ch, reflect, gsn_reflective_hymn, DAM_SOUND, TRUE, TRUE);
+        }
+    }
+    return TRUE;
 }
 
 /*
@@ -2746,7 +2790,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
-    int dam, old_wait, dt = DAM_BASH;
+    int dam, dt = DAM_BASH;
 
     if ( ch->stance == 0 )
 	return;
@@ -2756,13 +2800,13 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     switch ( ch->stance )
     {
     case STANCE_RHINO:
-	if (number_bits(2) != 0) 
-	    break;
-	old_wait = ch->wait;
-	if ( get_skill(ch, gsn_bash) > 0 )
-	    do_bash(ch, "\0");
-	ch->wait = old_wait;
-	break;
+        if ( number_bits(3) == 0 )
+        {
+            CHAR_DATA *vch = ch->fighting;
+            if ( vch && vch->position >= POS_FIGHTING )
+                bash_effect(ch, vch, gsn_bash);
+        }
+        break;
     case STANCE_SCORPION:
 	if (number_bits(2)==0)
 	    poison_effect((void *)victim, ch->level, number_range(3,8), TARGET_CHAR);
@@ -2797,7 +2841,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->hit += dam;
+	gain_hit(ch, dam);
 	break;
     case STANCE_VAMPIRE_HUNTING:
 	if ((IS_NPC(victim) && IS_SET(victim->act,ACT_UNDEAD))
@@ -2886,7 +2930,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->hit += dam/2;
+	gain_hit(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_MANASUCK))
@@ -2900,7 +2944,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->mana += dam/2;
+	gain_mana(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_MOVESUCK))
@@ -2914,7 +2958,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	CHECK_RETURN( ch, victim );
 	if (number_bits(6) == 0)
 	    drop_align( ch );
-	ch->move += dam/2;
+	gain_move(ch, dam/2);
     }
 	
     if ( IS_WEAPON_STAT(wield,WEAPON_DUMB))
@@ -3050,12 +3094,12 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     {
         switch ( wield->value[0] )
         {
-        case WEAPON_EXOTIC: chance = 0; break;
+        case WEAPON_EXOTIC:
         case WEAPON_DAGGER:
         case WEAPON_POLEARM: chance = 1; break;
         case WEAPON_SWORD: chance = 5; break;
         case WEAPON_AXE: chance = 25; break;
-        default: return;
+        default: chance = 0; break;
         }
         
         if ( ch->stance == STANCE_SHADOWCLAW )
@@ -3106,6 +3150,11 @@ void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         act("In a mighty strike, your claws separate $N's neck.", ch, NULL, victim, TO_CHAR);
         act("In a mighty strike, $n's claws separate $N's neck.", ch, NULL, victim, TO_NOTVICT);
         act("$n slashes $s claws through your neck.", ch, NULL, victim, TO_VICT);
+    }
+    else if ( wield->value[0] == WEAPON_MACE || wield->value[0] == WEAPON_FLAIL )
+    {
+        act("$n's head is bashed in by $p.", victim, wield, NULL, TO_ROOM);
+        act("Your head is bashed in by $p.", victim, wield, NULL, TO_CHAR);
     }
     else
     {
@@ -3545,6 +3594,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         {
             dam = adjust_damage(ch, victim, dam, dam_type);
             immune = (check_immune(victim, dam_type) == IS_IMMUNE);
+        }
+    }
+
+    /* check songs next */
+    if ( dam > 0 && normal_hit )
+    {
+        if (IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM))
+        {
+            dam += 5 + dam / 5;
         }
     }
 
@@ -4022,6 +4080,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     OBJ_DATA *corpse;
     bool killed_in_war = FALSE;
     bool morgue = FALSE;
+    bool can_loot = FALSE;
 
     /* safety-net */
     if ( victim->just_killed )
@@ -4272,8 +4331,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         morgue = (bool) (!IS_NPC(victim) && (IS_NPC(ch) || (ch==victim) ));
 
-
-        raw_kill( victim, ch, morgue );
+        can_loot = raw_kill( victim, ch, morgue );
 
         /* dump the flags */
         if (ch != victim && !is_same_clan(ch,victim))
@@ -4289,6 +4347,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     /* RT new auto commands */
 
     if ( !IS_NPC(ch)
+            && can_loot
             && (corpse = get_obj_list(ch,"corpse",ch->in_room->contents)) != NULL
             && corpse->item_type == ITEM_CORPSE_NPC
             && can_see_obj(ch,corpse)
@@ -4806,6 +4865,9 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_mirror( ch, victim, show ) )
         return TRUE;
     if ( check_phantasmal( ch, victim, show ) )
+        return TRUE;
+    
+    if ( check_reflect_attack( ch, victim ) )
         return TRUE;
 
     if ( ch->stance == STANCE_DIMENSIONAL_BLADE && per_chance(50) )
@@ -5719,7 +5781,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         corpse      = create_object_vnum(OBJ_VNUM_CORPSE_NPC);
         corpse->timer   = number_range( 25, 40 );
         
-        if (killer && !IS_NPC(killer) && !go_morgue)
+        if ( killer && !IS_NPC(killer) && !go_morgue && !IS_SET(killer->act, PLR_CANLOOT) )
             corpse->owner = str_dup(killer->name);
         
         if ( victim->gold > 0 || victim->silver > 0 )
@@ -5994,16 +6056,17 @@ void death_cry( CHAR_DATA *ch )
 }
 
 
-
-void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
+// returns TRUE if corpse is created in local room => autoloot/gold
+bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 {
     ROOM_INDEX_DATA *kill_room = victim->in_room;
+    bool corpse_created = FALSE;
     
     /* backup in case hp goes below 1 */
     if (NOT_AUTHED(victim))
     {
         bug( "raw_kill: killing unauthed", 0 );
-        return;
+        return FALSE;
     }
     
     stop_fighting( victim, TRUE );
@@ -6014,19 +6077,27 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 	 (victim->pIndexData->vnum == MOB_VNUM_VAMPIRE
 	  || IS_SET(victim->form, FORM_INSTANT_DECAY)) )
     {
-	act( "$n crumbles to dust.", victim, NULL, NULL, TO_ROOM );
-	drop_eq( victim );
+        act( "$n crumbles to dust.", victim, NULL, NULL, TO_ROOM );
+        drop_eq( victim );
+        if ( victim->gold || victim->silver )
+        {
+            obj_to_room( create_money(victim->gold, victim->silver), victim->in_room );
+            victim->gold = victim->silver = 0;
+        }
     }
     else if ( IS_NPC(victim) || !IS_SET(kill_room->room_flags, ROOM_ARENA) )
-	make_corpse( victim, killer, to_morgue);
+    {
+        make_corpse( victim, killer, to_morgue);
+        corpse_created = !to_morgue;
+    }
     
     if ( IS_NPC(victim) )
     {
         victim->pIndexData->killed++;
         kill_table[URANGE(0, victim->level, MAX_LEVEL-1)].killed++;
         extract_char( victim, TRUE );
-	update_room_fighting( kill_room );
-        return;
+        update_room_fighting( kill_room );
+        return corpse_created;
     }
 
     victim->pcdata->condition[COND_HUNGER] =
@@ -6043,7 +6114,7 @@ void raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
     victim->mana    = UMAX( 1, victim->mana );
     victim->move    = UMAX( 1, victim->move );
     update_room_fighting( kill_room );
-    return;
+    return corpse_created;
 }
 
 /* check if the gods have mercy on a character */
@@ -7434,6 +7505,7 @@ DEF_DO_FUN(do_murder)
     multi_hit (ch, victim, TYPE_UNDEFINED); 
     return;    
 }
+
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {

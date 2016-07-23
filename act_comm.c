@@ -39,6 +39,7 @@
 #include "simsave.h"
 #include "interp.h"
 #include "warfare.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -279,7 +280,7 @@ DEF_DO_FUN(do_channels)
     }
 
     ptc( ch, "Your chat window is turned %s.\n\r",
-            ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
+            ( USE_CHAT_WIN(ch) ) ? "ON" : "OFF" );
     
     if (ch->prompt != NULL)
     {
@@ -470,7 +471,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
     }
     else  /* channel message sent, turn channel on if it isn't already */
     {
-        if (!IS_NPC(ch) && ch->level < chan->min_level && ch->pcdata->remorts == 0 )
+        if (!IS_NPC(ch) && ch->level < chan->min_level && ch->pcdata->remorts == 0 && ch->pcdata->ascents == 0 )
         {
 	    printf_to_char( ch, "You can't use %s channel until level %d.\n\r", chan->name, chan->min_level);
             return;
@@ -504,9 +505,8 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
         argument=parse_url(arg_buf);
         
         sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
-        show_image_to_char( ch, buf );
         send_to_char( buf, ch );
-        if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+        if (USE_CHAT_WIN(ch))
         {
             open_chat_tag( ch );
             send_to_char( buf, ch );
@@ -551,8 +551,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                     act_new( buf,
                         ch, argument, d->character, TO_VICT, POS_DEAD);
 
-                    if ( d->character->pcdata && 
-                            d->character->pcdata->guiconfig.chat_window )
+                    if (USE_CHAT_WIN(d->character))
                     {
                         open_chat_tag( d->character );
                         act_new( buf,
@@ -639,7 +638,7 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
             sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
             act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
 
-            if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+            if ( USE_CHAT_WIN(victim) )
             {
                 open_chat_tag( victim );
                 act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
@@ -732,7 +731,7 @@ DEF_DO_FUN(do_clantalk)
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->clan_history, buf);
-    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    if ( USE_CHAT_WIN(ch) )
     {
         open_chat_tag( ch );
         send_to_char( buf, ch );
@@ -768,8 +767,7 @@ DEF_DO_FUN(do_clantalk)
                 send_to_char(buf,d->character);
 				if ( !IS_NPC(ch) )
 					log_pers(d->character->pcdata->clan_history, buf);
-                if ( d->character->pcdata &&
-                        d->character->pcdata->guiconfig.chat_window )
+                if ( USE_CHAT_WIN(d->character) )
                 {
                     open_chat_tag( d->character );
                     send_to_char( buf, d->character );
@@ -926,7 +924,7 @@ DEF_DO_FUN(do_info)
                     sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
                     act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                     
-                    if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+                    if ( USE_CHAT_WIN(victim) )
                     {
                         open_chat_tag( victim );
                         act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
@@ -1170,7 +1168,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
 
-    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    if ( USE_CHAT_WIN(ch) )
     {
         open_chat_tag( ch );
         send_to_char( buf, ch );
@@ -1218,7 +1216,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
     {
 	    /* send as regular */
 	    send_to_char(buf, victim);
-        if ( victim->pcdata && victim->pcdata->guiconfig.chat_window )
+        if ( USE_CHAT_WIN(victim) )
         {
             open_chat_tag( victim );
             send_to_char( buf, victim );
@@ -1834,15 +1832,17 @@ void log_bugs(char *str)
 
 DEF_DO_FUN(do_bug)
 {
-    append_file( ch, BUG_FILE, argument );
-    send_to_char( "Bug logged.\n\r", ch );
+    //append_file( ch, BUG_FILE, argument );
+    //send_to_char( "Bug logged.\n\r", ch );
+    send_to_char("Please report bugs on the Bugs board, using the {gboard{x and {gnote{x commands.\n\r", ch);
     return;
 }
 
 DEF_DO_FUN(do_typo)
 {
-    append_file( ch, TYPO_FILE, argument );
-    send_to_char( "Typo logged.\n\r", ch );
+    //append_file( ch, TYPO_FILE, argument );
+    //send_to_char( "Typo logged.\n\r", ch );
+    send_to_char("Please report typos on the Bugs board, using the {gboard{x and {gnote{x commands.\n\r", ch);
     return;
 }
 
@@ -2272,7 +2272,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
         NPC_OFF(gch, OFF_RESCUE) || PLR_ACT(gch, PLR_AUTORESCUE) ? "{WR{x" : " ",
         is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
         IS_AFFECTED(gch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
-        is_affected(gch, gsn_giant_strength) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
+        IS_AFFECTED(gch, AFF_GIANT_STRENGTH) ? "{WG{x" : get_skill(ch, gsn_giant_strength) > 1 ? "{Rg{x" : " ",
         IS_AFFECTED(gch, AFF_HASTE) ? "{WH{x" : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? "{Rh{x" : " ",
         IS_AFFECTED(gch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
         is_affected(gch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
@@ -2335,6 +2335,7 @@ DEF_DO_FUN(do_group)
             return;
         }
         stop_follower(victim);
+        check_bard_song(victim);
         act_new("$n removes $N from $s group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
         act_new("$n removes you from $s group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
         act_new("You remove $N from your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
@@ -2357,6 +2358,7 @@ DEF_DO_FUN(do_group)
             return;
         }
         try_set_leader( ch, victim );
+        check_bard_song_group(ch);
         return;
     }
     
@@ -2399,6 +2401,7 @@ DEF_DO_FUN(do_group)
     act_new("You join $n's group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
     act_new("$N joins your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
     change_leader(victim, ch);
+    check_bard_song_group(ch);
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
@@ -2606,7 +2609,7 @@ DEF_DO_FUN(do_gtell)
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
-    if ( ch->pcdata && ch->pcdata->guiconfig.chat_window )
+    if ( USE_CHAT_WIN(ch) )
     {
         open_chat_tag( ch );
         send_to_char( buf, ch );
@@ -2627,7 +2630,7 @@ DEF_DO_FUN(do_gtell)
 				if ( !IS_NPC(gch) )
 					log_pers( gch->pcdata->gtell_history, buf);
 
-                if ( gch->pcdata && gch->pcdata->guiconfig.chat_window )
+                if ( USE_CHAT_WIN(gch) )
                 {
                     open_chat_tag( gch );
                     send_to_char( buf, gch );
@@ -3523,49 +3526,23 @@ void close_chat_window( CHAR_DATA *ch )
     ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
 } 
 
-void open_image_window( CHAR_DATA *ch )
-{
-    ptc( ch, "\t<FRAME Name=\"Images\" INTERNAL Align=\"top\">");
-}
-
-void close_image_window( CHAR_DATA *ch )
-{
-    ptc( ch, "\t<FRAME Name=\"Images\" Action=\"CLOSE\">");
-}
-
 void gui_login_setup( CHAR_DATA *ch )
 {
     const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
 
-    if ( ch->pcdata->guiconfig.chat_window )
+    if ( strstr(client, "mudportal" ) || strstr(client, "ArcWeb") )
     {
-        open_chat_window( ch );
-    }
-    else if ( strstr(client, "mudportal" ) )
-    {
-        // always use chatwindow in mudportal cause i said so
         ch->pcdata->guiconfig.chat_window=TRUE;
         open_chat_window( ch );
-        ptc( ch, "{CI see you're using mudportal. Chat window enabled.{x\n\r" );
+        ptc( ch, "{CI see you're using %s. Chat window enabled.{x\n\r", client );
     }
-
-    if ( strstr( client, "zmud") ||
-         strstr( client, "zMUD") ||
-         strstr( client, "cmud") ||
-         strstr( client, "CMUD") )
+    else if (USE_CHAT_WIN(ch))
     {
-        ptc( ch, "{CI see you're using %s. Type '\t(guiconfig\t)' to see some special options.{x\n\r", client);
+        /* Probably only get here if they reconnect from a different client */
+        ch->pcdata->guiconfig.chat_window=FALSE;
+        close_chat_window( ch );
+        ptc( ch, "{CDisabling chat window.\n\r");
     }
-}
-
-void open_imagewin_tag( CHAR_DATA *ch )
-{
-    ptc( ch, "\t<DEST Images>" );
-}
-
-void close_imagewin_tag( CHAR_DATA *ch )
-{
-    ptc( ch, "\t</DEST>" );
 }
 
 void open_chat_tag( CHAR_DATA *ch )
@@ -3583,57 +3560,27 @@ DEF_DO_FUN(do_guiconfig)
     if (IS_NPC(ch))
         return;
 
-    if ( !strcmp( argument, "chat" ) )
+    if (!ch->desc)
+        return;
+    
+    if (!str_cmp(argument, "on"))
     {
-        ch->pcdata->guiconfig.chat_window = !ch->pcdata->guiconfig.chat_window;
-        ptc( ch, "Your chat window is turned %s.\n\r",
-                ch->pcdata->guiconfig.chat_window ? "ON" : "OFF" );
-
-        if ( ch->pcdata->guiconfig.chat_window )
-        {
-            open_chat_window( ch );
-        }
-        else
-        {
-            close_chat_window( ch );
-        }
+        ch->pcdata->guiconfig.chat_window = TRUE;
+        open_chat_window(ch);
+        ptc(ch, "Chat window enabled.\n\r");
         return;
     }
-    else if ( !strcmp( argument, "images" ) )
+    if (!str_cmp(argument, "off"))
     {
-        ch->pcdata->guiconfig.show_images = !ch->pcdata->guiconfig.show_images;
-        ptc( ch, "Display images is turned %s.\n\r",
-                ch->pcdata->guiconfig.show_images ? "ON" : "OFF" );
-        return; 
-    }
-    else if ( !strcmp( argument, "imagewin" ) )
-    {
-        
-        ch->pcdata->guiconfig.image_window = !ch->pcdata->guiconfig.image_window;
-        ptc( ch, "Your image window is turned %s.\n\r",
-                ch->pcdata->guiconfig.image_window ? "ON" : "OFF" );
-
-        if ( ch->pcdata->guiconfig.image_window )
-        {
-            open_image_window( ch );
-        }
-        else
-        {
-            close_image_window( ch );
-        }
+        ch->pcdata->guiconfig.chat_window = FALSE;
+        close_chat_window(ch);
+        ptc(ch, "Chat window disabled.\n\r");
         return;
     }
 
-    ptc( ch, "Your chat window is turned %s.\n\r",
-        ( ch->pcdata && ch->pcdata->guiconfig.chat_window ) ? "ON" : "OFF" );
-    ptc( ch, "'guiconfig chat' to toggle\n\r" );
-
-    ptc( ch, "Display images is %s.\n\r",
-        ( ch->pcdata && ch->pcdata->guiconfig.show_images ) ? "ON" : "OFF" );
-    ptc( ch, "'guiconfig images' to toggle\n\r" );
-
-    ptc( ch, "Image window is %s.\n\r",
-        ( ch->pcdata && ch->pcdata->guiconfig.image_window ) ? "ON" : "OFF" );
-    ptc( ch, "'guiconfig imagewin' to toggle\n\r" );
-
+    ptc( ch, "Your client is %s, chat window is turned %s.\n\r"
+             "Use 'guiconfig on' to manually enable/open chat window.\n\r"
+             "Use 'guiconfig off' to manually disable/close chat window.\n\r",
+        ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString,
+        USE_CHAT_WIN(ch) ? "ON" : "OFF" );
 }

@@ -909,6 +909,13 @@ DEF_DO_FUN(do_taxidermy)
 	    act("You preserve $p for all time.",ch,obj,NULL,TO_CHAR);
 	    obj->timer = -1;
         
+        // remove ownership
+        if ( obj->owner )
+        {
+            free_string(obj->owner);
+            obj->owner = NULL;
+        }
+        
             if (obj->item_type != ITEM_CORPSE_NPC && obj->item_type != ITEM_CORPSE_PC)
             {
                 // add preserved keyword

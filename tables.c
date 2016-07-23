@@ -336,6 +336,14 @@ const struct flag_type affect_flags[] =
     { "shield",            AFF_SHIELD,               TRUE  },
     { "stone_skin",        AFF_STONE_SKIN,           TRUE  },
     { "petrified",         AFF_PETRIFIED,            TRUE  },
+    { "song",              AFF_SONG,                 TRUE  },
+    { "devastating anthem",AFF_DEVASTATING_ANTHEM,   TRUE  },
+    { "reflective hymn",   AFF_REFLECTIVE_HYMN,      TRUE  },
+    { "refresh",           AFF_REFRESH,              TRUE  },
+    { "passive song",      AFF_PASSIVE_SONG,         TRUE  },
+    { "lullaby",           AFF_LULLABY,              TRUE  },
+    { "deadly dance",      AFF_DEADLY_DANCE,         TRUE  },
+    { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -564,6 +572,7 @@ const struct flag_type oprog_flags[] =
     {   "fight",        OTRIG_FIGHT,     TRUE    },
     {   "hit",          OTRIG_HIT,       TRUE    },
     {   "prehit",       OTRIG_PREHIT,    TRUE    },
+    {   "command",      OTRIG_COMMAND,   TRUE    },
     {   "quaff",        OTRIG_QUAFF,     TRUE    },
     {   "open",         OTRIG_OPEN,      TRUE    },
     {   "unlock",       OTRIG_UNLOCK,    TRUE    },
@@ -839,6 +848,7 @@ const struct flag_type extra_flags[] =
     {   "random_caster",       ITEM_RANDOM_CASTER        , TRUE },
     {   "nosac",               ITEM_NO_SAC_EX            , TRUE },
     {   "translucent",         ITEM_TRANSLUCENT_EX       , TRUE },
+    {   "instrument",          ITEM_INSTRUMENT           , TRUE },
 	{   NULL,           0,          0   }
 };
 
@@ -1325,6 +1335,18 @@ const struct stance_type stances [] =
             &gsn_deception,         FALSE, TRUE,          12 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
+};
+
+const struct song_type songs [] =
+{
+    {"default",               SONG_DEFAULT,            NULL,                    0  },
+    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    15 },
+    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 23 },
+    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    22 },
+    {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5  },
+    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       28 },
+    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      26 },
+    { NULL,                   0,                       NULL,                    0  }
 };
 
 const char* spell_target_names[] =

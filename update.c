@@ -43,6 +43,7 @@
 #include "mudconfig.h"
 #include "warfare.h"
 #include "special.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -1239,7 +1240,13 @@ void char_update( void )
         {
             if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
             {
-                ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
+                int deep_sleep_gain = 1;
+                // 50% chance to get another deep sleep if AFF_LULLABY
+                if (IS_AFFECTED(ch, AFF_LULLABY) && number_bits(1))
+                {
+                    deep_sleep_gain = 2;
+                }
+                ch->pcdata->condition[COND_DEEP_SLEEP] += deep_sleep_gain;
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
@@ -1424,8 +1431,11 @@ void char_update( void )
             }
         }
 
+        
         affect_update( ch );
         qset_update( ch );
+        /* songs */
+        check_bard_song( ch ); // from songs.c
 
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
@@ -1587,7 +1597,7 @@ void affect_update( CHAR_DATA *ch )
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
         decompose_update(ch, 0);
-
+    
     /*
      *   Careful with the damages here,
      *   MUST NOT refer to ch after damage taken,
@@ -2958,6 +2968,8 @@ void validate_all()
 {
     CHAR_DATA *ch, *ch_next, *dch, *lch;
     DESCRIPTOR_DATA *desc, *desc_next;
+    AREA_DATA *pArea;
+    ROOM_INDEX_DATA *pRoom;
     
     // characters
     for ( ch = char_list; ch; ch = ch_next )
@@ -3015,6 +3027,12 @@ void validate_all()
                 continue;
             }
         }
+        if ( ch->in_room && !is_in_room(ch) )
+        {
+            bugf("validate_all: ch (%s) not in assigned room (#%d)", ch->name, ch->in_room->vnum);
+            ch->in_room = NULL;
+            continue;
+        }
     }
     // descriptors
     for ( desc = descriptor_list; desc; desc = desc_next )
@@ -3043,4 +3061,36 @@ void validate_all()
             }
         }
     }
+    // areas and rooms
+    for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
+    {
+        // count players
+        int player_count = 0;
+        int vnum;
+        for ( vnum = pArea->min_vnum; vnum <= pArea->max_vnum; vnum++ )
+        {
+            if ( (pRoom = get_room_index(vnum)) != NULL )
+            {
+                for ( ch = pRoom->people; ch != NULL; ch = ch_next )
+                {
+                    ch_next = ch->next_in_room;
+                    if ( ch->in_room != pRoom )
+                    {
+                        bugf("validate_all: ch (%s) in wrong room (#%d != #%d)", ch->name, ch->in_room ? ch->in_room->vnum : 0, pRoom->vnum);
+                        remove_from_room_list(ch, pRoom);
+                        continue;
+                    }
+                    if ( IS_PLAYER(ch) )
+                        player_count++;
+                }
+            }
+        }
+        if ( pArea->nplayer != player_count )
+        {
+            bugf("validate_all: wrong player count (%d != %d) in area %s (#%d-#%d)",
+                pArea->nplayer, player_count, pArea->name, pArea->min_vnum, pArea->max_vnum);
+            pArea->nplayer = player_count;
+        }
+    }
 }
+

@@ -5,6 +5,7 @@
 #include <time.h>
 #include "merc.h"
 #include "mob_stats.h"
+#include "songs.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
@@ -211,8 +212,13 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
             check_lose_stance(ch);
         set_pos(ch, POS_RESTING);
         return;
-    } 
+    }
+    
+    bash_effect(ch, victim, sn);
+}
 
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+{
     // bash < shield bash < charge, and non-wrist shield helps too
     int power = (sn == gsn_charge ? 4 : sn == gsn_shield_bash ? 2 : 1);
     if ( sn != gsn_bash && !offhand_occupied(ch) )
@@ -249,8 +255,9 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     {
         act("You slam into $N, but to no effect!", ch, NULL, victim, TO_CHAR);
         act("$n slams into $N, who stands like a rock!", ch, NULL, victim, TO_NOTVICT);
-        act("You withstand $n's $t with ease.", ch, action, victim, TO_VICT);
-        check_lose_stance(ch);
+        act("You withstand $n's $t with ease.", ch, skill_table[sn].name, victim, TO_VICT);
+        if ( ch->stance != STANCE_RHINO )
+            check_lose_stance(ch);
     }
     check_improve(ch, sn, TRUE, 3);
 
@@ -557,7 +564,6 @@ DEF_DO_FUN(do_headbutt)
         damage( ch, victim, 0, gsn_headbutt,DAM_BASH,TRUE);
         check_improve(ch,gsn_headbutt,FALSE,3);
     }
-    return;
 }
 
 DEF_DO_FUN(do_net)
@@ -850,19 +856,7 @@ DEF_DO_FUN(do_aim)
         send_to_char( "You haven't the foggiest idea how.\n\r", ch );
         return; 
     }
-        
-    if (is_affected(ch, gsn_tumbling))
-    {
-        send_to_char("You can't do that while tumbling.\n\r", ch);
-        return;
-    }
-    if (is_affected(ch, gsn_berserk))
-    {
-        send_to_char("You're too enraged to aim.\n\r", ch);
-        return;
-    }    
-        
-
+    
     for (i = 0; aim_targets[i][0]; i++)
                 if (!strcmp(arg, aim_targets[i]))
                 {
@@ -951,8 +945,6 @@ DEF_DO_FUN(do_aim)
         damage( ch, victim, 0, gsn_aim,DAM_NONE,TRUE);
         check_improve(ch, gsn_aim, FALSE, 3);
     }
-        
-    return;
 }
 
 
@@ -1128,7 +1120,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 // uniform calculation for circle, slash throat, etc.
-static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
     int chance = 10 + get_skill_total(ch, sn, 0.2) / 2 + mastery_bonus(ch, sn, 12, 15);
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
@@ -1151,6 +1143,33 @@ static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     // heavy armor penalty for both attacker and victim
     chance += (get_heavy_armor_penalty(victim) - get_heavy_armor_penalty(ch)) / 10;
     return chance;
+}
+
+void circle_char( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
+{
+    if ( per_chance(chance) )
+    {
+        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
+        
+        check_improve(ch, gsn_circle, TRUE, 3);
+
+        if ( one_hit(ch, victim, gsn_circle, FALSE) )
+            check_assassinate(ch, victim, weapon, 7);
+        CHECK_RETURN(ch, victim);
+        
+        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_circle, TRUE) )
+        {
+            check_assassinate(ch, victim, offhand, 7);
+            CHECK_RETURN(ch, victim);
+        }
+    }
+    else
+    {
+        act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
+        check_improve(ch, gsn_circle, FALSE, 3);
+        damage( ch, victim, 0, gsn_circle, DAM_NONE, TRUE);
+    }
 }
 
 DEF_DO_FUN(do_circle)
@@ -1184,31 +1203,30 @@ DEF_DO_FUN(do_circle)
     check_killer( ch, victim );
     WAIT_STATE( ch, skill_table[gsn_circle].beats );
 
-    if ( per_chance(chance) )
-    {
-        OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
-        OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
-        
-        check_improve(ch,gsn_circle,TRUE,3);
-
-        if ( one_hit(ch, victim, gsn_circle, FALSE) )
-            check_assassinate(ch, victim, weapon, 7);
-        CHECK_RETURN(ch, victim);
-        
-        if ( offhand_attack_chance(ch, TRUE) && one_hit(ch, victim, gsn_circle, TRUE) )
-        {
-            check_assassinate(ch, victim, offhand, 7);
-            CHECK_RETURN(ch, victim);
-        }
-    }
-    else
-    {
-        act( "You fail to reach $N's back.", ch, NULL, victim, TO_CHAR );
-        check_improve(ch,gsn_circle,FALSE,3);
-        damage( ch, victim, 0, gsn_circle, DAM_NONE,TRUE);
-    }
+    circle_char(ch, victim, chance);
     
-    return;
+    if ( IS_AFFECTED(ch, AFF_DEADLY_DANCE) )
+    {
+        CHAR_DATA *vch, *vch_next;
+        int secondary_count = 0;
+        // trade regular attacks for circle attacks against secondary targets
+        for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+        {
+            vch_next = vch->next_in_room;
+            if ( vch->fighting != NULL
+                && is_same_group(vch->fighting, ch)
+                && !is_safe_spell(ch, vch, TRUE)
+                && vch != victim )
+            {
+                circle_char(ch, vch, chance);
+                secondary_count++;
+            }
+        }
+        if ( secondary_count >= 4 )
+            ch->stop += 2;
+        else
+            ch->stop += rand_div(secondary_count, 2);
+    }
 }
 
 
@@ -1449,8 +1467,6 @@ DEF_DO_FUN(do_kick)
         damage( ch, victim, 0, gsn_kick,DAM_BASH,TRUE);
         check_improve(ch,gsn_kick,FALSE,3);
     }
-
-    return;
 }
 
 DEF_DO_FUN(do_disarm)
@@ -1559,7 +1575,6 @@ DEF_DO_FUN(do_surrender)
 	forget_attacks(mob);
     }
 }
-
 
 
 void split_attack ( CHAR_DATA *ch, int dt )
@@ -2257,7 +2272,6 @@ DEF_DO_FUN(do_chop)
             damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
             check_improve(ch,gsn_chop,FALSE,3);
         }
-        return;
 }
 
 DEF_DO_FUN(do_bite)
@@ -2270,7 +2284,7 @@ DEF_DO_FUN(do_bite)
     chance=UMAX(chance,get_skill(ch, gsn_vampiric_bite));
     
     if ( IS_SET(ch->parts, PART_FANGS) )
-	chance = (chance + 100) / 2;
+    chance = (chance + 100) / 2;
 
     if (chance==0)
     {
@@ -2289,12 +2303,12 @@ DEF_DO_FUN(do_bite)
             dam = martial_damage( ch, victim, gsn_bite );
             full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,TRUE,3);
-	    CHECK_RETURN(ch, victim);
-	    
+        CHECK_RETURN(ch, victim);
+        
             if (get_skill(ch,gsn_venom_bite)>number_percent())
-	    {
+        {
                 poison_effect(victim, ch->level,dam,TARGET_CHAR);
-	    }
+        }
             else if (get_skill(ch,gsn_vampiric_bite)>number_percent())
             {
                 /*dam = 1 + ch->level/2;*/
@@ -2302,8 +2316,8 @@ DEF_DO_FUN(do_bite)
                 act("You feel $N drawing your life away.",victim,NULL,ch,TO_CHAR);
                 /*damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);*/
                 if (number_bits(4) == 0)
-		    drop_align( ch );
-                ch->hit += dam/5;
+            drop_align( ch );
+                gain_hit(ch, dam/5);
             }
         }
         else
@@ -2311,7 +2325,6 @@ DEF_DO_FUN(do_bite)
             damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
             check_improve(ch,gsn_bite,FALSE,3);
         }
-        return;
 }
 
 
@@ -2406,9 +2419,15 @@ DEF_DO_FUN(do_round_swing)
     OBJ_DATA *wield;
     int skill;
 
-    if ( (wield = get_eq_char(ch, WEAR_WIELD)) == NULL
-	 || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS)
-	 || wield->value[0] == WEAPON_GUN )
+    wield = get_eq_char(ch, WEAR_WIELD);
+    
+    if ( is_ranged_weapon(wield) )
+    {
+        ptc(ch, "That's not how you use a ranged weapon!\n\r");
+        return;
+    }
+    
+    if ( wield == NULL || !IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS) )
     {
 	send_to_char( "You need to wield a two-handed weapon.\n\r", ch );
 	return;
@@ -2420,7 +2439,10 @@ DEF_DO_FUN(do_round_swing)
 	return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_round_swing].beats );
+    int swing_time = skill_table[gsn_round_swing].beats;
+    int mastery = mastery_bonus(ch, gsn_round_swing, 20, 25);
+    swing_time = rand_div(swing_time * (100 - mastery), 100);
+    WAIT_STATE( ch, swing_time );
 
     if ( per_chance(50) && !per_chance(skill) )
     {
@@ -2588,6 +2610,8 @@ DEF_DO_FUN(do_roundhouse)
 	       tally++;
 	       full_dam(ch,vch,dam,gsn_roundhouse, DAM_BASH, TRUE);
 	   }
+        else
+           full_dam(ch, vch, 0, gsn_roundhouse, DAM_BASH, TRUE);
        }
    }
 
@@ -4032,10 +4056,37 @@ DEF_DO_FUN(do_inspire)
     CHAR_DATA *vch;
     CHAR_DATA *target = NULL;
     bool all = FALSE;
-    
-    int skill = get_skill(ch, gsn_inspiring_song);
+    int sn = gsn_inspiring_song;
+
+    if ( argument[0] != '\0' )
+    {
+        char arg[MIL];
+        argument = one_argument(argument, arg);
+        // parse type of inspiring song
+        if ( !strcmp(arg, "cunning") )
+            sn = gsn_foxs_cunning;
+        else if ( !strcmp(arg, "endurance") )
+            sn = gsn_bears_endurance;
+        else if ( !strcmp(arg, "grace") )
+            sn = gsn_cats_grace;
+        if ( sn != gsn_inspiring_song )
+            one_argument(argument, arg);
+        // parse target
+        if ( arg[0] != '\0' )
+        {
+            if ( !strcmp(arg, "all") )
+                all = TRUE;
+            else if ( (target = get_char_room(ch, arg)) == NULL )
+            {
+                send_to_char("Syntax: Inspire [cunning|endurance|grace] [all|target]\n\r", ch);
+                return;
+            }
+        }
+    }
+
+    int skill = get_skill(ch, sn);
     int chance = (100 + skill) / 2;
-    int cost = skill_table[gsn_inspiring_song].min_mana * 200 / (100 + skill);
+    int cost = skill_table[sn].min_mana * 200 / (100 + skill);
     int level = ch->level * (100 + skill) / 200;
     
     if ( !skill )
@@ -4044,31 +4095,19 @@ DEF_DO_FUN(do_inspire)
         return;
     }
     
-    if ( argument[0] != '\0' )
-    {
-        char arg[MIL];
-        one_argument(argument, arg);
-        if ( !strcmp(arg, "all") )
-            all = TRUE;
-        else if ( (target = get_char_room(ch, arg)) == NULL )
-        {
-            send_to_char("Inspire whom?\n\r", ch);
-            return;
-        }
-    }
-    
     if ( ch->mana < cost )
     {
         send_to_char("You have run out of inspiration.\n\r", ch);
         return;
     }
     
-    WAIT_STATE( ch, skill_table[gsn_inspiring_song].beats );
+    WAIT_STATE( ch, skill_table[sn].beats );
 
     if ( !per_chance(chance) )
     {
         ch->mana -= cost/2;
         send_to_char("Your song isn't very inspirational.\n\r", ch);
+        check_improve(ch, sn, FALSE, 3);
         return;
     }
         
@@ -4077,36 +4116,70 @@ DEF_DO_FUN(do_inspire)
     act("$n sings an inspiring melody!", ch, NULL, NULL, TO_ROOM);
         
     af.where     = TO_AFFECTS;
-    af.type      = gsn_inspiring_song;
+    af.type      = sn;
     af.level     = level;
-    af.duration  = get_duration(gsn_inspiring_song, level);
-    af.bitvector = 0;
+    af.duration  = get_duration(sn, level);
+    af.bitvector = AFF_PASSIVE_SONG;
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
         if ( !all && !is_same_group(vch, ch) && !is_same_group(vch, target) )
             continue;
 
-        send_to_char("You feel truly inspired.\n\r", vch);
         if ( vch != ch )
             act("Your song inspires $N.", ch, NULL, vch, TO_CHAR);
         
-        affect_strip(vch, gsn_inspiring_song);
+        remove_passive_bard_song(vch);
 
-        af.modifier = 5 + level / 9;
-        af.location = APPLY_STATS;
-        affect_to_char(vch, &af);
-        af.location = APPLY_HITROLL;
-        affect_to_char(vch, &af);
-        af.location = APPLY_DAMROLL;
-        affect_to_char(vch, &af);
-        af.modifier *= -1;
-        af.location = APPLY_SAVES;
-        affect_to_char(vch, &af);
-        af.modifier *= 10;
-        af.location = APPLY_AC;
-        affect_to_char(vch, &af);
+        if ( sn == gsn_foxs_cunning )
+        {
+            send_to_char("You feel inspired to be cunning as a fox.\n\r", vch);
+            af.modifier = 10 + level / 3;
+            af.location = APPLY_WIS;
+            affect_to_char(vch, &af);
+            af.modifier *= 10;
+            af.location = APPLY_MANA;
+            affect_to_char(vch, &af);
+        }
+        else if ( sn == gsn_bears_endurance )
+        {
+            send_to_char("You feel inspired to be tough as a bear.\n\r", vch);
+            af.modifier = 10 + level / 3;
+            af.location = APPLY_CON;
+            affect_to_char(vch, &af);
+            af.modifier *= 10;
+            af.location = APPLY_HIT;
+            affect_to_char(vch, &af);
+        }
+        else if ( sn == gsn_cats_grace )
+        {
+            send_to_char("You feel inspired to be graceful as a cat.\n\r", vch);
+            af.modifier = 10 + level / 3;
+            af.location = APPLY_AGI;
+            affect_to_char(vch, &af);
+            af.modifier *= 10;
+            af.location = APPLY_MOVE;
+            affect_to_char(vch, &af);
+        }
+        else // gsn_inspiring_song
+        {
+            send_to_char("You feel truly inspired.\n\r", vch);
+            af.modifier = 5 + level / 9;
+            af.location = APPLY_STATS;
+            affect_to_char(vch, &af);
+            af.location = APPLY_HITROLL;
+            affect_to_char(vch, &af);
+            af.location = APPLY_DAMROLL;
+            affect_to_char(vch, &af);
+            af.modifier *= -1;
+            af.location = APPLY_SAVES;
+            affect_to_char(vch, &af);
+            af.modifier *= 10;
+            af.location = APPLY_AC;
+            affect_to_char(vch, &af);
+        }
     }
+    check_improve(ch, sn, TRUE, 3);
 }
 
 DEF_DO_FUN(do_gaze)
@@ -4195,6 +4268,7 @@ DEF_DO_FUN(do_blast)
     
     int dam = dice(2,4) + ch->level + ch->max_mana / 40;
     dam += dam * get_focus_bonus(ch) / 100;
+    dam += get_spell_bonus_damage(ch, skill_table[gsn_eldritch_blast].beats, FALSE);
     
     bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);
     
@@ -4210,7 +4284,7 @@ void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim )
 {    
     AFFECT_DATA af;
 
-    if ( !check_skill(ch, gsn_eldritch_curse) )
+    if ( ch == victim || !check_skill(ch, gsn_eldritch_curse) )
         return;
     
     af.where     = TO_VULN;

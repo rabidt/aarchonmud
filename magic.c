@@ -1403,7 +1403,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                 || target == TAR_CHAR_SELF )
         {
             int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
-            if ( victim->hit < victim->max_hit )
+            if ( victim->hit < hit_cap(victim) )
             {
                 if ( ch == victim )
                     ptc(ch, "Your mystic infusion restores some of your health.\n\r");
@@ -1412,7 +1412,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                     act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
                     act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
                 }
-                victim->hit += UMIN(victim->max_hit - victim->hit, heal);
+                gain_hit(victim, heal);
             }
         }
     }
@@ -1569,6 +1569,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        level += UMAX(1, level/16);
     level = URANGE(1, level, level_cap);
     
     // check if spell could be cast successfully
@@ -1603,12 +1605,14 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     if (is_affected(ch, gsn_choke_hold) && number_bits(3) == 0)
     {
         send_to_char( "You choke and your spell fumbles.\n\r", ch);
+        act("$n chokes and $s spell fumbles.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }
     else if (is_affected(ch, gsn_slash_throat) && number_bits(2) == 0)
     {
         send_to_char( "You can't speak and your spell fails.\n\r", ch);
+        act("$n can't speak and $s spell fails.", ch, NULL, NULL, TO_ROOM);
         reduce_mana(ch, mana/2);
         return;
     }
@@ -2034,6 +2038,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         dam += dam / 4;
 
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        dam += dam / 8;
+
     return dam * number_range(90, 110) / 100;
 }
 
@@ -2111,6 +2118,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         heal += heal / 4;
+
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        heal += heal / 8;
 
     return heal;
 }
@@ -2644,7 +2654,7 @@ DEF_SPELL_FUN(spell_charm_person)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-    int mlevel;
+    int mlevel, coercion_chance;
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
@@ -2688,6 +2698,8 @@ DEF_SPELL_FUN(spell_charm_person)
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
+    coercion_chance = get_skill(ch, gsn_coercion) / 2;
+
     /* PCs are harder to charm */
     if ( saves_spell(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
@@ -2695,6 +2707,13 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
+        if (per_chance(coercion_chance))
+        {   
+            act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+            check_improve(ch, gsn_coercion, TRUE, 3);
+            return FALSE;
+        }
+        check_improve(ch, gsn_coercion, FALSE, 3);
         return TRUE;
     }
 
@@ -3769,8 +3788,8 @@ DEF_SPELL_FUN(spell_energy_drain)
     /* drain from victim and add to caster */
     victim->mana -= drain_mana;
     victim->move -= drain_move;
-    ch->mana += drain_mana / 5;
-    ch->move += drain_move / 5;
+    gain_mana(ch, drain_mana / 5);
+    gain_move(ch, drain_move / 5);
 
     send_to_char("You feel your life slipping away!\n\r",victim);
     send_to_char("Wow....what a rush!\n\r",ch);
@@ -3813,11 +3832,35 @@ DEF_SPELL_FUN(spell_fireball)
 
 DEF_SPELL_FUN(spell_fireproof)
 {
+    OBJ_DATA *obj;
+    AFFECT_DATA af;
+    char arg[MSL];
+    
+    one_argument(target_name, arg);
+    
+    if ( arg[0] == '\0' )
+    {
+        // find first object that's not burnproof already
+        for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+            if ( !IS_OBJ_STAT(obj,ITEM_BURN_PROOF) )
+                break;
+        if ( obj == NULL )
+        {
+            send_to_char("All your items are already protected.\n\r", ch);
+            return SR_TARGET;
+        }
+    }
+    else if ( (obj = get_obj_carry(ch, arg, ch)) == NULL )
+    {
+        if ( (obj = get_obj_wear(ch, arg)) == NULL )
+        {
+            send_to_char("You aren't carrying that.\n\r",ch);
+            return SR_TARGET;
+        }
+    }
+    
     SPELL_CHECK_RETURN
     
-    OBJ_DATA *obj = (OBJ_DATA *) vo;
-    AFFECT_DATA af;
-
     if (IS_OBJ_STAT(obj,ITEM_BURN_PROOF))
     {
         act("$p is already protected from burning.",ch,obj,NULL,TO_CHAR);
@@ -3871,7 +3914,7 @@ DEF_SPELL_FUN(spell_faerie_fire)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_AC;
-    af.modifier  = 2 * level;
+    af.modifier  = 2 * (level + 20);
     af.bitvector = AFF_FAERIE_FIRE;
     affect_to_char( victim, &af );
     send_to_char( "You are surrounded by a pink outline.\n\r", victim );
@@ -3943,26 +3986,25 @@ DEF_SPELL_FUN(spell_faerie_fog)
 
 DEF_SPELL_FUN(spell_floating_disc)
 {
-    OBJ_DATA *disc, *floating;
-
-    floating = get_eq_char(ch,WEAR_FLOAT);
-    if (floating != NULL && IS_OBJ_STAT(floating,ITEM_NOREMOVE))
-    {
-        act("You can't remove $p.",ch,floating,NULL,TO_CHAR);
-        return SR_UNABLE;
-    }
-
     SPELL_CHECK_RETURN
     
-    disc = create_object_vnum(OBJ_VNUM_DISC);
-    disc->value[0]  = ch->level * 10; /* 10 pounds per level capacity */
-    disc->value[3]  = ch->level * 5; /* 5 pounds per level max per item */
-    disc->timer     = get_duration(sn, level); 
+    AFFECT_DATA af;
 
-    act("$n has created a floating black disc.",ch,NULL,NULL,TO_ROOM);
-    send_to_char("You create a floating disc.\n\r",ch);
-    obj_to_char(disc,ch);
-    wear_obj(ch,disc,TRUE);
+    if ( is_affected(ch, gsn_floating_disc) )
+    {
+        send_to_char("You cannot have more than one disc.\n\r",ch);
+        return SR_AFFECTED;
+    }
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.location  = APPLY_WEIGHT;
+    af.modifier  = (20 + level) * 5;
+    af.bitvector = 0;
+    affect_to_char( ch, &af );
+    send_to_char( "A disc made of force starts to float next to you.\n\r", ch );
+    act( "A disc made of force starts to float next to $n.", ch, NULL, NULL, TO_ROOM );
     return TRUE;
 }
 
@@ -4026,7 +4068,7 @@ DEF_SPELL_FUN(spell_frenzy)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.modifier  = level / 6;
+    af.modifier  = (level + 20) / 8;
     af.bitvector = AFF_BERSERK;
 
     af.location  = APPLY_HITROLL;
@@ -4035,7 +4077,7 @@ DEF_SPELL_FUN(spell_frenzy)
     af.location  = APPLY_DAMROLL;
     affect_to_char(victim,&af);
 
-    af.modifier  = 10 * (level / 12);
+    af.modifier  = 10 * ((level + 20) / 16);
     af.location  = APPLY_AC;
     affect_to_char(victim,&af);
 
@@ -5809,6 +5851,7 @@ DEF_SPELL_FUN(spell_summon)
     }
     if ( IS_TAG(ch)
             || IS_REMORT(ch)
+            || PLR_ACT(ch, PLR_WAR)
             || IS_SET(ch->in_room->room_flags, ROOM_NO_TELEPORT)
             || IS_SET(ch->in_room->room_flags, ROOM_ARENA))
     {

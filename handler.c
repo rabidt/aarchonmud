@@ -582,10 +582,10 @@ int can_carry_w( CHAR_DATA *ch )
     if ( !IS_NPC(ch) && ch->level >= LEVEL_IMMORTAL )
         return 10000000;
     
-    /* Added a base value of 100 to the maximum weight that can be carried. Currently 
-       low strength characters are at a severe disadvantage - Astark 12-27-12  */
-
-    return ch_str_carry(ch) * 10 + ch->level * 25 + 100;
+    AFFECT_DATA *float_aff = affect_find(ch->affected, gsn_floating_disc);
+    int float_bonus = float_aff ? float_aff->modifier : 0;
+    
+    return (ch_str_carry(ch) + float_bonus) * 10 + ch->level * 25 + 100;
 }
 
 
@@ -658,6 +658,41 @@ bool is_either_name( const char *str, const char *namelist, bool exact )
 	return is_exact_name( str, namelist );
     else
 	return is_name( str, namelist );
+}
+
+bool match_obj( OBJ_DATA *obj, const char *arg )
+{
+    char header[MSL], last;
+    int flag;
+    
+    if ( !obj || !arg || *arg == '\0' )
+        return FALSE;
+    
+    // split into header + last char
+    strcpy(header, arg);
+    header[strlen(arg)-1] = '\0';
+    last = arg[strlen(arg)-1];
+    
+    // match by level (e.g. "get all.90+")
+    if ( last == '+' && is_number(header) )
+        return obj->level >= atoi(header);
+    if ( last == '-' && is_number(header) )
+        return obj->level <= atoi(header);
+    if ( is_number(arg) )
+        return obj->level == atoi(arg);
+    
+    // match by item type
+    for ( flag = 0; type_flags[flag].name != NULL; flag++ )
+        if ( !strcmp(type_flags[flag].name, arg) )
+            return obj->item_type == type_flags[flag].bit;
+    
+    // match by wear location
+    for ( flag = 0; wear_types[flag].name != NULL; flag++ )
+        if ( !strcmp(wear_types[flag].name, arg) )
+            return CAN_WEAR(obj, wear_types[flag].bit);
+        
+    // match by name
+    return is_name(arg, obj->name);
 }
 
 bool is_mimic( CHAR_DATA *ch )
@@ -1476,13 +1511,36 @@ bool is_in_room( CHAR_DATA *ch )
     return FALSE;
 }
 
+bool remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
+{
+    CHAR_DATA *prev;
+    
+    if ( ch == pRoom->people )
+    {
+        pRoom->people = ch->next_in_room;
+        return TRUE;
+    }
+    
+    for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
+    {
+        if ( prev->next_in_room == ch )
+        {
+            prev->next_in_room = ch->next_in_room;
+            return TRUE;
+        }
+    }
+    
+    bugf("remove_from_room_list: %s not found in room #%d", ch->name, pRoom->vnum);
+    return FALSE;
+}
+
 /*
  * Move a char out of a room.
  */
 void char_from_room( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
-    bool notFound = FALSE;
+    bool found;
     
     if ( ch == NULL || ch->in_room == NULL )
     {
@@ -1523,33 +1581,11 @@ void char_from_room( CHAR_DATA *ch )
     if ( IS_SET(ch->form, FORM_BRIGHT) )
 	--ch->in_room->light;
     
-    if ( ch == ch->in_room->people )
-    {
-        ch->in_room->people = ch->next_in_room;
-    }
-    else
-    {
-        CHAR_DATA *prev;
-        
-        for ( prev = ch->in_room->people; prev; prev = prev->next_in_room )
-        {
-            if ( prev->next_in_room == ch )
-            {
-                prev->next_in_room = ch->next_in_room;
-                break;
-            }
-        }
-        
-        if ( prev == NULL )
-        {
-            bugf("Char_from_room: %s not found in room %d", ch->name, ch->in_room->vnum);
-            notFound = TRUE;
-        }
-    }
+    found = remove_from_room_list(ch, ch->in_room);
     
     // decrease area count, but only if we didn't have a bug previously
     // otherwise we'd be introducing an additional bug
-    if ( !IS_NPC(ch) && !notFound && --ch->in_room->area->nplayer < 0 )
+    if ( IS_PLAYER(ch) && found && --ch->in_room->area->nplayer < 0 )
     {
         bug( "Area->nplayer reduced below zero by char_from_room.  Reset to zero.", 0 );
         ch->in_room->area->nplayer = 0;
@@ -1591,16 +1627,20 @@ void char_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     pRoomIndex->people  = ch;
 
     
-    if ( !IS_NPC(ch) )
+    if ( IS_PLAYER(ch) )
     {
-        if (ch->in_room->area->empty)
+        if ( ch->in_room->area->empty )
         {
             ch->in_room->area->empty = FALSE;
             ch->in_room->area->age = 0;
         }
         ++ch->in_room->area->nplayer;
-	if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM))
-	  load_storage_boxes(ch);
+    }
+    
+    if ( !IS_NPC(ch) )
+    {
+        if ( IS_SET(ch->in_room->room_flags, ROOM_BOX_ROOM) )
+            load_storage_boxes(ch);
     }
     
     if ( ( obj = get_eq_char( ch, WEAR_LIGHT ) ) != NULL

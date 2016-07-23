@@ -148,7 +148,17 @@ void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 u_short port;
 int control;
 
+#ifdef UNITTEST
 int main( int argc, char **argv )
+{
+    RunAllTests();
+    return 0;
+}
+
+int aarchon_main( int argc, char **argv )
+#else
+int main( int argc, char **argv )
+#endif
 {
     struct timeval now_time;
     bool fCopyOver = FALSE;
@@ -227,8 +237,11 @@ int main( int argc, char **argv )
 
     /* check aprog boot triggers */
     ap_boot_trigger();
-
+#ifdef LIVETEST 
+    RunAllTests();
+#else
     game_loop_unix( control );
+#endif
     close (control);
 
     /*
@@ -2216,7 +2229,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         colourconv( pbuff, buf, to );
         if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
-            show_image_to_char( to, buffer );
             write_to_buffer( to->desc, buffer, 0 );
         }
         else
