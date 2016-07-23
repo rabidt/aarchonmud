@@ -80,6 +80,7 @@ void load_area_file( FILE *fp, bool clone );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
 static void rand_test( int repeats );
+void verify_skills();
 
 /*
 * Globals.
@@ -483,6 +484,21 @@ sh_int  gsn_quicken_spell;
 sh_int  gsn_chain_spell;
 sh_int  gsn_wish;
 
+/* songs/bard skills */
+sh_int  gsn_wail;
+sh_int  gsn_combat_symphony;
+sh_int  gsn_devastating_anthem;
+sh_int  gsn_lullaby;
+sh_int  gsn_deadly_dance;
+sh_int  gsn_reflective_hymn;
+sh_int  gsn_arcane_anthem;
+
+sh_int  gsn_foxs_cunning;
+sh_int  gsn_bears_endurance;
+sh_int  gsn_cats_grace;
+sh_int  gsn_coercion;
+sh_int  gsn_instrument;
+
 sh_int  gsn_god_bless;
 sh_int  gsn_god_curse;
 
@@ -758,6 +774,7 @@ void boot_db()
     load_skills();
     update_skill_costs();
     update_group_costs();
+    verify_skills();
 
     log_string( "Counting stats" );
     count_stats();
