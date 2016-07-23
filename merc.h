@@ -78,8 +78,6 @@ int system();
 typedef short   int         sh_int;
 typedef unsigned char           bool;
 
-
-
 /*
  * Structure types.
  */
@@ -234,12 +232,12 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         471
-#define MAX_GROUP          79 /* accurate oct 2013 */
+#define MAX_SKILL         480
+#define MAX_GROUP          82 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
-#define MAX_CLASS          15
+#define MAX_CLASS          16
 #define MAX_PC_RACE        76
 #define MAX_BOARD          12
 #define MAX_CLAN           12
@@ -718,6 +716,7 @@ struct penalty_data
 */
 #define CON_LUA_HANDLER         16
 #define CON_GET_NEW_SUBCLASS    17
+#define CON_REMORT_BEGIN        18
 #define CON_GET_CREATION_MODE   19
 #define CON_ROLL_STATS          20
 #define CON_GET_STAT_PRIORITY   21
@@ -1556,7 +1555,7 @@ struct  kill_data
 #define AFF_DETECT_HIDDEN      6
 #define AFF_DETECT_GOOD        7
 #define AFF_SANCTUARY          8
-#define AFF_FADE	       9
+#define AFF_FADE	             9
 #define AFF_INFRARED          10
 #define AFF_CURSE             11
 #define AFF_ASTRAL            12
@@ -1628,7 +1627,14 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
-
+#define AFF_SONG              81
+#define AFF_DEVASTATING_ANTHEM 82
+#define AFF_REFLECTIVE_HYMN   83
+#define AFF_REFRESH           84
+#define AFF_PASSIVE_SONG      85
+#define AFF_LULLABY           86
+#define AFF_DEADLY_DANCE      87
+#define AFF_ARCANE_ANTHEM     88
 
 /*
  * Sex.
@@ -1815,6 +1821,7 @@ struct  kill_data
 #define ITEM_DISARMED       (ll)
 #define ITEM_NO_SAC_EX      (nn)
 #define ITEM_TRANSLUCENT_EX (oo)
+#define ITEM_INSTRUMENT     (pp)
 
 
 /* class restriction flags */
@@ -2584,7 +2591,8 @@ struct  char_data
 	sh_int      default_pos;
     sh_int        mprog_delay;
     const char* hunting;
-	sh_int  stance;
+	sh_int      stance;
+  sh_int      song;
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
@@ -2808,8 +2816,6 @@ struct  pc_data
     
     struct {
         bool chat_window;
-        bool show_images;
-        bool image_window;
     } guiconfig;
 
     LUAREF ptitles;
@@ -3392,6 +3398,7 @@ extern sh_int  gsn_haste;
 extern sh_int  gsn_giant_strength;
 extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
+extern sh_int  gsn_floating_disc;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -3686,6 +3693,22 @@ extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
 extern sh_int  gsn_wish;
 
+extern sh_int  gsn_wail;
+
+/* songs */
+extern sh_int  gsn_combat_symphony;
+extern sh_int  gsn_devastating_anthem;
+extern sh_int  gsn_reflective_hymn;
+extern sh_int  gsn_lullaby;
+extern sh_int  gsn_deadly_dance;
+extern sh_int  gsn_arcane_anthem;
+
+extern sh_int  gsn_foxs_cunning;
+extern sh_int  gsn_bears_endurance;
+extern sh_int  gsn_cats_grace;
+extern sh_int  gsn_coercion;
+extern sh_int  gsn_instrument;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
 
@@ -3956,6 +3979,7 @@ struct boss_achieve_record
  */
 #define IS_NPC(ch)      (IS_SET((ch)->act, ACT_IS_NPC))
 #define IS_IMMORTAL(ch)     (get_trust(ch) >= LEVEL_IMMORTAL)
+#define IS_PLAYER(ch)   (!IS_NPC(ch) && !IS_IMMORTAL(ch))
 #define IS_HERO(ch)     ((!IS_NPC((ch))&&((ch)->level >= ((LEVEL_HERO - 10)+((ch)->pcdata->remorts)))))
 #define IS_HELPER(ch)   (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER))
 #define IS_ACTIVE_HELPER(ch)    (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER) && !IS_SET((ch)->act, PLR_INACTIVE_HELPER))
@@ -4024,6 +4048,7 @@ struct boss_achieve_record
 	
 #define IS_WAITING_FOR_AUTH(ch) (!IS_NPC(ch) && ch->desc && get_auth_state( ch ) == AUTH_ONLINE && IS_SET(ch->act, PLR_UNAUTHED) ) 
 #define IS_TAG(ch) (!IS_NPC(ch) && IS_SET((ch)->pcdata->tag_flags, TAG_PLAYING))
+#define USE_CHAT_WIN(ch) ( ch->pcdata && ch->pcdata->guiconfig.chat_window)
 
 /*
  * Object macros.
@@ -4126,6 +4151,23 @@ struct stance_type
 #define STANCE_BULLET_RAIN 48
 #define STANCE_DECEPTION 49
 
+struct song_type
+{
+  const char* name;
+  int         key;
+  sh_int *    gsn;
+  int         cost;
+};
+
+/* Values for songs in tables.c. Same as stances */
+#define SONG_DEFAULT            0
+#define SONG_COMBAT_SYMPHONY    1
+#define SONG_DEVASTATING_ANTHEM 2
+#define SONG_REFLECTIVE_HYMN    3
+#define SONG_LULLABY            4
+#define SONG_DEADLY_DANCE       5
+#define SONG_ARCANE_ANTHEM      6
+
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
@@ -4147,6 +4189,7 @@ struct stance_type
 
 /* warfare.c */
 extern const struct stance_type   stances[];
+extern const struct song_type     songs[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
 extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
@@ -4651,7 +4694,7 @@ bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
 void    stop_fighting   args( ( CHAR_DATA *ch, bool fBoth ) );
-void    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
+bool    raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue );
 void    check_killer    args( ( CHAR_DATA *ch, CHAR_DATA *victim) );
 bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skill );
 bool    is_woodland( int sector );
@@ -4697,11 +4740,13 @@ bool    provoke_attacks( CHAR_DATA *victim );
 /* fight2.c */
 void backstab_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim );
+void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 void behead(CHAR_DATA *ch, CHAR_DATA *victim);
 void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
 void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim );
+int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );
@@ -4772,6 +4817,7 @@ int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
+bool    match_obj( OBJ_DATA *obj, const char *arg );
 bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
@@ -4801,6 +4847,7 @@ void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, AFFECT_DATA *paf ) );
 void    affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap );
+bool    remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom );
 void    char_from_room  args( ( CHAR_DATA *ch ) );
 void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
@@ -5081,6 +5128,7 @@ char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
+bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj );
 int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
@@ -5091,6 +5139,7 @@ bool op_move_trigger( CHAR_DATA *ch );
 bool op_percent_trigger( const char *trigger, OBJ_DATA *obj, OBJ_DATA *obj2, CHAR_DATA *ch1, CHAR_DATA *ch2, int type );
 bool op_act_trigger( OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *trigger, int type );
 void op_speech_trigger( const char *argument, CHAR_DATA *ch );
+bool op_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
 bool op_try_trigger( const char* argument, CHAR_DATA *ch );
 void op_greet_trigger( CHAR_DATA *ch );
 void op_fight_trigger( CHAR_DATA *ch, CHAR_DATA *vic );

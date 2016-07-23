@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "merc.h"
 #include "timer.h"
+#include "lsqlite3.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "interp.h"
@@ -19,6 +20,7 @@ int        g_LoopCheckCounter;
 
 
 /* keep these as LUAREFS for ease of use on the C side */
+static LUAREF TRACEBACK;
 static LUAREF TABLE_INSERT;
 static LUAREF TABLE_CONCAT;
 static LUAREF STRING_FORMAT;
@@ -167,28 +169,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
 static void GetTracebackFunction (lua_State *LS)
 {
-    lua_pushliteral (LS, LUA_DBLIBNAME);     /* "debug"   */
-    lua_rawget      (LS, LUA_GLOBALSINDEX);    /* get debug library   */
-
-    if (!lua_istable (LS, -1))
-    {
-        lua_pop (LS, 2);   /* pop result and debug table  */
-        lua_pushnil (LS);
-        return;
-    }
-
-    /* get debug.traceback  */
-    lua_pushstring(LS, "traceback");
-    lua_rawget    (LS, -2);               /* get traceback function  */
-
-    if (!lua_isfunction (LS, -1))
-    {
-        lua_pop (LS, 2);   /* pop result and debug table  */
-        lua_pushnil (LS);
-        return;
-    }
-
-    lua_remove (LS, -2);   /* remove debug table, leave traceback function  */
+    push_ref( LS, TRACEBACK );
 }  /* end of GetTracebackFunction */
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
@@ -667,7 +648,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     time_t timer;
     time (&timer);
 
-    init_script_db();
     init_genrand (timer);
     type_init( LS );
 
@@ -691,6 +671,31 @@ void open_lua ()
     }
 
     luaL_openlibs (LS);    /* open all standard libraries */
+
+    /* special little tweak to debug.traceback here before anything else */
+    new_ref( &TRACEBACK );
+    int rtn = luaL_dostring(g_mud_LS, 
+        "local traceback = debug.traceback \n"
+        "debug.traceback = function(message, level) \n"
+          "level = level or 1 \n"
+          "local rtn = traceback(message, level + 1) \n"
+          "if not rtn then return rtn end \n"
+          "rtn = rtn:gsub(\"\\t\", \"    \") \n"
+          "rtn = rtn:gsub(\"\\n\", \"\\n\\r\") \n"
+          "return rtn \n"
+        "end \n"
+        "return debug.traceback \n"
+    );
+    if (rtn != 0)
+    {
+        bugf("Error setting traceback function");
+        exit(1);
+    }
+    save_ref(LS, -1, &TRACEBACK);
+    lua_pop(LS, 1);
+
+    lua_pushcfunction(LS, luaopen_lsqlite3);
+    lua_call(LS, 0, 0);
 
     /* call as Lua function because we need the environment  */
     lua_pushcfunction(LS, RegisterLuaRoutines);
@@ -910,36 +915,6 @@ DEF_DO_FUN(do_charloadtest)
     clt_list=NULL;
 
     return;
-}
-
-void show_image_to_char( CHAR_DATA *ch, const char *txt )
-{
-    if (IS_NPC(ch))
-        return;
-
-    if (!ch->pcdata->guiconfig.show_images)
-        return;
-
-    if (ch->pcdata->guiconfig.image_window)
-    {
-        open_imagewin_tag( ch );
-    }
-
-    lua_getglobal( g_mud_LS, "show_image_to_char" );
-    push_CH( g_mud_LS, ch );
-    lua_pushstring( g_mud_LS, txt );
-    
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        bugf ( "Error with show_image_to_char:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-
-    if (ch->pcdata->guiconfig.image_window)
-    {
-        close_imagewin_tag( ch );
-    }
 }
 
 const char *save_ptitles( CHAR_DATA *ch )

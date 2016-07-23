@@ -43,6 +43,7 @@
 #include "religion.h"
 #include "lua_scripting.h"
 #include "tattoo.h"
+#include "songs.h"
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
@@ -2170,7 +2171,7 @@ DEF_DO_FUN(do_exits)
             &&   (! ( IS_SET(pexit->exit_info, EX_HIDDEN)
                       && IS_SET(pexit->exit_info, EX_CLOSED ) ) 
                   || IS_IMMORTAL(ch) ) 
-            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || IS_IMMORTAL(ch) ) )
+            &&   (!IS_SET(pexit->exit_info, EX_DORMANT) || PLR_ACT(ch, PLR_HOLYLIGHT) ) )
         {
             found = TRUE;
             if ( fAuto )
@@ -4504,6 +4505,29 @@ DEF_DO_FUN(do_disguise)
     check_improve( ch, gsn_disguise, TRUE, 3 );
 }
 
+DEF_DO_FUN(do_song_list)
+{
+    int i, skill, sn;
+    char buf[MSL];
+
+    send_to_char( "You know the following songs:\n\r", ch );
+
+    for (i = 1; songs[i].name != NULL; i++)
+    {
+        sn = *(songs[i].gsn);
+        skill = get_skill(ch, sn);
+        if ( skill == 0 )
+            continue;
+
+        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmn\n\r",
+                songs[i].name,
+                get_skill_prac(ch, sn), skill,
+                song_cost(ch, i));
+        send_to_char( buf, ch );
+    }
+}
+
+
 DEF_DO_FUN(do_stance_list)
 {
     int i, skill, sn;
@@ -4856,9 +4880,10 @@ DEF_DO_FUN(do_score)
 
 
     /* Position and Stance */
-    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x",
+    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
         positionbuf, 
-        ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name) );
+        ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
+        ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
@@ -4884,7 +4909,7 @@ DEF_DO_FUN(do_score)
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:     %3d/%3d        Weight: %-5d/%5d        Encumbered: %s",
+    sprintf( buf, "{D|{x Items:     %3d/%3d       Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         (int)get_carry_weight(ch)/10,
@@ -4988,9 +5013,9 @@ DEF_DO_FUN(do_worth)
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Achieve Pts: {c%6d{x        Storage Boxes:   %-2d",
+    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
-        ch->pcdata->achpoints,
+        ch->pcdata->faith,
         ch->pcdata->storage_boxes);
 
     for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );

@@ -26,10 +26,10 @@
 static RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK + 1] =
 {
     {    0, "Neophyte"   },
-    {   50, "Acolyte"    },
-    {  125, "Follower"   },
-    {  250, "Evangelist" },
-    {  500, "Prophet"    },
+    {  100, "Acolyte"    },
+    {  250, "Follower"   },
+    {  450, "Evangelist" },
+    {  700, "Prophet"    },
     { 1000, "Saint"      }
 };
 

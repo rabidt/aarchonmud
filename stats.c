@@ -1875,8 +1875,8 @@ struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch )
     return &pc_race_table[ch->race];
 }
 
-/* class restriction stuff */
-
+/* class restriction stuff for ITEM_ALLOW_* */
+/* { Thf, War, Clr, Mag } */
 bool class_group_table[MAX_CLASS][4] =
 {
     { 1, 0, 0, 0 }, // warrior
@@ -1893,7 +1893,8 @@ bool class_group_table[MAX_CLASS][4] =
     { 0, 1, 0, 1 }, // illusionist
     { 1, 1, 0, 0 }, // gunslinger
     { 1, 1, 0, 0 }, // ranger
-    { 0, 0, 0, 1 }  // necromancer
+    { 0, 0, 0, 1 }, // necromancer
+    { 1, 0, 0, 0 }  // bard
 };
 
 bool class_can_use( int class, tflag extra_flags )

@@ -785,6 +785,12 @@ DEF_SPELL_FUN(spell_animate_dead)
         return SR_TARGET;
     }
     
+    if ( !can_loot(ch, cor, TRUE) )
+    {
+        send_to_char( "You don't own that corpse.\n\r", ch);
+        return SR_UNABLE;
+    }    
+    
     if (IS_SET(ch->in_room->room_flags,ROOM_SAFE) || IS_SET(ch->in_room->room_flags,ROOM_LAW))
     {
         send_to_char("Not in this room.\n\r",ch);
@@ -2383,7 +2389,7 @@ DEF_SPELL_FUN(spell_heroism)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
-    af.modifier  = level / 10;
+    af.modifier  = (level + 20) / 12;
     af.bitvector = AFF_HEROISM;
     affect_to_char( victim, &af );
     af.location  = APPLY_DAMROLL;
@@ -2391,7 +2397,7 @@ DEF_SPELL_FUN(spell_heroism)
     af.location  = APPLY_STATS;
     affect_to_char(victim, &af);
     af.location  = APPLY_SAVES;
-    af.modifier  = 0 - level / 10;
+    af.modifier  = - (level + 20) / 12;
     affect_to_char( victim, &af );
     
     send_to_char( "You feel your god's energy surge through you.\n\r", victim );
@@ -2507,12 +2513,12 @@ DEF_SPELL_FUN(spell_blessed_darkness)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_DAMROLL;
-    af.modifier  = level / 6; 
+    af.modifier  = (level + 20) / 8; 
     af.bitvector = AFF_DARKNESS;
     affect_to_char( victim, &af );
     
     af.location  = APPLY_SAVES;
-    af.modifier  = 0 - level / 6;
+    af.modifier  = -(level + 20) / 8;
     affect_to_char( victim, &af );
     
     send_to_char( "You feel the darkness flow through you.\n\r", victim );
@@ -2944,16 +2950,16 @@ DEF_SPELL_FUN(spell_prayer)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
-    af.modifier  = level / 4;
+    af.modifier  = (level + 20) / 5;
     af.bitvector = 0;
     affect_to_char(ch, &af);
     
     af.location  = APPLY_SAVES;
-    af.modifier  = -level/4;
+    af.modifier  = -(level + 20) / 5;
     affect_to_char(ch, &af);
     
     af.location  = APPLY_AC;
-    af.modifier  = -level/2;
+    af.modifier  = -(level + 20) / 2;
     affect_to_char(ch, &af);
     
     af.location  = APPLY_WIS;
@@ -3204,9 +3210,6 @@ DEF_SPELL_FUN(spell_heal_mind)
     }
 
     SPELL_CHECK_RETURN
-    
-    /* restore spell cost */
-    ch->mana += skill_table[sn].min_mana;
     
     if( ch->mana >= mana_cap(ch) )
     {
@@ -3824,7 +3827,6 @@ DEF_SPELL_FUN(spell_astarks_rejuvenation)
     
     CHAR_DATA *gch;
     int heal;
-    int refr;
     int sn1;    
 
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -3832,11 +3834,9 @@ DEF_SPELL_FUN(spell_astarks_rejuvenation)
         if ( !is_same_group( gch, ch ) )
             continue;
 
-        heal = get_sn_heal( sn, level, ch, gch ) * 6/15;
-        gch->hit = UMIN( gch->hit + heal, gch->max_hit );
-        
-        refr = get_sn_heal( sn, level, ch, gch ) * 4/15;
-        gch->move = UMIN( gch->move + refr, gch->max_move );
+        heal = get_sn_heal(sn, level, ch, gch);
+        gain_hit(gch, heal * 6/15);
+        gain_move(gch, heal * 4/15);
 
         update_pos( gch );
 
@@ -4101,12 +4101,12 @@ DEF_SPELL_FUN(spell_shroud_of_darkness)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_SAVES;
-    af.modifier  = -(level / 10);
+    af.modifier  = -(level + 20) / 12;
     af.bitvector = AFF_SHROUD;
     affect_to_char( victim, &af );
     af.where     = TO_RESIST;
     af.location  = APPLY_AC;
-    af.modifier  = -level;
+    af.modifier  = -(level + 20);
     af.bitvector = RES_LIGHT;
     affect_to_char( victim, &af );
     act( "$n is encased in darkness.", victim, NULL, NULL, TO_ROOM );
