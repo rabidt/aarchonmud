@@ -1569,6 +1569,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         level += UMAX(1, level/8);
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        level += UMAX(1, level/16);
     level = URANGE(1, level, level_cap);
     
     // check if spell could be cast successfully
@@ -2036,6 +2038,9 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         dam += dam / 4;
 
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        dam += dam / 8;
+
     return dam * number_range(90, 110) / 100;
 }
 
@@ -2113,6 +2118,9 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
         heal += heal / 4;
+
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        heal += heal / 8;
 
     return heal;
 }
@@ -2646,7 +2654,7 @@ DEF_SPELL_FUN(spell_charm_person)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-    int mlevel;
+    int mlevel, coercion_chance;
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
@@ -2690,6 +2698,8 @@ DEF_SPELL_FUN(spell_charm_person)
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
+    coercion_chance = get_skill(ch, gsn_coercion) / 2;
+
     /* PCs are harder to charm */
     if ( saves_spell(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
@@ -2697,6 +2707,13 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
+        if (per_chance(coercion_chance))
+        {   
+            act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+            check_improve(ch, gsn_coercion, TRUE, 3);
+            return FALSE;
+        }
+        check_improve(ch, gsn_coercion, FALSE, 3);
         return TRUE;
     }
 

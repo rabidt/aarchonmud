@@ -78,8 +78,6 @@ int system();
 typedef short   int         sh_int;
 typedef unsigned char           bool;
 
-
-
 /*
  * Structure types.
  */
@@ -234,12 +232,12 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         471
-#define MAX_GROUP          79 /* accurate oct 2013 */
+#define MAX_SKILL         480
+#define MAX_GROUP          82 /* accurate oct 2013 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
 #define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
-#define MAX_CLASS          15
+#define MAX_CLASS          16
 #define MAX_PC_RACE        76
 #define MAX_BOARD          12
 #define MAX_CLAN           12
@@ -1557,7 +1555,7 @@ struct  kill_data
 #define AFF_DETECT_HIDDEN      6
 #define AFF_DETECT_GOOD        7
 #define AFF_SANCTUARY          8
-#define AFF_FADE	       9
+#define AFF_FADE	             9
 #define AFF_INFRARED          10
 #define AFF_CURSE             11
 #define AFF_ASTRAL            12
@@ -1629,7 +1627,14 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
-
+#define AFF_SONG              81
+#define AFF_DEVASTATING_ANTHEM 82
+#define AFF_REFLECTIVE_HYMN   83
+#define AFF_REFRESH           84
+#define AFF_PASSIVE_SONG      85
+#define AFF_LULLABY           86
+#define AFF_DEADLY_DANCE      87
+#define AFF_ARCANE_ANTHEM     88
 
 /*
  * Sex.
@@ -1816,6 +1821,7 @@ struct  kill_data
 #define ITEM_DISARMED       (ll)
 #define ITEM_NO_SAC_EX      (nn)
 #define ITEM_TRANSLUCENT_EX (oo)
+#define ITEM_INSTRUMENT     (pp)
 
 
 /* class restriction flags */
@@ -2585,7 +2591,8 @@ struct  char_data
 	sh_int      default_pos;
     sh_int        mprog_delay;
     const char* hunting;
-	sh_int  stance;
+	sh_int      stance;
+  sh_int      song;
 	sh_int      slow_move;
         bool        just_killed; /* for checking if char was just killed */
         bool        must_extract; /* for delayed char purging */
@@ -3686,6 +3693,22 @@ extern sh_int  gsn_quicken_spell;
 extern sh_int  gsn_chain_spell;
 extern sh_int  gsn_wish;
 
+extern sh_int  gsn_wail;
+
+/* songs */
+extern sh_int  gsn_combat_symphony;
+extern sh_int  gsn_devastating_anthem;
+extern sh_int  gsn_reflective_hymn;
+extern sh_int  gsn_lullaby;
+extern sh_int  gsn_deadly_dance;
+extern sh_int  gsn_arcane_anthem;
+
+extern sh_int  gsn_foxs_cunning;
+extern sh_int  gsn_bears_endurance;
+extern sh_int  gsn_cats_grace;
+extern sh_int  gsn_coercion;
+extern sh_int  gsn_instrument;
+
 extern sh_int  gsn_god_bless;
 extern sh_int  gsn_god_curse;
 
@@ -4128,6 +4151,23 @@ struct stance_type
 #define STANCE_BULLET_RAIN 48
 #define STANCE_DECEPTION 49
 
+struct song_type
+{
+  const char* name;
+  int         key;
+  sh_int *    gsn;
+  int         cost;
+};
+
+/* Values for songs in tables.c. Same as stances */
+#define SONG_DEFAULT            0
+#define SONG_COMBAT_SYMPHONY    1
+#define SONG_DEVASTATING_ANTHEM 2
+#define SONG_REFLECTIVE_HYMN    3
+#define SONG_LULLABY            4
+#define SONG_DEADLY_DANCE       5
+#define SONG_ARCANE_ANTHEM      6
+
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
 #define MORPH_NAGA_HUMAN   1
@@ -4149,6 +4189,7 @@ struct stance_type
 
 /* warfare.c */
 extern const struct stance_type   stances[];
+extern const struct song_type     songs[];
 extern  const   struct  class_type  class_table [MAX_CLASS];
 extern  const   struct  subclass_type subclass_table[];
 extern  const   struct  weapon_type weapon_table    [];
@@ -4705,6 +4746,7 @@ void rake_char( CHAR_DATA *ch, CHAR_DATA *victim );
 void mummy_slam( CHAR_DATA *ch, CHAR_DATA *victim );
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
 void eldritch_curse( CHAR_DATA *ch, CHAR_DATA *victim );
+int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 
 /* flags.c */
 void reset_pkill_expire( CHAR_DATA *ch );

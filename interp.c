@@ -33,6 +33,7 @@
 #include <time.h>
 #include "merc.h"
 #include "interp.h"
+#include "songs.h"
 
 bool    check_disabled (const struct cmd_type *command);
 DISABLED_DATA *disabled_first;
@@ -406,6 +407,11 @@ const   struct  cmd_type    cmd_table   [] =
     { "fishing",    do_fishing, POS_RESTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "infectiousarrow", do_infectious_arrow, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     
+    /* bard commands */
+
+    { "sing",       do_sing, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "wail",       do_wail, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+
     /* war commands. */
     { "startwar",   do_startwar,POS_DEAD,       L8,  LOG_ALWAYS, 1, FALSE, FALSE},
     { "nowar",      do_nowar,   POS_DEAD,        1,  LOG_NORMAL, 1, FALSE, FALSE },
@@ -460,6 +466,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "recruit",    do_recruit, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "reject",     do_reject, POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "remort",     do_remort, POS_STANDING,    1,  LOG_ALWAYS, 1, FALSE, FALSE },
+    { "songlist",   do_song_list, POS_DEAD, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "stare",      do_stare,    POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE }, 
     { "stance",     do_stance,    POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
     { "stancelist", do_stance_list,  POS_DEAD, 0, LOG_NORMAL, 1, FALSE, TRUE },

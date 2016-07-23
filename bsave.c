@@ -565,6 +565,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
             ch->pcdata->condition[3] );
 
     bprintf( buf, "Stance %d\n", ch->stance );
+    
+    if ( ch->song != SONG_DEFAULT )
+        bprintf( buf, "Song %d\n", ch->song );
 
        /*
         * Write Colour Config Information.
@@ -1435,6 +1438,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
     char str_buf[MAX_STRING_LENGTH];
+    char last_word[256] = {};
     const char *word;
     bool fMatch;
     int count = 0;
@@ -2315,6 +2319,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             break;
         }
 
+        KEY( "Song",    ch->song,   bread_number( buf ) );
         KEY( "Stance",  ch->stance, bread_number( buf ) );
         
         if ( !str_cmp(word, "Subclass") )
@@ -2410,10 +2415,12 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	
     if ( !fMatch )
     {
-        bug( "Bread_char: no match.", 0 );
-        bug( word, 0 );
+        bugf( "Bread_char: no match for %s (previous=%s)", word, last_word );
         bread_to_eol( buf );
     }
+    else
+        strncpy(last_word, word, sizeof(last_word) - 1);
+    
     }
 
 #if defined(SIM_DEBUG)
