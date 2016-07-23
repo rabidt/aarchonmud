@@ -18,7 +18,7 @@ O_FILE_NAMES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o 
      interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
      nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o penalty.o pipe.o quest.o \
      ranger.o recycle.o redit-ilab.o remort.o bsave.o scan.o skills.o\
-     smith.o social-edit.o special.o stats.o string.o tables.o update.o \
+     smith.o social-edit.o songs.o special.o stats.o string.o tables.o update.o \
      freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
      buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
      tattoo.o religion.o playback.o mob_stats.o \

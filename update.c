@@ -43,6 +43,7 @@
 #include "mudconfig.h"
 #include "warfare.h"
 #include "special.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -1239,7 +1240,13 @@ void char_update( void )
         {
             if ((ch->position == POS_SLEEPING) && ch->pcdata->condition[COND_DEEP_SLEEP] < 10)
             {
-                ch->pcdata->condition[COND_DEEP_SLEEP] += 1;
+                int deep_sleep_gain = 1;
+                // 50% chance to get another deep sleep if AFF_LULLABY
+                if (IS_AFFECTED(ch, AFF_LULLABY) && number_bits(1))
+                {
+                    deep_sleep_gain = 2;
+                }
+                ch->pcdata->condition[COND_DEEP_SLEEP] += deep_sleep_gain;
                 send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
@@ -1424,8 +1431,11 @@ void char_update( void )
             }
         }
 
+        
         affect_update( ch );
         qset_update( ch );
+        /* songs */
+        check_bard_song( ch ); // from songs.c
 
         if ( IS_AFFECTED(ch, AFF_HAUNTED) )
             create_haunt( ch );
@@ -1587,7 +1597,7 @@ void affect_update( CHAR_DATA *ch )
     /* decompose */
     if ( is_affected(ch, gsn_decompose) )
         decompose_update(ch, 0);
-
+    
     /*
      *   Careful with the damages here,
      *   MUST NOT refer to ch after damage taken,
@@ -3080,3 +3090,4 @@ void validate_all()
         }
     }
 }
+

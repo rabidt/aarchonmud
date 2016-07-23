@@ -38,6 +38,7 @@
 #include "special.h"
 #include "mudconfig.h"
 #include "mob_stats.h"
+#include "songs.h"
 
 extern WAR_DATA war;
 
@@ -709,6 +710,15 @@ void special_affect_update(CHAR_DATA *ch)
 	update_pos( ch );
     }
 
+    /* song move refresh from combat symphony */
+    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
+    {
+        int heal = 5;
+
+        gain_move(ch, heal);
+        update_pos( ch );
+    } 
+
     /* Infectious Arrow - DOT - Damage over time */
     if ( is_affected(ch, gsn_infectious_arrow) )
     {
@@ -1318,8 +1328,8 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 */
 void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
-    int chance, mastery_chance, area_attack_sn;
-    int attacks;
+    int chance, mastery_chance, area_attack_sn = 0;
+    int attacks, offhand_chance;
     OBJ_DATA *wield;
     OBJ_DATA *second;
 
@@ -1368,7 +1378,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     wield = get_eq_char( ch, WEAR_WIELD );
     second = get_eq_char ( ch, WEAR_SECONDARY );
+    offhand_chance = offhand_attack_chance(ch, TRUE);
     
+    deduct_song_cost(ch);
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
@@ -1384,7 +1396,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     }
     mastery_chance = mastery_bonus(ch, area_attack_sn, 30, 50);
 
-    if ( per_chance(chance) )
+    if ( chance || IS_AFFECTED(ch, AFF_DEADLY_DANCE) )
     {
         /* For each opponent beyond the first there's an extra attack */
         CHAR_DATA *vch, *vch_next;
@@ -1397,20 +1409,27 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 && !is_safe_check(ch, vch, TRUE, FALSE, FALSE)
                 && ch->fighting != vch )
             {
-                one_hit(ch, vch, dt, FALSE);
                 found = TRUE;
-                // chance for extra (offhand if possible) attack
-                if ( per_chance(mastery_chance) )
+                if ( per_chance(chance) )
                 {
-                    if ( !wield || second )
-                        one_hit(ch, vch, dt, TRUE);
-                    else if ( number_bits(1) )
+                    one_hit(ch, vch, dt, FALSE);
+                    // extra attack from mastery
+                    if ( !offhand_chance && per_chance(mastery_chance / 2) )
                         one_hit(ch, vch, dt, FALSE);
+                    else if ( offhand_chance && per_chance(mastery_chance) )
+                        one_hit(ch, vch, dt, TRUE);
+                }
+                // bonus attacks from deadly dance
+                if ( IS_AFFECTED(ch, AFF_DEADLY_DANCE) && per_chance(wield ? 75 : 100) )
+                {
+                    one_hit(ch, vch, dt, FALSE);
+                    if ( per_chance(offhand_chance / 2) )
+                        one_hit(ch, vch, dt, TRUE);
                 }
             }
         }
         /* improve skill */
-        if ( found )
+        if ( found && area_attack_sn != 0 )
             check_improve(ch, area_attack_sn, TRUE, 3);
     }
 
@@ -1460,7 +1479,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     check_improve(ch, gsn_third_attack, TRUE, 5);
                     
     // offhand attacks
-    int offhand_chance = offhand_attack_chance(ch, TRUE);
     if ( offhand_chance > 0 )
     {
         int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
@@ -1506,6 +1524,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     {
         chance=ch->wait;
         do_chop(ch, "");
+
         if (ch->fighting != NULL)
             do_kick(ch, "");
         ch->wait = chance;
@@ -2210,6 +2229,31 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
                 one_hit(ch, opp, gsn_massive_swing, secondary);
         }
     }
+}
+
+// attacks can sometimes be reflected back to the attacked, similar to reflection
+bool check_reflect_attack( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    if ( ch == victim || !IS_AFFECTED(victim, AFF_REFLECTIVE_HYMN) || number_bits(2) )
+        return FALSE;
+    act_gag("Your attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_CHAR, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding you.", ch, NULL, victim, TO_VICT, GAG_FADE);
+    act_gag("$n's attack bounces off the sound-bubble surrounding $N.", ch, NULL, victim, TO_NOTVICT, GAG_FADE);
+    // attack reflected - this may destroy the affect in a burst of sound
+    AFFECT_DATA *aff = affect_find_flag(victim->affected, AFF_REFLECTIVE_HYMN);
+    if ( aff )
+    {
+        int reflect = aff->level * 5;
+        int attack = ch->level * (IS_NPC(ch) ? 2 : 4); // simple estimate for damage
+        if ( number_range(0, reflect) < number_range(0, attack) )
+        {
+            act("The sound-bubble surrounding you bursts.", victim, NULL, NULL, TO_CHAR);
+            act("The sound-bubble surrounding $n bursts.", victim, NULL, NULL, TO_ROOM);
+            affect_strip_flag(victim, AFF_REFLECTIVE_HYMN);
+            deal_damage(victim, ch, reflect, gsn_reflective_hymn, DAM_SOUND, TRUE, TRUE);
+        }
+    }
+    return TRUE;
 }
 
 /*
@@ -3551,6 +3595,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
+    /* check songs next */
+    if ( dam > 0 && normal_hit )
+    {
+        if (IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM))
+        {
+            dam += 5 + dam / 5;
+        }
+    }
+
     if ( dam > 0 && normal_hit )
     {
         if ( stance != STANCE_DEFAULT )
@@ -4810,6 +4863,9 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     if ( check_mirror( ch, victim, show ) )
         return TRUE;
     if ( check_phantasmal( ch, victim, show ) )
+        return TRUE;
+    
+    if ( check_reflect_attack( ch, victim ) )
         return TRUE;
 
     if ( ch->stance == STANCE_DIMENSIONAL_BLADE && per_chance(50) )
@@ -7447,6 +7503,7 @@ DEF_DO_FUN(do_murder)
     multi_hit (ch, victim, TYPE_UNDEFINED); 
     return;    
 }
+
 
 int stance_cost( CHAR_DATA *ch, int stance )
 {

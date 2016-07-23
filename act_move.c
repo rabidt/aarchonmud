@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include "merc.h"
 #include "tables.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -2036,7 +2037,9 @@ DEF_DO_FUN(do_stand)
 	  
         set_pos(ch, POS_STANDING);
           if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          {
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          }
 	  do_look(ch,"auto");
 	  break;
 	  
@@ -2163,8 +2166,12 @@ DEF_DO_FUN(do_rest)
 		 act("$n wakes up and rests in $p.",ch,obj,NULL,TO_ROOM);
 	  }
 	  ch->position = POS_RESTING;
+      {
           if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          {
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          }
+       }
 
          if ( IS_AFFECTED(ch, AFF_SHELTER) )
                  for (gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
@@ -2208,7 +2215,9 @@ DEF_DO_FUN(do_rest)
 	  }
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          {
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0; 
+          }
 	  break;
 	  
    case POS_SITTING:
@@ -2234,7 +2243,9 @@ DEF_DO_FUN(do_rest)
 	  }
 	  ch->position = POS_RESTING;
           if (!IS_NPC(ch))
-              ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          {
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          }
 	  break;
    }
    
@@ -2345,8 +2356,10 @@ DEF_DO_FUN(do_sit)
                         act_new("The group's shelter was revealed by $N.", gch, NULL, ch, TO_CHAR, POS_RESTING);
                 }
         
-        if ( !IS_NPC(ch) )
-            ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          if (!IS_NPC(ch))
+          {
+             ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
+          }
     }
     else
     {
@@ -2443,6 +2456,12 @@ DEF_DO_FUN(do_sleep)
 		 }
 		 ch->position = POS_SLEEPING;
 	  }
+      if (ch->song != 0)
+      {
+         ch->song = SONG_DEFAULT;
+         remove_bard_song_group(ch);
+         send_to_char("You are no longer singing.\n\r", ch);
+      }
 	  break;
 	  
    case POS_FIGHTING:
