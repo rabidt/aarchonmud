@@ -1048,7 +1048,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     SIZE_MEDIUM, SEX_BOTH, 0
     },
 
-//   War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//   War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
     {
     "avian",     "Avian ",
     {110, 110, 105, 110, 110, 110, 105, 110, 110, 105, 105, 110, 110, 105, 105, 110},
@@ -1240,7 +1240,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     },
 
 //r1
-//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
     {
     "amazon",    "Amazon",
     { 120, 130, 130, 135, 125, 125, 125, 125, 125, 125, 130, 135, 125, 125, 135, 130},
@@ -1311,7 +1311,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     SIZE_MEDIUM, SEX_BOTH, 1
     },     
 //r2    
-//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
     {
     "cyclops",    "Cyclop",
     { 145, 150, 155, 155, 145, 145, 145, 150, 150, 145, 155, 155, 150, 145, 155, 150},
@@ -1372,7 +1372,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     SIZE_MEDIUM, SEX_BOTH, 2
     },
 //r3
-//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//    War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
         { 
     "draconian",   "Dracon",
     { 160, 170, 170, 165, 165, 160, 165, 170, 165, 170, 170, 165, 165, 160, 170, 170},
@@ -1424,7 +1424,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     SIZE_MEDIUM, SEX_BOTH, 3
     },
 //4
-//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
         {
           "cyborg", "Cyborg",
           { 185, 190, 190, 190, 190, 190, 190, 190, 190, 190, 190, 190, 185, 195, 190, 190},
@@ -1480,7 +1480,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_TINY, SEX_NEUTRAL, 4
         },
 //5        
-//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
         {
           "doppelganger", "Doppel",
           { 210, 210, 210, 210, 210, 210, 210, 205, 210, 210, 210, 200, 210, 210, 210, 210},
@@ -1536,7 +1536,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
           SIZE_MEDIUM, SEX_BOTH, 5
         },
 //6       
-//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+//          War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
         { 
           "chrysalies",   "Chrysl",
           { 235, 225, 220, 225, 235, 235, 230, 225, 230, 225, 225, 225, 230, 220, 225, 225},
@@ -1595,7 +1595,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
 
 //r7              
 
-        //  War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Brd
+        //  War  Thi  Cle  Mag  Gla  Sam  Pal  Asn  Nin  Mon  Tem  Ilu  Gun  Ran  Nec  Bar
         { 
           "ahazu",   "Ahazu ",
           { 240, 250, 255, 255, 240, 245, 250, 250, 250, 250, 255, 255, 250, 250, 255, 250},
@@ -1654,7 +1654,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },        
 
 //r8        
-         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Brd */
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Bar */
 
         { 
           "android",   "Androi",
@@ -1723,7 +1723,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
    
 // R9
-         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Brd */
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Bar */
         {
           "ettin",   "Ettin ",
           { 285, 290, 290, 290, 285, 285, 290, 290, 290, 290, 290, 290, 290, 285, 290, 290},
@@ -1791,7 +1791,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         },
 
 // R10
-         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Brd */
+         /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Bar */
         {
           "archon", "Archon",
           { 310, 315, 300, 305, 310, 310, 300, 315, 310, 300, 300, 305, 310, 305, 310, 315},
@@ -2107,7 +2107,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
     {
-    "bard", "Brd", STAT_CHA, {STAT_DEX, STAT_LUC},
+    "bard", "Bar", STAT_CHA, {STAT_DEX, STAT_LUC},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
     OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
     75, 90, 100,  95, 110, 85,
@@ -8346,7 +8346,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "scribe", "scrolls", "kick", "haggle", "dodge" }
+    { "drifter", "scribe", "scrolls", "kick", "haggle", "dodge", "wail" }
     },
 
 	{
@@ -8367,7 +8367,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{
-	"beguiling",        { -1, 12, 8, 10, -1, -1, -1, -1, 6, -1, 10, 3, -1, -1, 9 },
+	"beguiling",        { -1, 12, 8, 10, -1, -1, -1, -1, 6, -1, 10, 3, -1, -1, 9, 1 },
 	{ "betray", "calm", "charm person", "fear", "feeblemind", "pacify", "sleep",
            "laughing fit" }
 	},
@@ -8397,7 +8397,7 @@ struct group_type group_table[MAX_GROUP] =
 	}, 
 
 	{
-	"detection",        { -1, 16, 8, 7, -1, 10, 15, -1, 12, -1, 9, 4, -1, 8, 7 },
+	"detection",        { -1, 16, 8, 7, -1, 10, 15, -1, 12, -1, 9, 4, -1, 8, 7, 1 },
 	{ "detect astral", "detect evil", "detect good", "detect hidden", "detect invis", 
 	  "detect magic", "detect poison", "identify", "farsight",
 	  "know alignment", "locate object" } 
@@ -8594,7 +8594,7 @@ struct group_type group_table[MAX_GROUP] =
         "rimbols invocation" }
 	},
 
-        /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Brd */
+        /* War, Thf, Cle, Mag, Gla, Sam, Pal, Asn, Nin, Mnk, Tem, Ilu, Gun, Rng, Nec, Bar */
 	{
         "heroic rites", { -1, 6, 9, 8, -1, -1, 6, -1, -1, -1, 8, -1, -1, -1, -1 },
         { "shadow shroud", "unearth", "hallow", "astarks rejuvenation",

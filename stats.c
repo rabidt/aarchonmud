@@ -910,10 +910,10 @@ DEF_DO_FUN(do_etls)
             if (pc_race_table[i].remorts > tier)          
             {
                 tier = pc_race_table[i].remorts;
-                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
                 add_buf(output, buf);
                 add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
-                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
             }
 
 	    sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
@@ -957,10 +957,10 @@ DEF_DO_FUN(do_etls)
             if (pc_race_table[i].remorts > tier)
             {
                 tier = pc_race_table[i].remorts;
-                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++++\n\r",tier);
+                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
                 add_buf(output, buf);
                 add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
-                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+                add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
             }
         
             sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
@@ -992,10 +992,10 @@ DEF_DO_FUN(do_etls)
         }
         
         output = new_buf();
-        sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++ {CRemort %3d{x ++++++++++++++++++++++++++++++++++\n\r", r_num);
+        sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r", r_num);
         add_buf(output, buf);
         add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
-        add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x");
+        add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
          
         
         for( i=1; i<MAX_PC_RACE; i++ )

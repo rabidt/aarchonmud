@@ -254,9 +254,12 @@ void violence_update_char( CHAR_DATA *ch )
 {
     CHAR_DATA *victim;
     
-    // stance cost must be paid each round while in combat
+    // stance/song cost must be paid each round while in combat
     if ( ch->fighting )
+    {
         check_stance(ch);
+        deduct_song_cost(ch);
+    }
     
     if ( ch->stop > 0 )
     {
@@ -1380,7 +1383,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     second = get_eq_char ( ch, WEAR_SECONDARY );
     offhand_chance = offhand_attack_chance(ch, TRUE);
     
-    deduct_song_cost(ch);
     /* automatic attacks for brawl & melee */
     if ( wield == NULL )
     {
