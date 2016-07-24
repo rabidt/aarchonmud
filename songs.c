@@ -467,8 +467,10 @@ int get_bard_level(CHAR_DATA *ch)
 
 void check_bard_song(CHAR_DATA *ch)
 {
+    // make sure the bard in the room
+    if (!ch->in_room) return;
 
-     // first check to assign bard song to himself
+    // first check to assign bard song to himself
     if (ch->song != 0)
     {
         remove_bard_song(ch);
