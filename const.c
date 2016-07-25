@@ -2109,7 +2109,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
     {
     "bard", "Bar", STAT_CHA, {STAT_DEX, STAT_WIS},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
-    OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
+    OBJ_VNUM_SCHOOL_SWORD, { 9639, 10341 },
     75, 90, 100,  95, 110, 85,
     "bard basics", "bard default"
     }
@@ -8162,7 +8162,7 @@ struct  skill_type
     {
     "lunge",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  75 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 15, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 18, 10,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_AGI, STAT_DEX, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -8287,7 +8287,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard basics",      { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0 },
-    { "dagger", "instruments" }
+    { "sword", "instruments" }
     },	
 
 	{
@@ -8653,6 +8653,12 @@ struct group_type group_table[MAX_GROUP] =
     {
         "spirit songs", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 }, 
         { "bears endurance", "foxs cunning", "cats grace", "inspiring song" }
+    },
+
+    {
+        "canonical collection", { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 },
+        { "arcane anthem", "combat symphony", "deadly dance", "devastating anthem", "lullaby", 
+        "reflective hymn", "battle dirge" }
     }
 
 };
