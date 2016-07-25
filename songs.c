@@ -464,3 +464,18 @@ void remove_passive_bard_song( CHAR_DATA *ch )
         affect_strip_flag(ch, AFF_PASSIVE_SONG);
     }
 }
+
+int get_lunge_skill( CHAR_DATA *ch )
+{
+    OBJ_DATA *wield;
+    int chance = 0;
+
+    wield = get_eq_char(ch, WEAR_WIELD);
+    if (wield->weight <= 50 && wield->value[0] == WEAPON_SWORD)
+    {
+        chance = get_skill(ch, gsn_lunge) * 2/3;
+    }
+
+    check_improve(ch, gsn_lunge, TRUE, 5);
+    return chance;
+}
