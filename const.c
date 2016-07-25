@@ -8145,7 +8145,7 @@ struct  skill_type
     STAT_DEX, STAT_WIS, STAT_CHA,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_instrument,                    0,      0, DUR_NONE,
-    "",                     "!sword!",      ""
+    "",                     "!instrument!",      ""
     },
 
     {
@@ -8158,6 +8158,18 @@ struct  skill_type
     &gsn_battle_dirge,                          0,      0, DUR_NONE,
     "",     "",   ""
     },
+
+    {
+    "lunge",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  75 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 15, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_AGI, STAT_DEX, STAT_LUC,
+    spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_lunge,                          0,      0, DUR_NONE,
+    "",     "!lunge!",   ""
+    },
+
 
     {
     "custom_affect",

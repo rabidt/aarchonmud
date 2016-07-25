@@ -1462,7 +1462,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         + get_skill_total(ch, gsn_third_attack, 0.5) * 2/3
         + get_skill(ch, gsn_extra_attack) * 2/3
         + mastery_bonus(ch, gsn_second_attack, 15, 25)
-        + mastery_bonus(ch, gsn_third_attack, 15, 25);
+        + mastery_bonus(ch, gsn_third_attack, 15, 25)
+        + get_lunge_skill(ch);
 
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
