@@ -1466,7 +1466,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
+    if ( IS_AFFECTED(ch, AFF_SLOW) || IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
         secondary_attacks /= 2;
     
     for ( attacks = secondary_attacks; attacks > 0; attacks -= 100 )
@@ -1622,7 +1622,7 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks -= 50;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         attacks += 150;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
+    if ( IS_AFFECTED(ch, AFF_SLOW) || IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
         attacks -= UMAX(0, attacks - 100) / 2;
     // hurt mobs get fewer attacks
     attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
@@ -2512,6 +2512,9 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         dam -= dam / 20;
     if ( IS_AFFECTED(ch, AFF_PLAGUE) )
         dam -= dam / 20;
+
+    if ( IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
+        dam -= dam / 25;
 
     /* Crit strike stuff split up for oprog */
     /* first apply dam bonus */
