@@ -94,6 +94,16 @@ static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
         int drain = dam / 2;
         victim->move = UMAX(0, victim->move - drain);
     }
+    else if ( song == SONG_BATTLE_DIRGE )
+    {
+        if ( !saves_spell(victim, ch, level, DAM_MENTAL) )
+        {
+            send_to_char( "You stop in your tracks!\n\r", victim );
+            act("$n stands perfectly still.",victim,NULL,NULL,TO_ROOM);
+            victim->stop += 1;
+            victim->wait += PULSE_VIOLENCE;
+        }
+    }
 }
 
 // basic damage, plus extra effect based on current song
@@ -153,66 +163,6 @@ DEF_DO_FUN(do_wail)
     check_improve(ch, gsn_wail, TRUE, 3);
 }
 
-/*
-void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype)
-{
-    CHAR_DATA *vch;
-    int dam, chance;
-
-    chance = (100 + get_skill(ch,gsn)) / 2;
-
-    if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
-    
-    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
-    {
-        if ( is_opponent(ch,vch) && vch != victim )
-        {
-            if ( check_hit(ch, vch, gsn, damtype, chance) )
-            {
-                dam = martial_damage( ch, vch, gsn );
-        
-                full_dam(ch, vch, dam, gsn, damtype, TRUE);
-                check_improve(ch, gsn, TRUE, 3);
-            } else {
-                damage( ch, vch, 0, gsn, damtype, TRUE);
-                check_improve(ch, gsn, FALSE, 3);
-            }   
-        }
-    }
-}
-
-void add_deadly_dance_attacks_with_one_hit(CHAR_DATA *ch, CHAR_DATA *victim, int gsn)
-{
-    CHAR_DATA *vch;
-    int chance;
-    if (!IS_AFFECTED(ch, AFF_DEADLY_DANCE)) return;
-
-    if (gsn == gsn_circle || gsn == gsn_slash_throat) 
-    {
-        chance = circle_chance(ch, victim, gsn);
-    } else if (gsn == gsn_double_strike) {
-        chance = get_skill(ch, gsn);
-    } else {
-        chance = (100 + get_skill(ch,gsn)) / 2;
-    }
-
-    for (vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
-    {
-        if ( is_opponent(ch, vch) && vch != victim )
-        {
-            if (per_chance(chance))
-            {
-                one_hit(ch, vch, gsn, FALSE);
-                check_improve(ch, gsn, TRUE, 3);
-            } else {
-                damage( ch, vch, 0, gsn, DAM_NONE, TRUE);
-                check_improve(ch, gsn, FALSE, 3);   
-            }
-        }
-    }
-}
-*/
-
 static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
 {
     AFFECT_DATA af;
@@ -266,24 +216,14 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
         af.bitvector = AFF_ARCANE_ANTHEM;
         affect_to_char(ch, &af);     
     }
-}
-
-/*
-void apply_bard_song_affect_to_group(CHAR_DATA *ch)
-{
-    CHAR_DATA *gch;
-    int song = ch->song;
-    int bard_level = ch->level;
-
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    else if (song_num == SONG_BATTLE_DIRGE)
     {
-        if ( is_same_group(gch, ch) )
-        {
-            apply_bard_song_affect(gch, song, bard_level);
-        }
+        af.type      = gsn_battle_dirge;
+        affect_to_char(ch, &af);
+        af.bitvector = AFF_BATTLE_DIRGE;
+        affect_to_char(ch, &af);
     }
 }
-*/
 
 // completely ripped off do_stance. not ashamed
 DEF_DO_FUN(do_sing)
@@ -397,74 +337,6 @@ void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
     }
 }
 
-/*
-int get_bard_song(CHAR_DATA *ch)
-{
-    CHAR_DATA *gch;
-    int song;
-
-    // first pick the leader's song
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-    {
-        if ( is_same_group(gch, ch) && gch->leader != NULL)
-        {
-            if (gch->leader->song !=0)
-            {
-                song = gch->leader->song;
-                return song;
-            }
-        }
-    }
-
-    // then, if leader not singing, pick a "random" song
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-    {
-        if ( is_same_group(gch, ch) )
-        {
-            if (gch->song != 0)
-            {
-                song = gch->song;
-                return song;
-            }
-        }
-    }
-    return 0;
-}
-
-int get_bard_level(CHAR_DATA *ch)
-{
-    CHAR_DATA *gch;
-    int bard_level;
-
-    // first pick the leader's level
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-    {
-        if ( is_same_group(gch, ch) && gch->leader != NULL )
-        {
-            if (gch->leader->song !=0)
-            {
-                bard_level = gch->level;
-                return bard_level;
-            }
-        }
-    }
-
-    // then, if leader not singing, pick a "random" bard level
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-    {
-        if ( is_same_group(gch, ch) )
-        {
-            if (gch->song != 0 )
-            {
-                bard_level = gch->level;
-                return bard_level;
-            }
-        }
-    }
-    return 0;
-}
-*/
-
 void check_bard_song(CHAR_DATA *ch)
 {
     // make sure the bard in the room
@@ -540,11 +412,7 @@ int song_cost( CHAR_DATA *ch, int song )
     int skill = get_skill(ch, sn);
     int cost = songs[song].cost * (140-skill)/40;
 
-    // more expensive if not fighting/standing
-    if (ch->position == POS_RESTING || ch->position == POS_SITTING)
-    {
-        cost = cost * 1.5;
-    }
+    cost -= cost * mastery_bonus(ch, sn, 10, 20) / 100;
 
     return cost;
 }
@@ -565,6 +433,18 @@ void deduct_song_cost( CHAR_DATA *ch )
     {   
         cost -= (cost*3*skill)/1000;
         check_improve(ch, gsn_instrument, TRUE, 3);
+    }
+
+    // more expensive if not fighting/standing
+    if (ch->position == POS_RESTING || ch->position == POS_SITTING)
+    {
+        cost *= 1.5;
+    }
+
+    // and also more expensive if not fighting since it deducts every tick instead of round
+    if (ch->fighting == NULL)
+    {
+        cost *= 7.5;
     }
 
     if (cost > ch->mana)
