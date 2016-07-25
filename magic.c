@@ -2699,6 +2699,7 @@ DEF_SPELL_FUN(spell_charm_person)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
     coercion_chance = get_skill(ch, gsn_coercion) / 2;
+    coercion_chance += mastery_bonus(ch, gsn_coercion, 10, 5);
 
     /* PCs are harder to charm */
     if ( saves_spell(victim, ch, level, DAM_CHARM)
