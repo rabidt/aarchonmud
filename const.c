@@ -2107,7 +2107,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 	},
 
     {
-    "bard", "Bar", STAT_CHA, {STAT_DEX, STAT_LUC},
+    "bard", "Bar", STAT_CHA, {STAT_DEX, STAT_WIS},
         {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
     OBJ_VNUM_SCHOOL_DAGGER, { 9639, 10341 },
     75, 90, 100,  95, 110, 85,
@@ -8020,7 +8020,7 @@ struct  skill_type
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,   2 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_VIT, STAT_STR, STAT_WIS,
         spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
         &gsn_wail,                      0,     12, DUR_NONE,
         "wail",                 "!Wail!",       ""
@@ -8029,10 +8029,10 @@ struct  skill_type
     /* songs */
     {
     "combat symphony",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  17 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_AGI, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_combat_symphony,                  0,      0, DUR_NONE,
     "",     "",   ""
@@ -8040,10 +8040,10 @@ struct  skill_type
 
     {
     "devastating anthem",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  82 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_DEX, STAT_STR,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_devastating_anthem,                  0,      0, DUR_NONE,
     "",     "",   ""
@@ -8052,9 +8052,9 @@ struct  skill_type
     {
     "reflective hymn",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  45 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_INT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_reflective_hymn,                  0,      0, DUR_NONE,
     "sound burst",     "",   ""
@@ -8062,10 +8062,10 @@ struct  skill_type
 
     {
     "lullaby",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  10 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_VIT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_lullaby,                          0,      0, DUR_NONE,
     "",     "",   ""
@@ -8074,9 +8074,9 @@ struct  skill_type
     {
     "deadly dance",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  60 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_DEX, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_deadly_dance,                          0,      0, DUR_NONE,
     "",     "",   ""
@@ -8117,10 +8117,10 @@ struct  skill_type
 
     {
     "coercion",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  60 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 4,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_LUC, STAT_CHA,
     spell_null,             TAR_IGNORE,             POS_STANDING,
     &gsn_coercion,                 20, 12, DUR_BRIEF,
     "",     "!coercion!",   ""
@@ -8128,10 +8128,10 @@ struct  skill_type
 
     {
     "arcane anthem",
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  74 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_CHA, STAT_WIS, STAT_INT,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_arcane_anthem,                          0,      0, DUR_NONE,
     "",     "",   ""
@@ -8139,20 +8139,31 @@ struct  skill_type
 
     {
     "instruments",  
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  10 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_NONE, STAT_NONE, STAT_NONE,
+    STAT_DEX, STAT_WIS, STAT_CHA,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_instrument,                    0,      0, DUR_NONE,
     "",                     "!sword!",      ""
     },
 
     {
+    "battle dirge",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  55 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_VIT,
+    spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_battle_dirge,                          0,      0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
     "custom_affect",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,    TAR_IGNORE,     POS_STANDING,
     &gsn_custom_affect,              0, 0, DUR_SPECIAL,
@@ -8162,7 +8173,7 @@ struct  skill_type
     "god_bless", 
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,    TAR_IGNORE,     POS_STANDING,
     &gsn_god_bless,              0, 0, DUR_SPECIAL,
@@ -8173,7 +8184,7 @@ struct  skill_type
     "god_curse", 
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
-{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,    TAR_IGNORE,     POS_STANDING,
     &gsn_god_curse,              0, 0, DUR_SPECIAL,
@@ -8701,6 +8712,11 @@ const struct mastery_group_type mastery_group_table[] =
     
     { "dual weapon", 5,
         { "dual dagger", "dual sword", "dual axe", "dual gun" }
+    },
+
+    { "songs", 2,
+        { "arcane anthem", "combat symphony", "deadly dance", "devastating anthem", "lullaby", 
+        "reflective hymn", "battle dirge" }
     },
 
     { NULL }
