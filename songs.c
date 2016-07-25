@@ -474,6 +474,7 @@ int get_lunge_skill( CHAR_DATA *ch )
     if (wield->weight <= 50 && wield->value[0] == WEAPON_SWORD)
     {
         chance = get_skill(ch, gsn_lunge) * 2/3;
+        chance += mastery_bonus(ch, gsn_lunge, 15, 25);
     }
 
     check_improve(ch, gsn_lunge, TRUE, 5);
