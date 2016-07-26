@@ -471,6 +471,10 @@ int get_lunge_skill( CHAR_DATA *ch )
     int chance = 0;
 
     wield = get_eq_char(ch, WEAR_WIELD);
+
+    // make sure there's an object to check against
+    if (!wield) return;
+
     if (wield->weight <= 60 && wield->value[0] == WEAPON_SWORD)
     {
         chance = get_skill(ch, gsn_lunge) * 2/3;
