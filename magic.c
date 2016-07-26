@@ -1382,7 +1382,22 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
          && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
-        set_fighting(victim, ch);
+        if (sn == gsn_charm_person)
+        {
+            int coercion_chance = get_skill(ch, gsn_coercion) / 2;
+            coercion_chance += mastery_bonus(ch, gsn_coercion, 10, 5);
+
+            if (per_chance(coercion_chance))
+            {   
+                act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+                check_improve(ch, gsn_coercion, TRUE, 3);
+                return;
+            } else {
+                set_fighting(victim, ch);
+            }
+        } else {
+            set_fighting(victim, ch);
+        }
     }
     
     // mystic infusion heals or harms
@@ -2654,7 +2669,7 @@ DEF_SPELL_FUN(spell_charm_person)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
-    int mlevel, coercion_chance;
+    int mlevel;
     bool sex_bonus;
 
     if ( is_safe(ch,victim) )
@@ -2681,22 +2696,6 @@ DEF_SPELL_FUN(spell_charm_person)
     mlevel = victim->level;
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return SR_UNABLE;
-
-    coercion_chance = get_skill(ch, gsn_coercion) / 2;
-    coercion_chance += mastery_bonus(ch, gsn_coercion, 10, 5);
-
-    if (per_chance(coercion_chance))
-    {   
-        int mana_needed, skill;
-        skill = get_skill(ch, gsn_charm_person);
-        mana_needed = mana_cost(ch, gsn_charm_person, skill);
-        mana_needed = meta_magic_adjust_cost(ch, mana_needed, TRUE);
-        send_to_char("The spell has failed to have an effect.\n\r", ch );
-        act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
-        check_improve(ch, gsn_coercion, TRUE, 3);
-        reduce_mana(ch, mana_needed);
-        return FALSE;
-    }
 
     SPELL_CHECK_RETURN
     
