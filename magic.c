@@ -680,7 +680,7 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     return FALSE;
 }
 
-int mana_cost (CHAR_DATA *ch, int sn, int skill)
+int mana_cost(CHAR_DATA *ch, int sn, int skill)
 {
     int mana = skill_table[sn].min_mana;
     
@@ -2682,6 +2682,22 @@ DEF_SPELL_FUN(spell_charm_person)
     if ( check_cha_follow(ch, mlevel) < mlevel )
         return SR_UNABLE;
 
+    coercion_chance = get_skill(ch, gsn_coercion) / 2;
+    coercion_chance += mastery_bonus(ch, gsn_coercion, 10, 5);
+
+    if (per_chance(coercion_chance))
+    {   
+        int mana_needed, skill;
+        skill = get_skill(ch, gsn_charm_person);
+        mana_needed = mana_cost(ch, gsn_charm_person, skill);
+        mana_needed = meta_magic_adjust_cost(ch, mana_needed, TRUE);
+        send_to_char("The spell has failed to have an effect.\n\r", ch );
+        act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
+        check_improve(ch, gsn_coercion, TRUE, 3);
+        reduce_mana(ch, mana_needed);
+        return FALSE;
+    }
+
     SPELL_CHECK_RETURN
     
     if ( IS_AFFECTED(victim, AFF_CHARM)
@@ -2698,9 +2714,6 @@ DEF_SPELL_FUN(spell_charm_person)
         (ch->sex == SEX_FEMALE && victim->sex == SEX_MALE)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
-    coercion_chance = get_skill(ch, gsn_coercion) / 2;
-    coercion_chance += mastery_bonus(ch, gsn_coercion, 10, 5);
-
     /* PCs are harder to charm */
     if ( saves_spell(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
@@ -2708,12 +2721,6 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
-        if (per_chance(coercion_chance))
-        {   
-            act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
-            check_improve(ch, gsn_coercion, TRUE, 3);
-            return FALSE;
-        }
         check_improve(ch, gsn_coercion, FALSE, 3);
         return TRUE;
     }
