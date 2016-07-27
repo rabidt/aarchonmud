@@ -2459,7 +2459,7 @@ DEF_DO_FUN(do_sleep)
       if (ch->song != 0)
       {
          ch->song = SONG_DEFAULT;
-         remove_bard_song_group(ch);
+         check_bard_song_group(ch);
          send_to_char("You are no longer singing.\n\r", ch);
       }
 	  break;

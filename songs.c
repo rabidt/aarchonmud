@@ -242,7 +242,6 @@ DEF_DO_FUN(do_sing)
             send_to_char("You already stopped singing.\n\r", ch);
             return;
         }
-        //remove_bard_song_group(ch);
         send_to_char("You are no longer singing.\n\r", ch);
         ch->song = SONG_DEFAULT;
         check_bard_song_group(ch);
@@ -293,10 +292,7 @@ DEF_DO_FUN(do_sing)
     }
 
     // make sure any songs already applied are taken away first
-    check_bard_song_group(ch);
-    //remove_bard_song_group(ch);
-    //apply_bard_song_affect_to_group(ch);
-    
+    check_bard_song_group(ch);    
 }
 
 
@@ -349,10 +345,15 @@ void check_bard_song(CHAR_DATA *ch)
         apply_bard_song_affect(ch, ch->song, ch->level);
 
         // remove cost if not fighting
-        if (ch->fighting == NULL)
+        int cost = song_cost(ch, ch->song);
+        if (cost < ch->mana)
         {
             deduct_song_cost(ch);
             check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
+        } else {
+            send_to_char("You are too tired to keep singing that song.\n\r", ch);
+            ch->song = 0;
+            check_bard_song_group(ch);
         }
         return;
     }
@@ -363,7 +364,7 @@ void check_bard_song(CHAR_DATA *ch)
     if (song == 0)
     {
         remove_bard_song(ch);
-    } else {
+    } else {        
         remove_bard_song(ch);
         apply_bard_song_affect(ch, song, level);
     }
@@ -389,47 +390,17 @@ void remove_bard_song(CHAR_DATA *ch)
     }
 }
 
-void remove_bard_song_group( CHAR_DATA *ch )
-{   
-    CHAR_DATA *gch;
-
-    if (ch->song != 0)
-    {
-        for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
-        {
-            if ( is_same_group(gch, ch) && IS_AFFECTED(gch, AFF_SONG) )
-            {
-                affect_strip_flag(gch, AFF_SONG);
-            }
-        }
-    }
-}
-
 int song_cost( CHAR_DATA *ch, int song )
 {   
-//    int song = ch->song;
     int sn = *(songs[song].gsn);
-    int skill = get_skill(ch, sn);
+    int skill = get_skill(ch, sn), instrument_skill = get_skill(ch, gsn_instrument);
     int cost = songs[song].cost * (140-skill)/40;
+    OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
+
 
     cost -= cost * mastery_bonus(ch, sn, 10, 20) / 100;
 
-    return cost;
-}
-
-
-void deduct_song_cost( CHAR_DATA *ch )
-{
-    int cost, skill;
-    OBJ_DATA *instrument;
-
-    if (ch->song == 0) return;
-
-    instrument = get_eq_char(ch, WEAR_HOLD);
-    skill = get_skill(ch, gsn_instrument);
-    cost = song_cost(ch, ch->song);
-
-    if (instrument != NULL && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) && skill > 0)
+    if (instrument && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) && instrument_skill > 0)
     {   
         cost -= (cost*3*skill)/1000;
         check_improve(ch, gsn_instrument, TRUE, 3);
@@ -447,14 +418,19 @@ void deduct_song_cost( CHAR_DATA *ch )
         cost *= 7.5;
     }
 
-    if (cost > ch->mana)
-    {
-        send_to_char("You are too tired to keep singing that song.\n\r", ch);
-        ch->song = 0;
-        remove_bard_song_group(ch);
-    } else {
-        ch->mana -= cost;
-    }
+    return cost;
+}
+
+
+void deduct_song_cost( CHAR_DATA *ch )
+{
+    int cost;
+
+    if (ch->song == 0) return;
+
+    cost = song_cost(ch, ch->song);
+
+    ch->mana -= cost;
 }
 
 void remove_passive_bard_song( CHAR_DATA *ch )
@@ -473,7 +449,7 @@ int get_lunge_skill( CHAR_DATA *ch )
     wield = get_eq_char(ch, WEAR_WIELD);
 
     // make sure there's an object to check against
-    if (!wield) return;
+    if (!wield) return 0;
 
     if (wield->weight <= 60 && wield->value[0] == WEAPON_SWORD)
     {
