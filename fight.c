@@ -258,7 +258,7 @@ void violence_update_char( CHAR_DATA *ch )
     if ( ch->fighting )
     {
         check_stance(ch);
-        deduct_song_cost(ch);
+        check_bard_song(ch);
     }
     
     if ( ch->stop > 0 )
