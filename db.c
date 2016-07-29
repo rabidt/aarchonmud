@@ -494,6 +494,7 @@ sh_int  gsn_reflective_hymn;
 sh_int  gsn_arcane_anthem;
 sh_int  gsn_battle_dirge;
 sh_int  gsn_lunge;
+sh_int  gsn_riff;
 
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;

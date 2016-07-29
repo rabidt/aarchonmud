@@ -8170,6 +8170,16 @@ struct  skill_type
     "",     "!lunge!",   ""
     },
 
+    {    
+    "riff",  
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  48 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 4,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_VIT, STAT_STR, STAT_WIS,
+        spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
+        &gsn_riff,                      0,     12, DUR_NONE,
+        "riff",                 "!Riff!",       ""
+    },
 
     {
     "custom_affect",
