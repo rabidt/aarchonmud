@@ -323,7 +323,8 @@ DEF_DO_FUN(do_riff)
     if ( is_safe(ch, victim) )
         return;
 
-    int level = ch->level * (100 + instrument_skill + skill) / 300;
+    // give level a 10% bonus for having to look at two skills
+    int level = ch->level * (110 + instrument_skill + skill) / 300;
     int dam = martial_damage(ch, victim, gsn_riff);
     // bonus based on number of group members
     int bonus = 3;
@@ -334,14 +335,25 @@ DEF_DO_FUN(do_riff)
             bonus--;
     }
     
+    dam *= bonus;
+
+    int move = skill_table[gsn_riff].min_mana;
+    int move_cost = IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) ? ch->move / 100 : move * (200-skill) / 100;
+    move_cost += move_cost * mastery_bonus(ch, gsn_riff, 15, 25) / 100;
+    ch->move -= move_cost;
+
+    int move_bonus = IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) ? ch->move / 100 : 20;
+    dam += move_bonus * 5;
+
     if ( saves_physical(victim, ch, level, DAM_MENTAL) )
     {
-        // 1/4 damage on saves
-        full_dam(ch, victim, dam*bonus/4, gsn_riff, DAM_MENTAL, TRUE);
+        // no damage
+        full_dam(ch, victim, 0, gsn_riff, DAM_MENTAL, TRUE);
+        check_improve(ch, gsn_riff, FALSE, 3);
         return;
     }
 
-    full_dam(ch, victim, dam*bonus, gsn_riff, DAM_MENTAL, TRUE);
+    full_dam(ch, victim, dam, gsn_riff, DAM_MENTAL, TRUE);
     check_improve(ch, gsn_riff, TRUE, 3);        
 }
 
