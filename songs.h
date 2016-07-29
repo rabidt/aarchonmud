@@ -27,6 +27,7 @@
 
 DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_wail     );
+DECLARE_DO_FUN( do_riff     );
 //DECLARE_DO_FUN( do_fox      );
 //DECLARE_DO_FUN( do_bear     );
 //DECLARE_DO_FUN( do_cat      );

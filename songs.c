@@ -295,6 +295,55 @@ DEF_DO_FUN(do_sing)
     check_bard_song_group(ch);    
 }
 
+DEF_DO_FUN(do_riff)
+{
+    CHAR_DATA *victim, *gch;
+    OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
+    int skill = get_skill(ch, gsn_riff), instrument_skill = get_skill(ch, gsn_instrument);
+
+    if (!instrument || !IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
+    {
+        send_to_char("You need an instrument to truly riff.\n\r", ch);
+        return;
+    }
+
+    if ( skill == 0 )
+    {
+        send_to_char("You don't know how to riff.\n\r",ch);
+        return;
+    }
+
+    if ( (victim = get_combat_victim(ch, argument)) == NULL )
+    {
+        return;
+    }
+
+    WAIT_STATE( ch, skill_table[gsn_riff].beats );
+
+    if ( is_safe(ch, victim) )
+        return;
+
+    int level = ch->level * (100 + instrument_skill + skill) / 300;
+    int dam = martial_damage(ch, victim, gsn_riff);
+    // bonus based on number of group members
+    int bonus = 3;
+
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if (is_same_group(gch, ch) && gch != ch && bonus > 1)
+            bonus--;
+    }
+    
+    if ( saves_physical(victim, ch, level, DAM_MENTAL) )
+    {
+        // 1/4 damage on saves
+        full_dam(ch, victim, dam*bonus/4, gsn_riff, DAM_MENTAL, TRUE);
+        return;
+    }
+
+    full_dam(ch, victim, dam*bonus, gsn_riff, DAM_MENTAL, TRUE);
+    check_improve(ch, gsn_riff, TRUE, 3);        
+}
 
 void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
 {
