@@ -7304,7 +7304,7 @@ struct  skill_type
     "shadow shroud",  
     { 102,  92, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
-{ 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_shadow_shroud,    TAR_CHAR_SELF,     POS_FIGHTING,
     &gsn_shadow_shroud,               60, 20, DUR_NORMAL,
@@ -8175,10 +8175,21 @@ struct  skill_type
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  48 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 4,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
-    STAT_VIT, STAT_STR, STAT_WIS,
+    STAT_DEX, STAT_VIT, STAT_WIS,
         spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-        &gsn_riff,                      0,     12, DUR_NONE,
+        &gsn_riff,                      17,     12, DUR_NONE,
         "riff",                 "!Riff!",       ""
+    },
+
+    {
+    "bardic knowledge",  
+    { 102,  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  66 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 1,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_WIS, STAT_INT, STAT_CHA,
+    spell_bardic_knowledge,    TAR_CHAR_SELF,     POS_FIGHTING,
+    &gsn_bardic_knowledge,               60, 20, DUR_NORMAL,
+    "aura of knowledge",         "You are no longer surrounded by knowledge.",  ""
     },
 
     {
@@ -8379,7 +8390,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "drifter", "scribe", "scrolls", "kick", "haggle", "dodge", "wail" }
+    { "drifter", "beguiling", "scribe", "scrolls", "kick", "haggle", "dodge", "wail", "bardic knowledge" }
     },
 
 	{

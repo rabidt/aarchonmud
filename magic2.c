@@ -4313,3 +4313,37 @@ DEF_SPELL_FUN(spell_shadow_companion)
 
     return TRUE;
 }
+
+DEF_SPELL_FUN(spell_bardic_knowledge)
+{
+    SPELL_CHECK_RETURN
+
+    CHAR_DATA *victim = (CHAR_DATA *) vo;
+    AFFECT_DATA af;
+    
+    if ( IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) )
+    {
+        send_to_char( "You're already knowledgable!!\n\r", ch );
+        return SR_AFFECTED;
+    }
+
+    af.where     = TO_AFFECTS;
+    af.type      = sn;
+    af.level     = level;
+    af.duration  = get_duration(sn, level);
+    af.modifier  = (20 + level) / 6;
+    af.bitvector = AFF_BARDIC_KNOWLEDGE;
+    af.location  = APPLY_DEX;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_WIS;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_CHA;
+    affect_to_char(victim,&af);
+    af.location  = APPLY_HITROLL;
+    affect_to_char(victim,&af);
+       
+    send_to_char( "You are surrounded by knowledge.\n\r", victim );
+    if ( ch != victim )
+        act("$N is surrounded by an aura of knowledge.",ch,NULL,victim,TO_CHAR);
+    return TRUE;
+}
