@@ -345,6 +345,7 @@ const struct flag_type affect_flags[] =
     { "deadly dance",      AFF_DEADLY_DANCE,         TRUE  },
     { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { "battle dirge",      AFF_BATTLE_DIRGE,         TRUE  },
+    { "bardic knowledge",  AFF_BARDIC_KNOWLEDGE,     TRUE  },
     { NULL,                0,                        0     }
 };
 

@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         483 /* accurate july 2016 */
+#define MAX_SKILL         484 /* accurate july 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1636,6 +1636,7 @@ struct  kill_data
 #define AFF_DEADLY_DANCE      87
 #define AFF_ARCANE_ANTHEM     88
 #define AFF_BATTLE_DIRGE      89
+#define AFF_BARDIC_KNOWLEDGE  90
 
 /*
  * Sex.
@@ -3706,6 +3707,7 @@ extern sh_int  gsn_arcane_anthem;
 extern sh_int  gsn_battle_dirge;
 extern sh_int  gsn_lunge;
 extern sh_int  gsn_riff;
+extern sh_int  gsn_bardic_knowledge;
 
 extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
