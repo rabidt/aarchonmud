@@ -1849,7 +1849,7 @@ DEF_DO_FUN(do_drink)
         af.where     = TO_AFFECTS;
         af.type      = gsn_poison;
         af.level     = number_fuzzy(amount); 
-        af.duration  = 3 * amount;
+        af.duration  = get_duration(gsn_poison, amount);
         af.location  = APPLY_NONE;
         af.modifier  = 0;
         af.bitvector = AFF_POISON;
@@ -1945,7 +1945,7 @@ DEF_DO_FUN(do_eat)
                 af.where     = TO_AFFECTS;
                 af.type      = gsn_poison;
                 af.level     = number_fuzzy(obj->value[0]);
-                af.duration  = 2 * obj->value[0];
+                af.duration  = get_duration(gsn_poison, obj->value[0]);
                 af.location  = APPLY_NONE;
                 af.modifier  = 0;
                 af.bitvector = AFF_POISON;
