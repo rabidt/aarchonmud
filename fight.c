@@ -2530,9 +2530,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         return TRUE;
 
     /* behead */
-    check_behead( ch, victim, wield );
-    if ( stop_attack(ch, victim) )
-        return TRUE;
+    if ( dt != gsn_massive_swing || per_chance(50) )
+    {
+        check_behead( ch, victim, wield );
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
 
     /* aura */
     aura_damage( ch, victim, wield );
