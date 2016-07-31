@@ -8183,13 +8183,24 @@ struct  skill_type
 
     {
     "bardic knowledge",  
-    { 102,  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  66 },
+    { 102,  102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 66 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_WIS, STAT_INT, STAT_CHA,
     spell_bardic_knowledge,    TAR_CHAR_SELF,     POS_FIGHTING,
     &gsn_bardic_knowledge,               60, 20, DUR_NORMAL,
     "aura of knowledge",         "You are no longer surrounded by knowledge.",  ""
+    },
+
+    {
+    "lonesome melody",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  25 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 2,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DEX, STAT_VIT, STAT_AGI,
+    spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_lonesome_melody,                          0,      0, DUR_NONE,
+    "",     "",   ""
     },
 
     {

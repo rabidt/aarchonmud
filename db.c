@@ -496,6 +496,7 @@ sh_int  gsn_battle_dirge;
 sh_int  gsn_lunge;
 sh_int  gsn_riff;
 sh_int  gsn_bardic_knowledge;
+sh_int  gsn_lonesome_melody;
 
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;
