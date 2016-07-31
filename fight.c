@@ -1631,6 +1631,9 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
     if ( IS_AFFECTED(ch, AFF_GUARD) )
         attacks -= 50;
     
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
+    
     for ( ; attacks > 0; attacks -= 100 )
     {
         if (number_percent() > attacks)
