@@ -4063,11 +4063,11 @@ DEF_DO_FUN(do_inspire)
         char arg[MIL];
         argument = one_argument(argument, arg);
         // parse type of inspiring song
-        if ( !strcmp(arg, "cunning") )
+        if ( !strcmp(arg, "cunning") || !strcmp(arg, "fox") )
             sn = gsn_foxs_cunning;
-        else if ( !strcmp(arg, "endurance") )
+        else if ( !strcmp(arg, "endurance") || !strcmp(arg, "bear") )
             sn = gsn_bears_endurance;
-        else if ( !strcmp(arg, "grace") )
+        else if ( !strcmp(arg, "grace") || !strcmp(arg, "cat") )
             sn = gsn_cats_grace;
         if ( sn != gsn_inspiring_song )
             one_argument(argument, arg);

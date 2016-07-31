@@ -4337,8 +4337,6 @@ DEF_SPELL_FUN(spell_bardic_knowledge)
     affect_to_char(victim,&af);
     af.location  = APPLY_CHA;
     affect_to_char(victim,&af);
-    af.location  = APPLY_HITROLL;
-    affect_to_char(victim,&af);
        
     send_to_char( "You are surrounded by knowledge.\n\r", victim );
     if ( ch != victim )

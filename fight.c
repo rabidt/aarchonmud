@@ -1467,8 +1467,10 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
-    if ( IS_AFFECTED(ch, AFF_SLOW) || IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
         secondary_attacks /= 2;
+    if ( IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
+        secondary_attacks *= 0.75;
     
     for ( attacks = secondary_attacks; attacks > 0; attacks -= 100 )
     {
@@ -1619,12 +1621,16 @@ void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
         attacks = UMAX(100, attacks/2);    
     if ( IS_SET(ch->off_flags, OFF_FAST) )
         attacks = attacks * 3/2;
-    if ( IS_AFFECTED(ch, AFF_GUARD) )
-        attacks -= 50;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         attacks += 150;
-    if ( IS_AFFECTED(ch, AFF_SLOW) || IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
+    if ( IS_AFFECTED(ch, AFF_SLOW) )
         attacks -= UMAX(0, attacks - 100) / 2;
+    if ( IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
+        attacks -= UMAX(0, attacks - 100) / 4;
+    // guard is applied last, to ensure (attacks - 100) is the number of secondary attacks
+    if ( IS_AFFECTED(ch, AFF_GUARD) )
+        attacks -= 50;
+    
     // hurt mobs get fewer attacks
     attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
     
@@ -2515,7 +2521,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         dam -= dam / 20;
 
     if ( IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
-        dam -= dam / 25;
+        dam -= dam / 10;
 
     /* Crit strike stuff split up for oprog */
     /* first apply dam bonus */
@@ -3609,6 +3615,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if (IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM))
         {
             dam += 5 + dam / 5;
+        } else if (IS_AFFECTED(ch, AFF_LONESOME_MELODY))
+        {
+            dam += 3 + dam / 4;
         }
     }
 
