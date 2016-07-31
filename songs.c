@@ -432,6 +432,9 @@ void check_bard_song(CHAR_DATA *ch)
             af.location  = APPLY_HITROLL;
             af.bitvector = AFF_LONESOME_MELODY;
             affect_to_char(ch, &af);
+            af.modifier  = -2*ch->level;
+            af.location  = APPLY_AC;
+            affect_to_char(ch, &af);
             return;
         }
 
