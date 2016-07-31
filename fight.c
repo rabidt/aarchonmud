@@ -3612,6 +3612,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         if (IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM))
         {
             dam += 5 + dam / 5;
+        } else if (IS_AFFECTED(ch, AFF_LONESOME_MELODY))
+        {
+            dam += 3 + dam / 4;
         }
     }
 

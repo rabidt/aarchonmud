@@ -403,9 +403,8 @@ void check_bard_song(CHAR_DATA *ch)
     if (ch->song != 0)
     {
         remove_bard_song(ch);
-        apply_bard_song_affect(ch, ch->song, ch->level);
-
-        // remove cost if not fighting
+       
+        // remove cost
         int cost = song_cost(ch, ch->song);
         if (cost < ch->mana)
         {
@@ -416,6 +415,27 @@ void check_bard_song(CHAR_DATA *ch)
             ch->song = 0;
             check_bard_song_group(ch);
         }
+
+        // we check this here so it doesn't apply to group. this is solo song
+        if (ch->song == SONG_LONESOME_MELODY)
+        {
+            AFFECT_DATA af;
+
+            af.where     = TO_AFFECTS;
+            af.level     = ch->level;
+            af.duration  = -1;
+            af.location  = APPLY_DAMROLL;
+            af.modifier  = 10 + ch->level;
+            af.bitvector = AFF_SONG;
+            af.type      = gsn_lonesome_melody;
+            affect_to_char(ch, &af);
+            af.location  = APPLY_HITROLL;
+            af.bitvector = AFF_LONESOME_MELODY;
+            affect_to_char(ch, &af);
+            return;
+        }
+
+        apply_bard_song_affect(ch, ch->song, ch->level);
         return;
     }
 
@@ -504,19 +524,18 @@ void remove_passive_bard_song( CHAR_DATA *ch )
 
 int get_lunge_skill( CHAR_DATA *ch )
 {
-    OBJ_DATA *wield;
+    OBJ_DATA *wield, *held, *shield;
     int chance = 0;
 
     wield = get_eq_char(ch, WEAR_WIELD);
+    held = get_eq_char(ch, WEAR_HOLD);
+    shield = get_eq_char(ch, WEAR_SHIELD);
 
-    // make sure there's an object to check against
-    if (!wield) return 0;
+    // make sure they're wearing the stuff for lunge
+    if ( !(wield && held) || shield ) return 0;
 
-    if (wield->weight <= 60 && wield->value[0] == WEAPON_SWORD)
-    {
-        chance = get_skill(ch, gsn_lunge) * 2/3;
-        chance += mastery_bonus(ch, gsn_lunge, 15, 25);
-    }
+    chance = get_skill(ch, gsn_lunge) * 2/3;
+    chance += mastery_bonus(ch, gsn_lunge, 15, 25);
 
     check_improve(ch, gsn_lunge, TRUE, 5);
     return chance;
