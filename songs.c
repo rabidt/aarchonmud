@@ -23,6 +23,20 @@
 #include "interp.h"
 #include "songs.h"
 
+bool is_song( int sn )
+{
+    int song;
+    
+    if ( sn == 0 )
+        return FALSE;
+    
+    for ( song = 1; songs[song].name; song++ )
+        if ( *songs[song].gsn == sn )
+            return TRUE;
+    
+    return FALSE;
+}
+
 static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 {
     int song = ch->song;
@@ -172,65 +186,57 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
     af.duration  = -1;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
-    af.bitvector = AFF_SONG;
     
     if (song_num == SONG_COMBAT_SYMPHONY)
     {
         af.type      = gsn_combat_symphony;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
     else if (song_num == SONG_DEVASTATING_ANTHEM)
     {
         af.type      = gsn_devastating_anthem;
-        affect_to_char(ch, &af);  
         af.bitvector = AFF_DEVASTATING_ANTHEM;
         affect_to_char(ch, &af);   
     }
     else if (song_num == SONG_REFLECTIVE_HYMN)
     {
         af.type      = gsn_reflective_hymn;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_REFLECTIVE_HYMN;
         affect_to_char(ch, &af);
     }
     else if (song_num == SONG_LULLABY)
     {
         af.type      = gsn_lullaby;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_LULLABY;
         affect_to_char(ch, &af);  
     }
     else if (song_num == SONG_DEADLY_DANCE)
     {
         af.type      = gsn_deadly_dance;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_DEADLY_DANCE;
         affect_to_char(ch, &af);     
     }
     else if (song_num == SONG_ARCANE_ANTHEM)
     {
         af.type      = gsn_arcane_anthem;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_ARCANE_ANTHEM;
         affect_to_char(ch, &af);     
     }
     else if (song_num == SONG_BATTLE_DIRGE)
     {
         af.type      = gsn_battle_dirge;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_BATTLE_DIRGE;
         affect_to_char(ch, &af);
     }
     else if (song_num == SONG_LONESOME_MELODY)
     {
         af.type      = gsn_lonesome_melody;
+        af.bitvector = AFF_LONESOME_MELODY;
         af.location  = APPLY_DAMROLL;
         af.modifier  = 10 + ch->level;
         affect_to_char(ch, &af);
         af.location  = APPLY_HITROLL;
-        af.bitvector = AFF_LONESOME_MELODY;
         affect_to_char(ch, &af);
         af.modifier  = -2*ch->level;
         af.location  = APPLY_AC;
@@ -458,10 +464,7 @@ void check_bard_song_group(CHAR_DATA *ch)
 
 void remove_bard_song(CHAR_DATA *ch)
 {
-    if ( IS_AFFECTED(ch, AFF_SONG) )
-    {
-        affect_strip_flag(ch, AFF_SONG);
-    }
+    affect_strip_song(ch);
 }
 
 int song_cost( CHAR_DATA *ch, int song )
