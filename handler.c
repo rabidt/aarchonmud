@@ -39,6 +39,7 @@
 #include "lua_scripting.h"
 #include "lookup.h"
 #include "simsave.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_return    );
@@ -1290,6 +1291,22 @@ void affect_strip_offensive( CHAR_DATA *ch )
         paf_next = paf->next;
         if ( is_offensive(paf->type) )
             affect_remove( ch, paf );
+    }
+}
+
+/*
+ * Strip all bard songs
+ */
+void affect_strip_song( CHAR_DATA *ch )
+{
+    AFFECT_DATA *paf;
+    AFFECT_DATA *paf_next;
+
+    for ( paf = ch->affected; paf != NULL; paf = paf_next )
+    {
+        paf_next = paf->next;
+        if ( is_song(paf->type) )
+            affect_remove(ch, paf);
     }
 }
 
