@@ -4165,6 +4165,7 @@ struct song_type
   int         key;
   sh_int *    gsn;
   int         cost;
+  bool        solo;
 };
 
 /* Values for songs in tables.c. Same as stances */

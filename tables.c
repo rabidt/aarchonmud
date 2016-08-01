@@ -1342,16 +1342,16 @@ const struct stance_type stances [] =
 
 const struct song_type songs [] =
 {
-    {"default",               SONG_DEFAULT,            NULL,                    0  },
-    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    15 },
-    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 23 },
-    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    22 },
-    {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5  },
-    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       28 },
-    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      26 },
-    {"battle dirge",          SONG_BATTLE_DIRGE,       &gsn_battle_dirge,       25 },
-    {"lonesome melody",       SONG_LONESOME_MELODY,    &gsn_lonesome_melody,    22 },
-    { NULL,                   0,                       NULL,                    0  }
+    {"default",               SONG_DEFAULT,            NULL,                    0,  FALSE },
+    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,    15, FALSE },
+    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem, 23, FALSE },
+    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,    22, FALSE },
+    {"lullaby",               SONG_LULLABY,            &gsn_lullaby,            5,  FALSE },
+    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,       28, FALSE },
+    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,      26, FALSE },
+    {"battle dirge",          SONG_BATTLE_DIRGE,       &gsn_battle_dirge,       25, FALSE },
+    {"lonesome melody",       SONG_LONESOME_MELODY,    &gsn_lonesome_melody,    22, TRUE  },
+    { NULL,                   0,                       NULL,                    0,  FALSE }
 };
 
 const char* spell_target_names[] =
