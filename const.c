@@ -8034,7 +8034,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_AGI, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_combat_symphony,                  0,      0, DUR_NONE,
+    &gsn_combat_symphony,                  15,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8045,7 +8045,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_DEX, STAT_STR,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_devastating_anthem,                  0,      0, DUR_NONE,
+    &gsn_devastating_anthem,                  23,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8056,7 +8056,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_INT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_reflective_hymn,                  0,      0, DUR_NONE,
+    &gsn_reflective_hymn,                  22,      0, DUR_NONE,
     "sound burst",     "",   ""
     },
 
@@ -8067,7 +8067,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_VIT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_lullaby,                          0,      0, DUR_NONE,
+    &gsn_lullaby,                          5,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8078,7 +8078,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_DEX, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_deadly_dance,                          0,      0, DUR_NONE,
+    &gsn_deadly_dance,                          28,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8133,7 +8133,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_INT,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_arcane_anthem,                          0,      0, DUR_NONE,
+    &gsn_arcane_anthem,                          26,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8155,7 +8155,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_VIT,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_battle_dirge,                          0,      0, DUR_NONE,
+    &gsn_battle_dirge,                          25,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8199,7 +8199,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_DEX, STAT_VIT, STAT_AGI,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_lonesome_melody,                          0,      0, DUR_NONE,
+    &gsn_lonesome_melody,                          22,      0, DUR_NONE,
     "",     "",   ""
     },
 

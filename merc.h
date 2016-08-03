@@ -4164,7 +4164,6 @@ struct song_type
   const char* name;
   int         key;
   sh_int *    gsn;
-  int         cost;
   bool        solo;
 };
 
