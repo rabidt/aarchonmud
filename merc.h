@@ -1627,7 +1627,7 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
-#define AFF_SONG              81
+//#define AFF_SONG              81
 #define AFF_DEVASTATING_ANTHEM 82
 #define AFF_REFLECTIVE_HYMN   83
 #define AFF_REFRESH           84
@@ -4165,6 +4165,7 @@ struct song_type
   int         key;
   sh_int *    gsn;
   int         cost;
+  bool        solo;
 };
 
 /* Values for songs in tables.c. Same as stances */
@@ -4852,6 +4853,7 @@ void    affect_strip    args( ( CHAR_DATA *ch, int sn ) );
 void    affect_strip_flag( CHAR_DATA *ch, int flag );
 void    affect_strip_permcast( CHAR_DATA *ch );
 void    affect_strip_offensive( CHAR_DATA *ch );
+void    affect_strip_song( CHAR_DATA *ch );
 void    affect_strip_obj( OBJ_DATA *obj, int sn );
 void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
 bool    is_affected args( ( CHAR_DATA *ch, int sn ) );

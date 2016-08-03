@@ -23,6 +23,20 @@
 #include "interp.h"
 #include "songs.h"
 
+bool is_song( int sn )
+{
+    int song;
+    
+    if ( sn == 0 )
+        return FALSE;
+    
+    for ( song = 1; songs[song].name; song++ )
+        if ( *songs[song].gsn == sn )
+            return TRUE;
+    
+    return FALSE;
+}
+
 static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 {
     int song = ch->song;
@@ -172,56 +186,62 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
     af.duration  = -1;
     af.location  = APPLY_NONE;
     af.modifier  = 0;
-    af.bitvector = AFF_SONG;
     
     if (song_num == SONG_COMBAT_SYMPHONY)
     {
         af.type      = gsn_combat_symphony;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
     else if (song_num == SONG_DEVASTATING_ANTHEM)
     {
         af.type      = gsn_devastating_anthem;
-        affect_to_char(ch, &af);  
         af.bitvector = AFF_DEVASTATING_ANTHEM;
         affect_to_char(ch, &af);   
     }
     else if (song_num == SONG_REFLECTIVE_HYMN)
     {
         af.type      = gsn_reflective_hymn;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_REFLECTIVE_HYMN;
         affect_to_char(ch, &af);
     }
     else if (song_num == SONG_LULLABY)
     {
         af.type      = gsn_lullaby;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_LULLABY;
         affect_to_char(ch, &af);  
     }
     else if (song_num == SONG_DEADLY_DANCE)
     {
         af.type      = gsn_deadly_dance;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_DEADLY_DANCE;
         affect_to_char(ch, &af);     
     }
     else if (song_num == SONG_ARCANE_ANTHEM)
     {
         af.type      = gsn_arcane_anthem;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_ARCANE_ANTHEM;
         affect_to_char(ch, &af);     
     }
     else if (song_num == SONG_BATTLE_DIRGE)
     {
         af.type      = gsn_battle_dirge;
-        affect_to_char(ch, &af);
         af.bitvector = AFF_BATTLE_DIRGE;
         affect_to_char(ch, &af);
+    }
+    else if (song_num == SONG_LONESOME_MELODY)
+    {
+        af.type      = gsn_lonesome_melody;
+        af.bitvector = AFF_LONESOME_MELODY;
+        af.location  = APPLY_DAMROLL;
+        af.modifier  = 10 + ch->level;
+        affect_to_char(ch, &af);
+        af.location  = APPLY_HITROLL;
+        affect_to_char(ch, &af);
+        af.modifier  = -2*ch->level;
+        af.location  = APPLY_AC;
+        affect_to_char(ch, &af);
+        return;
     }
 }
 
@@ -365,31 +385,29 @@ void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
     CHAR_DATA *gch;
 
     // first pick the leader's song
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    if ( ch->leader && ch->in_room == ch->leader->in_room )
     {
-        if ( is_same_group(gch, ch) && gch->leader != NULL)
+        int lsong = ch->leader->song;
+        if ( lsong != 0 && !songs[lsong].solo )
         {
-            if (gch->leader->song !=0)
-            {
-                *level = gch->leader->level;
-                *song = gch->leader->song;
-            }
+            *level = ch->leader->level;
+            *song = lsong;
+            return;
         }
     }
-
-    // we found our leader's song, return out
-    if (*level != 0 && *song != 0) return;
 
     // then, if leader not singing, pick a "random" song
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
-        if ( is_same_group(gch, ch) )
+        if ( !is_same_group(gch, ch) )
+            continue;
+        
+        int gsong = gch->song;
+        if ( gsong != 0 && !songs[gsong].solo )
         {
-            if (gch->song != 0)
-            {
-                *level = gch->level;
-                *song = gch->song;
-            }
+            *level = gch->level;
+            *song = gsong;
+            return;
         }
     }
 }
@@ -414,28 +432,6 @@ void check_bard_song(CHAR_DATA *ch)
             send_to_char("You are too tired to keep singing that song.\n\r", ch);
             ch->song = 0;
             check_bard_song_group(ch);
-        }
-
-        // we check this here so it doesn't apply to group. this is solo song
-        if (ch->song == SONG_LONESOME_MELODY)
-        {
-            AFFECT_DATA af;
-
-            af.where     = TO_AFFECTS;
-            af.level     = ch->level;
-            af.duration  = -1;
-            af.location  = APPLY_DAMROLL;
-            af.modifier  = 10 + ch->level;
-            af.bitvector = AFF_SONG;
-            af.type      = gsn_lonesome_melody;
-            affect_to_char(ch, &af);
-            af.location  = APPLY_HITROLL;
-            af.bitvector = AFF_LONESOME_MELODY;
-            affect_to_char(ch, &af);
-            af.modifier  = -2*ch->level;
-            af.location  = APPLY_AC;
-            affect_to_char(ch, &af);
-            return;
         }
 
         apply_bard_song_affect(ch, ch->song, ch->level);
@@ -468,10 +464,7 @@ void check_bard_song_group(CHAR_DATA *ch)
 
 void remove_bard_song(CHAR_DATA *ch)
 {
-    if ( IS_AFFECTED(ch, AFF_SONG) )
-    {
-        affect_strip_flag(ch, AFF_SONG);
-    }
+    affect_strip_song(ch);
 }
 
 int song_cost( CHAR_DATA *ch, int song )
