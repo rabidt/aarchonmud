@@ -343,8 +343,8 @@ DEF_DO_FUN(do_riff)
     if ( is_safe(ch, victim) )
         return;
 
-    // give level a 10% bonus for having to look at two skills
-    int level = ch->level * (110 + instrument_skill + skill) / 300;
+    // give level a 15% bonus for having to look at two skills
+    int level = ch->level * (115 + instrument_skill + skill) / 300;
     int dam = martial_damage(ch, victim, gsn_riff);
     // bonus based on number of group members
     int bonus = 3;
@@ -367,8 +367,8 @@ DEF_DO_FUN(do_riff)
 
     if ( saves_physical(victim, ch, level, DAM_MENTAL) )
     {
-        // no damage
-        full_dam(ch, victim, 0, gsn_riff, DAM_MENTAL, TRUE);
+        // half damage
+        full_dam(ch, victim, dam/2, gsn_riff, DAM_MENTAL, TRUE);
         check_improve(ch, gsn_riff, FALSE, 3);
         return;
     }
@@ -471,7 +471,7 @@ int song_cost( CHAR_DATA *ch, int song )
 {   
     int sn = *(songs[song].gsn);
     int skill = get_skill(ch, sn), instrument_skill = get_skill(ch, gsn_instrument);
-    int cost = songs[song].cost * (140-skill)/40;
+    int cost = skill_table[sn].min_mana * (140-skill)/40;
     OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
 
 
