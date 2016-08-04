@@ -3606,21 +3606,11 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
-    /* check songs next */
     if ( dam > 0 && normal_hit )
     {
-        if (IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM))
-        {
+        if ( IS_AFFECTED(ch, AFF_DEVASTATING_ANTHEM) )
             dam += 5 + dam / 5;
-        } 
-        else if (IS_AFFECTED(ch, AFF_LONESOME_MELODY))
-        {
-            dam += 5 + dam / 4;
-        }
-    }
-
-    if ( dam > 0 && normal_hit )
-    {
+            
         if ( stance != STANCE_DEFAULT )
         {
             int overflow = get_skill_overflow(ch, *(stances[stance].gsn));

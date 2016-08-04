@@ -232,13 +232,15 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
     else if (song_num == SONG_LONESOME_MELODY)
     {
         af.type      = gsn_lonesome_melody;
-        af.bitvector = AFF_LONESOME_MELODY;
+        af.bitvector = AFF_DEVASTATING_ANTHEM;
         af.location  = APPLY_DAMROLL;
-        af.modifier  = 10 + ch->level;
+        af.modifier  = (20 + level) / 5;
         affect_to_char(ch, &af);
+        af.bitvector = AFF_DEADLY_DANCE;
         af.location  = APPLY_HITROLL;
         affect_to_char(ch, &af);
-        af.modifier  = -2*ch->level;
+        af.bitvector = AFF_BATTLE_DIRGE;
+        af.modifier  = (20 + level) * -2;
         af.location  = APPLY_AC;
         affect_to_char(ch, &af);
         return;

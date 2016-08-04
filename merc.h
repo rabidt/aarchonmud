@@ -1637,7 +1637,6 @@ struct  kill_data
 #define AFF_ARCANE_ANTHEM     88
 #define AFF_BATTLE_DIRGE      89
 #define AFF_BARDIC_KNOWLEDGE  90
-#define AFF_LONESOME_MELODY   91
 
 /*
  * Sex.
