@@ -321,9 +321,10 @@ DEF_DO_FUN(do_riff)
 {
     CHAR_DATA *victim, *gch;
     OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
-    int skill = get_skill(ch, gsn_riff), instrument_skill = get_skill(ch, gsn_instrument);
+    int skill = get_skill(ch, gsn_riff);
+    int instrument_skill = get_skill(ch, gsn_instrument);
 
-    if (!instrument || !IS_OBJ_STAT(instrument, ITEM_INSTRUMENT))
+    if ( !instrument || !IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) )
     {
         send_to_char("You need an instrument to truly riff.\n\r", ch);
         return;
@@ -340,43 +341,65 @@ DEF_DO_FUN(do_riff)
         return;
     }
 
-    WAIT_STATE( ch, skill_table[gsn_riff].beats );
-
     if ( is_safe(ch, victim) )
         return;
 
-    // give level a 15% bonus for having to look at two skills
-    int level = ch->level * (115 + instrument_skill + skill) / 300;
-    int dam = martial_damage(ch, victim, gsn_riff);
-    // bonus based on number of group members
-    int bonus = 3;
-
-    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    int move_cost = skill_table[gsn_riff].min_mana;
+    if ( ch->move < move_cost )
     {
-        if (is_same_group(gch, ch) && gch != ch && bonus > 1)
-            bonus--;
-    }
-    
-    dam *= bonus;
-
-    int move = skill_table[gsn_riff].min_mana;
-    int move_cost = IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) ? ch->move / 100 : move * (200-skill) / 100;
-    move_cost += move_cost * mastery_bonus(ch, gsn_riff, 15, 25) / 100;
-    ch->move -= move_cost;
-
-    int move_bonus = IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) ? ch->move / 100 : 20;
-    dam += move_bonus * 5;
-
-    if ( saves_physical(victim, ch, level, DAM_MENTAL) )
-    {
-        // half damage
-        full_dam(ch, victim, dam/2, gsn_riff, DAM_MENTAL, TRUE);
-        check_improve(ch, gsn_riff, FALSE, 3);
+        send_to_char("You are too exhausted to riff effectively.\n\r", ch);
         return;
     }
+    
+    WAIT_STATE( ch, skill_table[gsn_riff].beats );
+    check_improve(ch, gsn_riff, TRUE, 3);
+    
+    int level = ch->level * (100 + skill) / 200;
+    int dam = martial_damage(ch, victim, gsn_riff);
+    dam *= (150 + instrument_skill) / 200.0;
+    int affect_cap = (20 + level) / 2 + mastery_bonus(ch, gsn_riff, 12, 20);
 
-    full_dam(ch, victim, dam, gsn_riff, DAM_MENTAL, TRUE);
-    check_improve(ch, gsn_riff, TRUE, 3);        
+    // move cost determines bonus, so increasing it can be a good thing
+    if ( IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) )
+    {
+        AFFECT_DATA *aff = affect_find(ch->affected, gsn_riff);
+        int diff = affect_cap - (aff ? aff->modifier : 0);
+        move_cost = URANGE(move_cost, diff/8, ch->move);
+    }
+    
+    // apply riff affect to bard and possibly group members
+    ch->move -= move_cost;
+
+    AFFECT_DATA af;
+    af.where        = TO_AFFECTS;
+    af.type         = gsn_riff;
+    af.level        = level;
+    af.duration     = 1 + mastery_bonus(ch, gsn_riff, 1, 1);
+    af.location     = APPLY_HITROLL;
+    af.modifier     = move_cost;
+    af.bitvector    = 0;
+
+    if ( !ch->song )
+    {
+        affect_join_capped(ch, &af, affect_cap);
+    }
+    else if ( songs[ch->song].solo )
+    {
+        af.modifier *= 2;
+        affect_join_capped(ch, &af, affect_cap);
+    }
+    else
+    {
+        for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            if ( is_same_group(ch, gch) )
+                affect_join_capped(gch, &af, affect_cap);
+    }
+
+    // finally deal some damage
+    if ( saves_physical(victim, ch, level, DAM_MENTAL) )
+        full_dam(ch, victim, dam/2, gsn_riff, DAM_MENTAL, TRUE);
+    else
+        full_dam(ch, victim, dam, gsn_riff, DAM_MENTAL, TRUE);
 }
 
 void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)

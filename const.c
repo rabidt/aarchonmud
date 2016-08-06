@@ -8172,13 +8172,13 @@ struct  skill_type
 
     {    
     "riff",  
-    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  48 },
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  20 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 4,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_DEX, STAT_VIT, STAT_WIS,
-        spell_null,             TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-        &gsn_riff,                      17,     12, DUR_NONE,
-        "riff",                 "!Riff!",       ""
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_riff, 3, 12, DUR_SPECIAL,
+    "riff", "The riffs inspiring you fade away.", ""
     },
 
     {
