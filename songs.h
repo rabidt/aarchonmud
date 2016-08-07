@@ -35,10 +35,10 @@ DECLARE_DO_FUN( do_riff     );
 
 
 //void apply_bard_song_affect_to_group(CHAR_DATA *ch);
-void check_bard_song( CHAR_DATA *ch );
+void check_bard_song( CHAR_DATA *ch, bool deduct_cost );
 void check_bard_song_group( CHAR_DATA *ch );
 void remove_bard_song( CHAR_DATA *ch );
-void deduct_song_cost( CHAR_DATA *ch );
+bool deduct_song_cost( CHAR_DATA *ch );
 //void remove_bard_song_group( CHAR_DATA *ch );
 void remove_passive_bard_song( CHAR_DATA *ch );
 //void add_deadly_dance_attacks(CHAR_DATA *ch, CHAR_DATA *victim, int gsn, int damtype);

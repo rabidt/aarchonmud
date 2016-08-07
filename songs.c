@@ -334,8 +334,9 @@ DEF_DO_FUN(do_sing)
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 
-    // make sure any songs already applied are taken away first
-    check_bard_song_group(ch);    
+    // start the song effect, which includes song cost
+    check_bard_song(ch, TRUE);
+    check_bard_song_group(ch);
 }
 
 DEF_DO_FUN(do_riff)
@@ -458,7 +459,7 @@ void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
     }
 }
 
-void check_bard_song(CHAR_DATA *ch)
+void check_bard_song( CHAR_DATA *ch, bool deduct_cost )
 {
     // make sure the bard in the room
     if (!ch->in_room) return;
@@ -469,15 +470,19 @@ void check_bard_song(CHAR_DATA *ch)
         remove_bard_song(ch);
        
         // remove cost
-        int cost = song_cost(ch, ch->song);
-        if (cost < ch->mana)
+        if ( deduct_cost )
         {
-            deduct_song_cost(ch);
-            check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
-        } else {
-            send_to_char("You are too tired to keep singing that song.\n\r", ch);
-            ch->song = 0;
-            check_bard_song_group(ch);
+            if ( deduct_song_cost(ch) )
+            {
+                check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
+            }
+            else
+            {
+                send_to_char("You are too tired to keep singing that song.\n\r", ch);
+                ch->song = 0;
+                check_bard_song_group(ch);
+                return;
+            }
         }
 
         apply_bard_song_affect(ch, ch->song, ch->level);
@@ -487,13 +492,9 @@ void check_bard_song(CHAR_DATA *ch)
     int song, level;
     get_bard_level_and_song(ch, &level, &song);
 
-    if (song == 0)
-    {
-        remove_bard_song(ch);
-    } else {        
-        remove_bard_song(ch);
+    remove_bard_song(ch);
+    if ( song )
         apply_bard_song_affect(ch, song, level);
-    }
 }
 
 void check_bard_song_group(CHAR_DATA *ch)
@@ -503,7 +504,7 @@ void check_bard_song_group(CHAR_DATA *ch)
     {
         if ( is_same_group(gch, ch) )
         {
-            check_bard_song(gch);
+            check_bard_song(gch, FALSE);
         }
     }
 }
@@ -515,6 +516,9 @@ void remove_bard_song(CHAR_DATA *ch)
 
 int song_cost( CHAR_DATA *ch, int song )
 {   
+    if ( !song )
+        return 0;
+    
     int sn = *(songs[song].gsn);
     int skill = get_skill(ch, sn), instrument_skill = get_skill(ch, gsn_instrument);
     int cost = skill_table[sn].min_mana * (140-skill)/40;
@@ -523,35 +527,21 @@ int song_cost( CHAR_DATA *ch, int song )
 
     if ( has_instrument(ch) && instrument_skill > 0 )
     {   
-        cost -= (cost*3*skill)/1000;
+        cost -= cost * (instrument_skill + mastery_bonus(ch, gsn_instrument, 30, 50)) / 300;
         check_improve(ch, gsn_instrument, TRUE, 3);
-    }
-
-    // more expensive if not fighting/standing
-    if (ch->position == POS_RESTING || ch->position == POS_SITTING)
-    {
-        cost *= 1.5;
-    }
-
-    // and also more expensive if not fighting since it deducts every tick instead of round
-    if (ch->fighting == NULL)
-    {
-        cost *= 7.5;
     }
 
     return cost;
 }
 
 
-void deduct_song_cost( CHAR_DATA *ch )
+bool deduct_song_cost( CHAR_DATA *ch )
 {
-    int cost;
-
-    if (ch->song == 0) return;
-
-    cost = song_cost(ch, ch->song);
-
-    ch->mana -= cost;
+    int cost = song_cost(ch, ch->song);
+    if ( ch->mana < cost )
+        return FALSE;
+    reduce_mana(ch, cost);
+    return TRUE;
 }
 
 void remove_passive_bard_song( CHAR_DATA *ch )
