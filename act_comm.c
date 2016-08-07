@@ -2335,7 +2335,7 @@ DEF_DO_FUN(do_group)
             return;
         }
         stop_follower(victim);
-        check_bard_song(victim);
+        check_bard_song(victim, FALSE);
         act_new("$n removes $N from $s group.",ch,NULL,victim,TO_NOTVICT,POS_RESTING);
         act_new("$n removes you from $s group.",ch,NULL,victim,TO_VICT,POS_SLEEPING);
         act_new("You remove $N from your group.",ch,NULL,victim,TO_CHAR,POS_SLEEPING);
