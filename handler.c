@@ -1042,7 +1042,7 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
  * Give an affect to a char.
  */
 
-void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
+void affect_to_char_tagsafe( CHAR_DATA *ch, const AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_new = new_affect();
     *paf_new = *paf;
@@ -1053,15 +1053,15 @@ void affect_to_char_tagsafe( CHAR_DATA *ch, AFFECT_DATA *paf )
     return;
 }
 
-void affect_to_char( CHAR_DATA *ch, AFFECT_DATA *paf )
+void affect_to_char( CHAR_DATA *ch, const AFFECT_DATA *paf )
 {
-    paf->tag=NULL;
-    affect_to_char_tagsafe( ch, paf );
-    return;
+    AFFECT_DATA copy = *paf;
+    copy.tag = NULL;
+    affect_to_char_tagsafe( ch, &copy );
 }
 
 /* give an affect to an object */
-void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
+void affect_to_obj_tagsafe(OBJ_DATA *obj, const AFFECT_DATA *paf)
 {
     AFFECT_DATA *paf_new;
     
@@ -1086,11 +1086,11 @@ void affect_to_obj_tagsafe(OBJ_DATA *obj, AFFECT_DATA *paf)
     return;
 }
 
-void affect_to_obj(OBJ_DATA *obj, AFFECT_DATA *paf)
+void affect_to_obj(OBJ_DATA *obj, const AFFECT_DATA *paf)
 {
-    paf->tag=NULL;
-    affect_to_obj_tagsafe( obj, paf );
-    return;
+    AFFECT_DATA copy = *paf;
+    copy.tag = NULL;
+    affect_to_obj_tagsafe( obj, &copy );
 }
 
 /*
@@ -1373,51 +1373,53 @@ bool is_affected( CHAR_DATA *ch, int sn )
 /*
  * Add or enhance an affect.
  */
-void affect_join( CHAR_DATA *ch, AFFECT_DATA *paf )
+void affect_join( CHAR_DATA *ch, const AFFECT_DATA *paf )
 {
     AFFECT_DATA *paf_old;
+    AFFECT_DATA paf_new = *paf;
     
     for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
     {
-	/* check location as well --Bobble */
-        if ( paf_old->type == paf->type && paf_old->location == paf->location )
+        /* check location as well --Bobble */
+        if ( paf_old->type == paf_new.type && paf_old->location == paf_new.location )
         {
-            paf->level = UMAX( paf->level, paf_old->level );
-            paf->duration = UMAX( paf->duration, paf_old->duration );
-            paf->modifier += paf_old->modifier;
+            paf_new.level = UMAX( paf_new.level, paf_old->level );
+            paf_new.duration = UMAX( paf_new.duration, paf_old->duration );
+            paf_new.modifier += paf_old->modifier;
             affect_remove( ch, paf_old );
             break;
         }
     }
     
-    affect_to_char( ch, paf );
+    affect_to_char( ch, &paf_new );
     return;
 }
 
 /*
  * Add or enhance an affect.
  */
-void affect_join_capped( CHAR_DATA *ch, AFFECT_DATA *paf, int cap )
+void affect_join_capped( CHAR_DATA *ch, const AFFECT_DATA *paf, int cap )
 {
     AFFECT_DATA *paf_old;
+    AFFECT_DATA paf_new = *paf;
     
     for ( paf_old = ch->affected; paf_old != NULL; paf_old = paf_old->next )
     {
-        if ( paf_old->type == paf->type && paf_old->location == paf->location )
+        if ( paf_old->type == paf_new.type && paf_old->location == paf_new.location )
         {
-            paf->level = UMAX( paf->level, paf_old->level );
-            paf->duration = UMAX( paf->duration, paf_old->duration );
+            paf_new.level = UMAX( paf_new.level, paf_old->level );
+            paf_new.duration = UMAX( paf_new.duration, paf_old->duration );
             // negative cap indicates a lower bound
             if ( cap < 0 )
-                paf->modifier = UMAX(UMIN(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+                paf_new.modifier = UMAX(UMIN(cap, paf_old->modifier), paf_new.modifier + paf_old->modifier);
             else
-                paf->modifier = UMIN(UMAX(cap, paf_old->modifier), paf->modifier + paf_old->modifier);
+                paf_new.modifier = UMIN(UMAX(cap, paf_old->modifier), paf_new.modifier + paf_old->modifier);
             affect_remove( ch, paf_old );
             break;
         }
     }
     
-    affect_to_char( ch, paf );
+    affect_to_char( ch, &paf_new );
     return;
 }
 
