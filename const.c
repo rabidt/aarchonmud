@@ -8030,7 +8030,7 @@ struct  skill_type
     {
     "combat symphony",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  17 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_AGI, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -8041,22 +8041,22 @@ struct  skill_type
     {
     "devastating anthem",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  82 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 3,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 9, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_DEX, STAT_STR,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_devastating_anthem,                  23,      0, DUR_NONE,
+    &gsn_devastating_anthem,                  25,      0, DUR_NONE,
     "",     "",   ""
     },
 
     {
     "reflective hymn",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  45 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 7, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_INT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_reflective_hymn,                  22,      0, DUR_NONE,
+    &gsn_reflective_hymn,                  18,      0, DUR_NONE,
     "sound burst",     "",   ""
     },
 
@@ -8067,14 +8067,14 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_VIT, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_lullaby,                          5,      0, DUR_NONE,
+    &gsn_lullaby,                          15,      0, DUR_NONE,
     "",     "",   ""
     },
 
     {
     "deadly dance",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  60 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 3,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 8, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_DEX, STAT_WIS,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -8151,11 +8151,11 @@ struct  skill_type
     {
     "battle dirge",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  55 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_VIT,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_battle_dirge,                          25,      0, DUR_NONE,
+    &gsn_battle_dirge,                          20,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8199,7 +8199,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_DEX, STAT_VIT, STAT_AGI,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_lonesome_melody,                          22,      0, DUR_NONE,
+    &gsn_lonesome_melody,                          25,      0, DUR_NONE,
     "",     "",   ""
     },
 
@@ -8734,6 +8734,11 @@ const struct mastery_group_type mastery_group_table[] =
     
     { "shielding", 2,
         { "immolation", "epidemic", "electrocution", "absolute zero", "quirkys insanity" }
+    },
+    
+    { "songs", 4,
+        { "arcane anthem", "combat symphony", "deadly dance", "devastating anthem", "lullaby", 
+        "reflective hymn", "battle dirge", "lonesome melody" }
     },
     
     { "summoning", 4,
