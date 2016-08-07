@@ -1998,11 +1998,13 @@ int get_obj_focus( CHAR_DATA *ch )
     OBJ_DATA *obj = get_eq_char(ch, WEAR_HOLD);
     bool has_shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
     
-    if ( !obj || obj->item_type == ITEM_ARROWS || IS_OBJ_STAT(obj, ITEM_INSTRUMENT) )
+    if ( !obj || obj->item_type == ITEM_ARROWS )
         return 0;
     
     // non-metal held object suffers a small penalty
     int base = IS_OBJ_STAT(obj, ITEM_NONMETAL) ? 99 : 100;
+    if ( IS_OBJ_STAT(obj, ITEM_INSTRUMENT) )
+        base = base * get_skill(ch, gsn_instrument) / 100; 
     
     if ( has_shield )
         return (base + get_skill(ch, gsn_wrist_shield)) / 3;
