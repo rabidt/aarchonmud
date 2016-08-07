@@ -37,6 +37,12 @@ bool is_song( int sn )
     return FALSE;
 }
 
+bool has_instrument( CHAR_DATA *ch )
+{
+    OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
+    return instrument && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT);
+}
+
 static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
 {
     int song = ch->song;
@@ -136,10 +142,15 @@ DEF_DO_FUN(do_wail)
         return;
     
     // wailing consumes both mana and moves - part magic, part big lungs
+    int mana_cost = skill_table[gsn_wail].min_mana;
+    int move_cost = skill_table[gsn_wail].min_mana;
     // bonus cost based on current mana/move
-    float mastery_factor = (100 + mastery_bonus(ch, gsn_wail, 20, 25)) / 100.0;
-    int mana_cost = skill_table[gsn_wail].min_mana + ch->mana * mastery_factor / 200;
-    int move_cost = skill_table[gsn_wail].min_mana + ch->move * mastery_factor / 200;
+    if ( IS_AFFECTED(ch, AFF_BARDIC_KNOWLEDGE) )
+    {
+        float mastery_factor = (100 + mastery_bonus(ch, gsn_wail, 20, 25)) / 100.0;
+        mana_cost += ch->mana * mastery_factor / 200;
+        move_cost += ch->move * mastery_factor / 200;
+    }
     
     if ( ch->mana < mana_cost || ch->move < move_cost )
     {
@@ -153,16 +164,26 @@ DEF_DO_FUN(do_wail)
     
     int level = ch->level * (100 + skill) / 200;
     int dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
+    
     // cost-based bonus damage to primary target
-    int bonus = dice(2 * (mana_cost + move_cost), 4);
+    int bonus_dice = 2 * (mana_cost + move_cost);
+    // riff affect is consumed for bonus
+    if ( is_affected(ch, gsn_riff) )
+    {
+        AFFECT_DATA *aff = affect_find(ch->affected, gsn_riff);
+        send_to_char("You finish your riffs with a mighty wail.\n\r", ch);
+        bonus_dice += 5 * aff->modifier;
+        affect_strip(ch, gsn_riff);
+    }
+    
     // song-based bonus
-    if ( song == SONG_DEVASTATING_ANTHEM )
+    if ( song == SONG_DEVASTATING_ANTHEM || song == SONG_LONESOME_MELODY )
         dam *= 1.5;
     else if ( song == SONG_ARCANE_ANTHEM )
         // higher level means harder to resist
         level = UMIN(level * 1.5, 200);
 
-    wail_at(ch, victim, level, dam + bonus);
+    wail_at(ch, victim, level, dam + dice(bonus_dice, 4));
     // make this a room skill if affected by deadly dance
     if ( song == SONG_DEADLY_DANCE )
     {
@@ -320,11 +341,10 @@ DEF_DO_FUN(do_sing)
 DEF_DO_FUN(do_riff)
 {
     CHAR_DATA *victim, *gch;
-    OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
     int skill = get_skill(ch, gsn_riff);
     int instrument_skill = get_skill(ch, gsn_instrument);
 
-    if ( !instrument || !IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) )
+    if ( !has_instrument(ch) )
     {
         send_to_char("You need an instrument to truly riff.\n\r", ch);
         return;
@@ -353,10 +373,11 @@ DEF_DO_FUN(do_riff)
     
     WAIT_STATE( ch, skill_table[gsn_riff].beats );
     check_improve(ch, gsn_riff, TRUE, 3);
+    check_improve(ch, gsn_instrument, TRUE, 4);
     
     int level = ch->level * (100 + skill) / 200;
-    int dam = martial_damage(ch, victim, gsn_riff);
-    dam *= (150 + instrument_skill) / 200.0;
+    int dam = martial_damage(ch, victim, gsn_riff) * (100 + skill) / 200;
+    dam += dam * instrument_skill / 200;
     int affect_cap = (20 + level) / 2 + mastery_bonus(ch, gsn_riff, 12, 20);
 
     // move cost determines bonus, so increasing it can be a good thing
@@ -497,12 +518,10 @@ int song_cost( CHAR_DATA *ch, int song )
     int sn = *(songs[song].gsn);
     int skill = get_skill(ch, sn), instrument_skill = get_skill(ch, gsn_instrument);
     int cost = skill_table[sn].min_mana * (140-skill)/40;
-    OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
-
 
     cost -= cost * mastery_bonus(ch, sn, 10, 20) / 100;
 
-    if (instrument && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT) && instrument_skill > 0)
+    if ( has_instrument(ch) && instrument_skill > 0 )
     {   
         cost -= (cost*3*skill)/1000;
         check_improve(ch, gsn_instrument, TRUE, 3);
