@@ -8401,7 +8401,7 @@ struct group_type group_table[MAX_GROUP] =
     
     {
     "bard default",     { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 50 },
-    { "drifter", "beguiling", "spirit songs", "scribe", "scrolls", "kick", "haggle", "dodge", "wail", "bardic knowledge", "lore", "lunge", "sustenance" }
+    { "drifter", "beguiling", "spirit songs", "dodge", "lore", "wail", "riff", "lonesome melody" }
     },
 
 	{
@@ -8497,7 +8497,7 @@ struct group_type group_table[MAX_GROUP] =
 	},
 
 	{   
-	"healing",      { -1, -1, 10, -1, -1, -1, 12, -1, -1, 12, 15, -1, -1, -1, -1 },
+	"healing",      { -1, -1, 10, -1, -1, -1, 12, -1, -1, 12, 15, -1, -1, -1, -1, 10 },
 	{ "cure light", "cure serious", "cure critical", "cure mortal", 
 	  "minor group heal", "group heal", "major group heal", "heal", 
 	  "mass healing", "refresh", "restoration", "heal mind" }
