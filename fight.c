@@ -258,7 +258,7 @@ void violence_update_char( CHAR_DATA *ch )
     if ( ch->fighting )
     {
         check_stance(ch);
-        check_bard_song(ch);
+        check_bard_song(ch, TRUE);
     }
     
     if ( ch->stop > 0 )
