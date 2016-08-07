@@ -2108,7 +2108,7 @@ const   struct  class_type  class_table [MAX_CLASS] =
 
     {
     "bard", "Bar", STAT_CHA, {STAT_DEX, STAT_WIS},
-        {100, 110, 110, 120, 120, 85, 85, 100, 80, 100},
+        {80, 95, 100, 90, 100, 100, 100, 90, 110, 100},
     OBJ_VNUM_SCHOOL_SWORD, { 9639, 10341 },
     75, 90, 100,  95, 110, 85,
     "bard basics", "bard default"
