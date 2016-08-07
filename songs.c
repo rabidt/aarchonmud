@@ -343,7 +343,7 @@ DEF_DO_FUN(do_riff)
 {
     CHAR_DATA *victim, *gch;
     int skill = get_skill(ch, gsn_riff);
-    int instrument_skill = get_skill(ch, gsn_instrument);
+    int instrument_skill = get_instrument_skill(ch);
 
     if ( !has_instrument(ch) )
     {
@@ -520,7 +520,8 @@ int song_cost( CHAR_DATA *ch, int song )
         return 0;
     
     int sn = *(songs[song].gsn);
-    int skill = get_skill(ch, sn), instrument_skill = get_skill(ch, gsn_instrument);
+    int skill = get_skill(ch, sn);
+    int instrument_skill = get_instrument_skill(ch);
     int cost = skill_table[sn].min_mana * (140-skill)/40;
 
     cost -= cost * mastery_bonus(ch, sn, 20, 30) / 100;
@@ -552,7 +553,7 @@ void remove_passive_bard_song( CHAR_DATA *ch )
     }
 }
 
-int get_lunge_skill( CHAR_DATA *ch )
+int get_lunge_chance( CHAR_DATA *ch )
 {
     OBJ_DATA *wield, *held, *shield;
     int chance = 0;
@@ -569,4 +570,16 @@ int get_lunge_skill( CHAR_DATA *ch )
 
     check_improve(ch, gsn_lunge, TRUE, 5);
     return chance;
+}
+
+int get_instrument_skill( CHAR_DATA *ch )
+{
+    if ( !has_instrument(ch) )
+        return 0;
+    int skill = get_skill(ch, gsn_instrument);
+    // wrist shield reduces effective instrument skill
+    OBJ_DATA *shield = get_eq_char(ch, WEAR_SHIELD);
+    if ( shield )
+        skill *= (100 + get_skill(ch, gsn_wrist_shield)) / 300.0;
+    return skill;
 }
