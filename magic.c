@@ -1390,9 +1390,10 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
             if (per_chance(coercion_chance))
             {   
                 act("Your coercive nature placates $N.", ch, NULL, victim, TO_CHAR);
-                check_improve(ch, gsn_coercion, TRUE, 3);
+                check_improve(ch, gsn_coercion, TRUE, 4);
                 return;
             } else {
+                check_improve(ch, gsn_coercion, FALSE, 4);
                 set_fighting(victim, ch);
             }
         } else {
@@ -2720,7 +2721,6 @@ DEF_SPELL_FUN(spell_charm_person)
             || (!IS_NPC(victim) && number_bits(2)) )
     {
         send_to_char("The spell has failed to have an effect.\n\r", ch );
-        check_improve(ch, gsn_coercion, FALSE, 3);
         return TRUE;
     }
 
@@ -2736,6 +2736,11 @@ DEF_SPELL_FUN(spell_charm_person)
     af.duration  = get_duration(sn, level);
     if ( !IS_NPC(victim) )
         af.duration /= 2;
+    else
+    {
+        af.duration *= (100 + get_skill(ch, gsn_coercion)) / 100.0;
+        check_improve(ch, gsn_coercion, TRUE, 4);
+    }
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_CHARM;
