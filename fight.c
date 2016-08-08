@@ -2585,9 +2585,12 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         return TRUE;
 
     /* behead */
-    check_behead( ch, victim, wield );
-    if ( stop_attack(ch, victim) )
-        return TRUE;
+    if ( dt != gsn_massive_swing || per_chance(50) )
+    {
+        check_behead( ch, victim, wield );
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
 
     /* aura */
     aura_damage( ch, victim, wield );
@@ -6432,6 +6435,12 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/20;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_SANCTUARY) )
         base_exp += base_exp * 2/3;
+    if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_EVIL) && IS_GOOD(victim) )
+        base_exp += base_exp/10;
+    if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_GOOD) && IS_EVIL(victim) )
+        base_exp += base_exp/20;
+    if ( IS_SET(victim->pIndexData->affect_field, AFF_DEATHS_DOOR) )
+        base_exp += base_exp/20;
     if ( IS_SET(victim->off_flags, OFF_FADE) )
         base_exp += base_exp/3;
     else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE) || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
