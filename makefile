@@ -1,4 +1,4 @@
-OBJDIR := obj
+OBJ_DIR := obj
 VPATH = ./tests
 AARCHON_INC ?= /home/m256ada/include
 AARCHON_LIB ?= /home/m256ada/lib
@@ -12,34 +12,21 @@ PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 C_FLAGS =  -ggdb -rdynamic -m32 -Wall $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 L_FLAGS =  $(PROF) -m32 -llua -ldl -lcrypt -lm -lsqlite3
 
-O_FILE_NAMES = act_comm.o act_enter.o act_info.o act_move.o act_obj.o act_wiz.o \
-     alchemy.o alias.o auth.o ban.o board.o buffer.o clanwar.o comm.o const.o crafting.o db.o db2.o \
-     enchant.o effects.o fight.o fight2.o flags.o handler.o healer.o hunt.o \
-     interp.o lookup.o magic.o magic2.o mem.o mob_cmds.o mob_prog.o \
-     nanny.o olc.o olc_act.o olc_mpcode.o olc_save.o penalty.o pipe.o quest.o \
-     ranger.o recycle.o redit-ilab.o remort.o bsave.o scan.o skills.o\
-     smith.o social-edit.o songs.o special.o stats.o string.o tables.o update.o \
-     freeze.o warfare.o  grant.o wizlist.o marry.o forget.o clan.o \
-     buildutil.o buffer_util.o simsave.o breath.o tflag.o grep.o vshift.o \
-     tattoo.o religion.o playback.o mob_stats.o \
-     mt19937ar.o lua_scripting.o olc_opcode.o obj_prog.o \
-     olc_apcode.o area_prog.o protocol.o timer.o olc_rpcode.o room_prog.o \
-     lua_arclib.o lua_main.o mudconfig.o \
-     lsqlite3.o
-O_FILES = $(addprefix $(OBJDIR)/,$(O_FILE_NAMES))
+SRC_FILES := $(wildcard *.c) 
+O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 CU_TEST_C = tests/CuTest.c
-CU_TEST_O = $(OBJDIR)/CuTest.o
+CU_TEST_O = $(OBJ_DIR)/CuTest.o
 
 UNITTEST_C_FILES = $(wildcard tests/UNIT_*.c)
 UNITTEST_O_FILE_NAMES = $(patsubst tests/%.c,%.o,$(UNITTEST_C_FILES)) 
-UNITTEST_O_FILES = $(addprefix $(OBJDIR)/,$(UNITTEST_O_FILE_NAMES))
-UNITTEST_O = $(OBJDIR)/UnitTests.o
+UNITTEST_O_FILES = $(addprefix $(OBJ_DIR)/,$(UNITTEST_O_FILE_NAMES))
+UNITTEST_O = $(OBJ_DIR)/UnitTests.o
 
 LIVETEST_C_FILES = $(wildcard tests/LIVE_*.c)
 LIVETEST_O_FILE_NAMES = $(patsubst tests/%.c,%.o,$(LIVETEST_C_FILES))
-LIVETEST_O_FILES = $(addprefix $(OBJDIR)/,$(LIVETEST_O_FILE_NAMES))
-LIVETEST_O = $(OBJDIR)/LiveTests.o
+LIVETEST_O_FILES = $(addprefix $(OBJ_DIR)/,$(LIVETEST_O_FILE_NAMES))
+LIVETEST_O = $(OBJ_DIR)/LiveTests.o
 
 
 all: aeaea
@@ -87,21 +74,21 @@ unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
 		$(L_FLAGS)
 	./aeaea_unittest
 
-_live_tests: $(OBJDIR)
+_live_tests: $(OBJ_DIR)
 	./tests/make-live-tests.sh > ./tests/LiveTests.c
-	$(CC) -c $(C_FLAGS) -o $(OBJDIR)/LiveTests.o ./tests/LiveTests.c
+	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/LiveTests.o ./tests/LiveTests.c
 
-_unit_tests: $(OBJDIR)
+_unit_tests: $(OBJ_DIR)
 	./tests/make-unit-tests.sh > ./tests/UnitTests.c
-	$(CC) -c $(C_FLAGS) -o $(OBJDIR)/UnitTests.o ./tests/UnitTests.c
+	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
 
 
-$(OBJDIR):
-	mkdir $(OBJDIR)
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
 
-$(OBJDIR)/%.o: %.c merc.h | $(OBJDIR)
+$(OBJ_DIR)/%.o: %.c merc.h | $(OBJ_DIR)
 	$(CC) -c $(C_FLAGS) -o $@ $<
 
 
 clean:
-	rm -f $(OBJDIR)/*.o
+	rm -f $(OBJ_DIR)/*.o
