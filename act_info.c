@@ -4908,7 +4908,7 @@ DEF_DO_FUN(do_score)
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:     %3d/%3d       Weight: %-5d/%5d        Encumbered: %s",
+    sprintf( buf, "{D|{x Items:   %-4d/%4d        Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         (int)get_carry_weight(ch)/10,
