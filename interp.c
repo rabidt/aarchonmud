@@ -409,7 +409,7 @@ const   struct  cmd_type    cmd_table   [] =
     
     /* bard commands */
 
-    { "sing",       do_sing, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
+    { "sing",       do_sing, POS_RESTING,  0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "wail",       do_wail, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "riff",       do_riff, POS_FIGHTING, 0, LOG_NORMAL, 1, FALSE, TRUE },
 
