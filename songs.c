@@ -472,7 +472,7 @@ void check_bard_song( CHAR_DATA *ch, bool deduct_cost )
         // remove cost
         if ( deduct_cost )
         {
-            if ( deduct_song_cost(ch) )
+            if ( ch->position > POS_SLEEPING && deduct_song_cost(ch) )
             {
                 check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
             }
