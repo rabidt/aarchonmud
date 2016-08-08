@@ -8769,10 +8769,5 @@ const struct mastery_group_type mastery_group_table[] =
         { "dual dagger", "dual sword", "dual axe", "dual gun" }
     },
 
-    { "songs", 2,
-        { "arcane anthem", "combat symphony", "deadly dance", "devastating anthem", "lullaby", 
-        "reflective hymn", "battle dirge" }
-    },
-
     { NULL }
 };
