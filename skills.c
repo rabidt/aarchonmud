@@ -2224,11 +2224,7 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
         return TRUE;
 
     /* skills they always have */
-    if ( (sn==gsn_shield_block)
-	 || (sn==gsn_wrist_shield)
-	 || (sn==gsn_dual_wield)
-	 || (sn==gsn_two_handed)
-     || (sn==gsn_hand_to_hand)
+    if ( (sn==gsn_hand_to_hand)
      || (sn==gsn_dodge)
 	 || (sn==gsn_rescue)
 	 || (sn==gsn_flee)
@@ -2236,6 +2232,14 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
 	 || (sn==gsn_hide)
 	 || (sn==-1) )
 	return TRUE;
+    
+    /* skills most mobs have */
+    if ( (sn==gsn_shield_block)
+     || (sn==gsn_wrist_shield)
+     || (sn==gsn_dual_wield)
+     || (sn==gsn_ambidextrous)
+     || (sn==gsn_two_handed) )
+        return !IS_SET(ch->act, ACT_NOWEAPON);
 
     if ( sn==gsn_backstab || sn==gsn_circle || sn==gsn_flanking )
         return IS_SET(ch->act, ACT_THIEF);

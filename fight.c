@@ -1326,6 +1326,9 @@ bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
     return TRUE;
 }
 
+static int mob_secondary_attacks( CHAR_DATA *ch );
+static void mob_special_attacks( CHAR_DATA *ch );
+
 /*
 * Do one group of attacks.
 */
@@ -1372,12 +1375,6 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     #ifdef FSTAT
     ch->fight_rounds += 1;
     #endif
-    
-    if (IS_NPC(ch))
-    {
-        mob_hit(ch,victim,dt);
-        return;
-    }
     
     wield = get_eq_char( ch, WEAR_WIELD );
     second = get_eq_char ( ch, WEAR_SECONDARY );
@@ -1463,7 +1460,8 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         + get_skill(ch, gsn_extra_attack) * 2/3
         + mastery_bonus(ch, gsn_second_attack, 15, 25)
         + mastery_bonus(ch, gsn_third_attack, 15, 25)
-        + get_lunge_chance(ch);
+        + get_lunge_chance(ch)
+        + mob_secondary_attacks(ch);
 
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
@@ -1486,16 +1484,22 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     // offhand attacks
     if ( offhand_chance > 0 )
     {
-        int offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
-        // mastery bonus
-        int gsn_dual = dual_weapon_sn(ch);
-        int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
-        if ( mastery > 0 )
-            offhand_attacks += 5 + 10 * mastery;
-        // haste, ambidexterity and dagger
-        if ( IS_AFFECTED(ch, AFF_HASTE) )
-            offhand_attacks += 50;
-        offhand_attacks += secondary_attacks * get_skill(ch, gsn_ambidextrous) / 200;
+        int offhand_attacks = 0;
+        if ( IS_NPC(ch) )
+            offhand_attacks = (100 + secondary_attacks) / 2;
+        else
+        {
+            offhand_attacks = 100 + ch_dex_extrahit(ch) + get_skill(ch, gsn_extra_attack) / 3;
+            // mastery bonus
+            int gsn_dual = dual_weapon_sn(ch);
+            int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
+            if ( mastery > 0 )
+                offhand_attacks += 5 + 10 * mastery;
+            // haste, ambidexterity and dagger
+            if ( IS_AFFECTED(ch, AFF_HASTE) )
+                offhand_attacks += 50;
+            offhand_attacks += secondary_attacks * get_skill(ch, gsn_ambidextrous) / 200;
+        }
         if ( second != NULL && second->value[0] == WEAPON_DAGGER )
             offhand_attacks += 5;
         
@@ -1592,104 +1596,38 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     
     if ( per_chance(get_heavy_armor_bonus(ch)) )
         check_improve(ch, gsn_heavy_armor, TRUE, 5);
+
+    if ( IS_NPC(ch) )
+        mob_special_attacks(ch);
     
     return;
 }
 
-/* procedure for all mobile attacks */
-void mob_hit (CHAR_DATA *ch, CHAR_DATA *victim, int dt)
+// returns number of secondary hits for mob ch
+static int mob_secondary_attacks( CHAR_DATA *ch )
 {
-    int number;
-    int attacks;
-    CHAR_DATA *vch, *vch_next;
-    OBJ_DATA *wield, *second, *shield;
-    
-    if (ch->stop>0)
-    {
-	ch->stop--;
-	return;
-    }
-    
-    wield = get_eq_char(ch, WEAR_WIELD);
-    second = get_eq_char(ch, WEAR_SECONDARY);
-    shield = get_eq_char(ch, WEAR_SHIELD);
-
+    if ( !IS_NPC(ch) )
+        return 0;
     /* high level mobs get more attacks */
-    attacks = level_base_attacks(ch->level);
+    int attacks = level_base_attacks(ch->level);
     // note: this should match the calculation in mob_base_attacks (mob_stats.c)
+    // however: only calculating bonus attacks here not added in multi_hit
     if ( IS_SET(ch->act, ACT_STAGGERED) )
         attacks = UMAX(100, attacks/2);    
     if ( IS_SET(ch->off_flags, OFF_FAST) )
         attacks = attacks * 3/2;
-    if ( IS_AFFECTED(ch, AFF_HASTE) )
-        attacks += 150;
-    if ( IS_AFFECTED(ch, AFF_SLOW) )
-        attacks -= UMAX(0, attacks - 100) / 2;
-    if ( IS_AFFECTED(victim, AFF_BATTLE_DIRGE) )
-        attacks -= UMAX(0, attacks - 100) / 4;
-    // guard is applied last, to ensure (attacks - 100) is the number of secondary attacks
-    if ( IS_AFFECTED(ch, AFF_GUARD) )
-        attacks -= 50;
-    
-    for ( ; attacks > 0; attacks -= 100 )
-    {
-        if (number_percent() > attacks)
-            continue;
+    // subtract primary attack, and reduce remaining by 1/3 which will occur as off-hand attacks
+    int secondary = attacks * 2/3 - 100;
+    return UMAX(0, secondary);
+}
 
-        // each attack has a chance to be off-hand
-        if ( per_chance(33) )
-        {
-            if ( wield && !second )
-                continue;
-            if ( shield && (!second || number_bits(1)) )
-                continue;
-            one_hit(ch,victim,dt,TRUE);
-        }
-        else
-            one_hit(ch,victim,dt,FALSE);
-
-        if (ch->fighting != victim)
-            return;
-    }
-
-    stance_hit(ch, victim, dt);
-    CHECK_RETURN(ch, victim);
-    
-    /* Area attack -- BALLS nasty! */
-    
-    if (IS_SET(ch->off_flags,OFF_AREA_ATTACK))
-    {
-        for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
-        {
-            vch_next = vch->next_in_room;
-            if (((vch != victim) && vch->fighting == ch))
-                one_hit(ch,vch,dt, FALSE);
-        }
-    }
-    
-    /* oh boy!  Fun stuff! */
-    
-    if (ch->wait > 0)
+/* procedure for all mobile special attacks (simulating skill usage) */
+static void mob_special_attacks( CHAR_DATA *ch )
+{
+    if ( !IS_NPC(ch) || ch->wait > 0 || !ch->fighting || ch->position < POS_FIGHTING )
         return;
     
-    number = number_range(0,2);
-    
-    if (number == 1 && IS_SET(ch->act,ACT_MAGE))
-    {
-        /*  { mob_cast_mage(ch,victim); return; } */ ;
-    }
-    
-    if (number == 2 && IS_SET(ch->act,ACT_CLERIC))
-    {   
-        /* { mob_cast_cleric(ch,victim); return; } */ ;
-    }
-    
-    /* now for the skills */
-    
-    number = number_range(0,9);
-    
-    if ( ch->position >= POS_FIGHTING )
-	switch(number) 
+	switch( number_range(0,9) ) 
 	{
 	case (0) :
 	    if (IS_SET(ch->off_flags,OFF_BASH))
