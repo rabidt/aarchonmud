@@ -182,8 +182,9 @@ DEF_DO_FUN(do_wail)
     else if ( song == SONG_ARCANE_ANTHEM )
         // higher level means harder to resist
         level = UMIN(level * 1.5, 200);
-
-    wail_at(ch, victim, level, dam + dice(bonus_dice, 4));
+    // bonus dice are not multiplied
+    dam += dice(bonus_dice, 4);
+    
     // make this a room skill if affected by deadly dance
     if ( song == SONG_DEADLY_DANCE )
     {
@@ -191,10 +192,12 @@ DEF_DO_FUN(do_wail)
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
         {
             vch_next = vch->next_in_room;
-            if ( is_opponent(ch, vch) && vch != victim )
+            if ( vch == victim || is_opponent(ch, vch) )
                 wail_at(ch, vch, level, dam * AREA_SPELL_FACTOR);
         }
     }
+    else
+        wail_at(ch, victim, level, dam);
     check_improve(ch, gsn_wail, TRUE, 3);
 }
 
