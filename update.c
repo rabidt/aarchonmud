@@ -2015,6 +2015,8 @@ void aggr_update( void )
             ch_next = ch->next_in_room;
 
             if ( !IS_NPC(ch)
+                    ||   ch->must_extract
+                    ||   ch->in_room == NULL
                     ||   ch->wait > 0
                     ||   (!IS_SET(ch->act, ACT_AGGRESSIVE) && !(ch->aggressors))
                     ||   (IS_SET(ch->in_room->room_flags,ROOM_SAFE)
