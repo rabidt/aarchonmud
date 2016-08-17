@@ -2117,7 +2117,7 @@ void group_add( CHAR_DATA *ch, const char *name, bool deduct)
 	if (IS_NPC(ch)) /* NPCs do not have skills */
 	return;
 
-	sn = skill_lookup(name);
+	sn = skill_lookup_exact(name);
 
 	if (sn != -1)
 	{
