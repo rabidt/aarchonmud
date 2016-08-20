@@ -523,6 +523,7 @@ DEF_DO_FUN(do_quest)
                 ch->practice += 50;
                 act( "$N gives 50 practices to $n.", ch, NULL, questman, TO_ROOM );
                 act( "$N gives you 50 practices.",   ch, NULL, questman, TO_CHAR );
+                logpf("%s bought 50 practices for 250 qp", ch->name);
             }
             else
             {
@@ -563,6 +564,7 @@ DEF_DO_FUN(do_quest)
                ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
                sprintf(buf, "You earn %d applied experience.\n\r", gain);
                send_to_char(buf,ch);
+               logpf("%s bought %d experience for 100 qp", ch->name, gain);
 
                if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
                && ch->level >= LEVEL_UNAUTHED )
