@@ -397,6 +397,7 @@ sh_int  gsn_eldritch_curse;
 sh_int  gsn_high_explosives;
 sh_int  gsn_army_of_darkness;
 sh_int  gsn_deception;
+sh_int  gsn_song_healing;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;

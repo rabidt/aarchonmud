@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         487 /* accurate august 2016 */
+#define MAX_SKILL         488 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3486,6 +3486,7 @@ extern sh_int  gsn_eldritch_curse;
 extern sh_int  gsn_high_explosives;
 extern sh_int  gsn_army_of_darkness;
 extern sh_int  gsn_deception;
+extern sh_int  gsn_song_healing;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -5035,6 +5036,7 @@ int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
+int get_spell_heal( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
 int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
