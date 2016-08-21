@@ -160,7 +160,10 @@ DEF_DO_FUN(do_wail)
 
     reduce_mana(ch,  mana_cost);
     ch->move -= move_cost;
-    WAIT_STATE(ch, skill_table[gsn_wail].beats);
+    if ( song == SONG_FURIOUS_BALLAD )
+        WAIT_STATE(ch, skill_table[gsn_wail].beats * 2/3);
+    else
+        WAIT_STATE(ch, skill_table[gsn_wail].beats);
     
     int level = ch->level * (100 + skill) / 200;
     int dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
@@ -267,7 +270,12 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
         af.modifier  = (20 + level) * -2;
         af.location  = APPLY_AC;
         affect_to_char(ch, &af);
-        return;
+    }
+    else if (song_num == SONG_FURIOUS_BALLAD)
+    {
+        af.type      = gsn_furious_ballad;
+        af.bitvector = AFF_FURY;
+        affect_to_char(ch, &af);
     }
 }
 
