@@ -2295,9 +2295,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "skald", BARD,
-        { "frenzy", "third attack", "blade dance" },
+        { "frenzy", "furious ballad", "blade dance" },
         { 30, 50, 70 },
-        { 80, 80, 80 }
+        { 80, 100, 80 }
     },
     {
         "songhealer", BARD,
@@ -8235,6 +8235,17 @@ struct  skill_type
     STAT_DEX, STAT_VIT, STAT_AGI,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_lonesome_melody,                          25,      0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
+    "furious ballad",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_furious_ballad, 30, 0, DUR_NONE,
     "",     "",   ""
     },
 
