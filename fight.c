@@ -1464,11 +1464,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         + mob_secondary_attacks(ch);
 
     if ( IS_AFFECTED(ch, AFF_FURY) )
-    {
         secondary_attacks += 100;
-        if ( ch->song == SONG_FURIOUS_BALLAD )
-            secondary_attacks += 100;
-    }
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
@@ -2336,6 +2332,9 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost while not berserking (but less damage later)
         if ( !IS_AFFECTED(ch, AFF_BERSERK) )
             offence_cost = rand_div(offence_cost, 2);
+        // but +50% cost if double-furious (and more damage later)
+        else if ( IS_AFFECTED(ch, AFF_FURY) )
+            offence_cost += rand_div(offence_cost, 2);
         offence = deduct_move_cost(ch, offence_cost);
     }
     
@@ -2386,15 +2385,18 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     {
         int bonus_fixed = offence_cost * 2;
         int bonus_percent = 15;
+        int berserk_bonus = 0;
         // more damage for higher cost
         if ( IS_AFFECTED(ch, AFF_BERSERK) )
         {
-            bonus_percent += 10 + mastery_bonus(ch, gsn_berserk, 3, 5);
+            berserk_bonus = 10 + mastery_bonus(ch, gsn_berserk, 3, 5);
             if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
                 bonus_percent += 10;
             check_improve(ch, gsn_fervent_rage, TRUE, 7);
+            if ( IS_AFFECTED(ch, AFF_FURY) )
+                berserk_bonus *= 2;
         }
-        dam += bonus_fixed + dam * bonus_percent/100;
+        dam += bonus_fixed + dam * (bonus_percent + berserk_bonus) / 100;
     }
 
     if (wield != NULL)
