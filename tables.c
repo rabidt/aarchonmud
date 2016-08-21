@@ -346,6 +346,7 @@ const struct flag_type affect_flags[] =
     { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { "battle dirge",      AFF_BATTLE_DIRGE,         TRUE  },
     { "bardic knowledge",  AFF_BARDIC_KNOWLEDGE,     TRUE  },
+    { "fury",              AFF_FURY,                 TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -1350,6 +1351,7 @@ const struct song_type songs [] =
     {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,       FALSE },
     {"battle dirge",          SONG_BATTLE_DIRGE,       &gsn_battle_dirge,        FALSE },
     {"lonesome melody",       SONG_LONESOME_MELODY,    &gsn_lonesome_melody,     TRUE  },
+    {"furious ballad",        SONG_FURIOUS_BALLAD,     &gsn_furious_ballad,      FALSE },
     { NULL,                   0,                       NULL,                     FALSE }
 };
 

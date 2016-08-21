@@ -1463,6 +1463,12 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         + get_lunge_chance(ch)
         + mob_secondary_attacks(ch);
 
+    if ( IS_AFFECTED(ch, AFF_FURY) )
+    {
+        secondary_attacks += 100;
+        if ( ch->song == SONG_FURIOUS_BALLAD )
+            secondary_attacks += 100;
+    }
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
     if ( IS_AFFECTED(ch, AFF_SLOW) )
@@ -1495,7 +1501,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             int mastery = get_mastery(ch, gsn_dual_wield) + (gsn_dual ? get_mastery(ch, gsn_dual) : 0);
             if ( mastery > 0 )
                 offhand_attacks += 5 + 10 * mastery;
-            // haste, ambidexterity and dagger
+            // fury, haste and ambidexterity
+            if ( IS_AFFECTED(ch, AFF_FURY) )
+                offhand_attacks += 50;
             if ( IS_AFFECTED(ch, AFF_HASTE) )
                 offhand_attacks += 50;
             offhand_attacks += secondary_attacks * get_skill(ch, gsn_ambidextrous) / 200;
