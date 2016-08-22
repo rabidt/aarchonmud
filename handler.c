@@ -2672,10 +2672,10 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     if ( !fPull )
     {
         /* make sure vampires don't get toasted over and over again */
-        if ( IS_SET(ch->form, FORM_SUNBURN) )
-            char_to_room(ch,get_room_index(ROOM_VNUM_TEMPLE));
+        if ( ch->pcdata && ch->pcdata->clan_rank > 1 && !IS_SET(ch->form, FORM_SUNBURN) )
+            char_to_room(ch, get_room_index(clan_table[ch->clan].hall));
         else
-            char_to_room(ch,get_room_index(clan_table[ch->clan].hall));
+            char_to_room(ch, get_room_index(ROOM_VNUM_TEMPLE));
         return TRUE;
     }
     
