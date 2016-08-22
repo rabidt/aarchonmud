@@ -203,6 +203,11 @@ bool can_attack(CHAR_DATA *ch)
     return TRUE;
 }
 
+static bool is_furious( CHAR_DATA *ch )
+{
+    return IS_AFFECTED(ch, AFF_FURY) && !is_calm(ch);
+}
+
 // free attack for everyone fighting victim, except for victim's target
 static void gangbang( CHAR_DATA *victim )
 {
@@ -1463,7 +1468,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
         + get_lunge_chance(ch)
         + mob_secondary_attacks(ch);
 
-    if ( IS_AFFECTED(ch, AFF_FURY) )
+    if ( is_furious(ch) )
         secondary_attacks += 100;
     if ( IS_AFFECTED(ch, AFF_HASTE) )
         secondary_attacks += 100;
@@ -1498,7 +1503,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             if ( mastery > 0 )
                 offhand_attacks += 5 + 10 * mastery;
             // fury, haste and ambidexterity
-            if ( IS_AFFECTED(ch, AFF_FURY) )
+            if ( is_furious(ch) )
                 offhand_attacks += 50;
             if ( IS_AFFECTED(ch, AFF_HASTE) )
                 offhand_attacks += 50;
@@ -1797,6 +1802,10 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
         dam = dice(ch->damage[DICE_NUMBER], ch->damage[DICE_TYPE]);
     else
         dam = level + dice( 2, 4 );
+    
+    /* fury affect */
+    if ( is_furious(ch) )
+        dam += dam / 3;
 
     /* savage frenzy */
     if ( IS_AFFECTED(ch, AFF_BERSERK) && !is_calm(ch) )
@@ -2332,9 +2341,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         // half cost while not berserking (but less damage later)
         if ( !IS_AFFECTED(ch, AFF_BERSERK) )
             offence_cost = rand_div(offence_cost, 2);
-        // but +50% cost if double-furious (and more damage later)
-        else if ( IS_AFFECTED(ch, AFF_FURY) )
-            offence_cost += rand_div(offence_cost, 2);
         offence = deduct_move_cost(ch, offence_cost);
     }
     
@@ -2393,8 +2399,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             if ( per_chance(get_skill(ch, gsn_fervent_rage)) )
                 bonus_percent += 10;
             check_improve(ch, gsn_fervent_rage, TRUE, 7);
-            if ( IS_AFFECTED(ch, AFF_FURY) )
-                berserk_bonus *= 2;
         }
         dam += bonus_fixed + dam * (bonus_percent + berserk_bonus) / 100;
     }
@@ -4998,6 +5002,16 @@ bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
+static int defence_penalty( CHAR_DATA *ch )
+{
+    int penalty = 0;
+    if ( IS_AFFECTED(ch, AFF_SORE) )
+        penalty += 10;
+    if ( is_furious(ch) )
+        penalty += 10;
+    return penalty;
+}
+
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
@@ -5037,9 +5051,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     else if ( ch->stance == STANCE_BLADE_BARRIER )
         chance += 20;
     
-    if ( IS_AFFECTED(ch, AFF_SORE) )
-        chance -= 10;
-
+    chance -= defence_penalty(ch);
     chance += mastery_bonus(ch, gsn_parry, 3, 5);
     
     if ( improve )
@@ -5159,10 +5171,8 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     if (victim->stance==STANCE_SHOWDOWN)
         chance += 30;
 
-    if ( IS_AFFECTED(victim, AFF_SORE) )
-        chance -= 10;
-
-    chance = chance * (200 - get_heavy_armor_penalty(ch)) / 200;
+    chance -= defence_penalty(victim);
+    chance = chance * (200 - get_heavy_armor_penalty(victim)) / 200;
     
     chance = URANGE(0, chance, 75);
     
@@ -5234,8 +5244,7 @@ bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
 
     chance = get_skill(victim, gsn_avoidance) * 2/3;
 
-    if ( IS_AFFECTED(victim, AFF_SORE) )
-        chance -= 10;
+    chance -= defence_penalty(victim);
 
     if ( !can_see_combat(victim,ch) && blind_penalty(victim) )
         chance -= chance/4;
@@ -5319,8 +5328,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
     if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
 
-    if ( IS_AFFECTED(ch, AFF_SORE) )
-        chance -= 10;
+    chance -= defence_penalty(ch);
 
     if ( improve )
     {
@@ -5430,9 +5438,7 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( IS_SET(ch->form, FORM_DOUBLE_JOINTED) )
         chance += 10;
 
-    if ( IS_AFFECTED(ch, AFF_SORE) )
-        chance -= 10;
-    
+    chance -= defence_penalty(ch);
     chance += mastery_bonus(ch, gsn_dodge, 3, 5);
     
     chance = chance * (200 - get_heavy_armor_penalty(ch)) / 200;
