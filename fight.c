@@ -6290,7 +6290,7 @@ int level_power( CHAR_DATA *ch )
     if ( IS_NPC(ch) )
         return ch->level;
     
-    int pow = ch->level + UMAX(0, ch->level - 90);
+    float pow = ch->level + UMAX(0, ch->level - 90);
     // level adjustment scales with actual level
     float la_factor = ch->level >= 90 ? 1.0 : (ch->level + 30) / 120.0;
     // remort adjustment
@@ -6299,7 +6299,7 @@ int level_power( CHAR_DATA *ch )
     if ( ch->pcdata->ascents > 0 )
         pow += 6 * la_factor;
     
-    return pow;
+    return (int)pow;
 }
 
 // compute baseline xp for character of given level_power killing victim
