@@ -1978,8 +1978,6 @@ OBJ_DATA *get_eq_char( CHAR_DATA *ch, int iWear )
     return NULL;
 }
 
-bool class_can_use_obj( int class, OBJ_DATA *obj );
-
 /*
  * Equip a char with an obj.
  */
@@ -1999,32 +1997,10 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
 	      IS_NPC(ch) ? ch->pIndexData->vnum : 0, obj->pIndexData->vnum, iWear );
         return;
     }
-    
-    if ( !IS_NPC(ch) && !class_can_use_obj(ch->class, obj) )
-    {
-        act( "Realizing you can't use $p, you remove it again.",
-	     ch, obj, NULL, TO_CHAR );
-        act( "Realizing $e can't use $p, $n removes it again.",
-	     ch, obj, NULL, TO_ROOM );
-	return;
-    }
 
-    if ( !IS_NPC(ch) )
-    if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)        && IS_EVIL(ch)    )
-        ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(ch)    )
-        ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(ch) ) )
-    {
-	/*
-	 * Thanks to Morgenes for the bug fix here!
-	 */
-        act( "You are zapped by $p and remove it.", ch, obj, NULL, TO_CHAR );
-        act( "$n is zapped by $p and removes it.",  ch, obj, NULL, TO_ROOM );
-	/* let's not lose items this way.. --Bobble
-	obj_from_char( obj );
-	obj_to_room( obj, ch->in_room );
-	*/
+    // shouldn't be needed, but just in case
+    if ( !check_can_wear(ch, obj, FALSE) )
         return;
-    }
 
     // remove current tattoo effect
     tattoo_modify_equip( ch, iWear, FALSE, FALSE, FALSE );
