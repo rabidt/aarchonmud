@@ -3737,7 +3737,7 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
         return FALSE;
     
     if (IS_SET(pRoomIndex->room_flags, ROOM_HEROES_ONLY)
-        && !IS_NPC(ch) && !IS_HERO(ch))
+        && !IS_NPC(ch) && level_power(ch) < (LEVEL_HERO-10) )
         return FALSE;
     
     if (IS_SET(pRoomIndex->room_flags, ROOM_NEWBIES_ONLY)
