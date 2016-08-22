@@ -2026,7 +2026,7 @@ bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, boo
 
 // check that a character can wear an item
 #define WEAR_FAIL(msg) if ( umd_skill < umd_cost ) { if (show) act(msg, ch, obj, NULL, TO_CHAR); return FALSE; }
-bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show )
+bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
 {
     if ( !ch || !obj )
         return FALSE;
@@ -2072,11 +2072,12 @@ bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show )
         WEAR_FAIL("Your alignment prohibits the use of $p.");
     }
     
-    if ( umd_cost && show )
+    if ( umd_cost )
     {
-        act("You carefully adjust $p to fit.", ch, obj, NULL, TO_CHAR);
-        WAIT_STATE(ch, PULSE_VIOLENCE);
-        check_improve(ch, gsn_use_magic_device, TRUE, 3);
+        if ( show )
+            act("You carefully adjust $p to fit.", ch, obj, NULL, TO_CHAR);
+        if ( improve )
+            check_improve(ch, gsn_use_magic_device, TRUE, 8);
     }
     
     return TRUE;
@@ -2115,7 +2116,7 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
         return;
     }
 
-    if ( !check_can_wear(ch, obj, TRUE) )
+    if ( !check_can_wear(ch, obj, fReplace, FALSE) )
         return;
 
     if ( obj->item_type == ITEM_LIGHT )
