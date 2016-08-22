@@ -1999,7 +1999,7 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
     }
 
     // shouldn't be needed, but just in case
-    if ( !check_can_wear(ch, obj, FALSE) )
+    if ( !check_can_wear(ch, obj, FALSE, FALSE) )
         return;
 
     // remove current tattoo effect
