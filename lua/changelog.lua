@@ -315,7 +315,7 @@ changelog pattern [pattern] -- Show all entries that match the given pattern
 changelog author [name]     -- Show all entries from the given author.
 changelog authors           -- List all changelog authors.
 ]])
-    if ch.level>=108 then
+    if ch.level>=102 then
         sendtochar( ch, [[
 
 changelog add             -- Add a change.
