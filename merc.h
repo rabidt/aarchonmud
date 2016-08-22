@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         487 /* accurate august 2016 */
+#define MAX_SKILL         488 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3649,6 +3649,7 @@ extern sh_int  gsn_dark_reaping;
 extern sh_int  gsn_inspiring_song;
 extern sh_int  gsn_ambidextrous;
 extern sh_int  gsn_aura_of_menace;
+extern sh_int  gsn_use_magic_device;
 
 /* astark stuff */
 
@@ -4432,6 +4433,7 @@ void dragonborn_rebirth( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
+bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
@@ -5312,6 +5314,7 @@ int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
+bool class_can_use_obj( int class, OBJ_DATA *obj );
 void set_mob_race( CHAR_DATA *ch, int race );
 void take_default_stats( CHAR_DATA *ch );
 
