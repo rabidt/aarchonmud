@@ -2497,6 +2497,7 @@ struct  char_data
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
 	CHAR_DATA *     leader;
+	CHAR_DATA *     controller; // char controlling the current action (e.g. betray spell)
 	CHAR_DATA *     fighting;
 	CHAR_DATA *     reply;
 	CHAR_DATA *     pet;
