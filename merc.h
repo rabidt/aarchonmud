@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         488 /* accurate august 2016 */
+#define MAX_SKILL         490/* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1319,8 +1319,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -1627,7 +1627,7 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
-//#define AFF_SONG              81
+#define AFF_FURY              81
 #define AFF_DEVASTATING_ANTHEM 82
 #define AFF_REFLECTIVE_HYMN   83
 #define AFF_REFRESH           84
@@ -3486,6 +3486,7 @@ extern sh_int  gsn_eldritch_curse;
 extern sh_int  gsn_high_explosives;
 extern sh_int  gsn_army_of_darkness;
 extern sh_int  gsn_deception;
+extern sh_int  gsn_song_healing;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -3710,6 +3711,7 @@ extern sh_int  gsn_lunge;
 extern sh_int  gsn_riff;
 extern sh_int  gsn_bardic_knowledge;
 extern sh_int  gsn_lonesome_melody;
+extern sh_int  gsn_furious_ballad;
 
 extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
@@ -4177,6 +4179,7 @@ struct song_type
 #define SONG_ARCANE_ANTHEM      6
 #define SONG_BATTLE_DIRGE       7
 #define SONG_LONESOME_MELODY    8
+#define SONG_FURIOUS_BALLAD     9
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
@@ -5037,6 +5040,7 @@ int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
+int get_spell_heal( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
 int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
@@ -5259,6 +5263,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
