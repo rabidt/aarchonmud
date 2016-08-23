@@ -2258,7 +2258,7 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80 }
     },
     {
-        "trickster", ILLUSIONIST,
+        "trickster", ILLUSIONIST|BARD,
         { "deception", "improved invis", "flanking" },
         { 30, 50, 70 },
         { 100, 100, 80 }
@@ -2292,6 +2292,18 @@ const struct subclass_type subclass_table[] =
         { "army of darkness", "aura of menace" },
         { 30, 50 },
         { 100, 80 }
+    },
+    {
+        "skald", BARD,
+        { "frenzy", "furious ballad", "blade dance" },
+        { 30, 50, 70 },
+        { 80, 100, 80 }
+    },
+    {
+        "songhealer", BARD,
+        { "song healing", "anatomy", "group heal" },
+        { 30, 50, 70 },
+        { 100, 80, 80 }
     },
     { NULL }
 };
@@ -8234,6 +8246,28 @@ struct  skill_type
     STAT_DEX, STAT_VIT, STAT_AGI,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_lonesome_melody,                          25,      0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
+    "furious ballad",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_furious_ballad, 30, 0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
+    "song healing",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_VIT,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_song_healing, 0, 0, DUR_NONE,
     "",     "",   ""
     },
 
