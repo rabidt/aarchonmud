@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         489 /* accurate august 2016 */
+#define MAX_SKILL         490 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3648,6 +3648,7 @@ extern sh_int  gsn_ashura;
 extern sh_int  gsn_shan_ya;
 extern sh_int  gsn_dark_reaping;
 extern sh_int  gsn_inspiring_song;
+extern sh_int  gsn_inspired_rage;
 extern sh_int  gsn_ambidextrous;
 extern sh_int  gsn_aura_of_menace;
 
