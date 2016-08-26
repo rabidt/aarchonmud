@@ -4518,10 +4518,12 @@ DEF_DO_FUN(do_song_list)
         if ( skill == 0 )
             continue;
 
-        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmn\n\r",
-                songs[i].name,
-                get_skill_prac(ch, sn), skill,
-                song_cost(ch, i));
+        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmn   %-5s   %s\n\r",
+            songs[i].name,
+            get_skill_prac(ch, sn), skill,
+            song_cost(ch, i),
+            songs[i].solo ? "solo" : "group",
+            songs[i].instrumental ? "instrumental" : "");
         send_to_char( buf, ch );
     }
 }

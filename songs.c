@@ -326,6 +326,12 @@ DEF_DO_FUN(do_sing)
         return;
     }
 
+    if ( songs[i].instrumental && !has_instrument(ch) )
+    {
+        ptc(ch, "You require an instrument for this song.\n\r");
+        return;
+    }
+    
     if ( ch->song == i )
     {
         send_to_char("You're already singing that song.\n\r", ch);
@@ -483,6 +489,13 @@ void check_bard_song( CHAR_DATA *ch, bool deduct_cost )
         // remove cost
         if ( deduct_cost )
         {
+            if ( songs[ch->song].instrumental && !has_instrument(ch) )
+            {
+                ptc(ch, "You cannot maintain your song without an instrument.\n\r");
+                ch->song = 0;
+                check_bard_song_group(ch);
+                return;
+            }
             if ( ch->position > POS_SLEEPING && deduct_song_cost(ch) )
             {
                 check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
