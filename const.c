@@ -2295,9 +2295,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "skald", BARD,
-        { "frenzy", "furious ballad", "blade dance" },
-        { 30, 50, 70 },
-        { 80, 100, 80 }
+        { "frenzy", "inspired rage", "furious ballad", "blade dance" },
+        { 10, 30, 50, 70 },
+        { 100, 100, 100, 80 }
     },
     {
         "songhealer", BARD,
@@ -4819,6 +4819,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_inspiring_song,  100, 24, DUR_SHORT,
     "", "You no longer feel inspired.", ""
+    },
+    
+    {
+    "inspired rage",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_inspired_rage,  0, 0, DUR_NONE,
+    "", "", ""
     },
     
     {

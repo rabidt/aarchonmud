@@ -451,6 +451,7 @@ sh_int  gsn_ashura;
 sh_int  gsn_shan_ya;
 sh_int  gsn_dark_reaping;
 sh_int  gsn_inspiring_song;
+sh_int  gsn_inspired_rage;
 sh_int  gsn_ambidextrous;
 sh_int  gsn_aura_of_menace;
 sh_int  gsn_aversion;
