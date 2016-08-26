@@ -4865,6 +4865,17 @@ struct  skill_type
     "", "!aura of menace!", ""
     },
 
+    {
+    "use magic device",
+    { 102,  16, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  12 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 11, 5,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_DEX, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_use_magic_device,  0, 0, DUR_NONE,
+    "", "!use magic device!", ""
+    },
+
 /*  NEW RANGER STUFF by SIVA 9/28/98 */
 
     {
