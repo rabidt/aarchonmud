@@ -2959,7 +2959,7 @@ DEF_DO_FUN(do_avatar)
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {
         obj_next = obj->next_content;
-        if ( obj->wear_loc != WEAR_NONE && obj->level > ch->level )
+        if ( obj->wear_loc != WEAR_NONE && !check_can_wear(ch, obj, FALSE, FALSE) )
         {
             unequip_char( ch, obj );
             act( "You stop using $p.", ch, obj, NULL, TO_CHAR );

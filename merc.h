@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         490 /* accurate august 2016 */
+#define MAX_SKILL         491 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1319,8 +1319,8 @@ struct  kill_data
 #define ACT_IGNORE_SAFE (gg)
 #define ACT_JUDGE       (hh)    /* killer/thief flags removal */
 #define ACT_NOEXP       (ii)    /* no experience from killing this mob */
-#define ACT_NOMIMIC     (jj)    /* cannot mimic this mob */
-#define ACT_HARD_QUEST  (kk)
+#define ACT_NOMIMIC	(jj)    /* cannot mimic this mob */
+#define ACT_HARD_QUEST    (kk)
 #define ACT_STAGGERED   (ll)    /* no bonus attacks for being high-level */
 #define ACT_NOBEHEAD    (mm)    /* Make a mob immune to behead */
 #define ACT_NOWEAPON    (nn)    /* no proficiency with weapons, for summons */
@@ -3651,6 +3651,7 @@ extern sh_int  gsn_inspiring_song;
 extern sh_int  gsn_inspired_rage;
 extern sh_int  gsn_ambidextrous;
 extern sh_int  gsn_aura_of_menace;
+extern sh_int  gsn_use_magic_device;
 
 /* astark stuff */
 
@@ -4437,6 +4438,7 @@ void dragonborn_rebirth( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
+bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
@@ -5263,6 +5265,7 @@ int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
 void update_skill_costs();
 void update_group_costs();
 void set_level_exp( CHAR_DATA *ch );
+int get_injury_penalty( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
@@ -5318,6 +5321,7 @@ int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
+bool class_can_use_obj( int class, OBJ_DATA *obj );
 void set_mob_race( CHAR_DATA *ch, int race );
 void take_default_stats( CHAR_DATA *ch );
 
@@ -5410,6 +5414,7 @@ void      update_bounty args( ( CHAR_DATA *ch ) );
 void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) );
 void    drop_align( CHAR_DATA *ch );
+void    check_equipment_worn( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
 void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
