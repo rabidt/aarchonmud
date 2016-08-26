@@ -4118,7 +4118,7 @@ DEF_DO_FUN(do_inspire)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = get_duration(sn, level);
+    af.duration  = get_duration(sn, level) * (100 + get_skill_overflow(ch, sn)) / 100;
     af.bitvector = AFF_PASSIVE_SONG;
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
