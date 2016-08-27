@@ -454,6 +454,7 @@ sh_int  gsn_inspiring_song;
 sh_int  gsn_inspired_rage;
 sh_int  gsn_ambidextrous;
 sh_int  gsn_aura_of_menace;
+sh_int  gsn_use_magic_device;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */

@@ -75,8 +75,6 @@ void check_beast_mastery( CHAR_DATA *ch );
 void check_shadow_companion( CHAR_DATA *ch );
 void validate_all();
 void check_clan_align( CHAR_DATA *gch );
-void check_equipment_align( CHAR_DATA *gch );
-
 
 /* used for saving */
 
@@ -1067,6 +1065,7 @@ void char_update( void )
         if ( !IS_NPC(ch) ) {
             update_learning(ch);
             check_achievement(ch);
+            check_equipment_worn(ch);
         }
         
         /* Check for natural resistance */
@@ -2620,7 +2619,6 @@ void change_align (CHAR_DATA *ch, int change_by)
 
     //check_religion_align( ch );
     check_clan_align( ch );
-    check_equipment_align( ch );
     return;
 }
 
@@ -2634,7 +2632,6 @@ void drop_align( CHAR_DATA *ch )
 
     //check_religion_align( ch );
     check_clan_align( ch );
-    check_equipment_align( ch );
     return;
 }
 
@@ -2660,25 +2657,23 @@ void check_clan_align( CHAR_DATA *gch )
     return;
 }
 
-void check_equipment_align( CHAR_DATA *gch )
+void check_equipment_worn( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
 
-    for ( obj = gch->carrying; obj != NULL; obj = obj_next )
+    for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {
         obj_next = obj->next_content;
         if ( obj->wear_loc == WEAR_NONE )
             continue;
 
-        if ( ( IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(gch)    )
-                ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(gch)    )
-                ||   ( IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(gch) ) )
+        if ( !check_can_wear(ch, obj, FALSE, TRUE) )
         {
-            act( "You are zapped by $p.", gch, obj, NULL, TO_CHAR );
-            act( "$n is zapped by $p.",   gch, obj, NULL, TO_ROOM );
+            act( "You are zapped by $p.", ch, obj, NULL, TO_CHAR );
+            act( "$n is zapped by $p.",   ch, obj, NULL, TO_ROOM );
             obj_from_char( obj );
-            obj_to_char( obj, gch );
+            obj_to_char( obj, ch );
         }        
     }
     return;
