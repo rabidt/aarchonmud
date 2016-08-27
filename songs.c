@@ -635,6 +635,9 @@ void song_heal( CHAR_DATA *ch )
         return;
     int sn = *songs[ch->song].gsn;
     int heal = get_spell_heal( skill_table[sn].min_mana, PULSE_VIOLENCE, ch->level ) / 4;
+    // lullaby does nothing BUT heal
+    if ( ch->song == SONG_LULLABY )
+        heal *= 5;
     if ( songs[ch->song].solo )
         song_heal_ch(ch, ch, heal);
     else
