@@ -3360,10 +3360,15 @@ bool damage( CHAR_DATA *ch,CHAR_DATA *victim,int dam,int dt,int dam_type,
 // if ch is a charmed NPC and leader is present, returns leader, otherwise ch
 CHAR_DATA *get_local_leader( CHAR_DATA *ch )
 {
-    if ( ch != NULL && IS_NPC(ch) && IS_AFFECTED(ch, AFF_CHARM) && ch->leader != NULL && ch->leader->in_room == ch->in_room )
+    if ( !ch )
+        return NULL;
+    
+    if ( ch->controller )
+        return ch->controller;
+    else if ( IS_NPC(ch) && IS_AFFECTED(ch, AFF_CHARM) && ch->leader != NULL && ch->leader->in_room == ch->in_room )
         return ch->leader;
-    else
-        return ch;
+    
+    return ch;
 }
 
 bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
