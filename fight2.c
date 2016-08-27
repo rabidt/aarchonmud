@@ -4057,6 +4057,7 @@ DEF_DO_FUN(do_inspire)
     CHAR_DATA *target = NULL;
     bool all = FALSE;
     int sn = gsn_inspiring_song;
+    bool calm = FALSE;
 
     if ( argument[0] != '\0' )
     {
@@ -4069,7 +4070,9 @@ DEF_DO_FUN(do_inspire)
             sn = gsn_bears_endurance;
         else if ( !strcmp(arg, "grace") || !strcmp(arg, "cat") )
             sn = gsn_cats_grace;
-        if ( sn != gsn_inspiring_song )
+        else if ( !strcmp(arg, "serenity") || !strcmp(arg, "calm") )
+            calm = TRUE;
+        if ( sn != gsn_inspiring_song || calm )
             one_argument(argument, arg);
         // parse target
         if ( arg[0] != '\0' )
@@ -4078,7 +4081,7 @@ DEF_DO_FUN(do_inspire)
                 all = TRUE;
             else if ( (target = get_char_room(ch, arg)) == NULL )
             {
-                send_to_char("Syntax: Inspire [cunning|endurance|grace] [all|target]\n\r", ch);
+                send_to_char("Syntax: Inspire [cunning|endurance|grace|serenity] [all|target]\n\r", ch);
                 return;
             }
         }
@@ -4093,6 +4096,12 @@ DEF_DO_FUN(do_inspire)
     if ( !skill )
     {
         send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( calm && get_skill(ch, gsn_song_healing) < 1 )
+    {
+        send_to_char("You need the song healing skill to inspire serenity.\n\r", ch);
         return;
     }
     
@@ -4169,6 +4178,23 @@ DEF_DO_FUN(do_inspire)
             affect_to_char(vch, &af);
             af.modifier *= rage ? 20 : 10;
             af.location = APPLY_MOVE;
+            affect_to_char(vch, &af);
+        }
+        else if ( calm )
+        {
+            int bonus = 5 + level / 9;
+            send_to_char("You feel calm and serene.\n\r", vch);
+            // stats
+            af.modifier = bonus;
+            af.location = APPLY_STATS;
+            affect_to_char(vch, &af);
+            // saves
+            af.modifier = -2 * bonus;
+            af.location = APPLY_SAVES;
+            affect_to_char(vch, &af);
+            // ac
+            af.modifier = -20 * bonus;
+            af.location = APPLY_AC;
             affect_to_char(vch, &af);
         }
         else // gsn_inspiring_song
