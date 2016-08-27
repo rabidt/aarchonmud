@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         488 /* accurate august 2016 */
+#define MAX_SKILL         490 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -2497,6 +2497,7 @@ struct  char_data
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
 	CHAR_DATA *     leader;
+	CHAR_DATA *     controller; // char controlling the current action (e.g. betray spell)
 	CHAR_DATA *     fighting;
 	CHAR_DATA *     reply;
 	CHAR_DATA *     pet;
