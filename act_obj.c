@@ -4541,14 +4541,9 @@ DEF_DO_FUN(do_second)
         return;
     }
 
-    if ( ch->level < obj->level )
-    {
-        sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
-        send_to_char( buf, ch );
-        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
+    if ( !check_can_wear(ch, obj, TRUE, FALSE) )
         return;
-    }
-
+    
     if ( get_obj_weight(obj) > ch_str_wield(ch) * 2/3 )
     {
         send_to_char( "This weapon is too heavy to be used as a secondary weapon by you.\n\r", ch );
