@@ -5736,6 +5736,17 @@ struct  skill_type
     },
 
     {
+        "shield wall",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_STR, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shield_wall, 0, 0, DUR_NONE,
+        "", "!shield wall!", ""
+    },
+
+    {
         "massive swing",  
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
@@ -6064,6 +6075,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_army_of_darkness, 0, 0, DUR_NONE,
         "", "!army_of_darkness!", ""
+    },
+    
+    {
+        "deception",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_LUC, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_deception, 0, 0, DUR_NONE,
+        "", "!deception!", ""
     },
     
     {
