@@ -322,10 +322,14 @@ DEF_SPELL_FUN(spell_betray)
         act("$n strikes at you with hate in $s eyes!", traitor, NULL, victim, TO_VICT);
         act("$n strikes at $N with hate in $s eyes!", traitor, NULL, victim, TO_NOTVICT);
         
-        // one full attack against the target, the return to normal fight
+        // one full attack against the target, then return to normal fight
+        // all credit for damage/kills should go to caster
         CHAR_DATA *was_fighting = traitor->fighting;
+        CHAR_DATA *was_controller = traitor->controller;
         set_fighting_new(traitor, victim, FALSE);
+        traitor->controller = ch->controller ? ch->controller : ch;
         multi_hit(traitor, victim, TYPE_UNDEFINED);
+        traitor->controller = was_controller;
         set_fighting_new(traitor, was_fighting ? was_fighting : ch, FALSE);
 
         // this uses up the next full attack for the traitor

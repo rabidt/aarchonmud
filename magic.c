@@ -1919,6 +1919,9 @@ bool obj_cast_spell( int sn, int level, CHAR_DATA *ch, OBJ_DATA *obj, const char
         level = level * (900 + levelmod) / 1000;
     }
     level += mastery_bonus(ch, gsn_arcane_lore, 3, 5);
+    // use magic device mastery provides a bonus at hero level
+    if ( ch->level == LEVEL_HERO )
+        level += mastery_bonus(ch, gsn_use_magic_device, 6, 10);
 
     if ( IS_SET( ch->act, PLR_WAR ) )
     {
