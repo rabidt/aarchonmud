@@ -4488,7 +4488,6 @@ DEF_DO_FUN(do_second)
     OBJ_DATA *obj;
     OBJ_DATA *wield;
     OBJ_DATA *second;
-    char buf[MAX_STRING_LENGTH]; 
 
     argument = one_argument( argument, arg );
 
