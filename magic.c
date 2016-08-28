@@ -680,9 +680,17 @@ bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     return FALSE;
 }
 
+int base_mana_cost( CHAR_DATA *ch, int sn )
+{
+    if ( !ch || was_obj_cast )
+        return skill_table[sn].min_mana;
+    else
+        return skill_table[sn].min_mana + skill_table[sn].mana_boost * ch->max_mana / 1000;
+}
+
 int mana_cost(CHAR_DATA *ch, int sn, int skill)
 {
-    int mana = skill_table[sn].min_mana;
+    int mana = base_mana_cost(ch, sn);
     
     mana = mana * (200-skill) / 100;
     mana = mastery_adjust_cost(mana, get_mastery(ch, sn));
@@ -2093,12 +2101,13 @@ int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn )
 
 int get_sn_damage( int sn, int level, CHAR_DATA *ch )
 {
-    int dam, bonus;
+    int mana, dam, bonus;
 
     if ( sn < 1 || sn >= MAX_SKILL )
         return 0;
 
-    dam = get_spell_damage( skill_table[sn].min_mana, skill_table[sn].beats, level );
+    mana = base_mana_cost(ch, sn);
+    dam = get_spell_damage( mana, skill_table[sn].beats, level );
     dam = adjust_spell_damage(dam, ch);
     bonus = get_spell_bonus_damage_sn(ch, sn);
     // bonus can at most double the spell damage
@@ -2109,12 +2118,13 @@ int get_sn_damage( int sn, int level, CHAR_DATA *ch )
 
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int heal;
+    int mana, heal;
 
     if ( sn < 1 || sn >= MAX_SKILL )
         return 0;
 
-    heal = get_spell_heal( skill_table[sn].min_mana, skill_table[sn].beats, level );
+    mana = base_mana_cost(ch, sn);
+    heal = get_spell_heal( mana, skill_table[sn].beats, level );
 
     if ( !was_obj_cast )
     {
