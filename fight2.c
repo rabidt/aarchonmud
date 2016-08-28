@@ -4057,6 +4057,7 @@ DEF_DO_FUN(do_inspire)
     CHAR_DATA *target = NULL;
     bool all = FALSE;
     int sn = gsn_inspiring_song;
+    bool calm = FALSE;
 
     if ( argument[0] != '\0' )
     {
@@ -4069,7 +4070,9 @@ DEF_DO_FUN(do_inspire)
             sn = gsn_bears_endurance;
         else if ( !strcmp(arg, "grace") || !strcmp(arg, "cat") )
             sn = gsn_cats_grace;
-        if ( sn != gsn_inspiring_song )
+        else if ( !strcmp(arg, "serenity") || !strcmp(arg, "calm") )
+            calm = TRUE;
+        if ( sn != gsn_inspiring_song || calm )
             one_argument(argument, arg);
         // parse target
         if ( arg[0] != '\0' )
@@ -4078,7 +4081,7 @@ DEF_DO_FUN(do_inspire)
                 all = TRUE;
             else if ( (target = get_char_room(ch, arg)) == NULL )
             {
-                send_to_char("Syntax: Inspire [cunning|endurance|grace] [all|target]\n\r", ch);
+                send_to_char("Syntax: Inspire [cunning|endurance|grace|serenity] [all|target]\n\r", ch);
                 return;
             }
         }
@@ -4088,10 +4091,17 @@ DEF_DO_FUN(do_inspire)
     int chance = (100 + skill) / 2;
     int cost = skill_table[sn].min_mana * 200 / (100 + skill);
     int level = ch->level * (100 + skill) / 200;
+    bool rage = IS_AFFECTED(ch, AFF_BERSERK) && check_skill(ch, gsn_inspired_rage);
     
     if ( !skill )
     {
         send_to_char("You don't know how.\n\r", ch);
+        return;
+    }
+    
+    if ( calm && get_skill(ch, gsn_song_healing) < 1 )
+    {
+        send_to_char("You need the song healing skill to inspire serenity.\n\r", ch);
         return;
     }
     
@@ -4118,7 +4128,7 @@ DEF_DO_FUN(do_inspire)
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = get_duration(sn, level);
+    af.duration  = get_duration(sn, level) * (100 + get_skill_overflow(ch, sn)) / 100;
     af.bitvector = AFF_PASSIVE_SONG;
 
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
@@ -4133,48 +4143,83 @@ DEF_DO_FUN(do_inspire)
 
         if ( sn == gsn_foxs_cunning )
         {
-            send_to_char("You feel inspired to be cunning as a fox.\n\r", vch);
+            if ( rage )
+                send_to_char("You feel inspired to be cunning as an ANGRY fox.\n\r", vch);
+            else
+                send_to_char("You feel inspired to be cunning as a fox.\n\r", vch);
             af.modifier = 10 + level / 3;
             af.location = APPLY_WIS;
             affect_to_char(vch, &af);
-            af.modifier *= 10;
+            af.modifier *= rage ? 20 : 10;
             af.location = APPLY_MANA;
             affect_to_char(vch, &af);
         }
         else if ( sn == gsn_bears_endurance )
         {
-            send_to_char("You feel inspired to be tough as a bear.\n\r", vch);
+            if ( rage )
+                send_to_char("You feel inspired to be tough as an ANGRY bear.\n\r", vch);
+            else
+                send_to_char("You feel inspired to be tough as a bear.\n\r", vch);
             af.modifier = 10 + level / 3;
             af.location = APPLY_CON;
             affect_to_char(vch, &af);
-            af.modifier *= 10;
+            af.modifier *= rage ? 20 : 10;
             af.location = APPLY_HIT;
             affect_to_char(vch, &af);
         }
         else if ( sn == gsn_cats_grace )
         {
-            send_to_char("You feel inspired to be graceful as a cat.\n\r", vch);
+            if ( rage )
+                send_to_char("You feel inspired to be graceful as an ANGRY cat.\n\r", vch);
+            else
+                send_to_char("You feel inspired to be graceful as a cat.\n\r", vch);
             af.modifier = 10 + level / 3;
             af.location = APPLY_AGI;
             affect_to_char(vch, &af);
-            af.modifier *= 10;
+            af.modifier *= rage ? 20 : 10;
             af.location = APPLY_MOVE;
+            affect_to_char(vch, &af);
+        }
+        else if ( calm )
+        {
+            int bonus = 5 + level / 9;
+            send_to_char("You feel calm and serene.\n\r", vch);
+            // stats
+            af.modifier = bonus;
+            af.location = APPLY_STATS;
+            affect_to_char(vch, &af);
+            // saves
+            af.modifier = -2 * bonus;
+            af.location = APPLY_SAVES;
+            affect_to_char(vch, &af);
+            // ac
+            af.modifier = -20 * bonus;
+            af.location = APPLY_AC;
             affect_to_char(vch, &af);
         }
         else // gsn_inspiring_song
         {
-            send_to_char("You feel truly inspired.\n\r", vch);
-            af.modifier = 5 + level / 9;
+            int bonus = 5 + level / 9;
+            if ( rage )
+                send_to_char("You feel truly inspired ... and truely ANGRY!\n\r", vch);
+            else
+                send_to_char("You feel truly inspired.\n\r", vch);
+            // stats
+            af.modifier = bonus;
             af.location = APPLY_STATS;
             affect_to_char(vch, &af);
+            // hit/dam roll
+            af.modifier = rage ? 3 * bonus : bonus;
             af.location = APPLY_HITROLL;
             affect_to_char(vch, &af);
             af.location = APPLY_DAMROLL;
             affect_to_char(vch, &af);
-            af.modifier *= -1;
+            // saves
+            af.modifier = -bonus;
             af.location = APPLY_SAVES;
             affect_to_char(vch, &af);
-            af.modifier *= 10;
+            // ac
+            af.modifier = rage ? 10 * bonus : -10 * bonus;
             af.location = APPLY_AC;
             affect_to_char(vch, &af);
         }
