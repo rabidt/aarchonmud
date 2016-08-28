@@ -3162,6 +3162,7 @@ struct  skill_type
 	sh_int  minimum_position;   /* Position for caster / user   */
 	sh_int *pgsn;           /* Pointer to associated gsn    */
 	sh_int  min_mana;       /* Minimum mana used        */
+	sh_int  mana_boost;     /* Bonus mana used, relative to current */
 	sh_int  beats;          /* Waiting time after use   */
 	sh_int  duration;       /* Duration of affects */
     const char* noun_damage;        /* Damage message       */
