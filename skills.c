@@ -189,7 +189,7 @@ void update_skill_costs()
 // check for issues with skills - checked during startup
 void verify_skills()
 {
-    int sn, class;
+    int sn, class, race, subclass, skill;
     // check level gained
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
@@ -200,6 +200,21 @@ void verify_skills()
                 logpf("Skill %s gained at level %d (%s)", skill_table[sn].name, level, class_table[class].name);
         }
     }
+    // make sure all race/subclass skills exist
+    for ( race = 0; pc_race_table[race].name != NULL; race++ )
+        for ( skill = 0; skill < pc_race_table[race].num_skills; skill++ )
+        {
+            const char *skill_name = pc_race_table[race].skills[skill];
+            if ( skill_lookup_exact(skill_name) == -1 )
+                logpf("Unknown skill %s for race %s.", skill_name, pc_race_table[race].name);
+        }
+    for ( subclass = 1; subclass_table[subclass].name != NULL; subclass++ )
+        for ( skill = 0; skill < MAX_SUBCLASS_SKILL; skill++ )
+        {
+            const char *skill_name = subclass_table[subclass].skills[skill];
+            if ( skill_name && skill_lookup_exact(skill_name) == -1 )
+                logpf("Unknown skill %s for subclass %s.", skill_name, subclass_table[subclass].name);
+        }
 }
 
 CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )

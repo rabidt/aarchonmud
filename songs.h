@@ -47,3 +47,4 @@ int song_cost( CHAR_DATA *ch, int song );
 int get_lunge_chance( CHAR_DATA *ch );
 int get_instrument_skill( CHAR_DATA *ch );
 bool is_song( int sn );
+void song_heal( CHAR_DATA *ch );

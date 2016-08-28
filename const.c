@@ -2258,7 +2258,7 @@ const struct subclass_type subclass_table[] =
         { 100, 80, 80 }
     },
     {
-        "trickster", ILLUSIONIST,
+        "trickster", ILLUSIONIST|BARD,
         { "deception", "improved invis", "flanking" },
         { 30, 50, 70 },
         { 100, 100, 80 }
@@ -2292,6 +2292,18 @@ const struct subclass_type subclass_table[] =
         { "army of darkness", "aura of menace" },
         { 30, 50 },
         { 100, 80 }
+    },
+    {
+        "skald", BARD,
+        { "frenzy", "inspired rage", "furious ballad", "blade dance" },
+        { 10, 30, 50, 70 },
+        { 100, 100, 100, 80 }
+    },
+    {
+        "songhealer", BARD,
+        { "song healing", "anatomy", "group heal" },
+        { 30, 50, 70 },
+        { 100, 80, 80 }
     },
     { NULL }
 };
@@ -4810,6 +4822,17 @@ struct  skill_type
     },
     
     {
+    "inspired rage",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_inspired_rage,  0, 0, DUR_NONE,
+    "", "", ""
+    },
+    
+    {
     "petrifying gaze",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
@@ -4840,6 +4863,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_aura_of_menace,  0, 0, DUR_NONE,
     "", "!aura of menace!", ""
+    },
+
+    {
+    "use magic device",
+    { 102,  16, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  12 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 11, 5,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_DEX, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_use_magic_device,  0, 0, DUR_NONE,
+    "", "!use magic device!", ""
     },
 
 /*  NEW RANGER STUFF by SIVA 9/28/98 */
@@ -5725,6 +5759,17 @@ struct  skill_type
     },
 
     {
+        "shield wall",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_DEX, STAT_STR, STAT_VIT,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_shield_wall, 0, 0, DUR_NONE,
+        "", "!shield wall!", ""
+    },
+
+    {
         "massive swing",  
         { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
         {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
@@ -6053,6 +6098,17 @@ struct  skill_type
         spell_null, TAR_IGNORE, POS_FIGHTING,
         &gsn_army_of_darkness, 0, 0, DUR_NONE,
         "", "!army_of_darkness!", ""
+    },
+    
+    {
+        "deception",
+        { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+        {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+        { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+        STAT_CHA, STAT_LUC, STAT_DEX,
+        spell_null, TAR_IGNORE, POS_FIGHTING,
+        &gsn_deception, 0, 0, DUR_NONE,
+        "", "!deception!", ""
     },
     
     {
@@ -8223,6 +8279,28 @@ struct  skill_type
     STAT_DEX, STAT_VIT, STAT_AGI,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_lonesome_melody,                          25,      0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
+    "furious ballad",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_VIT, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_furious_ballad, 30, 0, DUR_NONE,
+    "",     "",   ""
+    },
+
+    {
+    "song healing",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_VIT,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_song_healing, 0, 0, DUR_NONE,
     "",     "",   ""
     },
 

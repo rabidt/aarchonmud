@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         487 /* accurate august 2016 */
+#define MAX_SKILL         493 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -1627,7 +1627,7 @@ struct  kill_data
 #define AFF_SHIELD            78
 #define AFF_STONE_SKIN        79
 #define AFF_PETRIFIED         80
-//#define AFF_SONG              81
+#define AFF_FURY              81
 #define AFF_DEVASTATING_ANTHEM 82
 #define AFF_REFLECTIVE_HYMN   83
 #define AFF_REFRESH           84
@@ -2497,6 +2497,7 @@ struct  char_data
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
 	CHAR_DATA *     leader;
+	CHAR_DATA *     controller; // char controlling the current action (e.g. betray spell)
 	CHAR_DATA *     fighting;
 	CHAR_DATA *     reply;
 	CHAR_DATA *     pet;
@@ -3486,6 +3487,7 @@ extern sh_int  gsn_eldritch_curse;
 extern sh_int  gsn_high_explosives;
 extern sh_int  gsn_army_of_darkness;
 extern sh_int  gsn_deception;
+extern sh_int  gsn_song_healing;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -3647,8 +3649,10 @@ extern sh_int  gsn_ashura;
 extern sh_int  gsn_shan_ya;
 extern sh_int  gsn_dark_reaping;
 extern sh_int  gsn_inspiring_song;
+extern sh_int  gsn_inspired_rage;
 extern sh_int  gsn_ambidextrous;
 extern sh_int  gsn_aura_of_menace;
+extern sh_int  gsn_use_magic_device;
 
 /* astark stuff */
 
@@ -3709,6 +3713,7 @@ extern sh_int  gsn_lunge;
 extern sh_int  gsn_riff;
 extern sh_int  gsn_bardic_knowledge;
 extern sh_int  gsn_lonesome_melody;
+extern sh_int  gsn_furious_ballad;
 
 extern sh_int  gsn_foxs_cunning;
 extern sh_int  gsn_bears_endurance;
@@ -4164,6 +4169,7 @@ struct song_type
   int         key;
   sh_int *    gsn;
   bool        solo;
+  bool        instrumental;
 };
 
 /* Values for songs in tables.c. Same as stances */
@@ -4176,6 +4182,7 @@ struct song_type
 #define SONG_ARCANE_ANTHEM      6
 #define SONG_BATTLE_DIRGE       7
 #define SONG_LONESOME_MELODY    8
+#define SONG_FURIOUS_BALLAD     9
 
 /* morph race constants */
 #define MORPH_NAGA_SERPENT 0
@@ -4432,6 +4439,7 @@ void dragonborn_rebirth( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
+bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
@@ -5035,6 +5043,7 @@ int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int get_spell_damage( int mana, int lag, int level );
+int get_spell_heal( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
 int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
@@ -5312,6 +5321,7 @@ int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
+bool class_can_use_obj( int class, OBJ_DATA *obj );
 void set_mob_race( CHAR_DATA *ch, int race );
 void take_default_stats( CHAR_DATA *ch );
 
@@ -5404,6 +5414,7 @@ void      update_bounty args( ( CHAR_DATA *ch ) );
 void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) );
 void    drop_align( CHAR_DATA *ch );
+void    check_equipment_worn( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );
 void    weather_update( void );
 void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );

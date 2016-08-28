@@ -2024,6 +2024,66 @@ bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, boo
     }
 }
 
+// check that a character can wear an item
+#define WEAR_FAIL(msg) if ( umd_skill < umd_cost ) { if (show) act(msg, ch, obj, NULL, TO_CHAR); return FALSE; }
+bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
+{
+    if ( !ch || !obj )
+        return FALSE;
+    
+    if ( (IS_IMMORTAL(ch) && ch->level > LEVEL_HERO) || (IS_NPC(ch) && !IS_AFFECTED(ch, AFF_CHARM)) )
+        return TRUE;
+    
+    if ( obj->level > LEVEL_HERO )
+    {
+        if ( show )
+            act("Only the gods can wear $p.", ch, obj, NULL, TO_CHAR);
+        return FALSE;
+    }
+    
+    int umd_skill = get_skill(ch, gsn_use_magic_device) + mastery_bonus(ch, gsn_use_magic_device, 30, 50);
+    int umd_cost = 0;
+    
+    // level restriction
+    if ( obj->level > ch->level )
+    {
+        int level, level_cost = 0;
+        // at 90+ each level is worth 3 OPs, pre-90 0.211 OPs
+        // effective OP gain scales with character level
+        for ( level = obj->level; level > ch->level; level-- )
+            level_cost += level > 90 ? 60 : 15 - (level - 1) / 10;
+        umd_cost += IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) ? level_cost / 2 : level_cost;
+        WEAR_FAIL("You are not experienced enough to wear $p.")
+    }
+
+    // class restriction
+    if ( !IS_NPC(ch) && !class_can_use_obj(ch->class, obj) )
+    {
+        umd_cost += 40;
+        WEAR_FAIL("Your training prohibits the use of $p.")
+    }
+    
+    // align_restriction
+    if (   (IS_OBJ_STAT(obj, ITEM_ANTI_EVIL)    && IS_EVIL(ch)   )
+        || (IS_OBJ_STAT(obj, ITEM_ANTI_GOOD)    && IS_GOOD(ch)   )
+        || (IS_OBJ_STAT(obj, ITEM_ANTI_NEUTRAL) && IS_NEUTRAL(ch)) )
+    {
+        umd_cost += 40;
+        WEAR_FAIL("Your alignment prohibits the use of $p.");
+    }
+    
+    if ( umd_cost )
+    {
+        if ( show )
+            act("You carefully adjust $p to fit.", ch, obj, NULL, TO_CHAR);
+        if ( improve )
+            check_improve(ch, gsn_use_magic_device, TRUE, 8);
+    }
+    
+    return TRUE;
+}
+#undef WEAR_FAIL
+
 /*
  * Wear one object.
  * Optional replacement of existing objects.
@@ -2031,9 +2091,7 @@ bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, boo
  */
 void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 {
-    char buf[MAX_STRING_LENGTH];
     OBJ_DATA *weapon=NULL;
-    int wear_level;
 
     // trying to equip disarmed item causes lag and attacks of opportunity
     if ( IS_OBJ_STAT(obj, ITEM_DISARMED) )
@@ -2058,17 +2116,8 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
         return;
     }
 
-    wear_level = ch->level;
-    if ( IS_NPC(ch) && IS_AFFECTED(ch, AFF_CHARM) )
-        wear_level = UMIN( LEVEL_HERO, wear_level );
-    if ( wear_level < obj->level )
-    {
-        sprintf( buf, "You must be level %d to use this object.\n\r",
-                obj->level );
-        send_to_char( buf, ch );
-        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
+    if ( !check_can_wear(ch, obj, fReplace, FALSE) )
         return;
-    }
 
     if ( obj->item_type == ITEM_LIGHT )
     {
@@ -4439,7 +4488,6 @@ DEF_DO_FUN(do_second)
     OBJ_DATA *obj;
     OBJ_DATA *wield;
     OBJ_DATA *second;
-    char buf[MAX_STRING_LENGTH]; 
 
     argument = one_argument( argument, arg );
 
@@ -4492,14 +4540,9 @@ DEF_DO_FUN(do_second)
         return;
     }
 
-    if ( ch->level < obj->level )
-    {
-        sprintf( buf, "You must be level %d to use this object.\n\r", obj->level );
-        send_to_char( buf, ch );
-        act_gag( "$n tries to use $p, but is too inexperienced.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
+    if ( !check_can_wear(ch, obj, TRUE, FALSE) )
         return;
-    }
-
+    
     if ( get_obj_weight(obj) > ch_str_wield(ch) * 2/3 )
     {
         send_to_char( "This weapon is too heavy to be used as a secondary weapon by you.\n\r", ch );
