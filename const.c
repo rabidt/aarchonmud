@@ -2991,7 +2991,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_burning_hands,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 5, 0, 12, DUR_NONE,
+    NULL, 5, 2, 12, DUR_NONE,
     "burning hands",    "!Burning Hands!",  ""
     },
 
@@ -3123,7 +3123,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_chill_touch,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 10, 0, 12, DUR_NONE,
+    NULL, 10, 2, 12, DUR_NONE,
     "chilling touch",   "You feel less cold.",  ""
     },
 
@@ -3266,7 +3266,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_critical,    TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "",         "!Cure Critical!",  ""
     },
 
@@ -3288,7 +3288,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_light,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 2, 0, 8, DUR_NONE,
+    NULL, 2, 1, 8, DUR_NONE,
     "",         "!Cure Light!",     ""
     },
 
@@ -3332,7 +3332,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_serious, TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 10, 0, 10, DUR_NONE,
+    NULL, 10, 2, 10, DUR_NONE,
     "",         "!Cure Serious!",   ""
     },
 
@@ -3866,7 +3866,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_heal,     TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 50, 0, 14, DUR_NONE,
+    NULL, 50, 5, 14, DUR_NONE,
     "",         "!Heal!",       ""
     },
   
@@ -4032,7 +4032,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_magic_missile,    TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    NULL, 1, 0, 12, DUR_NONE,
+    NULL, 1, 1, 12, DUR_NONE,
     "magic missile",    "!Magic Missile!",  ""
     },
 
@@ -4477,7 +4477,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_shocking_grasp,   TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 8, 0, 12, DUR_NONE,
+    NULL, 8, 2, 12, DUR_NONE,
     "shocking grasp",   "!Shocking Grasp!", ""
     },
 
