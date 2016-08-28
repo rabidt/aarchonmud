@@ -160,7 +160,10 @@ DEF_DO_FUN(do_wail)
 
     reduce_mana(ch,  mana_cost);
     ch->move -= move_cost;
-    WAIT_STATE(ch, skill_table[gsn_wail].beats);
+    if ( song == SONG_FURIOUS_BALLAD )
+        WAIT_STATE(ch, skill_table[gsn_wail].beats * 2/3);
+    else
+        WAIT_STATE(ch, skill_table[gsn_wail].beats);
     
     int level = ch->level * (100 + skill) / 200;
     int dam = martial_damage(ch, victim, gsn_wail) * (100 + skill) / 200;
@@ -267,7 +270,12 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
         af.modifier  = (20 + level) * -2;
         af.location  = APPLY_AC;
         affect_to_char(ch, &af);
-        return;
+    }
+    else if (song_num == SONG_FURIOUS_BALLAD)
+    {
+        af.type      = gsn_furious_ballad;
+        af.bitvector = AFF_FURY;
+        affect_to_char(ch, &af);
     }
 }
 
@@ -318,6 +326,12 @@ DEF_DO_FUN(do_sing)
         return;
     }
 
+    if ( songs[i].instrumental && !has_instrument(ch) )
+    {
+        ptc(ch, "You require an instrument for this song.\n\r");
+        return;
+    }
+    
     if ( ch->song == i )
     {
         send_to_char("You're already singing that song.\n\r", ch);
@@ -475,9 +489,18 @@ void check_bard_song( CHAR_DATA *ch, bool deduct_cost )
         // remove cost
         if ( deduct_cost )
         {
+            if ( songs[ch->song].instrumental && !has_instrument(ch) )
+            {
+                ptc(ch, "You cannot maintain your song without an instrument.\n\r");
+                ch->song = 0;
+                check_bard_song_group(ch);
+                return;
+            }
             if ( ch->position > POS_SLEEPING && deduct_song_cost(ch) )
             {
                 check_improve(ch, *songs[ch->song].gsn, TRUE, 3);
+                if ( check_skill(ch, gsn_song_healing) )
+                    song_heal(ch);
             }
             else
             {
@@ -585,4 +608,44 @@ int get_instrument_skill( CHAR_DATA *ch )
     if ( shield )
         skill *= (100 + get_skill(ch, gsn_wrist_shield)) / 300.0;
     return skill;
+}
+
+static void song_heal_ch( CHAR_DATA *ch, CHAR_DATA *victim, int heal )
+{
+    if ( victim->hit >= victim->max_hit )
+        return;
+    
+    if ( victim == ch )
+        act("Your song heals you.", ch, NULL, NULL, TO_CHAR);
+    else
+    {
+        act("$n's song heals you.", ch, NULL, victim, TO_VICT);
+        act("Your song heals $N.", ch, NULL, victim, TO_CHAR);
+        heal += heal / 3;
+    }
+    
+    heal *= (200 + get_curr_stat(victim, STAT_VIT)) / 300.0;
+    gain_hit(victim, heal);
+}
+
+// heal self and possibly group, depending on song
+void song_heal( CHAR_DATA *ch )
+{
+    if ( ch->song == SONG_DEFAULT || !ch->in_room )
+        return;
+    int sn = *songs[ch->song].gsn;
+    int heal = get_spell_heal( skill_table[sn].min_mana, PULSE_VIOLENCE, ch->level ) / 4;
+    // lullaby does nothing BUT heal
+    if ( ch->song == SONG_LULLABY )
+        heal *= 5;
+    if ( songs[ch->song].solo )
+        song_heal_ch(ch, ch, heal);
+    else
+    {
+        heal *= AREA_SPELL_FACTOR;
+        CHAR_DATA *gch;
+        for ( gch = ch->in_room->people; gch; gch = gch->next_in_room )
+            if ( is_same_group(ch, gch) )
+                song_heal_ch(ch, gch, heal);
+    }
 }

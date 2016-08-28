@@ -397,6 +397,7 @@ sh_int  gsn_eldritch_curse;
 sh_int  gsn_high_explosives;
 sh_int  gsn_army_of_darkness;
 sh_int  gsn_deception;
+sh_int  gsn_song_healing;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;
@@ -450,8 +451,10 @@ sh_int  gsn_ashura;
 sh_int  gsn_shan_ya;
 sh_int  gsn_dark_reaping;
 sh_int  gsn_inspiring_song;
+sh_int  gsn_inspired_rage;
 sh_int  gsn_ambidextrous;
 sh_int  gsn_aura_of_menace;
+sh_int  gsn_use_magic_device;
 sh_int  gsn_aversion;
 sh_int  gsn_strafe;
 /* sh_int  gsn_combo_attack; */
@@ -497,6 +500,7 @@ sh_int  gsn_lunge;
 sh_int  gsn_riff;
 sh_int  gsn_bardic_knowledge;
 sh_int  gsn_lonesome_melody;
+sh_int  gsn_furious_ballad;
 
 sh_int  gsn_foxs_cunning;
 sh_int  gsn_bears_endurance;

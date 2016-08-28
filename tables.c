@@ -346,6 +346,7 @@ const struct flag_type affect_flags[] =
     { "arcane anthem",     AFF_ARCANE_ANTHEM,        TRUE  },
     { "battle dirge",      AFF_BATTLE_DIRGE,         TRUE  },
     { "bardic knowledge",  AFF_BARDIC_KNOWLEDGE,     TRUE  },
+    { "fury",              AFF_FURY,                 TRUE  },
     { NULL,                0,                        0     }
 };
 
@@ -1341,16 +1342,17 @@ const struct stance_type stances [] =
 
 const struct song_type songs [] =
 {
-    {"default",               SONG_DEFAULT,            NULL,                     FALSE },
-    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,     FALSE },
-    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem,  FALSE },
-    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,     FALSE },
-    {"lullaby",               SONG_LULLABY,            &gsn_lullaby,             FALSE },
-    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,        FALSE },
-    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,       FALSE },
-    {"battle dirge",          SONG_BATTLE_DIRGE,       &gsn_battle_dirge,        FALSE },
-    {"lonesome melody",       SONG_LONESOME_MELODY,    &gsn_lonesome_melody,     TRUE  },
-    { NULL,                   0,                       NULL,                     FALSE }
+    {"default",               SONG_DEFAULT,            NULL,                     FALSE, FALSE },
+    {"combat symphony",       SONG_COMBAT_SYMPHONY,    &gsn_combat_symphony,     FALSE, FALSE },
+    {"devastating anthem",    SONG_DEVASTATING_ANTHEM, &gsn_devastating_anthem,  FALSE, FALSE },
+    {"reflective hymn",       SONG_REFLECTIVE_HYMN,    &gsn_reflective_hymn,     FALSE, FALSE },
+    {"lullaby",               SONG_LULLABY,            &gsn_lullaby,             FALSE, FALSE },
+    {"deadly dance",          SONG_DEADLY_DANCE,       &gsn_deadly_dance,        FALSE, TRUE  },
+    {"arcane anthem",         SONG_ARCANE_ANTHEM,      &gsn_arcane_anthem,       FALSE, FALSE },
+    {"battle dirge",          SONG_BATTLE_DIRGE,       &gsn_battle_dirge,        FALSE, FALSE },
+    {"lonesome melody",       SONG_LONESOME_MELODY,    &gsn_lonesome_melody,     TRUE,  TRUE  },
+    {"furious ballad",        SONG_FURIOUS_BALLAD,     &gsn_furious_ballad,      FALSE, TRUE  },
+    { NULL,                   0,                       NULL,                     FALSE, FALSE }
 };
 
 const char* spell_target_names[] =
