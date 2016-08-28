@@ -1597,7 +1597,9 @@ void bust_a_prompt( CHAR_DATA *ch )
                 }
                 else strcpy(buf2, "");
                 i = buf2; break;
-
+            case 'n' :
+                sprintf( buf2, "%s", songs[ch->song].name );
+                i = buf2; break;
         }
         ++str;
         while( (*point = *i) != '\0' )
