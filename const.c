@@ -3299,7 +3299,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_mortal,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
-    NULL, 100, 0, 14, DUR_NONE,
+    NULL, 100, 10, 14, DUR_NONE,
     "",                     "!Cure Mortal!",        ""
     },
 
