@@ -4439,6 +4439,7 @@ void dragonborn_rebirth( CHAR_DATA *ch );
 
 /* act_obj.c */
 bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
+int  umd_max_item_level( CHAR_DATA *ch );
 bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
 void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );

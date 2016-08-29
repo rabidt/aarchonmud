@@ -3183,6 +3183,10 @@ DEF_DO_FUN(do_equipment)
         send_to_char("\n\r", ch);
         do_eqhelp(ch,"");
     }
+    
+    int max_item_level = umd_max_item_level(ch);
+    if ( ch->level < max_item_level )
+        ptc(ch, "\n\rYou can use items of level %d or lower.\n\r", max_item_level);
 
     return;
 }
