@@ -2858,7 +2858,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_acid_blast,   TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "acid blast",       "!Acid Blast!",""
     },
 
@@ -2869,7 +2869,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_acid_breath,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    &gsn_acid_breath, 18, 0, 4, DUR_NONE,
+    &gsn_acid_breath, 18, 2, 4, DUR_NONE,
     "blast of acid",    "!Acid Breath!",    ""
     },
 
@@ -2880,7 +2880,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_angel_smite,      TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "smite",                "!Angel Smite!",        ""
     },
 
@@ -3002,7 +3002,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_call_lightning,   TAR_IGNORE_OFF,     POS_FIGHTING,
-    &gsn_call_lightning, 15, 0, 9, DUR_NONE,
+    &gsn_call_lightning, 15, 2, 9, DUR_NONE,
     "lightning bolt",   "!Call Lightning!", ""
     },
 
@@ -3057,7 +3057,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cause_harm,   TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "spell",        "!Cause Critical!", ""
     },
 
@@ -3068,7 +3068,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cause_harm,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 15, 0, 12, DUR_NONE,
+    NULL, 2, 1, 8, DUR_NONE,
     "spell",        "!Cause Light!",    ""
     },
 
@@ -3079,7 +3079,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cause_harm,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 17, 0, 12, DUR_NONE,
+    NULL, 10, 2, 10, DUR_NONE,
     "spell",        "!Cause Serious!",  ""
     },
 
@@ -3090,7 +3090,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_chain_lightning,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 25, 0, 12, DUR_NONE,
+    NULL, 25, 3, 12, DUR_NONE,
     "lightning",        "!Chain Lightning!",    ""
     }, 
 
@@ -3134,7 +3134,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_colour_spray, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 12, 0, 12, DUR_NONE,
+    NULL, 12, 2, 12, DUR_NONE,
     "colour spray",     "!Colour Spray!",   ""
     },
 
@@ -3189,7 +3189,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_conviction,   TAR_CHAR_OFFENSIVE,   POS_FIGHTING,
-    NULL, 125, 0, 18, DUR_NONE,
+    NULL, 125, 10, 18, DUR_NONE,
     "conviction",   "!conviction!", ""
     },
 
@@ -3365,7 +3365,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_demonfire,    TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "torments",     "!Demonfire!",      ""
     },  
 
@@ -3455,7 +3455,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_dispel_evil,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 15, 0, 12, DUR_NONE,
+    NULL, 15, 2, 12, DUR_NONE,
     "dispel evil",      "!Dispel Evil!",    ""
     },
 
@@ -3466,7 +3466,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_dispel_good,      TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-    NULL, 15, 0, 12, DUR_NONE,
+    NULL, 15, 2, 12, DUR_NONE,
     "dispel good",          "!Dispel Good!",    ""
     },
 
@@ -3510,7 +3510,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_earthquake,   TAR_IGNORE_OFF,     POS_FIGHTING,
-    NULL, 15, 0, 12, DUR_NONE,
+    NULL, 15, 3, 12, DUR_NONE,
     "earthquake",       "!Earthquake!",     ""
     },
 
@@ -3565,7 +3565,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_energy_drain, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 35, 0, 12, DUR_NONE,
+    NULL, 35, 3, 12, DUR_NONE,
     "energy drain",     "!Energy Drain!",   ""
     },
 
@@ -3654,7 +3654,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_fire_breath,  TAR_IGNORE_OFF, POS_FIGHTING,
-    &gsn_fire_breath, 12, 0, 4, DUR_NONE,
+    &gsn_fire_breath, 12, 2, 4, DUR_NONE,
     "blast of flame",   "The smoke leaves your eyes.",  ""
     },
 
@@ -3665,7 +3665,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_fireball,     TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 15, 0, 12, DUR_NONE,
+    NULL, 15, 3, 12, DUR_NONE,
     "fireball",     "!Fireball!",       ""
     },
   
@@ -3687,7 +3687,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_flamestrike,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 3, 12, DUR_NONE,
     "flamestrike",      "!Flamestrike!",        ""
     },
 
@@ -3731,7 +3731,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_frost_breath, TAR_IGNORE_OFF, POS_FIGHTING,
-    &gsn_frost_breath, 14, 0, 4, DUR_NONE,
+    &gsn_frost_breath, 14, 2, 4, DUR_NONE,
     "blast of frost",   "!Frost Breath!",   ""
     },
 
@@ -3742,7 +3742,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_gas_breath,   TAR_IGNORE_OFF,     POS_FIGHTING,
-    &gsn_gas_breath, 20, 0, 4, DUR_NONE,
+    &gsn_gas_breath, 20, 2, 4, DUR_NONE,
     "blast of gas",     "!Gas Breath!",     ""
     },
 
@@ -3797,7 +3797,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_group_heal,       TAR_IGNORE,             POS_FIGHTING,
-    NULL, 60, 0, 14, DUR_NONE,
+    NULL, 60, 5, 14, DUR_NONE,
     "",                     "!Group Heal!",   ""
     },
 
@@ -3809,7 +3809,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_hailstorm,        TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-    &gsn_hailstorm, 60, 0, 28, DUR_NONE,
+    &gsn_hailstorm, 60, 10, 28, DUR_NONE,
         "hailstone",           "!Hailstorm!",  ""
         },
 
@@ -3844,7 +3844,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cause_harm,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 35, 0, 12, DUR_NONE,
+    NULL, 50, 5, 14, DUR_NONE,
     "harm spell",       "!Harm!",       ""
     },
   
@@ -3999,7 +3999,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_lightning_bolt,   TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    &gsn_lightning_bolt, 15, 0, 12, DUR_NONE,
+    &gsn_lightning_bolt, 15, 3, 12, DUR_NONE,
     "lightning bolt",   "!Lightning Bolt!", ""
     },
 
@@ -4010,7 +4010,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    &gsn_lightning_breath, 16, 0, 4, DUR_NONE,
+    &gsn_lightning_breath, 16, 2, 4, DUR_NONE,
     "blast of lightning",   "!Lightning Breath!",   ""
     },
 
@@ -4043,7 +4043,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_major_group_heal, TAR_IGNORE,             POS_FIGHTING,
-    NULL, 100, 0, 18, DUR_NONE,
+    NULL, 100, 10, 14, DUR_NONE,
     "",                     "!Major Group Heal!",   ""
     },
 
@@ -4087,7 +4087,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_mass_healing, TAR_IGNORE,     POS_STANDING,
-    NULL, 100, 0, 32, DUR_NONE,
+    NULL, 100, 10, 32, DUR_NONE,
     "",         "!Mass Healing!",   ""
     },
 
@@ -4120,7 +4120,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_minor_group_heal, TAR_IGNORE,             POS_FIGHTING,
-    NULL, 20, 0, 10, DUR_NONE,
+    NULL, 20, 2, 10, DUR_NONE,
     "",                     "!Minor Group Heal!",   ""
     },
 
@@ -4164,7 +4164,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_meteor_swarm,     TAR_VIS_CHAR_OFF,     POS_FIGHTING,
-    &gsn_meteor_swarm, 50, 0, 28, DUR_NONE,
+    &gsn_meteor_swarm, 50, 10, 28, DUR_NONE,
         "swarm of meteors",     "!Meteor Swarm!", ""
         },
 
@@ -4175,7 +4175,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_monsoon,          TAR_IGNORE_OFF,     POS_FIGHTING,
-    &gsn_monsoon, 60, 0, 18, DUR_NONE,
+    &gsn_monsoon, 60, 5, 18, DUR_NONE,
         "torrential rain",      "!Monsoon!",    ""
         },
 
@@ -4343,7 +4343,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_ray_of_truth,     TAR_CHAR_OFFENSIVE,     POS_FIGHTING,
-    NULL, 20, 0, 12, DUR_NONE,
+    NULL, 20, 2, 12, DUR_NONE,
     "ray of truth",         "!Ray of Truth!",   ""
     },
 
@@ -4376,7 +4376,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_refresh,      TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 15, 0, 8, DUR_NONE,
+    NULL, 15, 3, 8, DUR_NONE,
     "refresh",      "!Refresh!",        ""
     },
 
@@ -4522,7 +4522,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_WIS, STAT_INT, STAT_CHA,
     spell_solar_flare,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    &gsn_solar_flare, 60, 0, 20, DUR_NONE,
+    &gsn_solar_flare, 60, 5, 20, DUR_NONE,
     "solar flare",      "!Solar Flare!",        ""
     },
 
@@ -4577,7 +4577,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_turn_undead,  TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 8, 0, 12, DUR_NONE,
+    NULL, 20, 2, 12, DUR_NONE,
     "turn",     "!Turn Undead!",""
     },
 
@@ -4588,7 +4588,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_WIS, STAT_INT, STAT_VIT,
     spell_unearth,  TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    &gsn_unearth, 95, 0, 18, DUR_NONE,
+    &gsn_unearth, 95, 5, 18, DUR_NONE,
     "unearth",      "!Unearth!",        ""
     },
 
@@ -4636,7 +4636,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cone_of_exhaustion, TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 14, 0, 4, DUR_NONE,
+    NULL, 14, 2, 4, DUR_NONE,
     "exhausting cone",   "!cone of exhaustion!",   ""
     },
 
@@ -4647,7 +4647,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_forboding_ooze, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 14, 0, 4, DUR_NONE,
+    NULL, 14, 2, 4, DUR_NONE,
     "ooze",   "The ooze on you drips off.",   ""
     },
 
@@ -4658,7 +4658,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_tomb_stench, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 14, 0, 4, DUR_NONE,
+    NULL, 14, 2, 4, DUR_NONE,
     "tomb stench",   "!tomb stench!",   ""
     },
 
@@ -4669,7 +4669,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_zombie_breath, TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 14, 0, 4, DUR_NONE,
+    NULL, 14, 2, 4, DUR_NONE,
     "zombie breath",   "!zombie breath!",   ""
     },
 
@@ -4680,7 +4680,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_zone_of_damnation, TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 14, 0, 4, DUR_NONE,
+    NULL, 14, 2, 4, DUR_NONE,
     "damnation",   "!zone of damnation!",   ""
     },
     
@@ -5094,7 +5094,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_windwar,          TAR_IGNORE_OFF,     POS_FIGHTING,
-    NULL, 50, 0, 18, DUR_NONE,
+    NULL, 50, 3, 18, DUR_NONE,
     "warring winds",      "!Wind War!",    ""
     },
 
@@ -7789,7 +7789,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_dancing_bones,    TAR_IGNORE, POS_FIGHTING,
-    NULL, 10, 0, 12, DUR_NONE,
+    NULL, 15, 2, 12, DUR_NONE,
     "",              "!DANCING BONES!",  ""    
     },
 
@@ -7812,7 +7812,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_rimbols_invocation,   TAR_IGNORE_OFF, POS_FIGHTING,
-    NULL, 125, 0, 24, DUR_NONE,
+    NULL, 150, 10, 24, DUR_NONE,
     "rimbols invocation",   "!Rimbols Invocation!", ""
     },
     
@@ -7889,7 +7889,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_smotes_anachronism,     TAR_IGNORE, POS_FIGHTING,
-    &gsn_smotes_anachronism, 60, 0, 36, DUR_NONE,
+    &gsn_smotes_anachronism, 200, 0, 18, DUR_NONE,
     "smotes anachronism",       "!Smotes Anachronism!",       ""
     },
 

@@ -5027,26 +5027,21 @@ DEF_SPELL_FUN(spell_locate_object)
     return TRUE;
 }
 
-
-
 DEF_SPELL_FUN(spell_magic_missile)
 {
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int missle;
-    int dam;
-    int max = get_sn_damage(sn, level, ch) / 10;
+    // no save => reduced damage
+    int damage = get_sn_damage(sn, level, ch) * 3/4;
+    // missile damage scales with total damage, ensures cap on #missiles
+    int dam_per_missile = 5 + damage / 20;
+    int missiles = UMAX(1, damage / dam_per_missile);
 
-    if (get_skill(ch, gsn_magic_missile) == 100 )
-        max += 2;
-
-    max = UMAX(1, max);
-    for (missle=0; missle<max; missle++)
+    int i;
+    for ( i = 0; i < missiles; i++ )
     {
-        dam = dice(4,4);
-        if ( saves_spell(victim, ch, level, DAM_ENERGY) )
-            dam /= 2;
+        int dam = dice(2,4) + damage / 20;
         full_dam( ch, victim, dam, sn, DAM_ENERGY ,TRUE);
         if ( stop_attack(ch, victim) )
             return TRUE;
