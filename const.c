@@ -8168,7 +8168,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_foxs_cunning, 50, 0, 12, DUR_SHORT,
+    &gsn_foxs_cunning, 50, 0, 12, DUR_NORMAL,
     "",     "You no longer feel cunning.",   ""
     },
 
@@ -8179,7 +8179,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_CON, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_bears_endurance, 50, 0, 12, DUR_SHORT,
+    &gsn_bears_endurance, 50, 0, 12, DUR_NORMAL,
     "",     "You lose your endurance.",   ""
     },
 
@@ -8190,7 +8190,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_AGI, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_cats_grace, 50, 0, 12, DUR_SHORT,
+    &gsn_cats_grace, 50, 0, 12, DUR_NORMAL,
     "",     "You lose your grace.",   ""
     },
 
