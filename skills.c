@@ -3111,9 +3111,18 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
 
     if ( is_spell )
     {
-        add_buff( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
-            skill_table[skill].min_mana, skill_table[skill].beats,
-            spell_duration_names[skill_table[skill].duration]);
+        if ( skill_table[skill].mana_boost > 0 )
+        {
+            add_buff( buffer, "Base Mana: %d + %.1f%%  Lag: %d  Duration: %s\n\r",
+                skill_table[skill].min_mana, 0.1 * skill_table[skill].mana_boost, skill_table[skill].beats,
+                spell_duration_names[skill_table[skill].duration]);
+        }
+        else
+        {
+            add_buff( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
+                skill_table[skill].min_mana, skill_table[skill].beats,
+                spell_duration_names[skill_table[skill].duration]);
+        }
         add_buff( buffer, "Target: %s  Combat: %s\n\r",
             spell_target_names[skill_table[skill].target],
             skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
