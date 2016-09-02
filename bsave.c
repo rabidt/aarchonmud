@@ -289,6 +289,11 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     tflag saveact;
     GRANT_DATA *gran;
 
+    if ( IS_NPC(ch) )
+    {
+        bugf("bwrite_char: Trying to save NPC: %s (#%d)", ch->name, ch->pIndexData->vnum);
+        return;
+    }
     
     flag_copy( saveact, ch->act );
     REMOVE_BIT(saveact, PLR_QUESTOR);
@@ -1294,10 +1299,10 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
         for ( iNest = 0; iNest < MAX_NEST; iNest++ )
             rgObjNest[iNest] = NULL;
 
+    const char *word = "";
         for ( ; ; )
         {
             char letter;
-            const char *word;
             
             letter = bread_letter( buf );
             if ( letter == '*' )
@@ -1308,7 +1313,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
             
             if ( letter != '#' )
             {
-                bug( "mem_load_char_obj: # not found.", 0 );
+                bugf("mem_load_char_obj: # not found (last = #%s).", word );
                 break;
             }
             
@@ -1326,7 +1331,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
             else if ( !str_cmp( word, "END"    ) ) break;
             else
             {
-                bug( "mem_load_char_obj: bad section.", 0 );
+                bugf( "mem_load_char_obj: bad section (#%s).", word );
                 break;
             }
         }
