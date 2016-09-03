@@ -2116,6 +2116,44 @@ int get_sn_damage( int sn, int level, CHAR_DATA *ch )
     return dam;
 }
 
+float get_sn_heal_factor( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    float heal = 1;
+    
+    if ( !was_obj_cast )
+    {
+        // anatomy
+        int skill = get_skill_total(ch, gsn_anatomy, 0.5) + mastery_bonus(ch, gsn_anatomy, 15, 25);
+        heal += heal * skill / 200;
+        check_improve(ch, gsn_anatomy, TRUE, 4);
+        // sacred touch
+        if ( get_eq_char(ch, WEAR_WIELD) == NULL )
+            heal += heal * get_skill(ch, gsn_sacred_touch) / (ch == victim ? 300 : 200);
+
+        if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
+            heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
+    }
+    
+    /* bonus for non-combat spells */
+    if ( skill_table[sn].minimum_position > POS_FIGHTING )
+        heal += heal / 5;
+
+    /* bonus for healing others */
+    if ( ch != victim )
+        heal += heal / 3;
+
+    /* bonus/penalty for target's vitality */
+    heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
+
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) && sn != gsn_restoration )
+        heal += heal / 4;
+
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        heal += heal / 8;
+
+    return heal;
+}
+
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int mana, heal;
@@ -2126,38 +2164,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     mana = base_mana_cost(ch, sn);
     heal = get_spell_heal( mana, skill_table[sn].beats, level );
 
-    if ( !was_obj_cast )
-    {
-        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
-        heal += heal * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 4);
-
-        if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
-        {
-            heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
-        }
-    }
-    
-    /* bonus for non-combat spells */
-    if ( skill_table[sn].minimum_position > POS_FIGHTING )
-        heal += heal / 5;
-
-    /* bonus for healing others */
-    if ( ch != victim )
-    {
-        heal += heal / 3;
-    }
-
-    /* bonus/penalty for target's vitality */
-    heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
-
-    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
-        heal += heal / 4;
-
-    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
-        heal += heal / 8;
-
-    return heal;
+    return heal * get_sn_heal_factor(sn, ch, victim);
 }
 
 
