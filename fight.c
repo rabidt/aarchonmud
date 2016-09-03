@@ -3895,6 +3895,25 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 send_to_char("Looks like you're outta luck!\n\r", victim);
             affect_strip(victim, gsn_deaths_door);
         }
+        // divine channel can resurrect as well
+        if ( victim->hit < 1 )
+        {
+            AFFECT_DATA *paf = affect_find(victim->affected, gsn_divine_channel);
+            if ( paf && per_chance(-paf->modifier) )
+            {
+                affect_strip(victim, gsn_divine_channel);
+                stop_fighting(victim, TRUE);
+                // full heal
+                victim->hit = hit_cap(victim);
+                victim->mana = mana_cap(victim);
+                victim->move = move_cap(victim);
+                // message
+                ptc(victim, "%s has protected you from dying!\n\r", get_god_name(victim));
+                char buf[MSL];
+                sprintf(buf, "%s resurrects $n.", get_god_name(victim));
+                act(buf, victim, NULL, NULL, TO_ROOM);
+            }
+        }
     }   
     
     if ( !IS_NPC(victim)
