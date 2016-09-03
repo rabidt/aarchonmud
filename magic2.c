@@ -2024,7 +2024,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     if ( per_chance(beast_skill) )
     {
         SET_BIT(mob->off_flags, OFF_RESCUE);
-        SET_BIT(mob->off_flags, OFF_FAST);
+        //SET_BIT(mob->off_flags, OFF_FAST);
     }
 
     // set name, description etc. to match liquid
