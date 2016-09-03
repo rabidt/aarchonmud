@@ -259,6 +259,7 @@ sh_int  gsn_giant_strength;
 sh_int  gsn_slow;
 sh_int  gsn_iron_maiden;
 sh_int  gsn_floating_disc;
+sh_int  gsn_restoration;
 
 /* new gsns */
 
@@ -398,6 +399,7 @@ sh_int  gsn_high_explosives;
 sh_int  gsn_army_of_darkness;
 sh_int  gsn_deception;
 sh_int  gsn_song_healing;
+sh_int  gsn_sacred_touch;
 
 sh_int  gsn_laughing_fit;
 sh_int  gsn_deaths_door;

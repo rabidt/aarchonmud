@@ -2253,9 +2253,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "sacred fist", MONK,
-        { "mantra", "anatomy", "empower spell" },
+        { "mantra", "sacred touch", "empower spell" },
         { 30, 50, 70 },
-        { 100, 80, 80 }
+        { 100, 100, 80 }
     },
     {
         "trickster", ILLUSIONIST|BARD,
@@ -4431,7 +4431,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_restoration,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
-    NULL, 10, 0, 20, DUR_NONE,
+    &gsn_restoration, 100, 0, 20, DUR_NONE,
     "",                     "!Restoration!",        ""
     },
 
@@ -8302,6 +8302,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_song_healing, 0, 0, 0, DUR_NONE,
     "",     "",   ""
+    },
+
+    {
+    "sacred touch",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_WIS, STAT_VIT, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_sacred_touch, 0, 0, 0, DUR_NONE,
+    "", "", ""
     },
 
     {
