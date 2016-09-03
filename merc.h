@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         493 /* accurate august 2016 */
+#define MAX_SKILL         494 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3403,6 +3403,7 @@ extern sh_int  gsn_giant_strength;
 extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
 extern sh_int  gsn_floating_disc;
+extern sh_int  gsn_restoration;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -3489,6 +3490,7 @@ extern sh_int  gsn_high_explosives;
 extern sh_int  gsn_army_of_darkness;
 extern sh_int  gsn_deception;
 extern sh_int  gsn_song_healing;
+extern sh_int  gsn_sacred_touch;
 
 extern sh_int  gsn_scrolls;
 extern sh_int  gsn_staves;
@@ -5046,6 +5048,7 @@ int get_dagger_focus( CHAR_DATA *ch );
 int get_focus_bonus( CHAR_DATA *ch );
 int base_mana_cost( CHAR_DATA *ch, int sn );
 int get_spell_damage( int mana, int lag, int level );
+float get_sn_heal_factor( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 int get_spell_heal( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
 int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
