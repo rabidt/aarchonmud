@@ -2137,6 +2137,10 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
             heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
         }
     }
+    
+    /* bonus for non-combat spells */
+    if ( skill_table[sn].minimum_position > POS_FIGHTING )
+        heal += heal / 5;
 
     /* bonus for healing others */
     if ( ch != victim )
