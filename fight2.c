@@ -4144,7 +4144,7 @@ DEF_DO_FUN(do_inspire)
         if ( sn == gsn_foxs_cunning )
         {
             if ( rage )
-                send_to_char("You feel inspired to be cunning as an ANGRY fox.\n\r", vch);
+                send_to_char("You feel inspired to be cunning as an {RANGRY{x fox.\n\r", vch);
             else
                 send_to_char("You feel inspired to be cunning as a fox.\n\r", vch);
             af.modifier = 10 + level / 3;
@@ -4157,7 +4157,7 @@ DEF_DO_FUN(do_inspire)
         else if ( sn == gsn_bears_endurance )
         {
             if ( rage )
-                send_to_char("You feel inspired to be tough as an ANGRY bear.\n\r", vch);
+                send_to_char("You feel inspired to be tough as an {RANGRY{x bear.\n\r", vch);
             else
                 send_to_char("You feel inspired to be tough as a bear.\n\r", vch);
             af.modifier = 10 + level / 3;
@@ -4170,7 +4170,7 @@ DEF_DO_FUN(do_inspire)
         else if ( sn == gsn_cats_grace )
         {
             if ( rage )
-                send_to_char("You feel inspired to be graceful as an ANGRY cat.\n\r", vch);
+                send_to_char("You feel inspired to be graceful as an {RANGRY{x cat.\n\r", vch);
             else
                 send_to_char("You feel inspired to be graceful as a cat.\n\r", vch);
             af.modifier = 10 + level / 3;
