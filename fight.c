@@ -2179,7 +2179,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // massive swing - chance to hit secondary targets
     if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
     {
-        int chance = (twohanded ? 50 : 30) + ch->size * 10;
+        int chance = (twohanded ? 50 : 40) + ch->size * 5;
         CHAR_DATA *opp, *next;
         for ( opp = ch->in_room->people; opp; opp = next )
         {
