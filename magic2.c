@@ -2426,7 +2426,7 @@ DEF_SPELL_FUN(spell_divine_power)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
-    af.modifier  = 10 + level;
+    af.modifier  = (level + 20) * 3/4;
     af.bitvector = AFF_HASTE;
     affect_to_char(ch, &af);
     af.location  = APPLY_DAMROLL;
