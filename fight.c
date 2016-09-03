@@ -3224,7 +3224,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
  * dam_type must not be a mixed damage type
  * also adjusts for forst_aura etc.
  */
-int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
+int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, bool pierce)
 {
     if ( IS_SET(ch->form, FORM_FROST) )
     {
@@ -3255,7 +3255,10 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
     case(IS_RESISTANT): 
         return dam - dam/4;
     case(IS_VULNERABLE):
-        return dam + dam * (100 + 2*get_skill(ch, gsn_exploit_weakness)) / 300;
+        if ( pierce )
+            return dam + dam * (100 + get_skill(ch, gsn_exploit_weakness) * 2) / 300;
+        else
+            return dam + dam * (100 + get_skill(ch, gsn_exploit_weakness) * 7/5) / 300;
     default: 
         return dam;
     }
@@ -3550,18 +3553,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* check imm/res/vuln for single & mixed dam types */
     if ( dam > 0 )
     {
+        bool pierce = first_dam_type == DAM_PIERCE;
         if (IS_MIXED_DAMAGE(dam_type))
         {
-            //int first_dam_type = FIRST_DAMAGE(dam_type);
             int second_dam_type = SECOND_DAMAGE(dam_type);
-            dam = adjust_damage(ch, victim, dam / 2, first_dam_type) +
-            adjust_damage(ch, victim, (dam+1) / 2, second_dam_type);
+            pierce = pierce || second_dam_type == DAM_PIERCE;
+            dam = adjust_damage(ch, victim, dam / 2, first_dam_type, pierce) +
+            adjust_damage(ch, victim, (dam+1) / 2, second_dam_type, pierce);
             immune = ((check_immune(victim, first_dam_type) == IS_IMMUNE)
                 && (check_immune(victim, second_dam_type) == IS_IMMUNE));
         }
         else
         {
-            dam = adjust_damage(ch, victim, dam, dam_type);
+            dam = adjust_damage(ch, victim, dam, dam_type, pierce);
             immune = (check_immune(victim, dam_type) == IS_IMMUNE);
         }
     }
