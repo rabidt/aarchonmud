@@ -4874,13 +4874,15 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 
 int fade_chance( CHAR_DATA *ch )
 {
+    int skill = get_skill(ch, gsn_shadow_body);
+    int bonus = skill ? 5 : 0;
     if ( ch->stance == STANCE_SHADOWWALK )
         return 50;
     if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_CHAOS_FADE) || NPC_OFF(ch, OFF_FADE) )
-        return 30;
+        return 30 + bonus;
     if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
-        return 15;
-    return get_skill(ch, gsn_shadow_body) * 0.15;
+        return 15 + bonus;
+    return skill * 0.15 + bonus;
 }
 
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
