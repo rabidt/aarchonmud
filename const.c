@@ -2253,9 +2253,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "sacred fist", MONK,
-        { "mantra", "anatomy", "empower spell" },
+        { "mantra", "sacred touch", "empower spell" },
         { 30, 50, 70 },
-        { 100, 80, 80 }
+        { 100, 100, 80 }
     },
     {
         "trickster", ILLUSIONIST|BARD,
@@ -4009,7 +4009,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_lightning_breath, TAR_VIS_CHAR_OFF, POS_FIGHTING,
+    spell_lightning_breath, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
     &gsn_lightning_breath, 16, 2, 4, DUR_NONE,
     "blast of lightning",   "!Lightning Breath!",   ""
     },
@@ -4431,7 +4431,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_restoration,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
-    NULL, 10, 0, 20, DUR_NONE,
+    &gsn_restoration, 100, 0, 20, DUR_NONE,
     "",                     "!Restoration!",        ""
     },
 
@@ -8168,7 +8168,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_WIS, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_foxs_cunning, 50, 0, 12, DUR_SHORT,
+    &gsn_foxs_cunning, 50, 0, 12, DUR_NORMAL,
     "",     "You no longer feel cunning.",   ""
     },
 
@@ -8179,7 +8179,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_CON, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_bears_endurance, 50, 0, 12, DUR_SHORT,
+    &gsn_bears_endurance, 50, 0, 12, DUR_NORMAL,
     "",     "You lose your endurance.",   ""
     },
 
@@ -8190,7 +8190,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_CHA, STAT_AGI, STAT_LUC,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
-    &gsn_cats_grace, 50, 0, 12, DUR_SHORT,
+    &gsn_cats_grace, 50, 0, 12, DUR_NORMAL,
     "",     "You lose your grace.",   ""
     },
 
@@ -8302,6 +8302,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_song_healing, 0, 0, 0, DUR_NONE,
     "",     "",   ""
+    },
+
+    {
+    "sacred touch",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_WIS, STAT_VIT, STAT_LUC,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_sacred_touch, 0, 0, 0, DUR_NONE,
+    "", "", ""
     },
 
     {

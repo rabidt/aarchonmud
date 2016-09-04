@@ -2116,6 +2116,44 @@ int get_sn_damage( int sn, int level, CHAR_DATA *ch )
     return dam;
 }
 
+float get_sn_heal_factor( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    float heal = 1;
+    
+    if ( !was_obj_cast )
+    {
+        // anatomy
+        int skill = get_skill_total(ch, gsn_anatomy, 0.5) + mastery_bonus(ch, gsn_anatomy, 15, 25);
+        heal += heal * skill / 200;
+        check_improve(ch, gsn_anatomy, TRUE, 4);
+        // sacred touch
+        if ( get_eq_char(ch, WEAR_WIELD) == NULL )
+            heal += heal * get_skill(ch, gsn_sacred_touch) / (ch == victim ? 300 : 200);
+
+        if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
+            heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
+    }
+    
+    /* bonus for non-combat spells */
+    if ( skill_table[sn].minimum_position > POS_FIGHTING )
+        heal += heal / 5;
+
+    /* bonus for healing others */
+    if ( ch != victim )
+        heal += heal / 3;
+
+    /* bonus/penalty for target's vitality */
+    heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
+
+    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) && sn != gsn_restoration )
+        heal += heal / 4;
+
+    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
+        heal += heal / 8;
+
+    return heal;
+}
+
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int mana, heal;
@@ -2126,34 +2164,7 @@ int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     mana = base_mana_cost(ch, sn);
     heal = get_spell_heal( mana, skill_table[sn].beats, level );
 
-    if ( !was_obj_cast )
-    {
-        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
-        heal += heal * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 4);
-
-        if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
-        {
-            heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
-        }
-    }
-
-    /* bonus for healing others */
-    if ( ch != victim )
-    {
-        heal += heal / 3;
-    }
-
-    /* bonus/penalty for target's vitality */
-    heal = heal * (200 + get_curr_stat(victim, STAT_VIT)) / 300;
-
-    if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
-        heal += heal / 4;
-
-    if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
-        heal += heal / 8;
-
-    return heal;
+    return heal * get_sn_heal_factor(sn, ch, victim);
 }
 
 
@@ -5053,24 +5064,27 @@ DEF_SPELL_FUN(spell_mass_healing)
 {
     SPELL_CHECK_RETURN
     
-    CHAR_DATA *gch;
-    int heal_num, refresh_num;
-
-    heal_num = skill_lookup("heal");
-    refresh_num = skill_lookup("refresh"); 
-
+    CHAR_DATA *gch = (CHAR_DATA *) vo;
+    
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !can_spellup(ch, gch, sn) )
             continue;
         if ( gch->fighting && is_same_group(ch, gch->fighting) )
             continue;
-        if ( IS_NPC(gch) && !IS_AFFECTED(gch, AFF_CHARM) && gch->fighting == NULL)
-            continue;
-
-        spell_heal(heal_num, level, ch, (void *) gch, TARGET_CHAR, FALSE);
-        spell_refresh(refresh_num, level, ch, (void *) gch, TARGET_CHAR, FALSE);
+        
+        int heal = get_sn_heal(sn, level, ch, gch) * AREA_SPELL_FACTOR;
+        gain_hit(gch, heal / 2);
+        gain_move(gch, heal / 2);
+        update_pos(gch);
         check_sn_multiplay(ch, gch, sn);
+        
+        if ( gch->hit >= gch->max_hit && gch->move >= gch->max_move )
+            act("$n is in peak condition!", gch, NULL, ch, TO_VICT);
+        else
+            act("You heal and refresh $n.", gch, NULL, ch, TO_VICT);
+        act("You feel healthy and fresh!", gch, NULL, ch, TO_CHAR);
+        act("$N heals and refreshes $n!", gch, NULL, ch, TO_NOTVICT);
     }
     return TRUE;
 }

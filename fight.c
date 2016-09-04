@@ -1820,6 +1820,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             if ( get_eq_char(ch, WEAR_SHIELD) )
                 skill = skill * 2/3;
             skill = skill * (200 - get_heavy_armor_penalty(ch)) / 200;
+            // reduced bonus without berserk skill (limits cross-class cheese)
+            skill = skill * (200 + get_skill(ch, gsn_berserk)) / 300;
             // reduced bonus when tired
             float fitness = 0.5 + 0.5 * ch->move / UMAX(1, ch->max_move);
             // base damage is doubled at 100% skill and total fitness
@@ -2182,7 +2184,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // massive swing - chance to hit secondary targets
     if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
     {
-        int chance = (twohanded ? 50 : 30) + ch->size * 10;
+        int chance = (twohanded ? 50 : 40) + ch->size * 5;
         CHAR_DATA *opp, *next;
         for ( opp = ch->in_room->people; opp; opp = next )
         {
@@ -3227,7 +3229,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
  * dam_type must not be a mixed damage type
  * also adjusts for forst_aura etc.
  */
-int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
+int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, bool pierce)
 {
     if ( IS_SET(ch->form, FORM_FROST) )
     {
@@ -3258,7 +3260,10 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type)
     case(IS_RESISTANT): 
         return dam - dam/4;
     case(IS_VULNERABLE):
-        return dam + dam * (100 + 2*get_skill(ch, gsn_exploit_weakness)) / 300;
+        if ( pierce )
+            return dam + dam * (100 + get_skill(ch, gsn_exploit_weakness) * 2) / 300;
+        else
+            return dam + dam * (100 + get_skill(ch, gsn_exploit_weakness) * 7/5) / 300;
     default: 
         return dam;
     }
@@ -3553,18 +3558,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     /* check imm/res/vuln for single & mixed dam types */
     if ( dam > 0 )
     {
+        bool pierce = first_dam_type == DAM_PIERCE;
         if (IS_MIXED_DAMAGE(dam_type))
         {
-            //int first_dam_type = FIRST_DAMAGE(dam_type);
             int second_dam_type = SECOND_DAMAGE(dam_type);
-            dam = adjust_damage(ch, victim, dam / 2, first_dam_type) +
-            adjust_damage(ch, victim, (dam+1) / 2, second_dam_type);
+            pierce = pierce || second_dam_type == DAM_PIERCE;
+            dam = adjust_damage(ch, victim, dam / 2, first_dam_type, pierce) +
+            adjust_damage(ch, victim, (dam+1) / 2, second_dam_type, pierce);
             immune = ((check_immune(victim, first_dam_type) == IS_IMMUNE)
                 && (check_immune(victim, second_dam_type) == IS_IMMUNE));
         }
         else
         {
-            dam = adjust_damage(ch, victim, dam, dam_type);
+            dam = adjust_damage(ch, victim, dam, dam_type, pierce);
             immune = (check_immune(victim, dam_type) == IS_IMMUNE);
         }
     }
@@ -3897,6 +3903,25 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
             affect_strip(victim, gsn_deaths_door);
+        }
+        // divine channel can resurrect as well
+        if ( victim->hit < 1 )
+        {
+            AFFECT_DATA *paf = affect_find(victim->affected, gsn_divine_channel);
+            if ( paf && per_chance(-paf->modifier) )
+            {
+                affect_strip(victim, gsn_divine_channel);
+                stop_fighting(victim, TRUE);
+                // full heal
+                victim->hit = hit_cap(victim);
+                victim->mana = mana_cap(victim);
+                victim->move = move_cap(victim);
+                // message
+                ptc(victim, "%s has protected you from dying!\n\r", get_god_name(victim));
+                char buf[MSL];
+                sprintf(buf, "%s resurrects $n.", get_god_name(victim));
+                act(buf, victim, NULL, NULL, TO_ROOM);
+            }
         }
     }   
     
@@ -4852,13 +4877,15 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 
 int fade_chance( CHAR_DATA *ch )
 {
+    int skill = get_skill(ch, gsn_shadow_body);
+    int bonus = skill ? 5 : 0;
     if ( ch->stance == STANCE_SHADOWWALK )
         return 50;
     if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_CHAOS_FADE) || NPC_OFF(ch, OFF_FADE) )
-        return 30;
+        return 30 + bonus;
     if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
-        return 15;
-    return get_skill(ch, gsn_shadow_body) * 0.15;
+        return 15 + bonus;
+    return skill * 0.15 + bonus;
 }
 
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 

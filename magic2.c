@@ -30,10 +30,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "merc.h"
 #include "magic.h"
 #include "tables.h"
 #include "religion.h"
+#include "mudconfig.h"
 
 bool check_spell_disabled args( (const struct skill_type *command) );
 
@@ -250,7 +252,7 @@ DEF_SPELL_FUN(spell_call_sidekick)
         return FALSE;
     
     // mobsters get call sidekick as well
-    if ( ch->class == class_lookup("thief") )
+    if ( ch->class != class_lookup("gunslinger") )
     {
         REMOVE_BIT(mob->act, ACT_GUN);
         SET_BIT(mob->act, ACT_THIEF);
@@ -1172,19 +1174,16 @@ DEF_SPELL_FUN(spell_restoration)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int heal = hit_cap(victim) - victim->hit;
-    double factor = 2.0;
-
-    if ( !was_obj_cast )
-    {
-        int skill = get_skill(ch, gsn_anatomy) + mastery_bonus(ch, gsn_anatomy, 15, 25);
-        factor += factor * skill / 200;
-        check_improve(ch, gsn_anatomy, TRUE, 4);
-    }
-    if ( ch != victim )
-        factor += factor / 3;
-    factor *= 100.0 / mastery_adjust_cost(100, get_mastery(ch, sn));
+    double factor = 1.5 * get_sn_heal_factor(sn, ch, victim);
+    
+    // healing scales with sqrt of cost
+    float cost_factor = mastery_adjust_cost(100, get_mastery(ch, sn)) / 100.0;
     if ( was_wish_cast )
-        factor *= 100.0 / wish_cast_adjust_cost(ch, 100, sn, ch == victim);
+        cost_factor *= wish_cast_adjust_cost(ch, 100, sn, ch == victim) / 100.0;
+    factor /= sqrt(cost_factor);
+    
+    if ( cfg_show_rolls )
+        ptc(ch, "Healing ratio is 1 mana : %.2f hp.\n\r", factor);
 
     if ( ch->mana < heal/factor )
 	heal = ch->mana * factor;
@@ -2025,7 +2024,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     if ( per_chance(beast_skill) )
     {
         SET_BIT(mob->off_flags, OFF_RESCUE);
-        SET_BIT(mob->off_flags, OFF_FAST);
+        //SET_BIT(mob->off_flags, OFF_FAST);
     }
 
     // set name, description etc. to match liquid
@@ -2426,7 +2425,7 @@ DEF_SPELL_FUN(spell_divine_power)
     af.level     = level;
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
-    af.modifier  = 10 + level;
+    af.modifier  = (level + 20) * 3/4;
     af.bitvector = AFF_HASTE;
     affect_to_char(ch, &af);
     af.location  = APPLY_DAMROLL;

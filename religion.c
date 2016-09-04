@@ -3635,6 +3635,22 @@ DEF_DO_FUN( do_channel )
     AFFECT_DATA *paf = affect_find(ch->affected, gsn_divine_channel);
     int i;
     
+    // for testing
+    if ( IS_IMMORTAL(ch) && !strcmp(argument, "max") )
+    {
+        AFFECT_DATA af;
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_divine_channel;
+        af.level    = ch->level;
+        af.location = APPLY_SAVES;
+        af.duration = -1;
+        af.modifier = -100;
+        af.bitvector = 0;
+        affect_join_capped(ch, &af, -100);
+        ptc(ch, "You channel your own divine energy.\n\r", ch);
+        return;
+    }
+    
     if ( paf == NULL )
     {
         send_to_char("You have no divine energy to channel.\n\r", ch);
