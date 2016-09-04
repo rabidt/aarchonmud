@@ -2024,6 +2024,35 @@ bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, boo
     }
 }
 
+static int umd_level_cost( int item_level, int ch_level )
+{
+    int level, level_cost = 0;
+    
+    if ( item_level <= ch_level )
+        return 0;
+    
+    // at 90+ each level is worth 3 OPs, pre-90 0.211 OPs
+    // effective OP gain scales with character level
+    for ( level = item_level; level > ch_level; level-- )
+        level_cost += level > 90 ? 60 : 15 - (level - 1) / 10;
+    
+    return level_cost;
+}
+
+static int ch_umd_bonus( CHAR_DATA *ch )
+{
+    return get_skill(ch, gsn_use_magic_device) + mastery_bonus(ch, gsn_use_magic_device, 30, 50);
+}
+
+int umd_max_item_level( CHAR_DATA *ch )
+{
+    int umd_skill = ch_umd_bonus(ch);
+    int item_level = ch->level;
+    while ( item_level < LEVEL_HERO && umd_level_cost(item_level + 1, ch->level) <= umd_skill )
+        item_level++;
+    return item_level;
+}
+
 // check that a character can wear an item
 #define WEAR_FAIL(msg) if ( umd_skill < umd_cost ) { if (show) act(msg, ch, obj, NULL, TO_CHAR); return FALSE; }
 bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
@@ -2041,17 +2070,13 @@ bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
         return FALSE;
     }
     
-    int umd_skill = get_skill(ch, gsn_use_magic_device) + mastery_bonus(ch, gsn_use_magic_device, 30, 50);
+    int umd_skill = ch_umd_bonus(ch);
     int umd_cost = 0;
     
     // level restriction
     if ( obj->level > ch->level )
     {
-        int level, level_cost = 0;
-        // at 90+ each level is worth 3 OPs, pre-90 0.211 OPs
-        // effective OP gain scales with character level
-        for ( level = obj->level; level > ch->level; level-- )
-            level_cost += level > 90 ? 60 : 15 - (level - 1) / 10;
+        int level_cost = umd_level_cost(obj->level, ch->level);
         umd_cost += IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) ? level_cost / 2 : level_cost;
         WEAR_FAIL("You are not experienced enough to wear $p.")
     }
