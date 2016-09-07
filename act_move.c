@@ -3068,6 +3068,14 @@ void morph_update( CHAR_DATA *ch )
 	bugf( "morph_update: NULL race on %s", ch->name );
 	return;
     }
+    
+    if ( ch->in_room )
+    {
+        if ( IS_SET(ch->form, FORM_BRIGHT) )
+            ch->in_room->light--;
+        if ( IS_SET(race->form, FORM_BRIGHT) )
+            ch->in_room->light++;
+    }
 
     flag_copy( ch->form, race->form );
     flag_copy( ch->parts, race->parts );
