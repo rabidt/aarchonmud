@@ -6079,8 +6079,16 @@ DEF_DO_FUN(do_showsubclass)
     
     if ( argument[0] == '\0' )
     {
-        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
-        return;
+        if (ch->pcdata->subclass == 0)
+        {
+            send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+            return;
+        }
+        else
+        {
+            show_subclass(ch, ch->pcdata->subclass);
+            return;
+        }
     }
     
     /*
