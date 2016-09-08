@@ -3642,7 +3642,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         /* shadow strike bonus */
         if ( per_chance(get_skill(ch, gsn_shadow_strike)) )
         {
-            dam += dam * fade_chance(victim) / 100;
+            if ( ch->stance != STANCE_DIMENSIONAL_BLADE && ch != victim )
+                dam += dam * fade_chance(victim) * (100 - misfade_chance(ch)) / 10000;
             dam += dam * fade_chance(ch) / 250;
         }
         /* massive swing penalty */
@@ -4885,6 +4886,18 @@ int fade_chance( CHAR_DATA *ch )
     return skill * 0.15 + bonus;
 }
 
+int misfade_chance( CHAR_DATA *ch )
+{
+    // self-fade from chaos fade is negated if character has other fading ability
+    if ( IS_AFFECTED(ch, AFF_CHAOS_FADE)
+        && ch->stance != STANCE_SHADOWWALK
+        && !IS_AFFECTED(ch, AFF_FADE)
+        && !IS_AFFECTED(ch, AFF_MINOR_FADE)
+        && !NPC_OFF(ch, OFF_FADE) )
+        return 15 - 15 * get_skill(ch, gsn_shadow_body) / 100;
+    return 0;
+}
+
 bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
 {
     bool ch_fade, victim_fade;
@@ -4900,12 +4913,7 @@ bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     victim_fade = per_chance(fade_chance(victim));
 
     /* attacker */
-    if ( IS_AFFECTED(ch, AFF_CHAOS_FADE)
-        && !(ch->stance == STANCE_SHADOWWALK || IS_AFFECTED(ch, AFF_FADE) || NPC_OFF(ch, OFF_FADE))
-        && !per_chance(get_skill(ch, gsn_shadow_body)) )
-        ch_fade = per_chance(15);
-    else
-        ch_fade = FALSE;
+    ch_fade = per_chance(misfade_chance(ch));
 
     /* if none or both fade it's a hit */
     if ( ch_fade == victim_fade )

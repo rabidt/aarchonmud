@@ -4741,6 +4741,7 @@ int     stance_cost( CHAR_DATA *ch, int stance );
 int     offhand_attack_chance( CHAR_DATA *ch, bool improve );
 int     get_twohand_penalty( CHAR_DATA *ch, bool improve );
 int     fade_chance( CHAR_DATA *ch );
+int     misfade_chance( CHAR_DATA *ch );
 int     dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 bool    offhand_occupied( CHAR_DATA *ch );
