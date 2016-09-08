@@ -3507,7 +3507,6 @@ DEF_SPELL_FUN(spell_mirror_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_phantasmal_image );
 
     af.type      = sn;
     af.level     = level;
@@ -4066,7 +4065,6 @@ DEF_SPELL_FUN(spell_phantasmal_image)
     AFFECT_DATA af;
 
     affect_strip( ch, sn );
-    affect_strip( ch, gsn_mirror_image );
 
     af.type      = sn;
     af.level     = level;
