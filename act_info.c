@@ -5229,9 +5229,13 @@ DEF_DO_FUN(do_percentages)
     }
     
     int fade = fade_chance(ch);
+    int misfade = misfade_chance(ch);
     if ( fade )
     {
-        add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
+        if ( misfade )
+            add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%/%d%%", fade, misfade);
+        else
+            add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
         add_buf(output, "{D|{x\n\r");
     }
     
