@@ -321,6 +321,27 @@ DEF_DO_FUN(do_gain)
                 do_say(trainer,"Pardon me?");
             return;
         }
+#ifdef TESTER
+        else if ( !strcmp(arg, "all") )
+        {
+            int target = is_number(arg2) ? URANGE(1, atoi(arg2), 100) : 75;
+            logpf("%s gained and practiced all skills at %d%%.", ch->name, target);
+            for ( gn = 0; gn < MAX_GROUP; gn++ )
+                if ( group_table[gn].rating[ch->class] > 0 && ch->pcdata->group_known[gn] == 0 )
+                {
+                    ptc(ch, "You learn %s.\n\r", group_table[gn].name);
+                    gn_add(ch, gn);
+                }
+            for ( sn = 0; sn < MAX_SKILL; sn++ )
+                if ( can_gain_skill(ch, sn) && ch->pcdata->learned[sn] < target )
+                {
+                    ptc(ch, "You practice %s.\n\r", skill_table[sn].name);
+                    ch->pcdata->learned[sn] = target;
+                }
+            ptc(ch, "Done.\n\r");
+            return;
+        }
+#endif
         else if (!str_prefix(arg,"list"))
         {
             int col;
