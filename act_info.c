@@ -2295,7 +2295,17 @@ void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, b
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all)
 {
     AFFECT_DATA *paf, *paf_last = NULL;
+    bool debuff_exists = FALSE;
     
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+    {
+        if (is_offensive(paf->type))
+        {
+            debuff_exists = TRUE;
+            break;
+        }
+    }
+
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {
         if (is_offensive(paf->type)) continue;
@@ -2307,8 +2317,11 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
         paf_last = paf;
     }
 
-    send_to_char("\n\rDebuffs:\n\r", to_ch);
-
+    if (debuff_exists)
+    {
+        send_to_char("\n\rDebuffs:\n\r", to_ch);
+    }
+    
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {
         if (!is_offensive(paf->type)) continue;
