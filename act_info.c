@@ -2220,6 +2220,77 @@ DEF_DO_FUN(do_exits)
 }
 
 
+void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, bool show_long)
+{
+    bool show_spell_name = TRUE;
+    if (paf_last != NULL && paf->type == paf_last->type
+        && ( paf->type != gsn_custom_affect 
+        || !strcmp(paf->tag, paf_last->tag) ) )
+    {
+        if (show_long)
+        {
+            printf_to_char( to_ch, "                        ");
+            show_spell_name = FALSE;
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    if (show_spell_name)
+    {
+        if (paf->type==gsn_custom_affect)
+        {       
+            ptc(to_ch, "Special: %-15s", paf->tag);
+        }    /* More information for players regarding maledictions - Astark */
+        else if (is_mental(paf->type))
+        {
+            printf_to_char( to_ch, "Mental : {M%-15s{x", skill_table[paf->type].name );
+        }
+        else if ( is_curse(paf->type) )
+        {
+            printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
+        }
+        else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
+        {
+            printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );
+        }
+        else if (paf->type == gsn_poison || paf->type == gsn_paralysis_poison )
+        {
+            printf_to_char( to_ch, "Poison : {G%-15s{x", skill_table[paf->type].name );
+        }
+        else if (is_blindness(paf->type))
+        {
+            printf_to_char( to_ch, "Blind  : {c%-15s{x", skill_table[paf->type].name );
+        }
+        else if (!IS_SPELL(paf->type))
+        {
+            printf_to_char( to_ch, "Ability: %-15s", skill_table[paf->type].name );
+        }
+        else
+        {
+            printf_to_char( to_ch, "Spell  : %-15s", skill_table[paf->type].name );
+        }
+    }
+
+    if (show_long)
+    {
+        printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name( paf->location ), paf->modifier);
+        if ( paf->duration == -1 )
+            printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
+        else
+            // color-code spells about to expire
+            printf_to_char( to_ch, "for %s%d hours{x (Lvl %d)", paf->duration < 5 ? "{R" : paf->duration < 10 ? "{y" : "", paf->duration, paf->level );
+        if ( paf->type == gsn_mirror_image || paf->type == gsn_phantasmal_image )
+            printf_to_char( to_ch, " with %d %s remaining", paf->bitvector, paf->bitvector == 1 ? "image" : "images");
+    }
+
+    send_to_char( "\n\r", to_ch );
+}
+
+
+
 /* displays the affects on ch to to_ch */
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all)
 {
@@ -2227,52 +2298,25 @@ void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all
     
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {
+        if (is_offensive(paf->type)) continue;
         if ( !show_all && !IS_SPELL(paf->type) )
             continue;
 
-        if (paf_last != NULL && paf->type == paf_last->type
-                && ( paf->type != gsn_custom_affect 
-                     || !strcmp(paf->tag, paf_last->tag) ) )
-            if (show_long)
-                printf_to_char( to_ch, "                        ");
-            else
-                continue;
-        else if (paf->type==gsn_custom_affect)
-        {
-            ptc(to_ch, "Special: %-15s", paf->tag);
-        }
-        else
-        {
-           /* More information for players regarding maledictions - Astark */
-            if (is_mental(paf->type))
-                printf_to_char( to_ch, "Mental : {M%-15s{x", skill_table[paf->type].name );
-            else if ( is_curse(paf->type) )
-                printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
-            else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
-                printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );
-            else if (paf->type == gsn_poison || paf->type == gsn_paralysis_poison )
-                printf_to_char( to_ch, "Poison : {G%-15s{x", skill_table[paf->type].name );
-            else if (is_blindness(paf->type))
-                printf_to_char( to_ch, "Blind  : {c%-15s{x", skill_table[paf->type].name );
-            else if (!IS_SPELL(paf->type))
-                printf_to_char( to_ch, "Ability: %-15s", skill_table[paf->type].name );
-            else
-                printf_to_char( to_ch, "Spell  : %-15s", skill_table[paf->type].name );
-        }
+        display_affect(to_ch, paf, paf_last, show_long);
 
-        if (show_long)
-        {
-            printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name( paf->location ), paf->modifier);
-            if ( paf->duration == -1 )
-                printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
-            else
-                // color-code spells about to expire
-                printf_to_char( to_ch, "for %s%d hours{x (Lvl %d)", paf->duration < 5 ? "{R" : paf->duration < 10 ? "{y" : "", paf->duration, paf->level );
-            if ( paf->type == gsn_mirror_image || paf->type == gsn_phantasmal_image )
-                printf_to_char( to_ch, " with %d %s remaining", paf->bitvector, paf->bitvector == 1 ? "image" : "images");
-        }
+        paf_last = paf;
+    }
 
-        send_to_char( "\n\r", to_ch );
+    send_to_char("\n\rDebuffs:\n\r", to_ch);
+
+    for ( paf = ch->affected; paf != NULL; paf = paf->next )
+    {
+        if (!is_offensive(paf->type)) continue;
+        if ( !show_all && !IS_SPELL(paf->type) )
+            continue;
+
+        display_affect(to_ch, paf, paf_last, show_long);
+
         paf_last = paf;
     }
 }
@@ -6083,8 +6127,16 @@ DEF_DO_FUN(do_showsubclass)
     
     if ( argument[0] == '\0' )
     {
-        send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
-        return;
+        if (ch->pcdata->subclass == 0)
+        {
+            send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+            return;
+        }
+        else
+        {
+            show_subclass(ch, ch->pcdata->subclass);
+            return;
+        }
     }
     
     /*
