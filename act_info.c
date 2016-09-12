@@ -2248,11 +2248,11 @@ void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, b
         {
             printf_to_char( to_ch, "Mental : {M%-15s{x", skill_table[paf->type].name );
         }
-        else if ( is_curse(paf->type) )
+        else if (is_curse(paf->type))
         {
             printf_to_char( to_ch, "Curse  : {r%-15s{x", skill_table[paf->type].name );
         }
-        else if (paf->type == gsn_plague || paf->type == gsn_necrosis )
+        else if (is_disease(paf->type))
         {
             printf_to_char( to_ch, "Disease: {D%-15s{x", skill_table[paf->type].name );
         }
