@@ -1225,6 +1225,43 @@ const char * one_argument( const char *argument, char *arg_first )
 }
 
 /*
+* Pick off one or more arguments from a string and return the rest.
+* Multiple arguments (as many as possible) are returned iff
+* (1) The first argument is not quoted, and
+* (2) The arguments together form a valid spell name prefix
+*/
+const char * spell_argument( const char *argument, char *arg_spell )
+{
+    while ( ISSPACE(*argument) )
+        argument++;
+    
+    // if quoted only return first argument
+    if ( *argument == '\'' || *argument == '"' )
+        return one_argument(argument, arg_spell);
+    
+    // else parse as many as we can
+    argument = one_argument(argument, arg_spell);
+    char *next_arg_spell = arg_spell + strlen(arg_spell);
+    while ( *argument != '\0' )
+    {
+        // extend spell name by one argument
+        *next_arg_spell = ' ';
+        const char *next_arg = one_argument(argument, next_arg_spell + 1);
+        // check if it's a spell
+        if ( spell_lookup(arg_spell) == -1 )
+        {
+            // no spell, undo last read and finish
+            *next_arg_spell = '\0';
+            break;
+        }
+        // still a spell, continue parsing
+        argument = next_arg;
+        next_arg_spell += strlen(next_arg_spell);
+    }
+    return argument;
+}
+
+/*
 * Pick off one argument from a string and return the rest.
 * Understands quotes. Doesn't lower case.
 */

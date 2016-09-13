@@ -1114,7 +1114,7 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
     
     // check for spell mastery - enables meta-magic
     char spell_arg[MIL];
-    one_argument(argument, spell_arg);
+    spell_argument(argument, spell_arg);
     int spell_sn = find_spell(ch, spell_arg, true);
     int spell_mastery = spell_sn > 0 ? get_mastery(ch, spell_sn) : 0;
     
@@ -1721,7 +1721,7 @@ DEF_DO_FUN(do_cast)
     char arg1[MAX_INPUT_LENGTH];
     int sn, chance;
 
-    target_name = one_argument( argument, arg1 );
+    target_name = spell_argument( argument, arg1 );
 
     if ( arg1[0] == '\0' )
     {
@@ -1845,7 +1845,7 @@ DEF_DO_FUN(do_wish)
     char arg1[MAX_INPUT_LENGTH];
     int sn, chance;
 
-    target_name = one_argument( argument, arg1 );
+    target_name = spell_argument( argument, arg1 );
 
     if ( (chance = get_skill(ch, gsn_wish)) == 0 )
     {

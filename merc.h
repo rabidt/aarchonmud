@@ -4993,6 +4993,7 @@ int number_argument args( ( const char *argument, char *arg ) );
 int mult_argument   args( ( const char *argument, char *arg) );
 const char * one_argument args( ( const char *argument, char *arg_first ) );
 const char * one_argument_keep_case( const char *argument, char *arg_first );
+const char * spell_argument( const char *argument, char *arg_spell );
 void   load_disabled   args( ( void ) );
 void   save_disabled   args( ( void ) );
 bool    check_social( CHAR_DATA *ch, const char *command, const char *argument );
