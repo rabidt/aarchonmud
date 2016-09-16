@@ -3521,14 +3521,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     
     if ( dam > 1 && IS_AFFECTED(victim, AFF_SANCTUARY) )
     {
-/* Removed 3/8/01.  -Rimbol
-       if (victim->stance == STANCE_BLADE_DANCE)
-            dam = (dam * 3) / 4;
+        if ( stance == STANCE_UNICORN && dt >= TYPE_HIT )
+            dam = dam * 5/6;
+        else if ( victim == ch->fighting )
+        {
+            int pen = get_skill(ch, gsn_penetration) + mastery_bonus(ch, gsn_penetration, 30, 50);
+            if ( dam >= ch->level ) // avoid increase from weapon flags etc.
+                check_improve(ch, gsn_penetration, TRUE, 6);
+            dam = dam * (300 + pen) / 600;
+        }
         else
-*/
-	if ( stance == STANCE_UNICORN && dt >= TYPE_HIT )
-	    dam = dam * 5/6;
-	else
             dam /= 2;
     }
 
