@@ -201,7 +201,8 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     /* check whether a blow hits */
     int chance_hit = dodge_adjust_chance(ch, victim, skill);
     
-    if ( !per_chance(chance_hit) )
+    // automatic chance to connect, rest determined by skill/dodge
+    if ( !per_chance(chance_hit) && per_chance(66) )
     {
         damage(ch, victim, 0, sn, DAM_BASH, FALSE);
         act("You fall flat on your face!", ch, NULL, victim, TO_CHAR);
