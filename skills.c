@@ -2915,12 +2915,13 @@ DEF_DO_FUN(do_raceskills)
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
 void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch);
 void show_skill_all(BUFFER *buffer);
+void show_skill_low(BUFFER *buffer);
 DEF_DO_FUN(do_showskill)
 {
     char arg1[MIL];
     int skill, group = -1;
     BUFFER *buffer;
-    bool show_all = FALSE, show_points = FALSE;
+    bool show_all = FALSE, show_points = FALSE, show_low = FALSE;
     
     /*argument = one_argument(argument,arg1);*/
     strcpy(arg1, argument);
@@ -2928,7 +2929,7 @@ DEF_DO_FUN(do_showskill)
     if (argument[0] == '\0')
     { 
         printf_to_char(ch,"Syntax: showskill <spell/skill name>\n\r");
-        printf_to_char(ch,"        showskill all|points\n\r");
+        printf_to_char(ch,"        showskill all|points|low\n\r");
         return; 
     }
 
@@ -2936,6 +2937,8 @@ DEF_DO_FUN(do_showskill)
         show_all = TRUE;
     else if ( str_cmp(argument, "points") == 0 )
         show_points = TRUE;
+    else if ( str_cmp(argument, "low") == 0 )
+        show_low = TRUE;
     else
     {
         if ( (skill = skill_lookup(arg1)) == -1 && (group = group_lookup(arg1)) == -1 )
@@ -2954,6 +2957,10 @@ DEF_DO_FUN(do_showskill)
     else if ( show_points )
     {
         show_skill_points(buffer);
+    }
+    else if ( show_low )
+    {
+        show_skill_low(buffer);
     }
     else if (group >= 0)  /* Argument was a valid group name. */
     {
@@ -3249,6 +3256,41 @@ void show_skill_all(BUFFER *buffer)
     }            
 }
 
+void show_skill_low(BUFFER *buffer)
+{
+    int skill, class;
+
+    if (buffer == NULL)
+        return;
+
+    add_buff(buffer, "Skill/Spell          Type         Min     Max\n\r");
+    add_buff(buffer, "=============================================\n\r");
+    
+    for ( skill = 1; skill_table[skill].name != NULL; skill++ )
+    {
+        bool active = skill_table[skill].beats > 0;
+        // find min/max percentage for all classes
+        int min_per=100, max_per=0;
+        for ( class = 0; class < MAX_CLASS; class++ )
+            if ( is_class_skill(class, skill) )
+            {
+                min_per = UMIN(min_per, skill_table[skill].cap[class]);
+                max_per = UMAX(max_per, skill_table[skill].cap[class]);
+            }
+        // skip non-class skills
+        if ( min_per > max_per )
+            continue;
+        // skip skill with high percentages
+        if ( max_per == 100 && min_per >= 50 && !(min_per < 75 && active) )
+            continue;
+        add_buff( buffer, "%-20.20s %-8.8s    %3d%%    %3d%%\n\r",
+            skill_table[skill].name,
+            active ? "active" : "passive",
+            min_per, max_per
+        );
+    }            
+}
+
 void show_skill_points(BUFFER *buffer)
 {
     int skill, class;
@@ -3259,7 +3301,7 @@ void show_skill_points(BUFFER *buffer)
     add_buff(buffer, "Skill/Spell         ");
     for ( class = 0; class < MAX_CLASS; class++ )
         add_buff(buffer, "%c%c ", class_table[class].who_name[0], class_table[class].who_name[1]);
-    add_buff(buffer, "\n\r================================================================\n\r");
+    add_buff(buffer, "\n\r===================================================================\n\r");
     
     for ( skill = 1; skill_table[skill].name != NULL; skill++ )
     {
