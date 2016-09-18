@@ -2915,21 +2915,22 @@ DEF_DO_FUN(do_raceskills)
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
 void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch);
 void show_skill_all(BUFFER *buffer);
-void show_skill_low(BUFFER *buffer);
+void show_skill_low(BUFFER *buffer, int threshold, int active_threshold);
 DEF_DO_FUN(do_showskill)
 {
-    char arg1[MIL];
+    char arg[MIL] = "";
     int skill, group = -1;
     BUFFER *buffer;
     bool show_all = FALSE, show_points = FALSE, show_low = FALSE;
-    
-    /*argument = one_argument(argument,arg1);*/
-    strcpy(arg1, argument);
+    int threshold = 50, active = 75;
+
+    one_argument(argument, arg);
 
     if (argument[0] == '\0')
     { 
         printf_to_char(ch,"Syntax: showskill <spell/skill name>\n\r");
-        printf_to_char(ch,"        showskill all|points|low\n\r");
+        printf_to_char(ch,"        showskill all|points\n\r");
+        printf_to_char(ch,"        showskill low [threshold] [active threshold]\n\r");
         return; 
     }
 
@@ -2937,11 +2938,22 @@ DEF_DO_FUN(do_showskill)
         show_all = TRUE;
     else if ( str_cmp(argument, "points") == 0 )
         show_points = TRUE;
-    else if ( str_cmp(argument, "low") == 0 )
+    else if ( str_cmp(arg, "low") == 0 )
+    {
         show_low = TRUE;
+        argument = one_argument(argument, arg); // low
+        argument = one_argument(argument, arg); // threshold
+        if ( is_number(arg) )
+        {
+            threshold = active = atoi(arg);
+            argument = one_argument(argument, arg); // active threshold
+            if ( is_number(arg) )
+                active = atoi(arg);
+        }
+    }
     else
     {
-        if ( (skill = skill_lookup(arg1)) == -1 && (group = group_lookup(arg1)) == -1 )
+        if ( (skill = skill_lookup(argument)) == -1 && (group = group_lookup(argument)) == -1 )
         { 
             printf_to_char(ch,"Skill not found.\n\r");
             return; 
@@ -2960,7 +2972,7 @@ DEF_DO_FUN(do_showskill)
     }
     else if ( show_low )
     {
-        show_skill_low(buffer);
+        show_skill_low(buffer, threshold, active);
     }
     else if (group >= 0)  /* Argument was a valid group name. */
     {
@@ -2979,7 +2991,7 @@ DEF_DO_FUN(do_showskill)
     }
     else           /* Argument was a valid skill/spell/stance name */
     {
-        show_skill(arg1, buffer, ch);
+        show_skill(argument, buffer, ch);
         show_groups(skill, buffer);
         show_mastery_groups(skill, buffer);
         show_races(skill, buffer);
@@ -3256,7 +3268,7 @@ void show_skill_all(BUFFER *buffer)
     }            
 }
 
-void show_skill_low(BUFFER *buffer)
+void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
 {
     int skill, class;
 
@@ -3281,7 +3293,7 @@ void show_skill_low(BUFFER *buffer)
         if ( min_per > max_per )
             continue;
         // skip skill with high percentages
-        if ( max_per == 100 && min_per >= 50 && !(min_per < 75 && active) )
+        if ( max_per == 100 && min_per >= threshold && !(active && min_per < active_threshold) )
             continue;
         add_buff( buffer, "%-20.20s %-8.8s    %3d%%    %3d%%\n\r",
             skill_table[skill].name,
