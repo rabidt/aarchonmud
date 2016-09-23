@@ -1884,7 +1884,7 @@ DEF_DO_FUN(do_eat)
     /* Added a check so that immortals can eat anything - Astark 12-23-12 */
     if (!IS_IMMORTAL(ch))
     {
-        if ( obj->level > ch->level )
+        if ( obj->level > ch->level && obj->level > umd_max_item_level(ch) )
         {
             send_to_char("Its too hard to swallow.\n\r",ch);
             return; 
@@ -2736,7 +2736,7 @@ DEF_DO_FUN(do_quaff)
         return;
     }
 
-    if (ch->level < obj->level)
+    if (ch->level < obj->level && umd_max_item_level(ch) < obj->level)
     {
         send_to_char("This liquid is too powerful for you to drink.\n\r",ch);
         return;
@@ -2787,7 +2787,7 @@ DEF_DO_FUN(do_recite)
     }
     */
 
-    if ( ch->level < scroll->level)
+    if ( ch->level < scroll->level && umd_max_item_level(ch) < scroll->level )
     {
         send_to_char("This scroll is too complex for you to comprehend.\n\r",ch);
         return;
@@ -2888,7 +2888,7 @@ DEF_DO_FUN(do_brandish)
     {
         act( "$n brandishes $p.", ch, staff, NULL, TO_ROOM );
         act( "You brandish $p.",  ch, staff, NULL, TO_CHAR );
-        if ( ch->level < staff->level || !per_chance(50 + get_skill(ch, gsn_staves) / 2) )
+        if (!per_chance(50 + get_skill(ch, gsn_staves) / 2))
         {
             act ("You fail to invoke $p.",ch,staff,NULL,TO_CHAR);
             act ("...and nothing happens.",ch,NULL,NULL,TO_ROOM);
@@ -2967,7 +2967,7 @@ DEF_DO_FUN(do_zap)
         act( "$n zaps $s $p.", ch, wand, NULL, TO_ROOM );
         act( "You zap your $p.", ch, wand, NULL, TO_CHAR );
 
-        if ( ch->level < wand->level || !per_chance(50 + get_skill(ch, gsn_wands) / 2) )
+        if (!per_chance(50 + get_skill(ch, gsn_wands) / 2))
         {
             act( "Your efforts with $p produce only smoke and sparks.",
                     ch,wand,NULL,TO_CHAR);
