@@ -555,7 +555,7 @@ DEF_DO_FUN(do_tame)
 	if (IS_SET(victim->res_flags, RES_CHARM))
 	    skill /= 2;
 
-	if ( number_percent() < skill || saves_spell(victim, ch, ch->level, DAM_CHARM) )
+	if ( number_percent() < skill || saves_afflict(victim, ch, ch->level, DAM_CHARM) )
 	{
 
 	   if ( victim->master )

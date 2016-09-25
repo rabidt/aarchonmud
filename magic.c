@@ -423,14 +423,16 @@ int get_save(CHAR_DATA *ch, bool physical)
  * Compute a saving throw.
  * Negative applys make saving throw better.
  */
-bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
+static bool saves_magic( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type, bool show_immune )
 {
     int hit_roll, save_roll;
     
     /* automatic saves/failures */
     switch(check_immune(victim,dam_type))
     {
-        case IS_IMMUNE:     return TRUE;
+        case IS_IMMUNE:     if ( show_immune )
+                                act("$N appears to be immune.", ch, NULL, victim, TO_CHAR);
+                            return TRUE;
         case IS_RESISTANT:  if ( per_chance(20) ) return TRUE;  break;
         case IS_VULNERABLE: if ( per_chance(10) ) return FALSE;  break;
     }
@@ -477,6 +479,16 @@ bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         }
         return success;
     }
+}
+
+bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
+{
+    return saves_magic( victim, ch, level, dam_type, FALSE );
+}
+
+bool saves_afflict( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
+{
+    return saves_magic( victim, ch, level, dam_type, TRUE );
 }
 
 bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
@@ -2319,7 +2331,7 @@ DEF_SPELL_FUN(spell_blindness)
         return SR_AFFECTED;
     }
 
-    if ( saves_spell(victim, ch, level * 2/3, DAM_OTHER) )
+    if ( saves_afflict(victim, ch, level * 2/3, DAM_OTHER) )
     {
         if ( victim != ch )
             act( "$N blinks $S eyes, and the spell has no effect.", ch, NULL, victim, TO_CHAR );
@@ -2440,7 +2452,7 @@ DEF_SPELL_FUN(spell_calm)
             continue;
         
         // failure
-        if ( is_safe(ch, vch) || saves_spell(vch, ch, level, DAM_MENTAL) )
+        if ( is_safe(ch, vch) || saves_afflict(vch, ch, level, DAM_MENTAL) )
             continue;
         
         if ( IS_AFFECTED(vch, AFF_BERSERK) )
@@ -2666,7 +2678,7 @@ DEF_SPELL_FUN(spell_change_sex)
         return SR_AFFECTED;
     }
 
-    if ( ch != victim && saves_spell(victim, ch, level, DAM_OTHER) )
+    if ( ch != victim && saves_afflict(victim, ch, level, DAM_OTHER) )
     {
         act("Hmmm... nope, $E's still a $E.",ch,NULL,victim,TO_CHAR );
         return TRUE;
@@ -2741,7 +2753,7 @@ DEF_SPELL_FUN(spell_charm_person)
         || (ch->sex == SEX_MALE && victim->sex == SEX_FEMALE);
 
     /* PCs are harder to charm */
-    if ( saves_spell(victim, ch, level, DAM_CHARM)
+    if ( saves_afflict(victim, ch, level, DAM_CHARM)
             || number_range(1, 200) > get_curr_stat(ch, STAT_CHA)
             || (!sex_bonus && number_bits(1) == 0)
             || (!IS_NPC(victim) && number_bits(2)) )
@@ -3248,7 +3260,7 @@ DEF_SPELL_FUN(spell_curse)
         return SR_AFFECTED;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
+    if ( saves_afflict(victim, ch, level, DAM_NEGATIVE) )
     {
         act("$N feels a shiver, but resists your curse.",ch,NULL,victim,TO_CHAR);
         return TRUE;
@@ -3595,7 +3607,7 @@ DEF_SPELL_FUN(spell_dispel_magic)
         return SR_IMMUNE;
     }
 
-    if (saves_spell(victim, ch, level, DAM_OTHER))
+    if (saves_afflict(victim, ch, level, DAM_OTHER))
     {     
         send_to_char( "You feel a brief tingling sensation.\n\r",victim);
         send_to_char( "You failed.\n\r", ch);
@@ -3807,7 +3819,7 @@ DEF_SPELL_FUN(spell_energy_drain)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int drain, drain_mana, drain_move;
 
-    if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
+    if ( saves_afflict(victim, ch, level, DAM_NEGATIVE) )
     {
         act( "$N shivers slightly as the spell passes harmlessly over $S body.",
                 ch, NULL, victim, TO_CHAR );
@@ -4409,7 +4421,7 @@ DEF_SPELL_FUN(spell_heat_metal)
 
     SPELL_CHECK_RETURN
     
-    if ( !IS_SET(victim->imm_flags, IMM_FIRE) && !saves_spell(victim, ch, level, DAM_FIRE) )
+    if ( !saves_afflict(victim, ch, level, DAM_FIRE) )
     {
         // constructs take extra damage
         if ( IS_SET(victim->form, FORM_CONSTRUCT) )
@@ -5176,7 +5188,7 @@ DEF_SPELL_FUN(spell_plague)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
 
-    if (saves_spell(victim, ch, level, DAM_DISEASE))
+    if (saves_afflict(victim, ch, level, DAM_DISEASE))
     {
         if (ch == victim)
             send_to_char("You feel momentarily ill, but it passes.\n\r",ch);
@@ -5214,7 +5226,7 @@ DEF_SPELL_FUN(spell_confusion)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level*2/3, DAM_MENTAL) )
+    if ( saves_afflict(victim, ch, level*2/3, DAM_MENTAL) )
         // || saves_spell(level,victim,DAM_CHARM))
     {
         if (ch == victim)
@@ -5295,7 +5307,7 @@ DEF_SPELL_FUN(spell_poison)
     
     victim = (CHAR_DATA *) vo;
 
-    if ( saves_spell(victim, ch, level, DAM_POISON) )
+    if ( saves_afflict(victim, ch, level, DAM_POISON) )
     {
         act("$n turns slightly green, but it passes.",victim,NULL,NULL,TO_ROOM);
         send_to_char("You feel momentarily ill, but it passes.\n\r",victim);
@@ -5729,7 +5741,7 @@ DEF_SPELL_FUN(spell_sleep)
         return SR_IMMUNE;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_MENTAL)
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL)
             || number_bits(1)
             || (!IS_NPC(victim) && number_bits(1))
             || IS_IMMORTAL(victim) )
@@ -5779,7 +5791,7 @@ DEF_SPELL_FUN(spell_slow)
         return SR_AFFECTED;
     }
 
-    if (saves_spell(victim, ch, level, DAM_OTHER) 
+    if (saves_afflict(victim, ch, level, DAM_OTHER) 
             ||  IS_SET(victim->imm_flags,IMM_MAGIC))
     {
         if (victim != ch)
@@ -6098,7 +6110,7 @@ DEF_SPELL_FUN(spell_ventriloquate)
         {
             if ( vch == ch )
                 act( "{sYou make $n say {S'$t'{x", vo, target_name, vch, TO_VICT );
-            else if ( saves_spell(vch, ch, level, DAM_OTHER) )
+            else if ( saves_afflict(vch, ch, level, DAM_OTHER) )
                 act( "{s$n says {S'$t'{x", vo, target_name, vch, TO_VICT );
             else
                 act( "{sSomeone makes $n say {S'$t'{x", vo, target_name, vch, TO_VICT );
@@ -6126,7 +6138,7 @@ DEF_SPELL_FUN(spell_weaken)
         return SR_AFFECTED;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_OTHER) )
+    if ( saves_afflict(victim, ch, level, DAM_OTHER) )
     {
         send_to_char("Your weakening failed to have an effect.\n\r", ch );
         send_to_char("Your strength fails you for a moment.\n\r", victim );
