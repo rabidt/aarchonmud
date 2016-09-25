@@ -2200,7 +2200,7 @@ typedef int tattoo_list[MAX_WEAR];
 
 /* RT personal flags */
 #define PLR_HOLYLIGHT       (N)
-#define PLR_CANLOOT         (P)
+#define PLR_NOLOOT          (P)
 #define PLR_NOSUMMON        (Q)
 #define PLR_NOFOLLOW        (R)
 #define PLR_QUESTOR         (S)

@@ -230,7 +230,7 @@ const struct flag_type plr_flags[] =
     {   "law",          PLR_LAW,        FALSE   },
     {   "helper",       PLR_HELPER,     TRUE    },
     {   "holylight",    PLR_HOLYLIGHT,  FALSE   },
-    {   "can_loot",     PLR_CANLOOT,    FALSE   },
+    {   "noloot",       PLR_NOLOOT,     FALSE   },
     {   "nosummon",     PLR_NOSUMMON,   FALSE   },
     {   "nofollow",     PLR_NOFOLLOW,   FALSE   },
     {   "questing",     PLR_QUESTOR,    FALSE   },
