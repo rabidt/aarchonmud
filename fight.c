@@ -5783,7 +5783,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         corpse      = create_object_vnum(OBJ_VNUM_CORPSE_NPC);
         corpse->timer   = number_range( 25, 40 );
         
-        if ( killer && !IS_NPC(killer) && !go_morgue && !IS_SET(killer->act, PLR_CANLOOT) )
+        if ( killer && !IS_NPC(killer) && !go_morgue && IS_SET(killer->act, PLR_NOLOOT) )
             corpse->owner = str_dup(killer->name);
         
         if ( victim->gold > 0 || victim->silver > 0 )
@@ -5816,7 +5816,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         corpse      = create_object_vnum(OBJ_VNUM_CORPSE_PC);
         corpse->timer   = number_range( 25, 40 );
         
-        REMOVE_BIT(victim->act, PLR_CANLOOT);
+        SET_BIT(victim->act, PLR_NOLOOT);
         victim->stance = 0;
         
         if ( killer && !IS_NPC(killer) )

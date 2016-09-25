@@ -144,7 +144,7 @@ bool can_loot(CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group)
     if (!str_cmp(ch->name,owner->name))
         return TRUE;
 
-    if ( !IS_NPC(owner) && IS_SET(owner->act,PLR_CANLOOT) )
+    if ( !IS_NPC(owner) && !IS_SET(owner->act, PLR_NOLOOT) )
     {
         if (obj->item_type == ITEM_CORPSE_NPC)
             return TRUE;

@@ -1076,7 +1076,7 @@ DEF_DO_FUN(do_autolist)
     else
         send_to_char("nolocate       OFF    Players can locate you with hunt / farsight.\n\r",ch);
 
-    if (!IS_SET(ch->act,PLR_CANLOOT))
+    if (IS_SET(ch->act,PLR_NOLOOT))
         send_to_char("noloot         ON     Players cannot loot items from corpses you own.\n\r",ch);
     else 
         send_to_char("noloot         OFF    Players can loot items from corpses you own.\n\r",ch);
@@ -1120,123 +1120,124 @@ DEF_DO_FUN(do_autolist)
    
 }
 
-DEF_DO_FUN(do_autoassist)
+// mama function for do_autoXYZ functions
+static void auto_toggle(CHAR_DATA *ch, const char *argument, short flag, const char *on_msg, const char *off_msg)
 {
-    if (IS_NPC(ch))
+    char arg[MIL];
+    
+    if ( IS_NPC(ch) )
         return;
     
-    if (IS_SET(ch->act,PLR_AUTOASSIST))
+    bool target = !IS_SET(ch->act, flag);
+    argument = one_argument(argument, arg);
+    
+    if ( arg[0] != '\0' )
     {
-        send_to_char("Autoassist removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOASSIST);
+        if ( !strcmp(arg, "on") )
+            target = true;
+        else if ( !strcmp(arg, "off") )
+            target = false;
+        else
+        {
+            send_to_char("Valid options are ON or OFF.\n\r", ch);
+            return;
+        }
+    }
+    
+    if ( target )
+    {
+        ptc(ch, "%s.\n\r", on_msg);
+        SET_BIT(ch->act, flag);
     }
     else
     {
-        send_to_char("You will now assist when needed.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOASSIST);
+        ptc(ch, "%s.\n\r", off_msg);
+        REMOVE_BIT(ch->act, flag);
     }
+}
+
+DEF_DO_FUN(do_autoassist)
+{
+    auto_toggle(ch, argument, PLR_AUTOASSIST, "You will now assist when needed", "Autoassist removed");
 }
 
 DEF_DO_FUN(do_autoexit)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTOEXIT))
-    {
-        send_to_char("Exits will no longer be displayed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOEXIT);
-    }
-    else
-    {
-        send_to_char("Exits will now be displayed.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOEXIT);
-    }
+    auto_toggle(ch, argument, PLR_AUTOEXIT, "Exits will now be displayed", "Exits will no longer be displayed");
 }
 
 DEF_DO_FUN(do_autogold)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTOGOLD))
-    {
-        send_to_char("Autogold removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOGOLD);
-    }
-    else
-    {
-        send_to_char("Automatic gold looting set.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOGOLD);
-    }
+    auto_toggle(ch, argument, PLR_AUTOGOLD, "Automatic gold looting set", "Autogold removed");
 }
 
 DEF_DO_FUN(do_autoloot)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTOLOOT))
-    {
-        send_to_char("Autolooting removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOLOOT);
-    }
-    else
-    {
-        send_to_char("Automatic corpse looting set.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOLOOT);
-    }
+    auto_toggle(ch, argument, PLR_AUTOLOOT, "Automatic corpse looting set", "Autolooting removed");
 }
 
 DEF_DO_FUN(do_autosac)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTOSAC))
-    {
-        send_to_char("Autosacrificing removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOSAC);
-    }
-    else
-    {
-        send_to_char("Automatic corpse sacrificing set.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOSAC);
-    }
+    auto_toggle(ch, argument, PLR_AUTOSAC, "Automatic corpse sacrificing set", "Autosacrificing removed");
 }
 
 DEF_DO_FUN(do_autosplit)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTOSPLIT))
-    {
-        send_to_char("Autosplitting removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTOSPLIT);
-    }
-    else
-    {
-        send_to_char("Automatic gold splitting set.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTOSPLIT);
-    }
+    auto_toggle(ch, argument, PLR_AUTOSPLIT, "Automatic gold splitting set", "Autosplitting removed");
 }
 
 DEF_DO_FUN(do_autorescue)
 {
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_AUTORESCUE))
-    {
-        send_to_char("Autorescue removed.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_AUTORESCUE);
-    }
-    else
-    {
-        send_to_char("You will now protect your friends.\n\r",ch);
-        SET_BIT(ch->act,PLR_AUTORESCUE);
-    }
+    auto_toggle(ch, argument, PLR_AUTORESCUE, "You will now protect your friends", "Autorescue removed");
+}
+
+DEF_DO_FUN(do_noloot)
+{
+    auto_toggle(ch, argument, PLR_NOLOOT,
+        "Items owned by you (i.e. your corpse) now cannot be looted",
+        "Items owned by you (i.e. your corpse) may now be picked up by anyone");
+}
+
+DEF_DO_FUN(do_nofollow)
+{
+    auto_toggle(ch, argument, PLR_NOFOLLOW, "You no longer accept followers", "You now accept followers");
+    if ( PLR_ACT(ch, PLR_NOFOLLOW) )
+        die_follower( ch, false );
+}
+
+DEF_DO_FUN(do_nosummon)
+{
+    auto_toggle(ch, argument, PLR_NOSUMMON, "You are now immune to summoning", "You are no longer immune to summon");
+}
+
+DEF_DO_FUN(do_nocancel)
+{
+    auto_toggle(ch, argument, PLR_NOCANCEL, "You are now immune to cancellation", "You are no longer immune to cancellation");
+}
+
+DEF_DO_FUN(do_nolocate)
+{
+    auto_toggle(ch, argument, PLR_NOLOCATE, "You no longer wish to be located", "You wish to be located again");
+}
+
+DEF_DO_FUN(do_noaccept)
+{
+    auto_toggle(ch, argument, PLR_NOACCEPT, "You no longer accept items from other players", "You now accept items from other players");
+}
+
+DEF_DO_FUN(do_nosurrender)
+{
+    auto_toggle(ch, argument, PLR_NOSURR, "You no longer accept surrenders from other players", "You now accept surrenders from other players");
+}
+
+DEF_DO_FUN(do_noexp)
+{
+    auto_toggle(ch, argument, PLR_NOEXP, "You will no longer be able to gain experience points", "You can now gain experience points");
+}
+
+DEF_DO_FUN(do_nohelp)
+{
+    auto_toggle(ch, argument, PLR_NOHELP, "You will no longer see help messages", "You will now see help messages");
 }
 
 DEF_DO_FUN(do_brief)
@@ -1466,190 +1467,6 @@ DEF_DO_FUN(do_itemlevel)
         send_to_char("Item levels will now be displayed.\n\r", ch);
         SET_BIT(ch->comm, COMM_ITEMLEVEL);
     }
-}
-
-DEF_DO_FUN(do_noloot)
-{
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_CANLOOT))
-    {
-        send_to_char("Items owned by you (ie. your corpse) now cannot be looted.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_CANLOOT);
-    }
-    else
-    {
-        send_to_char("Items owned by you (ie. your corpse) may now be picked up by anyone.\n\r",ch);
-        SET_BIT(ch->act,PLR_CANLOOT);
-    }
-}
-
-DEF_DO_FUN(do_nofollow)
-{
-    if (IS_NPC(ch))
-        return;
-    
-    if (IS_SET(ch->act,PLR_NOFOLLOW))
-    {
-        send_to_char("You now accept followers.\n\r",ch);
-        REMOVE_BIT(ch->act,PLR_NOFOLLOW);
-    }
-    else
-    {
-        send_to_char("You no longer accept followers.\n\r",ch);
-        SET_BIT(ch->act,PLR_NOFOLLOW);
-		if (!IS_AFFECTED(ch, AFF_CHARM))
-			die_follower( ch, false );
-    }
-}
-
-DEF_DO_FUN(do_nosummon)
-{
-    if (IS_NPC(ch))
-    {
-        if (IS_SET(ch->imm_flags,IMM_SUMMON))
-        {
-            send_to_char("You are no longer immune to summon.\n\r",ch);
-            REMOVE_BIT(ch->imm_flags,IMM_SUMMON);
-        }
-        else
-        {
-            send_to_char("You are now immune to summoning.\n\r",ch);
-            SET_BIT(ch->imm_flags,IMM_SUMMON);
-        }
-    }
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOSUMMON))
-        {
-            send_to_char("You are no longer immune to summon.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOSUMMON);
-        }
-        else
-        {
-            send_to_char("You are now immune to summoning.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOSUMMON);
-        }
-    }
-}
-
-DEF_DO_FUN(do_nocancel)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOCANCEL))
-        {
-            send_to_char("You are no longer immune to cancellation.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOCANCEL);
-        }
-        else
-        {
-            send_to_char("You are now immune to cancellation.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOCANCEL);
-        }
-    }
-}
-
-DEF_DO_FUN(do_nolocate)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOLOCATE))
-        {
-            send_to_char("You wish to be located again.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOLOCATE);
-        }
-        else
-        {
-            send_to_char("You no longer wish to be located.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOLOCATE);
-        }
-    }
-}
-
-DEF_DO_FUN(do_noaccept)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOACCEPT))
-        {
-            send_to_char("You now accept items from other players.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOACCEPT);
-        }
-        else
-        {
-            send_to_char("You no longer accept items from other players.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOACCEPT);
-        }
-    }    
-}
-
-DEF_DO_FUN(do_nosurrender)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOSURR))
-        {
-            send_to_char("You now accept surrenders from other players.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOSURR);
-        }
-        else
-        {
-            send_to_char("You no longer accept surrenders from other players.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOSURR);
-        }
-    }    
-}
-
-/* Lets players disable exp gains so that they can stay
-   at a constant level - Astark 2-18-13 */
-
-DEF_DO_FUN(do_noexp)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOEXP))
-        {
-            send_to_char("You can now gain experience points.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOEXP);
-        }
-        else
-        {
-            send_to_char("You will no longer be able to gain experience points.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOEXP);
-        }
-    }    
-}
-
-
-DEF_DO_FUN(do_nohelp)
-{
-    if (IS_NPC(ch))
-        return;
-    else
-    {
-        if (IS_SET(ch->act,PLR_NOHELP))
-        {
-            send_to_char("You will now see help messages.\n\r",ch);
-            REMOVE_BIT(ch->act,PLR_NOHELP);
-        }
-        else
-        {
-            send_to_char("You will no longer see help messages.\n\r",ch);
-            SET_BIT(ch->act,PLR_NOHELP);
-        }
-    }    
 }
 
 /* added due to popular demand --Bobble */
