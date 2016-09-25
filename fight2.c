@@ -2925,13 +2925,23 @@ DEF_DO_FUN(do_intimidate)
 	level = ch->level;
 
     WAIT_STATE( ch, skill_table[gsn_intimidation].beats );
-    if ( !chance(skill) || IS_AFFECTED(victim, AFF_HEROISM) || saves_spell(victim, ch, level, DAM_MENTAL) )
+    
+    bool failed = FALSE;
+    if ( IS_AFFECTED(victim, AFF_HEROISM) )
+    {
+        act( "$N just laughs in your face.", ch, NULL, victim, TO_CHAR );
+        failed = TRUE;
+    }    
+    else if ( saves_afflict(victim, ch, level * skill/100, DAM_MENTAL) )
     {
         act( "You don't really intimidate $N.", ch, NULL, victim, TO_CHAR );
-        act( "$n tried to intimidate you, but you won't take $s crap.",
-	     ch, NULL, victim, TO_VICT );
-	check_improve( ch, gsn_intimidation, FALSE, 2 );
-	full_dam( ch, victim, 0, gsn_intimidation, DAM_MENTAL, FALSE );
+        failed = TRUE;
+    }
+    if ( failed )
+    {
+        act( "$n tried to intimidate you, but you won't take $s crap.", ch, NULL, victim, TO_VICT );
+        check_improve( ch, gsn_intimidation, FALSE, 2 );
+        full_dam( ch, victim, 0, gsn_intimidation, DAM_MENTAL, FALSE );
         return;
     }
     check_improve( ch, gsn_intimidation, TRUE, 2 );
@@ -3933,7 +3943,7 @@ DEF_DO_FUN(do_mindflay)
   level = ch->level * (100 + skill) / 200;
   dam = (10 + level) * (50 + get_curr_stat(ch, STAT_INT)) / 50;
 
-  if ( saves_spell(victim, ch, level*5/3, DAM_MENTAL) )
+  if ( saves_afflict(victim, ch, level*5/3, DAM_MENTAL) )
   {
     send_to_char( "They manage to shield their mind from you.\n\r", ch );
     send_to_char( "You feel something grappling for your mind.\n\r", victim);
@@ -4016,7 +4026,7 @@ DEF_DO_FUN(do_smite)
         {
             int level = ch->level * get_skill_total(ch, gsn_smite, 0.25) / 100;
             act("Your smite disrupts $N's magic defenses!", ch, NULL, victim, TO_CHAR);
-            if ( saves_spell(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
+            if ( saves_afflict(victim, ch, level, DAM_OTHER) || !check_dispel_magic(level, victim) )
                 send_to_char("You feel a brief tingling sensation.\n\r", victim);
         }
     }
