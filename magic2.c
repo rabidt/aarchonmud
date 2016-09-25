@@ -311,7 +311,7 @@ DEF_SPELL_FUN(spell_betray)
         if ( is_safe_spell(ch, traitor, TRUE) || is_safe_spell(traitor, victim, FALSE) )
             continue;
 
-        if ( saves_spell(traitor, ch, level, DAM_MENTAL) )
+        if ( saves_afflict(traitor, ch, level, DAM_MENTAL) )
         {
             act("You feel a momentary urge to attack $N.", traitor, NULL, victim, TO_CHAR);
             act("$N resists your command.", ch, NULL, traitor, TO_CHAR);
@@ -431,7 +431,7 @@ DEF_SPELL_FUN(spell_pacify)
     
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-        if ( saves_spell(rch, ch, level, DAM_MENTAL) )
+        if ( saves_afflict(rch, ch, level, DAM_MENTAL) )
         {
             send_to_char("You failed to pacify!\n\r",ch);     
             return TRUE;
@@ -461,7 +461,7 @@ DEF_SPELL_FUN(spell_feeblemind)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         act("Could it be that $N's brain isn't as pathetic as we thought?",ch,NULL,victim,TO_CHAR);
         return TRUE;
@@ -497,7 +497,13 @@ DEF_SPELL_FUN(spell_fear)
         return SR_AFFECTED;
     }
 
-    if ( IS_AFFECTED(victim, AFF_HEROISM) || saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( IS_AFFECTED(victim, AFF_HEROISM) )
+    {
+        act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
+        act( "$N knows no fear or danger.", ch, NULL, victim, TO_CHAR );
+        return TRUE;
+    }
+    else if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
         send_to_char( "Apparently you aren't too scary.\n\r", ch );
@@ -687,7 +693,7 @@ DEF_SPELL_FUN(spell_necrosis)
         return TRUE;
     }
 
-    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
+    if ( saves_afflict(victim, ch, level, DAM_DISEASE) )
     {
         if (ch == victim)
             send_to_char("You stave off illness.\n\r",ch);
@@ -743,7 +749,7 @@ DEF_SPELL_FUN(spell_dominate_soul)
     */
 
     if ( (IS_NPC(victim) || IS_SET(victim->act, PLR_NOCANCEL))
-	  && saves_spell(victim, ch, level, DAM_MENTAL) )
+	  && saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         act("$n is toying with your mind.", ch, NULL, victim, TO_VICT );
         act("You fail to influence $N.",ch,NULL,victim,TO_CHAR);
@@ -1853,7 +1859,7 @@ DEF_SPELL_FUN(spell_entangle)
        }
     */
     
-    if ( saves_spell(victim, ch, level, DAM_ENERGY ) )
+    if ( saves_afflict(victim, ch, level, DAM_ENERGY ) )
     {
         act("$N evades your entangling flora!",ch,NULL,victim,TO_CHAR);
         return TRUE;
@@ -2301,7 +2307,7 @@ DEF_SPELL_FUN(spell_laughing_fit)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         send_to_char("Spell failed to have an effect.\n\r", ch );
         send_to_char("You find everything unusually funny for a moment.\n\r", victim );
@@ -2345,7 +2351,7 @@ DEF_SPELL_FUN(spell_mass_confusion)
         if ( !ch->fighting && check_kill_trigger(ch, victim) )
             return TRUE;
 
-        if  ( saves_spell(victim, ch, level/2, DAM_MENTAL) )
+        if  ( saves_afflict(victim, ch, level/2, DAM_MENTAL) )
         {
             if (ch == victim)
                 send_to_char("{xYou feel momentarily {Ms{yi{Gl{Cl{Ry{x, but it passes.\n\r",ch);
@@ -2610,7 +2616,7 @@ DEF_SPELL_FUN(spell_tomb_rot)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
+    if ( saves_afflict(victim, ch, level, DAM_DISEASE) )
     {
         if (ch == victim)
             send_to_char("You feel momentarily ill, but it passes.\n\r",ch);
@@ -2650,7 +2656,7 @@ DEF_SPELL_FUN(spell_soreness)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_OTHER) )
+    if ( saves_afflict(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
             send_to_char("Nothing seemed to happen.\n\r",ch);
@@ -3001,7 +3007,7 @@ DEF_SPELL_FUN(spell_stop)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         if (victim != ch)
             send_to_char("Nothing seemed to happen.\n\r",ch);
@@ -3098,7 +3104,7 @@ DEF_SPELL_FUN(spell_decompose)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
     
-    if ( saves_spell(victim, ch, level, DAM_DISEASE) )
+    if ( saves_afflict(victim, ch, level, DAM_DISEASE) )
     {
         send_to_char( "A wave of malvolent energy passes over your body.\n\r", victim );
         act( "$N resists the inevitable decay of $S body and mind.", ch, NULL, victim, TO_CHAR );
@@ -3537,7 +3543,7 @@ DEF_SPELL_FUN(spell_haunt)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_OTHER) )
+    if ( saves_afflict(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
 	    send_to_char("The spirits don't answer your call.\n\r",ch);
@@ -3616,7 +3622,7 @@ DEF_SPELL_FUN(spell_mana_burn)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_OTHER) )
+    if ( saves_afflict(victim, ch, level, DAM_OTHER) )
     {
         if (victim != ch)
             send_to_char( "Their mana remains cool.\n\r",ch);
@@ -3651,7 +3657,7 @@ DEF_SPELL_FUN(spell_iron_maiden)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_MENTAL) )
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
     {
         if (victim != ch)
             send_to_char( "They resist your torturing attempts.\n\r",ch);
@@ -4132,7 +4138,7 @@ DEF_SPELL_FUN(spell_paralysis_poison)
         return SR_AFFECTED;
     }
     
-    if ( saves_spell(victim, ch, level, DAM_POISON) )
+    if ( saves_afflict(victim, ch, level, DAM_POISON) )
     {
         act("$N's body resists the poison!",ch,NULL,victim,TO_CHAR);
         return TRUE;

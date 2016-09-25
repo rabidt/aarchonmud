@@ -1309,7 +1309,7 @@ void apply_petrify(CHAR_DATA *ch, bool full)
 bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 {
     // saving throw to avoid completely
-    if ( saves_spell(victim, ch, ch->level, DAM_HARM) )
+    if ( saves_afflict(victim, ch, ch->level, DAM_HARM) )
         return FALSE;
 
     // may already be partially petrified (slowed)
