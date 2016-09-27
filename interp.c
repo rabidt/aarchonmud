@@ -699,9 +699,11 @@ bool can_order( const char *command, CHAR_DATA *victim )
 	    /* some special commands CAN be ordered to NPCs */
 	    if ( victim == NULL || IS_NPC(victim) )
 	    {
-		if ( cmd_table[cmd].do_fun == do_give
-            || cmd_table[cmd].do_fun == do_put
-		     || cmd_table[cmd].do_fun == do_drop )
+            if ( cmd_table[cmd].do_fun == do_give
+                || cmd_table[cmd].do_fun == do_put
+                || cmd_table[cmd].do_fun == do_drop
+                || cmd_table[cmd].do_fun == do_sacrifice
+                )
 		    return TRUE;
 	    }
 
