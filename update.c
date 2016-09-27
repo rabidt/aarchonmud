@@ -97,19 +97,28 @@ int move_cap( CHAR_DATA *ch )
     return ch->max_move + ch->move_cap_delta;
 }
 
-void gain_hit( CHAR_DATA *ch, int amount )
+int gain_hit( CHAR_DATA *ch, int amount )
 {
-    ch->hit = UMIN(hit_cap(ch), ch->hit + amount);
+    if ( amount + ch->hit > hit_cap(ch) )
+        amount = hit_cap(ch) - ch->hit;
+    ch->hit += amount;
+    return amount;
 }
 
-void gain_mana( CHAR_DATA *ch, int amount )
+int gain_mana( CHAR_DATA *ch, int amount )
 {
-    ch->mana = UMIN(mana_cap(ch), ch->mana + amount);
+    if ( amount + ch->mana > mana_cap(ch) )
+        amount = mana_cap(ch) - ch->mana;
+    ch->mana += amount;
+    return amount;
 }
 
-void gain_move( CHAR_DATA *ch, int amount )
+int gain_move( CHAR_DATA *ch, int amount )
 {
-    ch->move = UMIN(move_cap(ch), ch->move + amount);
+    if ( amount + ch->move > move_cap(ch) )
+        amount = move_cap(ch) - ch->move;
+    ch->move += amount;
+    return amount;
 }
 
 /*
