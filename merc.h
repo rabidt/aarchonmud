@@ -5431,9 +5431,9 @@ void    deal_bomb_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam );
 int     hit_cap( CHAR_DATA *ch );
 int     mana_cap( CHAR_DATA *ch );
 int     move_cap( CHAR_DATA *ch );
-void    gain_hit( CHAR_DATA *ch, int amount );
-void    gain_mana( CHAR_DATA *ch, int amount );
-void    gain_move( CHAR_DATA *ch, int amount );
+int     gain_hit( CHAR_DATA *ch, int amount );
+int     gain_mana( CHAR_DATA *ch, int amount );
+int     gain_move( CHAR_DATA *ch, int amount );
 
 
 /* vshift.c */

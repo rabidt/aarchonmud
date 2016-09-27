@@ -35,6 +35,7 @@
 #include "tables.h"
 #include "lua_scripting.h"
 #include "mudconfig.h"
+#include "mob_stats.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_split     );
@@ -2639,22 +2640,27 @@ DEF_DO_FUN(do_sacrifice)
 
     if ( (obj->item_type == ITEM_CORPSE_NPC || obj->item_type == ITEM_CORPSE_PC) )
     {
-        int power = dice( obj->level, obj->level ) / 10;
+        int power = level_base_hp(obj->level) / 10;
         int skill = get_skill( ch, gsn_drain_life );
 
         if ( skill > 0 && ch->hit < hit_cap(ch) && !PLR_ACT(ch, PLR_WAR) && obj->timer != -1 )
         {
-            int hp = 2 + 2 * power * skill/100;
-            gain_hit(ch, hp);
+            int hp = power * skill / 100;
+            hp = gain_hit(ch, hp);
+            act("$n drains any remaining life from $p.", ch, obj, NULL, TO_ROOM);
             sprintf(buf,"You drain %d hp from the corpse.\n\r", hp);
             send_to_char(buf, ch);
             change_align(ch,-2);
+            // draining blood takes time, can't fight while doing so
+            int wait = hp / (5 + ch->max_hit/100);
+            WAIT_STATE(ch, wait);
+            ch->stop += rand_div(wait+1, PULSE_VIOLENCE);
         }
 
         if ( IS_AFFECTED(ch, AFF_RITUAL) ) 
         {
-            int mp = skill_table[gsn_ritual].min_mana + power;
-            gain_mana(ch, mp);
+            int mp = skill_table[gsn_ritual].min_mana + power * 2/3;
+            mp = gain_mana(ch, mp);
             sprintf(buf,"Your sacrifice is worth %d mana.\n\r",mp);
             send_to_char(buf, ch);
             affect_strip( ch, gsn_ritual );
@@ -4773,7 +4779,8 @@ DEF_DO_FUN(do_sire)
         mlevel = (ch->level + corpse->level * 3) / 4;
     else
         mlevel = (ch->level * 3 + corpse->level) / 4;
-    set_mob_level( mob, URANGE(1, mlevel, ch->level + 25) );
+    int max_higher = ch->level <= 90 ? 6 + ch->level / 10 : 15 + (ch->level - 90);
+    set_mob_level( mob, URANGE(1, mlevel, ch->level + max_higher) );
     char_to_room( mob, ch->in_room );
 
     /* wear eq from corpse */
