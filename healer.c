@@ -210,18 +210,20 @@ DEF_DO_FUN(do_heal)
             ch,NULL,mob,TO_CHAR);
         return;
     }
-    int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
-    if ( money < cost)
+    
+    // players pay for their pets
+    CHAR_DATA *sponsor = get_local_leader(ch);
+    
+    if ( !has_money(sponsor, cost, TRUE) )
     {
-        act("$N says 'You do not have enough gold for my services.'",
-            ch,NULL,mob,TO_CHAR);
+        act("$N says 'You do not have enough gold for my services.'", sponsor, NULL, mob, TO_CHAR);
         return;
     }
     
     WAIT_STATE(ch,PULSE_VIOLENCE);
     
     cost = UMAX(0, cost);
-    deduct_cost(ch,cost);
+    deduct_cost(sponsor, cost);
     mob->gold += cost / 100;
     mob->silver += cost % 100;
 
@@ -352,17 +354,19 @@ DEF_DO_FUN(do_spellup)
 	cost = arcane_cost[spell].cost;
     }
     
-    if ( cost > ch->gold + ch->silver/100 )
+    // players pay for their pets
+    CHAR_DATA *sponsor = get_local_leader(ch);
+    
+    if ( !has_money(sponsor, cost*100, TRUE) )
     {
-        act("$N says 'You do not have enough gold for my services.'",
-            ch,NULL,mob,TO_CHAR);
+        act("$N says 'You do not have enough gold for my services.'", sponsor, NULL, mob, TO_CHAR);
         return;
     }
     
     WAIT_STATE(ch, PULSE_VIOLENCE);
     
     cost = UMAX(0, cost);
-    deduct_cost(ch,cost*100);
+    deduct_cost(sponsor, cost*100);
     mob->gold += cost;
 
     act("$n utters some arcane words.",mob,NULL,NULL,TO_ROOM);

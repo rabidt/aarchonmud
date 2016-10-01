@@ -4814,7 +4814,7 @@ AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
-bool has_money( CHAR_DATA *ch, int cost );
+bool has_money( CHAR_DATA *ch, int cost, bool bank );
 int     check_immune    args( (CHAR_DATA *ch, int dam_type) );
 int     material_lookup args( ( const char *name) );
 int weapon_lookup   args( ( const char *name) );
