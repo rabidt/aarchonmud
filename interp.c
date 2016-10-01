@@ -703,6 +703,8 @@ bool can_order( const char *command, CHAR_DATA *victim )
                 || cmd_table[cmd].do_fun == do_put
                 || cmd_table[cmd].do_fun == do_drop
                 || cmd_table[cmd].do_fun == do_sacrifice
+                || cmd_table[cmd].do_fun == do_spellup
+                || cmd_table[cmd].do_fun == do_heal
                 )
 		    return TRUE;
 	    }
