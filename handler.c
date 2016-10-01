@@ -3461,9 +3461,12 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     }
 }
 
-bool has_money( CHAR_DATA *ch, int cost )
+bool has_money( CHAR_DATA *ch, int cost, bool bank )
 {
-    return ch->silver + ch->gold * 100 + ch->pcdata->bank >= cost;
+    long money = ch->gold * 100 + ch->silver;
+    if ( bank && !IS_NPC(ch) )
+        money += ch->pcdata->bank * 100;
+    return money >= cost;
 }
 
 int money_weight( int silver, int gold )

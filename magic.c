@@ -5484,7 +5484,7 @@ DEF_SPELL_FUN(spell_recharge)
     }
     
     cost = spell_obj_cost(obj->value[0], spell_base_cost(obj->value[3])) * charges / (obj->item_type == ITEM_WAND ? 8 : 16);
-    if ( !has_money(ch, cost) )
+    if ( !has_money(ch, cost, FALSE) )
     {
         ptc(ch, "It costs %.2f gold to recharge %s.\n\r", cost/100.0, obj->short_descr);
         return SR_UNABLE;
