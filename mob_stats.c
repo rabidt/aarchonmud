@@ -23,7 +23,7 @@ long mob_base_wealth( MOB_INDEX_DATA *pMobIndex )
     
     if ( pMobIndex->pShop != NULL )
     {
-        level = 120;
+        level = MAX_NPC_LEVEL;
         factor = 5;
     }
     factor = factor * pMobIndex->wealth_percent / 100;
