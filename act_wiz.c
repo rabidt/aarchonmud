@@ -3205,6 +3205,19 @@ static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
     }
 }
 
+static void print_wiznet_table (CHAR_DATA *ch, const struct wiznet_type *tbl)
+{
+    ptc( ch, "%3s %s\n\r", "Lvl", "Channel");
+
+    int i;
+    for ( i=0 ; tbl[i].name ; i++)
+    {
+        ptc( ch, "%3d %s\n\r",
+                tbl[i].level,
+                tbl[i].name);
+    }
+}
+
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note }
 
 struct
@@ -3256,6 +3269,7 @@ struct
     { "liq_table", print_liq_table, liq_table, "Liquid types."},
     { "stances", print_stances, stances, "Stances."},
     { "skill_table", print_skill_table, skill_table, "Skills."},
+    { "wiznet_table", print_wiznet_table, wiznet_table, "Wiznet channels."},
     { NULL, NULL, NULL, NULL}
 };
 
