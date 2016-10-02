@@ -3913,6 +3913,9 @@ DEF_DO_FUN(do_sell)
         keeper->gold = 0;
     if ( keeper->silver< 0)
         keeper->silver = 0;
+    
+    if ( cost/100 > 1000 )
+        logpf("%s sold %s (#%d) at room #%d for %d gold.", ch->name, obj->short_descr, obj->pIndexData->vnum, ch->in_room->vnum, cost/100);
 
     if ( obj->item_type == ITEM_TRASH || IS_OBJ_STAT(obj,ITEM_SELL_EXTRACT))
     {
