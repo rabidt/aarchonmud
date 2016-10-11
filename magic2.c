@@ -3768,21 +3768,26 @@ DEF_SPELL_FUN(spell_unearth)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
-    if ( IS_AFFECTED(victim, AFF_FLYING) )
-    {
-        act("$N hovers safely above the shaking ground.", ch, NULL, victim, TO_CHAR);
-        return SR_IMMUNE;
-    }
-
-    act("You cause the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_CHAR);
-    act("$n causes the earth beneath you to break and shift violently.", ch, NULL, victim, TO_VICT);
-    act("$n causes the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_NOTVICT);
-    
     int dam = get_sn_damage(sn, level, ch);
-
+    bool flying = IS_AFFECTED(victim, AFF_FLYING);
+    
+    if ( flying )
+    {
+        dam /= 2;
+        act("You cause the earth beneath $N to break and shoot upwards.", ch, NULL, victim, TO_CHAR);
+        act("$n causes the earth beneath you to break and shoot upwards.", ch, NULL, victim, TO_VICT);
+        act("$n causes the earth beneath $N to break and shoot upwards.", ch, NULL, victim, TO_NOTVICT);
+    }
+    else
+    {
+        act("You cause the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_CHAR);
+        act("$n causes the earth beneath you to break and shift violently.", ch, NULL, victim, TO_VICT);
+        act("$n causes the earth beneath $N to break and shift violently.", ch, NULL, victim, TO_NOTVICT);
+    }
+    
     if ( saves_spell(victim, ch, level, DAM_BASH) )
         dam /= 2;
-    else
+    else if ( !flying )
     {
         if ( victim->position > POS_RESTING )
         {
