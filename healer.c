@@ -380,8 +380,12 @@ DEF_DO_FUN(do_spellup)
                 bugf( "do_spellup: spell not found: %s", arcane_cost[spell].name );
                 return;
             }
+            affect_strip(ch, sn);
             skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
         }
     else
+    {
+        affect_strip(ch, sn);
         skill_table[sn].spell_fun(sn, 90, mob, ch, TARGET_CHAR, FALSE);
+    }
 }
