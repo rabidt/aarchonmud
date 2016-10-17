@@ -4830,6 +4830,7 @@ bool    is_clan     args( (CHAR_DATA *ch) );
 bool    is_same_clan    args( (CHAR_DATA *ch, CHAR_DATA *victim));
 int     get_weapon_sn   args( ( CHAR_DATA *ch ) );
 int     get_weapon_sn_new args( (CHAR_DATA *ch, bool secondary) );
+int     get_random_weapon_sn args((CHAR_DATA*ch));
 int     get_age         args( ( CHAR_DATA *ch ) );
 int     get_base_sex( CHAR_DATA *ch );
 void    reset_char  args( ( CHAR_DATA *ch )  );

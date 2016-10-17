@@ -39,6 +39,7 @@
 DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
+DECLARE_DO_FUN(do_unlock    );
 bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
 void check_bleed( CHAR_DATA *ch, int dir );
 static bool has_boat( CHAR_DATA *ch );
@@ -901,7 +902,17 @@ DEF_DO_FUN(do_open)
 	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
 	  { send_to_char( "It's already open.\n\r",      ch ); return; }
 	  if (  IS_SET(pexit->exit_info, EX_LOCKED) )
-	  { send_to_char( "It's locked.\n\r",            ch ); return; }
+      { 
+          if ( has_key( ch, pexit->key) )
+          {
+              do_unlock(ch, arg);
+          }
+          else
+	      { 
+              send_to_char( "It's locked.\n\r",            ch ); 
+              return; 
+          }
+      }
 
 	  if ( check_exit_trap_hit(ch, door, FALSE) )
 	      return;
@@ -910,7 +921,7 @@ DEF_DO_FUN(do_open)
           return;
 	  
 	  REMOVE_BIT(pexit->exit_info, EX_CLOSED);
-	  act( "$n opens the $d.", ch, NULL, pexit->keyword, TO_ROOM );
+      act( "$n opens the $d.", ch, NULL, pexit->keyword, TO_ROOM );
 	  send_to_char( "Ok.\n\r", ch );
 	  
 	  /* open the other side */
@@ -1184,8 +1195,6 @@ DEF_DO_FUN(do_lock)
    return;
 }
 
-
-
 DEF_DO_FUN(do_unlock)
 {
    char arg[MAX_INPUT_LENGTH];
@@ -1196,143 +1205,144 @@ DEF_DO_FUN(do_unlock)
    
    if ( arg[0] == '\0' )
    {
-	  send_to_char( "Unlock what?\n\r", ch );
-	  return;
+      send_to_char( "Unlock what?\n\r", ch );
+      return;
    }
    
    if ( !is_direction(arg) && (obj = get_obj_here(ch, arg)) != NULL )
    {
-	  /* portal stuff */
-	  if (obj->item_type == ITEM_PORTAL)
-	  {
-		 if (!I_IS_SET(obj->value[1],EX_ISDOOR))
-		 {
-			send_to_char("You can't do that.\n\r",ch);
-			return;
-		 }
-		 
-		 if (!I_IS_SET(obj->value[1],EX_CLOSED))
-		 {
-			send_to_char("It's not closed.\n\r",ch);
-			return;
-		 }
+      /* portal stuff */
+      if (obj->item_type == ITEM_PORTAL)
+      {
+         if (!I_IS_SET(obj->value[1],EX_ISDOOR))
+         {
+            send_to_char("You can't do that.\n\r",ch);
+            return;
+         }
+         
+         if (!I_IS_SET(obj->value[1],EX_CLOSED))
+         {
+            send_to_char("It's not closed.\n\r",ch);
+            return;
+         }
 
          if (!I_IS_SET(obj->value[1],EX_LOCKED))
          {
             send_to_char("It's not locked.\n\r",ch);
             return;
          }
-		 
-		 if (obj->value[4] < 1)
-		 {
-			send_to_char("It can't be unlocked.\n\r",ch);
-			return;
-		 }
-		  
-		 if (!has_key(ch,obj->value[4]))
-		 {
-			send_to_char("You lack the key.\n\r",ch);
-			return;
-		 }
-		 else 
-		 {
-			 key = find_key(ch, obj->value[4]);            
-		 }
+         
+         if (obj->value[4] < 1)
+         {
+            send_to_char("It can't be unlocked.\n\r",ch);
+            return;
+         }
+          
+         if (!has_key(ch,obj->value[4]))
+         {
+            send_to_char("You lack the key.\n\r",ch);
+            return;
+         }
+         else 
+         {
+             key = find_key(ch, obj->value[4]);            
+         }
 
-		 if (!I_IS_SET(obj->value[1],EX_LOCKED))
-		 {
-			send_to_char("It's already unlocked.\n\r",ch);
-			return;
-		 }
-		 
-		I_REMOVE_BIT(obj->value[1],EX_LOCKED);
-		act("You unlock $p.",ch,obj,NULL,TO_CHAR);
-		act("$n unlocks $p.",ch,obj,NULL,TO_ROOM);
-		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
-			{
-			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
-			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+         if (!I_IS_SET(obj->value[1],EX_LOCKED))
+         {
+            send_to_char("It's already unlocked.\n\r",ch);
+            return;
+         }
+         
+        I_REMOVE_BIT(obj->value[1],EX_LOCKED);
+        act("You unlock $p.",ch,obj,NULL,TO_CHAR);
+        act("$n unlocks $p.",ch,obj,NULL,TO_ROOM);
+        if (IS_SET(key->extra_flags, ITEM_ONE_USE))
+            {
+            act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
+            act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
             extract_obj(key);
-			}
-		
-		return;
-	  }
-	  
-	  /* 'unlock object' */
-	  if ( obj->item_type != ITEM_CONTAINER )
-	  { send_to_char( "That's not a container.\n\r", ch ); return; }
-	  if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
-	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
+            }
+        
+        return;
+      }
+      
+      /* 'unlock object' */
+      if ( obj->item_type != ITEM_CONTAINER )
+      { send_to_char( "That's not a container.\n\r", ch ); return; }
+      if ( !I_IS_SET(obj->value[1], CONT_CLOSED) )
+      { send_to_char( "It's not closed.\n\r",        ch ); return; }
       if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
       { send_to_char( "It's not locked.\n\r",        ch ); return; }
-	  if ( obj->value[2] < 1 )
-	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
-	  if ( !has_key( ch, obj->value[2] ) )
-	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
-	  else
-	     key = find_key( ch, obj->value[2]);
-	  if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
-	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+      if ( obj->value[2] < 1 )
+      { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
+      if ( !has_key( ch, obj->value[2] ) )
+      { send_to_char( "You lack the key.\n\r",       ch ); return; }
+      else
+         key = find_key( ch, obj->value[2]);
+      if ( !I_IS_SET(obj->value[1], CONT_LOCKED) )
+      { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
 
       if ( !op_percent_trigger( NULL, obj, NULL, ch, NULL, OTRIG_UNLOCK) )
         return;
-	  
-	  I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
-	  act("You unlock $p.",ch,obj,NULL,TO_CHAR);
-	  act( "$n unlocks $p.", ch, obj, NULL, TO_ROOM );
-		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
-			{
-			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
-			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+      
+      I_REMOVE_BIT(obj->value[1], CONT_LOCKED);
+      act("You unlock $p.",ch,obj,NULL,TO_CHAR);
+      act( "$n unlocks $p.", ch, obj, NULL, TO_ROOM );
+        if (IS_SET(key->extra_flags, ITEM_ONE_USE))
+            {
+            act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
+            act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
             extract_obj(key);
-			}
-	  return;
+            }
+      return;
    }
    
    if ( ( door = find_door( ch, arg ) ) >= 0 )
    {
-	  /* 'unlock door' */
-	  ROOM_INDEX_DATA *to_room;
-	  EXIT_DATA *pexit;
-	  EXIT_DATA *pexit_rev;
-	  
-	  pexit = ch->in_room->exit[door];
-	  if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
-	  { send_to_char( "It's not closed.\n\r",        ch ); return; }
+      /* 'unlock door' */
+      ROOM_INDEX_DATA *to_room;
+      EXIT_DATA *pexit;
+      EXIT_DATA *pexit_rev;
+      
+      pexit = ch->in_room->exit[door];
+      if ( !IS_SET(pexit->exit_info, EX_CLOSED) )
+      { send_to_char( "It's not closed.\n\r",        ch ); return; }
       if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
       { send_to_char( "It's not locked.\n\r",        ch ); return; }
-	  if ( pexit->key < 0 )
-	  { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
-	  if ( !has_key( ch, pexit->key) )
-	  { send_to_char( "You lack the key.\n\r",       ch ); return; }
-	  else
-	    key = find_key( ch, pexit->key );
-	  if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
-	  { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
-	  
+      if ( pexit->key < 0 )
+      { send_to_char( "It can't be unlocked.\n\r",   ch ); return; }
+      if ( !has_key( ch, pexit->key) )
+      { send_to_char( "You lack the key.\n\r",       ch ); return; }
+      else
+        key = find_key( ch, pexit->key );
+      if ( !IS_SET(pexit->exit_info, EX_LOCKED) )
+      { send_to_char( "It's already unlocked.\n\r",  ch ); return; }
+      
       if ( !rp_unlock_trigger( ch, door ) )
           return;
 
-	  REMOVE_BIT(pexit->exit_info, EX_LOCKED);
-	  send_to_char( "*Click*\n\r", ch );
-	  act( "$n unlocks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
-		if (IS_SET(key->extra_flags, ITEM_ONE_USE))
-			{
-			act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
-			act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
+      REMOVE_BIT(pexit->exit_info, EX_LOCKED);
+      send_to_char( "*Click*\n\r", ch );
+      act( "$n unlocks the $d.", ch, NULL, pexit->keyword, TO_ROOM );
+        if (IS_SET(key->extra_flags, ITEM_ONE_USE))
+            {
+            act("{c*POOF* $p disappears from your hand!{x",ch,key,NULL,TO_CHAR);
+            act("{c*POOF* $p disappears from $n's hand!{x",ch,key,NULL,TO_ROOM);
             extract_obj(key);
-			}
-	  /* unlock the other side */
-	  if ( ( to_room   = pexit->u1.to_room            ) != NULL
-		 &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
-		 &&   pexit_rev->u1.to_room == ch->in_room )
-	  {
-		 REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
-	  }
+            }
+      /* unlock the other side */
+      if ( ( to_room   = pexit->u1.to_room            ) != NULL
+         &&   ( pexit_rev = to_room->exit[rev_dir[door]] ) != NULL
+         &&   pexit_rev->u1.to_room == ch->in_room )
+      {
+         REMOVE_BIT( pexit_rev->exit_info, EX_LOCKED );
+      }
    }
    
    return;
 }
+
 
 DEF_DO_FUN(do_estimate)
 {

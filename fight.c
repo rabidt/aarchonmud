@@ -2381,7 +2381,17 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     }
     
     if (sn != -1)
-        check_improve(ch, sn, TRUE, 5);
+    {
+        if (sn == 0)
+        {
+            // wearing an exotic weapon, let's randomize our weapon check
+            check_improve(ch, get_random_weapon_sn(ch), TRUE, 5);
+        }
+        else
+        {
+            check_improve(ch, sn, TRUE, 5);
+        }
+    }
 
     /*
      * Hit.

@@ -4720,6 +4720,49 @@ int number_door( void )
     return door;
 }
 
+/*
+Longer explanation of number_bits. See single line comment for quick explanation.
+
+number_bits takes an integer argument and makes an n-bit binary number out of it then does AND operator with a random number that it makes and you basically have 
+a 1 in 2^n chance of the result being exactly 0. What we were looking at is number_bits(1) so 2^1 = 2 so 1 in 2 chance of it being exactly 0.
+
+number_bits(3) will do this
+
+makes a 3 bit number filled with 1:
+
+                         111<-3 bit number filled with 1, everything to the left will be 0
+10010110101010101<-random long number
+00000000000000101<- result after AND operator (1 and 1 = 1, 1 and 0 = 0, 0 and 0 = 0)
+
+In this case the result is 101, so if you did a check in your stance for number_bits(3) == 0 then it would be false in this case. 2^3=8 so 1 in 8 chance for 
+number_bits(3) == 0 to be TRUE.
+
+int number_bits( int width )
+{
+    return number_mm( ) & ( ( 1 << width ) - 1 );
+}
+
+number_mm is random long number
+
+so end up with 
+10000000000000000000 -1
+=011111111111111111111111
+
+something along those lines
+
+then & with random #
+0111111111111111111111111
+0001110101010111110101
+
+
+number_bits(4)
+1<< width = 10000
+- 1
+
+1111
+*/
+
+// "returns random number between 0 and (2^width)-1
 int number_bits( int width )
 {
     return number_mm( ) & ( ( 1 << width ) - 1 );
