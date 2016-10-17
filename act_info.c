@@ -720,7 +720,7 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     if (IS_AFFECTED(ch, AFF_DETECT_MAGIC))
     {
 	send_to_char("\n\rYou detect the following spells:\n\r", ch);
-	show_affects(victim, ch, FALSE, FALSE);
+	show_affects(victim, ch, TRUE, FALSE);
     }
     
     /*
