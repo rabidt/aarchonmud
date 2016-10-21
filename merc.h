@@ -4951,6 +4951,7 @@ bool    can_see_obj args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
 bool    can_see_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex) );
 bool    can_drop_obj    args( ( CHAR_DATA *ch, OBJ_DATA *obj ) );
 bool    contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check );
+bool    carries_obj_recursive( CHAR_DATA *ch, OBJ_CHECK_FUN *obj_check );
 bool    area_full( AREA_DATA *pArea );
 const char *  affect_loc_name args( ( int location ) );
 const char *  affect_bit_name args( ( int vector ) );
