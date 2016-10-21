@@ -2450,6 +2450,23 @@ bool contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check )
     return FALSE;
 }
 
+bool carries_obj_recursive( CHAR_DATA *ch, OBJ_CHECK_FUN *obj_check )
+{
+    OBJ_DATA *obj;
+    
+    if ( ch == NULL || obj_check == NULL )
+    {
+        bugf("carries_obj_recursive: NULL pointer given");
+        return FALSE;
+    }
+    
+    for ( obj = ch->carrying; obj != NULL; obj = obj->next_content )
+        if ( contains_obj_recursive(obj, obj_check) )
+            return TRUE;
+
+    return FALSE;
+}
+
 void extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc )
 {
     OBJ_DATA *obj, *obj_next;

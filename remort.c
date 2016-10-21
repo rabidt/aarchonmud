@@ -79,7 +79,7 @@ const struct remort_chamber chambers[] =
     {"Remort: Curse of the Ages       ",    300,    R9, FALSE},
     {"Remort: Curse of the Ages       ",   9800,    R9, FALSE},
     {"Remort: Curse of the Ages       ",  13500,    R9, FALSE},
-    {"Remort: Curse of the Ages       ",  16500,    R9, FALSE},
+    {"Remort: Curse of the Ages       ",  16500,    R9, TRUE},
     {"Remort: Sundered Plains         ",  30479,   R10, FALSE},
     {"Remort: Sundered Plains         ",  19979,   R10, FALSE},
     {"Remort: Sundered Plains         ",  20579,   R10, FALSE},
@@ -437,6 +437,13 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
         return;
     }
     
+    if ( carries_obj_recursive(ch, &is_questeq) )
+    {
+        sprintf(buf, "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
+        do_say(adept, buf);
+        return;
+    }
+    
     if (i == wait_list)
     {
         wait_list = wait_list->next;
@@ -512,6 +519,13 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
         return;
     }
     
+    if ( carries_obj_recursive(ch, &is_questeq) )
+    {
+        sprintf(buf, "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
+        do_say(adept, buf);
+        return;
+    }
+    
     for (j = 0; chambers[j].name != NULL; j++)
     {
         if (chamber_list[j] != NULL)
@@ -528,7 +542,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     {
         sprintf(buf, "There are no speed chambers ready, %s.  Keep your pants on.", ch->name);
         do_say(adept, buf);
-        WAIT_STATE( ch, 120 );	
+        WAIT_STATE( ch, PULSE_VIOLENCE );
         return;
     }
     
