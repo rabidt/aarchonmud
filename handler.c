@@ -357,7 +357,7 @@ int get_weapon_sn_new(CHAR_DATA *ch, bool secondary)
     else switch (wield->value[0])
     {
         default :               sn = -1;                break;
-        case(WEAPON_EXOTIC):    sn =  0;                break;
+        case(WEAPON_EXOTIC):    sn = -2;                break;
         case(WEAPON_SWORD):     sn = gsn_sword;         break;
         case(WEAPON_DAGGER):    sn = gsn_dagger;        break;
         case(WEAPON_SPEAR):     sn = gsn_spear;         break;
@@ -390,18 +390,7 @@ int get_random_weapon_sn(CHAR_DATA *ch)
         gsn_gun,
         gsn_bow
     };
-    int return_weap = 0;
-
-    while(return_weap == 0)
-    {
-        int random_weap = number_range(0,9);
-        if (get_skill(ch, weapon_sns[random_weap]) > 0)
-        {
-            return_weap = weapon_sns[random_weap];
-            return return_weap;
-        }
-    }
-    return return_weap;
+    return weapon_sns[number_range(0,9)];
 }
 
 int get_base_sex(CHAR_DATA *ch)
