@@ -2382,7 +2382,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     if (sn != -1)
     {
-        if (sn == 0)
+        if (sn == -2)
         {
             // wearing an exotic weapon, let's randomize our weapon check
             check_improve(ch, get_random_weapon_sn(ch), TRUE, 5);
