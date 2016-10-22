@@ -1501,7 +1501,7 @@ DEF_DO_FUN(do_skills)
         printf_to_char(ch, "{rNote: Your skills are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
 
     /* let's show exotic */
-    printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -1));
+    printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -2));
 
 	buffer = new_buf();
 	for (level = 0; level < LEVEL_HERO + 1; level++)
