@@ -2564,24 +2564,18 @@ int get_weapon_skill(CHAR_DATA *ch, int sn)
 {
 	 int skill, i, max, total;
 
-	 /* -1 is exotic */
 	if (IS_NPC(ch))
 	{
         if ( IS_SET(ch->act,ACT_NOWEAPON) && sn != gsn_hand_to_hand )
             return 0;
         
-	    if (sn == -1)
-		skill = ch->level;
-	    else
-		skill = 40 + ch->level/2;
-	    
+        skill = 50 + ch->level/4;
 	    skill = URANGE(0, skill, 100);
 	    /* injury */
 	    skill = skill * (100 - get_injury_penalty(ch)) / 100;
 	}
-	
-	else
-	if (sn == -1)
+    // -2 is exotic
+    else if ( sn == -2 )
 	{
 		max=0;
 		total=0;
