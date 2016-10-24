@@ -2433,7 +2433,7 @@ static int pc_get_skill( CHAR_DATA *ch, int sn, int *overflow )
     {
         skill = ch->level;
     }
-    else if (sn < -1 || sn >= MAX_SKILL)
+    else if (sn < -2 || sn >= MAX_SKILL)
     {
         bug("Bad sn %d in pc_get_skill.", sn);
         return 0;
