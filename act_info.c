@@ -5314,7 +5314,8 @@ msl_string achievement_display [] =
         "MA Skills",
         "GM Skills",
         "Retrain",
-        "Hard Qsts"
+        "Hard Qsts",
+        "Ascension"
 };
 
 DEF_DO_FUN(do_achievements)
@@ -5623,6 +5624,9 @@ void check_achievement( CHAR_DATA *ch )
                 break;
             case ACHV_QHCOMP:
                 current = ch->pcdata->quest_hard_success;
+                break;
+            case ACHV_ASCENSION:
+                current = ch->pcdata->ascents;
                 break;
 	    default:
 		bug("Invalid achievement entry. Check achievement type", 0);
