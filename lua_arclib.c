@@ -356,6 +356,12 @@ static int glob_gtransfer (lua_State *LS)
 
     bool all_success=TRUE;
     CHAR_DATA *victim, *next_char;
+    
+    if (!ch->in_room)
+    {
+        return luaL_error( LS, "'gtransfer' called but target '%s' has no in_room", ch->name);
+    }
+
     for ( victim=ch->in_room->people; victim; victim=next_char )
     {
         next_char=victim->next_in_room;
