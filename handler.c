@@ -3377,17 +3377,17 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
     {
         if ( area )
         {
+            if ( !ch->in_room )
+            {
+                bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
+                continue;
+            }
             if ( obj->carried_by != NULL )
             {
                 if ( !obj->carried_by->in_room )
                 {
                     /* why is carried_by not in a room?
                        who knows, but they aren't in the area! */
-                    continue;
-                }
-                if ( !ch->in_room )
-                {
-                    bugf("get_obj_new: %s ch->in_room NULL.", ch->name);
                     continue;
                 }
                 if ( obj->carried_by->in_room->area != ch->in_room->area )
