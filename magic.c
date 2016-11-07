@@ -6094,8 +6094,6 @@ DEF_SPELL_FUN(spell_ventriloquate)
     char speaker[MAX_INPUT_LENGTH];
     CHAR_DATA *vch;
 
-    target_name = one_argument( target_name, speaker );
-
     if ( ch == vo )
     {
         send_to_char( "If you want to say something, just do so.\n\r", ch );
@@ -6103,6 +6101,8 @@ DEF_SPELL_FUN(spell_ventriloquate)
     }
 
     SPELL_CHECK_RETURN
+
+    target_name = one_argument( target_name, speaker );
     
     for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room )
     {
