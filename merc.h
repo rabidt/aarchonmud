@@ -236,7 +236,7 @@ bool is_questeq( OBJ_DATA *obj );
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
-#define MAX_ALIAS          50 /* increased from 35 to 50 on 12-12-13 */
+#define MAX_ALIAS          100 /* increased from 35 to 50 on Dec 2013, 50 to 100 on Oct 2016 */
 #define MAX_CLASS          16
 #define MAX_PC_RACE        76
 #define MAX_BOARD          12
