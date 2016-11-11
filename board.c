@@ -117,22 +117,22 @@ const static char* note_line =
    Roleplay and Immortal hold notes for 300 days instead of 200. Immortal board holds 90
    notes instead of 30. News board has 500 days expiration instead of 200. Astark 1-2-13 */
 
-/* Short name, long name, read level, write level, special access, default recipient, 
-   default action, default expiration(days), max message count, NULL, FALSE */
+   
+/*  Short Name,     Long Name,             ReadLvl, WriteLvl,  Access, Dflt Recipient, Dflt Actn, Days Expir, Max Msg, NULL, FALSE */
 BOARD_DATA boards[MAX_BOARD] =
 {
-   { "General",  "General discussion",           0, 2, BOARD_NONE, "all", DEF_INCLUDE, 45, 200, NULL, FALSE },
-   { "Personal", "Personal messages",            0, 2, BOARD_NONE, "all", DEF_EXCLUDE, 90, 500, NULL, FALSE },
-   { "Ideas",    "Suggestions for improvement",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 200, NULL, FALSE }, 
-   { "Mechanics","Game Mechanics",               0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 200, NULL, FALSE },
-   { "Bugs",     "Typos, bugs, errors",          0, 2, BOARD_NONE, "imm", DEF_NORMAL,  45, 200, NULL, FALSE },
-   { "Pkill",    "Player killers only!",         0, 2, BOARD_PKILL, "pkill", DEF_NORMAL,  45, 200, NULL, FALSE }, 
-   { "Roleplay", "Role Playing / Family notes",  0, 2, BOARD_NONE, "all", DEF_NORMAL,  45, 200, NULL, FALSE }, 
-   { "Quest",    "Quest-related messages",       0, 2, BOARD_NONE, "all", DEF_NORMAL,  90, 200, NULL, FALSE },
-   { "Builder",  "Area building",                0, 2, BOARD_BUILDER, "builder", DEF_NORMAL, 90, 200, NULL, FALSE }, 
-   { "News",     "Announcements from Immortals", 0, DEMIGOD, BOARD_NONE, "all", DEF_NORMAL, 90, 500, NULL, FALSE },
-   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 500, NULL, FALSE },
-   { "Penalty",  "Penalty notes (imm only)",     0, DEMIGOD, BOARD_NONE, "imm", DEF_NORMAL, 90, 200, NULL, FALSE },
+   { "General",  "General discussion",           0,     2,     BOARD_NONE,    "all",     DEF_INCLUDE,  120,    200,    NULL, FALSE },
+   { "Personal", "Personal messages",            0,     2,     BOARD_NONE,    "all",     DEF_EXCLUDE,  120,    500,    NULL, FALSE },
+   { "Ideas",    "Suggestions for improvement",  0,     2,     BOARD_NONE,    "all",     DEF_NORMAL,   120,    200,    NULL, FALSE }, 
+   { "Mechanics","Game Mechanics",               0,     2,     BOARD_NONE,    "all",     DEF_NORMAL,   120,    200,    NULL, FALSE },
+   { "Bugs",     "Typos, bugs, errors",          0,     2,     BOARD_NONE,    "imm",     DEF_NORMAL,   120,    200,    NULL, FALSE },
+   { "Pkill",    "Player killers only!",         0,     2,     BOARD_PKILL,   "pkill",   DEF_NORMAL,   120,    200,    NULL, FALSE }, 
+   { "Roleplay", "Role Playing / Family notes",  0,     2,     BOARD_NONE,    "all",     DEF_NORMAL,   120,    200,    NULL, FALSE }, 
+   { "Quest",    "Quest-related messages",       0,     2,     BOARD_NONE,    "all",     DEF_NORMAL,   120,    200,    NULL, FALSE },
+   { "Builder",  "Area building",                0,     2,     BOARD_BUILDER, "builder", DEF_NORMAL,   120,    200,    NULL, FALSE }, 
+   { "News",     "Announcements from Immortals", 0, DEMIGOD,   BOARD_NONE,    "all",     DEF_NORMAL,   120,    500,    NULL, FALSE },
+   { "Immortal", "Immortals only",            DEMIGOD, DEMIGOD,BOARD_NONE,    "imm",     DEF_NORMAL,   120,    500,    NULL, FALSE },
+   { "Penalty",  "Penalty notes (imm only)",     0, DEMIGOD,   BOARD_NONE,    "imm",     DEF_NORMAL,   120,    200,    NULL, FALSE },
 };
 
 
