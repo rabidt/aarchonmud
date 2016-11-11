@@ -3709,7 +3709,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
-    NULL, 40, 0, 24, DUR_EXTREME,
+    &gsn_floating_disc, 40, 0, 24, DUR_EXTREME,
     "",         "!Floating disc!",  ""
     },
 
