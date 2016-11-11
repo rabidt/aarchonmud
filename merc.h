@@ -3785,6 +3785,7 @@ struct boss_achieve_record
 #define ACHV_GMSKILLS   15
 #define ACHV_RETRAINED  16
 #define ACHV_QHCOMP     17
+#define ACHV_ASCENSION  18
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3916,6 +3917,10 @@ struct boss_achieve_record
 #define    ACHIEVE_QHCOMP_4    124 // 100
 #define    ACHIEVE_QHCOMP_5    125 // 250
 #define    ACHIEVE_QHCOMP_6    126 // 500
+#define    ACHIEVE_ASCENSION_1 127
+#define    ACHIEVE_ASCENSION_2 128
+#define    ACHIEVE_ASCENSION_3 129
+
 
 /*
 #define ACHIEVE_LEVEL_1    A
