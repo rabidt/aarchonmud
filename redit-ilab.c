@@ -1403,7 +1403,7 @@ DEF_DO_FUN(do_rwhere)
 		    
 		    if (obj && container && is_name (argument,obj->name))
     		    {
-			sprintf (buf, "%3d> [%4d] L%d %s resets inside [%4d] %s at %d\n\r",
+			sprintf (buf, "%3d> [%4d] L%d %s resets inside [%4d] %s at [%d]\n\r",
 				 number, obj->vnum, 
 				 mob ? mob->level-2 :0,
 				 obj->short_descr,
@@ -1422,12 +1422,13 @@ DEF_DO_FUN(do_rwhere)
     			
     			if (obj && is_name (argument,obj->name))
     			{
-    				sprintf (buf, "%3d> [%4d] L%d %s on [%4d] %s\n\r",
+    				sprintf (buf, "%3d> [%4d] L%d %s on [%4d] %s at [%d]\n\r",
     						      number, obj->vnum, 
-    						      mob ? mob->level - 2 : 0,
+    						      obj ? obj->level : 0,
     						      obj->short_descr,
     						      mob ? mob->vnum : 0,
-    						      mob ? mob->short_descr : "(non-existant)"
+    						      mob ? mob->short_descr : "(non-existant)",
+                                                      i /*room location */
     						      );
     				send_to_char (buf,ch);						   
     				number++;
@@ -1442,12 +1443,13 @@ DEF_DO_FUN(do_rwhere)
     			
     			if (obj && is_name (argument,obj->name))
     			{
-    				sprintf (buf, "%3d> [%4d] L%d %s worn by [%4d] %s\n\r",
+    				sprintf (buf, "%3d> [%4d] L%d %s worn by [%4d] %s at [%d]\n\r",
     						      number, obj->vnum, 
     						      mob ? mob->level - 2 : 0,
     						      obj->short_descr,
     						      mob ? mob->vnum : 0,
-    						      mob ? mob->short_descr : "(non-existant)"
+    						      mob ? mob->short_descr : "(non-existant)",
+                                                      i /* room location */
     						      );
     				send_to_char (buf,ch);						   
     				number++;
