@@ -634,6 +634,17 @@ void mobile_update( void )
         if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) )
             continue;
 
+        /* shop updates even if area is empty*/
+        if (ch->pIndexData->pShop != NULL) /* give him some gold */
+        {
+            long base_wealth = mob_base_wealth(ch->pIndexData);
+            if ((ch->gold * 100 + ch->silver) < base_wealth)
+            {
+                ch->gold += base_wealth * number_range(1,20)/500000;
+                ch->silver += base_wealth * number_range(1,20)/5000;
+            }
+        }
+
         if (ch->in_room->area->empty && !IS_SET(ch->act,ACT_UPDATE_ALWAYS))
             continue;
 
@@ -664,16 +675,6 @@ void mobile_update( void )
 
                 if ( success )
                     continue;
-            }
-        }
-
-        if (ch->pIndexData->pShop != NULL) /* give him some gold */
-        {
-            long base_wealth = mob_base_wealth(ch->pIndexData);
-            if ((ch->gold * 100 + ch->silver) < base_wealth)
-            {
-                ch->gold += base_wealth * number_range(1,20)/5000000;
-                ch->silver += base_wealth * number_range(1,20)/50000;
             }
         }
 
