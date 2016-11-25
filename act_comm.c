@@ -1164,6 +1164,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
         }
     }
 
+    argument = parse_url(argument);
 	
 	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
@@ -1289,7 +1290,7 @@ DEF_DO_FUN(do_tell)
         return;
     }
     
-    tell_char( ch, victim, parse_url(argument) );
+    tell_char( ch, victim, argument );
 
 }
 
