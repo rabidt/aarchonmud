@@ -167,6 +167,9 @@ static variable_name_t VariableNameTable[eMSDP_MAX+1] =
    { eMSDP_CHA_PERM,         "CHA_PERM",         NUMBER_READ_ONLY },
    { eMSDP_LUC_PERM,         "LUC_PERM",         NUMBER_READ_ONLY },
 
+   /* Group */
+   { eMSDP_GROUP_INFO,       "GROUP_INFO",       STRING_READ_ONLY },
+
    /* Combat */
    { eMSDP_OPPONENT_HEALTH,  "OPPONENT_HEALTH",  NUMBER_READ_ONLY }, 
    { eMSDP_OPPONENT_HEALTH_MAX,"OPPONENT_HEALTH_MAX",NUMBER_READ_ONLY }, 

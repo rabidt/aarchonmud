@@ -181,6 +181,9 @@ typedef enum
    eMSDP_CHA_PERM,
    eMSDP_LUC_PERM,
 
+   /* Group */
+   eMSDP_GROUP_INFO,
+
    /* Combat */
    eMSDP_OPPONENT_HEALTH, 
    eMSDP_OPPONENT_HEALTH_MAX, 
