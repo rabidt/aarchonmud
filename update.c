@@ -2830,6 +2830,73 @@ void check_shadow_companion( CHAR_DATA *ch )
 }
 */
 
+/* analog to show_group_member for do_group */
+static void strcat_group_member(char *out, CHAR_DATA *ch, CHAR_DATA *gch)
+{
+    char buf[MSL]; 
+
+    bool can_bless = get_skill(ch, gsn_bless) > 1 || (ch == gch && get_skill(ch, gsn_prayer) > 1);
+    bool can_frenzy = get_skill(ch, gsn_frenzy) > 1 || (ch == gch && (get_skill(ch, gsn_berserk) > 1 || get_skill(ch, gsn_drunken_fury) > 1));
+    
+    #define SP_YES "1"
+    #define SP_CAN "0"
+    #define SP_NO  ""
+
+    sprintf( buf, 
+        "%c%c" /* val and table open */
+        "%c%s%c%d" /* LEVEL */
+        "%c%s%c%.3s" /* WHO_NAME */
+        "%c%s%c%s" /* NAME */
+        "%c%s%c%d" /* HEALTH */
+        "%c%s%c%d" /* HEALTH_MAX */
+        "%c%s%c%d" /* MANA */
+        "%c%s%c%d" /* MANA_MAX */
+        "%c%s%c%d" /* MOVEMENT */
+        "%c%s%c%d" /* MOVEMENT_MAX */
+
+        "%c%s%c%s" /* RESCUE */
+        "%c%s%c%s" /* BLESS */
+        "%c%s%c%s" /* FLY */
+        "%c%s%c%s" /* GIANT */
+        "%c%s%c%s" /* HASTE */
+        "%c%s%c%s" /* SANC */
+        "%c%s%c%s" /* WARCRY */
+        "%c%s%c%s" /* FRENZY */
+
+        "%c%s%c%d" /* EXPERIENCE_TNL*/
+
+        "%c",   /* table close */
+        (char)MSDP_VAL,
+        (char)MSDP_TABLE_OPEN,
+        (char)MSDP_VAR, "LEVEL", (char)MSDP_VAL, gch->level, 
+        (char)MSDP_VAR, "WHO_NAME", (char)MSDP_VAL, !IS_NPC(gch) ? class_table[gch->class].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
+        (char)MSDP_VAR, "NAME", (char)MSDP_VAL, ch_name(gch), 
+        (char)MSDP_VAR, "HEALTH", (char)MSDP_VAL, gch->hit, 
+        (char)MSDP_VAR, "HEALTH_MAX", (char)MSDP_VAL, gch->max_hit, 
+        (char)MSDP_VAR, "MANA", (char)MSDP_VAL, gch->mana, 
+        (char)MSDP_VAR, "MANA_MAX", (char)MSDP_VAL, gch->max_mana, 
+        (char)MSDP_VAR, "MOVEMENT", (char)MSDP_VAL, gch->move, 
+        (char)MSDP_VAR, "MOVEMENT_MAX", (char)MSDP_VAL, gch->max_move, 
+
+        (char)MSDP_VAR, "RESCUE", (char)MSDP_VAL, NPC_OFF(gch, OFF_RESCUE) || PLR_ACT(gch, PLR_AUTORESCUE) ? SP_YES : SP_NO,
+        (char)MSDP_VAR, "BLESS", (char)MSDP_VAL, is_affected(gch, gsn_bless) || is_affected(gch, gsn_prayer) ? SP_YES : can_bless ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "FLY", (char)MSDP_VAL, IS_AFFECTED(gch, AFF_FLYING) ? SP_YES : get_skill(ch, gsn_fly) > 1 ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "GIANT", (char)MSDP_VAL, IS_AFFECTED(gch, AFF_GIANT_STRENGTH) ? SP_YES : get_skill(ch, gsn_giant_strength) > 1 ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "HASTE", (char)MSDP_VAL, IS_AFFECTED(gch, AFF_HASTE) ? SP_YES : !IS_AFFECTED(gch, AFF_SLOW) && get_skill(ch, gsn_haste) > 1 ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "SANC", (char)MSDP_VAL, IS_AFFECTED(gch, AFF_SANCTUARY) ? SP_YES : get_skill(ch, gsn_sanctuary) > 1 ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "WARCRY", (char)MSDP_VAL, is_affected(gch, gsn_war_cry) ? SP_YES : get_skill(ch, gsn_war_cry) > 1 ? SP_CAN : SP_NO,
+        (char)MSDP_VAR, "FRENZY", (char)MSDP_VAL, IS_AFFECTED(gch, AFF_BERSERK) ? SP_YES : can_frenzy ? SP_CAN : SP_NO,
+
+        (char)MSDP_VAR, "EXPERIENCE_TNL", (char)MSDP_VAL, (IS_NPC(gch) || IS_HERO(gch)) ? 0 : (gch->level+1) * exp_per_level(gch) - gch->exp,
+        (char)MSDP_TABLE_CLOSE);
+    
+    strcat(out, buf);
+   
+    #undef SP_YES
+    #undef SP_CAN
+    #undef SP_NO 
+}
+
 void msdp_update( void )
 {
     DESCRIPTOR_DATA *d;
@@ -2954,6 +3021,54 @@ void msdp_update( void )
                 strcat( buf, skill_buf );
             }
             MSDPSetTable( d, eMSDP_AFFECTS, buf );
+
+
+            buf[0] = '\0';
+            {
+                char grp_buf[MAX_STRING_LENGTH];
+
+                /* similar to logic/info from do_group() */
+                CHAR_DATA *ch = d->character;
+                CHAR_DATA *gch;
+                CHAR_DATA *leader;
+
+                leader = (ch->leader != NULL) ? ch->leader : ch;
+                
+                sprintf( buf, "%c%s%c%s",
+                        (char)MSDP_VAR, "LEADER",
+                        (char)MSDP_VAL, leader->name);
+                
+                sprintf( grp_buf, "%c%s%c%c",
+                        (char)MSDP_VAR, "MEMBERS",
+                        (char)MSDP_VAL,
+                        (char)MSDP_ARRAY_OPEN);
+                strcat(buf, grp_buf);
+                       
+                if ( ch->in_room != NULL )
+                {
+                    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+                    {
+                        if ( is_same_group( gch, ch ) )
+                        {
+                            strcat_group_member(buf, ch, gch); 
+                        }
+                    }
+                }
+                
+                for ( gch = char_list; gch != NULL; gch = char_list_next_char(gch) )
+                {
+                    if ( is_same_group( gch, ch ) && ch->in_room != gch->in_room)
+                    {
+                        strcat_group_member(buf, ch, gch);
+                    }
+                }
+
+                sprintf( grp_buf, "%c",
+                        (char)MSDP_ARRAY_CLOSE); /* close "members" */
+                strcat( buf, grp_buf);
+
+                MSDPSetTable( d, eMSDP_GROUP_INFO, buf );
+            }
 
             MSDPUpdate( d );
         }
