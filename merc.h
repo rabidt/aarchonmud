@@ -270,8 +270,6 @@ bool is_questeq( OBJ_DATA *obj );
 #define PULSE_SAVE            ( 2 * PULSE_PER_SECOND )
 #define PULSE_HERB            ( 15 * 60 * PULSE_PER_SECOND )
 #define PULSE_TIMER_TRIG      ( PULSE_PER_SECOND )
-#define PULSE_PER_MINUTE	( 60 * PULSE_PER_SECOND )
-#define PULSE_LUA_ARCGC     ( 5 * PULSE_PER_MINUTE )
 /* #define PULSE_HERB            ( 15 * PULSE_PER_SECOND ) */
 
 /* times */
