@@ -192,6 +192,7 @@ typedef enum
    eMSDP_ROOM_EXITS, 
    eMSDP_ROOM_NAME, 
    eMSDP_ROOM_VNUM, 
+   eMSDP_ROOM_SECTOR,
    eMSDP_WORLD_TIME, 
 
    /* Configuration */
