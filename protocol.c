@@ -181,6 +181,10 @@ static variable_name_t VariableNameTable[eMSDP_MAX+1] =
    { eMSDP_ROOM_SECTOR,      "ROOM_SECTOR",      STRING_READ_ONLY },
    { eMSDP_WORLD_TIME,       "WORLD_TIME",       NUMBER_READ_ONLY }, 
 
+   /* OLC */
+   { eMSDP_EDIT_MODE,        "EDIT_MODE",        STRING_READ_ONLY },
+   { eMSDP_EDIT_VNUM,        "EDIT_VNUM",        STRING_READ_ONLY },
+
    /* Configurable variables */
    { eMSDP_CLIENT_ID,        "CLIENT_ID",        STRING_WRITE_ONCE(1,40) }, 
    { eMSDP_CLIENT_VERSION,   "CLIENT_VERSION",   STRING_WRITE_ONCE(1,40) }, 

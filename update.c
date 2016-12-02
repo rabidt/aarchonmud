@@ -2947,6 +2947,12 @@ void msdp_update( void )
             MSDPSetNumber( d, eMSDP_WORLD_TIME, d->character-> );
 */
 
+            if (IS_IMMORTAL(d->character))
+            {
+                MSDPSetString( d, eMSDP_EDIT_MODE, olc_ed_name(d->character) );
+                MSDPSetString( d, eMSDP_EDIT_VNUM, olc_ed_vnum(d->character) );
+            }
+
             buf[0] = '\0';
             for ( paf = d->character->affected; paf; paf = paf->next )
             {
