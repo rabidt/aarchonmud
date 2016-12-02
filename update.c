@@ -2908,9 +2908,7 @@ void msdp_update( void )
             }
 
             /* Only update room stuff if they've changed room */
-            /* we're not sending vnums yet -Vodur */
-            //if ( pRoom && pRoom->vnum != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt )
-            if ( pRoom )
+            if ( pRoom && pRoom->vnum != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt )
             {
                 int i; /* Loop counter */
                 buf[0] = '\0';
@@ -2938,7 +2936,12 @@ void msdp_update( void )
 
                 MSDPSetString( d, eMSDP_ROOM_NAME, pRoom->name );
                 MSDPSetTable( d, eMSDP_ROOM_EXITS, buf );
-                //MSDPSetNumber( d, eMSDP_ROOM_VNUM, pRoom->vnum );
+                if ( IS_IMMORTAL(d->character) )
+                {
+                    MSDPSetNumber( d, eMSDP_ROOM_VNUM, pRoom->vnum );
+                    MSDPSetString( d, eMSDP_ROOM_SECTOR, 
+                            flag_bit_name(sector_flags, pRoom->sector_type));
+                }
             }
 /*
             MSDPSetNumber( d, eMSDP_WORLD_TIME, d->character-> );
