@@ -195,6 +195,10 @@ typedef enum
    eMSDP_ROOM_SECTOR,
    eMSDP_WORLD_TIME, 
 
+   /* OLC */
+   eMSDP_EDIT_MODE,
+   eMSDP_EDIT_VNUM,
+
    /* Configuration */
    eMSDP_CLIENT_ID, 
    eMSDP_CLIENT_VERSION, 
