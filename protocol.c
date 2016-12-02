@@ -178,6 +178,7 @@ static variable_name_t VariableNameTable[eMSDP_MAX+1] =
    { eMSDP_ROOM_EXITS,       "ROOM_EXITS",       STRING_READ_ONLY }, 
    { eMSDP_ROOM_NAME,        "ROOM_NAME",        STRING_READ_ONLY }, 
    { eMSDP_ROOM_VNUM,        "ROOM_VNUM",        NUMBER_READ_ONLY }, 
+   { eMSDP_ROOM_SECTOR,      "ROOM_SECTOR",      STRING_READ_ONLY },
    { eMSDP_WORLD_TIME,       "WORLD_TIME",       NUMBER_READ_ONLY }, 
 
    /* Configurable variables */
