@@ -309,6 +309,7 @@ local function changelog_usage( ch )
     sendtochar( ch, [[
 changelog show              -- Show 30 most recent changes.
 changelog show [page]       -- Show a specific page of changes.
+changelog entry [number]    -- Show a specific change entry.
 changelog browse            -- Browse changes page by page.
 changelog find [text]       -- Show all entries that contain the given text.
 changelog pattern [pattern] -- Show all entries that match the given pattern 
@@ -330,7 +331,19 @@ function do_changelog( ch, argument )
 
     local args=arguments(argument)
     
-    if args[1]=="show" then
+    if args[1]=="entry" then
+        local ttl=#changelog_table
+        local ind=tonumber(args[2])
+
+        if not(ind) or ind < 1 or ind > ttl then
+            sendtochar(ch, "Invalid entry number.\n\r")
+            return
+        end
+
+        show_change_entry( ch, ind, '')
+        return
+
+    elseif args[1]=="show" then
         local ttl=#changelog_table
         if ttl<1 then return end
         local page=tonumber(args[2])
