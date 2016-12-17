@@ -48,24 +48,6 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
         }
         return FALSE;
     }
-
-    int strong_grip = get_skill(victim, gsn_strong_grip);
-    if ( per_chance(strong_grip / 3) )
-    {
-        send_to_char("{Rthis is strong grip{x\n\r",victim);
-        if ( !quiet )
-        {
-            act("$N maintains a tight grip on $S weapon!", ch, NULL, victim, TO_CHAR);
-            act("$n tries to disarm you, but you maintain your grip!", ch, NULL, victim, TO_VICT);
-            act("$n tries to disarm $N, but $N maintains $S grip.", ch, NULL, victim, TO_NOTVICT);   
-        }
-        return FALSE;
-        check_improve(victim, gsn_strong_grip, TRUE, 3);
-    }
-    else
-    {
-        check_improve(victim, gsn_strong_grip, FALSE, 3);
-    }
     
     if (!quiet)
     {
