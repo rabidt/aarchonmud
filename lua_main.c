@@ -1465,7 +1465,7 @@ void free_ref( LUAREF *ref )
 {
     if (*ref!=LUA_NOREF)
     {
-        luaL_unref( g_mud_LS, LUA_GLOBALSINDEX, *ref );
+        luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, *ref );
         *ref=LUA_NOREF;
     }
 
@@ -1479,7 +1479,7 @@ void save_ref( lua_State *LS, int index, LUAREF *ref )
         return;
     }
     lua_pushvalue(LS, index);
-    *ref = luaL_ref( LS, LUA_GLOBALSINDEX );
+    *ref = luaL_ref( LS, LUA_REGISTRYINDEX );
 }
 
 void release_ref( lua_State *LS,  LUAREF *ref )
@@ -1489,13 +1489,13 @@ void release_ref( lua_State *LS,  LUAREF *ref )
         bugf( "Tried to release bad ref.");
         return;
     }
-    luaL_unref( LS, LUA_GLOBALSINDEX, *ref ); 
+    luaL_unref( LS, LUA_REGISTRYINDEX, *ref ); 
     *ref=LUA_NOREF;
 }
 
 void push_ref( lua_State *LS, LUAREF ref )
 {
-    lua_rawgeti( LS, LUA_GLOBALSINDEX, ref );
+    lua_rawgeti( LS, LUA_REGISTRYINDEX, ref );
 }
 
 bool is_set_ref( LUAREF ref )
