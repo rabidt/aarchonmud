@@ -4711,6 +4711,42 @@ static int CH_get_ascents(lua_State *LS)
     return 1;
 }
 
+#ifdef TESTER
+static int CH_set_subclass(lua_State *LS)
+{
+    CHAR_DATA *ud_ch = check_CH(LS,1);
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't set 'subclass' for NPC.");
+    }
+
+    if (lua_isnil(LS, 2)) 
+    {
+        ud_ch->pcdata->subclass = 0;
+        return 0;
+    }
+    else
+    {
+        const char *arg = check_string(LS, 2, MIL);
+
+        int sc = subclass_lookup(arg);
+        if (sc == 0)
+        {
+            return luaL_error(LS, "No such subclass '%s'", arg);
+        }
+
+        if (!can_take_subclass(ud_ch->class, sc))
+        {
+            return luaL_error(LS, "%s does not qualify for subclass %s", ud_ch->name, arg);
+        }
+        
+        ud_ch->pcdata->subclass = sc;
+
+        return 0;
+    }
+}
+#endif
+
 static int CH_get_subclass(lua_State *LS)
 {
     CHAR_DATA *ud_ch = check_CH(LS,1);
@@ -4921,6 +4957,9 @@ static const LUA_PROP_TYPE CH_set_table [] =
     /* PC only */
     CHSET(godname, 9),
     CHSET(religionrank, 9),
+#ifdef TESTER
+    CHSET(subclass, 9),
+#endif
     CHSET(questpoints, SEC_NOSCRIPT),
     CHSET(ptitles, SEC_NOSCRIPT),
     CHSET(ptitle, SEC_NOSCRIPT),
