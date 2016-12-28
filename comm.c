@@ -1457,17 +1457,9 @@ void bust_a_prompt( CHAR_DATA *ch )
                 {
                     if (ch->fighting->fighting && ch->fighting->fighting != ch)
                     {
-                        pct = ch->fighting->fighting->max_hit > 0 ?
-                            (ch->fighting->fighting->hit * 100) /
-                            ch->fighting->fighting->max_hit : -1;
-                        if ( pct >= 100 ) sprintf( buf2, "Excl" );
-                        else if ( pct >=  90 ) sprintf( buf2, "Scrt" );
-                        else if ( pct >=  75 ) sprintf( buf2, "Smal" );
-                        else if ( pct >=  50 ) sprintf( buf2, "QFew" );
-                        else if ( pct >=  30 ) sprintf( buf2, "BigN" );
-                        else if ( pct >=  15 ) sprintf( buf2, "Hurt" );
-                        else if ( pct >=  0  ) sprintf( buf2, "Awfl" );
-                        else                   sprintf( buf2, "Dyng" );
+                        pct = ch->fighting->fighting->max_hit > 0 ? (ch->fighting->fighting->hit * 100) / ch->fighting->fighting->max_hit : -1;
+                        if ( pct <= 25 ) sprintf( buf2, "{R%d(%d%%){x", ch->fighting->fighting->hit, pct);
+                        else sprintf( buf2, "%d(%d%%)", ch->fighting->fighting->hit, pct);
                         i = buf2;
                     }
                     else
