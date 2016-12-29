@@ -7306,33 +7306,6 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
   return victim;
 }
 
-DEF_DO_FUN(do_engage)
-{
-    CHAR_DATA *vch;
-    CHAR_DATA *vch_next;
-
-    if ( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
-    {
-        send_to_char( "Not in this room.\n\r", ch );
-        return;
-    }
-
-    ptc(ch, "You engage in combat with everyone in the room!\n\r");
-    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
-
-    for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
-    {
-        vch_next = vch->next_in_room;
-        if ( vch != ch 
-            && !is_safe_spell(ch,vch,TRUE)
-            && !(vch->position < POS_FIGHTING))
-        {
-            check_killer(ch, vch);
-            start_combat(ch, vch);
-        }
-    }
-}
-
 DEF_DO_FUN(do_kill)
 {
     char arg[MAX_INPUT_LENGTH];

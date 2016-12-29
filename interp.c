@@ -381,8 +381,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "supplies",   do_supplies,POS_DEAD,       0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "smite",      do_smite,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "engage",     do_engage,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
-
     
     // Meta-magic commands.
     { "mmcast",     do_mmcast,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
