@@ -7310,6 +7310,7 @@ DEF_DO_FUN(do_engage)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
+    bool found = FALSE;
 
     if ( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
     {
@@ -7317,20 +7318,25 @@ DEF_DO_FUN(do_engage)
         return;
     }
 
-    ptc(ch, "You engage in combat with everyone in the room!\n\r");
-    WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
-
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
     {
         vch_next = vch->next_in_room;
-        if ( vch != ch 
-            && !is_safe_spell(ch,vch,TRUE)
-            && !(vch->position < POS_FIGHTING))
+        if ( vch != ch && !is_safe_spell(ch, vch, TRUE) && !(vch->position < POS_FIGHTING)
+            && (!ch->fighting || !vch->fighting) )
         {
+            act("You engage $N in combat!", ch, NULL, vch, TO_CHAR);
+            act("$n engages you in combat!", ch, NULL, vch, TO_VICT);
+            act("$n engages $N in combat!", ch, NULL, vch, TO_NOTVICT);
+            found = TRUE;
             check_killer(ch, vch);
             start_combat(ch, vch);
         }
     }
+    
+    if ( !found )
+        ptc(ch, "There are no new targets to engage in combat!\n\r");
+    else
+        WAIT_STATE( ch, PULSE_VIOLENCE );
 }
 
 DEF_DO_FUN(do_kill)
