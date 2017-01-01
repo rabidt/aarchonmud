@@ -15,6 +15,8 @@
 #include "interp.h"
 
 
+//#define LUA_TEST
+
 /* for iterating */
 LUA_OBJ_TYPE *type_list [] =
 {
@@ -581,6 +583,20 @@ static int glob_start_con_handler( lua_State *LS)
     
     return lua_gettop(LS);
 }
+#ifdef LUA_TEST
+static int glob_runglobal(lua_State *LS)
+{
+    luaL_checktype(LS, 1, LUA_TFUNCTION);
+    lua_pushvalue(LS, LUA_GLOBALSINDEX);
+    if (lua_setfenv(LS, 1) == 0)
+    {
+       return luaL_error(LS, "Couldn't setfenv.");
+    }
+    lua_call(LS, 0, 0);
+
+    return 0;
+}
+#endif
 
 static int glob_getglobals (lua_State *LS)
 {
@@ -1300,7 +1316,7 @@ GLOB_TYPE glob_table[] =
     GFUN(echoaround,    0),
     GFUN(gecho,         0),
     GFUN(pagetochar,    0),
-    GFUN( arguments,    0),
+    GFUN(arguments,    0),
     GFUN(log,           0),
     GFUN(getcharlist,   9),
     GFUN(getobjlist,    9),
@@ -1322,6 +1338,9 @@ GLOB_TYPE glob_table[] =
     GFUN(do_luaquery,   9),
 #else
     GFUN(do_luaquery,   SEC_NOSCRIPT),
+#endif
+#ifdef LUA_TEST
+    GFUN(runglobal, 9),
 #endif
 
     GODF(confuse),

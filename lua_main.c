@@ -3,6 +3,9 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "merc.h"
 #include "timer.h"
 #include "lsqlite3.h"
@@ -65,6 +68,7 @@ int GetLuaGameObjectCount()
     {
         bugf ( "Error with UdCnt:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_pop(g_mud_LS, 1);
         return -1;
     }
 
@@ -80,6 +84,7 @@ int GetLuaEnvironmentCount()
     {
         bugf ( "Error with EnvCnt:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_pop(g_mud_LS, 1);
         return -1;
     }
 
@@ -465,6 +470,7 @@ void lua_unregister_desc (DESCRIPTOR_DATA *d)
     {
         ptc(d->character,  "LUA error for UnregisterDesc:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_pop(g_mud_LS, 1);
     }
 }
 
@@ -1569,7 +1575,14 @@ void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
 {
     lua_getglobal( g_mud_LS, "lua_con_handler" );
     push_DESCRIPTOR( g_mud_LS, d);
-    lua_pushstring( g_mud_LS, argument);
+    if (argument)
+    {
+        lua_pushstring( g_mud_LS, argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS );
+    }
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         bugf("Error with lua_con_handler:\n %s\n\r",
@@ -1685,4 +1698,79 @@ void confirm_yes_no( DESCRIPTOR_DATA *d,
         lua_pop( g_mud_LS, 1);
     }
     return;
+}
+
+/* push nil if pipe closed, string if data, empty string if no data */
+static int L_pgrep_read(lua_State *LS)
+{
+    char buf[MSL];
+    FILE *fp = lua_touserdata(LS, 1);
+    int fd = fileno(fp);
+
+    ssize_t r = read(fd, buf, MSL-1);
+    logpf("r: %d", r);
+    if (r == -1 && errno == EAGAIN)
+    {
+        lua_pushstring(LS, "");
+        return 1;
+    }
+    else if (r > 0)
+    {
+        buf[r] = '\0'; /* not sure if necessary? */
+        lua_pushstring(LS, buf);
+        return 1;
+    }
+    else 
+    {
+        pclose(fp);
+        lua_pushnil(LS);
+        return 1;
+    }
+}
+
+/* for manual canceling before reading complete */ 
+static int L_pgrep_cancel(lua_State *LS)
+{
+    FILE *fp = lua_touserdata(LS, 1);
+    pclose(fp);
+
+    return 0;
+}
+
+DEF_DO_FUN(do_pgrep)
+{
+    char buf[MSL];
+
+    if (IS_NPC(ch))
+        return;
+
+    if ( argument[0] == '\0' )
+    {
+        send_to_char(" pgrep <text> -- searches for the text in the player folder\n\r", ch );
+        return;
+    }
+    
+    sprintf(buf, "grep \"%s\" ../player/* ../box/*", argument);
+
+
+    /* http://stackoverflow.com/questions/1735781/non-blocking-pipe-using-popen */
+
+    FILE *fp = popen(buf, "r");
+    int fd = fileno(fp);
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    
+    lua_getglobal(g_mud_LS, "start_pgrep");
+    push_DESCRIPTOR(g_mud_LS, ch->desc);
+    lua_pushcfunction(g_mud_LS, L_pgrep_read);
+    lua_pushcfunction(g_mud_LS, L_pgrep_cancel);
+    lua_pushlightuserdata(g_mud_LS, fp);
+
+    if (CallLuaWithTraceBack( g_mud_LS, 4, 0) )
+    {
+        bugf ( "Error with do_pgrep:\n %s",
+                lua_tostring(g_mud_LS, -1));
+        lua_pop(g_mud_LS, 1);
+        return;
+    } 
 }
