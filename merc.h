@@ -714,26 +714,27 @@ struct penalty_data
 #define CON_FTP_AUTH            18
 */
 #define CON_LUA_HANDLER         16
-#define CON_GET_NEW_SUBCLASS    17
-#define CON_REMORT_BEGIN        18
-#define CON_GET_CREATION_MODE   19
-#define CON_ROLL_STATS          20
-#define CON_GET_STAT_PRIORITY   21
-#define CON_COPYOVER_RECOVER    22
-#define CON_NOTE_TO             23
-#define CON_NOTE_SUBJECT        24
-#define CON_NOTE_EXPIRE         25
-#define CON_NOTE_TEXT           26
-#define CON_NOTE_FINISH         27
-#define CON_PENALTY_SEVERITY    28
-#define CON_PENALTY_CONFIRM     29
-#define CON_PENALTY_HOURS       30
-#define CON_PENALTY_POINTS      31
-#define CON_PENALTY_PENLIST     32
-#define CON_PENALTY_FINISH      33
-#define CON_GET_COLOUR          34
-#define CON_CLOSED              35
-#define MAX_CON_STATE           36
+#define CON_LUA_PULSE_HANDLER   17
+#define CON_GET_NEW_SUBCLASS    18
+#define CON_REMORT_BEGIN        19
+#define CON_GET_CREATION_MODE   20
+#define CON_ROLL_STATS          21
+#define CON_GET_STAT_PRIORITY   22
+#define CON_COPYOVER_RECOVER    23
+#define CON_NOTE_TO             24
+#define CON_NOTE_SUBJECT        25
+#define CON_NOTE_EXPIRE         26
+#define CON_NOTE_TEXT           27
+#define CON_NOTE_FINISH         28
+#define CON_PENALTY_SEVERITY    29
+#define CON_PENALTY_CONFIRM     30
+#define CON_PENALTY_HOURS       31
+#define CON_PENALTY_POINTS      32
+#define CON_PENALTY_PENLIST     33
+#define CON_PENALTY_FINISH      34
+#define CON_GET_COLOUR          35
+#define CON_CLOSED              36
+#define MAX_CON_STATE           37
 
 #define CREATION_UNKNOWN         0
 #define CREATION_NORMAL          1
@@ -4056,7 +4057,7 @@ struct boss_achieve_record
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
-#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER)
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER || con == CON_LUA_PULSE_HANDLER)
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
