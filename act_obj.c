@@ -4229,6 +4229,12 @@ DEF_DO_FUN(do_deposit)
         return;
     }
 
+    if ( IS_REMORT(ch) )
+    {
+        ptc( ch, "You can't deposit in remort.\n\r");
+        return;
+    }
+
     one_argument( argument, arg );
 
     if ( arg[0] == '\0' )
