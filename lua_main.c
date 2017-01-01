@@ -1569,7 +1569,14 @@ void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
 {
     lua_getglobal( g_mud_LS, "lua_con_handler" );
     push_DESCRIPTOR( g_mud_LS, d);
-    lua_pushstring( g_mud_LS, argument);
+    if (argument)
+    {
+        lua_pushstring( g_mud_LS, argument);
+    }
+    else
+    {
+        lua_pushnil( g_mud_LS );
+    }
     if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
     {
         bugf("Error with lua_con_handler:\n %s\n\r",

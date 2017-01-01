@@ -549,6 +549,13 @@ function start_con_handler( d, fun, ... )
     lua_con_handler( d, unpack(arg) )
 end
 
+function start_con_pulse_handler(d, fun, ... )
+  forceset(d, "constate", "lua_pulse_handler")
+  forceset(d, "conhandler", coroutine.create( fun ) )
+
+  lua_con_handler( d, unpack(arg) )
+end
+
 function lua_con_handler( d, ...)
     if not forceget(d,"conhandler") then
         error("No conhandler for "..d.character.name)
