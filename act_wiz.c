@@ -52,7 +52,6 @@ DECLARE_DO_FUN(do_stand     );
 DECLARE_DO_FUN(do_help      );
 DECLARE_DO_FUN(do_grant     );
 DECLARE_DO_FUN(do_revoke    );
-DECLARE_DO_FUN( do_pipe     );
 
 
 /*
@@ -3076,27 +3075,6 @@ DEF_DO_FUN(do_mortlag)
     }
   }
 }
-
-DEF_DO_FUN(do_pgrep)
-{
-    if ( argument[0] == '\0' )
-    {
-        send_to_char(" pgrep <text> -- searches for the text in the player folder\n\r", ch );
-        return;
-    }
-
-    char buf[MSL];
-    sprintf( buf, "grep \"%s\" ../player/*", argument);
-    do_pipe(ch, buf);
-
-    send_to_char( "\n\r",ch);
-
-    sprintf( buf, "grep \"%s\" ../box/*", argument);
-    do_pipe(ch, buf);
-
-    send_to_char( "\n\r",ch);
-    return;
-} 
 
 /* do_tables stuff */
 static void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)

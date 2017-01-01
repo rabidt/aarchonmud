@@ -604,3 +604,33 @@ function confirm_yes_no( DO_FUN_caller, d,
     start_con_handler( d, confirm_handler)
 
 end
+
+function start_pgrep(d, read_func, canc_func, fp)
+  local function pgrep_handler()
+    local output = {}
+    local message = "Waiting for pgrep results. Type 'cancel' to abort.\n\r"
+    sendtochar(d.character, message)
+    while true do
+      local cmd = coroutine.yield()
+      if cmd == "cancel" then
+        canc_func(fp)
+        break
+      elseif cmd ~= nil then
+        sendtochar(d.character, message)
+      else
+        local result = read_func(fp) 
+        if result == nil then
+          break
+        elseif result ~= "" then
+          table.insert(output, result)
+        end
+      end
+    end
+
+    pagetochar(d.character, table.concat(output).."\n\r")
+    
+    return
+  end
+
+  start_con_pulse_handler(d, pgrep_handler)
+end
