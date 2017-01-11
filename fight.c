@@ -495,11 +495,43 @@ bool wants_to_rescue( CHAR_DATA *ch )
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
 
+// try to rescue the attacker's target
+void rescue_from( CHAR_DATA *ch, CHAR_DATA *attacker, bool lag )
+{
+    CHAR_DATA *victim = attacker->fighting;
+    int chance, reroll;
+    
+    chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
+    chance += (ch->level - attacker->level) / 4;
+    chance = chance * 100 / (100 + 4 * get_skill(attacker, gsn_entrapment));
+    check_improve(attacker, gsn_entrapment, TRUE, 1);
+    reroll = chance * mastery_bonus(ch, gsn_rescue, 60, 100) / 100;
+
+    if ( lag ) 
+        WAIT_STATE(ch, skill_table[gsn_rescue].beats);
+    
+    if ( !per_chance(chance) && !per_chance(reroll) )
+    {
+        send_to_char( "You fail the rescue.\n\r", ch );
+        check_improve(ch, gsn_rescue, FALSE, 2);
+        return;
+    }
+    
+    act( "You rescue $N!",  ch, NULL, victim, TO_CHAR    );
+    act( "$n rescues you!", ch, NULL, victim, TO_VICT    );
+    act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
+    check_improve(ch, gsn_rescue, TRUE, 2);
+    
+    check_killer(ch, attacker);
+    if ( !ch->fighting )
+        set_fighting(ch, attacker);
+    set_fighting(attacker, ch);
+}
+
 /* check if character rescues someone */
 void check_rescue( CHAR_DATA *ch )
 {
     CHAR_DATA *attacker, *target = NULL;
-    char buf[MSL];
 
     if ( !wants_to_rescue(ch) || !can_attack(ch) || ch->position < POS_FIGHTING )
         return;
@@ -512,9 +544,13 @@ void check_rescue( CHAR_DATA *ch )
             return;
     }
     
-    // get target
+    // get targets - bodyguard mastery allows multiple attempts (against different targets)
+    int attempts = 1 + mastery_bonus(ch, gsn_bodyguard, 1, 2);
     for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
     {
+        if ( attempts < 1 )
+            break;
+        
         // may not be able to interfere
         if ( is_safe_spell(ch, attacker, FALSE) )
             continue;
@@ -527,32 +563,26 @@ void check_rescue( CHAR_DATA *ch )
         // may not want to be rescued
         if ( wants_to_rescue(target) )
             continue;
+
+        // failed bodyguard check still counts as an attempt
+        --attempts;
         
-        break;
+        /* lag-free rescue */
+        if ( check_skill(ch, gsn_bodyguard) )
+        {
+            ptc(ch, "You rush in to protect %s.\n\r", target->name);
+            rescue_from(ch, attacker, FALSE);
+            check_improve(ch, gsn_bodyguard, TRUE, 3);
+            continue;
+        }
+        
+        /* normal rescue - wait check */
+        if ( !ch->wait && !(ch->desc != NULL && is_command_pending(ch->desc)) )
+        {
+            ptc(ch, "You rush in to protect %s.\n\r", target->name);
+            rescue_from(ch, attacker, TRUE);
+        }
     }
-
-    if ( attacker == NULL )
-        return;
-
-  /* lag-free rescue */
-  if (number_percent() < get_skill(ch, gsn_bodyguard))
-  {
-    int old_wait = ch->wait;
-    sprintf(buf, "You rush in to protect %s.\n\r", target->name );
-    send_to_char( buf, ch );
-    do_rescue( ch, target->name );
-    ch->wait = old_wait;
-    check_improve(ch, gsn_bodyguard, TRUE, 3);
-    return;
-  }
-
-  /* normal rescue - wait check */
-  if (ch->wait > 0 || (ch->desc != NULL && is_command_pending(ch->desc)))
-    return;
-  
-  sprintf(buf, "You try to protect %s.\n\r", target->name );
-  send_to_char( buf, ch );
-  do_rescue( ch, target->name );
 }
 
 /* handle affects that do things each round */

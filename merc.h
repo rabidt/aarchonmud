@@ -4727,6 +4727,7 @@ bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int s
 bool    is_woodland( int sector );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
+void    rescue_from( CHAR_DATA *ch, CHAR_DATA *attacker, bool lag );
 CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
 CD *    get_local_leader( CHAR_DATA *ch );
 CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );

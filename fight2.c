@@ -1337,7 +1337,6 @@ DEF_DO_FUN(do_rescue)
     CHAR_DATA *victim;
     CHAR_DATA *fch;
     bool is_attacked = FALSE;
-    int chance, reroll;
     
     one_argument( argument, arg );
 
@@ -1401,40 +1400,8 @@ DEF_DO_FUN(do_rescue)
             send_to_char( "That person isn't being attacked right now.\n\r", ch );
         return;
     }
-
-    chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
-    chance += (ch->level - fch->level) / 4;
-    if (number_percent() < get_skill(fch, gsn_entrapment))
-    {
-      chance /= 5;
-      check_improve(fch, gsn_entrapment, TRUE, 1);
-    }
-    reroll = chance * mastery_bonus(ch, gsn_rescue, 60, 100) / 100;
-
-    WAIT_STATE( ch, skill_table[gsn_rescue].beats );
-    if ( !per_chance(chance) && !per_chance(reroll) )
-    {
-        send_to_char( "You fail the rescue.\n\r", ch );
-        check_improve(ch,gsn_rescue,FALSE,2);
-        return;
-    }
     
-    act( "You rescue $N!",  ch, NULL, victim, TO_CHAR    );
-    act( "$n rescues you!", ch, NULL, victim, TO_VICT    );
-    act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
-    check_improve(ch,gsn_rescue,TRUE,2);
-    
-    /* removed to prevent kill-trigger to activate --Bobble
-    stop_fighting( fch, FALSE );
-    stop_fighting( victim, FALSE );
-    */
-
-    check_killer( ch, fch );
-    if ( ch->fighting != fch )
-        set_fighting( ch, fch );
-    set_fighting( fch, ch );
-    /*set_fighting( victim, other );*/
-    return;
+    rescue_from(ch, fch, TRUE);
 }
 
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
