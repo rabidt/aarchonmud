@@ -840,7 +840,7 @@ void check_jump_up( CHAR_DATA *ch )
 /* for auto assisting */
 void check_assist(CHAR_DATA *ch)
 {
-    CHAR_DATA *rch, *rch_next, *victim;
+    CHAR_DATA *rch, *rch_next, *victim, *tank;
     ROOM_INDEX_DATA *room = ch->in_room;
     
     if ( !(victim = ch->fighting) || room == NULL )
@@ -855,24 +855,26 @@ void check_assist(CHAR_DATA *ch)
             
             /* quick check for ASSIST_PLAYER */
             if (!IS_NPC(ch) && IS_NPC(rch) && IS_NPC(victim)
-		&& rch != victim
+                && rch != victim
                 && IS_SET(rch->off_flags,ASSIST_PLAYERS)
                 && rch->level + 6 > victim->level)
             {
                 do_emote(rch,"screams and attacks!");
-                multi_hit(rch,victim,TYPE_UNDEFINED);
+                tank = check_bodyguard(rch, victim);
+                multi_hit(rch, tank, TYPE_UNDEFINED);
                 continue;
             }
             
             /* PCs next */
             if (!IS_NPC(ch) || IS_AFFECTED(ch,AFF_CHARM))
             {
-                if ( ((!IS_NPC(rch) && IS_SET(rch->act,PLR_AUTOASSIST))
-		      || IS_AFFECTED(rch,AFF_CHARM)) 
-		     && is_same_group(ch,rch) 
-		     && !is_safe(rch, victim))
-                    multi_hit (rch,victim,TYPE_UNDEFINED);
-                
+                if ( (PLR_ACT(rch, PLR_AUTOASSIST) || IS_AFFECTED(rch, AFF_CHARM))
+                    && is_same_group(ch,rch)
+                    && !is_safe(rch, victim) )
+                {
+                    tank = check_bodyguard(rch, victim);
+                    multi_hit (rch, tank, TYPE_UNDEFINED);
+                }
                 continue;
             }
             
@@ -897,19 +899,13 @@ void check_assist(CHAR_DATA *ch)
                     CHAR_DATA *vch;
                     CHAR_DATA *target;
                     int number;
-                    
-		    /*
-                    if (number_bits(1) == 0)
-                        continue;
-		    */
-                    
                     target = NULL;
                     number = 0;
                     for ( vch = room->people; vch; vch = vch->next_in_room )
                     {
                         if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)
-			    && !is_safe(rch, vch)
+                            && !is_safe(rch, vch)
                             && number_range(0,number) == 0)
                         {
                             target = vch;
@@ -920,8 +916,9 @@ void check_assist(CHAR_DATA *ch)
                     if (target != NULL)
                     {
                         do_emote(rch,"screams and attacks!");
+                        target = check_bodyguard(rch, target);
                         multi_hit(rch,target,TYPE_UNDEFINED);
-			continue;
+                        continue;
                     }
                 }   
             }
