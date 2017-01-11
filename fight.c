@@ -291,8 +291,9 @@ void violence_update_char( CHAR_DATA *ch )
     if ( (victim = ch->fighting) == NULL )
         return;
     
-    // ch rescues someone
+    // ch rescues allies and/or guards opponents
     check_rescue(ch);
+    check_guard(ch);
 
     if ( IS_NPC(ch) )
     {
@@ -582,6 +583,61 @@ void check_rescue( CHAR_DATA *ch )
             ptc(ch, "You rush in to protect %s.\n\r", target->name);
             rescue_from(ch, attacker, TRUE);
         }
+    }
+}
+
+void guard_against( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int chance = get_skill(ch, gsn_guard);
+    
+    if ( !chance )
+        return;
+    
+    chance += get_curr_stat(ch, STAT_DEX) / 8;
+    chance -= get_curr_stat(victim, STAT_AGI) / 8;
+    
+    if ( per_chance(chance) )
+    {
+        AFFECT_DATA af;
+        
+        act("$n vigilantly guards against your attack.", ch, NULL, victim, TO_VICT);
+        act("You vigilantly guard against $N's attack.", ch, NULL, victim, TO_CHAR);
+        act("$n vigilantly guards against $N's attack.", ch, NULL, victim, TO_NOTVICT);
+        check_improve(ch, gsn_guard, TRUE, 3);
+        
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_guard;
+        af.level    = ch->level;
+        af.duration = get_duration(gsn_guard, ch->level);
+        af.location = APPLY_HITROLL;
+        af.modifier = -(ch->level * chance/1000);
+        af.bitvector = AFF_GUARD;
+        affect_to_char(victim, &af);
+    }
+    else
+    {
+        act("You can't keep track of $N.", ch, NULL, victim, TO_CHAR);
+        check_improve(ch, gsn_guard, FALSE, 3);
+    } 
+    check_killer(ch, victim);
+}
+
+// automatic lag-free guard attempts with mastery
+void check_guard( CHAR_DATA *ch )
+{
+    CHAR_DATA *victim;
+    
+    int chance = mastery_bonus(ch, gsn_guard, 6, 10);
+    if ( !chance )
+        return;
+
+    for ( victim = ch->in_room->people; victim != NULL; victim = victim->next_in_room )
+    {
+        if ( !is_opponent(ch, victim) || is_affected(victim, gsn_guard) || !per_chance(chance) )
+            continue;
+        if ( !can_see_combat(ch, victim) )
+            continue;
+        guard_against(ch, victim);
     }
 }
 

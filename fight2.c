@@ -1899,9 +1899,8 @@ DEF_DO_FUN(do_war_cry)
 DEF_DO_FUN(do_guard)
 {
     CHAR_DATA *victim;
-    int chance;
     
-    if ( (chance = get_skill(ch,gsn_guard)) == 0)
+    if ( get_skill(ch, gsn_guard) == 0 )
     {
         send_to_char("You don't know how to guard.\n\r",ch);
         return;
@@ -1934,39 +1933,8 @@ DEF_DO_FUN(do_guard)
         return;
     }
     
-    /* dex */
-    chance += get_curr_stat(ch,STAT_DEX)/8;
-    chance -= get_curr_stat(victim,STAT_AGI)/8;
-    
-    /* now the attack */
-    if (number_percent() < chance)
-    {
-        AFFECT_DATA af;
-        
-        act("$n vigilantly guards against your attack.",ch,NULL,victim,TO_VICT);
-        act("You vigilantly guard against $N's attack.",ch,NULL,victim,TO_CHAR);
-        act("$n vigilantly guards against $N's attack.",ch,NULL,victim,TO_NOTVICT);
-        check_improve(ch,gsn_guard,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_guard].beats);
-        
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_guard;
-        af.level    = ch->level;
-        af.duration = get_duration(gsn_guard, ch->level);
-        af.location = APPLY_HITROLL;
-        af.modifier = -(ch->level*chance/1000);
-        af.bitvector    = AFF_GUARD;
-        
-        affect_to_char(victim,&af);
-    }
-    else
-    {
-        act("You can't keep track of $N.",ch,NULL,victim,TO_CHAR);
-        
-        WAIT_STATE(ch,skill_table[gsn_guard].beats*2/3);
-        check_improve(ch,gsn_guard,FALSE,3);
-    } 
-    check_killer(ch,victim);
+    WAIT_STATE(ch,skill_table[gsn_guard].beats);
+    guard_against(ch, victim);
 }
 
 
