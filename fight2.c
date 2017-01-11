@@ -1337,7 +1337,7 @@ DEF_DO_FUN(do_rescue)
     CHAR_DATA *victim;
     CHAR_DATA *fch;
     bool is_attacked = FALSE;
-    int chance;
+    int chance, reroll;
     
     one_argument( argument, arg );
 
@@ -1403,15 +1403,16 @@ DEF_DO_FUN(do_rescue)
     }
 
     chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
-    chance += (ch->level - victim->level) / 4;
+    chance += (ch->level - fch->level) / 4;
     if (number_percent() < get_skill(fch, gsn_entrapment))
     {
       chance /= 5;
       check_improve(fch, gsn_entrapment, TRUE, 1);
     }
+    reroll = chance * mastery_bonus(ch, gsn_rescue, 60, 100) / 100;
 
     WAIT_STATE( ch, skill_table[gsn_rescue].beats );
-    if ( number_percent( ) > chance )
+    if ( !per_chance(chance) && !per_chance(reroll) )
     {
         send_to_char( "You fail the rescue.\n\r", ch );
         check_improve(ch,gsn_rescue,FALSE,2);
