@@ -3588,6 +3588,16 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         dam = dam * 100 / (200 + get_skill_overflow(victim, gsn_evasion));
         dam = UMAX(1, dam);
     }
+    if ( dam > 1 && ch->fighting && ch->fighting != victim )
+    {
+        CHAR_DATA *sentinel = ch->fighting;
+        if ( check_skill(sentinel, gsn_sentinel) )
+        {
+            int reduction = 25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25);
+            dam -= dam * reduction / 100;
+            check_improve(sentinel, gsn_sentinel, TRUE, 2);
+        }
+    }
 
     immune = FALSE;
     
