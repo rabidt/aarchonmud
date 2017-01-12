@@ -3647,7 +3647,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( dam > 1 && ch->fighting && ch->fighting != victim )
     {
         CHAR_DATA *sentinel = ch->fighting;
-        if ( check_skill(sentinel, gsn_sentinel) )
+        if ( is_same_group(sentinel, victim) && check_skill(sentinel, gsn_sentinel) )
         {
             int reduction = 25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25);
             dam -= dam * reduction / 100;
