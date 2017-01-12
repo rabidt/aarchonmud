@@ -2880,7 +2880,34 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
     if ( !str_cmp( arg, "self" ) )
         return ch;
     if ( !str_cmp( arg, "opponent" ) )
-	return ch->fighting;
+        return ch->fighting;
+    if ( !str_cmp(arg, "tank") )
+        return ch->fighting ? ch->fighting->fighting : NULL;
+    if ( !as_victim && !str_cmp(arg, "ally") )
+    {
+        // find group member with lowest (percentage) health
+        CHAR_DATA *ally = ch;
+        int injury = (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
+        for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
+        {
+            if ( (visible && !check_see_target(ch, rch))
+                || !is_same_group(ch, rch) )
+                continue;
+            
+            int rch_injury = (rch->max_hit - rch->hit) * 100 / UMAX(1, rch->max_hit);
+            // NPCs are less important to heal
+            if ( IS_NPC(rch) )
+                rch_injury /= 2;
+            
+            if ( rch_injury > injury )
+            {
+                ally = rch;
+                injury = rch_injury;
+            }
+        }
+        return ally;
+    }
+            
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( (visible && !check_see_target(ch, rch))
