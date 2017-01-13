@@ -1708,7 +1708,6 @@ static int L_pgrep_read(lua_State *LS)
     int fd = fileno(fp);
 
     ssize_t r = read(fd, buf, MSL-1);
-    logpf("r: %d", r);
     if (r == -1 && errno == EAGAIN)
     {
         lua_pushstring(LS, "");
