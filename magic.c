@@ -791,13 +791,14 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             {
                 victim = ch;
             }
-            else
+            else if ( !str_cmp(arg, "ally") )
             {
-                if ( ( victim = get_char_room( ch, arg ) ) == NULL )
-                {
-                    send_to_char( "They aren't here.\n\r", ch );
-                    return FALSE;
-                }
+                victim = get_char_room_ally(ch, sn);
+            }
+            else if ( !(victim = get_char_room(ch, arg)) )
+            {
+                send_to_char( "They aren't here.\n\r", ch );
+                return FALSE;
             }
 
             *vo = (void *) victim;
@@ -907,6 +908,12 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
                 *vo = (void *) ch;
                 *target = TARGET_CHAR;                                                 
             }
+            else if ( !str_cmp(arg, "ally") )
+            {
+                victim = get_char_room_ally(ch, sn);
+                *vo = (void *) victim;
+                *target = TARGET_CHAR;
+            }
             else if ((victim = get_char_room(ch,arg)) != NULL)
             {
                 *vo = (void *) victim;
@@ -928,6 +935,10 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             {
                 victim = ch; /* for later check */
                 *vo = (void *) ch;
+            }
+            else if ( !str_cmp(arg, "ally") )
+            {
+                victim = get_char_room_ally(ch, sn);
             }
             else if ((victim = get_char_room(ch,arg)) != NULL)
             {
