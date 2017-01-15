@@ -2865,6 +2865,31 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
+// find group member with lowest (percentage) health not affected by sn
+// lowest health is good for healing, sn-check for buffing
+CHAR_DATA *get_char_room_ally( CHAR_DATA *ch, int sn )
+{
+    CHAR_DATA *rch, *ally = ch;
+    int injury = is_affected(ch, sn) ? -100 : (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
+    for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
+    {
+        if ( ch == rch || !is_same_group(ch, rch) || is_affected(rch, sn) )
+            continue;
+        
+        int rch_injury = (rch->max_hit - rch->hit) * 100 / UMAX(1, rch->max_hit);
+        // NPCs are less important to heal
+        if ( IS_NPC(rch) )
+            rch_injury /= 2;
+        
+        if ( rch_injury > injury )
+        {
+            ally = rch;
+            injury = rch_injury;
+        }
+    }
+    return ally;
+}
+
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -2884,29 +2909,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
     if ( !str_cmp(arg, "tank") )
         return ch->fighting ? ch->fighting->fighting : NULL;
     if ( !as_victim && !str_cmp(arg, "ally") )
-    {
-        // find group member with lowest (percentage) health
-        CHAR_DATA *ally = ch;
-        int injury = (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
-        for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
-        {
-            if ( (visible && !check_see_target(ch, rch))
-                || !is_same_group(ch, rch) )
-                continue;
-            
-            int rch_injury = (rch->max_hit - rch->hit) * 100 / UMAX(1, rch->max_hit);
-            // NPCs are less important to heal
-            if ( IS_NPC(rch) )
-                rch_injury /= 2;
-            
-            if ( rch_injury > injury )
-            {
-                ally = rch;
-                injury = rch_injury;
-            }
-        }
-        return ally;
-    }
+        return get_char_room_ally(ch, -1);
             
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
