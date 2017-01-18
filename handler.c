@@ -683,6 +683,19 @@ bool is_either_name( const char *str, const char *namelist, bool exact )
 	return is_name( str, namelist );
 }
 
+bool show_empty_flag( OBJ_DATA *obj )
+{
+    switch ( obj->item_type ) {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            return obj->value[2] == 0;
+        case ITEM_DRINK_CON:
+            return obj->value[1] == 0;
+        default:
+            return FALSE;
+    }
+}
+
 bool match_obj( OBJ_DATA *obj, const char *arg )
 {
     char header[MSL], last;
@@ -713,7 +726,11 @@ bool match_obj( OBJ_DATA *obj, const char *arg )
     for ( flag = 0; wear_types[flag].name != NULL; flag++ )
         if ( !strcmp(wear_types[flag].name, arg) )
             return CAN_WEAR(obj, wear_types[flag].bit);
-        
+    
+    // match by specific key-words
+    if ( !strcmp(arg, "empty") && show_empty_flag(obj) )
+        return true;
+    
     // match by name
     return is_name(arg, obj->name);
 }
