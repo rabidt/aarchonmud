@@ -2758,7 +2758,8 @@ DEF_DO_FUN(do_recall)
     sprintf(buf, "$n prays to %s for transportation!", god_name);
     act( buf, ch, 0, 0, TO_ROOM );
     
-    if (!IS_NPC(ch) && ch->pcdata->clan_rank>1)
+    // go to clan-hall unless specified that bastion is the target
+    if ( !IS_NPC(ch) && ch->pcdata->clan_rank > 1 && strcmp(argument, "bastion") )
         room=clan_table[ch->clan].hall;
     
     if ( ( location = get_room_index( room) ) == NULL )
