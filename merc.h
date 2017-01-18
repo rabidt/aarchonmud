@@ -4850,6 +4850,7 @@ int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
+bool    show_empty_flag( OBJ_DATA *obj );
 bool    match_obj( OBJ_DATA *obj, const char *arg );
 bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( CHAR_DATA *ch );

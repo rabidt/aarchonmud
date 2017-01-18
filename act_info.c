@@ -187,6 +187,8 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
     if ( obj->timer == -1 && obj->item_type != ITEM_EXPLOSIVE )
         strcat( buf, "(Preserved) " );
+    if ( show_empty_flag(obj) )
+        strcat( buf, "(Empty) " );
     
     if ( fShort )
     {
