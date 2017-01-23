@@ -63,7 +63,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
     {
         vch_next = vch->next_in_room;
         
-        if ( is_safe_spell(ch,vch, vch != victim) || (IS_NPC(vch) && IS_NPC(ch) && ch->fighting != vch && vch->fighting != ch) )
+        if ( is_safe_spell(ch, vch, vch != victim) )
             continue;
         
         if (saves_spell(vch, ch, level, dam_type))
