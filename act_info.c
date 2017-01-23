@@ -2095,7 +2095,11 @@ void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, b
 
     if (show_long)
     {
-        printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name( paf->location ), paf->modifier);
+        // show aura resistances
+        if ( paf->modifier == 0 && paf->where != TO_AFFECTS )
+            printf_to_char( to_ch, ": grants %s ", to_bit_name(paf->where, paf->bitvector) );
+        else
+            printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name(paf->location), paf->modifier);
         if ( paf->duration == -1 )
             printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
         else
