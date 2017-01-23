@@ -4630,7 +4630,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         else
         {
             /* area effect spells do not hit other mobs */
-            if (area && !is_same_group(victim,ch->fighting))
+            if ( area && !is_opponent(ch, victim) )
                 return TRUE;
         }
     }
