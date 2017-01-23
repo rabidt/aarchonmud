@@ -2815,21 +2815,33 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     int dam_type = DAM_NONE;
     int aff_sn = aff->type;
     int aff_level = aff->level;
+    int dam = aff_level;
 
     // quirky's insanity is special
     if ( aff_sn == gsn_quirkys_insanity )
     {
-        if ( number_bits(2) == 0 )
+        dam_type = DAM_MENTAL;
+        dam -= dam / 4;
+        if ( number_bits(2) == 0 && !saves_spell(ch, victim, aff_level, DAM_MENTAL) )
         {
-            int sn = per_chance(10) ? skill_lookup("confusion") : skill_lookup("laughing fit");
-            (*skill_table[sn].spell_fun) (sn, aff_level/2, victim, (void*)ch, TARGET_CHAR, FALSE);
+            // effect similar to laughing fit
+            if ( ch->position > POS_RESTING )
+            {
+                act("$n falls down, laughing hysterically.", ch, NULL, NULL, TO_ROOM);
+                send_to_char("You fall down laughing.\n\r", ch);
+                set_pos(ch, POS_RESTING);
+                check_lose_stance(ch);
+            }
+            else
+            {
+                act("$n laughs like a madman, wonder what's so funny?", ch, NULL, NULL, TO_ROOM);
+                send_to_char("You throw your head back and laugh like a crazy madman!\n\r", ch);
+            }
+            DAZE_STATE(ch, PULSE_VIOLENCE);
         }
-        full_dam(victim, ch, aff_level/2, gsn_quirkys_insanity, DAM_MENTAL, TRUE);
-        return;
     }
-    
     // now the "regular" elemental auras
-    if ( aff_sn == gsn_immolation )
+    else if ( aff_sn == gsn_immolation )
         dam_type = DAM_FIRE;
     else if ( aff_sn == gsn_epidemic )
         dam_type = DAM_DISEASE;
@@ -2838,8 +2850,6 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     else if ( aff_sn == gsn_absolute_zero )
         dam_type = DAM_COLD;
     
-    int dam = aff_level;
-
     // save for half damage is possible but harder than normal
     if ( is_affected(ch, gsn_fervent_rage) || saves_spell(ch, victim, 2*aff_level, dam_type) )
         dam /= 2;
