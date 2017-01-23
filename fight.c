@@ -3583,6 +3583,27 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( stop_damage(ch, victim) )
         return FALSE;
 
+    // split damage between sentinel and intended victim
+    if ( dam > 1 && ch->fighting && ch->fighting != victim && dt != gsn_beheading )
+    {
+        CHAR_DATA *sentinel = ch->fighting;
+        if ( wants_to_rescue(sentinel) && is_same_group(sentinel, victim) && check_skill(sentinel, gsn_sentinel) )
+        {
+            if ( show ) {
+                act("You push $N out of harm's way!", sentinel, NULL, victim, TO_CHAR);
+                act("$n pushes you out of harm's way!", sentinel, NULL, victim, TO_VICT);
+                act("$n push $N out of harm's way!", sentinel, NULL, victim, TO_NOTVICT);
+            }
+            int reduction = dam * (25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25)) / 100;
+            dam -= reduction;
+            check_improve(sentinel, gsn_sentinel, TRUE, 2);
+            int sentinel_damage = reduction * 2/3;
+            if ( sentinel_damage > 0 ) {
+                deal_damage(ch, sentinel, sentinel_damage, dt, dam_type, show, lethal);
+            }
+        }
+    }
+
    /*
     * Damage modifiers.
     */
@@ -3643,16 +3664,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     {
         dam = dam * 100 / (200 + get_skill_overflow(victim, gsn_evasion));
         dam = UMAX(1, dam);
-    }
-    if ( dam > 1 && ch->fighting && ch->fighting != victim )
-    {
-        CHAR_DATA *sentinel = ch->fighting;
-        if ( is_same_group(sentinel, victim) && check_skill(sentinel, gsn_sentinel) )
-        {
-            int reduction = 25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25);
-            dam -= dam * reduction / 100;
-            check_improve(sentinel, gsn_sentinel, TRUE, 2);
-        }
     }
 
     immune = FALSE;
