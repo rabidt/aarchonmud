@@ -2318,16 +2318,9 @@ DEF_SPELL_FUN(spell_laughing_fit)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.modifier  = -2;
-    af.bitvector = AFF_LAUGH;
-    
-    af.location  = APPLY_STR;
-    affect_to_char(victim, &af);
-    
-    af.location  = APPLY_HITROLL;
-    affect_to_char(victim, &af);
-    
     af.location  = APPLY_INT;
+    af.modifier  = -2 -level/10;
+    af.bitvector = AFF_LAUGH;
     affect_to_char(victim, &af);
     
     send_to_char( "You begin to laugh uncontrollably!\n\r", victim );
