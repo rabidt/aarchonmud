@@ -1220,10 +1220,12 @@ DEF_DO_FUN(do_spells)
             
             if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
                 continue;
-            level = subclass->skill_level[i];
+            level = subclass->skill_level[i] % 100;
+            int min_ascent = 1 + subclass->skill_level[i] / 100;
             prac = subclass->skill_percent[i];
             
             if ( (fAll || level <= ch->level)
+                && ch->pcdata->ascents >= min_ascent
                 && level >= min_lev && level <= max_lev
                 && skill_table[sn].spell_fun != spell_null )
             {
@@ -1464,10 +1466,12 @@ DEF_DO_FUN(do_skills)
             
             if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
                 continue;
-            level = subclass->skill_level[i];
+            level = subclass->skill_level[i] % 100;
+            int min_ascent = 1 + subclass->skill_level[i] / 100;
             prac = subclass->skill_percent[i];
             
             if ( (fAll || level <= ch->level)
+                && ch->pcdata->ascents >= min_ascent
                 && level >= min_lev && level <= max_lev
                 && skill_table[sn].spell_fun == spell_null )
             {
@@ -2390,7 +2394,14 @@ int get_subclass_skill( CHAR_DATA *ch, int sn )
         if ( sc->skills[i] == NULL )
             return 0;
         if ( !strcmp(sc->skills[i], skill_table[sn].name) )
-            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+        {
+            int level = sc->skill_level[i] % 100;
+            int min_ascent = 1 + sc->skill_level[i] / 100;
+            if ( ch->level >= level && ch->pcdata->ascents >= min_ascent )
+                return sc->skill_percent[i];
+            else
+                return 0;
+        }
     }
 
     return 0;
