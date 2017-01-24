@@ -81,7 +81,8 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
 DEF_DO_FUN(do_berserk)
 {
     int chance, hp_percent;
-    int cost = 100;
+    int overflow = UMIN(100, get_skill_overflow(ch, gsn_berserk));
+    int cost = 100 - overflow;
     
     if ((chance = get_skill(ch,gsn_berserk)) == 0
         ||  (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_BERSERK)))
@@ -123,7 +124,8 @@ DEF_DO_FUN(do_berserk)
     {
         AFFECT_DATA af;
         
-        WAIT_STATE(ch, skill_table[gsn_berserk].beats);
+        if ( !per_chance(overflow) )
+            WAIT_STATE(ch, skill_table[gsn_berserk].beats);
         ch->move -= cost;
         
         /* heal a little damage */
