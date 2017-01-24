@@ -170,6 +170,7 @@ sh_int  gsn_sustenance;
 sh_int  gsn_hunt;     
 sh_int  gsn_pathfind;
 sh_int  gsn_streetwise;
+sh_int  gsn_create_bomb;
 sh_int  gsn_ignite;
 sh_int  gsn_forage;
 sh_int  gsn_torch;

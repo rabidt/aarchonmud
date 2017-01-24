@@ -2239,7 +2239,7 @@ const struct subclass_type subclass_table[] =
     {
         "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
         { "evasion", "high explosives", "create bomb", "ignite" },
-        { 30, 50, 170, 170 },
+        { 30, 50, 140, 140 },
         { 100, 100, 75, 75 }
     },
     {
@@ -3203,7 +3203,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_create_bomb,    TAR_IGNORE_OBJ,         POS_STANDING,
-    NULL, 30, 0, 12, DUR_NONE,
+    &gsn_create_bomb, 30, 0, 12, DUR_NONE,
     "",         "!Create Bomb!",    ""
     },  
 

@@ -3377,6 +3377,7 @@ extern sh_int  gsn_sustenance;
 extern sh_int  gsn_hunt;
 extern sh_int  gsn_pathfind;
 extern sh_int  gsn_streetwise;
+extern sh_int  gsn_create_bomb;
 extern sh_int  gsn_ignite;
 extern sh_int  gsn_assassination;
 extern sh_int  gsn_brutal_damage;
