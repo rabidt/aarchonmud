@@ -1593,7 +1593,6 @@ DEF_DO_FUN(do_shoot_lock)
 DEF_DO_FUN(do_unjam)
 {
     OBJ_DATA *obj;
-    int skill;
     
     /* find out what */
     if (argument[0] != '\0')
@@ -1626,41 +1625,22 @@ DEF_DO_FUN(do_unjam)
     }
     
     /* ok, we have a jammed weapon now */
+    
+    WAIT_STATE(ch, skill_table[gsn_unjam].beats);
+    int skill = get_skill(ch, gsn_unjam) + get_curr_stat(ch, STAT_LUC) / 4;
 
-    if ((skill = get_skill(ch,gsn_unjam)) < 1)
-    {
-	send_to_char("You're not really that sure what causes a jam.\n\r",ch);
-	return;
-    }
-
-    /*
-    if (!IS_OBJ_STAT(obj,ITEM_JAMMED))
-    {
-	act("$p is not jammed.",ch,obj,NULL,TO_CHAR);
-	return;
-    }
-    */
-
-    if (number_percent() < (skill/3) + (get_curr_stat(ch, STAT_LUC)/12))  
+    if ( per_chance(skill / 3) )  
     {
 	REMOVE_BIT(obj->extra_flags,ITEM_JAMMED);
 	act("$n unjams $s weapon!",ch,obj,NULL,TO_ROOM);
 	act("You unjam $p.",ch,obj,NULL,TO_CHAR);
 	check_improve(ch,gsn_unjam,TRUE,2);
-	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
-	return;
     }
     else
     {
 	act("You fail to unjam $p.",ch,obj,NULL,TO_CHAR);
 	check_improve(ch,gsn_unjam,FALSE,2);
-	WAIT_STATE(ch,skill_table[gsn_unjam].beats);
-	return;
     }
-	
-    /*
-    act("You can't unjam $p.",ch,obj,NULL,TO_CHAR);
-    */
 }
 
 DEF_DO_FUN(do_set_snare)
