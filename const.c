@@ -2133,6 +2133,9 @@ const   struct  class_type  class_table [MAX_CLASS] =
 #define NECROMANCER (1<<14)
 #define BARD        (1<<15)
 
+const sh_int subclass_chosen = 7;
+const sh_int subclass_demolitionist = 16;
+
 const struct subclass_type subclass_table[] =
 {
     /*

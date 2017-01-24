@@ -6250,7 +6250,7 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 /* check if the gods have mercy on a character */
 bool check_mercy( CHAR_DATA *ch )
 {
-    if ( get_skill(ch, gsn_divine_channel) > 0 )
+    if ( ch->pcdata && ch->pcdata->subclass == subclass_chosen )
         return TRUE;
     
     int chance = 1000;
