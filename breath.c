@@ -49,7 +49,7 @@ void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim,
   /* calc damage */
   dam = get_spell_damage( base_mana_cost(ch, sn) + cost, skill_table[sn].beats, level );
   dam = adjust_spell_damage( dam, ch );
-  dam += get_spell_bonus_damage_sn(ch, sn);
+  dam += get_spell_bonus_damage_sn(ch, sn, multi_target ? NULL : victim);
 
   if (multi_target)
   {
