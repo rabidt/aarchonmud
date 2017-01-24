@@ -5952,11 +5952,21 @@ static void show_subclass( CHAR_DATA *ch, int sc )
     {
         if ( subclass_table[sc].skills[i] == NULL )
             break;
-        ptc(ch, "%20s    %3d    %3d%%\n\r",
-            subclass_table[sc].skills[i],
-            subclass_table[sc].skill_level[i],
-            subclass_table[sc].skill_percent[i]
-        );
+        int level = subclass_table[sc].skill_level[i] % 100;
+        int min_ascent = 1 + subclass_table[sc].skill_level[i] / 100;
+        if ( min_ascent == 1 )
+            ptc(ch, "%20s    %3d    %3d%%\n\r",
+                subclass_table[sc].skills[i],
+                level,
+                subclass_table[sc].skill_percent[i]
+            );
+        else
+            ptc(ch, "%20s    %3d    %3d%%   (A%d+)\n\r",
+                subclass_table[sc].skills[i],
+                level,
+                subclass_table[sc].skill_percent[i],
+                min_ascent
+            );
     }
 }
 
