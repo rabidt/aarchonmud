@@ -2740,7 +2740,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_rupture
         || dt == gsn_snipe )
     {
-        victim_roll /= 2;
+        victim_roll *= 100.0 / (200 + get_skill_overflow(ch, dt));
     }    
     else if ( dt == gsn_fullauto
         || dt == gsn_semiauto
@@ -5181,7 +5181,7 @@ static int defence_penalty( CHAR_DATA *ch )
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
-    int skill = get_skill(ch, gsn_parry);
+    int skill = get_skill_total(ch, gsn_parry, 0.2);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
