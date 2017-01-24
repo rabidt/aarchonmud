@@ -3319,6 +3319,9 @@ extern sh_int race_vampire;
 extern sh_int race_rakshasa;
 extern sh_int race_dragonborn;
 
+extern const sh_int subclass_chosen;
+extern const sh_int subclass_demolitionist;
+
 /*
  * These are skill_lookup return values for common skills and spells.
  */
