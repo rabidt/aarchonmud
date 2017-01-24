@@ -2436,9 +2436,13 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 int pc_skill_level( CHAR_DATA *ch, int sn )
 {
     int level = skill_table[sn].skill_level[ch->class];
+    int subclass = ch->pcdata->subclass;
     // mastered spells are gained earlier
     if ( level <= LEVEL_HERO && IS_SPELL(sn) )
         level -= mastery_bonus(ch, sn, 8, 10);
+    // subclassing may help as well
+    if ( level <= LEVEL_HERO && subclass == subclass_demolitionist && (sn == gsn_create_bomb || sn == gsn_ignite) )
+        level -= 30;
     return UMAX(1, level);
 }
 
