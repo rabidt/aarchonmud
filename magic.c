@@ -1440,7 +1440,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
             && victim != ch && victim->in_room == ch->in_room
             && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
         {
-            int dam = get_sn_damage(sn, ch->level, ch) * 0.25;
+            int dam = get_sn_damage(sn, ch->level, ch, victim) * 0.25;
             if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
                 dam /= 2;
             deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
@@ -2096,11 +2096,13 @@ int adjust_spell_damage( int dam, CHAR_DATA *ch )
     return dam * number_range(90, 110) / 100;
 }
 
-int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg )
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg, CHAR_DATA *victim )
 {
     int edge = get_skill(ch, gsn_warmage_edge);
     if ( ch->stance == STANCE_ARCANA )
         edge += 100;
+    if ( victim && !can_see_combat(victim, ch) )
+        edge += 2 * get_skill_total(ch, gsn_flanking, 0.5);
     int bonus = ch->level * edge / 150;
     // damroll from affects applies here as well
     if ( avg )
@@ -2114,15 +2116,15 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg )
     return bonus * (100 + get_focus_bonus(ch)) / 100;
 }
 
-int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn )
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn, CHAR_DATA *victim )
 {
     int cast_time = skill_table[sn].beats;
     if ( IS_SET(meta_magic, META_MAGIC_QUICKEN) )
         cast_time /= 2;
-    return get_spell_bonus_damage(ch, cast_time, FALSE);
+    return get_spell_bonus_damage(ch, cast_time, FALSE, victim);
 }
 
-int get_sn_damage( int sn, int level, CHAR_DATA *ch )
+int get_sn_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int mana, dam, bonus;
 
@@ -2132,7 +2134,7 @@ int get_sn_damage( int sn, int level, CHAR_DATA *ch )
     mana = base_mana_cost(ch, sn);
     dam = get_spell_damage( mana, skill_table[sn].beats, level );
     dam = adjust_spell_damage(dam, ch);
-    bonus = get_spell_bonus_damage_sn(ch, sn);
+    bonus = get_spell_bonus_damage_sn(ch, sn, victim);
     // bonus can at most double the spell damage
     dam += UMIN(bonus, dam);
 
@@ -2201,7 +2203,7 @@ DEF_SPELL_FUN(spell_acid_blast)
 
     SPELL_CHECK_RETURN
     
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     if ( saves_spell(victim, ch, level, DAM_ACID ) )
         dam /= 2;
 
@@ -2374,7 +2376,7 @@ DEF_SPELL_FUN(spell_burning_hands)
     
     if ( check_hit( ch, victim, sn, DAM_FIRE, 100 ) )
     {
-        dam = get_sn_damage( sn, level, ch ) * 14/10;
+        dam = get_sn_damage( sn, level, ch, victim ) * 14/10;
         if ( saves_spell(victim, ch, level, DAM_FIRE) )
             dam /= 2;
         fire_effect( victim, level, dam, TARGET_CHAR );
@@ -2406,7 +2408,7 @@ DEF_SPELL_FUN(spell_call_lightning)
 
     SPELL_CHECK_RETURN
     
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * 1.5;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR * 1.5;
 
     send_to_char( "Lightning leaps out of the sky to strike your foes!\n\r", ch );
     act( "$n calls lightning from the sky to strike $s foes!", ch, NULL, NULL, TO_ROOM );
@@ -2602,7 +2604,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
     int curr_dam, dam;
     int per = 100;
 
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR;
     while ( per > 0 )
     {
         int count = 0;
@@ -2812,7 +2814,7 @@ DEF_SPELL_FUN(spell_chill_touch)
     
     if ( check_hit(ch, victim, sn, DAM_COLD, 100) )
     {
-        dam = get_sn_damage(sn, level, ch) * 14/10;
+        dam = get_sn_damage(sn, level, ch, victim) * 14/10;
         if ( saves_spell(victim, ch, level, DAM_COLD) )
             dam /= 2;
         cold_effect( victim, level, dam, TARGET_CHAR );
@@ -2833,7 +2835,7 @@ DEF_SPELL_FUN(spell_colour_spray)
 
     SPELL_CHECK_RETURN
 
-    dam = get_sn_damage(sn, level, ch) * 3/4;
+    dam = get_sn_damage(sn, level, ch, victim) * 3/4;
     if ( saves_spell(victim, ch, level, DAM_LIGHT) )
         dam /= 2;
     else 
@@ -3321,7 +3323,7 @@ DEF_SPELL_FUN(spell_demonfire)
         send_to_char("You conjure forth the demons of hell!\n\r",ch);
     }
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
 
     if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
         dam /= 2;
@@ -3354,7 +3356,7 @@ DEF_SPELL_FUN(spell_angel_smite)
         send_to_char("You call the angels of Heaven!\n\r",ch);
     }
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
 
@@ -3564,7 +3566,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
         return SR_IMMUNE;
     }
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     dam += dam * (ch->alignment - victim->alignment) / 4000;
     if ( saves_spell(victim, ch, level, DAM_HOLY) )
         dam /= 2;
@@ -3595,7 +3597,7 @@ DEF_SPELL_FUN(spell_dispel_good)
         return SR_IMMUNE;
     }
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     dam += dam * (victim->alignment - ch->alignment) / 4000;
     if ( saves_spell(victim, ch, level, DAM_NEGATIVE) )
         dam /= 2;
@@ -3643,7 +3645,7 @@ DEF_SPELL_FUN(spell_earthquake)
     send_to_char( "The earth trembles beneath your feet!\n\r", ch );
     act( "$n makes the earth tremble and shiver.", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR;
 
     for ( vch = char_list; vch != NULL; vch = vch_next )
     {
@@ -3840,7 +3842,7 @@ DEF_SPELL_FUN(spell_energy_drain)
 
     drop_align( ch );
 
-    drain = get_sn_damage( sn, level, ch ) / 2;
+    drain = get_sn_damage( sn, level, ch, victim ) / 2;
     /* if one stat is fully drained, drain missing points on other */
     drain_mana = UMIN( drain, victim->mana );
     drain_move = UMIN( 2*drain - drain_mana, victim->move );
@@ -3873,7 +3875,7 @@ DEF_SPELL_FUN(spell_fireball)
     act("A ball of fire explodes from $n's hands!",ch,NULL,NULL,TO_ROOM);
     act("A ball of fire explodes from your hands.",ch,NULL,NULL,TO_CHAR);
 
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR;
 
     for (vch = ch->in_room->people; vch != NULL; vch = vch_next)
     {
@@ -3950,7 +3952,7 @@ DEF_SPELL_FUN(spell_flamestrike)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     if ( saves_spell(victim, ch, level, DAM_FIRE) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_FIRE ,TRUE);
@@ -4328,7 +4330,7 @@ DEF_SPELL_FUN(spell_cause_harm)
     SPELL_CHECK_RETURN
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
-    int harm = get_sn_damage(sn, level, ch);
+    int harm = get_sn_damage(sn, level, ch, victim);
     // scale with victim's health
     harm *= (1 + 3.0 * victim->hit / victim->max_hit) / 4;
     if ( IS_AFFECTED(victim, AFF_SANCTUARY) || saves_spell(victim, ch, level, DAM_HARM) )
@@ -4507,7 +4509,7 @@ DEF_SPELL_FUN(spell_heat_metal)
     }
     else
     {
-        dam = get_sn_damage(sn, level, ch) * dam / 50;
+        dam = get_sn_damage(sn, level, ch, victim) * dam / 50;
         full_dam(ch, victim, dam, sn, DAM_FIRE, TRUE);
     }
     return TRUE;
@@ -4546,7 +4548,7 @@ DEF_SPELL_FUN(spell_holy_word)
     curse_num = skill_lookup("curse");
     frenzy_num = skill_lookup("frenzy");
 
-    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage(sn, level, ch, NULL) * AREA_SPELL_FACTOR;
 
     if ( IS_GOOD(ch) )
         dam_type = DAM_HOLY;
@@ -4979,7 +4981,7 @@ DEF_SPELL_FUN(spell_lightning_bolt)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int dam;
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     if ( saves_spell(victim, ch, level, DAM_LIGHTNING) )
         dam /= 2;
     full_dam( ch, victim, dam, sn, DAM_LIGHTNING ,TRUE);
@@ -5067,7 +5069,7 @@ DEF_SPELL_FUN(spell_magic_missile)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     // no save => reduced damage
-    int damage = get_sn_damage(sn, level, ch) * 3/4;
+    int damage = get_sn_damage(sn, level, ch, victim) * 3/4;
     // missile damage scales with total damage, ensures cap on #missiles
     int dam_per_missile = 5 + damage / 20;
     int missiles = UMAX(1, damage / dam_per_missile);
@@ -5452,7 +5454,7 @@ DEF_SPELL_FUN(spell_ray_of_truth)
 
     spell_blindness(gsn_blindness, level/2, ch, (void *)victim, TARGET_CHAR, FALSE);
 
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     dam = dam * ( 1000 - victim->alignment ) / 2000;
 
     if ( saves_spell(victim, ch, level, DAM_HOLY) )
@@ -5706,7 +5708,7 @@ DEF_SPELL_FUN(spell_shocking_grasp)
 
     if ( check_hit( ch, victim, sn, DAM_LIGHTNING, 100 ) )
     {
-        dam = get_sn_damage( sn, level, ch ) * 14/10;
+        dam = get_sn_damage( sn, level, ch, victim ) * 14/10;
         if ( saves_spell(victim, ch, level, DAM_LIGHTNING) )
             dam /= 2;
         shock_effect( victim, level, dam, TARGET_CHAR );

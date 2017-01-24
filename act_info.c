@@ -4987,7 +4987,7 @@ DEF_DO_FUN(do_attributes)
     sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
         ch->wimpy,
         ch->calm,
-        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE));
+        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
