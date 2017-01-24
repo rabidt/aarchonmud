@@ -2211,9 +2211,9 @@ const struct subclass_type subclass_table[] =
     },
     {
         "berserker", GLADIATOR,
-        { "savage frenzy" },
-        { 30 },
-        { 100 }
+        { "savage frenzy", "berserk" },
+        { 30, 120 },
+        { 100, 75 }
     },
     {
         "kensai", SAMURAI,
