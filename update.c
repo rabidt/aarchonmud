@@ -1121,7 +1121,7 @@ void char_update( void )
             af.level    = ch->level;
             af.location = APPLY_SAVES;
             af.duration = -1;
-            af.modifier = -1;
+            af.modifier = is_affected(ch, gsn_prayer) ? -2 : -1;
             af.bitvector = 0;
             affect_join_capped(ch, &af, -100);
         }
