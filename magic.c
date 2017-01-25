@@ -1724,7 +1724,11 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         {
             post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
             if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
-                chain_spell(sn, level*3/4, ch, (CHAR_DATA*)vo);
+            {
+                int overflow = UMIN(100, get_skill_overflow(ch, gsn_chain_spell));
+                int chain_level = level * (300 + overflow) / 400;
+                chain_spell(sn, chain_level, ch, (CHAR_DATA*)vo);
+            }
         }
     }
     
