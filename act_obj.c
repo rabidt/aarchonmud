@@ -4425,7 +4425,10 @@ DEF_DO_FUN(do_ignite)
     }
 
     // high-level bombs are harder to ignite - 10 level buffer to make 'create bomb' mastery useful
-    int level_diff = UMIN(0, 10 + ch->level - obj->level);
+    int ignite_level = 10 + ch->level;
+    // ignite skill overflow matches that for create bomb
+    ignite_level += (20 + ch->level) * get_skill_overflow(ch, gsn_ignite) / 1000;
+    int level_diff = UMIN(0, ignite_level - obj->level);
     chance = (90 + skill + level_diff) / 2;
     chance = URANGE(5, chance, 95);
 
