@@ -1230,6 +1230,7 @@ const struct flag_type con_states [] =
     { "penalty_finish",       CON_PENALTY_FINISH,       FALSE },
     { "get_colour",           CON_GET_COLOUR,           FALSE },
     { "lua_handler",          CON_LUA_HANDLER,          TRUE  },
+    { "lua_pulse_handler",    CON_LUA_PULSE_HANDLER,    TRUE  },
     { "closed",               CON_CLOSED,               FALSE },
     { NULL, 0, TRUE }
 };

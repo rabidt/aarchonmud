@@ -81,7 +81,8 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
 DEF_DO_FUN(do_berserk)
 {
     int chance, hp_percent;
-    int cost = 100;
+    int overflow = UMIN(100, get_skill_overflow(ch, gsn_berserk));
+    int cost = 100 - overflow;
     
     if ((chance = get_skill(ch,gsn_berserk)) == 0
         ||  (IS_NPC(ch) && !IS_SET(ch->off_flags,OFF_BERSERK)))
@@ -123,7 +124,8 @@ DEF_DO_FUN(do_berserk)
     {
         AFFECT_DATA af;
         
-        WAIT_STATE(ch, skill_table[gsn_berserk].beats);
+        if ( !per_chance(overflow) )
+            WAIT_STATE(ch, skill_table[gsn_berserk].beats);
         ch->move -= cost;
         
         /* heal a little damage */
@@ -1337,7 +1339,6 @@ DEF_DO_FUN(do_rescue)
     CHAR_DATA *victim;
     CHAR_DATA *fch;
     bool is_attacked = FALSE;
-    int chance;
     
     one_argument( argument, arg );
 
@@ -1401,39 +1402,8 @@ DEF_DO_FUN(do_rescue)
             send_to_char( "That person isn't being attacked right now.\n\r", ch );
         return;
     }
-
-    chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
-    chance += (ch->level - victim->level) / 4;
-    if (number_percent() < get_skill(fch, gsn_entrapment))
-    {
-      chance /= 5;
-      check_improve(fch, gsn_entrapment, TRUE, 1);
-    }
-
-    WAIT_STATE( ch, skill_table[gsn_rescue].beats );
-    if ( number_percent( ) > chance )
-    {
-        send_to_char( "You fail the rescue.\n\r", ch );
-        check_improve(ch,gsn_rescue,FALSE,2);
-        return;
-    }
     
-    act( "You rescue $N!",  ch, NULL, victim, TO_CHAR    );
-    act( "$n rescues you!", ch, NULL, victim, TO_VICT    );
-    act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
-    check_improve(ch,gsn_rescue,TRUE,2);
-    
-    /* removed to prevent kill-trigger to activate --Bobble
-    stop_fighting( fch, FALSE );
-    stop_fighting( victim, FALSE );
-    */
-
-    check_killer( ch, fch );
-    if ( ch->fighting != fch )
-        set_fighting( ch, fch );
-    set_fighting( fch, ch );
-    /*set_fighting( victim, other );*/
-    return;
+    rescue_from(ch, fch, TRUE);
 }
 
 void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
@@ -1931,9 +1901,8 @@ DEF_DO_FUN(do_war_cry)
 DEF_DO_FUN(do_guard)
 {
     CHAR_DATA *victim;
-    int chance;
     
-    if ( (chance = get_skill(ch,gsn_guard)) == 0)
+    if ( get_skill(ch, gsn_guard) == 0 )
     {
         send_to_char("You don't know how to guard.\n\r",ch);
         return;
@@ -1966,39 +1935,8 @@ DEF_DO_FUN(do_guard)
         return;
     }
     
-    /* dex */
-    chance += get_curr_stat(ch,STAT_DEX)/8;
-    chance -= get_curr_stat(victim,STAT_AGI)/8;
-    
-    /* now the attack */
-    if (number_percent() < chance)
-    {
-        AFFECT_DATA af;
-        
-        act("$n vigilantly guards against your attack.",ch,NULL,victim,TO_VICT);
-        act("You vigilantly guard against $N's attack.",ch,NULL,victim,TO_CHAR);
-        act("$n vigilantly guards against $N's attack.",ch,NULL,victim,TO_NOTVICT);
-        check_improve(ch,gsn_guard,TRUE,3);
-        WAIT_STATE(ch,skill_table[gsn_guard].beats);
-        
-        af.where    = TO_AFFECTS;
-        af.type     = gsn_guard;
-        af.level    = ch->level;
-        af.duration = get_duration(gsn_guard, ch->level);
-        af.location = APPLY_HITROLL;
-        af.modifier = -(ch->level*chance/1000);
-        af.bitvector    = AFF_GUARD;
-        
-        affect_to_char(victim,&af);
-    }
-    else
-    {
-        act("You can't keep track of $N.",ch,NULL,victim,TO_CHAR);
-        
-        WAIT_STATE(ch,skill_table[gsn_guard].beats*2/3);
-        check_improve(ch,gsn_guard,FALSE,3);
-    } 
-    check_killer(ch,victim);
+    WAIT_STATE(ch,skill_table[gsn_guard].beats);
+    guard_against(ch, victim);
 }
 
 
@@ -4324,7 +4262,7 @@ DEF_DO_FUN(do_blast)
     
     int dam = dice(2,4) + ch->level + ch->max_mana / 40;
     dam += dam * get_focus_bonus(ch) / 100;
-    dam += get_spell_bonus_damage(ch, skill_table[gsn_eldritch_blast].beats, FALSE);
+    dam += get_spell_bonus_damage(ch, skill_table[gsn_eldritch_blast].beats, FALSE, victim);
     
     bool saved = saves_spell(victim, ch, ch->level, DAM_OTHER);
     

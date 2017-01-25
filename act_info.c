@@ -187,6 +187,8 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
     if ( obj->timer == -1 && obj->item_type != ITEM_EXPLOSIVE )
         strcat( buf, "(Preserved) " );
+    if ( show_empty_flag(obj) )
+        strcat( buf, "(Empty) " );
     
     if ( fShort )
     {
@@ -2093,7 +2095,11 @@ void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, b
 
     if (show_long)
     {
-        printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name( paf->location ), paf->modifier);
+        // show aura resistances
+        if ( paf->modifier == 0 && paf->where != TO_AFFECTS )
+            printf_to_char( to_ch, ": grants %s ", to_bit_name(paf->where, paf->bitvector) );
+        else
+            printf_to_char( to_ch, ": modifies %s by %d ", affect_loc_name(paf->location), paf->modifier);
         if ( paf->duration == -1 )
             printf_to_char( to_ch, "indefinitely (Lvl %d)", paf->level );
         else
@@ -4982,7 +4988,7 @@ DEF_DO_FUN(do_attributes)
     sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
         ch->wimpy,
         ch->calm,
-        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE));
+        get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
@@ -5947,11 +5953,21 @@ static void show_subclass( CHAR_DATA *ch, int sc )
     {
         if ( subclass_table[sc].skills[i] == NULL )
             break;
-        ptc(ch, "%20s    %3d    %3d%%\n\r",
-            subclass_table[sc].skills[i],
-            subclass_table[sc].skill_level[i],
-            subclass_table[sc].skill_percent[i]
-        );
+        int level = subclass_table[sc].skill_level[i] % 100;
+        int min_ascent = 1 + subclass_table[sc].skill_level[i] / 100;
+        if ( min_ascent == 1 )
+            ptc(ch, "%20s    %3d    %3d%%\n\r",
+                subclass_table[sc].skills[i],
+                level,
+                subclass_table[sc].skill_percent[i]
+            );
+        else
+            ptc(ch, "%20s    %3d    %3d%%   (A%d+)\n\r",
+                subclass_table[sc].skills[i],
+                level,
+                subclass_table[sc].skill_percent[i],
+                min_ascent
+            );
     }
 }
 

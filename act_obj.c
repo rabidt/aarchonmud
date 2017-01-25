@@ -3383,8 +3383,10 @@ int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
 {
     char buf[MSL];
     
-    long skill = get_skill(ch, gsn_haggle) * (200 + get_skill(ch, gsn_appraise)) / 300;
-    int new_cost = (base_cost * skill + cost * (200-skill)) / 200;
+    // evil chars buy cheaper, good chars sell for more
+    int align_bias = (cost > base_cost) ? -ch->alignment/10 : ch->alignment/10;
+    long skill = get_skill(ch, gsn_haggle) * (200 + get_skill(ch, gsn_appraise) + align_bias) / 400;
+    int new_cost = (base_cost * skill + cost * (150-skill)) / 150;
 
     if ( new_cost == cost )
         return cost;
@@ -3589,10 +3591,7 @@ DEF_DO_FUN(do_buy)
             }
         }
 
-        if (IS_EVIL(ch))
-            cost = haggle_cost( ch, cost, obj->cost*4/5 );
-        else
-            cost = haggle_cost( ch, cost, obj->cost );
+        cost = haggle_cost( ch, cost, obj->cost );
 
         int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
         if (money < cost * number )
@@ -3872,10 +3871,7 @@ DEF_DO_FUN(do_sell)
         return;
     }
 
-    if (IS_GOOD(ch))
-        cost = haggle_cost( ch, cost*5/4, obj->cost );
-    else
-        cost = haggle_cost( ch, cost, obj->cost );
+    cost = haggle_cost( ch, cost, obj->cost );
 
     if ( cost > (keeper-> silver + 100 * keeper->gold) )
     {
@@ -4229,6 +4225,12 @@ DEF_DO_FUN(do_deposit)
         return;
     }
 
+    if ( IS_REMORT(ch) )
+    {
+        ptc( ch, "You can't deposit in remort.\n\r");
+        return;
+    }
+
     one_argument( argument, arg );
 
     if ( arg[0] == '\0' )
@@ -4423,7 +4425,10 @@ DEF_DO_FUN(do_ignite)
     }
 
     // high-level bombs are harder to ignite - 10 level buffer to make 'create bomb' mastery useful
-    int level_diff = UMIN(0, 10 + ch->level - obj->level);
+    int ignite_level = 10 + ch->level;
+    // ignite skill overflow matches that for create bomb
+    ignite_level += (20 + ch->level) * get_skill_overflow(ch, gsn_ignite) / 1000;
+    int level_diff = UMIN(0, ignite_level - obj->level);
     chance = (90 + skill + level_diff) / 2;
     chance = URANGE(5, chance, 95);
 

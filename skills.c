@@ -53,6 +53,7 @@ int get_injury_penalty( CHAR_DATA *ch );
 int get_sickness_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
 int mob_get_skill( CHAR_DATA *ch, int sn );
+int pc_skill_level( CHAR_DATA *ch, int sn );
 
 bool is_class_skill( int class, int sn )
 {
@@ -1004,7 +1005,7 @@ DEF_DO_FUN(do_skill)
         return;
     }
 
-    level = skill_table[sn].skill_level[ch->class];
+    level = pc_skill_level(ch, sn);
     skill = get_skill(ch,sn);
 
     /* check if skill is a stance */
@@ -1155,15 +1156,13 @@ DEF_DO_FUN(do_spells)
 	    if (skill_table[sn].name == NULL )
 		break;
 
-	    if ((level = skill_table[sn].skill_level[ch->class]) < LEVEL_HERO + 1
+	    if ((level = pc_skill_level(ch, sn)) < LEVEL_HERO + 1
 		&&  (fAll || level <= ch->level)
 		&&  level >= min_lev && level <= max_lev
                 &&  skill_table[sn].spell_fun != spell_null
 		&&  ch->pcdata->learned[sn] > 0)
 	    {
 		found = TRUE;
-		level = skill_table[sn].skill_level[ch->class];
-
 		prac = ch->pcdata->learned[sn];
 		skill = get_skill(ch, sn);
 		mana = mana_cost(ch, sn, skill);
@@ -1221,10 +1220,12 @@ DEF_DO_FUN(do_spells)
             
             if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
                 continue;
-            level = subclass->skill_level[i];
+            level = subclass->skill_level[i] % 100;
+            int min_ascent = 1 + subclass->skill_level[i] / 100;
             prac = subclass->skill_percent[i];
             
             if ( (fAll || level <= ch->level)
+                && ch->pcdata->ascents >= min_ascent
                 && level >= min_lev && level <= max_lev
                 && skill_table[sn].spell_fun != spell_null )
             {
@@ -1407,14 +1408,13 @@ DEF_DO_FUN(do_skills)
 	    if (skill_table[sn].name == NULL )
 		break;
 
-	    if ((level = skill_table[sn].skill_level[ch->class]) < LEVEL_HERO + 1
+	    if ((level = pc_skill_level(ch, sn)) < LEVEL_HERO + 1
 		&&  (fAll || level <= ch->level)
 		&&  level >= min_lev && level <= max_lev
 		&&  skill_table[sn].spell_fun == spell_null
 		&&  ch->pcdata->learned[sn] > 0)
 	    {
 		found = TRUE;
-		level = skill_table[sn].skill_level[ch->class];
 		prac = ch->pcdata->learned[sn];
 		sprintf(buf,"%-21s %3d%%(%3d%%) ",
 			skill_table[sn].name, prac, get_skill(ch, sn));
@@ -1466,10 +1466,12 @@ DEF_DO_FUN(do_skills)
             
             if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
                 continue;
-            level = subclass->skill_level[i];
+            level = subclass->skill_level[i] % 100;
+            int min_ascent = 1 + subclass->skill_level[i] / 100;
             prac = subclass->skill_percent[i];
             
             if ( (fAll || level <= ch->level)
+                && ch->pcdata->ascents >= min_ascent
                 && level >= min_lev && level <= max_lev
                 && skill_table[sn].spell_fun == spell_null )
             {
@@ -2067,7 +2069,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
     if ( chance_exp && number_bits(chance_exp) )
         return;
     
-    if (ch->level < skill_table[sn].skill_level[ch->class]
+    if (ch->level < pc_skill_level(ch, sn)
         ||  skill_table[sn].rating[ch->class] == 0
         ||  ch->pcdata->learned[sn] == 0
         ||  ch->pcdata->learned[sn] == 100)
@@ -2392,7 +2394,14 @@ int get_subclass_skill( CHAR_DATA *ch, int sn )
         if ( sc->skills[i] == NULL )
             return 0;
         if ( !strcmp(sc->skills[i], skill_table[sn].name) )
-            return ch->level >= sc->skill_level[i] ? sc->skill_percent[i] : 0;
+        {
+            int level = sc->skill_level[i] % 100;
+            int min_ascent = 1 + sc->skill_level[i] / 100;
+            if ( ch->level >= level && ch->pcdata->ascents >= min_ascent )
+                return sc->skill_percent[i];
+            else
+                return 0;
+        }
     }
 
     return 0;
@@ -2413,7 +2422,7 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 		skill = 0;
 	}
 
-	if (ch->level < skill_table[sn].skill_level[ch->class])
+	if (ch->level < pc_skill_level(ch, sn))
 		skill = 0;
 	else
 	{
@@ -2421,6 +2430,20 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 //		skill = (skill*skill_table[sn].cap[ch->class])/10;
 	}
 	return URANGE(0,skill,100);
+}
+
+// level at which a pc gains a class skill
+int pc_skill_level( CHAR_DATA *ch, int sn )
+{
+    int level = skill_table[sn].skill_level[ch->class];
+    int subclass = ch->pcdata->subclass;
+    // mastered spells are gained earlier
+    if ( level <= LEVEL_HERO && IS_SPELL(sn) )
+        level -= mastery_bonus(ch, sn, 8, 10);
+    // subclassing may help as well
+    if ( level <= LEVEL_HERO && subclass == subclass_demolitionist && (sn == gsn_create_bomb || sn == gsn_ignite) )
+        level -= 30;
+    return UMAX(1, level);
 }
 
 // returns base skill for pc, as well as overflow when getting skill from multiple sources
@@ -2438,7 +2461,7 @@ static int pc_get_skill( CHAR_DATA *ch, int sn, int *overflow )
         bug("Bad sn %d in pc_get_skill.", sn);
         return 0;
     }
-    else if ( ch->level < skill_table[sn].skill_level[ch->class] || !ch->pcdata->learned[sn] )
+    else if ( ch->level < pc_skill_level(ch, sn) || !ch->pcdata->learned[sn] )
         skill = 0;
     else
     {
@@ -2617,7 +2640,7 @@ DEF_DO_FUN(do_hpractice)
     }
 
     int sn = known_skill_lookup(ch, argument);
-    if ( sn < 0 || IS_NPC(ch) || ch->level < skill_table[sn].skill_level[ch->class] )
+    if ( sn < 0 || IS_NPC(ch) || ch->level < pc_skill_level(ch, sn) )
     {
         send_to_char( "You can't practice that.\n\r", ch );
         return;
@@ -2674,7 +2697,7 @@ DEF_DO_FUN(do_practice)
 		 if ( skill_table[sn].name == NULL )
 			break;
 		 if ( (skill=ch->pcdata->learned[sn])< 1
-			|| ch->level < skill_table[sn].skill_level[ch->class] )
+			|| ch->level < pc_skill_level(ch, sn) )
 			continue;
 		
 		 sprintf( buf, "%-18s %3d%%  ",
@@ -2765,7 +2788,7 @@ DEF_DO_FUN(do_practice)
 	
 	  if ( (sn = known_skill_lookup(ch, argument)) < 0
 		 || ( !IS_NPC(ch)
-		 &&   (ch->level < skill_table[sn].skill_level[ch->class]
+		 &&   (ch->level < pc_skill_level(ch, sn)
 		 ||    ch->pcdata->learned[sn] < 1 /* skill is not known */
 		 ||    skill_table[sn].rating[ch->class] == 0)))
 	  {

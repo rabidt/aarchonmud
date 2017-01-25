@@ -635,7 +635,7 @@ DEF_SPELL_FUN(spell_turn_undead)
     act( "You call to the gods for aid against the undead.", ch, NULL, NULL, TO_CHAR );
     act( "$n calls to the gods for aid against the undead.", ch, NULL, NULL, TO_ROOM );
 
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR * (1000 + ch->alignment) / 1000;
     
     for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
     {
@@ -1687,7 +1687,7 @@ DEF_SPELL_FUN(spell_monsoon)
     
     SPELL_CHECK_RETURN
     
-    dam = get_sn_damage( sn, level, ch) * AREA_SPELL_FACTOR * 1.5;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR * 1.5;
     
     send_to_char( "A torrent of rain drenches your foes!\n\r", ch );
     act( "$n calls down a monsoon to drench $s enemies!!!", ch, 
@@ -1713,7 +1713,7 @@ DEF_SPELL_FUN(spell_hailstorm)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int hailstone,dam,dice_nr;
-    int max = get_sn_damage( sn, level, ch ) / 100;
+    int max = get_sn_damage( sn, level, ch, victim ) / 100;
     max = UMAX( 1, max );
     
     if (!IS_OUTSIDE(ch) )
@@ -1748,7 +1748,7 @@ DEF_SPELL_FUN(spell_meteor_swarm)
 {
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     int meteor,dam;
-    int max = get_sn_damage( sn, level, ch) / 200;
+    int max = get_sn_damage(sn, level, ch, victim) / 200;
     max = UMAX( 1, max );
     
     if (!IS_OUTSIDE(ch) )
@@ -2077,7 +2077,7 @@ DEF_SPELL_FUN(spell_windwar)
 
     SPELL_CHECK_RETURN
     
-    dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR;
     if ((ch->in_room->sector_type) == SECT_MOUNTAIN)     
     {
         send_to_char ( "The mountain winds make war with your foes!\n\r", ch );
@@ -2318,16 +2318,9 @@ DEF_SPELL_FUN(spell_laughing_fit)
     af.type      = sn;
     af.level     = level;
     af.duration  = get_duration(sn, level);
-    af.modifier  = -2;
-    af.bitvector = AFF_LAUGH;
-    
-    af.location  = APPLY_STR;
-    affect_to_char(victim, &af);
-    
-    af.location  = APPLY_HITROLL;
-    affect_to_char(victim, &af);
-    
     af.location  = APPLY_INT;
+    af.modifier  = -2 -level/10;
+    af.bitvector = AFF_LAUGH;
     affect_to_char(victim, &af);
     
     send_to_char( "You begin to laugh uncontrollably!\n\r", victim );
@@ -2559,7 +2552,7 @@ DEF_SPELL_FUN(spell_glyph_of_evil)
     act("$n utters a word of demonic power!",ch,NULL,NULL,TO_ROOM);
     send_to_char("You utter a word of demonic power.\n\r",ch);
     
-    dam = get_sn_damage(sn, level, ch) * AREA_SPELL_FACTOR;
+    dam = get_sn_damage(sn, level, ch, NULL) * AREA_SPELL_FACTOR;
 
     if ( (time_info.hour > 5) && (time_info.hour < 20) )
         is_dark = FALSE;
@@ -2713,7 +2706,7 @@ DEF_SPELL_FUN(spell_rimbols_invocation)
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
-    int dam, main_dam = get_sn_damage( sn, level, ch ) * AREA_SPELL_FACTOR / 4;
+    int dam, main_dam = get_sn_damage( sn, level, ch, NULL ) * AREA_SPELL_FACTOR / 4;
     ROOM_INDEX_DATA *room = ch->in_room;
     
     if ( !ch->fighting )
@@ -3124,7 +3117,7 @@ DEF_SPELL_FUN(spell_decompose)
     }
     
     /* a bit damage won't harm anyone ;) */
-    dam = get_sn_damage( sn, level, ch );
+    dam = get_sn_damage( sn, level, ch, victim );
     full_dam( ch, victim, dam, sn, DAM_DISEASE, TRUE );
     return TRUE;
 }
@@ -3693,7 +3686,7 @@ DEF_SPELL_FUN(spell_solar_flare)
     SPELL_CHECK_RETURN
     
     /* the better the weather, and the brighter the day more powerful */
-    dam = get_sn_damage( sn, level, ch ) * 2 / (3 + weather_info.sky + (weather_info.sunlight == SUN_LIGHT ? 0 : 1));
+    dam = get_sn_damage( sn, level, ch, victim ) * 2 / (3 + weather_info.sky + (weather_info.sunlight == SUN_LIGHT ? 0 : 1));
     
     // some fire damage ...
     act( "You call upon the heat of the sun to sear $N's flesh!", ch, NULL, victim, TO_CHAR);
@@ -3767,7 +3760,7 @@ DEF_SPELL_FUN(spell_unearth)
     
     CHAR_DATA *victim = (CHAR_DATA *) vo;
 
-    int dam = get_sn_damage(sn, level, ch);
+    int dam = get_sn_damage(sn, level, ch, victim);
     bool flying = IS_AFFECTED(victim, AFF_FLYING);
     
     if ( flying )
@@ -3923,7 +3916,7 @@ DEF_SPELL_FUN(spell_conviction)
     
     // opposite aligned targets get hurt
     int align_diff = abs(ch->alignment - victim->alignment);
-    int dam = get_sn_damage(sn, level, ch);
+    int dam = get_sn_damage(sn, level, ch, victim);
     if (IS_GOOD(ch))
         dam = dam * align_diff / 1000;
     else 
