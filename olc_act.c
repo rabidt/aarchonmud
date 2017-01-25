@@ -6305,6 +6305,8 @@ MEDIT( medit_shop )
             || argument[0] == '\0' || !is_number( argument ) )
         {
             send_to_char( "Syntax:  shop profit [#xbuying%] [#xselling%]\n\r", ch );
+            send_to_char( "   buy:  100-500 (default 120)\n\r", ch );
+            send_to_char( "  sell:   20-100 (default 80)\n\r", ch );
             return FALSE;
         }
         
@@ -6314,8 +6316,8 @@ MEDIT( medit_shop )
             return FALSE;
         }
         
-        pMob->pShop->profit_buy     = atoi( arg1 );
-        pMob->pShop->profit_sell    = atoi( argument );
+        pMob->pShop->profit_buy     = URANGE(100, atoi(arg1), 500);
+        pMob->pShop->profit_sell    = URANGE(20, atoi(argument), 100);
         
         send_to_char( "Shop profit set.\n\r", ch);
         return TRUE;
@@ -6369,7 +6371,11 @@ MEDIT( medit_shop )
             return FALSE;
         }
         
-        pMob->pShop		= new_shop();
+        pMob->pShop = new_shop();
+        // set default markup/down
+        pMob->pShop->profit_buy = 120;
+        pMob->pShop->profit_sell = 80;
+        
         if ( !shop_first )
             shop_first	= pMob->pShop;
         if ( shop_last )

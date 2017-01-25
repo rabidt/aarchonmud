@@ -1121,7 +1121,7 @@ void char_update( void )
             af.level    = ch->level;
             af.location = APPLY_SAVES;
             af.duration = -1;
-            af.modifier = -1;
+            af.modifier = is_affected(ch, gsn_prayer) ? -2 : -1;
             af.bitvector = 0;
             affect_join_capped(ch, &af, -100);
         }
@@ -1673,13 +1673,6 @@ void affect_update( CHAR_DATA *ch )
         AFFECT_DATA *af, laugh;
         CHAR_DATA *vch;
 
-        /*
-           for ( af = ch->affected; af != NULL; af = af->next )
-           {
-           if ((af->type == gsn_laughing_fit))
-           break;
-           }
-         */
         af = affect_find_flag( ch->affected, AFF_LAUGH );
 
         if (af == NULL)
@@ -1691,11 +1684,11 @@ void affect_update( CHAR_DATA *ch )
         if (af->level <= 1)
             return;
 
-        if (ch->position == POS_STANDING)
+        if ( ch->position > POS_RESTING )
         {
             act( "$n falls down, laughing hysterically.",ch,NULL,NULL,TO_ROOM);
             send_to_char( "You fall down laughing.\n\r",ch);
-            set_pos( ch, POS_SITTING );
+            set_pos(ch, POS_RESTING);
             check_lose_stance(ch);
         }
         else
@@ -1704,46 +1697,24 @@ void affect_update( CHAR_DATA *ch )
             send_to_char( "You throw your head back and laugh like a crazy madman!\n\r",ch );
         }
 
-        affect_strip(ch, gsn_laughing_fit);
-        laugh.where        = TO_AFFECTS;
-        laugh.type         = gsn_laughing_fit;
-        laugh.level        = af->level - 1;
-        laugh.duration     = af->duration;
-        laugh.modifier     = af->modifier - 1;
-        laugh.bitvector    = AFF_LAUGH;
-
-        laugh.location    = APPLY_STR;
-        affect_to_char(ch, &laugh);
-        laugh.location    = APPLY_HITROLL;
-        affect_to_char(ch, &laugh);
-        laugh.location    = APPLY_INT;
-        affect_to_char(ch, &laugh);
-
-        if( !IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
+        if ( !IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
         {
             laugh.where        = TO_AFFECTS;
             laugh.type         = gsn_laughing_fit;
-            laugh.level        = af->level - 1;
-            laugh.modifier     = -2;
+            laugh.level        = af->level;
+            laugh.duration     = af->duration / 2;
+            laugh.location     = af->location;
+            laugh.modifier     = af->modifier;
             laugh.bitvector    = AFF_LAUGH;
 
             for ( vch = ch->in_room->people; vch != NULL; vch = vch->next_in_room)
             {
-                if (!saves_spell(vch, NULL, laugh.level - 2, DAM_MENTAL)
+                if (!saves_spell(vch, NULL, laugh.level, DAM_MENTAL)
                         &&  !IS_IMMORTAL(vch)
                         &&  !IS_AFFECTED(vch,AFF_LAUGH) && number_bits(4) == 0)
                 {
                     send_to_char("You feel light headed and giddy!\n\r",vch);
                     act("$n gets a dumb grin on $s face and starts to giggle!",vch,NULL,NULL,TO_ROOM);
-                    laugh.duration     = number_range(1,laugh.level);
-
-                    laugh.location     = APPLY_STR;
-                    affect_to_char(vch, &laugh);
-
-                    laugh.location     = APPLY_HITROLL;
-                    affect_to_char(vch, &laugh);
-
-                    laugh.location     = APPLY_INT;
                     affect_to_char(vch, &laugh);
                 }
             } // end of for loop

@@ -683,6 +683,19 @@ bool is_either_name( const char *str, const char *namelist, bool exact )
 	return is_name( str, namelist );
 }
 
+bool show_empty_flag( OBJ_DATA *obj )
+{
+    switch ( obj->item_type ) {
+        case ITEM_WAND:
+        case ITEM_STAFF:
+            return obj->value[2] == 0;
+        case ITEM_DRINK_CON:
+            return obj->value[1] == 0;
+        default:
+            return FALSE;
+    }
+}
+
 bool match_obj( OBJ_DATA *obj, const char *arg )
 {
     char header[MSL], last;
@@ -713,7 +726,11 @@ bool match_obj( OBJ_DATA *obj, const char *arg )
     for ( flag = 0; wear_types[flag].name != NULL; flag++ )
         if ( !strcmp(wear_types[flag].name, arg) )
             return CAN_WEAR(obj, wear_types[flag].bit);
-        
+    
+    // match by specific key-words
+    if ( !strcmp(arg, "empty") && show_empty_flag(obj) )
+        return true;
+    
     // match by name
     return is_name(arg, obj->name);
 }
@@ -2865,6 +2882,31 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
+// find group member with lowest (percentage) health not affected by sn
+// lowest health is good for healing, sn-check for buffing
+CHAR_DATA *get_char_room_ally( CHAR_DATA *ch, int sn )
+{
+    CHAR_DATA *rch, *ally = ch;
+    int injury = is_affected(ch, sn) ? -100 : (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
+    for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
+    {
+        if ( ch == rch || !is_same_group(ch, rch) || is_affected(rch, sn) )
+            continue;
+        
+        int rch_injury = (rch->max_hit - rch->hit) * 100 / UMAX(1, rch->max_hit);
+        // NPCs are less important to heal
+        if ( IS_NPC(rch) )
+            rch_injury /= 2;
+        
+        if ( rch_injury > injury )
+        {
+            ally = rch;
+            injury = rch_injury;
+        }
+    }
+    return ally;
+}
+
 CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible )
 {
     char arg[MAX_INPUT_LENGTH];
@@ -2880,7 +2922,12 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
     if ( !str_cmp( arg, "self" ) )
         return ch;
     if ( !str_cmp( arg, "opponent" ) )
-	return ch->fighting;
+        return ch->fighting;
+    if ( !str_cmp(arg, "tank") )
+        return ch->fighting ? ch->fighting->fighting : NULL;
+    if ( !as_victim && !str_cmp(arg, "ally") )
+        return get_char_room_ally(ch, -1);
+            
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( (visible && !check_see_target(ch, rch))

@@ -549,6 +549,13 @@ function start_con_handler( d, fun, ... )
     lua_con_handler( d, unpack(arg) )
 end
 
+function start_con_pulse_handler(d, fun, ... )
+  forceset(d, "constate", "lua_pulse_handler")
+  forceset(d, "conhandler", coroutine.create( fun ) )
+
+  lua_con_handler( d, unpack(arg) )
+end
+
 function lua_con_handler( d, ...)
     if not forceget(d,"conhandler") then
         error("No conhandler for "..d.character.name)
@@ -596,4 +603,40 @@ function confirm_yes_no( DO_FUN_caller, d,
 
     start_con_handler( d, confirm_handler)
 
+end
+
+function start_pgrep(d, read_func, canc_func, fp)
+  local function pgrep_handler()
+    local pulse_cnt = 0
+    local output = {}
+    local message = "Waiting for pgrep results. Type 'cancel' to abort.\n\r"
+    sendtochar(d.character, message)
+    while true do
+      -- Get playe rinput if any
+      local cmd = coroutine.yield()
+
+      if cmd == "cancel" then
+        canc_func(fp)
+        break
+      elseif cmd ~= nil then
+        sendtochar(d.character, message)
+      else
+        -- get read result from 
+        pulse_cnt = pulse_cnt + 1
+        local result = read_func(fp) 
+
+        if result == nil then
+          break
+        elseif result ~= "" then
+          table.insert(output, result)
+        end
+      end
+    end
+    table.insert(output, "\n\rTook "..pulse_cnt.." pulses.\n\r")
+    pagetochar(d.character, table.concat(output).."\n\r")
+    
+    return
+  end
+
+  start_con_pulse_handler(d, pgrep_handler)
 end

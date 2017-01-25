@@ -232,7 +232,7 @@ bool is_questeq( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         495 /* accurate august 2016 */
+#define MAX_SKILL         496 /* accurate august 2016 */
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -714,26 +714,27 @@ struct penalty_data
 #define CON_FTP_AUTH            18
 */
 #define CON_LUA_HANDLER         16
-#define CON_GET_NEW_SUBCLASS    17
-#define CON_REMORT_BEGIN        18
-#define CON_GET_CREATION_MODE   19
-#define CON_ROLL_STATS          20
-#define CON_GET_STAT_PRIORITY   21
-#define CON_COPYOVER_RECOVER    22
-#define CON_NOTE_TO             23
-#define CON_NOTE_SUBJECT        24
-#define CON_NOTE_EXPIRE         25
-#define CON_NOTE_TEXT           26
-#define CON_NOTE_FINISH         27
-#define CON_PENALTY_SEVERITY    28
-#define CON_PENALTY_CONFIRM     29
-#define CON_PENALTY_HOURS       30
-#define CON_PENALTY_POINTS      31
-#define CON_PENALTY_PENLIST     32
-#define CON_PENALTY_FINISH      33
-#define CON_GET_COLOUR          34
-#define CON_CLOSED              35
-#define MAX_CON_STATE           36
+#define CON_LUA_PULSE_HANDLER   17
+#define CON_GET_NEW_SUBCLASS    18
+#define CON_REMORT_BEGIN        19
+#define CON_GET_CREATION_MODE   20
+#define CON_ROLL_STATS          21
+#define CON_GET_STAT_PRIORITY   22
+#define CON_COPYOVER_RECOVER    23
+#define CON_NOTE_TO             24
+#define CON_NOTE_SUBJECT        25
+#define CON_NOTE_EXPIRE         26
+#define CON_NOTE_TEXT           27
+#define CON_NOTE_FINISH         28
+#define CON_PENALTY_SEVERITY    29
+#define CON_PENALTY_CONFIRM     30
+#define CON_PENALTY_HOURS       31
+#define CON_PENALTY_POINTS      32
+#define CON_PENALTY_PENLIST     33
+#define CON_PENALTY_FINISH      34
+#define CON_GET_COLOUR          35
+#define CON_CLOSED              36
+#define MAX_CON_STATE           37
 
 #define CREATION_UNKNOWN         0
 #define CREATION_NORMAL          1
@@ -3318,6 +3319,9 @@ extern sh_int race_vampire;
 extern sh_int race_rakshasa;
 extern sh_int race_dragonborn;
 
+extern const sh_int subclass_chosen;
+extern const sh_int subclass_demolitionist;
+
 /*
  * These are skill_lookup return values for common skills and spells.
  */
@@ -3373,6 +3377,7 @@ extern sh_int  gsn_sustenance;
 extern sh_int  gsn_hunt;
 extern sh_int  gsn_pathfind;
 extern sh_int  gsn_streetwise;
+extern sh_int  gsn_create_bomb;
 extern sh_int  gsn_ignite;
 extern sh_int  gsn_assassination;
 extern sh_int  gsn_brutal_damage;
@@ -3619,6 +3624,7 @@ extern sh_int  gsn_tomb_rot;
 extern sh_int  gsn_bless;
 extern sh_int  gsn_prayer;
 extern sh_int  gsn_bodyguard;
+extern sh_int  gsn_sentinel;
 extern sh_int  gsn_back_leap;
 extern sh_int  gsn_mana_shield;
 extern sh_int  gsn_leadership;
@@ -4056,7 +4062,7 @@ struct boss_achieve_record
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
-#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER)
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER || con == CON_LUA_PULSE_HANDLER)
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
@@ -4726,6 +4732,9 @@ bool    check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int s
 bool    is_woodland( int sector );
 bool    check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
 void    check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int chance );
+void    rescue_from( CHAR_DATA *ch, CHAR_DATA *attacker, bool lag );
+void    guard_against( CHAR_DATA *ch, CHAR_DATA *victim );
+void    check_guard( CHAR_DATA *ch );
 CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
 CD *    get_local_leader( CHAR_DATA *ch );
 CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );
@@ -4845,6 +4854,7 @@ int get_heavy_armor_penalty( CHAR_DATA *ch );
 bool    is_name( const char *str, const char *namelist );
 bool    is_exact_name( const char *str, const char *namelist );
 bool    is_either_name( const char *str, const char *namelist, bool exact );
+bool    show_empty_flag( OBJ_DATA *obj );
 bool    match_obj( OBJ_DATA *obj, const char *arg );
 bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( CHAR_DATA *ch );
@@ -4913,6 +4923,7 @@ bool    extract_char_new args( ( CHAR_DATA *ch, bool fPull, bool extract_objects
 void    extract_char_eq( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc );
 void    extract_char_obj( CHAR_DATA *ch, OBJ_CHECK_FUN *extract_it, int to_loc, OBJ_DATA *obj );
 CD *    get_player( const char *name );
+CD *    get_char_room_ally( CHAR_DATA *ch, int sn );
 CD *    get_char_room   args( ( CHAR_DATA *ch, const char *argument ) );
 CD *    pget_char_room( CHAR_DATA *ch, const char *argument );
 CD *    get_victim_room( CHAR_DATA *ch, const char *argument );
@@ -5061,9 +5072,9 @@ int get_spell_damage( int mana, int lag, int level );
 float get_sn_heal_factor( int sn, CHAR_DATA *ch, CHAR_DATA *victim );
 int get_spell_heal( int mana, int lag, int level );
 int adjust_spell_damage( int dam, CHAR_DATA *ch );
-int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg );
-int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn );
-int get_sn_damage( int sn, int level, CHAR_DATA *ch );
+int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg, CHAR_DATA *victim );
+int get_spell_bonus_damage_sn( CHAR_DATA *ch, int sn, CHAR_DATA *victim );
+int get_sn_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 int get_sn_heal( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim );
 int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base );

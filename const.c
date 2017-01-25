@@ -2133,6 +2133,9 @@ const   struct  class_type  class_table [MAX_CLASS] =
 #define NECROMANCER (1<<14)
 #define BARD        (1<<15)
 
+const sh_int subclass_chosen = 7;
+const sh_int subclass_demolitionist = 16;
+
 const struct subclass_type subclass_table[] =
 {
     /*
@@ -2145,165 +2148,165 @@ const struct subclass_type subclass_table[] =
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
-        { "true grit", "shield wall", "bulwark" },
-        { 10, 20, 30 },
-        { 100, 100, 100 }
+        { "true grit", "shield wall", "bulwark", "shield block" },
+        { 10, 20, 30, 105 },
+        { 100, 100, 100, 75 }
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
-        { "goblincleaver", "massive swing" },
-        { 10, 50 },
-        { 100, 100 }
+        { "goblincleaver", "massive swing", "twohand weapons" },
+        { 10, 50, 105 },
+        { 100, 100, 75 }
     },
     {
         "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
-        { "riposte", "blade barrier" },
-        { 30, 50 },
-        { 100, 100 }
+        { "riposte", "blade barrier", "parry" },
+        { 30, 50, 170 },
+        { 100, 100, 50 }
     },
     {
         "mobster", THIEF,
-        { "gang up", "call sidekick" },
-        { 30, 50 },
-        { 100, 90 }
+        { "gang up", "call sidekick", "flanking" },
+        { 30, 50, 170 },
+        { 100, 90, 50 }
     },
     {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
-        { "hide in plain sight", "shadow companion" },
-        { 10, 30 },
-        { 100, 100 }
+        { "hide in plain sight", "shadow companion", "hide", "backstab" },
+        { 10, 30, 105, 120 },
+        { 100, 100, 75, 75 }
     },
     {
         "shadowblade", NINJA,
-        { "shadow strike", "shadow body" },
-        { 30, 50 },
-        { 100, 100 }
+        { "shadow strike", "shadow body", "shadowwalk" },
+        { 30, 50, 140 },
+        { 100, 100, 75 }
     },
     {
         "chosen", CLERIC|PALADIN|MONK|TEMPLAR,
-        { "divine channel" },
-        { 1 },
-        { 100 }
+        { "divine channel", "prayer" },
+        { 1, 190 },
+        { 100, 75 }
     },
     {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
-        { "mystic infusion" },
-        { 10 },
-        { 100 }
+        { "mystic infusion", "fireball", "heal" },
+        { 10, 130, 170 },
+        { 100, 75, 75 }
     },
     {
         "warpriest", CLERIC,
-        { "heroism", "divine power", "bloodbath" },
-        { 30, 50, 70 },
-        { 100, 100, 80 }
+        { "heroism", "divine power", "bloodbath", "extend spell" },
+        { 30, 50, 70, 190 },
+        { 100, 100, 80, 75 }
     },
     {
         "warmage", MAGE|ILLUSIONIST,
-        { "warmage edge", "combat casting" },
-        { 30, 50 },
-        { 100, 100 }
+        { "warmage edge", "combat casting", "fire breath" },
+        { 30, 50, 170 },
+        { 100, 100, 75 }
     },
     {
         "warlock", MAGE|NECROMANCER,
-        { "eldritch blast", "eldritch curse", "shadowwalk" },
-        { 10, 30, 50 },
-        { 100, 100, 80 }
+        { "eldritch blast", "eldritch curse", "shadowwalk", "mana shield" },
+        { 10, 30, 50, 170 },
+        { 100, 100, 80, 75 }
     },
     {
         "berserker", GLADIATOR,
-        { "savage frenzy" },
-        { 30 },
-        { 100 }
+        { "savage frenzy", "berserk" },
+        { 30, 120 },
+        { 100, 75 }
     },
     {
         "kensai", SAMURAI,
-        { "bonded blade", "piercing blade", "beheading" },
-        { 10, 30, 50 },
-        { 100, 100, 100 }
+        { "bonded blade", "piercing blade", "beheading", "twohand weapons" },
+        { 10, 30, 50, 105 },
+        { 100, 100, 100, 75 }
     },
     {
         "stormlord", SAMURAI|RANGER,
-        { "elemental strike", "immolation", "electrocution", "absolute zero" },
-        { 10, 40, 41, 42 },
-        { 100, 80, 80, 80 }
+        { "elemental strike", "immolation", "electrocution", "absolute zero", "elemental blade" },
+        { 10, 40, 41, 42, 190 },
+        { 100, 80, 80, 80, 75 }
     },
     {
         "crusader", PALADIN|TEMPLAR,
-        { "holy avenger", "divine retribution" },
-        { 30, 50 },
-        { 100, 100 }
+        { "holy avenger", "divine retribution", "smite" },
+        { 30, 50, 170 },
+        { 100, 100, 75 }
     },
     {
         "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
-        { "evasion", "high explosives" },
-        { 30, 50 },
-        { 100, 100 }
+        { "evasion", "high explosives", "create bomb", "ignite" },
+        { 30, 50, 140, 140 },
+        { 100, 100, 75, 75 }
     },
     {
         "slayer", ASSASSIN,
-        { "estimate", "exploit weakness" },
-        { 10, 30 },
-        { 100, 100 }
+        { "estimate", "exploit weakness", "dagger" },
+        { 10, 30, 105 },
+        { 100, 100, 75 }
     },
     {
         "shaolin", NINJA|MONK,
-        { "lethal hands", "unarmed parry" },
-        { 10, 30 },
-        { 100, 100 }
+        { "lethal hands", "unarmed parry", "kung fu" },
+        { 10, 30, 105 },
+        { 100, 100, 75 }
     },
     {
         "sacred fist", MONK,
-        { "mantra", "sacred touch", "empower spell" },
-        { 30, 50, 70 },
-        { 100, 100, 80 }
+        { "mantra", "sacred touch", "empower spell", "heal" },
+        { 30, 50, 70, 160 },
+        { 100, 100, 80, 75 }
     },
     {
         "trickster", ILLUSIONIST|BARD,
-        { "deception", "improved invis", "flanking" },
-        { 30, 50, 70 },
-        { 100, 100, 80 }
+        { "deception", "improved invis", "flanking", "betray" },
+        { 30, 50, 70, 120 },
+        { 100, 100, 80, 75 }
     },
     {
         "terminator", GUNSLINGER,
-        { "rapid fire", "third attack", "bullet rain" },
-        { 10, 50, 70 },
-        { 100, 80, 100 }
+        { "rapid fire", "third attack", "bullet rain", "gun" },
+        { 10, 50, 70, 105 },
+        { 100, 80, 100, 75 }
     },
     {
         "sniper", GUNSLINGER|RANGER,
-        { "precise shot", "ambush" },
-        { 10, 60 },
-        { 100, 100 }
+        { "precise shot", "ambush", "gun", "snipe" },
+        { 10, 60, 105, 150 },
+        { 100, 100, 75, 75 }
     },
     {
         "beastmaster", RANGER,
-        { "beast mastery", "water elemental", "chain spell" },
-        { 10, 50, 70 },
-        { 100, 100, 80 }
+        { "beast mastery", "water elemental", "chain spell", "tree golem" },
+        { 10, 50, 70, 180 },
+        { 100, 100, 80, 75 }
     },
     {
         "defiler", NECROMANCER,
-        { "arcane defiling", "inquisition" },
-        { 10, 30 },
-        { 100, 80 }
+        { "arcane defiling", "inquisition", "energy drain" },
+        { 10, 30, 120 },
+        { 100, 80, 75 }
     },
     {
         "dreadlord", NECROMANCER,
-        { "army of darkness", "aura of menace" },
-        { 30, 50 },
-        { 100, 80 }
+        { "army of darkness", "aura of menace", "animate dead" },
+        { 30, 50, 120 },
+        { 100, 80, 75 }
     },
     {
         "skald", BARD,
-        { "frenzy", "inspired rage", "furious ballad", "blade dance" },
-        { 10, 30, 50, 70 },
-        { 100, 100, 100, 80 }
+        { "frenzy", "inspired rage", "furious ballad", "blade dance", "bears endurance" },
+        { 10, 30, 50, 70, 120 },
+        { 100, 100, 100, 80, 75 }
     },
     {
         "songhealer", BARD,
-        { "song healing", "anatomy", "group heal" },
-        { 30, 50, 70 },
-        { 100, 80, 80 }
+        { "song healing", "anatomy", "group heal", "lullaby" },
+        { 30, 50, 70, 120 },
+        { 100, 80, 80, 75 }
     },
     { NULL }
 };
@@ -3200,7 +3203,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_create_bomb,    TAR_IGNORE_OBJ,         POS_STANDING,
-    NULL, 30, 0, 12, DUR_NONE,
+    &gsn_create_bomb, 30, 0, 12, DUR_NONE,
     "",         "!Create Bomb!",    ""
     },  
 
@@ -6332,7 +6335,7 @@ struct  skill_type
     {
     "guard",
     { 24, 102, 102, 102, 25, 102, 18, 102, 102, 20, 22, 102, 102, 57, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,     TAR_CHAR_OFFENSIVE, POS_FIGHTING,
@@ -6365,7 +6368,7 @@ struct  skill_type
     {
     "rescue",  
     { 27, 102, 102, 102, 102, 28,  8, 102, 30, 20, 15, 102, 46, 63, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
@@ -6376,12 +6379,23 @@ struct  skill_type
     {
     "bodyguard",  
     { 47, 102, 102, 102, 102, 48, 28, 102,  50, 40, 35, 102, 102, 102, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_bodyguard, 0, 0, 0, DUR_NONE,
     "bodyguard",                 "!bodyguard!",       ""
+    },
+
+    {
+    "sentinel",
+    {  47, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 3,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_DIS, STAT_STR, STAT_CON,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_sentinel, 0, 0, 0, DUR_NONE,
+    "", "!sentinel!", ""
     },
 
     {

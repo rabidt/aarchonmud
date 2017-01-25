@@ -526,7 +526,10 @@ local function new_luaq_fenv()
                 end
             end
             return cnt
-        end
+        end,
+        table={
+            concat=table.concat;
+        }
     }
 end
 

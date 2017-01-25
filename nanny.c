@@ -189,6 +189,7 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 		break;
 
         case CON_LUA_HANDLER:
+        case CON_LUA_PULSE_HANDLER:
         lua_con_handler(d, argument);
         break;
 	    }	

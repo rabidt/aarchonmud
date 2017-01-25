@@ -291,8 +291,9 @@ void violence_update_char( CHAR_DATA *ch )
     if ( (victim = ch->fighting) == NULL )
         return;
     
-    // ch rescues someone
+    // ch rescues allies and/or guards opponents
     check_rescue(ch);
+    check_guard(ch);
 
     if ( IS_NPC(ch) )
     {
@@ -495,11 +496,43 @@ bool wants_to_rescue( CHAR_DATA *ch )
     return (IS_NPC(ch) && IS_SET(ch->off_flags, OFF_RESCUE)) || PLR_ACT(ch, PLR_AUTORESCUE);
 }
 
+// try to rescue the attacker's target
+void rescue_from( CHAR_DATA *ch, CHAR_DATA *attacker, bool lag )
+{
+    CHAR_DATA *victim = attacker->fighting;
+    int chance, reroll;
+    
+    chance = 25 + get_skill(ch, gsn_rescue)/2 + get_skill(ch, gsn_bodyguard)/4;
+    chance += (ch->level - attacker->level) / 4;
+    chance = chance * 100 / (100 + 4 * get_skill(attacker, gsn_entrapment));
+    check_improve(attacker, gsn_entrapment, TRUE, 1);
+    reroll = chance * mastery_bonus(ch, gsn_rescue, 60, 100) / 100;
+
+    if ( lag ) 
+        WAIT_STATE(ch, skill_table[gsn_rescue].beats);
+    
+    if ( !per_chance(chance) && !per_chance(reroll) )
+    {
+        send_to_char( "You fail the rescue.\n\r", ch );
+        check_improve(ch, gsn_rescue, FALSE, 2);
+        return;
+    }
+    
+    act( "You rescue $N!",  ch, NULL, victim, TO_CHAR    );
+    act( "$n rescues you!", ch, NULL, victim, TO_VICT    );
+    act( "$n rescues $N!",  ch, NULL, victim, TO_NOTVICT );
+    check_improve(ch, gsn_rescue, TRUE, 2);
+    
+    check_killer(ch, attacker);
+    if ( !ch->fighting )
+        set_fighting(ch, attacker);
+    set_fighting(attacker, ch);
+}
+
 /* check if character rescues someone */
 void check_rescue( CHAR_DATA *ch )
 {
     CHAR_DATA *attacker, *target = NULL;
-    char buf[MSL];
 
     if ( !wants_to_rescue(ch) || !can_attack(ch) || ch->position < POS_FIGHTING )
         return;
@@ -512,9 +545,13 @@ void check_rescue( CHAR_DATA *ch )
             return;
     }
     
-    // get target
+    // get targets - bodyguard mastery allows multiple attempts (against different targets)
+    int attempts = 1 + mastery_bonus(ch, gsn_bodyguard, 1, 2);
     for ( attacker = ch->in_room->people; attacker != NULL; attacker = attacker->next_in_room )
     {
+        if ( attempts < 1 )
+            break;
+        
         // may not be able to interfere
         if ( is_safe_spell(ch, attacker, FALSE) )
             continue;
@@ -527,32 +564,81 @@ void check_rescue( CHAR_DATA *ch )
         // may not want to be rescued
         if ( wants_to_rescue(target) )
             continue;
-        
-        break;
-    }
 
-    if ( attacker == NULL )
+        // failed bodyguard check still counts as an attempt
+        --attempts;
+        
+        /* lag-free rescue */
+        if ( check_skill(ch, gsn_bodyguard) )
+        {
+            ptc(ch, "You rush in to protect %s.\n\r", target->name);
+            rescue_from(ch, attacker, FALSE);
+            check_improve(ch, gsn_bodyguard, TRUE, 3);
+            continue;
+        }
+        
+        /* normal rescue - wait check */
+        if ( !ch->wait && !(ch->desc != NULL && is_command_pending(ch->desc)) )
+        {
+            ptc(ch, "You rush in to protect %s.\n\r", target->name);
+            rescue_from(ch, attacker, TRUE);
+        }
+    }
+}
+
+void guard_against( CHAR_DATA *ch, CHAR_DATA *victim )
+{
+    int chance = get_skill(ch, gsn_guard);
+    
+    if ( !chance )
+        return;
+    
+    chance += get_curr_stat(ch, STAT_DEX) / 8;
+    chance -= get_curr_stat(victim, STAT_AGI) / 8;
+    
+    if ( per_chance(chance) )
+    {
+        AFFECT_DATA af;
+        
+        act("$n vigilantly guards against your attack.", ch, NULL, victim, TO_VICT);
+        act("You vigilantly guard against $N's attack.", ch, NULL, victim, TO_CHAR);
+        act("$n vigilantly guards against $N's attack.", ch, NULL, victim, TO_NOTVICT);
+        check_improve(ch, gsn_guard, TRUE, 3);
+        
+        af.where    = TO_AFFECTS;
+        af.type     = gsn_guard;
+        af.level    = ch->level;
+        af.duration = get_duration(gsn_guard, ch->level);
+        af.location = APPLY_HITROLL;
+        af.modifier = -(ch->level * chance/1000);
+        af.bitvector = AFF_GUARD;
+        affect_to_char(victim, &af);
+    }
+    else
+    {
+        act("You can't keep track of $N.", ch, NULL, victim, TO_CHAR);
+        check_improve(ch, gsn_guard, FALSE, 3);
+    } 
+    check_killer(ch, victim);
+}
+
+// automatic lag-free guard attempts with mastery
+void check_guard( CHAR_DATA *ch )
+{
+    CHAR_DATA *victim;
+    
+    int chance = mastery_bonus(ch, gsn_guard, 6, 10);
+    if ( !chance )
         return;
 
-  /* lag-free rescue */
-  if (number_percent() < get_skill(ch, gsn_bodyguard))
-  {
-    int old_wait = ch->wait;
-    sprintf(buf, "You rush in to protect %s.\n\r", target->name );
-    send_to_char( buf, ch );
-    do_rescue( ch, target->name );
-    ch->wait = old_wait;
-    check_improve(ch, gsn_bodyguard, TRUE, 3);
-    return;
-  }
-
-  /* normal rescue - wait check */
-  if (ch->wait > 0 || (ch->desc != NULL && is_command_pending(ch->desc)))
-    return;
-  
-  sprintf(buf, "You try to protect %s.\n\r", target->name );
-  send_to_char( buf, ch );
-  do_rescue( ch, target->name );
+    for ( victim = ch->in_room->people; victim != NULL; victim = victim->next_in_room )
+    {
+        if ( !is_opponent(ch, victim) || is_affected(victim, gsn_guard) || !per_chance(chance) )
+            continue;
+        if ( !can_see_combat(ch, victim) )
+            continue;
+        guard_against(ch, victim);
+    }
 }
 
 /* handle affects that do things each round */
@@ -840,7 +926,7 @@ void check_jump_up( CHAR_DATA *ch )
 /* for auto assisting */
 void check_assist(CHAR_DATA *ch)
 {
-    CHAR_DATA *rch, *rch_next, *victim;
+    CHAR_DATA *rch, *rch_next, *victim, *tank;
     ROOM_INDEX_DATA *room = ch->in_room;
     
     if ( !(victim = ch->fighting) || room == NULL )
@@ -855,24 +941,26 @@ void check_assist(CHAR_DATA *ch)
             
             /* quick check for ASSIST_PLAYER */
             if (!IS_NPC(ch) && IS_NPC(rch) && IS_NPC(victim)
-		&& rch != victim
+                && rch != victim
                 && IS_SET(rch->off_flags,ASSIST_PLAYERS)
                 && rch->level + 6 > victim->level)
             {
                 do_emote(rch,"screams and attacks!");
-                multi_hit(rch,victim,TYPE_UNDEFINED);
+                tank = check_bodyguard(rch, victim);
+                multi_hit(rch, tank, TYPE_UNDEFINED);
                 continue;
             }
             
             /* PCs next */
             if (!IS_NPC(ch) || IS_AFFECTED(ch,AFF_CHARM))
             {
-                if ( ((!IS_NPC(rch) && IS_SET(rch->act,PLR_AUTOASSIST))
-		      || IS_AFFECTED(rch,AFF_CHARM)) 
-		     && is_same_group(ch,rch) 
-		     && !is_safe(rch, victim))
-                    multi_hit (rch,victim,TYPE_UNDEFINED);
-                
+                if ( (PLR_ACT(rch, PLR_AUTOASSIST) || IS_AFFECTED(rch, AFF_CHARM))
+                    && is_same_group(ch,rch)
+                    && !is_safe(rch, victim) )
+                {
+                    tank = check_bodyguard(rch, victim);
+                    multi_hit (rch, tank, TYPE_UNDEFINED);
+                }
                 continue;
             }
             
@@ -897,19 +985,13 @@ void check_assist(CHAR_DATA *ch)
                     CHAR_DATA *vch;
                     CHAR_DATA *target;
                     int number;
-                    
-		    /*
-                    if (number_bits(1) == 0)
-                        continue;
-		    */
-                    
                     target = NULL;
                     number = 0;
                     for ( vch = room->people; vch; vch = vch->next_in_room )
                     {
                         if (can_see_combat(rch,vch)
                             && is_same_group(vch,victim)
-			    && !is_safe(rch, vch)
+                            && !is_safe(rch, vch)
                             && number_range(0,number) == 0)
                         {
                             target = vch;
@@ -920,8 +1002,9 @@ void check_assist(CHAR_DATA *ch)
                     if (target != NULL)
                     {
                         do_emote(rch,"screams and attacks!");
+                        target = check_bodyguard(rch, target);
                         multi_hit(rch,target,TYPE_UNDEFINED);
-			continue;
+                        continue;
                     }
                 }   
             }
@@ -2660,7 +2743,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
         || dt == gsn_rupture
         || dt == gsn_snipe )
     {
-        victim_roll /= 2;
+        victim_roll *= 100.0 / (200 + get_skill_overflow(ch, dt));
     }    
     else if ( dt == gsn_fullauto
         || dt == gsn_semiauto
@@ -2735,21 +2818,33 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     int dam_type = DAM_NONE;
     int aff_sn = aff->type;
     int aff_level = aff->level;
+    int dam = aff_level;
 
     // quirky's insanity is special
     if ( aff_sn == gsn_quirkys_insanity )
     {
-        if ( number_bits(2) == 0 )
+        dam_type = DAM_MENTAL;
+        dam -= dam / 4;
+        if ( number_bits(2) == 0 && !saves_spell(ch, victim, aff_level, DAM_MENTAL) )
         {
-            int sn = per_chance(10) ? skill_lookup("confusion") : skill_lookup("laughing fit");
-            (*skill_table[sn].spell_fun) (sn, aff_level/2, victim, (void*)ch, TARGET_CHAR, FALSE);
+            // effect similar to laughing fit
+            if ( ch->position > POS_RESTING )
+            {
+                act("$n falls down, laughing hysterically.", ch, NULL, NULL, TO_ROOM);
+                send_to_char("You fall down laughing.\n\r", ch);
+                set_pos(ch, POS_RESTING);
+                check_lose_stance(ch);
+            }
+            else
+            {
+                act("$n laughs like a madman, wonder what's so funny?", ch, NULL, NULL, TO_ROOM);
+                send_to_char("You throw your head back and laugh like a crazy madman!\n\r", ch);
+            }
+            DAZE_STATE(ch, PULSE_VIOLENCE);
         }
-        full_dam(victim, ch, aff_level/2, gsn_quirkys_insanity, DAM_MENTAL, TRUE);
-        return;
     }
-    
     // now the "regular" elemental auras
-    if ( aff_sn == gsn_immolation )
+    else if ( aff_sn == gsn_immolation )
         dam_type = DAM_FIRE;
     else if ( aff_sn == gsn_epidemic )
         dam_type = DAM_DISEASE;
@@ -2758,8 +2853,6 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     else if ( aff_sn == gsn_absolute_zero )
         dam_type = DAM_COLD;
     
-    int dam = aff_level;
-
     // save for half damage is possible but harder than normal
     if ( is_affected(ch, gsn_fervent_rage) || saves_spell(ch, victim, 2*aff_level, dam_type) )
         dam /= 2;
@@ -2844,9 +2937,12 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         break;
     case STANCE_ELEMENTAL_BLADE:
         /* additional mana cost */
-        if ( ch->mana < 1 )
-            break;
-        reduce_mana(ch, 1);
+        if ( !per_chance(get_skill_overflow(ch, gsn_elemental_blade)) )
+        {
+            if ( ch->mana < 1 )
+                break;
+            reduce_mana(ch, 1);
+        }
         if ( check_skill(ch, gsn_elemental_strike) )
             dam += ch->level / 2;
 	/* if weapon damage can be matched.. */
@@ -3503,6 +3599,27 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     if ( stop_damage(ch, victim) )
         return FALSE;
 
+    // split damage between sentinel and intended victim
+    if ( dam > 1 && ch->fighting && ch->fighting != victim && dt != gsn_beheading )
+    {
+        CHAR_DATA *sentinel = ch->fighting;
+        if ( wants_to_rescue(sentinel) && is_same_group(sentinel, victim) && check_skill(sentinel, gsn_sentinel) )
+        {
+            if ( show ) {
+                act("You push $N out of harm's way!", sentinel, NULL, victim, TO_CHAR);
+                act("$n pushes you out of harm's way!", sentinel, NULL, victim, TO_VICT);
+                act("$n push $N out of harm's way!", sentinel, NULL, victim, TO_NOTVICT);
+            }
+            int reduction = dam * (25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25)) / 100;
+            dam -= reduction;
+            check_improve(sentinel, gsn_sentinel, TRUE, 2);
+            int sentinel_damage = reduction * 2/3;
+            if ( sentinel_damage > 0 ) {
+                deal_damage(ch, sentinel, sentinel_damage, dt, dam_type, show, lethal);
+            }
+        }
+    }
+
    /*
     * Damage modifiers.
     */
@@ -3795,7 +3912,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
         else if ( is_affected(victim, gsn_mana_shield) )
         {
-            mana_loss = UMIN(dam / 2, victim->mana);
+            AFFECT_DATA *aff = affect_find(victim->affected, gsn_mana_shield);
+            int aff_level = aff ? aff->level : victim->level;
+            int cap = UMIN(victim->mana, 20 + aff_level);
+            mana_loss = UMIN(dam / 2, cap);
             dam -= mana_loss;
         }
         victim->mana -= mana_loss;
@@ -4529,7 +4649,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
         else
         {
             /* area effect spells do not hit other mobs */
-            if (area && !is_same_group(victim,ch->fighting))
+            if ( area && !is_opponent(ch, victim) )
                 return TRUE;
         }
     }
@@ -5070,7 +5190,7 @@ static int defence_penalty( CHAR_DATA *ch )
 int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
-    int skill = get_skill(ch, gsn_parry);
+    int skill = get_skill_total(ch, gsn_parry, 0.2);
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -6139,7 +6259,7 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 /* check if the gods have mercy on a character */
 bool check_mercy( CHAR_DATA *ch )
 {
-    if ( check_skill(ch, gsn_divine_channel) )
+    if ( ch->pcdata && ch->pcdata->subclass == subclass_chosen )
         return TRUE;
     
     int chance = 1000;
@@ -7307,6 +7427,39 @@ CHAR_DATA* check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim )
       }
   }
   return victim;
+}
+
+DEF_DO_FUN(do_engage)
+{
+    CHAR_DATA *vch;
+    CHAR_DATA *vch_next;
+    bool found = FALSE;
+
+    if ( IS_SET(ch->in_room->room_flags, ROOM_SAFE) )
+    {
+        send_to_char( "Not in this room.\n\r", ch );
+        return;
+    }
+
+    for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
+    {
+        vch_next = vch->next_in_room;
+        if ( vch != ch && !is_safe_spell(ch, vch, TRUE) && !(vch->position < POS_FIGHTING)
+            && (!ch->fighting || !vch->fighting) )
+        {
+            act("You engage $N in combat!", ch, NULL, vch, TO_CHAR);
+            act("$n engages you in combat!", ch, NULL, vch, TO_VICT);
+            act("$n engages $N in combat!", ch, NULL, vch, TO_NOTVICT);
+            found = TRUE;
+            check_killer(ch, vch);
+            start_combat(ch, vch);
+        }
+    }
+    
+    if ( !found )
+        ptc(ch, "There are no new targets to engage in combat!\n\r");
+    else
+        WAIT_STATE( ch, PULSE_VIOLENCE );
 }
 
 DEF_DO_FUN(do_kill)

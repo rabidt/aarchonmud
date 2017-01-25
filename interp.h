@@ -165,6 +165,7 @@ DECLARE_DO_FUN( do_east     );
 DECLARE_DO_FUN( do_eat      );
 DECLARE_DO_FUN( do_echo     );
 DECLARE_DO_FUN( do_emote    );
+DECLARE_DO_FUN( do_engage   );
 DECLARE_DO_FUN( do_enter    );
 DECLARE_DO_FUN( do_envenom  );
 DECLARE_DO_FUN( do_eqset     );
