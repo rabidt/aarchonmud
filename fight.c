@@ -1899,9 +1899,16 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             // greater frenzy is impacted by shield and heavy armor
             if ( get_eq_char(ch, WEAR_SHIELD) )
                 skill = skill * 2/3;
+            else
+            {
+                // penalty for non-proficiency with shields - up to half of what using a shield gives
+                int shield_skill = (get_skill(ch, gsn_shield_block) + get_skill(ch, gsn_wrist_shield)) / 2;
+                skill = skill * (500 + shield_skill) / 600;
+            }
             skill = skill * (200 - get_heavy_armor_penalty(ch)) / 200;
-            // reduced bonus without berserk skill (limits cross-class cheese)
-            skill = skill * (200 + get_skill(ch, gsn_berserk)) / 300;
+            // penalty for non-proficiency with heavy armor
+            int armor_penalty = (100 - get_heavy_armor_bonus(ch)) * (100 - get_skill(ch, gsn_heavy_armor)) / 100;
+            skill = skill * (600 - armor_penalty) / 600;
             // reduced bonus when tired
             float fitness = 0.5 + 0.5 * ch->move / UMAX(1, ch->max_move);
             // base damage is doubled at 100% skill and total fitness
