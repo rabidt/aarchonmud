@@ -1109,6 +1109,8 @@ bool check_concentration( CHAR_DATA *ch )
 
 // global variable for storing what meta-magic skills are used
 tflag meta_magic = {};
+// sometimes meta-magic skills are applied for free
+tflag free_meta_magic = {};
 
 int meta_magic_sn( int meta )
 {
@@ -1211,7 +1213,8 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
 
     // each meta-magic effect doubles casting cost
     for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
-        if ( IS_SET(meta_magic, flag) && (base || flag != META_MAGIC_CHAIN) )
+        if ( IS_SET(meta_magic, flag) && !IS_SET(free_meta_magic, flag)
+            && (base || flag != META_MAGIC_CHAIN) )
         {
             int sn = meta_magic_sn(flag);
             if ( sn )
@@ -1326,14 +1329,19 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
     return TRUE;
 }
 
+bool can_extend(int sn)
+{
+    int duration = skill_table[sn].duration;
+    return (duration != DUR_SPECIAL) && (duration != DUR_NONE || sn == skill_lookup("renewal"));
+}
+
 // remove invalid meta-magic effects
 void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
 {
     // can only extend spells with duration
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
     {
-        int duration = skill_table[sn].duration;
-        if ( (duration == DUR_NONE || duration == DUR_SPECIAL) && sn != skill_lookup("renewal") )
+        if ( !can_extend(sn) )
         {
             send_to_char("Only spells with standard durations can be extended.\n\r", ch);
             flag_remove(meta_magic, META_MAGIC_EXTEND);
@@ -1762,8 +1770,18 @@ DEF_DO_FUN(do_cast)
         send_to_char( "You don't know any spells of that name.\n\r", ch );
         return;
     }
+
+    // skill overflow provides chance of automatic free extend spell
+    if ( can_extend(sn) && per_chance(get_skill_overflow(ch, gsn_extend_spell) / 2) )
+    {
+        flag_set(meta_magic, META_MAGIC_EXTEND);
+        flag_set(free_meta_magic, META_MAGIC_EXTEND);
+    }
     
     cast_spell(ch, sn, chance);
+    
+    flag_clear(meta_magic);
+    flag_clear(free_meta_magic);
 }
 
 bool can_wish_cast( int sn )
