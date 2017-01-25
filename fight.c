@@ -3906,7 +3906,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
         else if ( is_affected(victim, gsn_mana_shield) )
         {
-            mana_loss = UMIN(dam / 2, victim->mana);
+            AFFECT_DATA *aff = affect_find(victim->affected, gsn_mana_shield);
+            int aff_level = aff ? aff->level : victim->level;
+            int cap = UMIN(victim->mana, 20 + aff_level);
+            mana_loss = UMIN(dam / 2, cap);
             dam -= mana_loss;
         }
         victim->mana -= mana_loss;
