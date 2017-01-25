@@ -2934,9 +2934,12 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
         break;
     case STANCE_ELEMENTAL_BLADE:
         /* additional mana cost */
-        if ( ch->mana < 1 )
-            break;
-        reduce_mana(ch, 1);
+        if ( !per_chance(get_skill_overflow(ch, gsn_elemental_blade)) )
+        {
+            if ( ch->mana < 1 )
+                break;
+            reduce_mana(ch, 1);
+        }
         if ( check_skill(ch, gsn_elemental_strike) )
             dam += ch->level / 2;
 	/* if weapon damage can be matched.. */
