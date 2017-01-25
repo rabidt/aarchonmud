@@ -3907,13 +3907,20 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             mana_loss = UMIN(dam / 3, victim->mana);
             dam -= 2 * mana_loss;
         }
-        else if ( is_affected(victim, gsn_mana_shield) )
+        else
         {
             AFFECT_DATA *aff = affect_find(victim->affected, gsn_mana_shield);
-            int aff_level = aff ? aff->level : victim->level;
-            int cap = UMIN(victim->mana, 20 + aff_level);
-            mana_loss = UMIN(dam / 2, cap);
-            dam -= mana_loss;
+            if ( aff )
+            {
+                // figure out fraction of damage absorped: max = 50% at lvl 90
+                // ideally scale so that hp & mana run out at the same time
+                float ideal = ((float)victim->mana) / UMAX(1, victim->hit + victim->mana);
+                float min_rate = 0.2;
+                float max_rate = min_rate + aff->level / 300.0;
+                mana_loss = dam * URANGE(min_rate, ideal, max_rate);
+                mana_loss = URANGE(0, mana_loss, victim->mana);
+                dam -= mana_loss;
+            }
         }
         victim->mana -= mana_loss;
     }
