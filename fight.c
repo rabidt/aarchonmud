@@ -1711,6 +1711,9 @@ static int mob_secondary_attacks( CHAR_DATA *ch )
     // subtract primary attack, and reduce remaining by 1/3 which will occur as off-hand attacks
     int secondary = attacks * 2/3 - 100;
     return UMAX(0, secondary);
+    // hurt mobs get fewer attacks
+    attacks = attacks * (100 - get_injury_penalty(ch)) / 100;
+    
 }
 
 /* procedure for all mobile special attacks (simulating skill usage) */
