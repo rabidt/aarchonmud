@@ -2856,35 +2856,20 @@ DEF_DO_FUN(do_intimidate)
     if ( !can_see_combat(victim, ch) )
 	skill /= 2;
     
-    /* bonus if victim is already scared */
-    if ( IS_AFFECTED(victim, AFF_FEAR) )
-	level = ch->level + 20;
-    else
-	level = ch->level;
-
     WAIT_STATE( ch, skill_table[gsn_intimidation].beats );
     
-    bool failed = FALSE;
-    if ( IS_AFFECTED(victim, AFF_HEROISM) )
-    {
-        act( "$N just laughs in your face.", ch, NULL, victim, TO_CHAR );
-        failed = TRUE;
-    }    
-    else if ( saves_afflict(victim, ch, level * skill/100, DAM_MENTAL) )
+    level = ch->level * skill/100;
+    if ( saves_fear(victim, ch, level) )
     {
         act( "You don't really intimidate $N.", ch, NULL, victim, TO_CHAR );
-        failed = TRUE;
-    }
-    if ( failed )
-    {
         act( "$n tried to intimidate you, but you won't take $s crap.", ch, NULL, victim, TO_VICT );
         check_improve( ch, gsn_intimidation, FALSE, 2 );
         full_dam( ch, victim, 0, gsn_intimidation, DAM_MENTAL, FALSE );
         return;
     }
     check_improve( ch, gsn_intimidation, TRUE, 2 );
-    
-    if ( check_dispel(level, victim, skill_lookup("sanctuary")) )
+
+    if ( check_dispel(level, victim, gsn_sanctuary) )
     {
         act( "You intimidate $N out of $S comfy sanctuary.",
 	     ch, NULL, victim, TO_CHAR);

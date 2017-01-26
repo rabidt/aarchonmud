@@ -481,6 +481,24 @@ static bool saves_magic( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_ty
     }
 }
 
+bool saves_fear( CHAR_DATA *victim, CHAR_DATA *ch, int level )
+{
+    // heroism grant immunity to fear effects
+    if ( IS_AFFECTED(victim, AFF_HEROISM) )
+    {
+        act("$N shows no signs of fear at all!", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+    // aura of menace makes fear effects easier to land
+    int menace = get_skill_total(ch, gsn_aura_of_menace, 0.5);
+    // so does fear itself
+    if ( IS_AFFECTED(victim, AFF_FEAR) )
+        menace += 100;
+    if ( check_immune(victim, DAM_MENTAL) != IS_IMMUNE && number_range(1,1000) <= menace )
+        return FALSE;
+    return saves_magic( victim, ch, level, DAM_MENTAL, TRUE );
+}
+
 bool saves_spell( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
 {
     return saves_magic( victim, ch, level, dam_type, FALSE );
