@@ -496,14 +496,8 @@ DEF_SPELL_FUN(spell_fear)
         act( "$N looks already scared to death!", ch, NULL, victim, TO_CHAR );
         return SR_AFFECTED;
     }
-
-    if ( IS_AFFECTED(victim, AFF_HEROISM) )
-    {
-        act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
-        act( "$N knows no fear or danger.", ch, NULL, victim, TO_CHAR );
-        return TRUE;
-    }
-    else if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
+    
+    if ( saves_fear(victim, ch, level) )
     {
         act( "$n tries to look scary but looks rather funny.", ch, NULL, victim, TO_VICT );
         send_to_char( "Apparently you aren't too scary.\n\r", ch );
