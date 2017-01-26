@@ -1393,7 +1393,8 @@ DEF_DO_FUN(do_estimate)
 
     sprintf( buf, "You size up %s.\n\r", victim->short_descr );
     send_to_char( buf, ch );
-    WAIT_STATE(ch, skill_table[gsn_estimate].beats);
+    int wait = skill_table[gsn_estimate].beats * (200 - get_skill_overflow(ch, gsn_estimate)) / 200;
+    WAIT_STATE(ch, wait);
 
     /* do now so we can just return later */
     check_improve(ch, gsn_estimate, TRUE, 3);
