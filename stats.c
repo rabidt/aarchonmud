@@ -438,7 +438,10 @@ int get_spell_penetration( CHAR_DATA *ch, int level )
         sp += sp * UMIN(focus, 100) / 500.0;
         // inquisition
         if ( ch && ch->stance == STANCE_INQUISITION )
+        {
             sp += sp / 3;
+            sp += sp * get_skill_overflow(ch, gsn_inquisition) / 2000;
+        }
         return sp;
     }
     else
