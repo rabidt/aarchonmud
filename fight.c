@@ -3666,7 +3666,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             int pen = get_skill(ch, gsn_penetration) + mastery_bonus(ch, gsn_penetration, 30, 50);
             if ( dam >= ch->level ) // avoid increase from weapon flags etc.
                 check_improve(ch, gsn_penetration, TRUE, 6);
-            dam = dam * (300 + pen) / 600;
+            if ( stance == STANCE_AMBUSH && dt >= TYPE_HIT )
+                pen += get_skill_overflow(ch, gsn_ambush) / 2;
+            dam = dam * UMIN(600, 300 + pen) / 600;
         }
         else
             dam /= 2;
