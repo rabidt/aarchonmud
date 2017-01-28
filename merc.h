@@ -4438,6 +4438,7 @@ bool    can_take_subclass( int class, int subclass );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
+void hide_char( CHAR_DATA *ch );
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
