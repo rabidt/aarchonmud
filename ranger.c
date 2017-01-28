@@ -286,7 +286,7 @@ DEF_DO_FUN(do_firstaid)
 	int heal = 0;
 	int skill;
 	int max_heal;
-	int mana_cost = skill_table[gsn_firstaid].min_mana;
+	int mana_cost = base_mana_cost(ch, gsn_firstaid);
         char buf[MAX_STRING_LENGTH];
 
         skill = get_skill(ch, gsn_firstaid);
