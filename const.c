@@ -7594,7 +7594,7 @@ struct  skill_type
     {
     "firstaid",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 31, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,     TAR_IGNORE,     POS_STANDING,
@@ -8857,7 +8857,7 @@ const struct mastery_group_type mastery_group_table[] =
     { "healing", 4,
         { "cure light", "cure serious", "cure critical", "heal", "cure mortal",
         "restoration", "minor group heal", "group heal", "major group heal", "mass healing",
-        "astarks rejuvenation" }
+        "astarks rejuvenation", "firstaid" }
     },
 
     { "malediction", 2,

@@ -334,7 +334,9 @@ DEF_DO_FUN(do_firstaid)
 	if (number_percent() < skill)
 	{
            ch->mana -= mana_cost;
-	   heal = max_heal * (target->max_hit - target->hit) / UMAX(1, target->max_hit);
+       float injury = (target->max_hit - target->hit) / UMAX(1.0, target->max_hit);
+       float min_injury = mastery_bonus(ch, gsn_firstaid, 40, 50) / 100.0;
+	   heal = max_heal * UMAX(min_injury, injury);
        gain_hit(target, heal);
 	   update_pos( target );
            if (ch == target)
