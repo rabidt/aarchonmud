@@ -1104,6 +1104,15 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
     check_killer( ch, victim );
     mastery_adjusted_wait(ch, gsn_snipe);
 
+    // not getting spotted gives a chance to snipe without engaging
+    int auto_spot_chance = 25 + UMAX(0, 100 - get_skill_overflow(ch, gsn_snipe)) / 10;
+    bool spotted = !IS_AFFECTED(ch, AFF_HIDE)
+        || per_chance(auto_spot_chance)
+        || check_see_combat(victim, ch);
+        
+    if ( spotted )
+        act("$N spots you as shoot $M!", ch, NULL, victim, TO_CHAR);
+    
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
         if ( one_hit(ch, victim, gsn_snipe, secondgun) )
@@ -1119,6 +1128,22 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
         check_improve(ch,gsn_snipe,FALSE,2);
         damage( ch, victim, 0, gsn_snipe,DAM_NONE,TRUE);
     }
+    
+    // cancel combat & re-hide
+    if ( !spotted && ch->fighting == victim )
+    {
+        int hide_chance = (100 + get_skill(ch, gsn_hide)) / 2;
+        if ( !per_chance(hide_chance) )
+            act("You fail to re-hide and $N closes in on you!", ch, NULL, victim, TO_CHAR);
+        else
+        {
+            act("You quickly re-hide before $N can close in on you.", ch, NULL, victim, TO_CHAR);
+            act("$n disappears again before you can close in on $m.", ch, NULL, victim, TO_VICT);
+            stop_fighting(ch, victim->fighting == ch);
+            hide_char(ch);
+        }
+    }
+        
     return;
 }
 
