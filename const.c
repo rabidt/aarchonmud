@@ -7598,7 +7598,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,     TAR_IGNORE,     POS_STANDING,
-    &gsn_firstaid, 40, 0, 24, DUR_NONE,
+    &gsn_firstaid, 40, 4, 24, DUR_NONE,
     "",         "!FirstAid!",   ""
     },
 
