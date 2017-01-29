@@ -2439,6 +2439,11 @@ bool is_questeq( OBJ_DATA *obj )
     return IS_OBJ_STAT(obj->pIndexData, ITEM_QUESTEQ) && TRUE;
 }
 
+bool is_nosac( OBJ_DATA *obj )
+{
+    return IS_OBJ_STAT(obj->pIndexData, ITEM_NO_SAC_EX);
+}
+
 bool contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check )
 {
     if ( obj == NULL || obj_check == NULL )
