@@ -1111,7 +1111,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
         || check_see_combat(victim, ch);
         
     if ( spotted )
-        act("$N spots you as shoot $M!", ch, NULL, victim, TO_CHAR);
+        act("$N spots you as you shoot $M!", ch, NULL, victim, TO_CHAR);
     
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
