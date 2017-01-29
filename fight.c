@@ -2198,6 +2198,9 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 
 void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
+    /* prevent attack chains through re-retributions */
+    static bool is_retribute = FALSE;
+        
     CHECK_RETURN( ch, victim );
     
     OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
@@ -2246,13 +2249,31 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         full_dam(victim, ch, dam, gsn_divine_retribution, damtype, TRUE);
     }
     
-    // riposte - 25% chance regardless of hit or miss
-    // blade barrier stance doubles that
-    int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
+    if ( dt != gsn_snipe && !is_retribute && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-        one_hit(victim, ch, gsn_riposte, FALSE);
-        CHECK_RETURN( ch, victim );
+        // riposte - 25% chance regardless of hit or miss
+        // blade barrier stance doubles that
+        int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
+        if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50))
+        {
+            is_retribute = TRUE;
+            one_hit(victim, ch, gsn_riposte, FALSE);
+            is_retribute = FALSE;
+            CHECK_RETURN(ch, victim);
+        }
+        
+        // retribution = counter-attack on hit
+        if ( hit && (victim->stance == STANCE_PORCUPINE || victim->stance == STANCE_RETRIBUTION) )
+        {
+            int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
+            is_retribute = TRUE;
+            // if retribution fails, we may get another try
+            if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
+                one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+            is_retribute = FALSE;
+            CHECK_RETURN(ch, victim);
+        }
+        
     }
     
     // rapid fire - chance of additional follow-up attack
@@ -2315,8 +2336,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     OBJ_DATA *wield;
     int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
-    /* prevent attack chains through re-retributions */
-    static bool is_retribute = FALSE;
 
     if ( !can_attack(ch) )
         return FALSE;
@@ -2668,20 +2687,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     after_attack(ch, victim, dt, TRUE, secondary);
     
-    /* retribution */
-    if ( (victim->stance == STANCE_PORCUPINE 
-	  || victim->stance == STANCE_RETRIBUTION)
-	 && !is_retribute
-	 && !IS_AFFECTED(victim, AFF_FLEE) )
-    {
-        int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
-        is_retribute = TRUE;
-        // if retribution fails, we may get another try
-        if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
-            one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
-        is_retribute = FALSE;
-    }
-
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
