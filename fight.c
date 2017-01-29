@@ -2071,7 +2071,7 @@ void equip_new_arrows( CHAR_DATA *ch )
     wear_obj( ch, obj, FALSE );
 }
 
-void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
+static void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
 {
     OBJ_DATA *obj, *arrows = get_eq_char( ch, WEAR_HOLD );
     int dam, dam_type;
@@ -2134,8 +2134,8 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     /* counterstrike */
     CHECK_RETURN( ch, victim );
     obj = get_eq_char( victim, WEAR_WIELD );
-    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
-	return;
+    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) || dt == gsn_snipe )
+        return;
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
 
@@ -2464,7 +2464,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             dt = gsn_pistol_whip;
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
-            handle_arrow_shot( ch, victim, FALSE );
+            handle_arrow_shot( ch, victim, dt, FALSE );
         after_attack(ch, victim, dt, FALSE, secondary);
         tail_chain( );
         return FALSE;
@@ -2620,7 +2620,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     /* arrow damage & handling */
     if ( arrow_used )
-	handle_arrow_shot( ch, victim, result );
+	handle_arrow_shot( ch, victim, dt, result );
 
     if ( stop_attack(ch, victim) )
         return result != 0;
