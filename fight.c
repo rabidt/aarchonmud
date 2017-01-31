@@ -3789,9 +3789,13 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         /* shadow strike bonus */
         if ( per_chance(get_skill(ch, gsn_shadow_strike)) )
         {
-            if ( ch->stance != STANCE_DIMENSIONAL_BLADE && ch != victim )
-                dam += dam * fade_chance(victim) * (100 - misfade_chance(ch)) / 10000;
-            dam += dam * fade_chance(ch) / 250;
+            int vfade = fade_chance(victim);
+            int fade_hit = ch->stance == STANCE_DIMENSIONAL_BLADE ? 100 : misfade_chance(ch);
+            if ( ch != victim && !per_chance(vfade * fade_hit / 100) )
+            {
+                dam += dam * vfade / 10000;
+                dam += dam * fade_chance(ch) / 250;
+            }
         }
         /* massive swing penalty */
         if ( dt == gsn_massive_swing )
