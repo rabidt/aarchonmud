@@ -1294,7 +1294,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     {
     "satyr",    "Satyr ",
     { 130, 125, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 125, 130, 125},
-    4,{"colour spray","sleep","charm person","cure serious"},{10,5,15,20},{60,60,60,60},
+    4, { "sleep", "charm person", "combat symphony", "instruments" }, {5,15,25,35}, {60,60,60,60},
     {  15,  20,  30,  20,  40,      30,  20,  20,  25,  30 },
     {  95, 100, 105,  90, 115,     110, 115,  90, 120, 110 },   
     {   3,   4,   4,   3,   5,       4,   5,   3,   5,   4 },
