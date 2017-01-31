@@ -2079,7 +2079,7 @@ int get_obj_focus( CHAR_DATA *ch )
     // non-metal held object suffers a small penalty
     int base = IS_OBJ_STAT(obj, ITEM_NONMETAL) ? 99 : 100;
     if ( IS_OBJ_STAT(obj, ITEM_INSTRUMENT) )
-        base = base * get_skill(ch, gsn_instrument) / 100; 
+        base = base * get_skill_total(ch, gsn_instrument, 0.5) / 100;
     
     if ( has_shield )
         return (base + get_skill(ch, gsn_wrist_shield)) / 3;
