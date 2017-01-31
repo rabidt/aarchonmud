@@ -3703,6 +3703,10 @@ bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
     if (!pRoomIndex)
         return FALSE;
     
+    // night-time
+    if ( weather_info.sunlight == SUN_DARK )
+        return TRUE;
+    
     if ( IS_SET(pRoomIndex->room_flags, ROOM_DARK) )
         return TRUE;
     
