@@ -48,3 +48,4 @@ int get_lunge_chance( CHAR_DATA *ch );
 int get_instrument_skill( CHAR_DATA *ch );
 bool is_song( int sn );
 void song_heal( CHAR_DATA *ch );
+CHAR_DATA* get_singer( CHAR_DATA *ch, int song );
