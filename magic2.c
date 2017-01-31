@@ -839,11 +839,13 @@ DEF_SPELL_FUN(spell_animate_dead)
     
     check_improve( ch, gsn_puppetry, TRUE, 4 );
     
-    if ( number_percent() <= puppet_skill )
+    if ( per_chance(puppet_skill) )
     {
         SET_BIT( mob->off_flags, OFF_RESCUE );
         REMOVE_AFFECT( mob, AFF_SLOW );
     }
+    if ( check_skill(ch, gsn_army_of_darkness) )
+        SET_AFFECT(mob, AFF_DEATHS_DOOR);
     
     set_mob_level( mob, mlevel );
 
@@ -927,6 +929,8 @@ DEF_SPELL_FUN(spell_ghost_chant)
         SET_BIT(mob->off_flags, OFF_RESCUE);
         SET_BIT(mob->off_flags, OFF_FAST);
     }
+    if ( check_skill(ch, gsn_army_of_darkness) )
+        SET_AFFECT(mob, AFF_DEATHS_DOOR);
     
     set_mob_level( mob, mlevel );
 
