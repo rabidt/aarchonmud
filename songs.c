@@ -217,6 +217,8 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
     if (song_num == SONG_COMBAT_SYMPHONY)
     {
         af.type      = gsn_combat_symphony;
+        af.location  = APPLY_VIT;
+        af.modifier  = get_skill_overflow(ch, gsn_combat_symphony) / 5;
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
