@@ -2304,7 +2304,7 @@ const struct subclass_type subclass_table[] =
     },
     {
         "songhealer", BARD,
-        { "song healing", "anatomy", "group heal", "lullaby" },
+        { "song healing", "minor group heal", "group heal", "lullaby" },
         { 30, 50, 70, 120 },
         { 100, 80, 80, 75 }
     },
