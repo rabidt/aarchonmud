@@ -476,6 +476,25 @@ void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
     }
 }
 
+CHAR_DATA* get_singer( CHAR_DATA *ch, int song )
+{
+    CHAR_DATA *gch;
+    
+    if ( !ch || !ch->in_room )
+        return NULL;
+
+    if ( ch->song == song )
+        return ch;
+    
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( gch->song == song && is_same_group(gch, ch) )
+            return gch;
+    }
+    
+    return NULL;
+}
+
 void check_bard_song( CHAR_DATA *ch, bool deduct_cost )
 {
     // make sure the bard in the room
