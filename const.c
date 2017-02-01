@@ -5457,7 +5457,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_null,     TAR_IGNORE,     POS_FIGHTING,
+    spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
     &gsn_slash_throat, 0, 0, 24, DUR_SPECIAL,
     "throat slash",      "You can speak again.",
     ""
@@ -5678,7 +5678,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_IGNORE,     POS_FIGHTING,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
     &gsn_dirt, 0, 0, 24, DUR_SPECIAL,
         "kicked dirt",      "You rub the dirt out of your eyes.",
         ""
@@ -6211,7 +6211,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_null,             TAR_IGNORE,             POS_STANDING,
+    spell_null, TAR_CHAR_OFFENSIVE, POS_STANDING,
     &gsn_paroxysm_cooldown, 0, 0, 8, DUR_SPECIAL,
     "",     "You feel like you're able to perform another paroxysm.",   ""
     },
@@ -6270,7 +6270,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_IGNORE, POS_STANDING,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_STANDING,
     &gsn_quivering_palm, 0, 0, 18, DUR_BRIEF,
     "quivering palm",         "!quivering palm!",   ""
     },
