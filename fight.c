@@ -1533,12 +1533,38 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if (ch->fighting != victim)
 	return;
     
-    if ( wield != NULL && wield->value[0] == WEAPON_DAGGER
-	 && number_bits(4) == 0 )
+    if ( wield != NULL )
     {
-	one_hit(ch,victim,dt,FALSE);
-	if (ch->fighting != victim)
-	    return;
+        if ( wield->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
+            one_hit(ch, victim, dt, FALSE);
+        else if ( wield->value[0] == WEAPON_GUN && check_skill(ch, gsn_tight_grouping) )
+        {
+            AFFECT_DATA *paf = affect_find(ch->affected, gsn_tight_grouping);
+            bool bonus_shot = per_chance(67);
+            // active usage of spray attacks prevents tight grouping auto-shots
+            if ( paf )
+            {
+                int wait = paf->bitvector;
+                if ( paf->bitvector <= PULSE_VIOLENCE )
+                    affect_remove(ch, paf);
+                else
+                    paf->bitvector -= PULSE_VIOLENCE;
+                if ( number_range(1, PULSE_VIOLENCE) <= wait )
+                    bonus_shot = FALSE;
+            }
+            if ( bonus_shot )
+            {
+                //ptc(ch, "Your tightly grouped bullets allow you to fire off another shot!\n\r");
+                // either main hand or offhand
+                if ( per_chance(75) )
+                    one_hit(ch, victim, dt, FALSE);
+                else if ( second && second->value[0] == WEAPON_GUN )
+                    one_hit(ch, victim, dt, TRUE);
+                check_improve(ch, gsn_tight_grouping, TRUE, 5);
+            }
+        }
+        if ( ch->fighting != victim )
+            return;
     }
     
     // bonus attacks from haste, second/third/extra attack and dex; these are affected by slow
