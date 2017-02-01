@@ -685,6 +685,22 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
         targeted_attacks = rand_div(targeted_attacks * 4, 3);
         area_attacks = rand_div(area_attacks * 4, 3);
         check_improve(ch, gsn_tight_grouping, TRUE, 4);
+        // this use of tight grouping limits automatic use
+        AFFECT_DATA *paf = affect_find(ch->affected, gsn_tight_grouping);
+        if ( paf )
+            paf->bitvector += skill_table[sn].beats + 1;
+        else
+        {
+            AFFECT_DATA af;
+            af.where     = TO_SPECIAL;
+            af.type      = gsn_tight_grouping;
+            af.level     = ch->level;
+            af.duration  = 0;
+            af.location  = APPLY_HITROLL;
+            af.modifier  = -1;
+            af.bitvector = skill_table[sn].beats + 1;
+            affect_to_char(ch, &af);
+        }
     }
     jam_chance = (sn == gsn_fullauto ? 4 : sn == gsn_semiauto ? 2 : 1);
 

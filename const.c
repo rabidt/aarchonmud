@@ -7027,7 +7027,7 @@ struct  skill_type
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_tight_grouping, 0, 0, 12, DUR_NONE,
-        "tight grouping",       "!tight grouping!",     ""
+        "tight grouping", "You reload your gun.", ""
     },
 
     {
