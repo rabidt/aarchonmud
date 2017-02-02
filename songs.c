@@ -217,6 +217,8 @@ static void apply_bard_song_affect(CHAR_DATA *ch, int song_num, int level)
     if (song_num == SONG_COMBAT_SYMPHONY)
     {
         af.type      = gsn_combat_symphony;
+        af.location  = APPLY_VIT;
+        af.modifier  = get_skill_overflow(ch, gsn_combat_symphony) / 5;
         af.bitvector = AFF_REFRESH;
         affect_to_char(ch, &af);
     }
@@ -474,6 +476,25 @@ void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
             return;
         }
     }
+}
+
+CHAR_DATA* get_singer( CHAR_DATA *ch, int song )
+{
+    CHAR_DATA *gch;
+    
+    if ( !ch || !ch->in_room )
+        return NULL;
+
+    if ( ch->song == song )
+        return ch;
+    
+    for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
+    {
+        if ( gch->song == song && is_same_group(gch, ch) )
+            return gch;
+    }
+    
+    return NULL;
 }
 
 void check_bard_song( CHAR_DATA *ch, bool deduct_cost )

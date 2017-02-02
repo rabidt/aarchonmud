@@ -3193,6 +3193,8 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
         if (skill_table[skill].min_mana != 0)
         {
             add_buff(buffer, "Base Mana: %d", skill_table[skill].min_mana);
+            if ( skill_table[skill].mana_boost > 0 )
+                add_buff(buffer, " + %.1f%%", 0.1 * skill_table[skill].mana_boost);
             found = TRUE;
         }
         if (skill_table[skill].beats != 0)

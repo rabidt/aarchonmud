@@ -121,6 +121,11 @@ int gain_move( CHAR_DATA *ch, int amount )
     return amount;
 }
 
+int time_played( CHAR_DATA *ch )
+{
+    return ch->played + (int) (current_time - ch->logon);
+}
+
 /*
  * Advancement stuff.
  */
@@ -129,7 +134,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
 {
     char buf[MAX_STRING_LENGTH];
     int add_prac;
-    int played_now = ch->played + (int) (current_time - ch->logon);
+    int played_now = time_played(ch);
     int time_since_last_level = played_now - ch->pcdata->last_level;
 
     ch->pcdata->last_level = played_now;
@@ -1251,12 +1256,18 @@ void char_update( void )
             {
                 int deep_sleep_gain = 1;
                 // 50% chance to get another deep sleep if AFF_LULLABY
-                if (IS_AFFECTED(ch, AFF_LULLABY) && number_bits(1))
+                if ( IS_AFFECTED(ch, AFF_LULLABY) )
                 {
-                    deep_sleep_gain = 2;
+                    CHAR_DATA* singer = get_singer(ch, SONG_LULLABY);
+                    int chance = 50 + (singer ? get_skill_overflow(singer, gsn_lullaby) / 2 : 0);
+                    if ( per_chance(chance) )
+                        deep_sleep_gain = 2;
                 }
                 ch->pcdata->condition[COND_DEEP_SLEEP] += deep_sleep_gain;
-                send_to_char("You fall into a deeper sleep.\n\r",ch);
+                if ( deep_sleep_gain > 1 )
+                    send_to_char("You fall into a much deeper sleep.\n\r",ch);
+                else
+                    send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
                 ch->pcdata->condition[COND_DEEP_SLEEP] = 0;

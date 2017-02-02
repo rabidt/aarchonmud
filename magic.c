@@ -39,6 +39,7 @@
 #include "warfare.h"
 #include "religion.h"
 #include "mudconfig.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -2078,7 +2079,7 @@ int get_obj_focus( CHAR_DATA *ch )
     // non-metal held object suffers a small penalty
     int base = IS_OBJ_STAT(obj, ITEM_NONMETAL) ? 99 : 100;
     if ( IS_OBJ_STAT(obj, ITEM_INSTRUMENT) )
-        base = base * get_skill(ch, gsn_instrument) / 100; 
+        base = base * get_skill_total(ch, gsn_instrument, 0.5) / 100;
     
     if ( has_shield )
         return (base + get_skill(ch, gsn_wrist_shield)) / 3;
@@ -2194,6 +2195,12 @@ float get_sn_heal_factor( int sn, CHAR_DATA *ch, CHAR_DATA *victim )
         // sacred touch
         if ( get_eq_char(ch, WEAR_WIELD) == NULL )
             heal += heal * get_skill(ch, gsn_sacred_touch) / (ch == victim ? 300 : 200);
+        // song-healing
+        if ( ch->song != SONG_DEFAULT )
+        {
+            int song_heal = get_skill(ch, gsn_song_healing) * (100 + get_instrument_skill(ch)) / 200;
+            heal += heal * song_heal / 250;
+        }
 
         if ( !IS_NPC(ch) && ch->level >= LEVEL_MIN_HERO )
             heal += heal * (10 + ch->level - LEVEL_MIN_HERO) / 100;
