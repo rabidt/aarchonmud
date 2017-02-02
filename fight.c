@@ -6625,9 +6625,9 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_EVIL) && IS_GOOD(victim) )
         base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_GOOD) && IS_EVIL(victim) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_DEATHS_DOOR) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->off_flags, OFF_FADE) )
         base_exp += base_exp/3;
     else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE) || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
@@ -6638,19 +6638,20 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 20 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BERSERK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0, 6*victim->size - 10) : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 10 : 0;
     base_exp += base_exp * off_bonus / 100;
 
     if (victim->pIndexData->spec_fun != NULL)
@@ -6663,13 +6664,13 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
             || spec == spec_breath_frost
             || spec == spec_breath_gas
             || spec == spec_breath_lightning )
-            base_exp += base_exp / 3;
+            base_exp += base_exp * 2/3;
         // casters
         else if ( spec == spec_cast_cleric
             || spec == spec_cast_mage
             || spec == spec_cast_draconic
             || spec == spec_cast_undead )
-            base_exp += base_exp / 2;
+            base_exp += base_exp;
         // other
         else if ( spec == spec_thief
             || spec == spec_nasty )
@@ -6684,11 +6685,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     {
         // adjust stance cost for purpose of bonus calculation
         switch (stance) {
-            case STANCE_BLOODBATH:
-                stance_bonus = 10;
-                break;
             case STANCE_TORTOISE:
-                stance_bonus = 15;
+                stance_bonus = 10;
                 break;
             case STANCE_SHADOWWALK:
                 stance_bonus = 20;
@@ -6697,7 +6695,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
                 stance_bonus = stances[stance].cost;
                 break;
         }
-        base_exp += base_exp * stance_bonus / 60;
+        base_exp += base_exp * stance_bonus / 50;
     }
 
     return (int)base_exp;
