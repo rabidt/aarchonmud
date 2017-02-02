@@ -3323,3 +3323,95 @@ DEF_DO_FUN(do_tick)
     send_to_char("The universe lurches forward in time.\n\r", ch);
     core_tick();
 }
+
+DEF_DO_FUN(do_protocol)
+{
+    char arg[MIL];
+
+    argument = one_argument( argument, arg);
+
+    if (arg[0] == '\0') 
+    {
+        ptc(ch, "Check protocol on which player?\n\r");
+        return;
+    }
+
+    CHAR_DATA *victim = get_char_world(ch, arg);
+
+    if (!victim)
+    {
+        ptc(ch, "Player '%s' not found.\n\r", arg);
+        return;
+    }
+
+    if (IS_NPC(victim))
+    {
+        ptc(ch, "%s is an NPC.\n\r", arg);
+        return;
+    }
+
+    if (!victim->desc) 
+    {
+        ptc(ch, "Uh oh, no descriptor for %s...\n\r", arg);
+        return;
+    }
+
+    if (!victim->desc->pProtocol) 
+    {
+        ptc(ch, "Uh oh, no protocol for %s....\n\r", arg);
+        return;
+    }
+
+
+    protocol_t *pr = victim->desc->pProtocol;
+
+#define wrbool( field ) ptc(ch, #field "\t\t%s\n\r", pr->field ? "TRUE" : "FALSE")
+#define wrint( field ) ptc(ch, #field "\t\t%d\n\r", pr->field)
+#define wrneg( neg ) ptc(ch, #neg "\t\t%s\n\r", pr->Negotiated[neg] ? "TRUE" : "FALSE")
+    wrint(WriteOOB);
+    wrbool(bIACMode);
+    wrbool(bNegotiated);
+    wrbool(bRenegotiate);
+    wrbool(bNeedMXPVersion);
+    wrbool(bBlockMXP);
+    wrbool(bTTYPE);
+    wrbool(bECHO);
+    wrbool(bNAWS);
+    wrbool(bCHARSET);
+    wrbool(bMSDP);
+    wrbool(bMSSP);
+    wrbool(bATCP);
+    wrbool(bMSP);
+    wrbool(bMXP);
+    wrbool(bMCCP);
+    
+
+    ptc(ch, "b256Support\t\t%s\n\r", pr->b256Support == eUNKNOWN ? "UNKNOWN" :
+                            pr->b256Support == eSOMETIMES ? "SOMETIMES" :
+                            pr->b256Support == eYES ? "YES" :
+                            pr->b256Support == eNO ? "NO" :
+                            "INVALID");
+    wrint(ScreenWidth);
+    wrint(ScreenHeight);
+    ptc(ch, "pMXPVersion\t\t%s\n\r", pr->pMXPVersion);
+    ptc(ch, "pLastTTYPE\t\t%s\n\r", pr->pLastTTYPE);
+    wrbool(verbatim);
+
+    ptc(ch, "\n\rNegotations: \n\r");
+    wrneg(eNEGOTIATED_TTYPE);
+    wrneg(eNEGOTIATED_ECHO);
+    wrneg(eNEGOTIATED_NAWS);
+    wrneg(eNEGOTIATED_CHARSET);
+    wrneg(eNEGOTIATED_MSDP);
+    wrneg(eNEGOTIATED_MSSP);
+    wrneg(eNEGOTIATED_ATCP);
+    wrneg(eNEGOTIATED_MSP);
+    wrneg(eNEGOTIATED_MXP);
+    wrneg(eNEGOTIATED_MXP2);
+    wrneg(eNEGOTIATED_MCCP);
+
+
+
+#undef wrbool
+#undef wrneg
+}
