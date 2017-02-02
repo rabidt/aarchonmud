@@ -6739,6 +6739,10 @@ float calculate_exp_factor( CHAR_DATA *gch )
     // bonus for first 5 levels
     if ( gch->level <= 5 )
         xp_factor *= 1.5;
+    // bonus for slow levellers - starts after 5 mins, reaches +50% after 15 min
+    int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
+    if ( time_since_last_level > 300 )
+        xp_factor += xp_factor * UMIN(600, time_since_last_level - 300) / 1200;
 
     // additive bonuses
     
