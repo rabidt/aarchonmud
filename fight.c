@@ -6552,7 +6552,7 @@ int level_power( CHAR_DATA *ch )
 // compute baseline xp for character of given level_power killing victim
 int calculate_base_exp( int power, CHAR_DATA *victim )
 {
-    float base_exp, gold_bonus, vuln;
+    float base_exp, vuln;
     int base_value, mob_value, stance, stance_bonus, off_bonus;
 
     /* safety net */
@@ -6561,8 +6561,6 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
 
     // general base bonus/penalty
     base_exp = 100 + (victim->level - power);
-    // bonus for being poor (up to +50%)
-    gold_bonus = base_exp * UMAX(0, 100 - victim->pIndexData->wealth_percent) / 200;
     
     // adjust based on hp & damage dealt by mob compared to average mob at character's level
 
@@ -6699,10 +6697,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         }
         base_exp += base_exp * stance_bonus / 60;
     }
-    
-    // gold bonus is added after xp adjustments, as gold only depends on level
-    base_exp += gold_bonus;
-    
+
     // reduce extreme amounts of base xp
     if (base_exp > 100)
         base_exp = sqrt(base_exp) * 20 - 100;
