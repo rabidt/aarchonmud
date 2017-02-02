@@ -6503,7 +6503,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
         // bonus for fighting multiple mobs at once
         int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
-        xp += UMIN(xp, ally_xp / 3);
+        xp += UMIN(xp, ally_xp / 3) / 2; // up to +50%
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
