@@ -583,6 +583,7 @@ DECLARE_DO_FUN( do_rforce       );
 
 DECLARE_DO_FUN( do_lboard);
 DECLARE_DO_FUN( do_lhistory);
+DECLARE_DO_FUN( do_cmotd);
 #ifdef FSTAT 
 DECLARE_DO_FUN( do_fstat);
 #endif

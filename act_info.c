@@ -4117,6 +4117,7 @@ DEF_DO_FUN(do_lore)
     }
 
     /* now let's see if someone else learned something of it --Bobble */
+    /* Lore and weapons lore now improve the same - Astark 3-19-13 */
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
         if ( IS_NPC(rch) || !IS_AWAKE(rch) )
