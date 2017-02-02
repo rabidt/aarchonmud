@@ -611,3 +611,4 @@ DECLARE_DO_FUN( do_path);
 DECLARE_DO_FUN( do_guiconfig);
 DECLARE_DO_FUN( do_changelog);
 DECLARE_DO_FUN( do_ptitle);
+DECLARE_DO_FUN( do_protocol);
