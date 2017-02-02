@@ -685,6 +685,22 @@ void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
         targeted_attacks = rand_div(targeted_attacks * 4, 3);
         area_attacks = rand_div(area_attacks * 4, 3);
         check_improve(ch, gsn_tight_grouping, TRUE, 4);
+        // this use of tight grouping limits automatic use
+        AFFECT_DATA *paf = affect_find(ch->affected, gsn_tight_grouping);
+        if ( paf )
+            paf->bitvector += skill_table[sn].beats + 1;
+        else
+        {
+            AFFECT_DATA af;
+            af.where     = TO_SPECIAL;
+            af.type      = gsn_tight_grouping;
+            af.level     = ch->level;
+            af.duration  = 0;
+            af.location  = APPLY_HITROLL;
+            af.modifier  = -1;
+            af.bitvector = skill_table[sn].beats + 1;
+            affect_to_char(ch, &af);
+        }
     }
     jam_chance = (sn == gsn_fullauto ? 4 : sn == gsn_semiauto ? 2 : 1);
 
@@ -1104,6 +1120,15 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
     check_killer( ch, victim );
     mastery_adjusted_wait(ch, gsn_snipe);
 
+    // not getting spotted gives a chance to snipe without engaging
+    int auto_spot_chance = 25 + UMAX(0, 100 - get_skill_overflow(ch, gsn_snipe)) / 10;
+    bool spotted = !IS_AFFECTED(ch, AFF_HIDE)
+        || per_chance(auto_spot_chance)
+        || check_see_combat(victim, ch);
+        
+    if ( spotted )
+        act("$N spots you as you shoot $M!", ch, NULL, victim, TO_CHAR);
+    
     if ( per_chance(skill) || !IS_AWAKE(victim) )
     {   
         if ( one_hit(ch, victim, gsn_snipe, secondgun) )
@@ -1119,6 +1144,22 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
         check_improve(ch,gsn_snipe,FALSE,2);
         damage( ch, victim, 0, gsn_snipe,DAM_NONE,TRUE);
     }
+    
+    // cancel combat & re-hide
+    if ( !spotted && ch->fighting == victim )
+    {
+        int hide_chance = (100 + get_skill(ch, gsn_hide)) / 2;
+        if ( !per_chance(hide_chance) )
+            act("You fail to re-hide and $N closes in on you!", ch, NULL, victim, TO_CHAR);
+        else
+        {
+            act("You quickly re-hide before $N can close in on you.", ch, NULL, victim, TO_CHAR);
+            act("$n disappears again before you can close in on $m.", ch, NULL, victim, TO_VICT);
+            stop_fighting(ch, victim->fighting == ch);
+            hide_char(ch);
+        }
+    }
+        
     return;
 }
 

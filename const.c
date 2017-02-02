@@ -1294,7 +1294,7 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
     {
     "satyr",    "Satyr ",
     { 130, 125, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 130, 125, 130, 125},
-    4,{"colour spray","sleep","charm person","cure serious"},{10,5,15,20},{60,60,60,60},
+    4, { "sleep", "charm person", "combat symphony", "instruments" }, {5,15,25,35}, {60,60,60,60},
     {  15,  20,  30,  20,  40,      30,  20,  20,  25,  30 },
     {  95, 100, 105,  90, 115,     110, 115,  90, 120, 110 },   
     {   3,   4,   4,   3,   5,       4,   5,   3,   5,   4 },
@@ -1438,9 +1438,9 @@ struct  pc_race_type    pc_race_table   [MAX_PC_RACE]  =
         
         {
           "mermaid", "Mermad",
-          { 190, 190, 180, 185, 190, 190, 190, 190, 190, 190, 180, 185, 190, 180, 190, 190},
-          5, {"swimming", "monsoon", "create spring", "tempest", "major group heal"},
-          {1, 40, 10, 85, 55}, {100, 80, 75, 70, 60},
+          { 190, 190, 180, 185, 190, 190, 190, 190, 190, 190, 180, 185, 190, 180, 190, 180},
+          5, {"swimming", "wail", "cats grace", "monsoon", "major group heal"},
+          {1, 10, 25, 40, 55}, {100, 80, 80, 80, 60},
           {  45,  30,  45,  40,  45,      30,  35,  35,  55,  40 },
           { 105, 110, 120, 120, 120,     125, 135, 110, 135, 120 },
           {   3,   3,   4,   4,   4,       4,   5,   4,   5,   4 },
@@ -2304,7 +2304,7 @@ const struct subclass_type subclass_table[] =
     },
     {
         "songhealer", BARD,
-        { "song healing", "anatomy", "group heal", "lullaby" },
+        { "song healing", "minor group heal", "group heal", "lullaby" },
         { 30, 50, 70, 120 },
         { 100, 80, 80, 75 }
     },
@@ -5457,7 +5457,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_null,     TAR_IGNORE,     POS_FIGHTING,
+    spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
     &gsn_slash_throat, 0, 0, 24, DUR_SPECIAL,
     "throat slash",      "You can speak again.",
     ""
@@ -5678,7 +5678,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_IGNORE,     POS_FIGHTING,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_FIGHTING,
     &gsn_dirt, 0, 0, 24, DUR_SPECIAL,
         "kicked dirt",      "You rub the dirt out of your eyes.",
         ""
@@ -6211,7 +6211,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 0, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_null,             TAR_IGNORE,             POS_STANDING,
+    spell_null, TAR_CHAR_OFFENSIVE, POS_STANDING,
     &gsn_paroxysm_cooldown, 0, 0, 8, DUR_SPECIAL,
     "",     "You feel like you're able to perform another paroxysm.",   ""
     },
@@ -6270,7 +6270,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_IGNORE, POS_STANDING,
+        spell_null, TAR_CHAR_OFFENSIVE, POS_STANDING,
     &gsn_quivering_palm, 0, 0, 18, DUR_BRIEF,
     "quivering palm",         "!quivering palm!",   ""
     },
@@ -7027,7 +7027,7 @@ struct  skill_type
     STAT_NONE, STAT_NONE, STAT_NONE,
         spell_null,             TAR_IGNORE,             POS_FIGHTING,
     &gsn_tight_grouping, 0, 0, 12, DUR_NONE,
-        "tight grouping",       "!tight grouping!",     ""
+        "tight grouping", "You reload your gun.", ""
     },
 
     {
@@ -7594,11 +7594,11 @@ struct  skill_type
     {
     "firstaid",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 31, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,     TAR_IGNORE,     POS_STANDING,
-    &gsn_firstaid, 40, 0, 24, DUR_NONE,
+    &gsn_firstaid, 40, 4, 24, DUR_NONE,
     "",         "!FirstAid!",   ""
     },
 
@@ -8857,7 +8857,7 @@ const struct mastery_group_type mastery_group_table[] =
     { "healing", 4,
         { "cure light", "cure serious", "cure critical", "heal", "cure mortal",
         "restoration", "minor group heal", "group heal", "major group heal", "mass healing",
-        "astarks rejuvenation" }
+        "astarks rejuvenation", "firstaid" }
     },
 
     { "malediction", 2,
