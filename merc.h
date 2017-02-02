@@ -5431,6 +5431,7 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 
 /* update.c */
 void    war_update      args( ( void ) ); 
+int     time_played( CHAR_DATA *ch );
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
 void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
 void    update_pc_level( CHAR_DATA *ch );
