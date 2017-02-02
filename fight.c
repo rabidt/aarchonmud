@@ -6397,6 +6397,7 @@ void death_penalty( CHAR_DATA *ch )
 
 float calculate_exp_factor( CHAR_DATA *gch );
 int calculate_base_exp( int power, CHAR_DATA *victim );
+int scale_exp( int base_exp );
 float get_vulnerability( CHAR_DATA *victim );
 void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
 
@@ -6503,7 +6504,8 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         xp = (min_base_exp * group_dam + (base_exp - min_base_exp) * dam_done) / total_dam;
         // bonus for fighting multiple mobs at once
         int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
-        xp += UMIN(xp, ally_xp / 3) / 2; // up to +50%
+        xp += UMIN(xp, ally_xp / 3);
+        xp = scale_exp(xp);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
@@ -6698,11 +6700,15 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp * stance_bonus / 60;
     }
 
-    // reduce extreme amounts of base xp
-    if (base_exp > 100)
-        base_exp = sqrt(base_exp) * 20 - 100;
-    
     return (int)base_exp;
+}
+
+int scale_exp( int base_exp )
+{
+    if ( base_exp > 100 )
+        return (int)(sqrt(base_exp) * 20 - 100);
+    else
+        return base_exp;
 }
 
 /*
