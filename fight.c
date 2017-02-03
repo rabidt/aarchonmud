@@ -807,8 +807,13 @@ void special_affect_update(CHAR_DATA *ch)
     /* song move refresh from combat symphony */
     if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
     {
-        int heal = 5;
+        int heal;
+        if ( ch->level < 90 || IS_NPC(ch) )
+            heal = 10 + ch->level / 9;
+        else
+            heal = 20 + (ch->level - 90);
 
+        send_to_char( "You feel refreshed.\n\r", ch );
         gain_move(ch, heal);
         update_pos( ch );
     } 
