@@ -6731,17 +6731,19 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // and bonus for low-ish characters
     else
+    {
         xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for newbies
-    if ( gch->pcdata->remorts == 0 )
-        xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for first 5 levels
-    if ( gch->level <= 5 )
-        xp_factor *= 1.5;
-    // bonus for slow levellers - starts after 5 mins, reaches +50% after 30 min
-    int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
-    if ( time_since_last_level > 300 )
-        xp_factor += xp_factor * UMIN(1500, time_since_last_level - 300) / 3000;
+        // bonus for newbies
+        if ( gch->pcdata->remorts == 0 && gch->pcdata->ascents == 0 )
+            xp_factor *= (300 - gch->level) / 200.0;
+        // bonus for first 5 levels
+        if ( gch->level <= 5 )
+            xp_factor *= 1.5;
+        // bonus for slow levellers - starts after 5 mins, reaches +50% after 30 min
+        int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
+        if ( time_since_last_level > 300 )
+            xp_factor += xp_factor * UMIN(1500, time_since_last_level - 300) / 3000;
+    }
 
     // additive bonuses
     
