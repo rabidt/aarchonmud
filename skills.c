@@ -2776,7 +2776,12 @@ DEF_DO_FUN(do_practice)
             }
             else
             {
-                int convert = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                int rolls, convert = 0;
+                for ( rolls = 1 + get_mastery(ch, gsn_introspection); rolls > 0; rolls-- )
+                {
+                    int roll = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                    convert = UMAX(convert, roll);
+                }
                 ptc(ch, "Your practice converts %d field experience into real experience.\n\r", convert);
                 ch->practice--;
                 ch->pcdata->field -= convert;
