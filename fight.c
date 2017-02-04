@@ -4087,8 +4087,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 int hp_gain = victim->max_hit / 3;
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
-                send_to_char("The gods have protected you from dying!\n\r", victim);
-                act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
+                send_to_char("{Y*** The gods have protected you from dying! ***{x\n\r", victim);
+                act( "{Y*** The gods resurrect $n! ***{x", victim, NULL, NULL, TO_ROOM );
             }
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
@@ -4107,9 +4107,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 victim->mana = mana_cap(victim);
                 victim->move = move_cap(victim);
                 // message
-                ptc(victim, "%s has protected you from dying!\n\r", get_god_name(victim));
+                ptc(victim, "{Y*** %s has protected you from dying! ***{x\n\r", get_god_name(victim));
                 char buf[MSL];
-                sprintf(buf, "%s resurrects $n.", get_god_name(victim));
+                sprintf(buf, "{Y*** %s resurrects $n! ***{x", get_god_name(victim));
                 act(buf, victim, NULL, NULL, TO_ROOM);
             }
         }
