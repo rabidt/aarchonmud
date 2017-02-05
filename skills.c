@@ -1753,6 +1753,8 @@ int exp_per_level(CHAR_DATA *ch)
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
     asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    if ( ch->pcdata->subclass && !can_take_subclass(ch->class, ch->pcdata->subclass) )
+        asc_add += 200;
     
     return 10 * (race_factor) + asc_add;
 }
