@@ -1052,7 +1052,7 @@ void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
     */
     if ( is_drop_obj(obj)
 	 || (obj->item_type == ITEM_KEY && !is_remort_obj(obj))
-	 || obj->item_type == ITEM_TRASH )
+	 || (obj->item_type == ITEM_TRASH && obj->timer != -1) )
         return;
     
     bprintf( buf, "#O\n" );
