@@ -121,6 +121,11 @@ int gain_move( CHAR_DATA *ch, int amount )
     return amount;
 }
 
+int time_played( CHAR_DATA *ch )
+{
+    return ch->played + (int) (current_time - ch->logon);
+}
+
 /*
  * Advancement stuff.
  */
@@ -129,7 +134,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
 {
     char buf[MAX_STRING_LENGTH];
     int add_prac;
-    int played_now = ch->played + (int) (current_time - ch->logon);
+    int played_now = time_played(ch);
     int time_since_last_level = played_now - ch->pcdata->last_level;
 
     ch->pcdata->last_level = played_now;

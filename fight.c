@@ -6402,6 +6402,7 @@ void death_penalty( CHAR_DATA *ch )
 
 float calculate_exp_factor( CHAR_DATA *gch );
 int calculate_base_exp( int power, CHAR_DATA *victim );
+int scale_exp( int base_exp );
 float get_vulnerability( CHAR_DATA *victim );
 void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
 
@@ -6509,6 +6510,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         // bonus for fighting multiple mobs at once
         int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
         xp += UMIN(xp, ally_xp / 3);
+        xp = scale_exp(xp);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
@@ -6628,9 +6630,9 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_EVIL) && IS_GOOD(victim) )
         base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_GOOD) && IS_EVIL(victim) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_DEATHS_DOOR) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->off_flags, OFF_FADE) )
         base_exp += base_exp/3;
     else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE) || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
@@ -6641,19 +6643,20 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 20 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BERSERK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0, 6*victim->size - 10) : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 10 : 0;
     base_exp += base_exp * off_bonus / 100;
 
     if (victim->pIndexData->spec_fun != NULL)
@@ -6666,13 +6669,13 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
             || spec == spec_breath_frost
             || spec == spec_breath_gas
             || spec == spec_breath_lightning )
-            base_exp += base_exp / 3;
+            base_exp += base_exp * 2/3;
         // casters
         else if ( spec == spec_cast_cleric
             || spec == spec_cast_mage
             || spec == spec_cast_draconic
             || spec == spec_cast_undead )
-            base_exp += base_exp / 2;
+            base_exp += base_exp;
         // other
         else if ( spec == spec_thief
             || spec == spec_nasty )
@@ -6687,11 +6690,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     {
         // adjust stance cost for purpose of bonus calculation
         switch (stance) {
-            case STANCE_BLOODBATH:
-                stance_bonus = 10;
-                break;
             case STANCE_TORTOISE:
-                stance_bonus = 15;
+                stance_bonus = 10;
                 break;
             case STANCE_SHADOWWALK:
                 stance_bonus = 20;
@@ -6700,14 +6700,18 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
                 stance_bonus = stances[stance].cost;
                 break;
         }
-        base_exp += base_exp * stance_bonus / 60;
+        base_exp += base_exp * stance_bonus / 50;
     }
 
-    // reduce extreme amounts of base xp
-    if (base_exp > 100)
-        base_exp = sqrt(base_exp) * 20 - 100;
-    
     return (int)base_exp;
+}
+
+int scale_exp( int base_exp )
+{
+    if ( base_exp > 100 )
+        return (int)(sqrt(base_exp) * 20 - 100);
+    else
+        return base_exp;
 }
 
 /*
@@ -6732,13 +6736,19 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // and bonus for low-ish characters
     else
+    {
         xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for newbies
-    if ( gch->pcdata->remorts == 0 )
-        xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for first 5 levels
-    if ( gch->level <= 5 )
-        xp_factor *= 1.5;
+        // bonus for newbies
+        if ( gch->pcdata->remorts == 0 && gch->pcdata->ascents == 0 )
+            xp_factor *= (300 - gch->level) / 200.0;
+        // bonus for first 5 levels
+        if ( gch->level <= 5 )
+            xp_factor *= 1.5;
+        // bonus for slow levellers - starts after 5 mins, reaches +50% after 30 min
+        int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
+        if ( time_since_last_level > 300 )
+            xp_factor += xp_factor * UMIN(1500, time_since_last_level - 300) / 3000;
+    }
 
     // additive bonuses
     
