@@ -4435,6 +4435,7 @@ void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 bool    can_take_subclass( int class, int subclass );
+bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
