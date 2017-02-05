@@ -5939,6 +5939,16 @@ bool can_take_subclass( int class, int subclass )
     return (subclass_table[subclass].base_classes & (1<<class)) != 0;
 }
 
+bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
+{
+    if ( !ch || !ch->pcdata )
+        return FALSE;
+    // cross-subclassing is possible after two ascents
+    if ( ch->pcdata->ascents > 1 )
+        return TRUE;
+    return can_take_subclass(ch->class, subclass);
+}
+
 static void show_subclass( CHAR_DATA *ch, int sc )
 {
     int class, i;

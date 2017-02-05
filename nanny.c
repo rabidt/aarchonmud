@@ -1208,7 +1208,7 @@ static int nanny_show_subclasses( CHAR_DATA *ch )
     ptc(ch, "The following subclasses are available:\n\r[{W");
     for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
     {
-        if ( can_take_subclass(ch->class, sc) )
+        if ( ch_can_take_subclass(ch, sc) )
         {
             ptc(ch, " %s", subclass_table[sc].name);
             count++;
@@ -1264,7 +1264,7 @@ DEF_NANNY_FUN(get_new_subclass)
         }
         return FALSE;
     }
-    if ( !can_take_subclass(ch->class, sc) )
+    if ( !ch_can_take_subclass(ch, sc) )
     {
         ptc(ch, "You do not qualify for that subclass.\n\r");
         nanny_show_subclasses(ch);
