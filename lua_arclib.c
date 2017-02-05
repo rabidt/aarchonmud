@@ -4754,7 +4754,7 @@ static int CH_set_subclass(lua_State *LS)
             return luaL_error(LS, "No such subclass '%s'", arg);
         }
 
-        if (!can_take_subclass(ud_ch->class, sc))
+        if (!ch_can_take_subclass(ud_ch, sc))
         {
             return luaL_error(LS, "%s does not qualify for subclass %s", ud_ch->name, arg);
         }
