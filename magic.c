@@ -577,7 +577,7 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     return off_roll <= def_roll;
 }
 
-static void dispel_sn( CHAR_DATA *victim, int sn )
+void dispel_sn( CHAR_DATA *victim, int sn )
 {
     char buf[MAX_STRING_LENGTH];
     

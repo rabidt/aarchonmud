@@ -5094,6 +5094,7 @@ ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int
 bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, void **vo );
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
 bool check_dispel_magic( int level, CHAR_DATA *victim );
+void dispel_sn( CHAR_DATA *victim, int sn );
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
