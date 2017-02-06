@@ -264,6 +264,8 @@ void violence_update_char( CHAR_DATA *ch )
     {
         check_stance(ch);
         check_bard_song(ch, TRUE);
+        // bonus xp each round spent fighting
+        gain_exp(ch, 1, FALSE);
     }
     
     if ( ch->stop > 0 )
@@ -6358,7 +6360,7 @@ void death_penalty( CHAR_DATA *ch )
     /* experience penalty - 2/3 way back to previous level. */
     curr_level_exp = exp_per_level(ch) * ch->level;
     if ( ch->exp > curr_level_exp )
-        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3 );
+        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3, TRUE );
     
     /* get number of possible loss choices */
     loss_choice = 0;
@@ -6533,7 +6535,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
 	}
 	else*/
-	    gain_exp( gch, xp );
+	    gain_exp( gch, xp, TRUE );
     }
     return;
 }
@@ -7309,7 +7311,7 @@ DEF_DO_FUN(do_flee)
         else
         {
             send_to_char("You lost 10 exp.\n\r", ch);
-            gain_exp(ch, -10);
+            gain_exp(ch, -10, FALSE);
         }
     }
 

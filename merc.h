@@ -5434,7 +5434,7 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 void    war_update      args( ( void ) ); 
 int     time_played( CHAR_DATA *ch );
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
-void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+void    gain_exp( CHAR_DATA *ch, int gain, bool show );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
