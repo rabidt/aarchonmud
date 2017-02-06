@@ -121,6 +121,11 @@ int gain_move( CHAR_DATA *ch, int amount )
     return amount;
 }
 
+int time_played( CHAR_DATA *ch )
+{
+    return ch->played + (int) (current_time - ch->logon);
+}
+
 /*
  * Advancement stuff.
  */
@@ -129,7 +134,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
 {
     char buf[MAX_STRING_LENGTH];
     int add_prac;
-    int played_now = ch->played + (int) (current_time - ch->logon);
+    int played_now = time_played(ch);
     int time_since_last_level = played_now - ch->pcdata->last_level;
 
     ch->pcdata->last_level = played_now;
@@ -196,9 +201,8 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain)
+void gain_exp( CHAR_DATA *ch, int gain, bool show )
 {
-    char buf[MAX_STRING_LENGTH];
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
@@ -207,23 +211,20 @@ void gain_exp( CHAR_DATA *ch, int gain)
     if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
 
-    field = UMAX((ch_wis_field(ch)*gain)/100,0);
+    field = UMAX(ch_wis_field(ch) * gain, 0);
+    field = rand_div(field, 100);
     gain-=field;
 
     max=exp_per_level(ch)+ch_dis_field(ch);
-    if (ch->pcdata->field>max)
+    if ( show && ch->pcdata->field > max )
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
 
-    field = (field*(max-ch->pcdata->field))/(max);
+    field = rand_div(UMAX(0, field*(max-ch->pcdata->field)), max);
     ch->pcdata->field+=(short)field;
 
-    if ((field+gain)>0)
-    {
-        sprintf(buf, "You earn %d applied experience, and %ld field experience.\n\r",
-                gain, field);
-        send_to_char(buf,ch);
-    }
+    if ( show && (field+gain) > 0 )
+        ptc(ch, "You earn %d applied experience, and %ld field experience.\n\r", gain, field);
 
     ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
     update_pc_level(ch);
@@ -1251,12 +1252,18 @@ void char_update( void )
             {
                 int deep_sleep_gain = 1;
                 // 50% chance to get another deep sleep if AFF_LULLABY
-                if (IS_AFFECTED(ch, AFF_LULLABY) && number_bits(1))
+                if ( IS_AFFECTED(ch, AFF_LULLABY) )
                 {
-                    deep_sleep_gain = 2;
+                    CHAR_DATA* singer = get_singer(ch, SONG_LULLABY);
+                    int chance = 50 + (singer ? get_skill_overflow(singer, gsn_lullaby) / 2 : 0);
+                    if ( per_chance(chance) )
+                        deep_sleep_gain = 2;
                 }
                 ch->pcdata->condition[COND_DEEP_SLEEP] += deep_sleep_gain;
-                send_to_char("You fall into a deeper sleep.\n\r",ch);
+                if ( deep_sleep_gain > 1 )
+                    send_to_char("You fall into a much deeper sleep.\n\r",ch);
+                else
+                    send_to_char("You fall into a deeper sleep.\n\r",ch);
             }
             else if (ch->position != POS_SLEEPING)
                 ch->pcdata->condition[COND_DEEP_SLEEP] = 0;
@@ -2589,7 +2596,7 @@ void change_align (CHAR_DATA *ch, int change_by)
         else if ( change < 0 && !IS_EVIL(ch) )
             exp_loss = (int)(-change * (1000 + ch->alignment) / 2000.0);
             
-        gain_exp(ch, -exp_loss);
+        gain_exp(ch, -exp_loss, FALSE);
 
         if (exp_loss > 4)
         {

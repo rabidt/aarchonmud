@@ -2556,9 +2556,23 @@ int get_hips_skill( CHAR_DATA *ch )
         return 0;
 }
 
-DEF_DO_FUN(do_hide)
+void hide_char( CHAR_DATA *ch )
 {
     AFFECT_DATA af;
+    
+    af.where     = TO_AFFECTS;
+    af.type      = gsn_hide;
+    af.level     = ch->level; 
+    af.duration  = -1;
+    af.location  = APPLY_NONE;
+    af.modifier  = 0;
+    af.bitvector = AFF_HIDE;
+    
+    affect_to_char( ch, &af );
+}
+
+DEF_DO_FUN(do_hide)
+{
     int hips_skill = get_hips_skill(ch);
     bool hips = FALSE;
     
@@ -2609,14 +2623,8 @@ DEF_DO_FUN(do_hide)
     if ( per_chance(50 + get_skill(ch, gsn_hide) / 2) )
     {
         // hips: need to apply affect first to get check_see to work
-        af.where     = TO_AFFECTS;
-        af.type      = gsn_hide;
-        af.level     = ch->level; 
-        af.duration  = -1;
-        af.location  = APPLY_NONE;
-        af.modifier  = 0;
-        af.bitvector = AFF_HIDE;
-        affect_to_char( ch, &af );
+        hide_char(ch);
+        
         if ( hips )
         {
             if ( !per_chance(hips_skill) )
@@ -2838,7 +2846,7 @@ DEF_DO_FUN(do_recall)
         if (!IS_HERO(ch))
         {
             int lose = (ch->desc != NULL) ? 25 : 50;
-            gain_exp( ch, 0 - lose );
+            gain_exp( ch, 0 - lose, FALSE );
             sprintf( buf, "You recall from combat!  You lose %d exps.\n\r", lose );
             send_to_char( buf, ch );
         }
