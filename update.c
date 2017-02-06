@@ -201,9 +201,8 @@ void advance_level( CHAR_DATA *ch, bool hide )
 }   
 
 
-void gain_exp( CHAR_DATA *ch, int gain)
+void gain_exp( CHAR_DATA *ch, int gain, bool show )
 {
-    char buf[MAX_STRING_LENGTH];
     long field, max;
 
     if ( IS_NPC(ch) || IS_HERO(ch) )
@@ -212,23 +211,20 @@ void gain_exp( CHAR_DATA *ch, int gain)
     if ( IS_SET(ch->act,PLR_NOEXP) && gain > 0 )
         return;
 
-    field = UMAX((ch_wis_field(ch)*gain)/100,0);
+    field = UMAX(ch_wis_field(ch) * gain, 0);
+    field = rand_div(field, 100);
     gain-=field;
 
     max=exp_per_level(ch)+ch_dis_field(ch);
-    if (ch->pcdata->field>max)
+    if ( show && ch->pcdata->field > max )
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
 
     field = (field*(max-ch->pcdata->field))/(max);
     ch->pcdata->field+=(short)field;
 
-    if ((field+gain)>0)
-    {
-        sprintf(buf, "You earn %d applied experience, and %ld field experience.\n\r",
-                gain, field);
-        send_to_char(buf,ch);
-    }
+    if ( show && (field+gain) > 0 )
+        ptc(ch, "You earn %d applied experience, and %ld field experience.\n\r", gain, field);
 
     ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
     update_pc_level(ch);
@@ -2600,7 +2596,7 @@ void change_align (CHAR_DATA *ch, int change_by)
         else if ( change < 0 && !IS_EVIL(ch) )
             exp_loss = (int)(-change * (1000 + ch->alignment) / 2000.0);
             
-        gain_exp(ch, -exp_loss);
+        gain_exp(ch, -exp_loss, FALSE);
 
         if (exp_loss > 4)
         {

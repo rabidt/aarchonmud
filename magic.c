@@ -6311,7 +6311,7 @@ DEF_SPELL_FUN(spell_word_of_recall)
         if (!IS_HERO(ch))
         {
             lose = (victim->desc != NULL) ? 25 : 50;
-            gain_exp( victim, 0 - lose );
+            gain_exp( victim, 0 - lose, FALSE );
 
             printf_to_char(victim, "You recall from combat!  You lose %d exp.\n\r", lose );
         }
