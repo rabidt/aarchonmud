@@ -203,7 +203,7 @@ bool is_remort_obj( OBJ_DATA *obj );
 bool is_sticky_obj( OBJ_DATA *obj );
 bool is_drop_obj( OBJ_DATA *obj );
 bool is_questeq( OBJ_DATA *obj );
-
+bool is_nosac( OBJ_DATA *obj );
 
 /*
  * String and memory management parameters.
@@ -4439,6 +4439,7 @@ bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
+void hide_char( CHAR_DATA *ch );
 int    move_char   args( ( CHAR_DATA *ch, int door, bool follow ) );
 void check_explore args( ( CHAR_DATA *, ROOM_INDEX_DATA * ) );
 void explore_vnum args( (CHAR_DATA *, int ) );
@@ -5094,6 +5095,7 @@ ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int
 bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, void **vo );
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
 bool check_dispel_magic( int level, CHAR_DATA *victim );
+void dispel_sn( CHAR_DATA *victim, int sn );
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
@@ -5431,8 +5433,9 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 
 /* update.c */
 void    war_update      args( ( void ) ); 
+int     time_played( CHAR_DATA *ch );
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
-void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+void    gain_exp( CHAR_DATA *ch, int gain, bool show );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );

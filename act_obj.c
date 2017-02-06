@@ -2596,8 +2596,8 @@ DEF_DO_FUN(do_sacrifice)
     }
 
     if ( CAN_WEAR(obj, ITEM_NO_CARRY) 
-            || IS_OBJ_STAT(obj, ITEM_NO_SAC_EX)
-            || IS_OBJ_STAT(obj, ITEM_QUESTEQ)
+        || contains_obj_recursive(obj, &is_nosac)
+        || contains_obj_recursive(obj, &is_questeq)
             /*|| is_relic_obj(obj)*/ )
     {
         act( "$p is not an acceptable sacrifice.", ch, obj, 0, TO_CHAR );

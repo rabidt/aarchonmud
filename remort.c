@@ -1041,13 +1041,16 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     {
         send_to_char( "You haven't reached the maximum remort level yet.\n\r", ch );
         send_to_char( "To advance to the next remort level, use <remort signup>.\n\r", ch );
-        if ( ch->pcdata->remorts < 1 )
+        if ( ch->pcdata->remorts < 1 && ch->pcdata->ascents < 1 )
             return;
     }
 
     // half cost of initial remort
     int qpcost = remort_cost_qp(ch->pcdata->remorts) / 2;
     int goldcost = remort_cost_gold(ch->pcdata->remorts) / 2;
+    // after ascension, remort repeats are initially free to allow experimentation
+    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
+        qpcost = goldcost = 0;
     
     if ( strcmp(arg, "confirm") )
     {

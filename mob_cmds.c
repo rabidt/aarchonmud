@@ -2109,7 +2109,7 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
     switch ( reward )
     {
         case REWARD_EXP:
-        gain_exp( victim, amount );
+        gain_exp( victim, amount, TRUE );
         break;
     case REWARD_QP:
         sprintf( buf, "You are rewarded %d quest point%s!\n\r",
