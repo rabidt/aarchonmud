@@ -264,6 +264,8 @@ void violence_update_char( CHAR_DATA *ch )
     {
         check_stance(ch);
         check_bard_song(ch, TRUE);
+        // bonus xp each round spent fighting
+        gain_exp(ch, 1, FALSE);
     }
     
     if ( ch->stop > 0 )
@@ -807,8 +809,13 @@ void special_affect_update(CHAR_DATA *ch)
     /* song move refresh from combat symphony */
     if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
     {
-        int heal = 5;
+        int heal;
+        if ( ch->level < 90 || IS_NPC(ch) )
+            heal = 10 + ch->level / 9;
+        else
+            heal = 20 + (ch->level - 90);
 
+        send_to_char( "You feel refreshed.\n\r", ch );
         gain_move(ch, heal);
         update_pos( ch );
     } 
@@ -1533,12 +1540,38 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if (ch->fighting != victim)
 	return;
     
-    if ( wield != NULL && wield->value[0] == WEAPON_DAGGER
-	 && number_bits(4) == 0 )
+    if ( wield != NULL )
     {
-	one_hit(ch,victim,dt,FALSE);
-	if (ch->fighting != victim)
-	    return;
+        if ( wield->value[0] == WEAPON_DAGGER && number_bits(4) == 0 )
+            one_hit(ch, victim, dt, FALSE);
+        else if ( wield->value[0] == WEAPON_GUN && check_skill(ch, gsn_tight_grouping) )
+        {
+            AFFECT_DATA *paf = affect_find(ch->affected, gsn_tight_grouping);
+            bool bonus_shot = per_chance(67);
+            // active usage of spray attacks prevents tight grouping auto-shots
+            if ( paf )
+            {
+                int wait = paf->bitvector;
+                if ( paf->bitvector <= PULSE_VIOLENCE )
+                    affect_remove(ch, paf);
+                else
+                    paf->bitvector -= PULSE_VIOLENCE;
+                if ( number_range(1, PULSE_VIOLENCE) <= wait )
+                    bonus_shot = FALSE;
+            }
+            if ( bonus_shot )
+            {
+                //ptc(ch, "Your tightly grouped bullets allow you to fire off another shot!\n\r");
+                // either main hand or offhand
+                if ( per_chance(75) )
+                    one_hit(ch, victim, dt, FALSE);
+                else if ( second && second->value[0] == WEAPON_GUN )
+                    one_hit(ch, victim, dt, TRUE);
+                check_improve(ch, gsn_tight_grouping, TRUE, 5);
+            }
+        }
+        if ( ch->fighting != victim )
+            return;
     }
     
     // bonus attacks from haste, second/third/extra attack and dex; these are affected by slow
@@ -2071,7 +2104,7 @@ void equip_new_arrows( CHAR_DATA *ch )
     wear_obj( ch, obj, FALSE );
 }
 
-void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
+static void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit )
 {
     OBJ_DATA *obj, *arrows = get_eq_char( ch, WEAR_HOLD );
     int dam, dam_type;
@@ -2134,8 +2167,8 @@ void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, bool hit )
     /* counterstrike */
     CHECK_RETURN( ch, victim );
     obj = get_eq_char( victim, WEAR_WIELD );
-    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) )
-	return;
+    if ( is_ranged_weapon(obj) || victim->fighting != ch || IS_AFFECTED(victim, AFF_FLEE) || dt == gsn_snipe )
+        return;
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
 
@@ -2198,6 +2231,9 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
 
 void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
+    /* prevent attack chains through re-retributions */
+    static bool is_retribute = FALSE;
+        
     CHECK_RETURN( ch, victim );
     
     OBJ_DATA *wield = secondary ? get_eq_char(ch, WEAR_SECONDARY) : get_eq_char(ch, WEAR_WIELD);
@@ -2246,13 +2282,31 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         full_dam(victim, ch, dam, gsn_divine_retribution, damtype, TRUE);
     }
     
-    // riposte - 25% chance regardless of hit or miss
-    // blade barrier stance doubles that
-    int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-    if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50) )
+    if ( dt != gsn_snipe && !is_retribute && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-        one_hit(victim, ch, gsn_riposte, FALSE);
-        CHECK_RETURN( ch, victim );
+        // riposte - 25% chance regardless of hit or miss
+        // blade barrier stance doubles that
+        int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
+        if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50))
+        {
+            is_retribute = TRUE;
+            one_hit(victim, ch, gsn_riposte, FALSE);
+            is_retribute = FALSE;
+            CHECK_RETURN(ch, victim);
+        }
+        
+        // retribution = counter-attack on hit
+        if ( hit && (victim->stance == STANCE_PORCUPINE || victim->stance == STANCE_RETRIBUTION) )
+        {
+            int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
+            is_retribute = TRUE;
+            // if retribution fails, we may get another try
+            if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
+                one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
+            is_retribute = FALSE;
+            CHECK_RETURN(ch, victim);
+        }
+        
     }
     
     // rapid fire - chance of additional follow-up attack
@@ -2315,8 +2369,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     OBJ_DATA *wield;
     int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
-    /* prevent attack chains through re-retributions */
-    static bool is_retribute = FALSE;
 
     if ( !can_attack(ch) )
         return FALSE;
@@ -2464,7 +2516,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             dt = gsn_pistol_whip;
         damage( ch, victim, 0, dt, dam_type, TRUE );
         if ( arrow_used )
-            handle_arrow_shot( ch, victim, FALSE );
+            handle_arrow_shot( ch, victim, dt, FALSE );
         after_attack(ch, victim, dt, FALSE, secondary);
         tail_chain( );
         return FALSE;
@@ -2620,7 +2672,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     
     /* arrow damage & handling */
     if ( arrow_used )
-	handle_arrow_shot( ch, victim, result );
+	handle_arrow_shot( ch, victim, dt, result );
 
     if ( stop_attack(ch, victim) )
         return result != 0;
@@ -2668,20 +2720,6 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     after_attack(ch, victim, dt, TRUE, secondary);
     
-    /* retribution */
-    if ( (victim->stance == STANCE_PORCUPINE 
-	  || victim->stance == STANCE_RETRIBUTION)
-	 && !is_retribute
-	 && !IS_AFFECTED(victim, AFF_FLEE) )
-    {
-        int stance_bonus = get_skill_overflow(victim, *(stances[victim->stance].gsn));
-        is_retribute = TRUE;
-        // if retribution fails, we may get another try
-        if ( !one_hit(victim, ch, TYPE_UNDEFINED, FALSE) && per_chance(stance_bonus/2) )
-            one_hit(victim, ch, TYPE_UNDEFINED, FALSE);
-        is_retribute = FALSE;
-    }
-
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
@@ -3784,9 +3822,13 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         /* shadow strike bonus */
         if ( per_chance(get_skill(ch, gsn_shadow_strike)) )
         {
-            if ( ch->stance != STANCE_DIMENSIONAL_BLADE && ch != victim )
-                dam += dam * fade_chance(victim) * (100 - misfade_chance(ch)) / 10000;
-            dam += dam * fade_chance(ch) / 250;
+            int vfade = fade_chance(victim);
+            int fade_hit = ch->stance == STANCE_DIMENSIONAL_BLADE ? 100 : misfade_chance(ch);
+            if ( ch != victim && !per_chance(vfade * fade_hit / 100) )
+            {
+                dam += dam * vfade / 10000;
+                dam += dam * fade_chance(ch) / 250;
+            }
         }
         /* massive swing penalty */
         if ( dt == gsn_massive_swing )
@@ -4047,8 +4089,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 int hp_gain = victim->max_hit / 3;
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
-                send_to_char("The gods have protected you from dying!\n\r", victim);
-                act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
+                send_to_char("{Y*** The gods have protected you from dying! ***{x\n\r", victim);
+                act( "{Y*** The gods resurrect $n! ***{x", victim, NULL, NULL, TO_ROOM );
             }
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
@@ -4067,9 +4109,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 victim->mana = mana_cap(victim);
                 victim->move = move_cap(victim);
                 // message
-                ptc(victim, "%s has protected you from dying!\n\r", get_god_name(victim));
+                ptc(victim, "{Y*** %s has protected you from dying! ***{x\n\r", get_god_name(victim));
                 char buf[MSL];
-                sprintf(buf, "%s resurrects $n.", get_god_name(victim));
+                sprintf(buf, "{Y*** %s resurrects $n! ***{x", get_god_name(victim));
                 act(buf, victim, NULL, NULL, TO_ROOM);
             }
         }
@@ -6318,7 +6360,7 @@ void death_penalty( CHAR_DATA *ch )
     /* experience penalty - 2/3 way back to previous level. */
     curr_level_exp = exp_per_level(ch) * ch->level;
     if ( ch->exp > curr_level_exp )
-        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3 );
+        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3, TRUE );
     
     /* get number of possible loss choices */
     loss_choice = 0;
@@ -6362,6 +6404,7 @@ void death_penalty( CHAR_DATA *ch )
 
 float calculate_exp_factor( CHAR_DATA *gch );
 int calculate_base_exp( int power, CHAR_DATA *victim );
+int scale_exp( int base_exp );
 float get_vulnerability( CHAR_DATA *victim );
 void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
 
@@ -6469,6 +6512,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
         // bonus for fighting multiple mobs at once
         int ally_xp = (min_base_exp * group_ally_dam + (base_exp - min_base_exp) * ally_dam) / total_dam;
         xp += UMIN(xp, ally_xp / 3);
+        xp = scale_exp(xp);
         xp = number_range( xp * 9/10, xp * 11/10 );
         xp *= group_factor * ch_factor;
 
@@ -6491,7 +6535,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
 	}
 	else*/
-	    gain_exp( gch, xp );
+	    gain_exp( gch, xp, TRUE );
     }
     return;
 }
@@ -6588,9 +6632,9 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_EVIL) && IS_GOOD(victim) )
         base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_PROTECT_GOOD) && IS_EVIL(victim) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->pIndexData->affect_field, AFF_DEATHS_DOOR) )
-        base_exp += base_exp/20;
+        base_exp += base_exp/10;
     if ( IS_SET(victim->off_flags, OFF_FADE) )
         base_exp += base_exp/3;
     else if ( IS_SET(victim->pIndexData->affect_field, AFF_FADE) || IS_SET(victim->pIndexData->affect_field, AFF_CHAOS_FADE) )
@@ -6601,19 +6645,20 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 20 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 2 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 20 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_BERSERK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_DISARM) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 5 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0,3*victim->size - 5) : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 5 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0, 6*victim->size - 10) : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 10 : 0;
     base_exp += base_exp * off_bonus / 100;
 
     if (victim->pIndexData->spec_fun != NULL)
@@ -6626,13 +6671,13 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
             || spec == spec_breath_frost
             || spec == spec_breath_gas
             || spec == spec_breath_lightning )
-            base_exp += base_exp / 3;
+            base_exp += base_exp * 2/3;
         // casters
         else if ( spec == spec_cast_cleric
             || spec == spec_cast_mage
             || spec == spec_cast_draconic
             || spec == spec_cast_undead )
-            base_exp += base_exp / 2;
+            base_exp += base_exp;
         // other
         else if ( spec == spec_thief
             || spec == spec_nasty )
@@ -6647,11 +6692,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     {
         // adjust stance cost for purpose of bonus calculation
         switch (stance) {
-            case STANCE_BLOODBATH:
-                stance_bonus = 10;
-                break;
             case STANCE_TORTOISE:
-                stance_bonus = 15;
+                stance_bonus = 10;
                 break;
             case STANCE_SHADOWWALK:
                 stance_bonus = 20;
@@ -6660,14 +6702,18 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
                 stance_bonus = stances[stance].cost;
                 break;
         }
-        base_exp += base_exp * stance_bonus / 60;
+        base_exp += base_exp * stance_bonus / 50;
     }
 
-    // reduce extreme amounts of base xp
-    if (base_exp > 100)
-        base_exp = sqrt(base_exp) * 20 - 100;
-    
     return (int)base_exp;
+}
+
+int scale_exp( int base_exp )
+{
+    if ( base_exp > 100 )
+        return (int)(sqrt(base_exp) * 20 - 100);
+    else
+        return base_exp;
 }
 
 /*
@@ -6692,13 +6738,19 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // and bonus for low-ish characters
     else
+    {
         xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for newbies
-    if ( gch->pcdata->remorts == 0 )
-        xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for first 5 levels
-    if ( gch->level <= 5 )
-        xp_factor *= 1.5;
+        // bonus for newbies
+        if ( gch->pcdata->remorts == 0 && gch->pcdata->ascents == 0 )
+            xp_factor *= (300 - gch->level) / 200.0;
+        // bonus for first 5 levels
+        if ( gch->level <= 5 )
+            xp_factor *= 1.5;
+        // bonus for slow levellers - starts after 5 mins, reaches +20% after 15 min
+        int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
+        if ( time_since_last_level > 300 )
+            xp_factor += xp_factor * UMIN(600, time_since_last_level - 300) / 3000;
+    }
 
     // additive bonuses
     
@@ -7259,7 +7311,7 @@ DEF_DO_FUN(do_flee)
         else
         {
             send_to_char("You lost 10 exp.\n\r", ch);
-            gain_exp(ch, -10);
+            gain_exp(ch, -10, FALSE);
         }
     }
 

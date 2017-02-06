@@ -2439,6 +2439,11 @@ bool is_questeq( OBJ_DATA *obj )
     return IS_OBJ_STAT(obj->pIndexData, ITEM_QUESTEQ) && TRUE;
 }
 
+bool is_nosac( OBJ_DATA *obj )
+{
+    return IS_OBJ_STAT(obj->pIndexData, ITEM_NO_SAC_EX);
+}
+
 bool contains_obj_recursive( OBJ_DATA *obj, OBJ_CHECK_FUN *obj_check )
 {
     if ( obj == NULL || obj_check == NULL )
@@ -3697,6 +3702,10 @@ bool room_is_dim( ROOM_INDEX_DATA *pRoomIndex )
 {
     if (!pRoomIndex)
         return FALSE;
+    
+    // night-time
+    if ( weather_info.sunlight == SUN_DARK )
+        return TRUE;
     
     if ( IS_SET(pRoomIndex->room_flags, ROOM_DARK) )
         return TRUE;

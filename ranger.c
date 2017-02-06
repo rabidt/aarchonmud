@@ -286,7 +286,7 @@ DEF_DO_FUN(do_firstaid)
 	int heal = 0;
 	int skill;
 	int max_heal;
-	int mana_cost = skill_table[gsn_firstaid].min_mana;
+	int mana_cost = base_mana_cost(ch, gsn_firstaid);
         char buf[MAX_STRING_LENGTH];
 
         skill = get_skill(ch, gsn_firstaid);
@@ -334,7 +334,9 @@ DEF_DO_FUN(do_firstaid)
 	if (number_percent() < skill)
 	{
            ch->mana -= mana_cost;
-	   heal = max_heal * (target->max_hit - target->hit) / UMAX(1, target->max_hit);
+       float injury = (target->max_hit - target->hit) / UMAX(1.0, target->max_hit);
+       float min_injury = mastery_bonus(ch, gsn_firstaid, 40, 50) / 100.0;
+	   heal = max_heal * UMAX(min_injury, injury);
        gain_hit(target, heal);
 	   update_pos( target );
            if (ch == target)

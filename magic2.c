@@ -839,11 +839,13 @@ DEF_SPELL_FUN(spell_animate_dead)
     
     check_improve( ch, gsn_puppetry, TRUE, 4 );
     
-    if ( number_percent() <= puppet_skill )
+    if ( per_chance(puppet_skill) )
     {
         SET_BIT( mob->off_flags, OFF_RESCUE );
         REMOVE_AFFECT( mob, AFF_SLOW );
     }
+    if ( check_skill(ch, gsn_army_of_darkness) )
+        SET_AFFECT(mob, AFF_DEATHS_DOOR);
     
     set_mob_level( mob, mlevel );
 
@@ -927,6 +929,8 @@ DEF_SPELL_FUN(spell_ghost_chant)
         SET_BIT(mob->off_flags, OFF_RESCUE);
         SET_BIT(mob->off_flags, OFF_FAST);
     }
+    if ( check_skill(ch, gsn_army_of_darkness) )
+        SET_AFFECT(mob, AFF_DEATHS_DOOR);
     
     set_mob_level( mob, mlevel );
 
@@ -3825,18 +3829,48 @@ DEF_SPELL_FUN(spell_shadow_shroud)
 
 DEF_SPELL_FUN(spell_astarks_rejuvenation)
 {
-    SPELL_CHECK_RETURN
-    
     CHAR_DATA *gch;
     int heal;
     int sn1;    
 
+    if ( target_name[0] != '\0' )
+    {
+        int sn = affect_list_lookup(ch->affected, target_name);
+        if ( sn == -1 )
+        {
+            ptc(ch, "Which affliction do you wish to purge?\n\r");
+            return SR_SYNTAX;
+        }
+        if ( sn == gsn_custom_affect || sn == gsn_god_curse )
+        {
+            ptc(ch, "This effect is beyond your power.\n\r");
+            return SR_SYNTAX;
+        }
+        if ( !is_offensive(sn) )
+        {
+            ptc(ch, "The %s effect is not an affliction.\n\r", skill_table[sn].name);
+            return SR_SYNTAX;
+        }
+        
+        SPELL_CHECK_RETURN
+        
+        // afflictions that can be cured normally are removed without a check
+        bool curable = IS_SPELL(sn) || is_mental(sn) || is_blindness(sn) || is_curse(sn) || is_disease(sn);
+        if ( curable )
+            dispel_sn(ch, sn);
+        else if ( !check_dispel(level, ch, sn) )
+            ptc(ch, "Your attempt to purge the %s affliction fails.\n\r", skill_table[sn].name);
+        return TRUE;
+    }    
+    
+    SPELL_CHECK_RETURN
+    
     for ( gch = ch->in_room->people; gch != NULL; gch = gch->next_in_room )
     {
         if ( !is_same_group( gch, ch ) )
             continue;
 
-        heal = get_sn_heal(sn, level, ch, gch);
+        heal = get_sn_heal(sn, level, ch, gch) * 3/4;
         gain_hit(gch, heal * 6/15);
         gain_move(gch, heal * 4/15);
 
