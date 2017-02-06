@@ -220,7 +220,7 @@ void gain_exp( CHAR_DATA *ch, int gain, bool show )
         send_to_char("Your mind is becoming overwhelmed with new information.\n\r",ch);
     max*=2;
 
-    field = (field*(max-ch->pcdata->field))/(max);
+    field = rand_div(UMAX(0, field*(max-ch->pcdata->field)), max);
     ch->pcdata->field+=(short)field;
 
     if ( show && (field+gain) > 0 )
