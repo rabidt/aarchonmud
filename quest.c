@@ -904,7 +904,7 @@ DEF_DO_FUN(do_quest)
         ch->pcdata->questpoints += reward_points;
         logpf("quest complete: awarded %d qp to %s.", reward_points, ch->name);
         ch->practice += reward_prac;
-        gain_exp(ch, reward_exp);
+        gain_exp(ch, reward_exp, TRUE);
         
         // cleanup
         REMOVE_BIT(ch->act, PLR_QUESTOR);

@@ -2094,7 +2094,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
 
     ch->pcdata->learned[sn] += 1;
     ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
-    gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class]);
+    gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class], TRUE);
 
     if (ch->pcdata->learned[sn] == 100)
     {

@@ -2846,7 +2846,7 @@ DEF_DO_FUN(do_recall)
         if (!IS_HERO(ch))
         {
             int lose = (ch->desc != NULL) ? 25 : 50;
-            gain_exp( ch, 0 - lose );
+            gain_exp( ch, 0 - lose, FALSE );
             sprintf( buf, "You recall from combat!  You lose %d exps.\n\r", lose );
             send_to_char( buf, ch );
         }
