@@ -3258,7 +3258,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_blindness,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_cure_blindness, 5, 0, 12, DUR_NONE,
     "",         "!Cure Blindness!", ""
     },
 
@@ -3280,7 +3280,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_disease, TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 20, 0, 12, DUR_NONE,
+    &gsn_cure_disease, 20, 0, 12, DUR_NONE,
     "",         "!Cure Disease!",   ""
     },
 
@@ -3313,7 +3313,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_mental,  TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 15, 0, 12, DUR_NONE,
+    &gsn_cure_mental, 15, 0, 12, DUR_NONE,
     "",         "!Cure mental!",    ""
     },
 
@@ -3324,7 +3324,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_poison,  TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_cure_poison, 5, 0, 12, DUR_NONE,
     "",         "!Cure Poison!",    ""
     },
 
@@ -4379,7 +4379,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_refresh,      TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 15, 3, 8, DUR_NONE,
+    &gsn_refresh, 15, 3, 8, DUR_NONE,
     "refresh",      "!Refresh!",        ""
     },
 
@@ -4390,7 +4390,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_remove_curse, TAR_OBJ_CHAR_DEF,   POS_STANDING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_remove_curse, 5, 0, 12, DUR_NONE,
     "",         "!Remove Curse!",   ""
     },
 

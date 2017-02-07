@@ -262,6 +262,12 @@ sh_int  gsn_slow;
 sh_int  gsn_iron_maiden;
 sh_int  gsn_floating_disc;
 sh_int  gsn_restoration;
+sh_int  gsn_refresh;
+sh_int  gsn_cure_blindness;
+sh_int  gsn_cure_disease;
+sh_int  gsn_cure_mental;
+sh_int  gsn_cure_poison;
+sh_int  gsn_remove_curse;
 
 /* new gsns */
 
