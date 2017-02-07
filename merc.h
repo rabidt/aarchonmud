@@ -141,8 +141,9 @@ typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check ) );
 #define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check )
 
-/* for object extracting in handler.c */
+/* for object and affect locating in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
+typedef bool SKILL_CHECK_FUN( int sn );
 
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
@@ -3409,6 +3410,12 @@ extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
 extern sh_int  gsn_floating_disc;
 extern sh_int  gsn_restoration;
+extern sh_int  gsn_refresh;
+extern sh_int  gsn_cure_blindness;
+extern sh_int  gsn_cure_disease;
+extern sh_int  gsn_cure_mental;
+extern sh_int  gsn_cure_poison;
+extern sh_int  gsn_remove_curse;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -4826,6 +4833,7 @@ bool can_wear( OBJ_INDEX_DATA *obj );
 
 /* handler.c */
 AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
+AFFECT_DATA* affect_find_check(AFFECT_DATA *paf, SKILL_CHECK_FUN *sn_check);
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
