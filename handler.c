@@ -957,6 +957,19 @@ AFFECT_DATA *affect_find(AFFECT_DATA *paf, int sn)
     return NULL;
 }
 
+AFFECT_DATA* affect_find_check(AFFECT_DATA *paf, SKILL_CHECK_FUN *sn_check)
+{
+    AFFECT_DATA *paf_find;
+    
+    for ( paf_find = paf; paf_find != NULL; paf_find = paf_find->next )
+    {
+        if ( sn_check(paf_find->type) )
+            return paf_find;
+    }
+    
+    return NULL;
+}
+
 /* find an affect with flag in an affect list */
 AFFECT_DATA *affect_find_flag(AFFECT_DATA *paf, int flag)
 {
@@ -2887,26 +2900,55 @@ bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 	    || (!number_bits(2) && can_see(ch, victim));
 }
 
+static int ally_ranking( CHAR_DATA *ch, int sn )
+{
+    if ( sn == gsn_refresh )
+        return (ch->max_move - ch->move) * 100 / UMAX(1, ch->max_move);
+    else
+        return (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
+}
+
+static bool is_ally_target( CHAR_DATA *ch, int sn )
+{
+    if ( sn == gsn_cure_blindness )
+        return affect_find_check(ch->affected, &is_blindness) != NULL;
+    
+    if ( sn == gsn_cure_disease )
+        return affect_find_check(ch->affected, &is_disease) != NULL;
+    
+    if ( sn == gsn_cure_mental )
+        return affect_find_check(ch->affected, &is_mental) != NULL;
+    
+    if ( sn == gsn_cure_poison )
+        return is_affected(ch, gsn_poison);
+    
+    if ( sn == gsn_remove_curse )
+        return affect_find_check(ch->affected, &is_curse) != NULL;
+    
+    return !is_affected(ch, sn);
+}
+
 // find group member with lowest (percentage) health not affected by sn
 // lowest health is good for healing, sn-check for buffing
 CHAR_DATA *get_char_room_ally( CHAR_DATA *ch, int sn )
 {
     CHAR_DATA *rch, *ally = ch;
-    int injury = is_affected(ch, sn) ? -100 : (ch->max_hit - ch->hit) * 100 / UMAX(1, ch->max_hit);
+    int rank = !is_ally_target(ch, sn) ? -100 : ally_ranking(ch, sn);
+        
     for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
     {
-        if ( ch == rch || !is_same_group(ch, rch) || is_affected(rch, sn) )
+        if ( ch == rch || !is_same_group(ch, rch) || !is_ally_target(rch, sn) )
             continue;
         
-        int rch_injury = (rch->max_hit - rch->hit) * 100 / UMAX(1, rch->max_hit);
+        int rch_rank = ally_ranking(rch, sn);
         // NPCs are less important to heal
         if ( IS_NPC(rch) )
-            rch_injury /= 2;
+            rch_rank /= 2;
         
-        if ( rch_injury > injury )
+        if ( rch_rank > rank )
         {
             ally = rch;
-            injury = rch_injury;
+            rank = rch_rank;
         }
     }
     return ally;
