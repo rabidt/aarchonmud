@@ -753,6 +753,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
         case TAR_IGNORE:
         case TAR_IGNORE_OFF:
         case TAR_IGNORE_OBJ:
+        case TAR_IGNORE_DEF:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1415,6 +1416,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
         if ( target == TAR_IGNORE
             || target == TAR_IGNORE_OFF
             || target == TAR_IGNORE_OBJ
+            || target == TAR_IGNORE_DEF
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
@@ -1428,6 +1430,22 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
             flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
     }
+}
+
+static void mystic_heal( CHAR_DATA *ch, CHAR_DATA *victim, int heal )
+{
+    if ( victim->hit >= hit_cap(victim) )
+        return;
+    
+    if ( ch == victim )
+        ptc(ch, "Your mystic infusion restores some of your health.\n\r");
+    else
+    {
+        act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
+        act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+    }
+    
+    gain_hit(victim, heal);
 }
 
 void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
@@ -1489,16 +1507,19 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
         else if ( (target == TAR_CHAR_DEFENSIVE || target == TAR_OBJ_CHAR_DEF || target == TAR_CHAR_SELF) && victim )
         {
             int heal = get_sn_heal(sn, level, ch, victim) * 0.25;
-            if ( victim->hit < hit_cap(victim) )
+            mystic_heal(ch, victim, heal);
+        }
+        else if ( target == TAR_IGNORE_DEF && ch->in_room )
+        {
+            CHAR_DATA *rch, *rch_next;
+            for ( rch = ch->in_room->people; rch; rch = rch_next )
             {
-                if ( ch == victim )
-                    ptc(ch, "Your mystic infusion restores some of your health.\n\r");
-                else
+                rch_next = rch->next_in_room;
+                if ( is_same_group(ch, rch) )
                 {
-                    act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
-                    act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+                    int heal = get_sn_heal(sn, level, ch, rch) * AREA_SPELL_FACTOR * 0.25;
+                    mystic_heal(ch, rch, heal);
                 }
-                gain_hit(victim, heal);
             }
         }
     }
@@ -1833,6 +1854,7 @@ bool can_wish_cast( int sn )
         case TAR_OBJ_CHAR_DEF:
         case TAR_OBJ_INV:
         case TAR_IGNORE_OBJ:
+        case TAR_IGNORE_DEF:
             return TRUE;
         default:
             return FALSE;
