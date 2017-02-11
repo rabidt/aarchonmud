@@ -1203,16 +1203,13 @@ DEF_NANNY_FUN(get_new_class)
 static int nanny_show_subclasses( CHAR_DATA *ch )
 {
     int sc;
-    int count = 0;
+    int count = subclass_count(ch->class);
     
     ptc(ch, "The following subclasses are available:\n\r[{W");
     for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
     {
         if ( ch_can_take_subclass(ch, sc) )
-        {
             ptc(ch, " %s", subclass_table[sc].name);
-            count++;
-        }
     }
     ptc(ch, "{x ]\n\r");
     if ( count == ch->pcdata->remorts )
