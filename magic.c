@@ -1436,7 +1436,7 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
         return; // Return because it might have killed the victim or ch
 
-    if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
+    if ( is_offensive(sn) && victim && victim != ch && victim->in_room == ch->in_room
          && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
@@ -1464,19 +1464,31 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int target = skill_table[sn].target;
         if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF || target == TAR_OBJ_CHAR_OFF)
-            && victim != ch && victim->in_room == ch->in_room
-            && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
+            && is_opponent(ch, victim) )
         {
-            int dam = get_sn_damage(sn, ch->level, ch, victim) * 0.25;
-            if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
+            int dam = get_sn_damage(sn, level, ch, victim) * 0.25;
+            if ( saves_spell(victim, ch, level, DAM_HARM) )
                 dam /= 2;
-            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
+            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
         }
-        else if ( target == TAR_CHAR_DEFENSIVE
-                || target == TAR_OBJ_CHAR_DEF
-                || target == TAR_CHAR_SELF )
+        else if ( target == TAR_IGNORE_OFF && ch->in_room )
         {
-            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
+            int dam = get_sn_damage(sn, level, ch, NULL) * AREA_SPELL_FACTOR * 0.25;
+            CHAR_DATA *rch, *rch_next;
+            for ( rch = ch->in_room->people; rch; rch = rch_next )
+            {
+                rch_next = rch->next_in_room;
+                if ( !is_opponent(ch, rch) )
+                    continue;
+                if ( saves_spell(rch, ch, ch->level, DAM_HARM) )
+                    deal_damage(ch, rch, dam/2, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
+                else
+                    deal_damage(ch, rch, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
+            }
+        }
+        else if ( (target == TAR_CHAR_DEFENSIVE || target == TAR_OBJ_CHAR_DEF || target == TAR_CHAR_SELF) && victim )
+        {
+            int heal = get_sn_heal(sn, level, ch, victim) * 0.25;
             if ( victim->hit < hit_cap(victim) )
             {
                 if ( ch == victim )
@@ -1757,6 +1769,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 chain_spell(sn, chain_level, ch, (CHAR_DATA*)vo);
             }
         }
+        else
+            post_spell_process(sn, level, ch, NULL);
     }
     
     /* mana burn */
