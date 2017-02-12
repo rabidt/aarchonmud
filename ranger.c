@@ -904,6 +904,8 @@ DEF_DO_FUN(do_taxidermy)
         return;
     }
 
+    WAIT_STATE(ch, skill_table[gsn_taxidermy].beats / (1 + get_mastery(ch, gsn_taxidermy)));
+    
 	if (number_percent() < skill)  /* success! */
 	{
             char buf[MSL];
@@ -930,9 +932,7 @@ DEF_DO_FUN(do_taxidermy)
                 // replace the fresh keyword on corpses
                 obj->name = string_replace(obj->name, "fresh", "preserved");
             }
-	    
             check_improve(ch,gsn_taxidermy,TRUE,2);
-	    WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
 	    return;
 	}
 
@@ -940,7 +940,6 @@ DEF_DO_FUN(do_taxidermy)
         act("$n fails to preserve $p. In fact, $e botches it pretty badly.",ch,obj,NULL,TO_ROOM);
 	extract_obj( obj );
 	check_improve(ch,gsn_taxidermy,FALSE,2);
-	WAIT_STATE(ch,skill_table[gsn_taxidermy].beats);
 	return;
 }
 
