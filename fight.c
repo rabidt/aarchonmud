@@ -807,7 +807,7 @@ void special_affect_update(CHAR_DATA *ch)
     }
 
     /* song move refresh from combat symphony */
-    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
+    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) && ch->fighting )
     {
         int heal;
         if ( ch->level < 90 || IS_NPC(ch) )
