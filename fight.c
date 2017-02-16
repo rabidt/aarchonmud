@@ -4721,15 +4721,14 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
 	*/
         
         /* NPC doing the killing */
-        if (IS_NPC(ch))
+        if ( IS_NPC(ch) )
         {
-            /* charmed mobs and pets cannot attack players while owned */
-            if (IS_AFFECTED(ch,AFF_CHARM) && ch->master != NULL
-                && ch->master->fighting != victim)
+            /* charmed mobs and pets cannot attack players unless their master could */
+            if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
             {
-		if ( !quiet )
-		    send_to_char("Players are your friends!\n\r",ch);
-                return TRUE;
+                if ( area && victim == ch->master )
+                    return FALSE;
+                return is_safe_check( ch->master, victim, area, TRUE, theory );
             }
             
             /* legal kill? -- mobs only hit players grouped with opponent */
