@@ -6645,8 +6645,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 50 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 100 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 100 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 20 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BERSERK) ? 5 : 0;
@@ -6655,7 +6655,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 25 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0, 6*victim->size - 10) : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 10 : 0;
