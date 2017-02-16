@@ -3473,7 +3473,7 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     }
 
     // Followers desert (strips charm)
-    if ( victim->master == ch )
+    if ( victim->master == ch && !ch->controller )
         stop_follower( victim );
 }
 
