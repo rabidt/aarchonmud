@@ -646,7 +646,7 @@ void mobile_update( void )
             }
         }
 
-        if (ch->in_room->area->empty && !IS_SET(ch->act,ACT_UPDATE_ALWAYS))
+        if ( !ch->fighting && ch->in_room->area->empty && !IS_SET(ch->act, ACT_UPDATE_ALWAYS) )
             continue;
 
         /* Examine call for special procedure */
