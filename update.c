@@ -632,7 +632,7 @@ void mobile_update( void )
     {
         ch_next = ch->next;
 
-        if ( !IS_NPC(ch) || ch->in_room == NULL || IS_AFFECTED(ch, AFF_CHARM) )
+        if ( !IS_NPC(ch) || ch->in_room == NULL )
             continue;
 
         /* shop updates even if area is empty*/
@@ -678,6 +678,10 @@ void mobile_update( void )
                     continue;
             }
         }
+        
+        /* Avoid mprogs on charmed mobs - can be strange and/or abusable */
+        if ( IS_AFFECTED(ch, AFF_CHARM) )
+            continue;
 
         /* Delay */
         if ( HAS_TRIGGER(ch, TRIG_DELAY) && ch->mprog_delay > 0 )
