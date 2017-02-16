@@ -443,100 +443,56 @@ bool spec_nasty( CHAR_DATA *ch )
 /*
  * Core procedure for dragons.
  */
-bool dragon( CHAR_DATA *ch, char *spell_name )
+bool dragon( CHAR_DATA *ch, int sn )
 {
-	CHAR_DATA *victim;
-	CHAR_DATA *v_next;
-	int sn;
+    // we only breath ever 1d4 rounds on average
+    if ( !ch->fighting || !per_chance(40) )
+        return FALSE;
 
-	if ( ch->position != POS_FIGHTING )
-	return FALSE;
-
-	for ( victim = ch->in_room->people; victim != NULL; victim = v_next )
-	{
-	v_next = victim->next_in_room;
-	if ( victim->fighting == ch && number_bits( 3 ) == 0 )
-		break;
-	}
-
-	if ( victim == NULL )
-	return FALSE;
-
-	if ( ( sn = skill_lookup( spell_name ) ) < 0 )
-	return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, victim, TARGET_CHAR, FALSE );
-	return TRUE;
+    (*skill_table[sn].spell_fun) ( sn, ch->level, ch, ch->fighting, TARGET_CHAR, FALSE );
+    return TRUE;
 }
-
-
 
 /*
  * Special procedures for mobiles.
  */
 bool spec_breath_any( CHAR_DATA *ch )
 {
-	if ( ch->position != POS_FIGHTING )
-	return FALSE;
-
-	switch ( number_bits( 3 ) )
-	{
-	case 0: return spec_breath_fire     ( ch );
-	case 1:
-	case 2: return spec_breath_lightning    ( ch );
-	case 3: return spec_breath_gas      ( ch );
-	case 4: return spec_breath_acid     ( ch );
-	case 5:
-	case 6:
-	case 7: return spec_breath_frost        ( ch );
-	}
-
-	return FALSE;
+    switch ( number_range(0,4) )
+    {
+        case 0: return spec_breath_fire( ch );
+        case 1: return spec_breath_lightning( ch );
+        case 2: return spec_breath_gas( ch );
+        case 3: return spec_breath_acid( ch );
+        case 4: return spec_breath_frost( ch );
+    }
+    return FALSE;
 }
-
-
 
 bool spec_breath_acid( CHAR_DATA *ch )
 {
-	return dragon( ch, "acid breath" );
+    return dragon( ch, gsn_acid_breath );
 }
-
-
 
 bool spec_breath_fire( CHAR_DATA *ch )
 {
-	return dragon( ch, "fire breath" );
+    return dragon( ch, gsn_fire_breath );
 }
-
-
 
 bool spec_breath_frost( CHAR_DATA *ch )
 {
-	return dragon( ch, "frost breath" );
+    return dragon( ch, gsn_frost_breath );
 }
-
-
 
 bool spec_breath_gas( CHAR_DATA *ch )
 {
-	int sn;
-
-	if ( ch->position != POS_FIGHTING )
-	return FALSE;
-
-	if ( ( sn = skill_lookup( "gas breath" ) ) < 0 )
-	return FALSE;
-	(*skill_table[sn].spell_fun) ( sn, ch->level, ch, NULL, TARGET_CHAR, FALSE );
-	return TRUE;
+    return dragon( ch, gsn_gas_breath );
 }
-
-
 
 bool spec_breath_lightning( CHAR_DATA *ch )
 {
-	return dragon( ch, "lightning breath" );
+    return dragon( ch, gsn_lightning_breath );
 }
-
-
 
 bool spec_cast_adept( CHAR_DATA *ch )
 {
