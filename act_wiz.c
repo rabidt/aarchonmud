@@ -2926,8 +2926,12 @@ DEF_DO_FUN(do_avatar)
     ch->trust = ch->level;
   }
 
+  // remove and re-insert into current room
+  // this prevents bugs with player count in area
+  ROOM_INDEX_DATA *room = ch->in_room;
+  char_from_room(ch);
+  
   /* Level gains */
-
   if (level <= ch->level )
   {
     int temp_prac;
@@ -2953,6 +2957,9 @@ DEF_DO_FUN(do_avatar)
   sprintf(buf,"You are now level %d.\n\r",ch->level);
   send_to_char(buf,ch);
   ch->exp = exp_per_level(ch) * UMAX(1, ch->level);
+  
+  // return to old room
+  char_to_room(ch, room);
 
   /* Forces the player to remove all so they need the right level eq */
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
