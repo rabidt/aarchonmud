@@ -2094,11 +2094,9 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                }
                else if (PrefixString("ArcWeb", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
                {
-                   if ( strlen(pClientName) < 8 ) 
-                   {
-                       bugf("pClientName length too short: %s", pClientName);
-                   }
-                   else
+                   /* Check if long enough to be a valid IPv4 address. If not, just ignore.
+                    * Typical case may be ::1 (localhost) from dev/testing ArcWeb */
+                   if ( strlen(pClientName) >= 7 )
                    {
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(pClientName);
