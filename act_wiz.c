@@ -2826,12 +2826,6 @@ DEF_DO_FUN(do_qlist)
 	return;
     }
 
-    if ( IS_NPC(victim) )
-    {
-	send_to_char( "NPCs don't have a quest status.\n\r", ch );
-	return;
-    }
-
     sprintf( buf, "Quests for %s:\n\r\n\r", victim->name );
     send_to_char( buf, ch );
     show_quests( victim, ch );
