@@ -3197,6 +3197,32 @@ static void print_wiznet_table (CHAR_DATA *ch, const struct wiznet_type *tbl)
     }
 }
 
+static void print_race_table (CHAR_DATA *ch, const struct race_type *tbl)
+{
+    char buf[MSL];
+    BUFFER *buffer = new_buf();
+
+    int i;
+    sprintf(buf, "%-20s %s\n\r", "Name", "PC");
+    add_buf(buffer, buf);
+    add_buf(buffer, "----------------------------------------\n\r");
+
+    for (i=0; tbl[i].name; i++)
+    {
+        sprintf(buf, "%-20s %s\n\r", tbl[i].name, (tbl[i].pc_race) ? "TRUE" : "FALSE");
+        if (!add_buf(buffer, buf))
+        {
+            bugf("BUFFER OVERFLOW???");
+            free_buf(buffer);
+            return;
+        }
+    }
+
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+    return;
+}
+
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note }
 
 struct
@@ -3249,6 +3275,7 @@ struct
     { "stances", print_stances, stances, "Stances."},
     { "skill_table", print_skill_table, skill_table, "Skills."},
     { "wiznet_table", print_wiznet_table, wiznet_table, "Wiznet channels."},
+    { "race_table", print_race_table, race_table, "Race table."},
     { NULL, NULL, NULL, NULL}
 };
 
