@@ -1773,8 +1773,6 @@ void obj_update( void )
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
     AFFECT_DATA *paf, *paf_next;
-    ROOM_INDEX_DATA *room;
-    bool is_remort;
 
     for ( obj = object_list; obj != NULL; obj = obj_next )
     {
@@ -1905,14 +1903,7 @@ void obj_update( void )
             }
         }
 
-        /* make sure items won't get lost in remort due to corpse crumbling */
-        room = get_obj_room( obj );
-        is_remort = room != NULL && IS_SET( room->area->area_flags, AREA_REMORT );
-
-        if ( (obj->item_type == ITEM_CORPSE_PC
-                    || obj->item_type == ITEM_CONTAINER
-                    || is_remort )
-                && obj->contains)
+        if ( obj->contains )
         {   /* save the contents */
             OBJ_DATA *t_obj, *next_obj;
 
