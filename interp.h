@@ -474,6 +474,7 @@ DECLARE_DO_FUN( do_visible  );
 DECLARE_DO_FUN( do_vlist    );
 DECLARE_DO_FUN( do_vnum     );
 DECLARE_DO_FUN( do_wake     );
+DECLARE_DO_FUN( do_walk     );
 DECLARE_DO_FUN( do_war_cry  );
 DECLARE_DO_FUN( do_wear     );
 DECLARE_DO_FUN( do_weather  );
