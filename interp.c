@@ -462,6 +462,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "visible",    do_visible, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wake",       do_wake,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "walk",       do_walk,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rank",       do_rank,    POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "invite",     do_invite,    POS_DEAD, 0,  LOG_NORMAL,  1, FALSE, FALSE },
     { "raceskills", do_raceskills, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
