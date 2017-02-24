@@ -264,6 +264,8 @@ void violence_update_char( CHAR_DATA *ch )
     {
         check_stance(ch);
         check_bard_song(ch, TRUE);
+        // bonus xp each round spent fighting
+        gain_exp(ch, 1, FALSE);
     }
     
     if ( ch->stop > 0 )
@@ -805,10 +807,15 @@ void special_affect_update(CHAR_DATA *ch)
     }
 
     /* song move refresh from combat symphony */
-    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) )
+    if ( ch->move < move_cap(ch) && IS_AFFECTED(ch, AFF_REFRESH) && ch->fighting )
     {
-        int heal = 5;
+        int heal;
+        if ( ch->level < 90 || IS_NPC(ch) )
+            heal = 10 + ch->level / 9;
+        else
+            heal = 20 + (ch->level - 90);
 
+        send_to_char( "You feel refreshed.\n\r", ch );
         gain_move(ch, heal);
         update_pos( ch );
     } 
@@ -3469,7 +3476,7 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     }
 
     // Followers desert (strips charm)
-    if ( victim->master == ch )
+    if ( victim->master == ch && !ch->controller )
         stop_follower( victim );
 }
 
@@ -4085,8 +4092,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 int hp_gain = victim->max_hit / 3;
                 victim->hit = UMIN(hp_gain, hit_cap(victim));
                 gain_move(victim, 100);
-                send_to_char("The gods have protected you from dying!\n\r", victim);
-                act( "The gods resurrect $n.", victim, NULL, NULL, TO_ROOM );
+                send_to_char("{Y*** The gods have protected you from dying! ***{x\n\r", victim);
+                act( "{Y*** The gods resurrect $n! ***{x", victim, NULL, NULL, TO_ROOM );
             }
             else
                 send_to_char("Looks like you're outta luck!\n\r", victim);
@@ -4105,9 +4112,9 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 victim->mana = mana_cap(victim);
                 victim->move = move_cap(victim);
                 // message
-                ptc(victim, "%s has protected you from dying!\n\r", get_god_name(victim));
+                ptc(victim, "{Y*** %s has protected you from dying! ***{x\n\r", get_god_name(victim));
                 char buf[MSL];
-                sprintf(buf, "%s resurrects $n.", get_god_name(victim));
+                sprintf(buf, "{Y*** %s resurrects $n! ***{x", get_god_name(victim));
                 act(buf, victim, NULL, NULL, TO_ROOM);
             }
         }
@@ -4605,9 +4612,9 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
     if ( IS_IMMORTAL(ch) && ch->level > LEVEL_IMMORTAL && !area )
         return FALSE;
 
-    if ( IS_IMMORTAL(victim) && (!IS_IMMORTAL(ch) && !IS_NPC(ch)) )
+    if ( IS_IMMORTAL(victim) && victim->level > LEVEL_IMMORTAL && (!IS_IMMORTAL(ch) && !IS_NPC(ch)) )
     {
-	if ( !quiet )
+        if ( !quiet )
             send_to_char("You would get squashed!\n\r",ch);
         return TRUE;
     } 
@@ -4717,15 +4724,14 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
 	*/
         
         /* NPC doing the killing */
-        if (IS_NPC(ch))
+        if ( IS_NPC(ch) )
         {
-            /* charmed mobs and pets cannot attack players while owned */
-            if (IS_AFFECTED(ch,AFF_CHARM) && ch->master != NULL
-                && ch->master->fighting != victim)
+            /* charmed mobs and pets cannot attack players unless their master could */
+            if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
             {
-		if ( !quiet )
-		    send_to_char("Players are your friends!\n\r",ch);
-                return TRUE;
+                if ( area && victim == ch->master )
+                    return FALSE;
+                return is_safe_check( ch->master, victim, area, TRUE, theory );
             }
             
             /* legal kill? -- mobs only hit players grouped with opponent */
@@ -6356,7 +6362,7 @@ void death_penalty( CHAR_DATA *ch )
     /* experience penalty - 2/3 way back to previous level. */
     curr_level_exp = exp_per_level(ch) * ch->level;
     if ( ch->exp > curr_level_exp )
-        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3 );
+        gain_exp( ch, (curr_level_exp - ch->exp) * 2/3, TRUE );
     
     /* get number of possible loss choices */
     loss_choice = 0;
@@ -6531,7 +6537,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
 	}
 	else*/
-	    gain_exp( gch, xp );
+	    gain_exp( gch, xp, TRUE );
     }
     return;
 }
@@ -6641,8 +6647,8 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
         base_exp += base_exp/10;
     
     off_bonus = 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 50 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 50 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_PETRIFY) ? 100 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_WOUND) ? 100 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_AREA_ATTACK) ? 20 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BASH) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_BERSERK) ? 5 : 0;
@@ -6651,7 +6657,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     off_bonus += IS_SET(victim->off_flags, OFF_KICK_DIRT) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TAIL) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_TRIP) ? 10 : 0;
-    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 10 : 0;
+    off_bonus += IS_SET(victim->off_flags, OFF_ARMED) ? 25 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CIRCLE) ? 10 : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_CRUSH) ? UMAX(0, 6*victim->size - 10) : 0;
     off_bonus += IS_SET(victim->off_flags, OFF_ENTRAP) ? 10 : 0;
@@ -6734,17 +6740,19 @@ float calculate_exp_factor( CHAR_DATA *gch )
     }
     // and bonus for low-ish characters
     else
+    {
         xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for newbies
-    if ( gch->pcdata->remorts == 0 )
-        xp_factor *= (300 - gch->level) / 200.0;
-    // bonus for first 5 levels
-    if ( gch->level <= 5 )
-        xp_factor *= 1.5;
-    // bonus for slow levellers - starts after 5 mins, reaches +50% after 30 min
-    int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
-    if ( time_since_last_level > 300 )
-        xp_factor += xp_factor * UMIN(1500, time_since_last_level - 300) / 3000;
+        // bonus for newbies
+        if ( gch->pcdata->remorts == 0 && gch->pcdata->ascents == 0 )
+            xp_factor *= (300 - gch->level) / 200.0;
+        // bonus for first 5 levels
+        if ( gch->level <= 5 )
+            xp_factor *= 1.5;
+        // bonus for slow levellers - starts after 5 mins, reaches +20% after 15 min
+        int time_since_last_level = time_played(gch) - gch->pcdata->last_level;
+        if ( time_since_last_level > 300 )
+            xp_factor += xp_factor * UMIN(600, time_since_last_level - 300) / 3000;
+    }
 
     // additive bonuses
     
@@ -7305,7 +7313,7 @@ DEF_DO_FUN(do_flee)
         else
         {
             send_to_char("You lost 10 exp.\n\r", ch);
-            gain_exp(ch, -10);
+            gain_exp(ch, -10, FALSE);
         }
     }
 

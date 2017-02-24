@@ -299,7 +299,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "lore",       do_lore, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "zap",        do_zap,     POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "tdisarm",    do_disarm_trap, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
-    { "spellup",    do_spellup, POS_STANDING, 0,  LOG_NORMAL, 1, FALSE, FALSE  },
+    { "spellup",    do_spellup, POS_RESTING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     { "smith",      do_smith,   POS_STANDING, 0, LOG_NORMAL, 1, FALSE, FALSE },
     
    /*
@@ -382,6 +382,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "quiveringpalm",   do_quivering_palm,  POS_STANDING, 0, LOG_NORMAL, 1, FALSE, TRUE  },
     { "smite",      do_smite,   POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "engage",     do_engage,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "layonhands", do_lay_on_hands, POS_RESTING, 0,  LOG_NORMAL, 1, FALSE, TRUE  },
     
     // Meta-magic commands.
     { "mmcast",     do_mmcast,  POS_FIGHTING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
@@ -462,6 +463,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "visible",    do_visible, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wake",       do_wake,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
+    { "walk",       do_walk,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "rank",       do_rank,    POS_DEAD,    1,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "invite",     do_invite,    POS_DEAD, 0,  LOG_NORMAL,  1, FALSE, FALSE },
     { "raceskills", do_raceskills, POS_DEAD,    0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -626,6 +628,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "luaquery",   do_luaquery, POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
+    { "protocol",   do_protocol, POS_DEAD,  L9,  LOG_NORMAL, 1, FALSE, FALSE  },
 
     /*
     * OLC

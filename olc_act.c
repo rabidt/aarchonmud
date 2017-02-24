@@ -349,6 +349,7 @@ bool show_help( CHAR_DATA *ch, const char *argument )
                                 show_skill_cmds( ch, TAR_IGNORE );
                                 show_skill_cmds( ch, TAR_IGNORE_OFF );
                                 show_skill_cmds( ch, TAR_IGNORE_OBJ );
+                                show_skill_cmds( ch, TAR_IGNORE_DEF );
                             }
                             else if ( !str_prefix( spell, "attack" ) )
                             {

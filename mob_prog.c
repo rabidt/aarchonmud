@@ -1497,7 +1497,7 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
                  * are caught, use ExAll trigger
                  */
                 if ( prg->trig_type == TRIG_EXIT
-                        &&  (dir == atoi( prg->trig_phrase ) 
+                        &&  ( (is_number(prg->trig_phrase) && dir == atoi(prg->trig_phrase))
                             || !str_cmp( dir_name[dir], prg->trig_phrase ) 
                             || !strcmp( "*", prg->trig_phrase) )
                         &&  (mob->position >= mob->pIndexData->default_pos ||
@@ -1508,7 +1508,7 @@ bool mp_exit_trigger( CHAR_DATA *ch, int dir )
                     return TRUE;
                 }
                 else if ( prg->trig_type == TRIG_EXALL
-                        &&   (dir == atoi( prg->trig_phrase )
+                        &&   ( (is_number(prg->trig_phrase) && dir == atoi(prg->trig_phrase))
                              || !str_cmp( dir_name[dir], prg->trig_phrase ) 
                              || !strcmp( "*", prg->trig_phrase) ) )
                 {

@@ -2915,7 +2915,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 3,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_astarks_rejuvenation, TAR_IGNORE,     POS_STANDING,
+    spell_astarks_rejuvenation, TAR_IGNORE_DEF,     POS_STANDING,
     NULL, 300, 0, 12, DUR_NONE,
     "",         "!Astark's Rejuvenation!",   ""
     },
@@ -3258,7 +3258,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_blindness,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_cure_blindness, 5, 0, 12, DUR_NONE,
     "",         "!Cure Blindness!", ""
     },
 
@@ -3280,7 +3280,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_disease, TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 20, 0, 12, DUR_NONE,
+    &gsn_cure_disease, 20, 0, 12, DUR_NONE,
     "",         "!Cure Disease!",   ""
     },
 
@@ -3313,7 +3313,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_mental,  TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 15, 0, 12, DUR_NONE,
+    &gsn_cure_mental, 15, 0, 12, DUR_NONE,
     "",         "!Cure mental!",    ""
     },
 
@@ -3324,7 +3324,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_poison,  TAR_CHAR_DEFENSIVE, POS_STANDING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_cure_poison, 5, 0, 12, DUR_NONE,
     "",         "!Cure Poison!",    ""
     },
 
@@ -3711,9 +3711,9 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_floating_disc,    TAR_IGNORE_OBJ,     POS_STANDING,
+    spell_floating_disc, TAR_CHAR_SELF, POS_STANDING,
     &gsn_floating_disc, 40, 0, 24, DUR_EXTREME,
-    "",         "!Floating disc!",  ""
+    "", "The disc floating next to you disappears.", ""
     },
 
     {
@@ -3799,7 +3799,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_group_heal,       TAR_IGNORE,             POS_FIGHTING,
+    spell_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
     NULL, 60, 5, 14, DUR_NONE,
     "",                     "!Group Heal!",   ""
     },
@@ -4045,7 +4045,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_major_group_heal, TAR_IGNORE,             POS_FIGHTING,
+    spell_major_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
     NULL, 100, 10, 14, DUR_NONE,
     "",                     "!Major Group Heal!",   ""
     },
@@ -4089,7 +4089,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_mass_healing, TAR_IGNORE,     POS_STANDING,
+    spell_mass_healing, TAR_IGNORE_DEF, POS_STANDING,
     NULL, 100, 10, 32, DUR_NONE,
     "",         "!Mass Healing!",   ""
     },
@@ -4100,7 +4100,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_mass_invis,   TAR_IGNORE,     POS_STANDING,
+    spell_mass_invis, TAR_IGNORE_DEF, POS_STANDING,
     &gsn_mass_invis, 20, 0, 24, DUR_NORMAL,
     "",         "You are no longer invisible.",     ""
     },
@@ -4122,7 +4122,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_minor_group_heal, TAR_IGNORE,             POS_FIGHTING,
+    spell_minor_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
     NULL, 20, 2, 10, DUR_NONE,
     "",                     "!Minor Group Heal!",   ""
     },
@@ -4379,7 +4379,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_refresh,      TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 15, 3, 8, DUR_NONE,
+    &gsn_refresh, 15, 3, 8, DUR_NONE,
     "refresh",      "!Refresh!",        ""
     },
 
@@ -4390,7 +4390,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_remove_curse, TAR_OBJ_CHAR_DEF,   POS_STANDING,
-    NULL, 5, 0, 12, DUR_NONE,
+    &gsn_remove_curse, 5, 0, 12, DUR_NONE,
     "",         "!Remove Curse!",   ""
     },
 
@@ -4972,7 +4972,7 @@ struct  skill_type
     {
     "introspection",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 28, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,     TAR_IGNORE,     POS_STANDING,
@@ -5016,7 +5016,7 @@ struct  skill_type
     {
     "taxidermy",
     { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 15, 102, 102 },
-    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 0,
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 5, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_null,     TAR_IGNORE,     POS_RESTING,
@@ -6396,6 +6396,17 @@ struct  skill_type
     spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_sentinel, 0, 0, 0, DUR_NONE,
     "", "!sentinel!", ""
+    },
+
+    {
+    "lay on hands",
+    { 102, 102, 102, 102, 102, 102,  10, 102, 102, 102, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 6, 4,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_WIS, STAT_DIS,
+    spell_null, TAR_CHAR_SELF, POS_RESTING,
+    &gsn_lay_on_hands, 0, 0, 24, DUR_NONE,
+    "", "!lay on hands!", ""
     },
 
     {
@@ -7813,7 +7824,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 2,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_dancing_bones,    TAR_IGNORE, POS_FIGHTING,
+    spell_dancing_bones,    TAR_IGNORE_DEF, POS_FIGHTING,
     NULL, 15, 2, 12, DUR_NONE,
     "",              "!DANCING BONES!",  ""    
     },

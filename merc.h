@@ -141,8 +141,9 @@ typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check ) );
 #define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check )
 
-/* for object extracting in handler.c */
+/* for object and affect locating in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
+typedef bool SKILL_CHECK_FUN( int sn );
 
 typedef struct comm_history_entry COMM_ENTRY;
 typedef struct comm_history_type COMM_HISTORY;
@@ -232,7 +233,7 @@ bool is_nosac( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         496 /* accurate august 2016 */
+#define MAX_SKILL         497
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3104,8 +3105,9 @@ struct  room_index_data
 #define TAR_OBJ_CHAR_OFF        6
 #define TAR_VIS_CHAR_OFF        7
 #define TAR_CHAR_NEUTRAL        8
-#define TAR_IGNORE_OFF          9 // for area spells that bestow affects
+#define TAR_IGNORE_OFF          9 // for harmful area spells
 #define TAR_IGNORE_OBJ         10 // spells that create objects
+#define TAR_IGNORE_DEF         11 // for area spells that heal or buff
 
 #define TARGET_CHAR         0
 #define TARGET_OBJ          1
@@ -3409,6 +3411,12 @@ extern sh_int  gsn_slow;
 extern sh_int  gsn_iron_maiden;
 extern sh_int  gsn_floating_disc;
 extern sh_int  gsn_restoration;
+extern sh_int  gsn_refresh;
+extern sh_int  gsn_cure_blindness;
+extern sh_int  gsn_cure_disease;
+extern sh_int  gsn_cure_mental;
+extern sh_int  gsn_cure_poison;
+extern sh_int  gsn_remove_curse;
 
 /* new gsns */
 extern sh_int  gsn_axe;
@@ -3625,6 +3633,7 @@ extern sh_int  gsn_bless;
 extern sh_int  gsn_prayer;
 extern sh_int  gsn_bodyguard;
 extern sh_int  gsn_sentinel;
+extern sh_int  gsn_lay_on_hands;
 extern sh_int  gsn_back_leap;
 extern sh_int  gsn_mana_shield;
 extern sh_int  gsn_leadership;
@@ -4005,7 +4014,7 @@ struct boss_achieve_record
  */
 #define IS_NPC(ch)      (IS_SET((ch)->act, ACT_IS_NPC))
 #define IS_IMMORTAL(ch)     (get_trust(ch) >= LEVEL_IMMORTAL)
-#define IS_PLAYER(ch)   (!IS_NPC(ch) && !IS_IMMORTAL(ch))
+#define IS_PLAYER(ch)   (!IS_NPC(ch) && ch->level < LEVEL_IMMORTAL)
 #define IS_HERO(ch)     ((!IS_NPC((ch))&&((ch)->level >= ((LEVEL_HERO - 10)+((ch)->pcdata->remorts)))))
 #define IS_HELPER(ch)   (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER))
 #define IS_ACTIVE_HELPER(ch)    (!IS_NPC(ch) && IS_SET((ch)->act, PLR_HELPER) && !IS_SET((ch)->act, PLR_INACTIVE_HELPER))
@@ -4435,6 +4444,7 @@ void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 bool    can_take_subclass( int class, int subclass );
+bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
@@ -4825,6 +4835,7 @@ bool can_wear( OBJ_INDEX_DATA *obj );
 
 /* handler.c */
 AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
+AFFECT_DATA* affect_find_check(AFFECT_DATA *paf, SKILL_CHECK_FUN *sn_check);
 void    affect_check    args( (CHAR_DATA *ch, int where, int vector) );
 int count_users args( (OBJ_DATA *obj) );
 void    deduct_cost args( (CHAR_DATA *ch, int cost) );
@@ -5094,6 +5105,7 @@ ROOM_INDEX_DATA* room_with_misgate( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, int
 bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, int *target, void **vo );
 bool check_dispel( int dis_level, CHAR_DATA *victim, int sn );
 bool check_dispel_magic( int level, CHAR_DATA *victim );
+void dispel_sn( CHAR_DATA *victim, int sn );
 void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target );
 int check_cha_follow( CHAR_DATA *ch, int required );
 bool can_cast_transport( CHAR_DATA *ch );
@@ -5434,7 +5446,7 @@ void clear_area_quests( CHAR_DATA *ch, AREA_DATA *area );
 void    war_update      args( ( void ) ); 
 int     time_played( CHAR_DATA *ch );
 void    advance_level   args( ( CHAR_DATA *ch, bool hide ) );
-void    gain_exp    args( ( CHAR_DATA *ch, int gain ) );
+void    gain_exp( CHAR_DATA *ch, int gain, bool show );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
