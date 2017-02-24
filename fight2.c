@@ -4386,3 +4386,42 @@ DEF_DO_FUN(do_bomb)
     
     extract_obj(obj);
 }
+
+DEF_DO_FUN(do_lay_on_hands)
+{
+    int skill = get_skill(ch, gsn_lay_on_hands);
+    if ( skill == 0 )
+    {
+        ptc(ch, "You touch yourself inappropriately.\n\r");
+        return;
+    }
+    
+    int heal = UMIN(hit_cap(ch), ch->max_hit * skill / 100) - ch->hit;
+    if ( heal < 1 )
+    {
+        ptc(ch, "Your touch cannot heal you any further.\n\r");
+        return;
+    }
+    if ( ch->mana < 1 )
+    {
+        ptc(ch, "You have no energy left.\n\r");
+        return;
+    }
+    
+    int wait = skill_table[gsn_lay_on_hands].beats * (6 - mastery_bonus(ch, gsn_lay_on_hands, 2, 3)) / 6;
+    WAIT_STATE(ch, wait);
+    
+    int mana_cost = 5 * (10 + ch->level + 4 * UMAX(0, ch->level - LEVEL_MIN_HERO));
+    mana_cost = UMIN(ch->mana, mana_cost);
+    float rate = (50 + get_curr_stat(ch, STAT_CHA)) / 100.0;
+    if ( heal > mana_cost * rate )
+        heal = mana_cost * rate;
+    else
+        mana_cost = UMAX(1, heal / rate);
+    
+    ch->mana -= mana_cost;
+    gain_hit(ch, heal);
+    
+    ptc(ch, "You touch yourself and feel better!\n\r");
+    check_improve(ch, gsn_lay_on_hands, TRUE, 3);
+}

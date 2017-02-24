@@ -429,6 +429,7 @@ sh_int	gsn_bless;
 sh_int	gsn_prayer;
 sh_int  gsn_bodyguard;
 sh_int  gsn_sentinel;
+sh_int  gsn_lay_on_hands;
 sh_int  gsn_back_leap;
 sh_int  gsn_mana_shield;
 sh_int  gsn_leadership;
