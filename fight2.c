@@ -4413,7 +4413,7 @@ DEF_DO_FUN(do_lay_on_hands)
     
     int mana_cost = 5 * (10 + ch->level + 4 * UMAX(0, ch->level - LEVEL_MIN_HERO));
     mana_cost = UMIN(ch->mana, mana_cost);
-    float rate = (50 + get_curr_stat(ch, STAT_CHA)) / 100.0;
+    float rate = (200 + get_curr_stat(ch, STAT_CHA)) / 200.0;
     if ( heal > mana_cost * rate )
         heal = mana_cost * rate;
     else
