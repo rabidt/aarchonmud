@@ -235,7 +235,7 @@ void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
             act("$n charges into you, sending you sprawling!", ch, NULL, victim, TO_VICT);
             act("You charge into $N, and send $M sprawling!", ch, NULL, victim, TO_CHAR);
             act("$n sends $N sprawling with a powerful charge.", ch, NULL, victim, TO_NOTVICT);
-            WAIT_STATE(victim, skill_table[sn].beats);
+            WAIT_STATE(victim, skill_table[sn].beats * 3/4);
             victim->stop += 1;
         }
         else if ( sn == gsn_shield_bash )
@@ -614,7 +614,7 @@ DEF_DO_FUN(do_net)
         act("$n entraps you in a net!",ch,NULL,victim,TO_VICT);
         send_to_char("You stumble around in the net!\n\r",victim);
         check_improve(ch,gsn_net,TRUE,3);
-        WAIT_STATE(victim, skill_table[gsn_net].beats);
+        WAIT_STATE(victim, skill_table[gsn_net].beats * 3/4);
         
         af.where    = TO_AFFECTS;
         af.type     = gsn_net;
@@ -792,8 +792,7 @@ DEF_DO_FUN(do_hogtie)
         act("$n hogties you! How embarassing!",ch,NULL,victim,TO_VICT);
         send_to_char("You try to get out of the hogtie!\n\r",victim);
         check_improve(ch,gsn_hogtie,TRUE,2);
-        WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
-        WAIT_STATE(victim, skill_table[gsn_hogtie].beats);
+        WAIT_STATE(victim, skill_table[gsn_hogtie].beats * 3/4);
         destance(victim, get_mastery(ch, gsn_hogtie));
         
         af.where    = TO_AFFECTS;
@@ -811,7 +810,6 @@ DEF_DO_FUN(do_hogtie)
         send_to_char ("Your wily opponent evades your attempts to hogtie.\n\r", ch);
         act("$n attempts to hogtie you, but you twist out of the way.",ch,NULL,victim,TO_VICT);
         check_improve(ch,gsn_hogtie,FALSE,2);
-        WAIT_STATE(ch,skill_table[gsn_hogtie].beats);
     }
 }
 
@@ -2658,8 +2656,8 @@ DEF_DO_FUN(do_hurl)
         
         dam = martial_damage(ch, victim, gsn_hurl) * (3 + victim->size) / 5;
         
-        DAZE_STATE( victim, 2*skill_table[gsn_hurl].beats );
-        WAIT_STATE( victim, skill_table[gsn_hurl].beats );
+        DAZE_STATE( victim, skill_table[gsn_hurl].beats * 3/2 );
+        WAIT_STATE( victim, skill_table[gsn_hurl].beats * 3/4 );
         full_dam(ch, victim, dam, gsn_hurl, DAM_BASH, TRUE);
         
         destance(victim, get_mastery(ch, gsn_hurl));
@@ -3830,8 +3828,8 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         act("You strike $N with a quivering palm, stunning $M!", ch, NULL, victim, TO_CHAR);
         act("$n attacks you with a quivering palm strike, stunning you!", ch, NULL, victim, TO_VICT);
         act("$n stuns $N with a quivering palm strike!", ch, NULL, victim, TO_NOTVICT);
-        WAIT_STATE( victim, skill_table[gsn_quivering_palm].beats );
-        DAZE_STATE( victim, skill_table[gsn_quivering_palm].beats * 2 );
+        WAIT_STATE( victim, skill_table[gsn_quivering_palm].beats * 3/4 );
+        DAZE_STATE( victim, skill_table[gsn_quivering_palm].beats * 3/2 );
         victim->stop += 1;
         
         // bonus effect
@@ -4387,4 +4385,43 @@ DEF_DO_FUN(do_bomb)
     }
     
     extract_obj(obj);
+}
+
+DEF_DO_FUN(do_lay_on_hands)
+{
+    int skill = get_skill(ch, gsn_lay_on_hands);
+    if ( skill == 0 )
+    {
+        ptc(ch, "You touch yourself inappropriately.\n\r");
+        return;
+    }
+    
+    int heal = UMIN(hit_cap(ch), ch->max_hit * skill / 100) - ch->hit;
+    if ( heal < 1 )
+    {
+        ptc(ch, "Your touch cannot heal you any further.\n\r");
+        return;
+    }
+    if ( ch->mana < 1 )
+    {
+        ptc(ch, "You have no energy left.\n\r");
+        return;
+    }
+    
+    int wait = skill_table[gsn_lay_on_hands].beats * (6 - mastery_bonus(ch, gsn_lay_on_hands, 2, 3)) / 6;
+    WAIT_STATE(ch, wait);
+    
+    int mana_cost = 5 * (10 + ch->level + 4 * UMAX(0, ch->level - LEVEL_MIN_HERO));
+    mana_cost = UMIN(ch->mana, mana_cost);
+    float rate = (50 + get_curr_stat(ch, STAT_CHA)) / 100.0;
+    if ( heal > mana_cost * rate )
+        heal = mana_cost * rate;
+    else
+        mana_cost = UMAX(1, heal / rate);
+    
+    ch->mana -= mana_cost;
+    gain_hit(ch, heal);
+    
+    ptc(ch, "You touch yourself and feel better!\n\r");
+    check_improve(ch, gsn_lay_on_hands, TRUE, 3);
 }

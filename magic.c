@@ -577,7 +577,7 @@ bool saves_dispel( int dis_level, int spell_level, int duration )
     return off_roll <= def_roll;
 }
 
-static void dispel_sn( CHAR_DATA *victim, int sn )
+void dispel_sn( CHAR_DATA *victim, int sn )
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -753,6 +753,7 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
         case TAR_IGNORE:
         case TAR_IGNORE_OFF:
         case TAR_IGNORE_OBJ:
+        case TAR_IGNORE_DEF:
             break;
 
         case TAR_VIS_CHAR_OFF:
@@ -1415,6 +1416,7 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
         if ( target == TAR_IGNORE
             || target == TAR_IGNORE_OFF
             || target == TAR_IGNORE_OBJ
+            || target == TAR_IGNORE_DEF
             || sn == skill_lookup("betray")
             || sn == skill_lookup("chain lightning") )
         {
@@ -1430,13 +1432,29 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
     }
 }
 
+static void mystic_heal( CHAR_DATA *ch, CHAR_DATA *victim, int heal )
+{
+    if ( victim->hit >= hit_cap(victim) )
+        return;
+    
+    if ( ch == victim )
+        ptc(ch, "Your mystic infusion restores some of your health.\n\r");
+    else
+    {
+        act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
+        act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+    }
+    
+    gain_hit(victim, heal);
+}
+
 void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     // spell triggers
     if ( victim != NULL && IS_NPC(victim) && mp_spell_trigger(skill_table[sn].name, victim, ch) )
         return; // Return because it might have killed the victim or ch
 
-    if ( is_offensive(sn) && victim != ch && victim->in_room == ch->in_room
+    if ( is_offensive(sn) && victim && victim != ch && victim->in_room == ch->in_room
          && victim->fighting == NULL && victim->position > POS_SLEEPING
          && !is_same_group(ch, victim) )
     {
@@ -1464,29 +1482,44 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     {
         int target = skill_table[sn].target;
         if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF || target == TAR_OBJ_CHAR_OFF)
-            && victim != ch && victim->in_room == ch->in_room
-            && victim->position > POS_SLEEPING && !is_same_group(ch, victim) )
+            && is_opponent(ch, victim) )
         {
-            int dam = get_sn_damage(sn, ch->level, ch, victim) * 0.25;
-            if ( saves_spell(victim, ch, ch->level, DAM_HOLY) )
+            int dam = get_sn_damage(sn, level, ch, victim) * 0.25;
+            if ( saves_spell(victim, ch, level, DAM_HARM) )
                 dam /= 2;
-            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HOLY, TRUE, TRUE);
+            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
         }
-        else if ( target == TAR_CHAR_DEFENSIVE
-                || target == TAR_OBJ_CHAR_DEF
-                || target == TAR_CHAR_SELF )
+        else if ( target == TAR_IGNORE_OFF && ch->in_room )
         {
-            int heal = get_sn_heal(sn, ch->level, ch, victim) * 0.25;
-            if ( victim->hit < hit_cap(victim) )
+            int dam = get_sn_damage(sn, level, ch, NULL) * AREA_SPELL_FACTOR * 0.25;
+            CHAR_DATA *rch, *rch_next;
+            for ( rch = ch->in_room->people; rch; rch = rch_next )
             {
-                if ( ch == victim )
-                    ptc(ch, "Your mystic infusion restores some of your health.\n\r");
+                rch_next = rch->next_in_room;
+                if ( !is_opponent(ch, rch) )
+                    continue;
+                if ( saves_spell(rch, ch, ch->level, DAM_HARM) )
+                    deal_damage(ch, rch, dam/2, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
                 else
+                    deal_damage(ch, rch, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
+            }
+        }
+        else if ( (target == TAR_CHAR_DEFENSIVE || target == TAR_OBJ_CHAR_DEF || target == TAR_CHAR_SELF) && victim )
+        {
+            int heal = get_sn_heal(sn, level, ch, victim) * 0.25;
+            mystic_heal(ch, victim, heal);
+        }
+        else if ( target == TAR_IGNORE_DEF && ch->in_room )
+        {
+            CHAR_DATA *rch, *rch_next;
+            for ( rch = ch->in_room->people; rch; rch = rch_next )
+            {
+                rch_next = rch->next_in_room;
+                if ( is_same_group(ch, rch) )
                 {
-                    act("Your mystic infusion restores some of $N's health.", ch, NULL, victim, TO_CHAR);
-                    act("$n's mystic infusion restores some of your health.", ch, NULL, victim, TO_VICT);
+                    int heal = get_sn_heal(sn, level, ch, rch) * AREA_SPELL_FACTOR * 0.25;
+                    mystic_heal(ch, rch, heal);
                 }
-                gain_hit(victim, heal);
             }
         }
     }
@@ -1757,6 +1790,8 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
                 chain_spell(sn, chain_level, ch, (CHAR_DATA*)vo);
             }
         }
+        else
+            post_spell_process(sn, level, ch, NULL);
     }
     
     /* mana burn */
@@ -1819,6 +1854,7 @@ bool can_wish_cast( int sn )
         case TAR_OBJ_CHAR_DEF:
         case TAR_OBJ_INV:
         case TAR_IGNORE_OBJ:
+        case TAR_IGNORE_DEF:
             return TRUE;
         default:
             return FALSE;
@@ -6310,7 +6346,7 @@ DEF_SPELL_FUN(spell_word_of_recall)
         if (!IS_HERO(ch))
         {
             lose = (victim->desc != NULL) ? 25 : 50;
-            gain_exp( victim, 0 - lose );
+            gain_exp( victim, 0 - lose, FALSE );
 
             printf_to_char(victim, "You recall from combat!  You lose %d exp.\n\r", lose );
         }

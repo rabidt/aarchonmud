@@ -1753,6 +1753,8 @@ int exp_per_level(CHAR_DATA *ch)
         rem_add * (ch->pcdata->remorts - pc_race_table[ch->race].remorts);
 
     asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
+    if ( ch->pcdata->subclass && !can_take_subclass(ch->class, ch->pcdata->subclass) )
+        asc_add += 200;
     
     return 10 * (race_factor) + asc_add;
 }
@@ -2092,7 +2094,7 @@ void check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp )
 
     ch->pcdata->learned[sn] += 1;
     ch->pcdata->learned[sn] = UMIN(ch->pcdata->learned[sn],100);
-    gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class]);
+    gain_exp(ch, fail_factor * skill_table[sn].rating[ch->class], TRUE);
 
     if (ch->pcdata->learned[sn] == 100)
     {
@@ -2776,7 +2778,12 @@ DEF_DO_FUN(do_practice)
             }
             else
             {
-                int convert = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                int rolls, convert = 0;
+                for ( rolls = 1 + get_mastery(ch, gsn_introspection); rolls > 0; rolls-- )
+                {
+                    int roll = number_range(ch->pcdata->field/3, ch->pcdata->field*2/3);
+                    convert = UMAX(convert, roll);
+                }
                 ptc(ch, "Your practice converts %d field experience into real experience.\n\r", convert);
                 ch->practice--;
                 ch->pcdata->field -= convert;

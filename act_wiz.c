@@ -2826,12 +2826,6 @@ DEF_DO_FUN(do_qlist)
 	return;
     }
 
-    if ( IS_NPC(victim) )
-    {
-	send_to_char( "NPCs don't have a quest status.\n\r", ch );
-	return;
-    }
-
     sprintf( buf, "Quests for %s:\n\r\n\r", victim->name );
     send_to_char( buf, ch );
     show_quests( victim, ch );
@@ -2926,8 +2920,12 @@ DEF_DO_FUN(do_avatar)
     ch->trust = ch->level;
   }
 
+  // remove and re-insert into current room
+  // this prevents bugs with player count in area
+  ROOM_INDEX_DATA *room = ch->in_room;
+  char_from_room(ch);
+  
   /* Level gains */
-
   if (level <= ch->level )
   {
     int temp_prac;
@@ -2953,6 +2951,9 @@ DEF_DO_FUN(do_avatar)
   sprintf(buf,"You are now level %d.\n\r",ch->level);
   send_to_char(buf,ch);
   ch->exp = exp_per_level(ch) * UMAX(1, ch->level);
+  
+  // return to old room
+  char_to_room(ch, room);
 
   /* Forces the player to remove all so they need the right level eq */
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
@@ -3196,6 +3197,32 @@ static void print_wiznet_table (CHAR_DATA *ch, const struct wiznet_type *tbl)
     }
 }
 
+static void print_race_table (CHAR_DATA *ch, const struct race_type *tbl)
+{
+    char buf[MSL];
+    BUFFER *buffer = new_buf();
+
+    int i;
+    sprintf(buf, "%-20s %s\n\r", "Name", "PC");
+    add_buf(buffer, buf);
+    add_buf(buffer, "----------------------------------------\n\r");
+
+    for (i=0; tbl[i].name; i++)
+    {
+        sprintf(buf, "%-20s %s\n\r", tbl[i].name, (tbl[i].pc_race) ? "TRUE" : "FALSE");
+        if (!add_buf(buffer, buf))
+        {
+            bugf("BUFFER OVERFLOW???");
+            free_buf(buffer);
+            return;
+        }
+    }
+
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+    return;
+}
+
 #define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note }
 
 struct
@@ -3248,6 +3275,7 @@ struct
     { "stances", print_stances, stances, "Stances."},
     { "skill_table", print_skill_table, skill_table, "Skills."},
     { "wiznet_table", print_wiznet_table, wiznet_table, "Wiznet channels."},
+    { "race_table", print_race_table, race_table, "Race table."},
     { NULL, NULL, NULL, NULL}
 };
 
@@ -3322,4 +3350,96 @@ DEF_DO_FUN(do_tick)
 {
     send_to_char("The universe lurches forward in time.\n\r", ch);
     core_tick();
+}
+
+DEF_DO_FUN(do_protocol)
+{
+    char arg[MIL];
+
+    argument = one_argument( argument, arg);
+
+    if (arg[0] == '\0') 
+    {
+        ptc(ch, "Check protocol on which player?\n\r");
+        return;
+    }
+
+    CHAR_DATA *victim = get_char_world(ch, arg);
+
+    if (!victim)
+    {
+        ptc(ch, "Player '%s' not found.\n\r", arg);
+        return;
+    }
+
+    if (IS_NPC(victim))
+    {
+        ptc(ch, "%s is an NPC.\n\r", arg);
+        return;
+    }
+
+    if (!victim->desc) 
+    {
+        ptc(ch, "Uh oh, no descriptor for %s...\n\r", arg);
+        return;
+    }
+
+    if (!victim->desc->pProtocol) 
+    {
+        ptc(ch, "Uh oh, no protocol for %s....\n\r", arg);
+        return;
+    }
+
+
+    protocol_t *pr = victim->desc->pProtocol;
+
+#define wrbool( field ) ptc(ch, #field "\t\t%s\n\r", pr->field ? "TRUE" : "FALSE")
+#define wrint( field ) ptc(ch, #field "\t\t%d\n\r", pr->field)
+#define wrneg( neg ) ptc(ch, #neg "\t\t%s\n\r", pr->Negotiated[neg] ? "TRUE" : "FALSE")
+    wrint(WriteOOB);
+    wrbool(bIACMode);
+    wrbool(bNegotiated);
+    wrbool(bRenegotiate);
+    wrbool(bNeedMXPVersion);
+    wrbool(bBlockMXP);
+    wrbool(bTTYPE);
+    wrbool(bECHO);
+    wrbool(bNAWS);
+    wrbool(bCHARSET);
+    wrbool(bMSDP);
+    wrbool(bMSSP);
+    wrbool(bATCP);
+    wrbool(bMSP);
+    wrbool(bMXP);
+    wrbool(bMCCP);
+    
+
+    ptc(ch, "b256Support\t\t%s\n\r", pr->b256Support == eUNKNOWN ? "UNKNOWN" :
+                            pr->b256Support == eSOMETIMES ? "SOMETIMES" :
+                            pr->b256Support == eYES ? "YES" :
+                            pr->b256Support == eNO ? "NO" :
+                            "INVALID");
+    wrint(ScreenWidth);
+    wrint(ScreenHeight);
+    ptc(ch, "pMXPVersion\t\t%s\n\r", pr->pMXPVersion);
+    ptc(ch, "pLastTTYPE\t\t%s\n\r", pr->pLastTTYPE);
+    wrbool(verbatim);
+
+    ptc(ch, "\n\rNegotations: \n\r");
+    wrneg(eNEGOTIATED_TTYPE);
+    wrneg(eNEGOTIATED_ECHO);
+    wrneg(eNEGOTIATED_NAWS);
+    wrneg(eNEGOTIATED_CHARSET);
+    wrneg(eNEGOTIATED_MSDP);
+    wrneg(eNEGOTIATED_MSSP);
+    wrneg(eNEGOTIATED_ATCP);
+    wrneg(eNEGOTIATED_MSP);
+    wrneg(eNEGOTIATED_MXP);
+    wrneg(eNEGOTIATED_MXP2);
+    wrneg(eNEGOTIATED_MCCP);
+
+
+
+#undef wrbool
+#undef wrneg
 }

@@ -3588,3 +3588,78 @@ DEF_DO_FUN(do_guiconfig)
         ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString,
         USE_CHAT_WIN(ch) ? "ON" : "OFF" );
 }
+
+DEF_DO_FUN(do_walk)
+{
+    DESCRIPTOR_DATA *d = ch->desc;
+    if ( d == NULL )
+        return;
+    
+    const int orig_inbuf_len = strlen(d->inbuf);
+    char *inbuf_next = d->inbuf + orig_inbuf_len;
+    
+    char arg_buf[MIL+1];
+    const char *next;
+    
+    char repeat[MIL], command[MIL];
+    int repeat_len = 0, command_len = 0;
+    bool command_started = FALSE;
+
+    // add separating blank to end of argument
+    strcpy(arg_buf, argument);
+    strcat(arg_buf, " ");
+    
+    // process argument one character at a time
+    for ( next = arg_buf; *next != '\0'; next++ ) {
+        // repeat argument or command?
+        if ( !command_started && '0' <= *next && *next <= '9' ) {
+            repeat[repeat_len++] = *next;
+            continue;
+        }
+        command_started = TRUE;
+        switch ( *next ) {
+            case ',':
+            case ' ':
+                // command separator IF there is a command to end
+                // this allows for "2 n 3 w" spacing
+                if ( command_len > 0 ) {
+                    repeat[repeat_len] = '\0';
+                    command[command_len] = '\0';
+                    int repeats = URANGE(1, atoi(repeat), 99);
+                    // ensure we have enough buffer space
+                    int buf_space = MAX_PROTOCOL_BUFFER - (inbuf_next - d->inbuf) - 1;
+                    if ( repeats * (command_len + 1) > buf_space ) {
+                        ptc(ch, "Buffer overflow at %d * '%s'.\n\r", repeats, command);
+                        d->inbuf[orig_inbuf_len] = '\0';
+                        return;
+                    }
+                    // add command to input buffer multiple times
+                    for ( ; repeats > 0; repeats-- ) {
+                        strcpy(inbuf_next, command);
+                        inbuf_next += command_len;
+                        *(inbuf_next++) = '\n';
+                    }
+                    *inbuf_next = '\0';
+                    repeat_len = command_len = 0;
+                    command_started = FALSE;
+                } else if ( repeat_len == 0 )
+                    command_started = FALSE;
+                break;
+            case '_':
+                // underscores become spaces
+                command[command_len++] = ' ';
+                break;
+            default:
+                command[command_len++] = *next;
+                break;
+        }
+    }
+    
+    // nothing added to buffer ?
+    if ( (inbuf_next - d->inbuf) == orig_inbuf_len )
+    {
+        ptc(ch, "Syntax: walk 26e open_east 11e 4n\n\r");
+        ptc(ch, "    or: walk 26e, open_east, 11e, 4n\n\r");
+        ptc(ch, "    or: walk 26 e open_east 11 e 4 n\n\r");
+    }
+}

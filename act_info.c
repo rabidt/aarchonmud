@@ -5540,7 +5540,7 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
         /* do the rewards */
         plr->pcdata->questpoints += ach->quest_reward;
         plr->pcdata->bank += ach->gold_reward;
-        gain_exp(plr, ach->exp_reward);
+        gain_exp(plr, ach->exp_reward, TRUE);
         plr->pcdata->achpoints += ach->ach_reward;
 
         printf_to_char(plr, "--------------------------------------\n\r");
@@ -5662,7 +5662,7 @@ void achievement_reward( CHAR_DATA *ch, int table_index)
 
         ch->pcdata->questpoints += achievement_table[table_index].quest_reward;
         ch->pcdata->bank += achievement_table[table_index].gold_reward;
-        gain_exp(ch, achievement_table[table_index].exp_reward);
+        gain_exp(ch, achievement_table[table_index].exp_reward, TRUE);
         ch->pcdata->achpoints += achievement_table[table_index].ach_reward;
         //send_to_char("Achievement unlocked -- TEST.\n\r",ch);
         printf_to_char(ch, "--------------------------------------\n\r");
@@ -5938,6 +5938,16 @@ DEF_DO_FUN(do_eqhelp)
 bool can_take_subclass( int class, int subclass )
 {
     return (subclass_table[subclass].base_classes & (1<<class)) != 0;
+}
+
+bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
+{
+    if ( !ch || !ch->pcdata )
+        return FALSE;
+    // cross-subclassing is possible after two ascents
+    if ( ch->pcdata->ascents > 1 )
+        return TRUE;
+    return can_take_subclass(ch->class, subclass);
 }
 
 static void show_subclass( CHAR_DATA *ch, int sc )
