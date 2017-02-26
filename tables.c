@@ -822,6 +822,7 @@ const struct flag_type extra_flags[] =
 	{   "easy_drop",    ITEM_EASY_DROP,     TRUE    },
     {   "heavy",        ITEM_HEAVY_ARMOR,   TRUE    },
     {   "disarmed",     ITEM_DISARMED,      FALSE   },
+    {   "upgrade",      ITEM_UPGRADE,       TRUE    },
 	{   "allow_warrior",       ITEM_ALLOW_WARRIOR        , TRUE },
 	{   "allow_thief",         ITEM_ALLOW_THIEF          , TRUE },
 	{   "allow_cleric",        ITEM_ALLOW_CLERIC         , TRUE },
