@@ -4677,10 +4677,16 @@ DEF_DO_FUN(do_merge)
     {
         /* special case: arrows */
         if ( obj1->item_type == ITEM_ARROWS )
+        {
             merge_arrows( ch, obj1, obj2 );
-        else
+            return;
+        }
+        /* upgrade flag indicates ability to merge with self */
+        if ( !IS_OBJ_STAT(obj1->pIndexData, ITEM_UPGRADE) )
+        {
             send_to_char( "You can't combine two objects of the same type.\n\r", ch );
-        return;
+            return;
+        }
     }
 
     vnum = obj1->pIndexData->combine_vnum;
