@@ -1822,6 +1822,7 @@ struct  kill_data
 #define ITEM_RANDOM_CASTER  (jj)
 #define ITEM_HEAVY_ARMOR    (kk)
 #define ITEM_DISARMED       (ll)
+#define ITEM_UPGRADE        (mm)
 #define ITEM_NO_SAC_EX      (nn)
 #define ITEM_TRANSLUCENT_EX (oo)
 #define ITEM_INSTRUMENT     (pp)
