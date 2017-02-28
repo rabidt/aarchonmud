@@ -6683,7 +6683,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
             base_exp += base_exp / 10;
     }
 
-    if ( IS_SET(victim->pIndexData->act, ACT_AGGRESSIVE) )
+    if ( IS_SET(victim->pIndexData->act, ACT_AGGRESSIVE) || IS_SET(victim->pIndexData->act, ACT_WIMPY) )
         base_exp += base_exp/10;
 
     stance = victim->pIndexData->stance;
