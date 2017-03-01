@@ -5637,20 +5637,30 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int skill = get_skill_total(ch, gsn_dodge, 0.2);
     bool shield = get_eq_char(ch, WEAR_SHIELD) != NULL;
+    bool wield = get_eq_char(ch, WEAR_WIELD) != NULL;
+    bool offhand = offhand_occupied(ch);
 
     if ( improve )
         check_improve( ch, gsn_dodge, TRUE, 6);
 
-    if ( get_eq_char(ch, WEAR_WIELD) == NULL
-         && (!shield || use_wrist_shield(ch))
-         && get_eq_char(ch, WEAR_HOLD) == NULL )
+    int evasive = get_skill(ch, gsn_evasive);
+    if ( evasive )
     {
-        int evasive = get_skill(ch, gsn_evasive);
-        if ( shield )
-            evasive *= (100 + get_skill(ch, gsn_wrist_shield)) / 300.0;
-        skill += evasive;
-        if (improve)
-            check_improve(ch, gsn_evasive, TRUE, 6);
+        // need at least one hand free for evasive action
+        double hands_free = (wield ? 0 : 1) +
+            (offhand ? 0 : shield ? (100 + get_skill(ch, gsn_wrist_shield)) / 300.0 : 1);
+        if ( hands_free > 0 )
+        {
+            double factor = hands_free - 1;
+            // mastery helps with penalty for having your hands full
+            factor += UMIN(1, 1 - factor) * mastery_bonus(ch, gsn_evasive, 4, 5) / 5;
+            if ( factor > 0 )
+            {
+                skill += evasive * factor;
+                if (improve)
+                    check_improve(ch, gsn_evasive, TRUE, 6);
+            }
+        }
     }
     
     int opponent_adjust = 0;
