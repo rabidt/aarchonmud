@@ -5647,8 +5647,9 @@ int dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     if ( evasive )
     {
         // need at least one hand free for evasive action
-        double hands_free = (wield ? 0 : 1) +
-            (offhand ? 0 : shield ? (100 + get_skill(ch, gsn_wrist_shield)) / 300.0 : 1);
+        double hands_free = wield ? 0 : 1;
+        if ( !offhand && (!shield || use_wrist_shield(ch)) )
+            hands_free += shield ? (100 + get_skill(ch, gsn_wrist_shield)) / 300.0 : 1;
         if ( hands_free > 0 )
         {
             double factor = hands_free - 1;
