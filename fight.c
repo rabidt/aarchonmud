@@ -5531,7 +5531,7 @@ bool use_wrist_shield( CHAR_DATA *ch )
     if ( get_eq_char(ch, WEAR_WIELD) )
         return offhand_occupied(ch);
     // unarmed with a shield - use as wrist shield if skilled
-    return get_skill(ch, gsn_wrist_shield) > 0;
+    return offhand_occupied(ch) || get_skill(ch, gsn_wrist_shield) > 0;
 }
 
 int shield_block_chance( CHAR_DATA *ch, bool improve )
