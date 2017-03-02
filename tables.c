@@ -846,6 +846,7 @@ const struct flag_type extra_flags[] =
 	{   "class_gunslinger",    ITEM_CLASS_GUNSLINGER     , TRUE },
 	{   "class_ranger",        ITEM_CLASS_RANGER         , TRUE },
 	{   "class_necromancer",   ITEM_CLASS_NECROMANCER    , TRUE },
+    {   "class_bard",          ITEM_CLASS_BARD           , TRUE },
 	{   "no_extract",          ITEM_NO_EXTRACT           , TRUE },
     {   "questeq",             ITEM_QUESTEQ              , TRUE },
     {   "random_physical",     ITEM_RANDOM_PHYSICAL      , TRUE },
