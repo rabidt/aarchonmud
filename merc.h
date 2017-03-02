@@ -1854,6 +1854,7 @@ struct  kill_data
 #define ITEM_CLASS_GUNSLINGER     120
 #define ITEM_CLASS_RANGER         121
 #define ITEM_CLASS_NECROMANCER    122
+#define ITEM_CLASS_BARD           123
 
 /*
  * Wear flags.
