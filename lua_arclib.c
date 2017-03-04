@@ -2339,47 +2339,6 @@ static int CH_randchar (lua_State *LS)
 
 }
 
-/* analog of run_olc_editor in olc.c */
-static bool run_olc_editor_lua( CHAR_DATA *ch, const char *argument )
-{
-    if (IS_NPC(ch))
-        return FALSE;
-
-    switch ( ch->desc->editor )
-    {
-        case ED_AREA:
-            aedit( ch, argument );
-            break;
-        case ED_ROOM:
-            redit( ch, argument );
-            break;
-        case ED_OBJECT:
-            oedit( ch, argument );
-            break;
-        case ED_MOBILE:
-            medit( ch, argument );
-            break;
-        case ED_MPCODE:
-            mpedit( ch, argument );
-            break;
-        case ED_OPCODE:
-            opedit( ch, argument );
-            break;
-        case ED_APCODE:
-            apedit( ch, argument );
-            break;
-        case ED_RPCODE:
-            rpedit( ch, argument );
-            break;
-        case ED_HELP:
-            hedit( ch, argument );
-            break;
-        default:
-            return FALSE;
-    }
-    return TRUE; 
-}
-
 static int CH_olc (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS, 1);
@@ -2388,7 +2347,8 @@ static int CH_olc (lua_State *LS)
         luaL_error( LS, "NPCs cannot use OLC!");
     }
 
-    if (!run_olc_editor_lua( ud_ch, check_fstring( LS, 2, MIL)) )
+    if (!run_olc_argument( ud_ch, ud_ch->desc->editor, 
+                (char *)check_fstring( LS, 2, MIL)) )
         luaL_error(LS, "Not currently in olc edit mode.");
 
     return 0;
