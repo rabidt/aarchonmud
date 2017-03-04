@@ -4,6 +4,20 @@ from test_setup import imm
 from char import Character
 import test_config
 
+def kill_mobs():
+    imm.open_luai()
+    imm.send_luai("for _,v in pairs(getmobworld({})) do " 
+                    "v:destroy() " 
+                    "end".format(test_config.MOB_GET_VNUM))
+    imm.close_luai()
+
+def kill_objs():
+    imm.open_luai()
+    imm.send_luai("for _,v in pairs(getobjworld({})) do " 
+                    "v:destroy() " 
+                    "end".format(test_config.OBJ_VNUM))
+    imm.close_luai()
+
 
 def get_luai_val(expr):
     imm.open_luai()
@@ -367,6 +381,140 @@ class Get(unittest.TestCase):
 
         self.assertTrue(val)
 
+
+class Set(unittest.TestCase):
+
+    def check_self_set(self):
+        pass
+
+    def check_mob_set(self, prop, set_val):
+        script = """
+            (function()
+                local tgt = self.room:mload({})
+                tgt['{}'] = {} 
+                local rtn = (tgt['{}'] == {})
+                tgt:destroy()
+                return rtn
+            end)()
+        """.format(
+                test_config.MOB_GET_VNUM, 
+                prop, set_val,
+                prop, set_val)
+
+        val = get_luai_val(script)
+        self.assertTrue(val)
+
+    def test_CH_set_name(self):
+        self.check_mob_set("name", "'blah1'")
+        
+    def test_CH_set_shortdescr(self):
+        self.check_mob_set("shortdescr", "'blah1'")
+
+    def test_CH_set_longdescr(self):
+        self.check_mob_set("longdescr", "'blah1'")
+        
+    def test_CH_set_level(self):
+        self.check_mob_set("level", 5)
+        self.check_mob_set("level", 6)
+
+    def test_CH_set_hp(self):
+        self.check_mob_set("hp", 123)
+        self.check_mob_set("hp", 321)
+
+    def test_CH_set_maxhp(self):
+        self.check_mob_set("maxhp", 123)
+        self.check_mob_set("maxhp", 321)
+
+    def test_CH_set_mana(self):
+        self.check_mob_set("mana", 123)
+        self.check_mob_set("mana", 321)
+
+    def test_CH_set_maxmana(self):
+        self.check_mob_set("maxmana", 123)
+        self.check_mob_set("maxmana", 321)
+
+    def test_CH_set_move(self):
+        self.check_mob_set("move", 123)
+        self.check_mob_set("move", 321)
+    
+    def test_CH_set_maxmove(self):
+        self.check_mob_set("maxmove", 123)
+        self.check_mob_set("maxmove", 321)
+
+    def test_CH_set_gold(self):
+        self.check_mob_set("gold", 123)
+        self.check_mob_set("gold", 321)
+    
+    def test_CH_set_silver(self):
+        self.check_mob_set("silver", 123)
+        self.check_mob_set("silver", 321)
+
+    def test_CH_set_size(self):
+        self.check_mob_set("size", "'small'")
+        self.check_mob_set("size", "'large'")
+
+    def test_CH_set_sex(self):
+        self.check_mob_set("sex", "'male'")
+        self.check_mob_set("sex", "'female'")
+
+    def test_CH_set_align(self):
+        self.check_mob_set("align", 123)
+        self.check_mob_set("align", 321)
+
+    def test_CH_set_str(self):
+        self.check_mob_set("str", 12)
+        self.check_mob_set("str", 120)
+
+    def test_CH_set_con(self):
+        self.check_mob_set("con", 12)
+        self.check_mob_set("con", 120)
+        
+    def test_CH_set_vit(self):
+        self.check_mob_set("vit", 12)
+        self.check_mob_set("vit", 120)
+        
+    def test_CH_set_agi(self):
+        self.check_mob_set("agi", 12)
+        self.check_mob_set("agi", 120)
+        
+    def test_CH_set_dex(self):
+        self.check_mob_set("dex", 12)
+        self.check_mob_set("dex", 120)
+        
+    def test_CH_set_int(self):
+        self.check_mob_set("int", 12)
+        self.check_mob_set("int", 120)
+        
+    def test_CH_set_wis(self):
+        self.check_mob_set("wis", 12)
+        self.check_mob_set("wis", 120)
+        
+    def test_CH_set_dis(self):
+        self.check_mob_set("dis", 12)
+        self.check_mob_set("dis", 120)
+        
+    def test_CH_set_cha(self):
+        self.check_mob_set("cha", 12)
+        self.check_mob_set("cha", 120)
+        
+    def test_CH_set_luc(self):
+        self.check_mob_set("luc", 12)
+        self.check_mob_set("luc", 120)
+
+    def test_CH_set_stopcount(self):
+        self.check_mob_set("stopcount", 5)
+        self.check_mob_set("stopcount", 1)
+        
+    def test_CH_set_waitcount(self):
+        self.check_mob_set("waitcount", 5)
+        self.check_mob_set("waitcount", 1)
+        
+    def test_CH_set_race(self):
+        race = get_luai_val("self.race")
+        self.check_mob_set("race", "'gimp'")
+        self.check_mob_set("race", "'elf'")
+        self.check_mob_set("race", "'{}'".format(race))
+
 class Method(unittest.TestCase):
     def test_CH_method_mobhere(self):
         val = get_luai_val("self:mobhere(123)")
@@ -378,11 +526,7 @@ class Method(unittest.TestCase):
         self.assertTrue(val)
 
     def test_CH_method_objhere(self):
-        imm.open_luai()
-        imm.send_luai("for _,v in pairs(getobjworld({})) do " 
-                        "v:destroy() " 
-                        "end".format(test_config.OBJ_VNUM))
-        imm.close_luai()
+        kill_objs()
 
         val = get_luai_val("self:objhere({})".format(test_config.OBJ_VNUM))
         self.assertFalse(val)
@@ -400,11 +544,7 @@ class Method(unittest.TestCase):
         self.assertTrue(val)
 
     def test_CH_method_mobexists(self):
-        imm.open_luai()
-        imm.send_luai("for _,v in pairs(getmobworld({})) do "
-                        "v:destroy() "
-                      "end".format(test_config.MOB_GET_VNUM))
-        imm.close_luai()
+        kill_mobs()
 
         val = get_luai_val("self:mobexists('{}')".format(test_config.MOB_GET_NAME))
         self.assertFalse(val)
@@ -414,11 +554,7 @@ class Method(unittest.TestCase):
         self.assertTrue(val)
 
     def test_CH_method_objexists(self):
-        imm.open_luai()
-        imm.send_luai("for _,v in pairs(getobjworld({})) do " 
-                        "v:destroy() " 
-                        "end".format(test_config.OBJ_VNUM))
-        imm.close_luai()
+        kill_objs()
 
         val = get_luai_val("self:objexists('{}')".format(test_config.OBJ_NAME))
         self.assertFalse(val)
@@ -429,11 +565,7 @@ class Method(unittest.TestCase):
         self.assertTrue(val)
 
     def test_CH_method_affected(self):
-        imm.open_luai()
-        imm.send_luai("for _,v in pairs(getmobworld({})) do "
-                        "v:destroy() "
-                      "end".format(test_config.MOB_GET_VNUM))
-        imm.close_luai()
+        kill_mobs()
 
         imm.load_mob(test_config.MOB_GET_VNUM)
 
@@ -446,6 +578,130 @@ class Method(unittest.TestCase):
         
         val = get_luai_val("getmobworld({})[1]:affected('haste')".format(
             test_config.MOB_GET_VNUM))
+        self.assertTrue(val)
+
+    def test_CH_method_offensive(self):
+        val = get_luai_val("self:offensive()")
+        self.assertEqual(len(val), 0)
+        
+        val = get_luai_val("getmobworld({})[1]:offensive('bash')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertTrue(val)
+
+    def test_CH_method_immune(self):
+        val = get_luai_val("self:immune()")
+        self.assertEqual(len(val), 0)
+
+        val = get_luai_val("self:immune('fire')")
+        self.assertFalse(val)
+
+        val = get_luai_val("getmobworld({})[1]:immune('fire')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertFalse(val)
+
+        val = get_luai_val("getmobworld({})[1]:immune('summon')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertTrue(val)
+
+    def test_CH_method_resist(self):
+        val = get_luai_val("self:resist()")
+        self.assertTrue(type(val) is list)
+
+        val = get_luai_val("getmobworld({})[1]:resist('fire')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertFalse(val)
+
+    def test_CH_method_vuln(self):
+        val = get_luai_val("self:vuln()")
+        self.assertTrue(type(val) is list)
+
+        val = get_luai_val("getmobworld({})[1]:vuln('fire')".format(
+            test_config.MOB_GET_VNUM))
+        self.assertFalse(val)
+
+    def test_CH_method_destroy(self):
+        imm.load_mob(test_config.MOB_GET_VNUM)
+        val = get_luai_val("#getmobworld({})".format(
+            test_config.MOB_GET_VNUM))
+        self.assertTrue( val > 0 )
+
+        kill_mobs()
+
+        val = get_luai_val("#getmobworld({})".format(
+            test_config.MOB_GET_VNUM))
+        self.assertEqual(val, 0)
+        imm.load_mob(test_config.MOB_GET_VNUM)
+
+    def test_CH_method_oload(self):
+        kill_objs()
+
+        val = get_luai_val("#getobjworld({})".format(
+            test_config.OBJ_VNUM))
+        self.assertEqual(val, 0)
+
+        imm.load_obj(test_config.OBJ_VNUM)
+        val = get_luai_val("#getobjworld({})".format(
+            test_config.OBJ_VNUM))
+        self.assertEqual(val, 1)
+
+        val = get_luai_val("getobjworld({})[1].carriedby == self".format(
+            test_config.OBJ_VNUM))
+        self.assertTrue(val)
+
+    def test_CH_method_say(self):
+        imm.open_luai()
+        resp = imm.send_luai("say('pumpkins')")
+        imm.close_luai()
+
+        self.assertTrue("You say 'pumpkins'" in resp)
+
+    def test_CH_method_emote(self):
+        imm.open_luai()
+        resp = imm.send_luai("emote('in pyjamas')")
+        imm.close_luai()
+
+        self.assertTrue("in pyjamas" in resp)
+
+    def test_CH_method_mdo(self):
+        imm.open_luai()
+        resp = imm.send_luai("mdo('dance')")
+        imm.close_luai()
+
+        self.assertTrue("Feels silly, doesn't it?" in resp)
+
+    def test_CH_method_asound(self):
+        kill_mobs()
+        imm.load_mob(test_config.MOB_GET_VNUM)
+        imm.open_luai()
+        resp = imm.send_luai("getmobworld({})[1]:asound('ASOUND TEST')")
+        imm.close_luai()
+
+        self.assertTrue("ASOUND TEST" in resp)
+
+    def test_CH_method_zecho(self):
+        self.test_CH_method_asound()
+
+    def test_CH_method_kill(self):
+        kill_mobs()
+        imm.load_mob(test_config.MOB_GET_VNUM)
+        
+        val = get_luai_val("self.fighting == nil")
+        self.assertTrue(val)
+
+        script = """
+            (function()
+                getmobworld({})[1]:kill('{}')
+                return self.fighting.vnum == {}
+             end)()
+        """.format(
+                test_config.MOB_GET_VNUM,
+                imm.name,
+                test_config.MOB_GET_VNUM)
+
+        val = get_luai_val(script)
+
+        imm.send("peace")
+
         self.assertTrue(val)
 
 
