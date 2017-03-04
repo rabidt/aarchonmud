@@ -51,7 +51,7 @@ end
 local function luaquery_usage( ch )
     pagetochar( ch,
 [[
-{Cluaquery [selection] from [type] <where [filter]> <order by [sort]> <width [width]> <limit [limit]>
+{Cluaquery <selection> from <type> [where <filter>] [order by <sort>] [width <width>] [limit <limit>]
     {xExecute a query and show results.
 
 Types:
