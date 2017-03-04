@@ -744,7 +744,7 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
     int iHash;
     int door;
     
-    LSF_kv_tbl( lsfp, "Rooms");
+    LSF_kv_tbl( lsfp, "ROOMS");
 
     for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
     {
@@ -754,31 +754,31 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
             {
                 LSF_add_tbl(lsfp);
 
-                LSF_kv_int(lsfp, "Vnum", pRoomIndex->vnum);
-                LSF_kv_str(lsfp, "Name", pRoomIndex->name);
-                LSF_kv_str(lsfp, "Description", 
+                LSF_kv_int(lsfp, "vnum", pRoomIndex->vnum);
+                LSF_kv_str(lsfp, "name", pRoomIndex->name);
+                LSF_kv_str(lsfp, "description", 
                         fix_string(pRoomIndex->description));
 
-                LSF_kv_flags(lsfp, "RoomFlags", room_flags, 
+                LSF_kv_flags(lsfp, "room_flags", room_flags, 
                         pRoomIndex->room_flags);
-                LSF_kv_str(lsfp, "SectorType", 
+                LSF_kv_str(lsfp, "sector_type", 
                         flag_bit_name(sector_flags, pRoomIndex->sector_type));
 
                 
-                LSF_kv_tbl(lsfp, "ExtraDescr");
+                LSF_kv_tbl(lsfp, "extra_descr");
                 for ( pEd = pRoomIndex->extra_descr; pEd;
                 pEd = pEd->next )
                 {
                     LSF_add_tbl(lsfp);
 
-                    LSF_kv_str(lsfp, "Keyword", pEd->keyword);
-                    LSF_kv_str(lsfp, "Description",
+                    LSF_kv_str(lsfp, "keyword", pEd->keyword);
+                    LSF_kv_str(lsfp, "description",
                             fix_string(pEd->description));
                     LSF_end_tbl(lsfp);
                 }
                 LSF_end_tbl(lsfp);
 
-                LSF_kv_tbl(lsfp, "Exits");
+                LSF_kv_tbl(lsfp, "exits");
                 for( door = 0; door < MAX_DIR; door++ )	/* I hate this! */
                 {
                     if ( ( pExit = pRoomIndex->exit[door] )
@@ -805,15 +805,15 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
 			*/
                         LSF_add_tbl(lsfp);
 
-                        LSF_kv_str(lsfp, "Direction", 
+                        LSF_kv_str(lsfp, "orig_door", 
                                 dir_name[pExit->orig_door]);
-                        LSF_kv_str(lsfp, "Description", 
+                        LSF_kv_str(lsfp, "description", 
                                 fix_string(pExit->description));
-                        LSF_kv_str(lsfp, "Keyword", pExit->keyword);
-                        LSF_kv_flags(lsfp, "Flags", exit_flags, 
+                        LSF_kv_str(lsfp, "keyword", pExit->keyword);
+                        LSF_kv_flags(lsfp, "rs_flags", exit_flags, 
                                 pExit->rs_flags);
-                        LSF_kv_int(lsfp, "Key", pExit->key);
-                        LSF_kv_int(lsfp, "Destination", pExit->u1.to_room->vnum);
+                        LSF_kv_int(lsfp, "key", pExit->key);
+                        LSF_kv_int(lsfp, "to_room", pExit->u1.to_room->vnum);
 			/*
                         fprintf( fp, "%d %d %d\n", locks,
                             pExit->key,
@@ -826,30 +826,30 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
 
                 if (pRoomIndex->mana_rate != 100 || pRoomIndex->heal_rate != 100)
                 {
-                    LSF_kv_int(lsfp, "ManaRate", pRoomIndex->mana_rate);
-                    LSF_kv_int(lsfp, "HealRate", pRoomIndex->heal_rate);
+                    LSF_kv_int(lsfp, "mana_rate", pRoomIndex->mana_rate);
+                    LSF_kv_int(lsfp, "heal_rate", pRoomIndex->heal_rate);
                 }
 
                 if (pRoomIndex->clan > 0)
                 {
-                    LSF_kv_str(lsfp, "Clan", clan_table[pRoomIndex->clan].name);
+                    LSF_kv_str(lsfp, "clan", clan_table[pRoomIndex->clan].name);
                 }
                 
                 if (pRoomIndex->clan_rank > 0 && pRoomIndex->clan > 0)
                 {
-                    LSF_kv_str(lsfp, "ClanRank", clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name);
+                    LSF_kv_str(lsfp, "clan_rank", clan_table[pRoomIndex->clan].rank_list[pRoomIndex->clan_rank].name);
 
                 }
                 
                 if (!IS_NULLSTR(pRoomIndex->owner))
                 {
-                    LSF_kv_str(lsfp, "Owner", pRoomIndex->owner);
+                    LSF_kv_str(lsfp, "owner", pRoomIndex->owner);
                 }
                 
                 /* save rprogs if any */
                 if (pRoomIndex->rprogs != NULL)
                 {
-                    LSF_kv_tbl(lsfp, "RProgs");
+                    LSF_kv_tbl(lsfp, "rprogs");
 
                     PROG_LIST *pRprog;
                     reverse_rprog_order(pRoomIndex);
@@ -857,9 +857,9 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
                     {
                         LSF_add_tbl(lsfp);
                         
-                        LSF_kv_str(lsfp, "TrigType", name_lookup(pRprog->trig_type, rprog_flags));
-                        LSF_kv_int(lsfp, "Vnum", pRprog->vnum);
-                        LSF_kv_str(lsfp, "Phrase", pRprog->trig_phrase);
+                        LSF_kv_str(lsfp, "trig_type", name_lookup(pRprog->trig_type, rprog_flags));
+                        LSF_kv_int(lsfp, "vnum", pRprog->vnum);
+                        LSF_kv_str(lsfp, "trig_phrase", pRprog->trig_phrase);
 
                         LSF_end_tbl(lsfp);
                     }
@@ -868,7 +868,7 @@ void save_rooms( LSF *lsfp, AREA_DATA *pArea )
                     LSF_end_tbl(lsfp);
                 }
 
-                LSF_kv_str(lsfp, "Comments", pRoomIndex->comments);
+                LSF_kv_str(lsfp, "comments", pRoomIndex->comments);
                 
                 LSF_end_tbl(lsfp);
             }

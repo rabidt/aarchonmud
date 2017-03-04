@@ -943,6 +943,14 @@ void format_race_flags( void )
 #define GETFLAGS(tbl, ptr, flag_type, field) \
     LLtbl_get_kv_flags(tbl, #field, flag_type, ptr->field)
 
+#define GETFLAG(tbl, ptr, flag_type, field) \
+do { \
+    const char *tempstr=LLtbl_get_kv_str( tbl, #field); \
+    ptr->field=flag_lookup( tempstr, flag_type); \
+    bugf("Invalid flag: %s", tempstr); \
+    free_string(tempstr); \
+} while (FALSE)
+
 #define GETSTRIF(tbl, ptr, field) \
     if (LLtbl_k_exists(tbl, #field)) \
         GETSTR(tbl, ptr, field)
@@ -952,6 +960,287 @@ void format_race_flags( void )
 #define GETFLAGSIF(tbl, ptr, flag_type, field) \
     if (LLtbl_k_exists(tbl, #field)) \
         GETFLAGS(tbl, ptr, flag_type, field)
+
+static void load_lua_aprog( AREA_DATA *pArea, LLtbl *aprog)
+{
+    PROG_LIST *pAprog = alloc_ATRIG();
+
+    const char *trigstr=LLtbl_get_kv_str(aprog, "trig_type");
+    pAprog->trig_type = flag_lookup(trigstr, aprog_flags);
+    if (pAprog->trig_type == NO_FLAG)
+    {
+        bugf("Invalid aprog_flag: %s", trigstr);
+        exit(1);
+    }
+    free_string(trigstr);
+
+    SET_BIT(pArea->aprog_flags, pAprog->trig_type);
+    GETINT(aprog, pAprog, vnum);
+    GETSTR(aprog, pAprog, trig_phrase);
+
+    pAprog->next = pArea->aprogs;
+    pArea->aprogs = pAprog;
+}
+
+
+static void load_lua_aprogs( AREA_DATA *pArea, LLtbl *aprogs)
+{
+    int ind;
+    for (ind=1; LLtbl_i_exists(aprogs, ind); ind++)
+    {
+        LLtbl aprog;
+        LLtbl_get_iv_tbl(aprogs, ind, &aprog);
+        
+        load_lua_aprog(pArea, &aprog);
+
+        LLtbl_release(&aprog);
+    }
+}
+
+static void load_lua_mobble( AREA_DATA *pArea, LLtbl *mobble)
+{
+    MOB_INDEX_DATA *pMobIndex=alloc_MOBPROTO();
+    pMobIndex->area                 = pArea; 
+    pMobIndex->pShop                = NULL;
+    // set default values
+    pMobIndex->level                = 0;
+    pMobIndex->hitpoint_percent     = 100;
+    pMobIndex->mana_percent         = 100;
+    pMobIndex->move_percent         = 100;
+    pMobIndex->hitroll_percent      = 100;
+    pMobIndex->damage_percent       = 100;
+    pMobIndex->ac_percent           = 100;
+    pMobIndex->saves_percent        = 100;
+    pMobIndex->wealth_percent       = 100;
+    pMobIndex->size                 = SIZE_MEDIUM;
+    pMobIndex->alignment            = 0;
+    pMobIndex->group                = 0;
+    pMobIndex->start_pos            = POS_STANDING;
+    pMobIndex->default_pos          = POS_STANDING;
+    pMobIndex->stance               = STANCE_DEFAULT;
+
+    GETINT(mobble, pMobIndex, vnum);
+    GETSTR(mobble, pMobIndex, player_name);
+    GETSTR(mobble, pMobIndex, short_descr);
+    GETSTR(mobble, pMobIndex, long_descr);
+    GETSTR(mobble, pMobIndex, description);
+
+    GETFLAGSIF( mobble, pMobIndex, act_flags, act);
+    GETFLAGSIF( mobble, pMobIndex, affect_flags, affect_field);
+    GETFLAGSIF( mobble, pMobIndex, off_flags, off_flags);
+    GETFLAGSIF( mobble, pMobIndex, imm_flags, imm_flags);
+    GETFLAGSIF( mobble, pMobIndex, res_flags, res_flags);
+    GETFLAGSIF( mobble, pMobIndex, vuln_flags, vuln_flags);
+    GETFLAGSIF( mobble, pMobIndex, form_flags, form);
+    GETFLAGSIF( mobble, pMobIndex, part_flags, parts);
+
+    GETINT( mobble, pMobIndex, level);
+
+    GETINTIF(mobble, pMobIndex, hitpoint_percent);
+    GETINTIF(mobble, pMobIndex, mana_percent);
+    GETINTIF(mobble, pMobIndex, move_percent);
+    GETINTIF(mobble, pMobIndex, hitroll_percent);
+    GETINTIF(mobble, pMobIndex, damage_percent);
+    GETINTIF(mobble, pMobIndex, ac_percent);
+    GETINTIF(mobble, pMobIndex, saves_percent);
+    GETINTIF(mobble, pMobIndex, wealth_percent);
+}
+
+static void load_lua_mobbles( AREA_DATA *pArea, LLtbl *mobbles)
+{
+    int ind;
+    for (ind=1; LLtbl_i_exists(mobbles, ind); ind++)
+    {
+        LLtbl mobble;
+        LLtbl_get_iv_tbl(mobbles, ind, &mobble);
+
+        load_lua_mobble(pArea, &mobble);
+
+        LLtbl_release(&mobble);
+    }
+}
+
+static void load_lua_object( AREA_DATA *pArea, LLtbl *object)
+{
+    int ind;
+
+    OBJ_INDEX_DATA *pObjIndex;
+
+    pObjIndex = alloc_OBJPROTO();
+    pObjIndex->area = pArea;
+    pObjIndex->reset_num = 0;
+    pObjIndex->combine_vnum = 0;
+    pObjIndex->diff_rating = 0;
+
+    GETINT(object, pObjIndex, vnum);
+    GETSTR(object, pObjIndex, name);
+    GETSTR(object, pObjIndex, short_descr);
+    GETSTR(object, pObjIndex, description);
+    GETSTR(object, pObjIndex, material);
+
+    const char *item_type=LLtbl_get_kv_str(object, "item_type");
+    CHECK_POS(pObjIndex->item_type, item_lookup(item_type), "item_type");
+    free_string(item_type);
+
+    GETFLAGS(object, pObjIndex, extra_flags, extra_flags);
+
+    const char *wear_type_str=LLtbl_get_kv_str(object, "wear_type");
+    pObjIndex->wear_type = flag_lookup(wear_type_str, wear_types);
+    if (pObjIndex->wear_type == NO_FLAG)
+    {
+        bugf("Invalid wear type: %s", wear_type_str);
+        exit(1);
+    }
+    free_string(wear_type_str);
+
+    LLtbl values;
+    LLtbl_get_kv_tbl(object, "values", &values);
+    for (ind=0; ind<=4; ind++)
+    {
+        pObjIndex->value[ind] = LLtbl_get_iv_int(&values, ind);
+    }
+    LLtbl_release(&values);
+
+    GETINT(object, pObjIndex, level);
+    GETINT(object, pObjIndex, weight);
+    GETINT(object, pObjIndex, cost);
+
+    if (LLtbl_k_exists(object, "clan"))
+    {
+        const char *clan_name=LLtbl_get_kv_str(object, "clan");
+        pObjIndex->clan = clan_lookup(clan_name);
+        free_string(clan_name);
+    }
+
+    if (LLtbl_k_exists(object, "clan_rank"))
+    {
+        const char *clan_rank=LLtbl_get_kv_str(object, "clan_rank");
+        pObjIndex->rank=clan_rank_lookup(pObjIndex->clan, clan_rank);
+        free_string(clan_rank);
+    }
+
+    GETINTIF(object, pObjIndex, combine_vnum);
+    GETINTIF(object, pObjIndex, diff_rating);
+
+    LLtbl affected;
+    LLtbl_get_kv_tbl(object, "affected", &affected);
+    for (ind=1; LLtbl_i_exists(&affected, ind); ind++)
+    {
+        // TODO: finish loading affects
+
+    }
+    LLtbl_release(&affected);
+
+    LLtbl extra_descr;
+    LLtbl_get_kv_tbl(object, "extra_descr", &extra_descr);
+    for (ind=1; LLtbl_i_exists(&extra_descr, ind); ind++)
+    {
+        LLtbl xtra;
+        LLtbl_get_iv_tbl(&extra_descr, ind, &xtra);
+
+        EXTRA_DESCR_DATA *ed=alloc_perm(sizeof(*ed));
+        GETSTR(&xtra, ed, keyword);
+        GETSTR(&xtra, ed, description);
+
+        ed->next = pObjIndex->extra_descr;
+        pObjIndex->extra_descr = ed;
+        top_ed++;
+
+        LLtbl_release(&xtra);
+    }
+    LLtbl_release(&extra_descr);
+
+
+    LLtbl oprogs;
+    LLtbl_get_kv_tbl(object, "oprogs", &oprogs);
+    for (ind=1; LLtbl_i_exists(&oprogs, ind); ind++)
+    {
+        LLtbl oprog;
+        LLtbl_get_iv_tbl(&oprogs, ind, &oprog);
+
+        PROG_LIST *pOprog=alloc_OTRIG();
+        //TODO: finish this
+
+        LLtbl_release(&oprog);
+    }
+    LLtbl_release(&oprogs);
+}
+static void load_lua_objects( AREA_DATA *pArea, LLtbl *objects)
+{
+    int ind;
+    for (ind=1; LLtbl_i_exists(objects, ind); ind++)
+    {
+        LLtbl object;
+        LLtbl_get_iv_tbl(objects, ind, &object);
+        load_lua_object(pArea, &object);
+        LLtbl_release(&object);
+    }
+}
+
+static void load_lua_room( AREA_DATA *pArea, LLtbl *room)
+{
+    int ind;
+    ROOM_INDEX_DATA *pRoom=alloc_ROOM();
+    pRoom->area=pArea;
+
+
+    GETINT(room, pRoom, vnum);
+    GETSTR(room, pRoom, name);
+    GETSTR(room, pRoom, description);
+    GETFLAGS(room, pRoom, room_flags, room_flags);
+
+    GETFLAG(room, pRoom, sector_flags, sector_type);
+
+    LLtbl extra_descr;
+    LLtbl_get_kv_tbl(room, "extra_descr", &extra_descr);
+    for (ind=1; LLtbl_i_exists(&extra_descr, ind); ind++)
+    {
+        LLtbl edtbl;
+        LLtbl_get_iv_tbl(&extra_descr, ind, &edtbl);
+
+        EXTRA_DESCR_DATA *ed=aloc_perm(sizeof(*ed));
+        GETSTR(&edtbl, ed, keyword);
+        GETSTR(&edtbl, ed, description);
+
+        ed->next=pRoom->extra_descr;
+        pRoom->extra_descr=ed;
+        top_ed++;
+
+        LLtbl_release(&edtbl);
+    }
+    LLtbl_release(&extra_descr);
+
+    LLtbl exits;
+    LLtbl_get_kv_tbl(room, "exits", &exits);
+    for (ind=1; LLtbl_i_exists(&exits, ind); ind++)
+    {
+        LLtbl exit;
+        LLtbl_get_iv_tbl(&exits, ind, &exit);
+
+        EXIT_DATA *pExit=alloc_EXIT();
+        GETSTR(&exit, pExit, description);
+        GETSTR(&exit, pExit, keyword);
+        GETFLAGS(&exit, pExit, exit_flags, rs_flags);
+        flag_copy( pExit->exit_info, pExit->rs_flags);
+
+        GETINT(&exit, pExit, key);
+        GETING(&exit, 
+
+        LLtbl_release(&exit);
+    }
+}
+static void load_lua_rooms( AREA_DATA *pArea, LLtbl *rooms)
+{
+    int ind;
+    for (ind=1; LLtbl_i_exists(rooms, ind); ind++)
+    {
+        LLtbl room;
+        LLtbl_get_iv_tbl(rooms, ind, &room);
+        load_lua_room(pArea, &room);
+        LLtbl_release(&room);
+    }
+}
+
 void load_lua_area_file( const char *file_name )
 {
     int ind;
@@ -1009,203 +1298,29 @@ void load_lua_area_file( const char *file_name )
 
     LLtbl atrigs;
     LLtbl_get_kv_tbl(&afile, "aprogs", &atrigs);
-    for (ind=1; LLtbl_i_exists(&atrigs, ind); ind++)
-    {
-        LLtbl atrig;
-        LLtbl_get_iv_tbl(&atrigs, ind, &atrig);
-        PROG_LIST *pAprog = alloc_ATRIG();
-
-        const char *trigstr=LLtbl_get_kv_str(&atrig, "trig_type");
-        pAprog->trig_type = flag_lookup(trigstr, aprog_flags);
-        if (pAprog->trig_type == NO_FLAG)
-        {
-            bugf("Invalid aprog_flag: %s", trigstr);
-            exit(1);
-        }
-        free_string(trigstr);
-
-        SET_BIT(pArea->aprog_flags, pAprog->trig_type);
-        GETINT(&atrig, pAprog, vnum);
-        GETSTR(&atrig, pAprog, trig_phrase);
-        
-        pAprog->next = pArea->aprogs;
-        pArea->aprogs = pAprog;
-
-        LLtbl_release(&atrig);
-    }
+    load_lua_aprogs(pArea, &atrigs);
     LLtbl_release(&atrigs);
 
     LLtbl mobbles;
     LLtbl_get_kv_tbl(&afile, "MOBBLES", &mobbles);
-    for (ind=1; LLtbl_i_exists(&mobbles, ind); ind++)
-    {
-        MOB_INDEX_DATA *pMobIndex=alloc_MOBPROTO();
-        pMobIndex->area                 = pArea; 
-        pMobIndex->pShop                = NULL;
-        // set default values
-        pMobIndex->level                = 0;
-        pMobIndex->hitpoint_percent     = 100;
-        pMobIndex->mana_percent         = 100;
-        pMobIndex->move_percent         = 100;
-        pMobIndex->hitroll_percent      = 100;
-        pMobIndex->damage_percent       = 100;
-        pMobIndex->ac_percent           = 100;
-        pMobIndex->saves_percent        = 100;
-        pMobIndex->wealth_percent       = 100;
-        pMobIndex->size                 = SIZE_MEDIUM;
-        pMobIndex->alignment            = 0;
-        pMobIndex->group                = 0;
-        pMobIndex->start_pos            = POS_STANDING;
-        pMobIndex->default_pos          = POS_STANDING;
-        pMobIndex->stance               = STANCE_DEFAULT;
-
-        LLtbl mobble;
-        LLtbl_get_iv_tbl(&mobbles, ind, &mobble);
-
-        GETINT(&mobble, pMobIndex, vnum);
-        GETSTR(&mobble, pMobIndex, player_name);
-        GETSTR(&mobble, pMobIndex, short_descr);
-        GETSTR(&mobble, pMobIndex, long_descr);
-        GETSTR(&mobble, pMobIndex, description);
-
-        GETFLAGSIF( &mobble, pMobIndex, act_flags, act);
-        GETFLAGSIF( &mobble, pMobIndex, affect_flags, affect_field);
-        GETFLAGSIF( &mobble, pMobIndex, off_flags, off_flags);
-        GETFLAGSIF( &mobble, pMobIndex, imm_flags, imm_flags);
-        GETFLAGSIF( &mobble, pMobIndex, res_flags, res_flags);
-        GETFLAGSIF( &mobble, pMobIndex, vuln_flags, vuln_flags);
-        GETFLAGSIF( &mobble, pMobIndex, form_flags, form);
-        GETFLAGSIF( &mobble, pMobIndex, part_flags, parts);
-
-        GETINT( &mobble, pMobIndex, level);
-
-        GETINTIF(&mobble, pMobIndex, hitpoint_percent);
-        GETINTIF(&mobble, pMobIndex, mana_percent);
-        GETINTIF(&mobble, pMobIndex, move_percent);
-        GETINTIF(&mobble, pMobIndex, hitroll_percent);
-        GETINTIF(&mobble, pMobIndex, damage_percent);
-        GETINTIF(&mobble, pMobIndex, ac_percent);
-        GETINTIF(&mobble, pMobIndex, saves_percent);
-        GETINTIF(&mobble, pMobIndex, wealth_percent);
-
-
-        LLtbl_release(&mobble);
-    }
+    load_lua_mobbles(pArea, &mobbles);
     LLtbl_release(&mobbles);    
 
     LLtbl objects;
     LLtbl_get_kv_tbl(&afile, "OBJECTS", &objects);
-    for (ind=1; LLtbl_i_exists(&objects, ind); ind++)
-    {
-        OBJ_INDEX_DATA *pObjIndex;
-
-        LLtbl object;
-        LLtbl_get_iv_tbl(&objects, ind, &object);
-
-        pObjIndex = alloc_OBJPROTO();
-        pObjIndex->area = pArea;
-        pObjIndex->reset_num = 0;
-        pObjIndex->combine_vnum = 0;
-        pObjIndex->diff_rating = 0;
-
-        GETINT(&object, pObjIndex, vnum);
-        GETSTR(&object, pObjIndex, name);
-        GETSTR(&object, pObjIndex, short_descr);
-        GETSTR(&object, pObjIndex, description);
-        GETSTR(&object, pObjIndex, material);
-        
-        const char *item_type=LLtbl_get_kv_str(&object, "item_type");
-        CHECK_POS(pObjIndex->item_type, item_lookup(item_type), "item_type");
-        free_string(item_type);
-        
-        GETFLAGS(&object, pObjIndex, extra_flags, extra_flags);
-
-        const char *wear_type_str=LLtbl_get_kv_str(&object, "wear_type");
-        pObjIndex->wear_type = flag_lookup(wear_type_str, wear_types);
-        if (pObjIndex->wear_type == NO_FLAG)
-        {
-            bugf("Invalid wear type: %s", wear_type_str);
-            exit(1);
-        }
-        free_string(wear_type_str);
-
-        LLtbl values;
-        LLtbl_get_kv_tbl(&object, "values", &values);
-        for (ind=0; ind<=4; ind++)
-        {
-            pObjIndex->value[ind] = LLtbl_get_iv_int(&values, ind);
-        }
-        LLtbl_release(&values);
-
-        GETINT(&object, pObjIndex, level);
-        GETINT(&object, pObjIndex, weight);
-        GETINT(&object, pObjIndex, cost);
-
-        if (LLtbl_k_exists(&object, "clan"))
-        {
-            const char *clan_name=LLtbl_get_kv_str(&object, "clan");
-            pObjIndex->clan = clan_lookup(clan_name);
-            free_string(clan_name);
-        }
-
-        if (LLtbl_k_exists(&object, "clan_rank"))
-        {
-            const char *clan_rank=LLtbl_get_kv_str(&object, "clan_rank");
-            pObjIndex->rank=clan_rank_lookup(pObjIndex->clan, clan_rank);
-            free_string(clan_rank);
-        }
-
-        GETINTIF(&object, pObjIndex, combine_vnum);
-        GETINTIF(&object, pObjIndex, diff_rating);
-
-        LLtbl affected;
-        LLtbl_get_kv_tbl(&object, "affected", &affected);
-        for (ind=1; LLtbl_i_exists(&affected, ind); ind++)
-        {
-            // TODO: finish loading affects
-
-        }
-        LLtbl_release(&affected);
-
-        LLtbl extra_descr;
-        LLtbl_get_kv_tbl(&object, "extra_descr", &extra_descr);
-        for (ind=1; LLtbl_i_exists(&extra_descr, ind); ind++)
-        {
-            LLtbl xtra;
-            LLtbl_get_iv_tbl(&extra_descr, ind, &xtra);
-
-            EXTRA_DESCR_DATA *ed=alloc_perm(sizeof(*ed));
-            GETSTR(&xtra, ed, keyword);
-            GETSTR(&xtra, ed, description);
-
-            ed->next = pObjIndex->extra_descr;
-            pObjIndex->extra_descr = ed;
-            top_ed++;
-
-            LLtbl_release(&xtra);
-        }
-        LLtbl_release(&extra_descr);
-
-
-        LLtbl oprogs;
-        LLtbl_get_kv_tbl(&object, "oprogs", &oprogs);
-        for (ind=1; LLtbl_i_exists(&oprogs, ind); ind++)
-        {
-            LLtbl oprog;
-            LLtbl_get_iv_tbl(&oprogs, ind, &oprog);
-            
-            PROG_LIST *pOprog=alloc_OTRIG();
-            //TODO: finish this
-
-            LLtbl_release(&oprog);
-        }
-        LLtbl_release(&oprogs);
-
-
-        LLtbl_release(&object);
-    }
     LLtbl_release(&objects);
    
+    LLtbl rooms;
+    LLtbl_get_kv_tbl(&afile, "ROOMS", &rooms);
+    for (ind=1; LLtbl_i_exists(&rooms, ind); ind++)
+    {
+
+
+        LLtbl_release(&room);
+    }
+    LLtbl_release(&rooms);
+
+    LLtbl_release(&afile);
 }
 
 void load_area_file( FILE *fp, bool clone )
