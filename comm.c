@@ -58,6 +58,7 @@
 #include "recycle.h"
 #include "tables.h"
 #include "timer.h"
+#include "dxport.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -228,6 +229,7 @@ int main( int argc, char **argv )
     }
 
     boot_db();
+    DXPORT_init();
 
     sprintf( log_buf, "ROM is ready to rock on port %d.", port );
     log_string( log_buf );
@@ -2903,6 +2905,11 @@ static void copyover_mud( const char *argument )
 
             write_to_descriptor (d->descriptor, buf, 0);
         }
+    }
+
+    if (DXPORT_status() == eDXPORT_OPENED)
+    {
+        DXPORT_close();
     }
 
     fprintf (fp, "-1\n");
