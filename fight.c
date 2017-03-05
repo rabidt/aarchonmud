@@ -1400,7 +1400,7 @@ void apply_petrify(CHAR_DATA *ch, bool full)
 bool check_petrify(CHAR_DATA *ch, CHAR_DATA *victim)
 {
     // saving throw to avoid completely
-    if ( saves_afflict(victim, ch, ch->level, DAM_HARM) )
+    if ( IS_AFFECTED(victim, AFF_PETRIFIED) || saves_afflict(victim, ch, ch->level, DAM_HARM) )
         return FALSE;
 
     // may already be partially petrified (slowed)
