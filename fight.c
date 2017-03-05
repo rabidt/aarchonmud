@@ -3655,7 +3655,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             if ( show ) {
                 act("You push $N out of harm's way!", sentinel, NULL, victim, TO_CHAR);
                 act("$n pushes you out of harm's way!", sentinel, NULL, victim, TO_VICT);
-                act("$n push $N out of harm's way!", sentinel, NULL, victim, TO_NOTVICT);
+                act("$n pushes $N out of harm's way!", sentinel, NULL, victim, TO_NOTVICT);
             }
             int reduction = dam * (25 + mastery_bonus(sentinel, gsn_sentinel, 15, 25)) / 100;
             dam -= reduction;
