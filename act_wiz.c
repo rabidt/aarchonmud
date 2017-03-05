@@ -37,6 +37,7 @@
 #include "magic.h"
 #include "simsave.h"
 #include "buffer_util.h"
+#include "dxport.h"
 
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
@@ -3439,7 +3440,54 @@ DEF_DO_FUN(do_protocol)
     wrneg(eNEGOTIATED_MCCP);
 
 
-
 #undef wrbool
 #undef wrneg
 }
+
+DEF_DO_FUN(do_dxport)
+{
+    eDXPORT_rc status;
+    char arg1[MIL];
+
+    argument = one_argument(argument, arg1);
+
+    if (!str_cmp(arg1, "open"))
+    {
+        status = DXPORT_status();
+        if (status == eDXPORT_OPENED)
+        {
+            ptc(ch, "Already connected.\n\r");
+            return;
+        }
+
+        if (DXPORT_init() != eDXPORT_SUCCESS)
+        {
+            ptc(ch, "Couldn't connect.\n\r");
+            return;
+        }
+
+        ptc(ch, "Connection succeeded.\n\r");
+    }
+    else if (!str_cmp(arg1, "close"))
+    {
+        /*status = DXPORT_status();
+        if (status == eDXPORT_CLOSED)
+        {
+            ptc(ch, "Already closed.\n\r");
+            return;
+        }*/
+
+        DXPORT_close();
+    }
+
+    status = DXPORT_status();
+    ptc(ch, 
+        "Status: %s\n\r"
+        "\n\r"
+        "  dxport open  - Connect to server.\n\r"
+        "  dxport close - Disconnect from server.\n\r",
+        status == eDXPORT_OPENED ? "OPENED" :
+        status == eDXPORT_CLOSED ? "CLOSED" :
+        "UNKNOWN"); 
+}
+
