@@ -551,7 +551,8 @@ void game_loop_unix( int control )
                 /* auto-action in combat */
                 if ( d->connected == CON_PLAYING
                         && d->character != NULL
-                        && d->character->fighting != NULL )
+                        && d->character->fighting != NULL
+                        && !IS_AFFECTED(d->character, AFF_PETRIFIED) )
                     run_combat_action( d );
             }
 
