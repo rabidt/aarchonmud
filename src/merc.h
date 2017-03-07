@@ -4344,7 +4344,7 @@ char *  crypt       args( ( const char *key, const char *salt ) );
 #define TEMP_FILE   "../player/romtmp"
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
-#define LUA_DIR     "../src/lua/"
+#define LUA_DIR     "../../src/lua/"
 #define USER_DIR    "../user/"
 #define AREA_BACKUP_DIR "./backup/"
 
