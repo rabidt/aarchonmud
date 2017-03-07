@@ -29,7 +29,7 @@ set crashcount = 0
 if ( "$1" != "" ) set port="$1"
 
 # Change to area directory.
-cd ../area
+cd ../data/area
 
 # Set limits.
 if ( -e shutdown.txt ) rm -f shutdown.txt
@@ -51,7 +51,7 @@ while ( 1 )
 
     if ( "$RUNNING" == "" ) then
       if ( -e core ) rm core
-      ../src/aeaea $port >&! $logfile
+      ../../bin/aeaea $port >&! $logfile
       touch DONTKILL.TXT
       #Turned this off 11/1.  Sick of spam.  BC
       # echo "Executing ../src/aeaea $port, logging to $logfile" | mail -s "Executing" `cat ~/bin/distribution`
@@ -78,7 +78,7 @@ while ( 1 )
 
 
     if ( -e core ) then
-      gdb -batch ../src/aeaea core | head -1000 | mail -s "CORE" `cat ~/bin/distribution`
+      gdb -batch ../../src/aeaea core | head -1000 | mail -s "CORE" `cat ~/bin/distribution`
       rm core
       @ crashcount++
       if ($crashcount > 5) then
