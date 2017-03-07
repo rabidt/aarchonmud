@@ -8,10 +8,10 @@
 #include "merc.h"
 #include "recycle.h"
 
-#define SM_FUN( fun )    void fun( CHAR_DATA *ch, const char *argument )
-#define SM_SET_FUN( fun )    void fun( CHAR_DATA *ch, const char *argument )
-#define SM_PRICE_FUN( fun )  void fun( CHAR_DATA *ch, int *gold, int *qp )
-SMITH_DATA *smith_new( OBJ_DATA *obj );
+#define SM_FUN( fun )    static void fun( CHAR_DATA *ch, const char *argument )
+#define SM_SET_FUN( fun )    static void fun( CHAR_DATA *ch, const char *argument )
+#define SM_PRICE_FUN( fun )  static void fun( CHAR_DATA *ch, int *gold, int *qp )
+static SMITH_DATA *smith_new( OBJ_DATA *obj );
 
 DECLARE_DO_FUN(do_smith);
 
@@ -20,11 +20,11 @@ typedef void SMITH_FUN args( ( CHAR_DATA *ch, const char *argument ) );
 typedef void SMITH_PRICE_FUN args( ( CHAR_DATA *ch, int *gold, int *qp ) );
 
 /* local functions */
-bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj);
-void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp );
-bool try_pay_smith( CHAR_DATA *ch );
-void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch );
-void smith_free( SMITH_DATA *sm );
+static bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj);
+static void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp );
+static bool try_pay_smith( CHAR_DATA *ch );
+static void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch );
+static void smith_free( SMITH_DATA *sm );
 
 struct smith_arg
 {
@@ -47,7 +47,7 @@ SM_FUN( smith_set);
 SM_FUN( smith_cancel);
 SM_FUN( smith_finish);
 
-const struct smith_arg smith_arg_table[] =
+static const struct smith_arg smith_arg_table[] =
 {
     {   "give",     "Start your order [smith give <object>]",   smith_give      },
     {   "status",   "See the status of your order.",            smith_status    },
@@ -65,7 +65,7 @@ SM_SET_FUN( smith_set_sticky);
 SM_PRICE_FUN( smith_set_name_price );
 SM_PRICE_FUN( smith_set_sticky_price);
 
-const struct smith_set_arg smith_set_table[] =
+static const struct smith_set_arg smith_set_table[] =
 {
     {   "name",         smith_set_short_descr,  smith_set_name_price,
         "100qp, 5k gold (name, keywords, desc together)"                },
@@ -80,9 +80,6 @@ const struct smith_set_arg smith_set_table[] =
 };
 
 
-
-
-/* new stuff starts here */
 DEF_DO_FUN(do_smith)
 {
     if (IS_NPC(ch))
@@ -268,7 +265,7 @@ SM_FUN( smith_status )
 
 }
 
-void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp )
+static void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp )
 {
 
     *gold=0;
@@ -290,7 +287,7 @@ void calc_smith_cost( CHAR_DATA *ch, int *gold, int *qp )
     } 
 }
 
-void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
+static void show_smith_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch )
 {
     if ( !obj )
     {
@@ -345,7 +342,7 @@ SM_FUN( smith_finish )
 
 }
 
-bool try_pay_smith( CHAR_DATA *ch )
+static bool try_pay_smith( CHAR_DATA *ch )
 {
     /* insert payment logic here */
     int qp,gold;
@@ -414,7 +411,7 @@ SM_FUN( smith_give )
 #endif
 }
 
-bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj )
+static bool check_smith_obj( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     if ( obj->item_type == ITEM_CONTAINER )
     {
@@ -475,7 +472,7 @@ void cancel_smith( CHAR_DATA *ch )
 }
 
 
-SMITH_DATA *smith_new( OBJ_DATA *obj )
+static SMITH_DATA *smith_new( OBJ_DATA *obj )
 {
     SMITH_DATA *sm;
     sm=alloc_mem( sizeof(SMITH_DATA) );
@@ -489,7 +486,7 @@ SMITH_DATA *smith_new( OBJ_DATA *obj )
     return sm;
 }
 
-void smith_free( SMITH_DATA *sm )
+static void smith_free( SMITH_DATA *sm )
 {
     if ( sm == NULL )
         return;
@@ -539,5 +536,4 @@ SM_PRICE_FUN( smith_set_sticky_price )
     }
     
 }
-
 
