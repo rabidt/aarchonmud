@@ -2837,7 +2837,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
 #define COPYOVER_FILE "copyover.data"
 
 /* This is the executable file */
-#define EXE_FILE	  "../src/aeaea"
+#define EXE_FILE	  "../../bin/aeaea"
 
 /*  Copyover - Original idea: Fusion of MUD++
  *  Adapted to Diku by Erwin S. Andreasen, <erwin@pip.dknet.dk>

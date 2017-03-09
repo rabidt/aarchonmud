@@ -5281,8 +5281,8 @@ void log_trace()
     free(trace_msg);
     
     // second, we feed the addresses into addr2line to get readable information
-    //sprintf(cmd, "addr2line -pfs -e ../src/aeaea %s", address_buf);
-    sprintf(cmd, "addr2line -fs -e ../src/aeaea %s", address_buf);
+    //sprintf(cmd, "addr2line -pfs -e ../../bin/aeaea %s", address_buf);
+    sprintf(cmd, "addr2line -fs -e ../../bin/aeaea %s", address_buf);
     log_string(cmd);
     if ( system(cmd) == -1 )
     {
