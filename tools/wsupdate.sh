@@ -27,3 +27,4 @@ cp -rp gods data && rm -rf gods
 cp -rp log data && rm -rf log
 cp -rp player data && rm -rf player
 cp -rp user data && rm -rf user
+cp -rp notes data && rm -rf notes
