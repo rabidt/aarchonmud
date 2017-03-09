@@ -13,17 +13,17 @@ cd $TOOLS_DIR/../..
 NEW_ROOT=`pwd`
 
 # Back up everything
-cp -rf "${NEW_ROOT}" "${NEW_ROOT}_backup1"
+cp -rpf "${NEW_ROOT}" "${NEW_ROOT}_backup1"
 
 mv src _src
 mv _src/.hg .
 mv _src/.hgtags .
-cp -r _src/* . && rm -r _src
+cp -rp _src/* . && rm -r _src
 
-cp -r area data && rm -rf area
-cp -r box data && rm -rf box
-cp -r clans data && rm -rf clans
-cp -r gods data && rm -rf gods
-cp -r log data && rm -rf log
-cp -r player data && rm -rf player
-cp -r user data && rm -rf user
+cp -rp area data && rm -rf area
+cp -rp box data && rm -rf box
+cp -rp clans data && rm -rf clans
+cp -rp gods data && rm -rf gods
+cp -rp log data && rm -rf log
+cp -rp player data && rm -rf player
+cp -rp user data && rm -rf user
