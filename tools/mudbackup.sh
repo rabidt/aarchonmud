@@ -21,7 +21,6 @@ function backup()
 
     # save core dumps until manually deleted, but do not back them up
     if ls $HOME/aeaea/data/area/core.tmp.*
-    #if [ -f "$HOME/aeaea/data/area/core.tmp.*" ]
     then
         cp -rpf $HOME/aeaea/data/area/core.tmp.* $HOME/aeaea/coredumps
         rm $HOME/aeaea/data/area/core.tmp.*
@@ -29,4 +28,4 @@ function backup()
     tar -czvf $HOME/backup/${backdate}.aarchon.tar.gz -C $HOME/aeaea data
 }
 
-backup > $TOOLS_DIR/backuplogfile.log
+backup > $TOOLS_DIR/backuplogfile.log 2>&1
