@@ -1,0 +1,42 @@
+#!/bin/csh
+# Watchdog cron script - will ensure startup is running.
+
+# Added the tester and builder ports to this script so that they
+# are all checked at one time. - Astark 1-16-13
+#
+# Killed tester and builder stuff, no longer needed for this server,
+# though it wasn't working properly.
+# Added port to the 'set MUD' statement to differentiate if needed in
+# the future.
+# - Vodur 2/28/2013
+
+set STARTUP = `ps ux | grep startup | grep -v grep`
+#set STARTUPTESTER = `ps ux | grep startup_tester | grep -v grep`
+#set STARTUPBUILDER = `ps ux | grep startup_builder | grep -v grep`
+set MUD = `ps ux | grep "aeaea 7000" | grep -v grep`
+
+if ( "$STARTUP" == "" ) then
+  if ( "$MUD" == "" ) then
+    echo `date` : Executing startup script
+    cd $HOME/aeaea/tools
+    csh ./startup &
+  endif
+endif
+
+#if ( "$STARTUPTESTER" == "" ) then
+ # if ( "$MUD" == "" ) then
+  #  echo `date` : Executing startup script
+   # cd $HOME/tester/area
+    #csh ./startup_tester &
+  #endif
+#endif
+
+#if ( "$STARTUPBUILDER" == "" ) then
+ # if ( "$MUD" == "" ) then
+  #  echo `date` : Executing startup script
+   # cd $HOME/builder/area
+    #csh ./startup_builder &
+  #endif
+#endif
+
+exit
