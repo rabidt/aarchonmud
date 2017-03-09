@@ -1,0 +1,10 @@
+# This will remove player files which have not been touched for 60 days.
+# -Brian, 2/24/98
+# Revised 5/9/98 to remove files in the gods directory as well. - BC
+# Revised to be 5 years 01/04/12 -- Maedhros
+# Revised to be 4 years 07/09/12 -- Maedhros
+
+echo "=============" >> ~/pdel.out
+date >> ~/pdel.out
+find ~/aeaea/player -mtime +1460 -printf "%t %f\n" -exec rm {} \; 2>> ~/pdel.out >> ~/pdel.out
+find ~/aeaea/gods -mtime +1460 -printf "%t %f (god)\n" -exec rm {} \; 2>> ~/pdel.out >> ~/pdel.out
