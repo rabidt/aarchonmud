@@ -1,4 +1,4 @@
-OBJ_DIR := obj
+OBJ_DIR := ../obj
 VPATH = ./tests
 AARCHON_INC ?= /home/m256ada/include
 AARCHON_LIB ?= /home/m256ada/lib
@@ -32,8 +32,8 @@ LIVETEST_O = $(OBJ_DIR)/LiveTests.o
 all: aeaea
 
 aeaea: $(O_FILES)
-	rm -f aeaea 
-	$(CC) -o aeaea $(O_FILES) $(L_FLAGS)
+	rm -f ../bin/aeaea 
+	$(CC) -o ../bin/aeaea $(O_FILES) $(L_FLAGS)
 
 tester: C_FLAGS += -DTESTER
 tester: aeaea
@@ -54,8 +54,8 @@ osx: aeaea
 # Compile live tests. The binary needs to be run rom area directory as with normal startup
 livetest: C_FLAGS += -DLIVETEST
 livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
-	rm -f aeaea_livetest
-	$(CC) -o aeaea_livetest \
+	rm -f ../bin/aeaea_livetest
+	$(CC) -o ../bin/aeaea_livetest \
 		$(O_FILES) \
 		$(LIVETEST_O_FILES) \
 		$(LIVETEST_O) \
@@ -65,14 +65,14 @@ livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
 # Compile with unit tests and run immediately
 unittest: C_FLAGS += -DUNITTEST
 unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
-	rm -f aeaea_unittest
-	$(CC) -o aeaea_unittest \
+	rm -f ../bin/aeaea_unittest
+	$(CC) -o ../bin/aeaea_unittest \
 		$(O_FILES) \
 		$(UNITTEST_O_FILES) \
 		$(UNITTEST_O) \
 		$(CU_TEST_O) \
 		$(L_FLAGS)
-	./aeaea_unittest
+	../bin/aeaea_unittest
 
 _live_tests: $(OBJ_DIR)
 	./tests/make-live-tests.sh > ./tests/LiveTests.c

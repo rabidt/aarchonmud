@@ -1,0 +1,93 @@
+#!/bin/csh
+# Written by Furey.
+# With additions from Tony and Alander.
+
+##########################################################
+# Change Log:
+#
+# Detect and suppress multiple instances of MUD and startup script - BC ?/?/?
+# Implement e-mail notice upon MUD crashes and startups. - BC ?/?/?
+# Implement auto-GDB of core dump and email results. - BC ?/?/?
+# Implement crash counter for multiple successive crashes, and stop
+#   rebooting after N attempts (currently 5).  Tweak e-mail
+#   notice accordingly. - BC  1/11/1999
+# Add DONTKILL.TXT support to keep CPU % monitor from killing
+#   the MUD during startup CPU peaks. - BC ?/?/2000
+# Disable core dumps and auto-GDB for disk space reasons - BC 5/31/1999
+# Re-enable core dumps - BC 5/5/2001
+# Use external email distribution list - BC 5/28/2001
+#
+##########################################################
+
+# Set the port number.
+set port = 7000
+
+# Disable core dumps - BC 5/31/99
+#limit core 0
+
+set crashcount = 0
+if ( "$1" != "" ) set port="$1"
+
+# Change to area directory.
+cd ../data/area
+
+# Set limits.
+if ( -e shutdown.txt ) rm -f shutdown.txt
+
+while ( 1 )
+    if ( -e core ) rm core
+    # If you want to have logs in a different directory,
+    #   change the 'set logfile' line to reflect the directory name.
+    set index = 1000
+    while ( 1 )
+	set logfile = ../log/$index.log
+	if ( ! -e $logfile ) break
+	@ index++
+    end
+
+    # Run rom.
+    #set RUNNING = `ps ux | grep aeaea | grep -v grep`
+    set RUNNING = `ps ux | grep "aeaea $port" | grep -v grep`
+
+    if ( "$RUNNING" == "" ) then
+      if ( -e core ) rm core
+      ../../bin/aeaea $port >&! $logfile
+      touch DONTKILL.TXT
+      #Turned this off 11/1.  Sick of spam.  BC
+      # echo "Executing ../src/aeaea $port, logging to $logfile" | mail -s "Executing" `cat ~/bin/distribution`
+    else 
+      # This means the mud is already running, and probably
+      # another startup script as well.  Exit this script, and rely on
+      # watchdog (in cron) to kick off a new startup if this was the only
+      # one running.
+      #set STARTUP = `ps ux | grep aeaea | grep -v grep`
+      set STARTUP = `ps ux | grep "aeaea $port" | grep -v grep`
+      if ( "$STARTUP" == "" ) then
+        # do nothing 
+      else
+
+         exit 0
+      endif
+    endif
+
+    # Restart, giving old connections a chance to die.
+    if ( -e shutdown.txt ) then
+	rm -f shutdown.txt
+	exit 0
+    endif
+
+
+    if ( -e core ) then
+      gdb -batch ../../src/aeaea core | head -1000 | mail -s "CORE" `cat ~/bin/distribution`
+      rm core
+      @ crashcount++
+      if ($crashcount > 5) then
+        echo "ABORTING STARTUP - Multi-crash bug!" | mail -s "Aborting Startup" `cat ~/bin/distribution`
+        exit 0
+      endif
+    else
+      @ crashcount = 0
+    endif
+
+    sleep 15
+end
