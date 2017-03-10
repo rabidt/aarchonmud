@@ -9,4 +9,4 @@ TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $TOOLS_DIR/..
 
-rsync -rtvP m256ada@aarchonmud.com:/home/m256ada/aeaea/data .
+rsync -rtvP --exclude 'log' m256ada@aarchonmud.com:/home/m256ada/aeaea/data/ ./data/
