@@ -1119,26 +1119,6 @@ DEF_DO_FUN(do_mudconfig)
     }
 }
 
-DEF_DO_FUN(do_perfmon)
-{
-    lua_getglobal(g_mud_LS, "do_perfmon");
-    push_CH(g_mud_LS, ch);
-    lua_pushstring(g_mud_LS, argument);
-    if (CallLuaWithTraceBack( g_mud_LS, 2, 0) )
-    {
-        ptc (ch, "Error with do_perfmon:\n %s\n\r",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
-
-void lua_log_perf( double value )
-{
-    lua_getglobal( g_mud_LS, "log_perf" );
-    lua_pushnumber( g_mud_LS, value );
-    lua_call( g_mud_LS, 1, 0 );
-}
-
 DEF_DO_FUN(do_findreset)
 {
     lua_getglobal(g_mud_LS, "do_findreset");
