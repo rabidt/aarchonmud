@@ -59,6 +59,7 @@
 #include "tables.h"
 #include "timer.h"
 #include "dxport.h"
+#include "perfmon.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -635,7 +636,7 @@ void game_loop_unix( int control )
                 (double)( (secDelta*1000000)+(usecDelta) )/
                 (double)(10000/PULSE_PER_SECOND);
 
-            lua_log_perf( usage );
+            PERF_log_pulse( usage );
 
             if ( secDelta > 0 || ( secDelta == 0 && usecDelta > 0 ) )
             {

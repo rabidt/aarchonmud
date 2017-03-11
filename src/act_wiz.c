@@ -38,6 +38,7 @@
 #include "simsave.h"
 #include "buffer_util.h"
 #include "dxport.h"
+#include "perfmon.h"
 
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
@@ -3491,3 +3492,8 @@ DEF_DO_FUN(do_dxport)
         "UNKNOWN"); 
 }
 
+
+DEF_DO_FUN(do_perfmon)
+{
+    send_to_char(PERF_repr(), ch);
+}
