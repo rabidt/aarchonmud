@@ -5065,6 +5065,27 @@ char *capitalize( const char *str )
 }
 
 /*
+* Copies str into buf, capitalizes the first char and returns buf
+* Same as capitalize, but give memory management control to caller
+*/
+char *capitalize_buf( const char *str, char *buf )
+{
+    int i;
+    
+    if (str == NULL)
+    {
+        bug("NULL string passed to capitalize function.", 0);
+        return NULL;
+    }
+    
+    for ( i = 0; str[i] != '\0'; i++ )
+        buf[i] = LOWER(str[i]);
+    buf[i] = '\0';
+    buf[0] = UPPER(buf[0]);
+    return buf;
+}
+
+/*
 * Returns a DIFFERENT initial-capped string than capitalize() does.
 *
 * This very foul hack was necessary because capitalize acts upon constant
