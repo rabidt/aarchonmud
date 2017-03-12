@@ -896,6 +896,7 @@ DEF_DO_FUN(do_authorize)
 DEF_DO_FUN(do_name)
 {
     char fname[1024];
+    char arg_buf[1024], name_buf[1024];
 #if defined (WIN32)
     struct _stat fst;
 #else
@@ -912,7 +913,7 @@ DEF_DO_FUN(do_name)
         return;
     }
     
-    argument = capitalize(argument);
+    argument = capitalize_buf(argument, arg_buf);
     
     if (!check_parse_name(argument, TRUE))
     {
@@ -938,7 +939,7 @@ DEF_DO_FUN(do_name)
         return;
     }
     
-    sprintf( fname, "%s%s", PLAYER_DIR, capitalize( argument ) );
+    sprintf( fname, "%s%s", PLAYER_DIR, argument );
 
 #if defined (WIN32)
     if ( _stat( fname, &fst ) != -1 )
@@ -951,7 +952,7 @@ DEF_DO_FUN(do_name)
     }
     /* sprintf( fname, "%s%s", PLAYER_DIR, capitalize(ch->name) ); */
 
-    unlink_pfile( capitalize(ch->name) ); 
+    unlink_pfile( capitalize_buf(ch->name, name_buf) );
     
     free_string( ch->name );
     ch->name = str_dup( argument );
