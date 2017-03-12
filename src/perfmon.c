@@ -14,7 +14,7 @@
 
 static int init_done = 0;
 
-time_t init_time;
+static time_t init_time;
 
 static double last_pulse;
 static double max_pulse = 0;
@@ -40,7 +40,6 @@ PERF_data *PERF_data_new(int size)
     d->size = size;
     d->ind = 0;
     d->count = 0;
-    d->total = 0;
     d->vals = malloc(sizeof(double) * size);
 
     return d;
@@ -79,9 +78,7 @@ static
 #endif
 int PERF_data_add(PERF_data *data, double val)
 {
-    data->total -= data->vals[data->ind];
     data->vals[data->ind] = val;
-    data->total += val;
 
     if (data->count <= data->ind)
         data->count = data->ind + 1;
@@ -98,7 +95,23 @@ int PERF_data_add(PERF_data *data, double val)
     }
 }
 
-#define AVG(data) ( (double)(data->total) / data->count )
+#ifndef UNITTEST
+static
+#endif
+double PERF_data_total(PERF_data *data)
+{
+    double rtn = 0;
+    int i;
+
+    for (i=0; i < data->count; i++)
+    {
+        rtn += data->vals[i];
+    }
+
+    return rtn;
+}
+
+#define AVG(data) ( PERF_data_total(data) / data->count )
 void PERF_log_pulse(double val)
 {
     check_init();
@@ -110,11 +123,11 @@ void PERF_log_pulse(double val)
     if (val > 100)
         over100_count += 1;
     if (val > 90)
-       over90_count += 1;
+        over90_count += 1;
     if (val > 70)
-       over70_count += 1;
+        over70_count += 1;
     if (val > 50)
-       over50_count += 1; 
+        over50_count += 1; 
     if (val > 30)
         over30_count += 1;
     if (val > 10)
@@ -158,7 +171,7 @@ const char *PERF_repr()
         "  %3d Minutes: %.2f%%\n\r"
         "  %3d Hours:   %.2f%%\n\r"
         "\n\r"
-        "Max pulse:     %.2f\n\r"
+        "Max pulse:     %.2f%%\n\r"
         "\n\r"
         "Over  10%%:    %.2f%% (%ld)\n\r"
         "Over  30%%:    %.2f%% (%ld)\n\r"
