@@ -324,7 +324,11 @@ protocol_t *ProtocolCreate( void )
    pProtocol->bMSP = false;
    pProtocol->bMXP = false;
    pProtocol->bMCCP = false;
-   pProtocol->bSGA = false;
+
+   /* SGA is special case. Set as on by default unless client tells us otherwise */
+   pProtocol->bSGA = true;
+   pProtocol->Negotiated[eNEGOTIATED_SGA] = true;
+
    pProtocol->b256Support = eUNKNOWN;
    pProtocol->ScreenWidth = 0;
    pProtocol->ScreenHeight = 0;
@@ -1071,7 +1075,7 @@ const char *CopyoverGet( descriptor_t *apDescriptor )
          *pBuffer++ = 'A';
       if ( pProtocol->bMSP )
          *pBuffer++ = 'S';
-      if ( pProtocol->bSGA )
+      if ( !pProtocol->bSGA ) /* defaults to true so only track if false */
          *pBuffer++ = 'G';
       if ( pProtocol->pVariables[eMSDP_MXP]->ValueInt )
          *pBuffer++ = 'X';
@@ -1124,7 +1128,7 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData )
                pProtocol->bMSP = true;
                break;
             case 'G':
-               pProtocol->bSGA = true;
+               pProtocol->bSGA = false; /* default is true so tracked if false */
                break;
             case 'X':
                pProtocol->bMXP = true;
@@ -1693,7 +1697,6 @@ static void Negotiate( descriptor_t *apDescriptor )
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, true, true);
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, true, true);
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, true, true);
-      ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
    }
 }
 
@@ -1745,6 +1748,18 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          break;
 
       case (char)TELOPT_SGA:
+         /* Special case SGA. We start with it enabled and only actually 
+          * negotiate if client starts it off.
+          *
+          * Reasons:
+          *  1. Previous behavior of the MUD was to never send GA (so de facto 
+          *     SGA), so default to on preserve this.
+          *  2. XTERM in particular has some issue of entering linemode if we 
+          *     send WILL SGA.
+          *  3. We generally only care about SGA for Mudlet anyway since it 
+          *     relies on GA to prevent prompt delays. Mudlet does send us 
+          *     a WONT SGA on connect so then we will respond accordingly.
+          */
          if ( aCmd == (char)DO )
          {
             ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
@@ -1755,7 +1770,14 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, false, pProtocol->bSGA);
             pProtocol->bSGA = false;
          }
-         /* WILL and WONT we don't care */
+         else if ( aCmd == (char)WONT || aCmd == (char)WILL )
+         {
+            /* We're negotiating, so set back to false and we'll see what the negotiation result is */
+            pProtocol->Negotiated[eNEGOTIATED_SGA] = false;
+            pProtocol->bSGA = false;
+            /* Send back WILL and let them give us a DO or DONT */
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
+         }
          break;
 
       case (char)TELOPT_ECHO:
