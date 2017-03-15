@@ -324,6 +324,7 @@ protocol_t *ProtocolCreate( void )
    pProtocol->bMSP = false;
    pProtocol->bMXP = false;
    pProtocol->bMCCP = false;
+   pProtocol->bSGA = false;
    pProtocol->b256Support = eUNKNOWN;
    pProtocol->ScreenWidth = 0;
    pProtocol->ScreenHeight = 0;
@@ -1070,6 +1071,8 @@ const char *CopyoverGet( descriptor_t *apDescriptor )
          *pBuffer++ = 'A';
       if ( pProtocol->bMSP )
          *pBuffer++ = 'S';
+      if ( pProtocol->bSGA )
+         *pBuffer++ = 'G';
       if ( pProtocol->pVariables[eMSDP_MXP]->ValueInt )
          *pBuffer++ = 'X';
       if ( pProtocol->bMCCP )
@@ -1119,6 +1122,9 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData )
                break;
             case 'S':
                pProtocol->bMSP = true;
+               break;
+            case 'G':
+               pProtocol->bSGA = true;
                break;
             case 'X':
                pProtocol->bMXP = true;
@@ -1687,6 +1693,7 @@ static void Negotiate( descriptor_t *apDescriptor )
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MSP, true, true);
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MXP, true, true);
       ConfirmNegotiation(apDescriptor, eNEGOTIATED_MCCP, true, true);
+      ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
    }
 }
 
@@ -1735,6 +1742,20 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
             /* Invalid negotiation, send a rejection */
             SendNegotiationSequence( apDescriptor, (char)WONT, (char)aProtocol );
          }
+         break;
+
+      case (char)TELOPT_SGA:
+         if ( aCmd == (char)DO )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
+            pProtocol->bSGA = true;
+         }
+         else if ( aCmd == (char)DONT )
+         {
+            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, false, pProtocol->bSGA);
+            pProtocol->bSGA = false;
+         }
+         /* WILL and WONT we don't care */
          break;
 
       case (char)TELOPT_ECHO:
@@ -2280,6 +2301,8 @@ static bool_t ConfirmNegotiation( descriptor_t *apDescriptor, negotiated_t aProt
                   SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MCCP );
 #endif /* USING_MCCP */
                   break;
+               case eNEGOTIATED_SGA:
+                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_SGA );
                default:
                   bResult = false;
                   break;

@@ -13,12 +13,6 @@
 #include "warfare.h"
 #include "dxport.h"
 
-#include "telnet.h"
-extern const   char    echo_off_str    [];
-extern const   char    echo_on_str     [];
-extern const   char    go_ahead_str    [];
-
-
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
 DECLARE_DO_FUN(do_look      );

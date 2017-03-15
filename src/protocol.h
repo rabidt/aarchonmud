@@ -117,6 +117,7 @@ typedef enum
    eNEGOTIATED_MXP, 
    eNEGOTIATED_MXP2, 
    eNEGOTIATED_MCCP, 
+   eNEGOTIATED_SGA,
 
    eNEGOTIATED_MAX             /* This must always be last */
 } negotiated_t;
@@ -272,6 +273,7 @@ typedef struct
    bool_t    bMSP;             /* The client supports MSP */
    bool_t    bMXP;             /* The client supports MXP */
    bool_t    bMCCP;            /* The client supports MCCP */
+   bool_t    bSGA;             /* Suppress (don't send) Go Ahead to client */
    support_t b256Support;      /* The client supports XTerm 256 colors */
    int       ScreenWidth;      /* The client's screen width */
    int       ScreenHeight;     /* The client's screen height */
