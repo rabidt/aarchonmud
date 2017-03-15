@@ -54,6 +54,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <signal.h>
+#include <arpa/telnet.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -95,11 +96,6 @@ extern  int malloc_verify   args( ( void ) );
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include "telnet.h"
-const   char    echo_off_str    [] = { IAC, WILL, TELOPT_ECHO, '\0' };
-const   char    echo_on_str     [] = { IAC, WONT, TELOPT_ECHO, '\0' };
-const   char    go_ahead_str    [] = { IAC, GA, '\0' };
-
 /* 
    Linux shouldn't need these. If you have a problem compiling, try
    uncommenting accept and bind.
@@ -1196,6 +1192,7 @@ void battle_prompt( DESCRIPTOR_DATA *d )
 bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 {
     extern bool merc_down;
+    const char go_ahead_cmd[] = { IAC, GA };
 
     /*
      * Bust a prompt.
@@ -1228,8 +1225,10 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
             if ( IS_SET(ch->comm, COMM_PROMPT) )
                 bust_a_prompt( d->character );
 
-            if (IS_SET(ch->comm,COMM_TELNET_GA))
-                write_to_buffer(d,go_ahead_str,0);
+            if ( !(d->pProtocol->bSGA) )
+            {
+                write_to_buffer(d, go_ahead_cmd, sizeof(go_ahead_cmd));
+            }
         }
     }
     

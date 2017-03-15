@@ -2259,7 +2259,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define COMM_BRIEF          (M)
 #define COMM_PROMPT         (N)
 #define COMM_COMBINE        (O)
-#define COMM_TELNET_GA      (P)
+#define COMM_TELNET_GA      (P) /* Unused, should remove */
 #define COMM_SHOW_AFFECTS   (Q)
 #define COMM_NOGRATZ        (R)
 #define COMM_NOWAR          (S) 
