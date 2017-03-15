@@ -814,6 +814,11 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             else if ( !str_cmp(arg, "ally") )
             {
                 victim = get_char_room_ally(ch, sn);
+                if (!victim)
+                {
+                    send_to_char("You have no ally here.\n\r", ch);
+                    return FALSE;
+                }
             }
             else if ( !(victim = get_char_room(ch, arg)) )
             {
@@ -931,6 +936,11 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             else if ( !str_cmp(arg, "ally") )
             {
                 victim = get_char_room_ally(ch, sn);
+                if (!victim)
+                {
+                    send_to_char("You have no ally here.\n\r", ch);
+                    return FALSE;
+                }
                 *vo = (void *) victim;
                 *target = TARGET_CHAR;
             }
@@ -959,6 +969,12 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             else if ( !str_cmp(arg, "ally") )
             {
                 victim = get_char_room_ally(ch, sn);
+                if (!victim)
+                {
+                    send_to_char("You have no ally here.\n\r", ch);
+                    return FALSE;
+                }
+                *vo = (void *) victim;
             }
             else if ((victim = get_char_room(ch,arg)) != NULL)
             {
