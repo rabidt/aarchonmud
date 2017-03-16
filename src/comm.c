@@ -751,7 +751,7 @@ else
  */
 if ( check_ban(dnew->host,BAN_ALL))
 {
-    write_to_descriptor( desc, "Your site has been banned from this mud.\n\r", 0 );
+    write_to_descriptor( desc, "Your site has been banned from this mud.\n\r", 0, dnew->pProtocol->bSGA);
     close( desc );
     free_descriptor(dnew);
     return;
@@ -902,7 +902,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     {
         sprintf( log_buf, "%s input overflow!", d->host );
         log_string( log_buf );
-        write_to_descriptor( d->descriptor, "\n\r*** PUT A LID ON IT!!! ***\n\r", 0 );
+        write_to_descriptor( d->descriptor, "\n\r*** PUT A LID ON IT!!! ***\n\r", 0, d->pProtocol->bSGA );
         return FALSE;
     }
 
@@ -998,7 +998,7 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
     {
         if ( k >= MAX_INPUT_LENGTH - 2 )
         {
-            write_to_descriptor( d->descriptor, "WARNING: Line too long. Content may be missing.\n\r", 0 );
+            write_to_descriptor( d->descriptor, "WARNING: Line too long. Content may be missing.\n\r", 0, d->pProtocol->bSGA);
 
             /* skip the rest of the line */
             for ( ; d->inbuf[i] != '\0'; i++ )
@@ -1192,7 +1192,6 @@ void battle_prompt( DESCRIPTOR_DATA *d )
 bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 {
     extern bool merc_down;
-    const char go_ahead_cmd[] = { IAC, GA };
 
     /*
      * Bust a prompt.
@@ -1224,11 +1223,6 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 
             if ( IS_SET(ch->comm, COMM_PROMPT) )
                 bust_a_prompt( d->character );
-
-            if ( !(d->pProtocol->bSGA) )
-            {
-                write_to_buffer(d, go_ahead_cmd, sizeof(go_ahead_cmd));
-            }
         }
     }
     
@@ -1260,7 +1254,7 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
     if (d->outtop == 0)
         return TRUE;
 
-    int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop);
+    int written = write_to_descriptor(d->descriptor, d->outbuf, d->outtop, d->pProtocol->bSGA);
     if ( !written )
     {
         d->outtop = 0;
@@ -1623,7 +1617,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 {
     txt = ProtocolOutput( d, txt, &length );
     if ( d->pProtocol==NULL )
-        bugf("pProtocl null");
+        bugf("pProtocol null");
     if ( d->pProtocol->WriteOOB > 0 )
         --d->pProtocol->WriteOOB;
 
@@ -1705,10 +1699,15 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
  *   try lowering the max block size.
  */
 #define MAX_BLOCK_SIZE 32768 
-int write_to_descriptor( int desc, char *txt, int length )
+int write_to_descriptor( int desc, char *txt, int length, bool SGA)
 {
+    const char const IAC_GA[] = { IAC, GA };
+    static char outbuf[MAX_BLOCK_SIZE + sizeof(IAC_GA)];
+
     int iStart;
     int nWrite, nWritten = 0;
+    char *write_src;
+    int write_src_cnt;
 
     if ( length <= 0 )
         length = strlen(txt);
@@ -1716,16 +1715,32 @@ int write_to_descriptor( int desc, char *txt, int length )
     // limit total output written "in one go" to avoid write errors
     length = UMIN(length, MAX_BLOCK_SIZE );
 
-    for ( iStart = 0; iStart < length; iStart += nWrite )
+    if (!SGA)
     {
-        int nBlock = UMIN( length - iStart, MAX_BLOCK_SIZE );
-        if ( ( nWrite = write( desc, txt + iStart, nBlock ) ) < 0 )
+        memcpy(outbuf, txt, length);
+        memcpy(outbuf + length, IAC_GA, sizeof(IAC_GA));
+        write_src = outbuf;
+        write_src_cnt = length + sizeof(IAC_GA);
+    }
+    else
+    {
+        write_src = txt;
+        write_src_cnt = length;
+    }
+
+    for ( iStart = 0; iStart < write_src_cnt; iStart += nWrite )
+    {
+        int nBlock = UMIN( write_src_cnt - iStart, MAX_BLOCK_SIZE );
+        if ( ( nWrite = write( desc, write_src + iStart, nBlock ) ) < 0 )
         {
             log_error( "Write_to_descriptor" );
             return 0;
         }
         nWritten += nWrite;
     } 
+    
+    if (!SGA)
+        nWritten -= sizeof(IAC_GA);
 
     return nWritten;
 }
@@ -2897,14 +2912,14 @@ static void copyover_mud( const char *argument )
 
         if (!d->character || (!IS_PLAYING(d->connected) )) /* drop those logging on */
         {
-            write_to_descriptor (d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r", 0);
+            write_to_descriptor (d->descriptor, "\n\rSorry, we are rebooting. Come back in a few minutes.\n\r", 0, d->pProtocol->bSGA);
             close_socket (d); /* throw'em out */
         }
         else
         {
             fprintf (fp, "%d %s %s %s\n", d->descriptor, och->name, d->host, CopyoverGet(d) );
 
-            write_to_descriptor (d->descriptor, buf, 0);
+            write_to_descriptor (d->descriptor, buf, 0, d->pProtocol->bSGA);
         }
     }
 
@@ -3074,7 +3089,7 @@ void copyover_recover ()
             break;
 
         /* Write something, and check if it goes error-free */		
-        if (!write_to_descriptor (desc, "\n\ra light at the end of the tunnel...\n\r",0))
+        if (!write_to_descriptor (desc, "\n\ra light at the end of the tunnel...\n\r", 0, FALSE))
         {
             close (desc); /* nope */
             continue;
@@ -3100,12 +3115,12 @@ void copyover_recover ()
 
         if (!fOld) /* Player file not found?! */
         {
-            write_to_descriptor (desc, "\n\rSomehow, your character was lost in the copyover. Sorry.\n\r", 0);
+            write_to_descriptor (desc, "\n\rSomehow, your character was lost in the copyover. Sorry.\n\r", 0, d->pProtocol->bSGA);
             close_socket (d);			
         }
         else /* ok! */
         {
-            write_to_descriptor (desc, "\n\rand reality resumes around you, as if nothing had ever happened.\n\r",0);
+            write_to_descriptor (desc, "\n\rand reality resumes around you, as if nothing had ever happened.\n\r",0, d->pProtocol->bSGA);
 
             /* Just In Case */
             if (!d->character->in_room)

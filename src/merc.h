@@ -4589,7 +4589,7 @@ void    act_new_gag args( ( const char *format, CHAR_DATA *ch,
 				const void *arg1, const void *arg2, int type,
 				int min_pos, long gag_type, bool see_only) );
 void    recho( const char *msg, ROOM_INDEX_DATA *room );
-int     write_to_descriptor args( ( int desc, char *txt, int length ) );
+int     write_to_descriptor args( ( int desc, char *txt, int length, bool SGA ) );
 void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
 void    act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
 char*   remove_color( const char *txt );
