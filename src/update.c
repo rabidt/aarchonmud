@@ -44,6 +44,7 @@
 #include "warfare.h"
 #include "special.h"
 #include "songs.h"
+#include "perfmon.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2175,6 +2176,7 @@ void core_tick()
     obj_update();
 }
 
+
 /*
  * Handle all kinds of updates.
  * Called once per pulse from game loop.
@@ -2197,36 +2199,50 @@ void update_handler( void )
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
 
+
     if ( --pulse_timer <= 0 )
     {
         pulse_timer     = PULSE_TIMER_TRIG;
-        timer_update();
+
+        PERF_MEASURE(timer_update,
+            timer_update();
+        );
     }
 
     if ( --pulse_msdp <= 0 )
     {
         pulse_msdp      = PULSE_PER_SECOND;
-        msdp_update();
+        PERF_MEASURE(msdp_update,
+            msdp_update();
+        );
     } 
 
     if ( --pulse_save <= 0 )
     {
         pulse_save = PULSE_SAVE;
-        handle_player_save();
+        PERF_MEASURE(handle_player_save,
+            handle_player_save();
+        );
     }
 
     if ( update_all && --pulse_area <= 0 )
     {
         pulse_area  = PULSE_AREA;
         /* number_range( PULSE_AREA / 2, 3 * PULSE_AREA / 2 ); */
-        area_update ( FALSE );
-        remort_update();
+        PERF_MEASURE(area_update,
+            area_update ( FALSE );
+        );
+        PERF_MEASURE(remort_update,
+            remort_update();
+        );
     }
 
     if ( update_all && --pulse_herb <= 0 )
     {
         pulse_herb  = PULSE_HERB;
-        reset_herbs_world();
+        PERF_MEASURE(reset_herbs_world,
+            reset_herbs_world();
+        );
     }
 
     if ( update_all )
@@ -2235,19 +2251,25 @@ void update_handler( void )
         if ( --pulse_mobile <= 0 )
         {
             pulse_mobile         = PULSE_MOBILE;
-            mobile_update   ( );
+            PERF_MEASURE(mobile_update,
+                mobile_update   ( );
+            );
         }
         if ( --pulse_mobile_special <= 0 )
         {
             pulse_mobile_special = PULSE_MOBILE_SPECIAL;
-            mobile_special_update   ( );
+            PERF_MEASURE(mobile_special_update,
+                mobile_special_update   ( );
+            );
         }
     }
 
     if ( update_all && --pulse_violence <= 0 )
     {
         pulse_violence  = PULSE_VIOLENCE;
-        violence_update ( );
+        PERF_MEASURE(violence_update,
+            violence_update ( );
+        );
         /* relics */
         //all_religions( &religion_relic_damage );
     }
@@ -2258,8 +2280,12 @@ void update_handler( void )
         pulse_point     = PULSE_TICK;
         /* number_range( PULSE_TICK / 2, 3 * PULSE_TICK / 2 ); */
 
-        auth_update();
-        core_tick();
+        PERF_MEASURE(auth_update,
+            auth_update();
+        );
+        PERF_MEASURE(core_tick,
+            core_tick();
+        );
         
         /* clan_update(); */
         //all_religions( &religion_create_relic );
@@ -2274,7 +2300,9 @@ void update_handler( void )
     {
         if ( minute_update )
         {
-            check_lboard_reset();
+            PERF_MEASURE(check_lboard_reset,
+                check_lboard_reset();
+            );
         }
     }
     else
@@ -2287,7 +2315,11 @@ void update_handler( void )
         {
             /* update herb_resets every 6 hours */
             if ( current_time % (6*HOUR) == 0 )
-                update_herb_reset();
+            {
+                PERF_MEASURE(update_herb_reset,
+                    update_herb_reset();
+                );
+            }
 
             /* update priests once per day
             if ( current_time % DAY == 0 )
@@ -2305,13 +2337,17 @@ void update_handler( void )
 
     if ( update_all )
     {
-        update_fighting();
-        aggr_update();
-        show_violence_summary();
-        death_update();
-        extract_update();
-        cleanup_uds();
-        validate_all();
+        PERF_MEASURE(update_fighting,
+            update_fighting();
+        );
+        PERF_MEASURE(aggr_update,
+            aggr_update();
+        );
+        PERF_MEASURE(show_violence_summary, show_violence_summary(););
+        PERF_MEASURE(death_update, death_update(););
+        PERF_MEASURE(extract_update, extract_update(););
+        PERF_MEASURE(cleanup_uds, cleanup_uds(););
+        PERF_MEASURE(validate_all, validate_all(););
     }
 
     tail_chain( );

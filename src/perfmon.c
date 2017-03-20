@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
+#include <string.h>
 #include "perfmon.h"
 
 #define PULSE_PER_SECOND 4
@@ -11,6 +13,82 @@
 #define HOUR_PER_DAY 24
 #define PULSE_PER_DAY (PULSE_PER_HOUR * HOUR_PER_DAY)
 
+#define USEC_PER_PULSE (1000000 / PULSE_PER_SECOND)
+
+#define MAX_MEAS 128 
+
+struct PERF_meas_s 
+{
+    int index;
+    const char *tag;
+    struct timeval start;
+    struct timeval end;
+};
+
+
+static struct PERF_meas_s measurements[MAX_MEAS];
+static int meas_ind = 0;
+
+
+void PERF_meas_reset()
+{
+    meas_ind = 0;
+}
+
+void PERF_meas_start(struct PERF_meas_s **m, const char *tag)
+{
+    if (meas_ind >= MAX_MEAS)
+        return; // TODO: return an error
+
+    struct PERF_meas_s *ptr = &(measurements[meas_ind]);
+
+    ptr->index = meas_ind;
+    if (ptr->tag)
+    {
+        free((void *)ptr->tag);
+    }
+    if (tag)
+    {
+        ptr->tag = strdup(tag);
+    }
+    else
+    {
+        ptr->tag = NULL;
+    }
+
+    gettimeofday(&(ptr->start), NULL);
+
+    meas_ind += 1;
+
+    *m = ptr; 
+}
+
+void PERF_meas_end(struct PERF_meas_s **m)
+{
+    gettimeofday(&((*m)->end), NULL);
+    *m = NULL;
+}
+
+const char *PERF_meas_repr()
+{
+    static char buf[MAX_MEAS * 80];
+    
+    int offset = 0;
+
+    int i;
+    for (i=0; i < meas_ind; i++)
+    {
+        long elapsed = (measurements[i].end.tv_sec  - measurements[i].start.tv_sec )*1000000 + 
+                       (measurements[i].end.tv_usec - measurements[i].start.tv_usec);
+        offset += snprintf(
+                buf + offset, 
+                80, "%-20s - %.2f%%\n\r", 
+                measurements[i].tag ? measurements[i].tag : "", 
+                100 * ((double)elapsed / USEC_PER_PULSE));
+    }
+
+    return buf;
+}
 
 static int init_done = 0;
 
