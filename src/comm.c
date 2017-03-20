@@ -330,7 +330,17 @@ void game_loop_unix( int control )
     /* Main loop */
     while ( !merc_down )
     {
+        struct PERF_meas_s *ms_main;
+        struct PERF_meas_s *ms_check_lua_stack;
+        struct PERF_meas_s *ms_update_handler;
+       
+        PERF_meas_reset();
+
+        PERF_meas_start(&ms_main, "main"); 
+
+        PERF_meas_start(&ms_check_lua_stack, "check_lua_stack"); 
         check_lua_stack();
+        PERF_meas_end(&ms_check_lua_stack);
 
         fd_set in_set;
         fd_set out_set;
@@ -558,7 +568,9 @@ void game_loop_unix( int control )
         /*
          * Autonomous game motion.
          */
+        PERF_meas_start(&ms_update_handler, "update_handler");
         update_handler( );
+        PERF_meas_end(&ms_update_handler);
 
         /*
          * Output.
@@ -599,6 +611,7 @@ void game_loop_unix( int control )
             }
         }
 
+        PERF_meas_end(&ms_main);
 
         /*
          * Synchronize to a clock.
@@ -633,6 +646,11 @@ void game_loop_unix( int control )
                 (double)(10000/PULSE_PER_SECOND);
 
             PERF_log_pulse( usage );
+            if (usage >= 100)
+            {
+                log_string("Pulse usage > 100%. Trace info: ");
+                log_string(PERF_meas_repr());
+            }
 
             if ( secDelta > 0 || ( secDelta == 0 && usecDelta > 0 ) )
             {
