@@ -757,29 +757,6 @@ void mem_sim_save_other()
     }
     */
 
-    /* leaderboards */
-    PERF_MEASURE(save_lboards, save_lboards(););
-
-    /* changelog */
-    PERF_MEASURE(save_changelog, save_changelog(););
-
-    /* playback */
-    PERF_MEASURE(save_comm_histories, save_comm_histories(););
-   /* mf = save_lboards();
-    {
-        mf->next = other_save_list;
-        other_save_list = mf;
-    }*/
-
-    /* leaderboard results */
-    /*mf = save_lboard_results();
-    {
-        mf->next = other_save_list;
-        other_save_list = mf;
-    }*/
-
-    /* mudconfig */
-    PERF_MEASURE(save_mudconfig, save_mudconfig(););
 
 #if defined(SIM_DEBUG)
    log_string("mem_sim_save_other: done");
@@ -801,6 +778,15 @@ void sim_save_other()
 	save_to_dir( mf, "" );
 	memfile_free( mf );
     }
+    
+    /* leaderboards */
+    PERF_MEASURE(save_lboards, save_lboards(););
+
+    /* playback */
+    PERF_MEASURE(save_comm_histories, save_comm_histories(););
+
+    /* mudconfig */
+    PERF_MEASURE(save_mudconfig, save_mudconfig(););
 #if defined(SIM_DEBUG)
    log_string("sim_save_other: done");
 #endif
