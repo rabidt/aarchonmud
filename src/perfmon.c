@@ -20,6 +20,7 @@
 struct PERF_meas_s 
 {
     int index;
+    int level;
     const char *tag;
     struct timeval start;
     struct timeval end;
@@ -28,7 +29,7 @@ struct PERF_meas_s
 
 static struct PERF_meas_s measurements[MAX_MEAS];
 static int meas_ind = 0;
-
+static int curr_level = 0;
 
 void PERF_meas_reset()
 {
@@ -43,6 +44,7 @@ void PERF_meas_start(struct PERF_meas_s **m, const char *tag)
     struct PERF_meas_s *ptr = &(measurements[meas_ind]);
 
     ptr->index = meas_ind;
+    ptr->level = curr_level++;
     if (ptr->tag)
     {
         free((void *)ptr->tag);
@@ -66,23 +68,39 @@ void PERF_meas_start(struct PERF_meas_s **m, const char *tag)
 void PERF_meas_end(struct PERF_meas_s **m)
 {
     gettimeofday(&((*m)->end), NULL);
+    curr_level--;
     *m = NULL;
 }
 
 const char *PERF_meas_repr()
 {
     static char buf[MAX_MEAS * 80];
+    // assume max depth 10
     
     int offset = 0;
 
     int i;
     for (i=0; i < meas_ind; i++)
     {
+        char indent[] = "                    ";
+        int lvl = measurements[i].level;
+
+        if ((lvl*2) < sizeof(indent))
+        {
+            indent[lvl*2] = '\0';
+            if (lvl > 0)
+            {
+               indent[lvl*2-1] = '-';
+               indent[lvl*2-2] = '|';
+            } 
+        } 
+
         long elapsed = (measurements[i].end.tv_sec  - measurements[i].start.tv_sec )*1000000 + 
                        (measurements[i].end.tv_usec - measurements[i].start.tv_usec);
         offset += snprintf(
                 buf + offset, 
-                80, "%-20s - %.2f%%\n\r", 
+                80, "%s%-20s - %.2f%%\n\r", 
+                indent,
                 measurements[i].tag ? measurements[i].tag : "", 
                 100 * ((double)elapsed / USEC_PER_PULSE));
     }
