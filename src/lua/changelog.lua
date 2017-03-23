@@ -21,8 +21,10 @@ local function add_change( chg )
     else
         table.insert( changelog_table, chg ) 
     end
-        
+
+    save_changelog() 
 end
+
 local function handle_changelog_con( d )
     local change={}
     local stat

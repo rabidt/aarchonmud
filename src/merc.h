@@ -5050,7 +5050,6 @@ void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
-void save_changelog();
 void load_changelog();
 BUFFER *new_buf();
 void free_buf(BUFFER *buffer);
