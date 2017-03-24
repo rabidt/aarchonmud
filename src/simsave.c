@@ -778,15 +778,7 @@ void sim_save_other()
 	save_to_dir( mf, "" );
 	memfile_free( mf );
     }
-    
-    /* leaderboards */
-    PERF_MEASURE(save_lboards, save_lboards(););
 
-    /* playback */
-    PERF_MEASURE(save_comm_histories, save_comm_histories(););
-
-    /* mudconfig */
-    PERF_MEASURE(save_mudconfig, save_mudconfig(););
 #if defined(SIM_DEBUG)
    log_string("sim_save_other: done");
 #endif
