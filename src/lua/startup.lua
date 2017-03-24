@@ -429,31 +429,6 @@ function list_files ( path )
     return rtn
 end
 
-function save_mudconfig()
-    local tbl=mudconfig()
-    local f=io.open("mudconfig.lua", "w")
-    out,saved=serialize.save("mudconfig", tbl)
-    f:write(out)
-
-    f:close()
-end
-
-function load_mudconfig()
-    local f=loadfile("mudconfig.lua")
-    if f==nil then return end
-
-    tmp=f()
-    if not(tmp==nil) then
-        for k,v in pairs(tmp) do
-            -- do pcall cause we might have dropped some options
-            local res,err=pcall(mudconfig, k, v)
-            if not(res) then
-                log("Couldn't set option '"..k.."'")
-            end
-        end
-    end
-end
-
 function save_comm( name, tbl )
     local f=io.open(name..".lua", "w")
     out,saved=serialize.save("tbl", tbl)

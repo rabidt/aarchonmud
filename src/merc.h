@@ -4602,6 +4602,8 @@ void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... );
 void    printf_to_wiznet( CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ... );
 void    logpf( const char *fmt, ... );
 void    bugf( const char *fmt, ... );
+void    final_save_all();
+
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -5037,8 +5039,6 @@ bool can_order( const char *command, CHAR_DATA *victim );
 /* lua_main.c */
 void check_lua_stack();
 void update_bossachv_table();
-void lua_log_perf( double value );
-void save_mudconfig();
 void load_mudconfig();
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );

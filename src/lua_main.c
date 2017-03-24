@@ -278,63 +278,6 @@ void check_lboard_reset()
     }
 }
 
-/* currently unused - commented to avoid warning
-static int L_save_mudconfig(lua_State *LS)
-{
-    int i;
-    CFG_DATA_ENTRY *en;
-
-    lua_getglobal(LS, "SaveTbl");
-    lua_newtable(LS);
-    for ( i=0 ; mudconfig_table[i].name ; i++ )
-    {
-        en=&mudconfig_table[i];
-        switch( en->type )
-        {
-            case CFG_INT:
-            {
-                lua_pushinteger( LS, *((int *)(en->value)));
-                break;
-            }
-            case CFG_FLOAT:
-            {
-                lua_pushnumber( LS, *((float *)(en->value)));
-                break;
-            }
-            case CFG_STRING:
-            {
-                lua_pushstring( LS, *((char **)(en->value)));
-                break;
-            }
-            case CFG_BOOL:
-            {
-                lua_pushboolean( LS, *((bool *)(en->value)));
-                break;
-            }
-            default:
-            {
-                luaL_error( LS, "Bad type.");
-            }
-        }
-
-        lua_setfield(LS, -2, en->name);
-    }
-
-    return 1;
-}
-*/
-
-void save_mudconfig()
-{
-    lua_getglobal( g_mud_LS, "save_mudconfig");
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
-    {
-        bugf ( "Error with save_mudconfig:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop( g_mud_LS, 1);
-    }
-}
-
 void load_mudconfig()
 {
     lua_getglobal( g_mud_LS, "load_mudconfig");
