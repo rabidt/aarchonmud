@@ -2292,18 +2292,23 @@ void update_handler( void )
         //update_relic_bonus();
     }
 
-    /* check lboard reset times once a minute
-       could check once an hour or even once a day 
-       but 'current_time % HOUR' doesn't account for local time
-       so doesn't synch up. */
     if ( current_time % MINUTE == 0 )
     {
         if ( minute_update )
         {
+            /* check lboard reset times once a minute
+               could check once an hour or even once a day 
+               but 'current_time % HOUR' doesn't account for local time
+               so doesn't synch up. */
             PERF_MEASURE(check_lboard_reset,
                 check_lboard_reset();
             );
+
+            PERF_MEASURE(save_lboards, save_lboards(););
+
+            PERF_MEASURE(save_comm_histories, save_comm_histories(););
         }
+        minute_update = FALSE;
     }
     else
         minute_update=TRUE;

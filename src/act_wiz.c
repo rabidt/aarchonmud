@@ -762,7 +762,8 @@ DEF_DO_FUN(do_reboot)
     }
     
     merc_down = TRUE;
-    final_player_save();
+    final_save_all();
+
     for ( d = descriptor_list; d != NULL; d = d_next )
     {
         d_next = d->next;
@@ -808,7 +809,7 @@ DEF_DO_FUN(do_shutdown)
     if (ch->invis_level < LEVEL_HERO)
         do_echo( ch, buf );
     merc_down = TRUE;
-    final_player_save();
+    final_save_all();
     for ( d = descriptor_list; d != NULL; d = d_next)
     {
         d_next = d->next;

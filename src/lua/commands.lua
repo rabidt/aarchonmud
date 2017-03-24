@@ -1339,6 +1339,31 @@ end
 --end alist section
 
 --mudconfig section
+local function save_mudconfig()
+    local tbl=mudconfig()
+    local f=io.open("mudconfig.lua", "w")
+    out,saved=serialize.save("mudconfig", tbl)
+    f:write(out)
+
+    f:close()
+end
+
+function load_mudconfig()
+    local f=loadfile("mudconfig.lua")
+    if f==nil then return end
+
+    tmp=f()
+    if not(tmp==nil) then
+        for k,v in pairs(tmp) do
+            -- do pcall cause we might have dropped some options
+            local res,err=pcall(mudconfig, k, v)
+            if not(res) then
+                log("Couldn't set option '"..k.."'")
+            end
+        end
+    end
+end
+
 local function mudconfig_usage(ch)
     sendtochar(ch,
 [[
@@ -1348,6 +1373,7 @@ Syntax:
    mudconfig <option> <value> -- set a new value for the given option
 ]])
 end
+
 function do_mudconfig( ch, argument )
     local args=arguments(argument)
     local nargs=#args
@@ -1361,6 +1387,7 @@ function do_mudconfig( ch, argument )
         end
 
         mudconfig(unpack(args))
+        save_mudconfig()
         -- show result
         do_mudconfig( ch, args[1])
         sendtochar(ch, "Done.\n\r")

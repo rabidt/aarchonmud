@@ -2920,9 +2920,9 @@ static void copyover_mud( const char *argument )
         }
     }
 
+    final_save_all();
+    
     /* For each playing descriptor, save its state */
-    final_player_save();
-
     for (d = descriptor_list; d ; d = d_next)
     {
         CHAR_DATA * och = CH (d);
@@ -3371,3 +3371,9 @@ PARENT
 #endif
 ;
 
+void final_save_all()
+{
+    final_player_save();
+    save_lboards();
+    save_comm_histories();
+}

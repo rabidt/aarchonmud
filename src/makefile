@@ -1,7 +1,5 @@
 OBJ_DIR := ../obj
 VPATH = ./tests
-AARCHON_INC ?= /home/m256ada/include
-AARCHON_LIB ?= /home/m256ada/lib
 
 CC      = gcc
 PROF    = -I$(AARCHON_INC) -L$(AARCHON_LIB) -O2
