@@ -521,12 +521,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "authorize",  do_authorize, POS_DEAD, L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "avatar",	    do_avatar,  POS_DEAD,   L9,	 LOG_ALWAYS, 1, FALSE, FALSE  },
     { "printlist",  do_printlist,POS_DEAD,  ML,  LOG_NORMAL, 1, FALSE, FALSE  },
-/* Used only for some pfile testing */
-#ifdef TESTER
-    { "charloadtest", do_charloadtest, POS_DEAD, ML, LOG_ALWAYS, 1, FALSE, FALSE },
-#endif
     { "trust",      do_trust,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-//    { "pipe",       do_pipe,    POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "pgrep",      do_pgrep,   POS_DEAD,   L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "pload",      do_pload,   POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "punload",    do_punload, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
