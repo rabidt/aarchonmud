@@ -211,7 +211,6 @@ const struct flag_type act_flags[] =
     {   "nobehead",     ACT_NOBEHEAD,    TRUE    },
     {   "noweapon",     ACT_NOWEAPON,    TRUE    },
     {   "traveller",    ACT_TRAVELLER,   TRUE    },
-    {   "achievement",  ACT_ACHIEVEMENT, TRUE    },
 	{   NULL,           0,  FALSE   }
 };
 
