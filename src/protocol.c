@@ -327,7 +327,6 @@ protocol_t *ProtocolCreate( void )
 
    /* SGA is special case. Set as on by default unless client tells us otherwise */
    pProtocol->bSGA = true;
-   pProtocol->Negotiated[eNEGOTIATED_SGA] = true;
 
    pProtocol->b256Support = eUNKNOWN;
    pProtocol->ScreenWidth = 0;
@@ -1748,36 +1747,10 @@ static void PerformHandshake( descriptor_t *apDescriptor, char aCmd, char aProto
          break;
 
       case (char)TELOPT_SGA:
-         /* Special case SGA. We start with it enabled and only actually 
-          * negotiate if client starts it off.
-          *
-          * Reasons:
-          *  1. Previous behavior of the MUD was to never send GA (so de facto 
-          *     SGA), so default to on preserve this.
-          *  2. XTERM in particular has some issue of entering linemode if we 
-          *     send WILL SGA.
-          *  3. We generally only care about SGA for Mudlet anyway since it 
-          *     relies on GA to prevent prompt delays. Mudlet does send us 
-          *     a WONT SGA on connect so then we will respond accordingly.
+         /* Special case SGA. We start with it enabled and only turn it off manually
+          * based on client name. Mudlet is the only known client who wants server to send GA. 
+          * Ignore negotation attempts.
           */
-         if ( aCmd == (char)DO )
-         {
-            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
-            pProtocol->bSGA = true;
-         }
-         else if ( aCmd == (char)DONT )
-         {
-            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, false, pProtocol->bSGA);
-            pProtocol->bSGA = false;
-         }
-         else if ( aCmd == (char)WONT || aCmd == (char)WILL )
-         {
-            /* We're negotiating, so set back to false and we'll see what the negotiation result is */
-            pProtocol->Negotiated[eNEGOTIATED_SGA] = false;
-            pProtocol->bSGA = false;
-            /* Send back WILL and let them give us a DO or DONT */
-            ConfirmNegotiation(apDescriptor, eNEGOTIATED_SGA, true, true);
-         }
          break;
 
       case (char)TELOPT_ECHO:
@@ -2149,6 +2122,11 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
 
             if ( PrefixString("Mudlet", pClientName) )
             {
+               /* Mudlet expects GA at end of transmission or it delays sending last line.
+                * Its negotiation of SGA between versions is inconsistent so we just set it here.
+                */
+               pProtocol->bSGA = FALSE;
+
                /* Mudlet beta 15 and later supports 256 colours, but we can't 
                 * identify it from the mud - everything prior to 1.1 claims 
                 * to be version 1.0, so we just don't know.
@@ -2323,8 +2301,6 @@ static bool_t ConfirmNegotiation( descriptor_t *apDescriptor, negotiated_t aProt
                   SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_MCCP );
 #endif /* USING_MCCP */
                   break;
-               case eNEGOTIATED_SGA:
-                  SendNegotiationSequence( apDescriptor, abWillDo ? WILL : WONT, TELOPT_SGA );
                default:
                   bResult = false;
                   break;
