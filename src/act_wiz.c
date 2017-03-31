@@ -3441,7 +3441,6 @@ DEF_DO_FUN(do_protocol)
     wrneg(eNEGOTIATED_MXP);
     wrneg(eNEGOTIATED_MXP2);
     wrneg(eNEGOTIATED_MCCP);
-    wrneg(eNEGOTIATED_SGA);
 
 
 #undef wrbool
