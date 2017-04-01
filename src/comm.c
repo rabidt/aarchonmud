@@ -2307,350 +2307,66 @@ int colour( char type, CHAR_DATA *ch, char *string )
         case 'x':
             strcpy( code, CLEAR );
             break;
-        case 'o':
-            if( col->room_title[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->room_title[0], col->room_title[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->room_title[0], col->room_title[1] );
-            break;
-        case 'O':
-            if( col->room_exits[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->room_exits[0], col->room_exits[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->room_exits[0], col->room_exits[1] );
-            break;
-        case 'p':
-            if( col->gossip[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gossip[0], col->gossip[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gossip[0], col->gossip[1] );
-            break;
-        case 'P':
-            if( col->gossip_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gossip_text[0], col->gossip_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gossip_text[0], col->gossip_text[1] );
-            break;
-        case 'a':
-            if( col->auction[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->auction[0], col->auction[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->auction[0], col->auction[1] );
-            break;
-        case 'A':
-            if( col->auction_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->auction_text[0], col->auction_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->auction_text[0], col->auction_text[1] );
-            break;
-        case 'e':
-            if( col->music[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->music[0], col->music[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->music[0], col->music[1] );
-            break;
-        case 'E':
-            if( col->music_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->music_text[0], col->music_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->music_text[0], col->music_text[1] );
-            break;
-        case 'q':
-            if( col->question[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->question[0], col->question[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->question[0], col->question[1] );
-            break;
-        case 'Q':
-            if( col->question_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->question_text[0], col->question_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->question_text[0], col->question_text[1] );
-            break;
-        case 'j':
-            if( col->answer[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->answer[0], col->answer[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->answer[0], col->answer[1] );
-            break;
-        case 'J':
-            if( col->answer_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->answer_text[0], col->answer_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->answer_text[0], col->answer_text[1] );
-            break;
-        case 'h':
-            if( col->quote[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->quote[0], col->quote[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->quote[0], col->quote[1] );
-            break;
-        case 'H':
-            if( col->quote_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->quote_text[0], col->quote_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->quote_text[0], col->quote_text[1] );
-            break;
-        case 'z':
-            if( col->gratz[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gratz[0], col->gratz[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gratz[0], col->gratz[1] );
-            break;
-        case 'Z':
-            if( col->gratz_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gratz_text[0], col->gratz_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gratz_text[0], col->gratz_text[1] );
-            break;
-        case 'i':
-            if( col->immtalk[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->immtalk[0], col->immtalk[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->immtalk[0], col->immtalk[1] );
-            break;
-        case 'I':
-            if( col->immtalk_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->immtalk_text[0], col->immtalk_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->immtalk_text[0], col->immtalk_text[1] );
-            break;
-        case '7':
-            if( col->savantalk[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->savantalk[0], col->savantalk[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->savantalk[0], col->savantalk[1] );
-            break;
-        case '8':
-            if( col->savantalk_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->savantalk_text[0], col->savantalk_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->savantalk_text[0], col->savantalk_text[1] );
-            break;
-        case 'u':
-            if( col->shouts[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->shouts[0], col->shouts[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->shouts[0], col->shouts[1] );
-            break;
-        case 'U':
-            if( col->shouts_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->shouts_text[0], col->shouts_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->shouts_text[0], col->shouts_text[1] );
-            break;
-        case 't':
-            if( col->tells[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->tells[0], col->tells[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->tells[0], col->tells[1] );
-            break;
-        case 'T':
-            if( col->tell_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->tell_text[0], col->tell_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->tell_text[0], col->tell_text[1] );
-            break;
-        case '1':
-            if( col->info[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->info[0], col->info[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->info[0], col->info[1] );
-            break;
-        case '2':
-            if( col->info_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->info_text[0], col->info_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->info_text[0], col->info_text[1] );
-            break;
-        case 'k':
-            if( col->gametalk[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gametalk[0], col->gametalk[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gametalk[0], col->gametalk[1] );
-            break;
-        case 'K':
-            if( col->gametalk_text[2] )
-                sprintf( code, "%d;3%dm%c",
-                        col->gametalk_text[0], col->gametalk_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gametalk_text[0], col->gametalk_text[1] );
-            break;
-        case 'f':
-            if( col->bitch[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->bitch[0], col->bitch[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->bitch[0], col->bitch[1] );
-            break;
-        case 'F':
-            if( col->bitch_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->bitch_text[0], col->bitch_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->bitch_text[0], col->bitch_text[1] );
-            break;
-        case 'n':
-            if( col->newbie[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->newbie[0], col->newbie[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->newbie[0], col->newbie[1] );
-            break;
-        case 'N':
-            if( col->newbie_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->newbie_text[0], col->newbie_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->newbie_text[0], col->newbie_text[1] );
-            break;
-        case 'l':
-            if( col->clan[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->clan[0], col->clan[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->clan[0], col->clan[1] );
-            break;
-        case 'L':
-            if( col->clan_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->clan_text[0], col->clan_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->clan_text[0], col->clan_text[1] );
-            break;
-        case 's':
-            if( col->say[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->say[0], col->say[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->say[0], col->say[1] );
-            break;
-        case 'S':
-            if( col->say_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->say_text[0], col->say_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->say_text[0], col->say_text[1] );
-            break;
-        case '3':
-            if( col->gtell[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gtell[0], col->gtell[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gtell[0], col->gtell[1] );
-            break;
-        case '4':
-            if( col->gtell_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->gtell_text[0], col->gtell_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->gtell_text[0], col->gtell_text[1] );
-            break;
-        case 'V':
-            if( col->wiznet[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->wiznet[0], col->wiznet[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->wiznet[0], col->wiznet[1] );
-            break;
-        case '5':
-            if ( col->warfare[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->warfare[0], col->warfare[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->warfare[0], col->warfare[1] );
-            break;
-        case '6':
-            if ( col->warfare_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->warfare_text[0], col->warfare_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->warfare_text[0], col->warfare_text[1] );
-            break;
-        case '9':
-            if ( col->proclaim[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->proclaim[0], col->proclaim[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->proclaim[0], col->proclaim[1] );
-            break;
-        case '0':
-            if ( col->proclaim_text[2] )
-                sprintf( code, "[%d;3%dm%c",
-                        col->proclaim_text[0], col->proclaim_text[1], '\a' );
-            else
-                sprintf( code, "[%d;3%dm",
-                        col->proclaim_text[0], col->proclaim_text[1] );
-            break;
+#define CUSTC(chr, field) \
+    case chr: \
+        if ( col->field[1] == COLOUR_NONE ) \
+        { \
+            sprintf( code, "%s%s", CLEAR, col->field[2] ? "\a" : ""); \
+        } \
+        else \
+        { \
+            sprintf( code, "[%d;3%dm%s", \
+                    col->field[0], \
+                    col->field[1], \
+                    col->field[2] ? "\a" : ""); \
+        } \
+        break;
+
+        CUSTC('o', room_title);
+        CUSTC('O', room_exits);
+        CUSTC('p', gossip);
+        CUSTC('P', gossip_text);
+        CUSTC('a', auction);
+        CUSTC('A', auction_text);
+        CUSTC('e', music);
+        CUSTC('E', music_text);
+        CUSTC('q', question);
+        CUSTC('Q', question_text);
+        CUSTC('j', answer);
+        CUSTC('J', answer_text);
+        CUSTC('h', quote);
+        CUSTC('H', quote_text);
+        CUSTC('z', gratz);
+        CUSTC('Z', gratz_text);
+        CUSTC('i', immtalk);
+        CUSTC('I', immtalk_text);
+        CUSTC('7', savantalk);
+        CUSTC('8', savantalk_text);
+        CUSTC('u', shouts);
+        CUSTC('U', shouts_text);
+        CUSTC('t', tells);
+        CUSTC('T', tell_text);
+        CUSTC('1', info);
+        CUSTC('2', info_text);
+        CUSTC('k', gametalk);
+        CUSTC('K', gametalk_text);
+        CUSTC('f', bitch);
+        CUSTC('F', bitch_text);
+        CUSTC('n', newbie);
+        CUSTC('N', newbie_text);
+        CUSTC('l', clan);
+        CUSTC('L', clan_text);
+        CUSTC('s', say);
+        CUSTC('S', say_text);
+        CUSTC('3', gtell);
+        CUSTC('4', gtell_text);
+        CUSTC('V', wiznet);
+        CUSTC('5', warfare);
+        CUSTC('6', warfare_text);
+        CUSTC('9', proclaim);
+        CUSTC('0', proclaim_text);
+#undef CUSTC
+
         case 'b':
             strcpy( code, C_BLUE );
             break;
