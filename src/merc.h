@@ -2763,7 +2763,6 @@ struct  pc_data
 
 	/* quest stuff */
     bool                quest_is_hard;
-	CHAR_DATA *         questgiver; /* Vassago */
 	int                 questpoints;  /* Vassago */
 	sh_int              nextquest; /* Vassago */
 	sh_int              countdown; /* Vassago */
