@@ -2417,8 +2417,7 @@ DEF_DO_FUN(do_omni)
             state,                                  /* State (Playing, creation, etc. */
             capitalize( position_table[wch->position].name),  /* Position */
             wch->in_room ? wch->in_room->vnum : 0,  /* Room player is in */
-            IS_QUESTOR(wch) 
-                || IS_QUESTORHARD(wch) ? "Y" : "N", /* Is player on a quest? */
+            IS_QUESTOR(wch) ? "Y" : "N",            /* Is player on a quest? */
             d->host,                                /* Send IP through pgrep */
             d->host,
             d->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString,

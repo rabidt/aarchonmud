@@ -1934,10 +1934,9 @@ void quit_char( CHAR_DATA *ch )
         free_note (ch->pcdata->in_progress);
     
     /* check if char had quest */
-    if ( IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD) )
+    if ( IS_SET(ch->act, PLR_QUESTOR) )
     {
 	REMOVE_BIT( ch->act, PLR_QUESTOR );
-	REMOVE_BIT( ch->act, PLR_QUESTORHARD );
 	ch->pcdata->quest_failed++;
     }
 
