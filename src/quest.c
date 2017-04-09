@@ -29,43 +29,42 @@ DECLARE_DO_FUN( do_startwar );
 
 /* Object vnums for Quest Rewards */
 
-#define QUEST_ITEM1 10387 //Sword of Kings
-#define QUEST_ITEM2 10389 //Staff of Ancients
-#define QUEST_ITEM3 10386 
-#define QUEST_ITEM4 10380 //Old Smote's
-#define QUEST_ITEM5 10381 //Old Rimbol's
-#define QUEST_ITEM6 10382 //Old Meph's
-#define QUEST_ITEM7 10383 //Old Swayde
-#define QUEST_ITEM8 10384 //Old Para
-#define QUEST_ITEM9 10385 //Old Firewitch
-#define QUEST_ITEM10 22050 //Old Lilith
-#define QUEST_ITEM11 10388 //Old Quirky
-#define QUEST_ITEM12 10398 //Old Siva
-#define QUEST_ITEM13 22051 //Old Eris
-#define QUEST_ITEM14 22052 //Old Bobble
-#define QUEST_ITEM15 22053 //Old Drexl
-#define QUEST_ITEM16 4700 //New Quirky
-#define QUEST_ITEM17 4701 //New Lilith
-#define QUEST_ITEM18 4702 //New Firewitch
-#define QUEST_ITEM19 4703 //New Eris
-#define QUEST_ITEM20 4704 //New Drexl
-#define QUEST_ITEM21 4705 //New Parademia
-#define QUEST_ITEM22 4706 //New Swayde
-#define QUEST_ITEM23 4707 //New Siva
-#define QUEST_ITEM24 4708 //New Mephison
-#define QUEST_ITEM25 4709 //New Bobble
-#define QUEST_ITEM26 4710 //New Rimbol
-#define QUEST_ITEM27 4711 //New Smote
-#define QUEST_ITEM28 4712 //Maedhros Leggings
-#define QUEST_ITEM29 4726 //Quantum Shield
-#define QUEST_ITEM30 4900 //Astark Light
+#define VNUM_SWORD         10387 //Sword of Kings
+#define VNUM_STAFF         10389 //Staff of Ancients
 
-/* Quest timer defines - Maedhros, Feb 8, 2007 */ 
- 
-#define QUEST_COUNTDOWN_MIN 30           /* Original value: 15 */
-#define QUEST_COUNTDOWN_MAX 60           /* Original value: 30 */
-#define QUEST_NEXTQUEST_MIN 1            /* Original value: 2 */
-#define QUEST_NEXTQUEST_MAX 10           /* Original value: 10 */
+#define VNUM_SMOTE_OLD     10380 //Old Smote's
+#define VNUM_RIMBOL_OLD    10381 //Old Rimbol's
+#define VNUM_MEPH_OLD      10382 //Old Meph's
+#define VNUM_SWAYDE_OLD    10383 //Old Swayde
+#define VNUM_PARA_OLD      10384 //Old Para
+#define VNUM_FIREWITCH_OLD 10385 //Old Firewitch
+#define VNUM_LILITH_OLD    22050 //Old Lilith
+#define VNUM_QUIRKY_OLD    10388 //Old Quirky
+#define VNUM_SIVA_OLD      10398 //Old Siva
+#define VNUM_ERIS_OLD      22051 //Old Eris
+#define VNUM_BOBBLE_OLD    22052 //Old Bobble
+#define VNUM_DREXL_OLD     22053 //Old Drexl
+
+#define VNUM_QUIRKY         4700 //New Quirky
+#define VNUM_LILITH         4701 //New Lilith
+#define VNUM_FIREWITCH      4702 //New Firewitch
+#define VNUM_ERIS           4703 //New Eris
+#define VNUM_DREXL          4704 //New Drexl
+#define VNUM_PARA           4705 //New Parademia
+#define VNUM_SWAYDE         4706 //New Swayde
+#define VNUM_SIVA           4707 //New Siva
+#define VNUM_MEPH           4708 //New Mephison
+#define VNUM_BOBBLE         4709 //New Bobble
+#define VNUM_RIMBOL         4710 //New Rimbol
+#define VNUM_SMOTE          4711 //New Smote
+#define VNUM_MAED           4712 //Maedhros Leggings
+#define VNUM_SHIELD         4726 //Quantum Shield
+#define VNUM_ASTARK         4900 //Astark Light
+
+#define QUEST_COUNTDOWN_MIN 30
+#define QUEST_COUNTDOWN_MAX 60
+#define QUEST_NEXTQUEST_MIN 1
+#define QUEST_NEXTQUEST_MAX 10
 
 /* quest item table */
 struct quest_item
@@ -78,47 +77,47 @@ typedef struct quest_item QUEST_ITEM;
 
 QUEST_ITEM quest_item_table[] =
 {
-    { QUEST_ITEM1,  2500, "sword kings" },
-    { QUEST_ITEM2,  2000, "staff ancient" },
-    { QUEST_ITEM29, 2000, "quantum shield"},
-    { QUEST_ITEM30, 2000, "astarks infinite inspiration"},
-    { QUEST_ITEM27,  700, "smotes blessing" },
-    { QUEST_ITEM26,  700, "rimbols orb insight" },
-    { QUEST_ITEM25,  600, "bobbles bughouse suit" },
-    { QUEST_ITEM24,   600, "mephistons identity crisis" },
-    { QUEST_ITEM23,  600, "sivas mighty bracer" },
-    { QUEST_ITEM22,   525, "swaydes cloak temptation" },
-    { QUEST_ITEM21,   525, "parademias glove plague slain" },
-    { QUEST_ITEM20,  525, "drexls skin malice" },
-    { QUEST_ITEM28,  525, "maedhros leggings discord"},
-    { QUEST_ITEM19,  425, "eris chastity belt" },
-    { QUEST_ITEM18,   425, "firewitches ring fire" },
-    { QUEST_ITEM17,  350, "liliths web lies" },
-    { QUEST_ITEM16,  350, "quirkys clog calamity" },
+    { VNUM_SWORD,     2500, "sword kings" },
+    { VNUM_STAFF,     2000, "staff ancient" },
+    { VNUM_SHIELD,    2000, "quantum shield"},
+    { VNUM_ASTARK,    2000, "astarks infinite inspiration"},
+    { VNUM_SMOTE,      700, "smotes blessing" },
+    { VNUM_RIMBOL,     700, "rimbols orb insight" },
+    { VNUM_BOBBLE,     600, "bobbles bughouse suit" },
+    { VNUM_MEPH,       600, "mephistons identity crisis" },
+    { VNUM_SIVA,       600, "sivas mighty bracer" },
+    { VNUM_SWAYDE,     525, "swaydes cloak temptation" },
+    { VNUM_PARA,       525, "parademias glove plague slain" },
+    { VNUM_DREXL,      525, "drexls skin malice" },
+    { VNUM_MAED,       525, "maedhros leggings discord"},
+    { VNUM_ERIS,       425, "eris chastity belt" },
+    { VNUM_FIREWITCH,  425, "firewitches ring fire" },
+    { VNUM_LILITH,     350, "liliths web lies" },
+    { VNUM_QUIRKY,     350, "quirkys clog calamity" },
 /* Old versions of quest eq, can't be bought, sells for full price*/
-    { QUEST_ITEM4,  1000, "" },
-    { QUEST_ITEM5,  1000, "" },
-    { QUEST_ITEM14,  850, "" },
-    { QUEST_ITEM6,   850, "" },
-    { QUEST_ITEM12,  850, "" },
-    { QUEST_ITEM7,   750, "" },
-    { QUEST_ITEM8,   750, "" },
-    { QUEST_ITEM15,  750, "" },
-    { QUEST_ITEM13,  600, "" },
-    { QUEST_ITEM9,   600, "" },
-    { QUEST_ITEM10,  500, "" },
-    { QUEST_ITEM11,  500, "" },
+    { VNUM_SMOTE_OLD,     1000, "" },
+    { VNUM_RIMBOL_OLD,    1000, "" },
+    { VNUM_BOBBLE_OLD,     850, "" },
+    { VNUM_MEPH_OLD,       850, "" },
+    { VNUM_SIVA_OLD,       850, "" },
+    { VNUM_SWAYDE_OLD,     750, "" },
+    { VNUM_PARA_OLD,       750, "" },
+    { VNUM_DREXL_OLD,      750, "" },
+    { VNUM_ERIS_OLD,       600, "" },
+    { VNUM_FIREWITCH_OLD,  600, "" },
+    { VNUM_LILITH_OLD,     500, "" },
+    { VNUM_QUIRKY_OLD,     500, "" },
     { 0, 0, "" }
 };
 
-char* list_quest_items()
+static const char *list_quest_items()
 {
     static char list_buf[MSL];
     char buf[MIL];
     QUEST_ITEM *qi;
     OBJ_INDEX_DATA *obj;
     int i;
-    char * wloc;
+    const char * wloc;
 
     list_buf[0] = '\0';
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
@@ -162,7 +161,7 @@ char* list_quest_items()
     return list_buf;
 }
 
-bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
+static bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 {
     QUEST_ITEM *qi;
     int i;
@@ -195,7 +194,7 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
     return FALSE;
 }
 
-bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
+static bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 {
     QUEST_ITEM *qi;
     int i, qp_gain;
@@ -253,18 +252,15 @@ into the world when a player receives an object quest. */
 #define QUEST_OBJQUEST5 10379
 
 /* Local functions */
-
-void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-void quest_update   args(( void ));
-bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
-bool chance     args(( int num ));
+static void clear_quest_info(CHAR_DATA *ch);
+static void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
+static bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 
 /* Added for "hard" quest option -- Astark Feb2012 */
-void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
+static void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
+static bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
 /* End of hard quests */
 
-int quest_timer;
 
 /* CHANCE function. I use this everywhere in my code, very handy :> */
 bool chance(int num)
@@ -332,10 +328,9 @@ DEF_DO_FUN(do_quest)
     {
         if (IS_SET(ch->act, PLR_QUESTOR))
         {
-            if (ch->pcdata->questmob == -1 && ch->pcdata->questgiver->short_descr != NULL)
+            if (ch->pcdata->questmob == -1)
             {
-                sprintf(buf, "Your quest is ALMOST complete!\n\rGet back to %s before your time runs out!\n\r",ch->pcdata->questgiver->short_descr);
-                send_to_char(buf, ch);
+                send_to_char("Your quest is ALMOST complete!\n\rGet back to the questmaster before your time runs out!\n\r", ch);
             }
             else if (ch->pcdata->questobj > 0)
             {
@@ -398,13 +393,7 @@ DEF_DO_FUN(do_quest)
         if (ch->pcdata->quest_is_hard)
             ch->pcdata->quest_hard_failed++;
 
-        ch->pcdata->questgiver = NULL;
-        ch->pcdata->countdown = 0;
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-	ch->pcdata->questroom = 0;
-	ch->pcdata->questarea = 0;
-        REMOVE_BIT(ch->act, PLR_QUESTOR);
+        clear_quest_info(ch);
         
         /* Changed to include a define - Maedhros, Feb 7, 2006 */
 	/* ch->pcdata->nextquest = 10; */
@@ -456,8 +445,6 @@ DEF_DO_FUN(do_quest)
         send_to_char("Wait until the fighting stops.\n\r",ch);
         return;
     }
-    
-    ch->pcdata->questgiver = questman;
     
     /* And, of course, you will need to change the following lines for YOUR
     quest item information. Quest items on Moongate are unbalanced, very
@@ -908,13 +895,7 @@ DEF_DO_FUN(do_quest)
         gain_exp(ch, reward_exp, TRUE);
         
         // cleanup
-        REMOVE_BIT(ch->act, PLR_QUESTOR);
-        ch->pcdata->questgiver = NULL;
-        ch->pcdata->countdown = 0;
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-        ch->pcdata->questroom = 0;
-        ch->pcdata->questarea = 0;
+        clear_quest_info(ch);
         ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
 
         // tracking
@@ -932,7 +913,7 @@ DEF_DO_FUN(do_quest)
 
 }
 
-bool is_guild_room( int vnum )
+static bool is_guild_room( int vnum )
 {
     int iClass, iGuild;
 
@@ -944,7 +925,7 @@ bool is_guild_room( int vnum )
     return FALSE;
 }
 
-void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
+static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
 {
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
@@ -1148,7 +1129,7 @@ receive. They also will be rewarded appropriately due to the QUESTORHARD
 flag they are assigned. Allows for invisible mobs and for mobs with the
 flag "ACT hard_quest", even if they're in a no_quest room/area  -- Astark Feb2012 */
 
-void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
+static void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
 {
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
@@ -1344,7 +1325,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
    levels, so you will want to tweak these greater or
    less than statements for yourself. - Vassago */
 
-bool quest_level_diff( CHAR_DATA *ch, int mlevel)
+static bool quest_level_diff( CHAR_DATA *ch, int mlevel)
 {
     int clevel = ch->level + 2 * ch->pcdata->remorts;
     int min_level = URANGE( 1, clevel - 20, 90 );
@@ -1352,7 +1333,7 @@ bool quest_level_diff( CHAR_DATA *ch, int mlevel)
     return IS_BETWEEN( min_level, mlevel, min_level + 30 );
 }
 
-bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
+static bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 {
     // mobs for hard quests are higher level by 10 + 33%
     // so e.g. a range of 90-120 goes up to 130-170
@@ -1361,9 +1342,9 @@ bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 
 
 /* Called from update_handler() by pulse_area */
-
 void quest_update(void)
 {
+    static int quest_timer = 0;
     DESCRIPTOR_DATA *d;
     CHAR_DATA *ch;
     
@@ -1396,12 +1377,9 @@ void quest_update(void)
                     ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
                     sprintf(buf, "You have run out of time for your quest!\n\rYou may quest again in %d minutes.\n\r",ch->pcdata->nextquest);
                     send_to_char(buf, ch);
-                    REMOVE_BIT(ch->act, PLR_QUESTOR);
                     ch->pcdata->quest_failed++;
 					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
-                    ch->pcdata->questgiver = NULL;
-                    ch->pcdata->countdown = 0;
-                    ch->pcdata->questmob = 0;
+                    clear_quest_info(ch);
                 }
                 else if (ch->pcdata->countdown < 6)
                     send_to_char("Better hurry, you're almost out of time for your quest!\n\r",ch);
@@ -1750,4 +1728,14 @@ void set_quest_status( CHAR_DATA *ch, int id, int status, int timer, int limit )
     qdata->id = id;
     qdata->status = status;
     qdata->timer = timer;
+}
+
+static void clear_quest_info(CHAR_DATA *ch)
+{
+    ch->pcdata->countdown = 0;
+    ch->pcdata->questmob = 0;
+    ch->pcdata->questobj = 0;
+    ch->pcdata->questroom = 0;
+    ch->pcdata->questarea = 0;
+    REMOVE_BIT(ch->act, PLR_QUESTOR);
 }
