@@ -301,7 +301,6 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     
     flag_copy( saveact, ch->act );
     REMOVE_BIT(saveact, PLR_QUESTOR);
-    REMOVE_BIT(saveact, PLR_QUESTORHARD);
     REMOVE_BIT(saveact, PLR_WAR);
     
     bprintf( buf, "#%s\n", IS_NPC(ch) ? "MOB" : "PLAYER" );

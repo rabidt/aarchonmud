@@ -2206,7 +2206,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define PLR_NOSUMMON        (Q)
 #define PLR_NOFOLLOW        (R)
 #define PLR_QUESTOR         (S)
-#define PLR_QUESTORHARD     (V)
+// #define PLR_QUESTORHARD     (V)
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -2762,6 +2762,7 @@ struct  pc_data
 	int proclaim_text[3];   /* {0 */
 
 	/* quest stuff */
+    bool                quest_is_hard;
 	CHAR_DATA *         questgiver; /* Vassago */
 	int                 questpoints;  /* Vassago */
 	sh_int              nextquest; /* Vassago */
@@ -4039,7 +4040,6 @@ struct boss_achieve_record
 #define NPC_OFF(ch, flag) (IS_NPC(ch) && IS_SET((ch)->off_flags, flag))
 
 #define IS_QUESTOR(ch)     (IS_SET((ch)->act, PLR_QUESTOR))         
-#define IS_QUESTORHARD(ch)     (IS_SET((ch)->act, PLR_QUESTORHARD))
 
 #define GET_AGE(ch)     ((int) (17 + ((ch)->played + current_time - (ch)->logon )/72000))
 #define TIME_PLAYED(ch) ((ch)->played + current_time - (ch)->logon)

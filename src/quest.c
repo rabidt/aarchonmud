@@ -330,7 +330,7 @@ DEF_DO_FUN(do_quest)
     }
     if (!strcmp(arg1, "info"))
     {
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+        if (IS_SET(ch->act, PLR_QUESTOR))
         {
             if (ch->pcdata->questmob == -1 && ch->pcdata->questgiver->short_descr != NULL)
             {
@@ -383,7 +383,7 @@ DEF_DO_FUN(do_quest)
 
  /* Added the questorhard bitsector to be checked when giving up a quest --Astark Feb 2012 */
 
-        if (!IS_SET(ch->act,PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+        if (!IS_SET(ch->act,PLR_QUESTOR))
         {
             send_to_char("You're not on a quest!\n\r",ch);
             return;
@@ -395,7 +395,7 @@ DEF_DO_FUN(do_quest)
         ch->pcdata->quest_failed++;
 		update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
 
-        if (IS_SET(ch->act,PLR_QUESTORHARD))
+        if (ch->pcdata->quest_is_hard)
             ch->pcdata->quest_hard_failed++;
 
         ch->pcdata->questgiver = NULL;
@@ -405,7 +405,6 @@ DEF_DO_FUN(do_quest)
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
         REMOVE_BIT(ch->act, PLR_QUESTOR);
-        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         
         /* Changed to include a define - Maedhros, Feb 7, 2006 */
 	/* ch->pcdata->nextquest = 10; */
@@ -414,7 +413,7 @@ DEF_DO_FUN(do_quest)
     }
     else if (!strcmp(arg1, "time"))
     {
-        if (!IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD))
+        if (!IS_SET(ch->act, PLR_QUESTOR))
         {
             send_to_char("You aren't currently on a quest.\n\r",ch);
             if (ch->pcdata->nextquest > 1)
@@ -678,7 +677,7 @@ DEF_DO_FUN(do_quest)
 		
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+        if (IS_SET(ch->act, PLR_QUESTOR))
         {
             sprintf(buf, "But you're already on a quest!");
             do_say(questman, buf);
@@ -714,6 +713,7 @@ DEF_DO_FUN(do_quest)
 	     */
 
 	    SET_BIT(ch->act, PLR_QUESTOR);
+            ch->pcdata->quest_is_hard = FALSE;
             sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
             do_say(questman, buf);
             sprintf(buf, "May the gods go with you!");
@@ -733,7 +733,7 @@ DEF_DO_FUN(do_quest)
       {
         act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
         act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
-        if (IS_SET(ch->act, PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+        if (IS_SET(ch->act, PLR_QUESTOR))
         {
             sprintf(buf, "But you're already on a quest!");
             do_say(questman, buf);
@@ -763,7 +763,8 @@ DEF_DO_FUN(do_quest)
  /* Sets a different bit (questorhard) to differentiate between
     easy and hard quests. -- Astark feb 2012 */
 
-            SET_BIT(ch->act, PLR_QUESTORHARD);
+	        SET_BIT(ch->act, PLR_QUESTOR);
+            ch->pcdata->quest_is_hard = TRUE;
             sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
             do_say(questman, buf);
             sprintf(buf, "May the gods go with you!");
@@ -782,7 +783,7 @@ DEF_DO_FUN(do_quest)
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
         act ("You inform $N you have completed $s quest.",ch, NULL, questman, TO_CHAR);
         
-        if ( !IS_SET(ch->act, PLR_QUESTOR) && !IS_SET(ch->act, PLR_QUESTORHARD) )
+        if ( !IS_SET(ch->act, PLR_QUESTOR) )
         {
             sprintf(buf, "What? You aren't on any quest! Get lost!");
             do_say(questman, buf);
@@ -792,11 +793,11 @@ DEF_DO_FUN(do_quest)
         int reward_silver = 0, reward_points = 0, reward_prac = 0, reward_exp = 0;
         int luck = ch_luc_quest(ch);
         OBJ_DATA *quest_obj = get_char_obj_vnum(ch, ch->pcdata->questobj);
-        int prac_chance = IS_SET(ch->act, PLR_QUESTORHARD) ? 20 : 15;
+        int prac_chance = ch->pcdata->quest_is_hard ? 20 : 15;
 
         // reward_points
         int reward_points_min = 0, reward_points_max = 0;
-        if ( IS_SET(ch->act, PLR_QUESTORHARD) )
+        if (ch->pcdata->quest_is_hard)
         {
             /* The modulo functions below are modeled after the fractional 'practices' function.
                With this change, you are no longer required to hit a breakpoint before having a
@@ -831,7 +832,7 @@ DEF_DO_FUN(do_quest)
         // kill mob quest (completed)
         if ( ch->pcdata->questmob == -1 )
         {
-            if ( IS_SET(ch->act, PLR_QUESTORHARD) )
+            if (ch->pcdata->quest_is_hard)
             {
                 reward_silver = number_range( 15*ch->level, 50*ch->level*luck );
                 if ( per_chance(prac_chance) )
@@ -854,7 +855,7 @@ DEF_DO_FUN(do_quest)
             act("$n hands $p to $N.", ch, quest_obj, questman, TO_ROOM);
             extract_obj(quest_obj);
             
-            if ( IS_SET(ch->act, PLR_QUESTORHARD) )
+            if (ch->pcdata->quest_is_hard)
             {
                 reward_silver = number_range( ch->level, 30*ch->level*luck );
                 if ( per_chance(prac_chance) )
@@ -908,7 +909,6 @@ DEF_DO_FUN(do_quest)
         
         // cleanup
         REMOVE_BIT(ch->act, PLR_QUESTOR);
-        REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
@@ -1385,7 +1385,7 @@ void quest_update(void)
                 if (ch->pcdata->nextquest == 0)
                     send_to_char("You may now quest again.\n\r",ch);
             }
-            else if (IS_SET(ch->act,PLR_QUESTOR) || IS_SET(ch->act, PLR_QUESTORHARD))
+            else if (IS_SET(ch->act,PLR_QUESTOR))
             {
                 if (--ch->pcdata->countdown <= 0)
                 {
@@ -1397,7 +1397,6 @@ void quest_update(void)
                     sprintf(buf, "You have run out of time for your quest!\n\rYou may quest again in %d minutes.\n\r",ch->pcdata->nextquest);
                     send_to_char(buf, ch);
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
-                    REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
 					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
                     ch->pcdata->questgiver = NULL;
@@ -1425,7 +1424,7 @@ void check_kill_quest_completed( CHAR_DATA *ch, CHAR_DATA *victim )
         if ( IS_NPC(gch) )
             continue;
 
-	if ( (IS_SET(gch->act, PLR_QUESTOR) || IS_SET(gch->act, PLR_QUESTORHARD))
+	if ( IS_SET(gch->act, PLR_QUESTOR )
 	     && gch->pcdata->questmob == victim->pIndexData->vnum )
 	{
 	    send_to_char("You have almost completed your QUEST!\n\r",gch);

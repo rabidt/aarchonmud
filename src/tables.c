@@ -235,7 +235,6 @@ const struct flag_type plr_flags[] =
     {   "questing",     PLR_QUESTOR,    FALSE   },
     {   "colour",       PLR_COLOUR,     FALSE   },
     {   "permit",       PLR_PERMIT,     TRUE    },
-    {   "questinghard", PLR_QUESTORHARD,FALSE   },
     {   "log",          PLR_LOG,        FALSE   },
     {   "deny",         PLR_DENY,       FALSE   },
     {   "thief",        PLR_THIEF,      FALSE   },
