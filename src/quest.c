@@ -253,13 +253,8 @@ into the world when a player receives an object quest. */
 
 /* Local functions */
 static void clear_quest_info(CHAR_DATA *ch);
-static void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-static bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
-
-/* Added for "hard" quest option -- Astark Feb2012 */
-static void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-static bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
-/* End of hard quests */
+static void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman, bool is_hard ));
+static bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel, bool is_hard));
 
 
 /* CHANCE function. I use this everywhere in my code, very handy :> */
@@ -654,8 +649,9 @@ DEF_DO_FUN(do_quest)
         }
         return;
       }
-    else if (!strcmp(arg1, "request"))
+    else if (!strcmp(arg1, "request") || !strcmp(arg1, "requesthard"))
     {
+        bool is_hard = !strcmp(arg1, "requesthard");
 	if (ch->position < POS_RESTING)
 	{
 	    send_to_char("In your dreams, or what?\n\r",ch);
@@ -687,7 +683,7 @@ DEF_DO_FUN(do_quest)
 	ch->pcdata->questarea = 0;
         /* How about ch->pcdata->nextquest = 0;, for Immortals? - Maedhros */ 
 
-        generate_quest(ch, questman);
+        generate_quest(ch, questman, is_hard);
         
         if (ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0)
         {
@@ -700,7 +696,7 @@ DEF_DO_FUN(do_quest)
 	     */
 
 	    SET_BIT(ch->act, PLR_QUESTOR);
-            ch->pcdata->quest_is_hard = FALSE;
+            ch->pcdata->quest_is_hard = is_hard;
             sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
             do_say(questman, buf);
             sprintf(buf, "May the gods go with you!");
@@ -708,63 +704,6 @@ DEF_DO_FUN(do_quest)
         }
         return;
       }
-/* Used for requesting difficult quests. The code here is nearly
-   the same as up above but a separate function is used. Could be
-   solved I think by adding another argument to the quest request
-   command but this was the easiest solution for me. 
-   -- Astark Feb 2012 */
-
-    else if (!strcmp(arg1, "requesthard"))
-    {
-      if (ch->position >= POS_RESTING)
-      {
-        act( "$n asks $N for a quest.", ch, NULL, questman, TO_ROOM); 
-        act ("You ask $N for a quest.",ch, NULL, questman, TO_CHAR);
-        if (IS_SET(ch->act, PLR_QUESTOR))
-        {
-            sprintf(buf, "But you're already on a quest!");
-            do_say(questman, buf);
-            return;
-        }
-        if (ch->pcdata->nextquest > 0 && !IS_IMMORTAL(ch))
-        {
-            sprintf(buf, "You're very brave, %s, but let someone else have a chance.",ch->name);
-            do_say(questman, buf);
-            sprintf(buf, "Come back later.");
-            do_say(questman, buf);
-            return;
-        }
-        
-        sprintf(buf, "Thank you, brave %s!",ch->name);
-        do_say(questman, buf);
-        ch->pcdata->questmob = 0;
-        ch->pcdata->questobj = 0;
-	ch->pcdata->questroom = 0;
-	ch->pcdata->questarea = 0;
-        
-        generate_quest_hard(ch, questman);
-        
-        if (ch->pcdata->questmob > 0 || ch->pcdata->questobj > 0)
-        {
-
- /* Sets a different bit (questorhard) to differentiate between
-    easy and hard quests. -- Astark feb 2012 */
-
-	        SET_BIT(ch->act, PLR_QUESTOR);
-            ch->pcdata->quest_is_hard = TRUE;
-            sprintf(buf, "You have %d minutes to complete this quest.",ch->pcdata->countdown);
-            do_say(questman, buf);
-            sprintf(buf, "May the gods go with you!");
-            do_say(questman, buf);
-        }
-        return;
-      }
-      else
-      {
-          send_to_char("In your dreams, or what?\n\r",ch);
-          return;
-      }
-    }
     else if (!strcmp(arg1, "complete"))
     {
         act( "$n informs $N $e has completed $s quest.", ch, NULL, questman, TO_ROOM); 
@@ -925,7 +864,7 @@ static bool is_guild_room( int vnum )
     return FALSE;
 }
 
-static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
+static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman, bool is_hard)
 {
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
@@ -952,11 +891,11 @@ static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
         
         if ( (vsearch = get_mob_index(mob_vnum) ) != NULL )
         {
-            if ( !quest_level_diff(ch, vsearch->level)
+            if ( !quest_level_diff(ch, vsearch->level, is_hard)
 		 || vsearch->pShop != NULL
 		 /* || IS_SET(vsearch->imm_flags, IMM_SUMMON) */
 		 || IS_SET(vsearch->act, ACT_TRAIN)
-                 || IS_SET(vsearch->act, ACT_HARD_QUEST)
+         || (IS_SET(vsearch->act, ACT_HARD_QUEST) && !is_hard)
 		 || IS_SET(vsearch->act, ACT_PRACTICE)
 		 || IS_SET(vsearch->act, ACT_IS_HEALER)
 		 || IS_SET(vsearch->act, ACT_IS_CHANGER)
@@ -965,10 +904,10 @@ static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
 		 || IS_SET(vsearch->act, ACT_WIZI)
 		 || IS_SET(vsearch->act, ACT_NO_QUEST)
 		 || IS_SET(vsearch->affect_field, AFF_CHARM)
-		 || IS_SET(vsearch->affect_field, AFF_INVISIBLE)
+		 || (IS_SET(vsearch->affect_field, AFF_INVISIBLE) && !is_hard)
 		 || IS_SET(vsearch->affect_field, AFF_ASTRAL)
 		 || IS_SET(vsearch->area->area_flags, AREA_REMORT)
-		 || IS_SET(vsearch->area->area_flags, AREA_NOQUEST)
+		 || (IS_SET(vsearch->area->area_flags, AREA_NOQUEST) && !(is_hard && IS_SET(vsearch->act, ACT_HARD_QUEST)))
          || area_full(vsearch->area)
 		 || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
 		     && IS_SET(vsearch->imm_flags, IMM_MAGIC))
@@ -986,7 +925,7 @@ static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
                 || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
                 || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
                 || IS_SET(victim->in_room->room_flags, ROOM_NOWHERE)
-                || IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST)
+                || (IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST) && !(is_hard && IS_SET(victim->act, ACT_HARD_QUEST))) 
                 || IS_SET(victim->in_room->room_flags, ROOM_GODS_ONLY)
                 || IS_SET(victim->in_room->room_flags, ROOM_IMP_ONLY)
                 || IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
@@ -1014,9 +953,10 @@ static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
         return;
     }
     
-    /*  40% chance it will send the player on a 'recover item' quest. */
-    
-    if (chance(40) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
+   
+    int item_chance = is_hard ? 30 : 40;
+ 
+    if (chance(item_chance) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
     {
         int objvnum = 0;
         
@@ -1123,223 +1063,21 @@ static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
     }
     return;
 }
-
-/* This gives players much more difficult quests than they'd normally
-receive. They also will be rewarded appropriately due to the QUESTORHARD
-flag they are assigned. Allows for invisible mobs and for mobs with the
-flag "ACT hard_quest", even if they're in a no_quest room/area  -- Astark Feb2012 */
-
-static void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
-{
-    CHAR_DATA *victim;
-    MOB_INDEX_DATA *vsearch;
-    ROOM_INDEX_DATA *room;
-    OBJ_DATA *questitem;
-    char buf [MAX_STRING_LENGTH];
-    long mcounter;
-    int mob_vnum;
-    bool found = FALSE;
-    
-    if ( ch == NULL || IS_NPC(ch) )
-	return;
-
-    /*  Randomly selects a mob from the world mob list. If you don't
-    want a mob to be selected, make sure it is immune to summon.
-    Or, you could add a new mob flag called ACT_NOQUEST. The mob
-    is selected for both mob and obj quests, even tho in the obj
-    quest the mob is not used. This is done to assure the level
-    of difficulty for the area isn't too great for the player. */
-    
-    for (mcounter = 0; mcounter < 10000; mcounter ++)
-    {
-        mob_vnum = number_range(50, 32600);
-        
-        if ( (vsearch = get_mob_index(mob_vnum) ) != NULL )
-        {
-            if ( !quest_level_diff_hard(ch, vsearch->level)
-		 || vsearch->pShop != NULL
-		 /* || IS_SET(vsearch->imm_flags, IMM_SUMMON) */
-		 || IS_SET(vsearch->act, ACT_TRAIN)
-		 || IS_SET(vsearch->act, ACT_PRACTICE)
-		 || IS_SET(vsearch->act, ACT_IS_HEALER)
-		 || IS_SET(vsearch->act, ACT_IS_CHANGER)
-		 || IS_SET(vsearch->act, ACT_PET)
-		 || IS_SET(vsearch->act, ACT_SAFE)
-		 || IS_SET(vsearch->act, ACT_WIZI)
-		 || IS_SET(vsearch->act, ACT_NO_QUEST)
-		 || IS_SET(vsearch->affect_field, AFF_CHARM)
-		 || IS_SET(vsearch->affect_field, AFF_ASTRAL)
-		 || IS_SET(vsearch->area->area_flags, AREA_REMORT)
-		 || (IS_SET(vsearch->area->area_flags, AREA_NOQUEST) && !IS_SET(vsearch->act, ACT_HARD_QUEST))
-         || area_full(vsearch->area)
-		 || (IS_SET(vsearch->imm_flags, IMM_WEAPON)
-		     && IS_SET(vsearch->imm_flags, IMM_MAGIC))
-		 || chance(60))
-            {
-                vsearch = NULL;
-                continue;
-            }
-            
-            if (( victim = get_mob_vnum_world( mob_vnum ) ) == NULL
-                || ( room = victim->in_room ) == NULL
-                || (IS_GOOD(ch) && IS_GOOD(victim))
-                || !is_room_ingame(victim->in_room)
-		|| is_guild_room( room->vnum )
-                || IS_SET(victim->in_room->room_flags, ROOM_SAFE)
-                || IS_SET(victim->in_room->room_flags, ROOM_JAIL)
-                || IS_SET(victim->in_room->room_flags, ROOM_NOWHERE)
-                || (IS_SET(victim->in_room->room_flags, ROOM_NO_QUEST) && !IS_SET(victim->act, ACT_HARD_QUEST))
-                || IS_SET(victim->in_room->room_flags, ROOM_GODS_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_IMP_ONLY)
-                || IS_SET(victim->in_room->room_flags, ROOM_SOLITARY)
-                || (ch->level < LEVEL_HERO && 
-                    IS_SET(victim->in_room->room_flags, ROOM_HEROES_ONLY))
-                || (ch->level > 5 && 
-                    IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
-                continue;
-            
-	    found = TRUE;
-            break;
-        }
-    }
-    
-    if ( !found || chance(20-ch_luc_quest(ch)) )
-    {
-        sprintf(buf, "I'm sorry, I don't have a good quest for you right now.");
-        do_say(questman, buf);
-        sprintf(buf, "Please come back in a few minutes, maybe something will come up.");
-        do_say(questman, buf);
-
-        /* Changed to include a define - Maedhros, Feb 7, 2006 */
-	/* ch->pcdata->nextquest = 2; */
-
-	ch->pcdata->nextquest = QUEST_NEXTQUEST_MIN;
-        return;
-    }
-    
-    /*  30% chance it will send the player on a 'recover item' quest. */
-    
-    if (chance(30) || (ch->level < 10 && !IS_SET(victim->in_room->room_flags, ROOM_NEWBIES_ONLY)) )
-    {
-        int objvnum = 0;
-        
-        switch(number_range(0,4))
-        {
-        case 0:
-            objvnum = QUEST_OBJQUEST1;
-            break;
-            
-        case 1:
-            objvnum = QUEST_OBJQUEST2;
-            break;
-            
-        case 2:
-            objvnum = QUEST_OBJQUEST3;
-            break;
-            
-        case 3:
-            objvnum = QUEST_OBJQUEST4;
-            break;
-            
-        case 4:
-            objvnum = QUEST_OBJQUEST5;
-            break;
-        }
-        
-        questitem = create_object_vnum(objvnum);
-    
-        /* Removed (commented out) the following line, and replaced it with the next two,
-	 * one of which was previously outside of generate_quest(), so that the quest item
-	 * timer could be based on countdown, and also scaled, since countdown runs more
-	 * slowly than the quest item timer. - Maedhros, Feb 7, 2006.
-	 *
-         * questitem->timer=30;
-         */ 
-
-        ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX);	
-
- 	/* ch->pcdata->countdown = number_range(15, 30); */ 
-
-	questitem->timer = (ch->pcdata->countdown * 2) + 1;
-
-        obj_to_room(questitem, room);
-        ch->pcdata->questobj = questitem->pIndexData->vnum;
-        
-        sprintf(buf, "Vile pilferers have stolen %s from the royal treasury!",questitem->short_descr);
-        do_say(questman, buf);
-        do_say(questman, "My court wizardess, with her magic mirror, has pinpointed its location.");
-        
-        /* I changed my area names so that they have just the name of the area
-        and none of the level stuff. You may want to comment these next two
-        lines. - Vassago */
-        
-        sprintf(buf, "Look in the general area of %s for %s!",room->area->name, room->name);
-	ch->pcdata->questroom = room->vnum;
-	ch->pcdata->questarea = room->area->vnum;
-        do_say(questman, buf);
-        return;
-    }
-    
-    /* Quest to kill a mob */
-    
-    else 
-    {
-        switch(number_range(0,1))
-        {
-        case 0:
-            sprintf(buf, "An enemy of mine, %s, is making vile threats against the crown.",victim->short_descr);
-            do_say(questman, buf);
-            sprintf(buf, "This threat must be eliminated!");
-            do_say(questman, buf);
-            break;
-            
-        case 1:
-            sprintf(buf, "Aarchon's most heinous criminal, %s, has escaped from the dungeon!",victim->short_descr);
-            do_say(questman, buf);
-            sprintf(buf, "Since the escape, %s has murdered %d civillians!",victim->short_descr, number_range(2,20));
-            do_say(questman, buf);
-            do_say(questman,"The penalty for this crime is death, and you are to deliver the sentence!");
-            break;
-        }
-        
-        if (room->name != NULL)
-        {
-            sprintf(buf, "Seek %s out somewhere in the vicinity of %s!",victim->short_descr,room->name);
-            do_say(questman, buf);
-            
-            /* I changed my area names so that they have just the name of the area
-            and none of the level stuff. You may want to comment these next two
-            lines. - Vassago */
-            
-            sprintf(buf, "That location is in the general area of %s.",room->area->name);
-	    ch->pcdata->questroom = room->vnum;
-	    ch->pcdata->questarea = room->area->vnum;
-            do_say(questman, buf);
-        }
-        ch->pcdata->questmob = victim->pIndexData->vnum;
-        ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX); 
-    }
-    return;
-}
 /* Level differences to search for. Moongate has 350
    levels, so you will want to tweak these greater or
    less than statements for yourself. - Vassago */
 
-static bool quest_level_diff( CHAR_DATA *ch, int mlevel)
+static bool quest_level_diff( CHAR_DATA *ch, int mlevel, bool is_hard)
 {
+    if (is_hard)
+    {
+        mlevel = (mlevel - 10) * 3 / 4;
+    }
     int clevel = ch->level + 2 * ch->pcdata->remorts;
     int min_level = URANGE( 1, clevel - 20, 90 );
 
     return IS_BETWEEN( min_level, mlevel, min_level + 30 );
 }
-
-static bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
-{
-    // mobs for hard quests are higher level by 10 + 33%
-    // so e.g. a range of 90-120 goes up to 130-170
-    return quest_level_diff(ch, (mlevel - 10) * 3/4);
-}
-
 
 /* Called from update_handler() by pulse_area */
 void quest_update(void)
