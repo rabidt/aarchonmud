@@ -1224,10 +1224,8 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
             close_chat_tag( victim );
         }
     }   
-	
     
-	
-    if( victim != ch )
+    if ( victim != ch && !IS_NPC(ch) )
         victim->reply = ch;
     
     if ( !IS_NPC(ch) && IS_NPC(victim) && HAS_TRIGGER(victim,TRIG_SPEECH) )
