@@ -74,7 +74,7 @@ void    msdp_update args( ( void ) );
 void create_haunt( CHAR_DATA *ch );
 void check_beast_mastery( CHAR_DATA *ch );
 void check_shadow_companion( CHAR_DATA *ch );
-void validate_all();
+void validate_all( void );
 void check_clan_align( CHAR_DATA *gch );
 
 /* used for saving */
@@ -812,7 +812,7 @@ void mobile_timer_update( void )
     return;
 }
 
-void time_update()
+void time_update( void )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -2166,7 +2166,7 @@ void extract_update( void )
 
 // core functions executed each tick
 // separate to enable imm-forced ticks
-void core_tick()
+void core_tick( void )
 {
     time_update();
     weather_update();
@@ -2991,7 +2991,7 @@ void msdp_update( void )
 
 // data consistency checks for detecting corruption early
 // extend as needed for debugging, but keep it fast
-void validate_all()
+void validate_all( void )
 {
     CHAR_DATA *ch, *ch_next, *dch, *lch;
     DESCRIPTOR_DATA *desc, *desc_next;

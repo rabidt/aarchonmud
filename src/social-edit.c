@@ -57,7 +57,7 @@ void load_social (FILE *fp, struct social_type *social)
 	social->others_auto =   fread_string (fp);
 }
 
-void load_social_table ()
+void load_social_table ( void )
 {
 	FILE *fp;
 	int i;
@@ -110,7 +110,7 @@ void save_social (const struct social_type *s, FILE *fp)
 }
 
 
-void save_social_table()
+void save_social_table( void )
 {
 	FILE *fp;
 	int i;

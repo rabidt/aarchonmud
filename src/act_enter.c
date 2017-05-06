@@ -343,7 +343,7 @@ DEF_DO_FUN(do_enter)
 
 PORTAL_DATA *portal_list = NULL;
 
-void save_portal_list()
+void save_portal_list( void )
 {
     PORTAL_DATA *portal;
     FILE *fp;
@@ -363,7 +363,7 @@ void save_portal_list()
     }
 }
 
-void load_portal_list()
+void load_portal_list( void )
 {
     PORTAL_DATA *portal, *portal_last;
     FILE *fp;

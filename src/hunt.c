@@ -116,7 +116,7 @@ void init_world(ROOM_INDEX_DATA *room_db[])
     bzero((char *)room_db,sizeof(ROOM_INDEX_DATA *)*WORLD_SIZE);
 }
 
-void destroy_hash_table(struct hash_header *ht,void (*gman)())
+void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
 {
     int           i;
     struct hash_link  *scan,*temp;
@@ -220,6 +220,7 @@ void *hash_remove(struct hash_header *ht,int key)
     return NULL;
 }
 
+#if 0
 void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
 {
     int i;
@@ -237,6 +238,8 @@ void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
     }
 }
 
+#endif
+
 
 
 int exit_ok( EXIT_DATA *pexit )
@@ -250,7 +253,7 @@ int exit_ok( EXIT_DATA *pexit )
     return 1;
 }
 
-void donothing()
+void donothing(void *data)
 {
     return;
 }

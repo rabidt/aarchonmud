@@ -27,7 +27,7 @@ static int sockfd = 0;
 static char msg_buf[BUF_SIZE];
 
 
-eDXPORT_rc write_msg_buf()
+eDXPORT_rc write_msg_buf( void )
 {
     if (sockfd == 0)
         return eDXPORT_CLOSED;
@@ -93,7 +93,7 @@ eDXPORT_rc DXPORT_player_connect(const char *player_name, const char *ip, time_t
 }
 
 
-eDXPORT_rc DXPORT_init()
+eDXPORT_rc DXPORT_init( void )
 {
     struct sockaddr_un server;
     int sock;
@@ -122,7 +122,7 @@ eDXPORT_rc DXPORT_init()
 }
 
 
-eDXPORT_rc DXPORT_close()
+eDXPORT_rc DXPORT_close( void )
 {
     if (sockfd == 0)
     {
@@ -141,7 +141,7 @@ eDXPORT_rc DXPORT_close()
 }
 
 
-eDXPORT_rc DXPORT_status()
+eDXPORT_rc DXPORT_status( void )
 {
     return (sockfd == 0) ? eDXPORT_CLOSED : eDXPORT_OPENED;
 }

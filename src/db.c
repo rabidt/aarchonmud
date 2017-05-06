@@ -59,7 +59,7 @@ extern  int _filbuf     args( (FILE *) );
 #if !defined(OLD_RAND)
 void srandom(unsigned int);
 long genrand_int31(void);
-int getpid();
+int getpid( void );
 time_t time(time_t *tloc);
 #endif
 
@@ -80,7 +80,7 @@ void load_area_file( FILE *fp, bool clone );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
 void affect_spellup_mob( CHAR_DATA *mob );
 static void rand_test( int repeats );
-void verify_skills();
+void verify_skills( void );
 
 /*
 * Globals.
@@ -643,8 +643,8 @@ void    load_areaprogs( FILE *fp );
 void    load_roomprogs( FILE *fp );
 void    load_wizlist    args( ( void ) );
 void    load_clans      args( ( void ) );
-void	load_skills();
-void    count_stats();
+void	load_skills( void );
+void    count_stats( void );
 
 void    fix_exits   args( ( void ) );
 void    fix_mobprogs    args( ( void ) );
@@ -658,15 +658,15 @@ void    load_crime_list args ( ( void ) );
 void    load_penalties args ( ( void ) );
 void    load_reserved   args( ( void ) );
 void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
-void    channel_init();
-void    reset_str_dup();
-int     random_attack_type();
-void    dump_str_dup();
+void    channel_init( void );
+void    reset_str_dup( void );
+int     random_attack_type( void );
+void    dump_str_dup( void );
 
 /*
 * Big mama top level function.
 */
-void boot_db()
+void boot_db( void )
 {
     /*
      * Make sure some dirs exist
@@ -932,7 +932,7 @@ void boot_db()
 }
 
 
-void channel_init()
+void channel_init( void )
 {
     int sn;
     for ( sn=0 ; ; sn++ )
@@ -1450,7 +1450,7 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex )
 /*
  * Debug: log state of mob_index_hash
  */
-void log_mob_index()
+void log_mob_index( void )
 {
     int mob_count = 0;
     int max_bucket_size = 0;
@@ -3056,7 +3056,7 @@ void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description
 }
 
 /* randomly choose an attack type */
-int random_attack_type()
+int random_attack_type( void )
 {
     int i;
     
@@ -3358,7 +3358,7 @@ int spell_base_cost( int sn )
     if ( skill_table[sn].target == TAR_CHAR_SELF )
         power *= 5;
 
-    return (int)sqrt( power );
+    return sqrt( power );
 }
 
 int spell_obj_cost( int level, int base_cost )
@@ -4386,7 +4386,7 @@ void *alloc_perm( int sMem )
 static const char* str_dup_hash[MAX_STR_DUP_KEY];
 static bool str_dup_ready = FALSE;
 
-void reset_str_dup()
+void reset_str_dup( void )
 {
     memset(str_dup_hash, 0, MAX_STR_DUP_KEY * sizeof(char*));
     str_dup_ready = TRUE;
@@ -4420,7 +4420,7 @@ void forget_str_dup(const char *str)
     return;
 }
 
-void dump_str_dup()
+void dump_str_dup( void )
 {
     int key;
     
@@ -4795,7 +4795,7 @@ define OLD_RAND to use the old system -- Alander */
 static  int     rgiState[2+55];
 #endif
 
-void init_mm( )
+void init_mm( void )
 {
 #if defined (OLD_RAND)
     int *piState;
@@ -5272,7 +5272,7 @@ char* substr_delim(const char *s, char c_start, char c_end)
 }
 
 // logs a backtrace
-void log_trace()
+void log_trace( void )
 {
     const int MAX_TRACE = 64;
     void* buffer[MAX_TRACE];

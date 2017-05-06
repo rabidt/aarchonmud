@@ -111,7 +111,7 @@ static void dispose_reset (RESET_DATA *pReset)
 }
 
 /* Creates a new, empty reset */
-static RESET_DATA* new_reset ()
+static RESET_DATA* new_reset ( void )
 {
 	return new_reset_data(); /* mem.c */
 }

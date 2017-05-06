@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <ctype.h>
 #include <time.h>
 #include "merc.h"
@@ -32,13 +33,13 @@ static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
 bool ready_to_save( CHAR_DATA *ch );
 MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
-void sim_save_to_mem();
-void mem_sim_save_other();
-void sim_save_other();
+void sim_save_to_mem( void );
+void mem_sim_save_other( void );
+void sim_save_other( void );
 
 /* perform one step in the continious player autosave
  */
-void handle_player_save()
+void handle_player_save( void )
 {
   MEMFILE *mf;
   MEMFILE *box_mf;
@@ -190,7 +191,7 @@ void handle_player_save()
 
 /* do an immediate save for all players
  */
-void force_full_save()
+void force_full_save( void )
 {
   bool nosave = (player_save_state == SAVE_STATE_NOSAVE);
 #if defined(SIM_DEBUG)
@@ -219,7 +220,7 @@ void force_full_save()
 /* do a final save of all players, then stop all autosaving;
  * used when shutting down the mud
  */
-void final_player_save()
+void final_player_save( void )
 {
 #if defined(SIM_DEBUG)
    log_string("final_player_save: start");
@@ -239,7 +240,7 @@ void final_player_save()
 /* save all players online to player_save_list and
  * move all files in player_quit_list to player_save_list
  */
-void sim_save_to_mem()
+void sim_save_to_mem( void )
 {
   MEMFILE *mf;
   //DESCRIPTOR_DATA *d;
@@ -708,7 +709,7 @@ MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
 
 /* save other data to memory for simultanious saving
  */
-void mem_sim_save_other()
+void mem_sim_save_other( void )
 {
     MEMFILE *mf;
     int i;
@@ -764,7 +765,7 @@ void mem_sim_save_other()
 }
 
 /* save files in other_save_list to disk */
-void sim_save_other()
+void sim_save_other( void )
 {
     MEMFILE *mf;
 

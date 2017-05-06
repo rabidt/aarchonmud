@@ -37,7 +37,7 @@ COMM_HISTORY public_history={0, NULL, NULL};
 COMM_HISTORY immtalk_history={0, NULL, NULL};
 COMM_HISTORY savant_history={0, NULL, NULL};
 
-COMM_ENTRY *comm_entry_new()
+COMM_ENTRY *comm_entry_new( void )
 {
 	COMM_ENTRY *entry=alloc_mem(sizeof(COMM_ENTRY));
 	entry->next=NULL;
@@ -46,7 +46,7 @@ COMM_ENTRY *comm_entry_new()
 	return entry;
 }
 
-PERS_ENTRY *pers_entry_new()
+PERS_ENTRY *pers_entry_new( void )
 {
 	PERS_ENTRY *entry=alloc_mem(sizeof(PERS_ENTRY));
 	entry->next=NULL;
@@ -55,7 +55,7 @@ PERS_ENTRY *pers_entry_new()
 	return entry;
 }
 
-PERS_HISTORY *pers_history_new()
+PERS_HISTORY *pers_history_new( void )
 {
 	PERS_HISTORY *history=alloc_mem(sizeof(PERS_HISTORY));
 	history->head=NULL;
@@ -521,7 +521,7 @@ static int L_load_comm_histories( lua_State *LS )
 
     return 0;
 } 
-void save_comm_histories()
+void save_comm_histories( void )
 {
     lua_pushcfunction( g_mud_LS, L_save_comm_histories );
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -532,7 +532,7 @@ void save_comm_histories()
     }
 }
 
-void load_comm_histories()
+void load_comm_histories( void )
 {
     lua_pushcfunction( g_mud_LS, L_load_comm_histories );
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )

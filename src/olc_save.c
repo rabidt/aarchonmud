@@ -35,7 +35,7 @@
 
 void save_helps( FILE *fp, HELP_AREA *ha );
 void save_other_helps( void );
-void save_skills();
+void save_skills( void );
 void reverse_mprog_order args( (MOB_INDEX_DATA *pMobIndex) );
 void reverse_affect_order args( (OBJ_INDEX_DATA *pObjIndex) );
 
@@ -93,7 +93,7 @@ Name:		save_area_list
 Purpose:	Saves the listing of files to be loaded at startup.
 Called by:	do_asave(olc_save.c).
 ****************************************************************************/
-void save_area_list()
+void save_area_list( void )
 {
     FILE *fp;
     AREA_DATA *pArea;

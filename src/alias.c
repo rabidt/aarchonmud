@@ -40,7 +40,7 @@ void anti_spam_interpret( CHAR_DATA *ch, const char *argument )
     active_char = NULL;
 }
 
-void punish_spam()
+void punish_spam( void )
 {
     if ( active_char == NULL || IS_NPC(active_char) )
 	return;

@@ -75,7 +75,7 @@ void war_remove( CHAR_DATA *ch, bool killed );
 bool flush_descriptor( DESCRIPTOR_DATA *d );
 bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 );
 void add_descriptor( DESCRIPTOR_DATA *d );
-void install_other_handlers ();
+void install_other_handlers ( void );
 
 /*
  * Malloc debugging stuff.
@@ -2683,7 +2683,7 @@ static void copyover_mud( const char *argument )
 static TIMER_NODE *copyover_timer=NULL;
 static int copyover_countdown=0;
 
-void handle_copyover_timer()
+void handle_copyover_timer( void )
 {
     copyover_timer=NULL;
     
@@ -2788,7 +2788,7 @@ DEF_DO_FUN( do_copyover )
 }
 
 /* Recover from a copyover - load players */
-void copyover_recover ()
+void copyover_recover ( void )
 {
     DESCRIPTOR_DATA *d;
     FILE *fp;
@@ -2962,7 +2962,7 @@ bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 )
  */
 
 /* Write last command */
-void write_last_command ()
+void write_last_command ( void )
 {
     static bool log_done = FALSE;
 
@@ -3022,7 +3022,7 @@ void nasty_signal_handler (int no)
 }
 
 /* Call this before starting the game_loop */
-void install_other_handlers ()
+void install_other_handlers ( void )
 {
     last_command[0] = '\0';
     last_mprog[0] = '\0';
@@ -3087,7 +3087,7 @@ PARENT
 #endif
 ;
 
-void final_save_all()
+void final_save_all( void )
 {
     final_player_save();
     save_lboards();
