@@ -3081,8 +3081,9 @@ DEF_DO_FUN(do_mortlag)
 }
 
 /* do_tables stuff */
-static void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
+static void print_flag_table(CHAR_DATA *ch, const void *ptr)
 {
+    const struct flag_type *tbl = ptr;
     char buf[MSL];
     BUFFER *buffer=new_buf();
 
@@ -3106,8 +3107,9 @@ static void print_flag_table( CHAR_DATA *ch, const struct flag_type *tbl)
     return;
 }
 
-static void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
+static void print_item_table(CHAR_DATA *ch, const void *ptr)
 {
+    const struct item_type *tbl = ptr;
     ptc( ch, "Name\n\r");
     ptc( ch, "------------------------------\n\r");
     int i;
@@ -3117,8 +3119,9 @@ static void print_item_table( CHAR_DATA *ch, const struct item_type *tbl)
     }
 }
 
-static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
+static void print_attack_table(CHAR_DATA *ch, const void *ptr)
 {
+    const struct attack_type *tbl = ptr;
     ptc( ch, "%-20s %-20s %-20s\n\r", "Name", "Noun", "Damtype");
     ptc( ch, "--------------------------------------------------------------------------------\n\r");
     int i;
@@ -3131,8 +3134,9 @@ static void print_attack_table( CHAR_DATA *ch, const struct attack_type *tbl)
     }
 }
 
-static void print_liq_table( CHAR_DATA *ch, const struct liq_type *tbl)
+static void print_liq_table(CHAR_DATA *ch, const void *ptr)
 {
+    const struct liq_type *tbl = ptr;
     ptc( ch, "%-20s %-20s %5s %5s %5s %5s %5s\n\r",
             "Name", "Color",
             "Proof", "Full", "Thrst", "Food", "Ssize");
@@ -3151,8 +3155,9 @@ static void print_liq_table( CHAR_DATA *ch, const struct liq_type *tbl)
     }
 }
 
-static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
+static void print_stances(CHAR_DATA *ch, const void *ptr)
 {
+    const struct stance_type *tbl = ptr;
     ptc( ch, "%-18s %-10s %-16s %-3s %-3s %-4s\n\r",
             "Name",
             "Damtype",
@@ -3175,8 +3180,9 @@ static void print_stances( CHAR_DATA *ch, const struct stance_type *tbl)
 
 }
 
-static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
+static void print_skill_table (CHAR_DATA *ch, const void *ptr)
 {
+    const struct skill_type *tbl = ptr;
     ptc( ch, "%3s %s\n\r", "SN","Name");
     int sn;
     for ( sn=0 ; tbl[sn].name ; sn++)
@@ -3187,8 +3193,9 @@ static void print_skill_table (CHAR_DATA *ch, const struct skill_type *tbl)
     }
 }
 
-static void print_wiznet_table (CHAR_DATA *ch, const struct wiznet_type *tbl)
+static void print_wiznet_table (CHAR_DATA *ch, const void *ptr)
 {
+    const struct wiznet_type *tbl = ptr;
     ptc( ch, "%3s %s\n\r", "Lvl", "Channel");
 
     int i;
@@ -3200,8 +3207,9 @@ static void print_wiznet_table (CHAR_DATA *ch, const struct wiznet_type *tbl)
     }
 }
 
-static void print_race_table (CHAR_DATA *ch, const struct race_type *tbl)
+static void print_race_table (CHAR_DATA *ch, const void *ptr)
 {
+    const struct race_type *tbl = ptr;
     char buf[MSL];
     BUFFER *buffer = new_buf();
 
@@ -3230,10 +3238,10 @@ static void print_race_table (CHAR_DATA *ch, const struct race_type *tbl)
 
 struct
 {
-    const char *name;
-    void (*printfun)();
-    const void *table;
-    const char *note;
+    const char * const name;
+    void (* const printfun)(CHAR_DATA *, const void *);
+    const void * const table;
+    const char * const note;
 } dotable_table[]=
 {
     PRFLAG( area_flags, "" ),
@@ -3272,15 +3280,16 @@ struct
     PRFLAG( furniture_flags, ""),
     PRFLAG( apply_types, ""),
 
-    { "item_table", print_item_table, item_table, "Item types." },
+    { "item_table",   print_item_table,   item_table,   "Item types." },
     { "attack_table", print_attack_table, attack_table, "Attack types."},
-    { "liq_table", print_liq_table, liq_table, "Liquid types."},
-    { "stances", print_stances, stances, "Stances."},
-    { "skill_table", print_skill_table, skill_table, "Skills."},
+    { "liq_table",    print_liq_table,    liq_table,    "Liquid types."},
+    { "stances",      print_stances,      stances,      "Stances."},
+    { "skill_table",  print_skill_table,  skill_table,  "Skills."},
     { "wiznet_table", print_wiznet_table, wiznet_table, "Wiznet channels."},
-    { "race_table", print_race_table, race_table, "Race table."},
+    { "race_table",   print_race_table,   race_table,   "Race table."},
     { NULL, NULL, NULL, NULL}
 };
+#undef PRFLAG
 
 DEF_DO_FUN(do_tables)
 {
@@ -3444,6 +3453,7 @@ DEF_DO_FUN(do_protocol)
 
 
 #undef wrbool
+#undef wrint
 #undef wrneg
 }
 

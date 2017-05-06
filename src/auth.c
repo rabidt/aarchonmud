@@ -107,7 +107,7 @@ bool exists_player( const char *name )
        return FALSE;
 }
 
-void clear_auth_list()
+void clear_auth_list( void )
 {
     AUTH_LIST *auth, *nauth;
     
@@ -249,7 +249,7 @@ void fread_auth( FILE *fp )
     }
 }
 
-void save_auth_list()
+void save_auth_list( void )
 {
     FILE *fpout;
     AUTH_LIST *list;
@@ -272,7 +272,7 @@ void save_auth_list()
     fpout = NULL;
 }
 
-void load_auth_list()
+void load_auth_list( void )
 {
     FILE *fp;
     

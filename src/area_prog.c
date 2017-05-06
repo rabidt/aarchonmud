@@ -121,7 +121,7 @@ void ap_postreset_trigger( AREA_DATA *area)
     return;
 }
 
-void ap_boot_trigger()
+void ap_boot_trigger( void )
 {
 
 	AREA_DATA *area;
@@ -136,7 +136,7 @@ void ap_boot_trigger()
 	return;
 }
 
-void ap_shutdown_trigger()
+void ap_shutdown_trigger( void )
 {
 	AREA_DATA *area;
 	

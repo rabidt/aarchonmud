@@ -40,7 +40,7 @@
 NOTE_DATA *note_free;
 
 /* Allocate memory for a new note or recycle (Erwin's version) */
-NOTE_DATA *new_note ()
+NOTE_DATA *new_note ( void )
 {
 	NOTE_DATA *note;
 	

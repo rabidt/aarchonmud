@@ -49,7 +49,7 @@ CFG_DATA_ENTRY mudconfig_table[] =
     { NULL, 0, NULL, NULL }
 };
 
-void mudconfig_init()
+void mudconfig_init( void )
 {
     /* set defaults, especially important for strings, others can
        really just be set in declaration, but can also be set with

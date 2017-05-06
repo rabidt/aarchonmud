@@ -1135,12 +1135,12 @@ void expand_arg( char *buf,
  */
 static int mprog_call_level = 0;
 
-int mprog_call_level_increase()
+int mprog_call_level_increase( void )
 {
     return ++mprog_call_level;
 }
 
-int mprog_call_level_decrease()
+int mprog_call_level_decrease( void )
 {
     if ( mprog_call_level == 0 )
     {
@@ -1150,7 +1150,7 @@ int mprog_call_level_decrease()
     return --mprog_call_level;
 }
 
-bool is_mprog_running()
+bool is_mprog_running( void )
 {
     return mprog_call_level > 0;
 }

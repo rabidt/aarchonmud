@@ -6,17 +6,17 @@ typedef struct lua_obj_type
 {
     const char *type_name;
 
-    bool (*valid)();
-    void *(*check)();
-    bool (*is)();
-    bool (*push)();
-    void *(*alloc)();
-    void (*free)();
+    bool (*valid)( void * );
+    void *(*check)( lua_State *, int );
+    bool (*is)( lua_State *, int );
+    bool (*push)( lua_State *, void * );
+    void *(*alloc)( void );
+    void (*free)( void * );
 
-    int (*index)();
-    int (*newindex)();
+    int (*index)( lua_State * );
+    int (*newindex)( lua_State * );
 
-    void (*reg)();
+    void (*reg)( lua_State * );
 
     const struct lua_prop_type * const get_table;
     const struct lua_prop_type * const set_table;
@@ -37,7 +37,7 @@ typedef struct lua_extra_val
 
 } LUA_EXTRA_VAL;
 
-void type_init();
+void type_init( lua_State *LS );
 
 extern LUA_OBJ_TYPE CH_type;
 extern LUA_OBJ_TYPE OBJ_type;
@@ -59,12 +59,12 @@ extern LUA_OBJ_TYPE DESCRIPTOR_type;
 extern LUA_OBJ_TYPE BOSSACHV_type;
 extern LUA_OBJ_TYPE BOSSREC_type;
 
-void init_script_db();
-void close_script_db();
+void init_script_db( void );
+void close_script_db( void );
 void register_globals( lua_State *LS );
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );
 void free_luaval( LUA_EXTRA_VAL *luaval );
-void cleanup_uds();
+void cleanup_uds( void );
 
 /* moved to merc.h cause what if a file calls 
    valid_CH without including lua_arclib.h?

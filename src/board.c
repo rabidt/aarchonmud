@@ -333,7 +333,7 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
 }
 
 /* Save changed boards */
-void save_notes ()
+void save_notes ( void )
 {
    int i;
    
@@ -434,7 +434,7 @@ static void load_board (BOARD_DATA *board)
 
 
 /* Initialize structures. Load all boards. */
-void load_boards ()
+void load_boards ( void )
 {
    int i;
    

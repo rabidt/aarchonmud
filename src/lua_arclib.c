@@ -106,7 +106,7 @@ LUA_OBJ_TYPE *type_list [] =
 typedef struct lua_prop_type
 {
     const char *field;
-    int  (*func)();
+    int  (*func)( lua_State * );
     int security;
     int status; 
 } LUA_PROP_TYPE;
@@ -121,7 +121,7 @@ typedef struct glob_type
 {
     const char *lib;
     const char *name;
-    int (*func)();
+    int (*func)( lua_State * );
     int security; /* if SEC_NOSCRIPT then not available in prog scripts */
     int status;
 } GLOB_TYPE;
@@ -1396,7 +1396,7 @@ static int global_sec_check (lua_State *LS)
                 g_ScriptSecurity,
                 security);
 
-    int (*fun)()=lua_tocfunction( LS, lua_upvalueindex(2) );
+    int (*fun)( lua_State * )=lua_tocfunction( LS, lua_upvalueindex(2) );
 
     return fun(LS);
 }
@@ -6908,8 +6908,9 @@ static const LUA_PROP_TYPE EXIT_method_table [] =
 /* end EXIT section */
 
 /* RESET section */
-static int RESET_get_command(lua_State *LS, RESET_DATA *rd )
+static int RESET_get_command(lua_State *LS)
 {
+    RESET_DATA *rd = check_RESET(LS, 1);
     static char buf[2];
     sprintf(buf, "%c", rd->command);
     lua_pushstring(LS, buf);
@@ -8053,7 +8054,7 @@ void type_init( lua_State *LS)
     }
 }
 
-void cleanup_uds()
+void cleanup_uds( void )
 {
     lua_newtable( g_mud_LS );
     lua_setglobal( g_mud_LS, "cleanup" );
@@ -8088,9 +8089,19 @@ bool valid_ ## LTYPE ( CTYPE *ud )\
     return rtn;\
 }\
 \
+static bool valid_ ## LTYPE ## _void( void *ptr)\
+{\
+    return valid_ ## LTYPE (ptr);\
+}\
+\
 CTYPE * check_ ## LTYPE ( lua_State *LS, int index )\
 {\
     return luaL_checkudata( LS, index, #LTYPE );\
+}\
+\
+static void * check_ ## LTYPE ## _void( lua_State *LS, int index)\
+{\
+    return check_ ## LTYPE (LS, index);\
 }\
 \
 bool    is_ ## LTYPE ( lua_State *LS, int index )\
@@ -8123,6 +8134,11 @@ bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud )\
     return TRUE;\
 }\
 \
+static bool push_ ## LTYPE ## _void( lua_State *LS, void *ud)\
+{\
+    return push_ ## LTYPE (LS, ud);\
+}\
+\
 CTYPE * alloc_ ## LTYPE ( void )\
 {\
     LTYPE ## _wrapper *wrap=lua_newuserdata( g_mud_LS, sizeof( LTYPE ## _wrapper ) );\
@@ -8138,6 +8154,11 @@ CTYPE * alloc_ ## LTYPE ( void )\
     lua_settable( g_mud_LS, -3 );\
     lua_pop( g_mud_LS, 1 );\
     return (CTYPE*)wrap;\
+}\
+\
+static void * alloc_ ## LTYPE ## _void( void )\
+{\
+    return alloc_ ## LTYPE ();\
 }\
 \
 void free_ ## LTYPE ( CTYPE * ud )\
@@ -8178,6 +8199,11 @@ void free_ ## LTYPE ( CTYPE * ud )\
     lua_pop( g_mud_LS, 1 );\
 }\
 \
+static void free_ ## LTYPE ## _void( void *ptr )\
+{\
+    free_ ## LTYPE ( ptr );\
+}\
+\
 int count_ ## LTYPE ( void )\
 {\
     int count=0;\
@@ -8205,7 +8231,7 @@ int count_ ## LTYPE ( void )\
 \
 static int newindex_ ## LTYPE ( lua_State *LS )\
 {\
-    CTYPE * gobj = (CTYPE*)check_ ## LTYPE ( LS, 1 );\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
     const char *arg=check_string( LS, 2, MIL );\
     \
     if (! valid_ ## LTYPE ( gobj ) )\
@@ -8251,11 +8277,11 @@ static int newindex_ ## LTYPE ( lua_State *LS )\
 \
 static int index_ ## LTYPE ( lua_State *LS )\
 {\
-    CTYPE * gobj = (CTYPE*)check_ ## LTYPE ( LS, 1 );\
-    const char *arg=luaL_checkstring( LS, 2 );\
+    CTYPE * gobj = check_ ## LTYPE ( LS, 1 );\
+    const char *arg = luaL_checkstring( LS, 2 );\
     const LUA_PROP_TYPE *get = TPREFIX ## _get_table;\
     \
-    bool valid=valid_ ## LTYPE ( gobj );\
+    bool valid = valid_ ## LTYPE ( gobj );\
     if (!strcmp("valid", arg))\
     {\
         lua_pushboolean( LS, valid );\
@@ -8280,7 +8306,7 @@ static int index_ ## LTYPE ( lua_State *LS )\
             if (get[i].func)\
             {\
                 int val;\
-                val=(get[i].func)(LS, gobj);\
+                val=(get[i].func)(LS);\
                 return val;\
             }\
             else\
@@ -8292,7 +8318,7 @@ static int index_ ## LTYPE ( lua_State *LS )\
         }\
     }\
     \
-    const LUA_PROP_TYPE *method= TPREFIX ## _method_table ;\
+    const LUA_PROP_TYPE *method = TPREFIX ## _method_table ;\
     \
     for (i=0; method[i].field; i++ )\
     {\
@@ -8331,24 +8357,24 @@ void reg_ ## LTYPE (lua_State *LS)\
 }\
 \
 LUA_OBJ_TYPE LTYPE ## _type = { \
-    .type_name= #LTYPE ,\
-    .valid = valid_ ## LTYPE ,\
-    .check = (void*(*)())check_ ## LTYPE ,\
+    .type_name = #LTYPE ,\
+    .valid = valid_ ## LTYPE ## _void , \
+    .check = check_ ## LTYPE ## _void ,\
     .is    = is_ ## LTYPE ,\
-    .push  = push_ ## LTYPE ,\
-    .alloc = (void*(*)())alloc_ ## LTYPE ,\
-    .free  = free_ ## LTYPE ,\
+    .push  = push_ ## LTYPE ## _void ,\
+    .alloc = alloc_ ## LTYPE ## _void ,\
+    .free  = free_ ## LTYPE ## _void,\
     \
     .index = index_ ## LTYPE ,\
-    .newindex= newindex_ ## LTYPE ,\
+    .newindex = newindex_ ## LTYPE ,\
     \
     .reg   = reg_ ## LTYPE ,\
     \
-    .get_table= TPREFIX ## _get_table ,\
-    .set_table= TPREFIX ## _set_table ,\
+    .get_table = TPREFIX ## _get_table ,\
+    .set_table = TPREFIX ## _set_table ,\
     .method_table = TPREFIX ## _method_table ,\
     \
-    .count=0 \
+    .count = 0 \
 };
 
 #define DECLARETYPE( LTYPE, CTYPE ) declb( LTYPE, CTYPE, LTYPE )

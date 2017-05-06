@@ -582,7 +582,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
 }
 
 
-void remort_update()
+void remort_update( void )
 {
     REMORT_TABLE *i;
     REMORT_TABLE *prev = NULL;
@@ -735,7 +735,7 @@ void remort_remove(CHAR_DATA *ch, bool success)
 }
 
 
-void remort_load()
+void remort_load( void )
 {
     FILE *fp;
     REMORT_TABLE *p, *q = NULL;
@@ -816,14 +816,14 @@ void remort_load()
 /* toggle wether remort should be saved with next autosave
  */
 static bool remort_save_needed = FALSE;
-void remort_save()
+void remort_save( void )
 {
     remort_save_needed = TRUE;
 }
 
 /* save to memory, not to disk 
  */
-MEMFILE* remort_mem_save()
+MEMFILE* remort_mem_save( void )
 {
     REMORT_TABLE *p;
     int i;

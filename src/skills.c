@@ -160,7 +160,7 @@ int get_group_cost( CHAR_DATA *ch, int gn )
 }
 
 // update cost for all groups to auto-calculated value
-void update_group_costs()
+void update_group_costs( void )
 {
     int gn, class;
     for ( gn = 0; gn < MAX_GROUP; gn++ )
@@ -173,7 +173,7 @@ void update_group_costs()
 }
 
 // update cost for all skills based on min_rating
-void update_skill_costs()
+void update_skill_costs( void )
 {
     int sn, class;
     for ( sn = 0; sn < MAX_SKILL; sn++ )
@@ -188,7 +188,7 @@ void update_skill_costs()
 }
 
 // check for issues with skills - checked during startup
-void verify_skills()
+void verify_skills( void )
 {
     int sn, class, race, subclass, skill;
     // check level gained
@@ -3540,7 +3540,7 @@ void save_skill(FILE *f, int sn)
 			skill_table[sn].stat_second, skill_table[sn].stat_third);
 }
 
-void save_skills()
+void save_skills( void )
 {
 	FILE *f;
 	int i, n;
@@ -3571,7 +3571,7 @@ void count_stat(FILE *f, int sn)
 			skill_table[sn].stat_second, skill_table[sn].stat_third);
 }
 
-void count_stats()
+void count_stats( void )
 {
 	FILE *f;
 	int i, n;
@@ -3636,7 +3636,7 @@ void load_skill(FILE *f, int cnum, int version)
     skill_table[sn].stat_third = fread_number(f);
 }
 
-void load_skills()
+void load_skills( void )
 {
 	FILE *f;
 	int i, n, cnum;

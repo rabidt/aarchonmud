@@ -7,7 +7,7 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_FLAGS =  -ggdb -rdynamic -m32 -Wall $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+C_FLAGS =  -ggdb -rdynamic -m32 -Wall -Wstrict-prototypes -Wold-style-definition $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 L_FLAGS =  $(PROF) -m32 -llua -ldl -lcrypt -lm -lsqlite3
 
 SRC_FILES := $(wildcard *.c) 

@@ -39,7 +39,7 @@ struct clan_data clan_table[MAX_CLAN];
   made a clan file labelled "None" to override the hard-coded default initializations
   below if necessary, but do not make the mistake of using clan zero as a true clan. 
 */
-void load_clans( )
+void load_clans( void )
 {
     FILE *fpList;
     const char *filename;

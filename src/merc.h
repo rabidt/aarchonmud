@@ -57,11 +57,6 @@
 #define DECLARE_SPEC_FUN( fun )     SPEC_FUN  fun
 #define DECLARE_SPELL_FUN( fun )    SPELL_FUN fun
 
-/* system calls */
-int unlink();
-int system();
-
-
 
 /*
  * Short scalar types.
@@ -4429,7 +4424,7 @@ RID  *get_random_room   args ( (CHAR_DATA *ch) );
 RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
 RID  *get_random_room_area( CHAR_DATA *ch );
 RID  *get_portal_room( const char *name );
-void load_portal_list();
+void load_portal_list( void );
 void show_portal_names( CHAR_DATA *ch );
 
 /* act_info.c */
@@ -4482,12 +4477,12 @@ void restore_char( CHAR_DATA *victim );
 
 /* alchemy.c */
 OBJ_DATA* obj_on_char( CHAR_DATA *ch, int vnum );
-void reset_herbs_world();
-void update_herb_reset();
+void reset_herbs_world( void );
+void update_herb_reset( void );
 
 /* alias.c */
 void substitute_alias( DESCRIPTOR_DATA *d, const char *input );
-void punish_spam();
+void punish_spam( void );
 void anti_spam_interpret( CHAR_DATA *ch, const char *argument );
 
 /* area_prog.c */
@@ -4498,8 +4493,8 @@ bool ap_renter_trigger(CHAR_DATA *ch);
 bool ap_enter_trigger(CHAR_DATA *ch, AREA_DATA *from_area);
 bool ap_prereset_trigger(AREA_DATA *area);
 void ap_postreset_trigger(AREA_DATA *area);
-void ap_boot_trigger();
-void ap_shutdown_trigger();
+void ap_boot_trigger( void );
+void ap_shutdown_trigger( void );
 void ap_quit_trigger(CHAR_DATA *ch);
 void ap_connect_trigger(CHAR_DATA *ch);
 void ap_void_trigger(CHAR_DATA *ch);
@@ -4546,7 +4541,7 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument);
 MEMFILE* mem_save_char_obj( CHAR_DATA *ch );
 void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only );
 void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf );
-MEMFILE* remort_mem_save();
+MEMFILE* remort_mem_save( void );
 
 /* breath.c */
 void check_draconic_breath( CHAR_DATA *ch );
@@ -4601,7 +4596,7 @@ void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... );
 void    printf_to_wiznet( CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ... );
 void    logpf( const char *fmt, ... );
 void    bugf( const char *fmt, ... );
-void    final_save_all();
+void    final_save_all( void );
 
 
 /*
@@ -4674,7 +4669,7 @@ void    append_file args( ( CHAR_DATA *ch, const char *file, const char *str ) )
 void    bug     args( ( const char *str, int param ) );
 void    bug_string( const char *str );
 void    log_string  args( ( const char *str ) );
-void    log_trace();
+void    log_trace( void );
 void    tail_chain  args( ( void ) );
 const char *	bin_info_string;
 void    log_error( const char *str );
@@ -4721,7 +4716,7 @@ bool    is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    is_wimpy( CHAR_DATA *ch );
 bool    is_calm( CHAR_DATA *ch );
 bool    can_attack( CHAR_DATA *ch );
-void    show_violence_summary();
+void    show_violence_summary( void );
 void    violence_update_char( CHAR_DATA *ch );
 void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
@@ -5036,9 +5031,9 @@ void send_position_message( CHAR_DATA *ch );
 bool can_order( const char *command, CHAR_DATA *victim );
 
 /* lua_main.c */
-void check_lua_stack();
-void update_bossachv_table();
-void load_mudconfig();
+void check_lua_stack( void );
+void update_bossachv_table( void );
+void load_mudconfig( void );
 const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
 const char* save_ptitles( CHAR_DATA *ch );
@@ -5049,8 +5044,8 @@ void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
-void load_changelog();
-BUFFER *new_buf();
+void load_changelog( void );
+BUFFER *new_buf( void );
 void free_buf(BUFFER *buffer);
 bool add_buf(BUFFER *buffer, const char *string );
 void clear_buf(BUFFER *buffer);
@@ -5178,7 +5173,7 @@ void init_genrand( unsigned long s );
 void init_by_array( unsigned long init_key[], int key_length );
 
 /* mudconfig.c */
-void mudconfig_init();
+void mudconfig_init( void );
 
 /* olc.c */
 bool    run_olc_argument  args( ( CHAR_DATA *ch, int editor, char *argument) );
@@ -5249,10 +5244,10 @@ bool check_password( const char *argument, const char *pwd );
 /* playback.c */
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel );
 void log_pers( PERS_HISTORY *history, const char *text );
-void load_comm_histories();
-PERS_HISTORY* pers_history_new();
+void load_comm_histories( void );
+PERS_HISTORY* pers_history_new( void );
 void pers_history_free( PERS_HISTORY *history );
-void save_comm_histories();
+void save_comm_histories( void );
 
 /* remort.c */
 bool is_in_remort args( (CHAR_DATA *ch) );
@@ -5306,16 +5301,16 @@ bool check_skill( CHAR_DATA *ch, int sn );
 CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect );
 int get_skill_prac(CHAR_DATA *ch, int sn);
 int mastery_bonus( CHAR_DATA *ch, int sn, int m_bonus, int gm_bonus );
-void update_skill_costs();
-void update_group_costs();
+void update_skill_costs( void );
+void update_group_costs( void );
 void set_level_exp( CHAR_DATA *ch );
 
 /* smith.c */
 void cancel_smith( CHAR_DATA *ch );
 
 /* social-edit.c */
-void load_social_table();
-void save_social_table();
+void load_social_table( void );
+void save_social_table( void );
 
 /* special.c */
 SF *    spec_lookup args( ( const char *name ) );
@@ -5451,7 +5446,7 @@ void    gain_exp( CHAR_DATA *ch, int gain, bool show );
 void    update_pc_level( CHAR_DATA *ch );
 bool    starvation_immune( CHAR_DATA *ch );
 void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
-void    core_tick();
+void    core_tick( void );
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
 void      update_bounty args( ( CHAR_DATA *ch ) );
@@ -5554,7 +5549,7 @@ extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
     * Lua stuff (Nick Gammon)
      */
 
-void open_lua  ();  /* set up Lua state */
+void open_lua  ( void );  /* set up Lua state */
 void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 
 #define ACT_ARG_UNDEFINED 0
