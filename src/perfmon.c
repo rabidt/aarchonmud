@@ -31,7 +31,7 @@ static struct PERF_meas_s measurements[MAX_MEAS];
 static int meas_ind = 0;
 static int curr_level = 0;
 
-void PERF_meas_reset()
+void PERF_meas_reset( void )
 {
     meas_ind = 0;
 }
@@ -72,7 +72,7 @@ void PERF_meas_end(struct PERF_meas_s **m)
     *m = NULL;
 }
 
-const char *PERF_meas_repr()
+const char *PERF_meas_repr( void )
 {
     static char buf[MAX_MEAS * 80];
     // assume max depth 10
@@ -141,7 +141,7 @@ PERF_data *PERF_data_new(int size)
     return d;
 }
 
-static void init()
+static void init( void )
 {
     init_time = time(NULL);
 
@@ -159,7 +159,7 @@ void PERF_data_free(PERF_data *data)
 }
 #endif
 
-static void check_init()
+static void check_init( void )
 {
     if (init_done)
         return;
@@ -252,7 +252,7 @@ void PERF_log_pulse(double val)
 
 }
 
-const char *PERF_repr()
+const char *PERF_repr( void )
 {
     static char buf[512];
 

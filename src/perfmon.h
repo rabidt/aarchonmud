@@ -2,7 +2,7 @@ struct PERF_track;
 
 
 void PERF_log_pulse(double val);
-const char *PERF_repr();
+const char *PERF_repr( void );
 
 
 typedef struct 
@@ -14,10 +14,10 @@ typedef struct
 } PERF_data;
 
 struct PERF_meas_s;
-void PERF_meas_reset();
+void PERF_meas_reset( void );
 void PERF_meas_start(struct PERF_meas_s **tr, const char *tag);
 void PERF_meas_end(struct PERF_meas_s **tr);
-const char *PERF_meas_repr();
+const char *PERF_meas_repr( void );
 
 #define PERF_MEASURE(name, section) \
 struct PERF_meas_s *_ms_ ## name;\

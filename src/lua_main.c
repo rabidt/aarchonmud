@@ -57,12 +57,12 @@ void register_LUAREFS( lua_State *LS)
 #define LUA_LOOP_CHECK_INCREMENT 100
 #define ERR_INF_LOOP      -1
 
-int GetLuaMemoryUsage()
+int GetLuaMemoryUsage( void )
 {
     return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
 }
 
-int GetLuaGameObjectCount()
+int GetLuaGameObjectCount( void )
 {
     lua_getglobal( g_mud_LS, "UdCnt");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
@@ -78,7 +78,7 @@ int GetLuaGameObjectCount()
     return rtn;
 }
 
-int GetLuaEnvironmentCount()
+int GetLuaEnvironmentCount( void )
 {
     lua_getglobal( g_mud_LS, "EnvCnt");  
     if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
@@ -245,7 +245,7 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
     }
 }
 
-void save_lboards()
+void save_lboards( void )
 {
     lua_getglobal( g_mud_LS, "save_lboards");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -256,7 +256,7 @@ void save_lboards()
     }  
 }
 
-void load_lboards()
+void load_lboards( void )
 {
     lua_getglobal( g_mud_LS, "load_lboards");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -267,7 +267,7 @@ void load_lboards()
     }
 }
 
-void check_lboard_reset()
+void check_lboard_reset( void )
 {
     lua_getglobal( g_mud_LS, "check_lboard_reset");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -278,7 +278,7 @@ void check_lboard_reset()
     }
 }
 
-void load_mudconfig()
+void load_mudconfig( void )
 {
     lua_getglobal( g_mud_LS, "load_mudconfig");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -618,7 +618,7 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
-void open_lua ()
+void open_lua ( void )
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
     g_mud_LS = LS;
@@ -1006,7 +1006,7 @@ void do_achievements_boss_reward( CHAR_DATA *ch )
     }
 }
 
-void update_bossachv_table()
+void update_bossachv_table( void )
 {
     lua_getglobal(g_mud_LS, "update_bossachv_table" );
     
@@ -1018,7 +1018,7 @@ void update_bossachv_table()
     }
 }
 
-void check_lua_stack()
+void check_lua_stack( void )
 {
     int top=lua_gettop( g_mud_LS );
     if ( top > 0 )
@@ -1106,7 +1106,7 @@ DEF_DO_FUN(do_changelog)
     }
 }
 
-void load_changelog()
+void load_changelog( void )
 {
     lua_getglobal( g_mud_LS, "load_changelog");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
@@ -1320,7 +1320,7 @@ bool is_set_ref( LUAREF ref )
 
 /* string buffer section */
 
-BUFFER *new_buf()
+BUFFER *new_buf( void )
 {
     BUFFER *buffer=alloc_mem(sizeof(BUFFER));
     new_ref( &buffer->table ); 

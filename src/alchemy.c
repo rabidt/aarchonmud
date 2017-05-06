@@ -47,7 +47,7 @@ struct herb_type herb_table[] =
 //#define HERB_DEBUG
 
 /* some routines to make herb reset independant of area reset */
-void reset_herbs_world()
+void reset_herbs_world( void )
 {
     AREA_DATA *pArea;
 #ifdef HERB_DEBUG
@@ -134,7 +134,7 @@ int rot_herbs( int vnum )
 }
 
 /* to check nr of herbs reset */
-void update_herb_reset()
+void update_herb_reset( void )
 {
     int i, nr;
     char buf[MSL], outbuf[MSL];

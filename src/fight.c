@@ -43,7 +43,7 @@
 
 extern WAR_DATA war;
 
-void reverse_char_list();
+void reverse_char_list( void );
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
 void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
@@ -318,7 +318,7 @@ void violence_update_char( CHAR_DATA *ch )
 }
 
 // show damage dealt since last round and reset
-void show_violence_summary()
+void show_violence_summary( void )
 {
     CHAR_DATA *ch, *ch_next, *gch;
     char buf[MSL];
@@ -434,7 +434,7 @@ void violence_update( void )
         reverse_char_list();
 }
 
-void reverse_char_list()
+void reverse_char_list( void )
 {
     CHAR_DATA 
         *new_char_list = NULL,

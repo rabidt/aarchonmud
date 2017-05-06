@@ -111,7 +111,7 @@ QUEST_ITEM quest_item_table[] =
     { 0, 0, "" }
 };
 
-char* list_quest_items()
+char* list_quest_items( void )
 {
     static char list_buf[MSL];
     char buf[MIL];

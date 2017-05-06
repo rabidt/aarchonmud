@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
@@ -28,7 +29,7 @@ CLANWAR_DATA *clanwar_lookup(sh_int clan_one, sh_int clan_two)
 }
 
 
-void load_clanwars()
+void load_clanwars( void )
 {
 	FILE *fp;
 	CLANWAR_DATA *p;
@@ -100,7 +101,7 @@ void load_clanwars()
 }
 
 
-void save_clanwars()
+void save_clanwars( void )
 {
 	FILE *fp;
 	CLANWAR_DATA *p;

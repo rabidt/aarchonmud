@@ -40,7 +40,7 @@ static TIMER_NODE *first_timer=NULL;
 
 static void add_timer( TIMER_NODE *tmr);
 static void free_timer_node( TIMER_NODE *tmr);
-static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int tm_type, int max, const char *tag );
+static TIMER_NODE *new_timer_node( void *gobj, void (*func)( void ), int go_type, int tm_type, int max, const char *tag );
 
 
 void unregister_timer_node( TIMER_NODE *tmr )
@@ -236,7 +236,7 @@ static void free_timer_node( TIMER_NODE *tmr)
     free_mem(tmr, sizeof(TIMER_NODE));
 }
 
-static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int tm_type, int seconds, const char *tag )
+static TIMER_NODE *new_timer_node( void *gobj, void (*func)( void ), int go_type, int tm_type, int seconds, const char *tag )
 {
     TIMER_NODE *new=alloc_mem(sizeof(TIMER_NODE));
     new->next=NULL;
@@ -252,7 +252,7 @@ static TIMER_NODE *new_timer_node( void *gobj, void (*func)(), int go_type, int 
 }
 
 /* see if everything that should have a running timer does have a running timer */
-static void timer_debug()
+static void timer_debug( void )
 {
     CHAR_DATA *ch;
     OBJ_DATA *obj;
@@ -296,7 +296,7 @@ static void timer_debug()
 }
 
 /* Should be called every second */
-void timer_update()
+void timer_update( void )
 {
     TIMER_NODE *tmr, *tmr_next, *tmr_prev;
     CHAR_DATA *ch;
@@ -424,7 +424,7 @@ void timer_update()
     /* DEBUGGGGGG */
 }
 
-char * print_timer_list()
+char * print_timer_list( void )
 {
     static char buf[MSL*4];
     TIMER_NODE *tmr;

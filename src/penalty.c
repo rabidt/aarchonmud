@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
@@ -21,7 +22,7 @@ char *penalty_status_name(int status);
 void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
 void show_penalty_type(CHAR_DATA *ch, const char *penname);
-void check_penlist();
+void check_penlist( void );
 void load_crime_list(void);
 void save_crime_list(void);
 
@@ -454,7 +455,7 @@ int show_penalties_by_player(CHAR_DATA *ch, const char *victim_name, int victim_
 
 
 /* Load from disk.  Called from boot_db(). */
-void load_penalties()
+void load_penalties( void )
 {
     FILE *fp;
     PENALTY_DATA *p;
@@ -502,7 +503,7 @@ void load_penalties()
 }
 
 /* Save changes to disk */
-void save_penalties()
+void save_penalties( void )
 {
     FILE *fp;
     PENALTY_DATA *p;
@@ -1279,7 +1280,7 @@ void penalty_update(CHAR_DATA *ch)
 }
 
 
-void check_penlist()
+void check_penlist( void )
 {
     PENALTY_DATA *p, *np;
 

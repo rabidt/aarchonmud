@@ -29,6 +29,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include "merc.h"
@@ -1522,7 +1523,7 @@ bool check_spell_disabled (const struct skill_type *command)
 
 
 /* Load disabled commands */
-void load_disabled()
+void load_disabled( void )
 {
     FILE *fp;
     DISABLED_DATA *p;
@@ -1596,7 +1597,7 @@ void load_disabled()
 }
 
 /* Save disabled commands */
-void save_disabled()
+void save_disabled( void )
 {
     FILE *fp;
     DISABLED_DATA *p;
