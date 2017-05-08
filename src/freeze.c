@@ -11,7 +11,7 @@
    Set these VNUMs to the min/max room number to randomly locate players
    in the freeze tag zone.
  */
-int ftag_table[4][2]=
+const int ftag_table[4][2]=
 {
 	{32500,32548},
 	{17353,17380},

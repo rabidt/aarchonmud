@@ -86,7 +86,7 @@ void hedit( CHAR_DATA *ch, const char *argument );
  */
 struct olc_cmd_type
 {
-    char * const	name;
+    const char * const	name;
     OLC_FUN *		olc_fun;
 };
 
@@ -97,7 +97,7 @@ struct olc_cmd_type
  */
 struct	editor_cmd_type
 {
-    char * const	name;
+    const char * const	name;
     DO_FUN *		do_fun;
 };
 

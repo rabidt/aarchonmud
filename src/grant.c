@@ -55,7 +55,7 @@ bool is_granted( CHAR_DATA *ch, DO_FUN *do_fun)
     return FALSE;
 }
 
-bool is_granted_name( CHAR_DATA *ch, char *name)
+bool is_granted_name( CHAR_DATA *ch, const char *name)
 {
     GRANT_DATA *gran;
     
@@ -101,7 +101,7 @@ int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
     return 0;
 }
 
-void grant_add(CHAR_DATA *ch, char *name, DO_FUN *do_fun, int duration, int level)
+void grant_add(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, int duration, int level)
 {
     GRANT_DATA *gran;
     
@@ -167,7 +167,7 @@ void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
     return;
 }
 
-void grant_revoke(CHAR_DATA *ch, char *name, DO_FUN *do_fun, bool mshow)
+void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
 {
     GRANT_DATA *gran;
     char buf[MAX_STRING_LENGTH];

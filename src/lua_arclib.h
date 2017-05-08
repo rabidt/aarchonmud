@@ -4,19 +4,19 @@
 struct lua_prop_type;
 typedef struct lua_obj_type
 {
-    const char *type_name;
+    const char * const type_name;
 
-    bool (*valid)( void * );
-    void *(*check)( lua_State *, int );
-    bool (*is)( lua_State *, int );
-    bool (*push)( lua_State *, void * );
-    void *(*alloc)( void );
-    void (*free)( void * );
+    bool (* const valid)( void * );
+    void *(* const check)( lua_State *, int );
+    bool (* const is)( lua_State *, int );
+    bool (* const push)( lua_State *, void * );
+    void *(* const alloc)( void );
+    void (* const free)( void * );
 
-    int (*index)( lua_State * );
-    int (*newindex)( lua_State * );
+    int (* const index)( lua_State * );
+    int (* const newindex)( lua_State * );
 
-    void (*reg)( lua_State * );
+    void (* const reg)( lua_State * );
 
     const struct lua_prop_type * const get_table;
     const struct lua_prop_type * const set_table;

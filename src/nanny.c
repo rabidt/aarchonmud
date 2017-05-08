@@ -1855,10 +1855,10 @@ bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 
 struct quote_type
 {
-    char * 	text;
+    const char * 	text;
 };
 
-const struct quote_type quote_table[MAX_QUOTES] =
+static const struct quote_type quote_table[MAX_QUOTES] =
 {
     { "{WYou will move and regenerate slower while encumbered (carrying too much weight).{x\n\r"            }, /* 1 */
     { "{WMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },

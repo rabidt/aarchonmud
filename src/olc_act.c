@@ -97,9 +97,9 @@ extern HELP_AREA * had_list;
 
 struct olc_help_type
 {
-    char *command;
+    const char *command;
     const void *structure;
-    char *desc;
+    const char *desc;
 };
 
 
@@ -4950,7 +4950,7 @@ OEDIT( oedit_level )
 
 
 /* values in above order, obj_stats[i] = stats for level i+1 */
-static int obj_ovalue[][OBJ_STAT_NR] = {
+static const int obj_ovalue[][OBJ_STAT_NR] = {
     {1,500,150          },// 1
     {1,1000,300         },
     {1,1500,450         },
@@ -5054,7 +5054,7 @@ static int obj_ovalue[][OBJ_STAT_NR] = {
 };
 
 
-int* get_obj_ovalue( int level )
+const int* get_obj_ovalue( int level )
 {
     static int ovalue[OBJ_STAT_NR] = { };
     level = UMAX( 1, level );
@@ -5226,7 +5226,7 @@ OEDIT( oedit_adjust )
     OBJ_INDEX_DATA *pObj;
     char arg1[MAX_INPUT_LENGTH];
     char arg2[MAX_INPUT_LENGTH];
-    int *ovalue;
+    const int *ovalue;
     bool set_drop = FALSE;
     bool set_shop = FALSE;
     
@@ -5732,7 +5732,7 @@ MEDIT( medit_spec )
 
 /* values in above order, level_stats[i] = stats for level i+1
 */
-static int level_stats[][LVL_STAT_NR] = {
+static const int level_stats[][LVL_STAT_NR] = {
     {  2,  6,    10,  1,  4,  0,   95 },
     {  2,  7,    22,  1,  5,  0,   89 },
     {  2,  6,    35,  1,  6,  0,   83 },
@@ -5856,7 +5856,7 @@ static int level_stats[][LVL_STAT_NR] = {
 };
 
 /* returns an array with the stats for that level */
-int* get_level_stats( int level )
+const int* get_level_stats( int level )
 {
     static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750 };
 
@@ -5946,7 +5946,7 @@ int average_roll( int nr, int type, int bonus )
 
 int average_mob_hp( int level )
 {
-    int *stats;
+    const int *stats;
 
     stats = get_level_stats( level );
     return average_roll( stats[LVL_STAT_HP_DICE_NUMBER],
@@ -5956,7 +5956,7 @@ int average_mob_hp( int level )
 
 int average_mob_damage( int level )
 {
-    int *stats;
+    const int *stats;
 
     stats = get_level_stats( level );
     return average_roll( stats[LVL_STAT_DAM_DICE_NUMBER], stats[LVL_STAT_DAM_DICE_TYPE], 0 ) + stats[LVL_STAT_DAM_DICE_BONUS] / 4;

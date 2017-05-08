@@ -32,7 +32,7 @@
 #include "merc.h"
 #include "tables.h"
 
-char *name_lookup(const int bit, const struct flag_type *flag_table)
+const char *name_lookup(const int bit, const struct flag_type *flag_table)
 {
     int i;
 

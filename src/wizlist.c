@@ -43,7 +43,7 @@
 WIZ_DATA *wiz_list;
 
 /* Each of Your Immortal Tiers */
-char *	const	wiz_titles	[] =
+const char *	const	wiz_titles	[] =
 {
         "Implementors  ",
         "Archons       ",
