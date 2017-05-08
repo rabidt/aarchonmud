@@ -18,7 +18,7 @@
 //#define LUA_TEST
 
 /* for iterating */
-LUA_OBJ_TYPE *type_list [] =
+LUA_OBJ_TYPE * const type_list [] =
 {
     &CH_type,
     &OBJ_type,
@@ -466,7 +466,7 @@ static int glob_do_luaquery ( lua_State *LS)
     return lua_gettop(LS);
 }
 
-static void push_mudconfig_val( lua_State *LS, CFG_DATA_ENTRY *en )
+static void push_mudconfig_val( lua_State *LS, const CFG_DATA_ENTRY *en )
 {
     switch( en->type )
     {
@@ -500,7 +500,7 @@ static void push_mudconfig_val( lua_State *LS, CFG_DATA_ENTRY *en )
 static int glob_mudconfig (lua_State *LS)
 {
     int i;
-    CFG_DATA_ENTRY *en;
+    const CFG_DATA_ENTRY *en;
 
     /* no arg, return the whole table */
     if (lua_isnone(LS,1))

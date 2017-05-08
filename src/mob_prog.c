@@ -152,7 +152,7 @@ char last_debug[MSL] = "";
 /*
  * if-check keywords:
  */
-typedef char* keyword_list[][2];
+typedef const char * keyword_list[][2];
 
 const keyword_list fn_keyword =
 {

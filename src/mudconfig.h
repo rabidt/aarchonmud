@@ -30,5 +30,5 @@ typedef struct config_data_entry
     const void *default_value;
 } CFG_DATA_ENTRY;
 
-extern CFG_DATA_ENTRY mudconfig_table[];
+extern const CFG_DATA_ENTRY mudconfig_table[];
 

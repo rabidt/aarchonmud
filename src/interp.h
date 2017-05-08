@@ -35,7 +35,7 @@
  */
 struct  cmd_type
 {
-	char * const    name;
+	const char * const    name;
 	DO_FUN *        do_fun;
 	sh_int      position;
 	sh_int      level;
@@ -47,8 +47,8 @@ struct  cmd_type
 
 struct pair_type
 {
-    char * const        first;
-    char * const       second;
+    const char * const        first;
+    const char * const       second;
     bool              one_way;
 };
 

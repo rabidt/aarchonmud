@@ -382,7 +382,6 @@ bool is_nosac( OBJ_DATA *obj );
 #define FLAG_MAX_BYTE          32
 #define FLAG_MAX_BIT           (8 * FLAG_MAX_BYTE) 
 typedef char tflag[FLAG_MAX_BYTE];
-typedef char msl_string[MSL];
 
 typedef struct smith_data 
 {
@@ -422,12 +421,7 @@ struct	wiz_data
     const char* name;
 };
 
-struct struckdrunk
-{
-    int         min_drunk_level;
-    int         number_of_rep;
-    const char* replacement[11];
-};
+
 
 struct buf_type
 {
@@ -997,23 +991,22 @@ struct  note_data
 /* Data about a board */
 struct board_data
 {
-    const char* short_name;      /* Max 8 chars */
-    const char* long_name;       /* Explanatory text, should be no more than 40 ? chars */
-	
-	int read_level;        /* minimum level to see board */
-	int write_level;       /* minimum level to post notes */
-    int special_access;    /* Special access restrictions */
+    const char* const short_name;      /* Max 8 chars */
+    const char* const long_name;       /* Explanatory text, should be no more than 40 ? chars */
 
-    const char* names;           /* Default recipient */
-	int force_type;        /* Default action (DEF_XXX) */
-	
-	int purge_days;        /* Default expiration */
-    int purge_count;       /* Max messages before purge */
+    const int read_level;        /* minimum level to see board */
+    const int write_level;       /* minimum level to post notes */
+    const int special_access;    /* Special access restrictions */
 
-	/* Non-constant data */
-	NOTE_DATA *note_first; /* pointer to board's first note */
-	bool changed;
-		
+    const char* const names;           /* Default recipient */
+    const int force_type;        /* Default action (DEF_XXX) */
+
+    const int purge_days;        /* Default expiration */
+    const int purge_count;       /* Max messages before purge */
+
+    /* Non-constant data */
+    NOTE_DATA *note_first; /* pointer to board's first note */
+    bool changed;		
 };
 
 
@@ -4239,7 +4232,7 @@ extern  struct  race_type       morph_race_table[];
 extern  struct  pc_race_type    morph_pc_race_table[];
 
 /* align table */
-extern  struct  align_type    align_table[];
+extern  const struct  align_type    align_table[];
 
 extern  const   struct  spec_type   spec_table  [];
 extern  const   struct  liq_type    liq_table   [];
@@ -4247,7 +4240,7 @@ extern  struct  skill_type  skill_table [MAX_SKILL+1];
 extern  struct  group_type  group_table [MAX_GROUP];
 extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;
-extern  char *  const           title_table [MAX_CLASS] [23];
+extern  const char *  const           title_table [MAX_CLASS] [23];
 extern	        struct  clan_data       clan_table[MAX_CLAN];
 
 
@@ -4798,7 +4791,7 @@ int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn );
 void reset_pkill_expire( CHAR_DATA *ch );
 
 /* grant.c */
-bool is_granted_name    args( ( CHAR_DATA *ch, char *argument ) );
+bool is_granted_name    args( ( CHAR_DATA *ch, const char *argument ) );
 bool is_granted      args( ( CHAR_DATA *ch, DO_FUN *do_fun ) );
 void login_grant( CHAR_DATA *ch );
 

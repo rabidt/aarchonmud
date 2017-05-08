@@ -69,7 +69,7 @@ DECLARE_DO_FUN(do_worth);
 DECLARE_DO_FUN(do_attributes);
 /* DECLARE_DO_FUN(do_combo); */
 
-char *  const   where_name  [] =
+const char *  const   where_name  [] =
 {
     "<used as light>     ",
     "<worn on finger>    ",
@@ -538,7 +538,7 @@ char* get_disguise_name( CHAR_DATA *ch );
 char* char_look_info( CHAR_DATA *ch )
 {
     static char buf[MSL];
-    static char appear_str[10][100] =
+    static const char * const appear_str[] =
     {
 	"horrid",
 	"disgusting",
@@ -2222,13 +2222,13 @@ DEF_DO_FUN(do_leadership)
     printf_to_char(ch, "You control %d / %d levels worth of creatures (%d remaining).\n\r", charmed, max, max-charmed);
 }
 
-char *  const   day_name    [] =
+const char *  const   day_name    [] =
 {
     "the Moon", "the Bull", "Deception", "Thunder", "Freedom",
         "the Great Gods", "the Sun"
 };
 
-char *  const   month_name  [] =
+const char *  const   month_name  [] =
 {
     "Winter", "the Winter Wolf", "the Frost Giant", "the Old Forces",
         "the Grand Struggle", "the Spring", "Nature", "Futility", "the Dragon",
@@ -2274,7 +2274,7 @@ DEF_DO_FUN(do_weather)
 {
     char buf[MAX_STRING_LENGTH];
     
-    static char * const sky_look[4] =
+    static const char * const sky_look[4] =
     {
         "cloudless",
             "cloudy",
@@ -5301,7 +5301,7 @@ DEF_DO_FUN(do_combo)
 } 
 */
 
-msl_string achievement_display [] =
+const char * const achievement_display [] =
 {
         "none",
         "Level",
@@ -5798,7 +5798,7 @@ DEF_DO_FUN(do_lagfree)
 struct newbie_data
 {
     int lvl;
-    char * area_name;
+    const char * area_name;
 };
 
 const struct newbie_data eq_data[] =

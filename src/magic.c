@@ -255,8 +255,8 @@ void say_spell( CHAR_DATA *ch, int sn )
 
     struct syl_type
     {
-        char *  old;
-        char *  new;
+        const char *  old;
+        const char *  new;
     };
 
     static const struct syl_type syl_table[] =

@@ -28,17 +28,17 @@ static void smith_free( SMITH_DATA *sm );
 
 struct smith_arg
 {
-    char * const    name;
-    char * const    hint;
-    SMITH_FUN *     fun;
+    const char *     name;
+    const char *     hint;
+    SMITH_FUN *      fun;
 };
 
 struct smith_set_arg
 {
-    char * const            name;
+    const char *            name;
     SMITH_SET_FUN *         fun;
     SMITH_PRICE_FUN *       price_fun;
-    char * const            price_string;
+    const char *            price_string;
 };
 
 SM_FUN( smith_give );

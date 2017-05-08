@@ -76,7 +76,7 @@ struct quest_item
 };
 typedef struct quest_item QUEST_ITEM;
 
-QUEST_ITEM quest_item_table[] =
+const QUEST_ITEM quest_item_table[] =
 {
     { QUEST_ITEM1,  2500, "sword kings" },
     { QUEST_ITEM2,  2000, "staff ancient" },
@@ -115,7 +115,7 @@ char* list_quest_items( void )
 {
     static char list_buf[MSL];
     char buf[MIL];
-    QUEST_ITEM *qi;
+    const QUEST_ITEM *qi;
     OBJ_INDEX_DATA *obj;
     int i;
     char * wloc;
@@ -164,7 +164,7 @@ char* list_quest_items( void )
 
 bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 {
-    QUEST_ITEM *qi;
+    const QUEST_ITEM *qi;
     int i;
 
     for ( i = 0; quest_item_table[i].vnum != 0; i++ )
@@ -197,7 +197,7 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 
 bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 {
-    QUEST_ITEM *qi;
+    const QUEST_ITEM *qi;
     int i, qp_gain;
     char buf[MSL];
     

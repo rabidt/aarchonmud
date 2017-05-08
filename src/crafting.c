@@ -16,7 +16,7 @@
 #define MAX_MATERIALS 4
 
 
-void check_craft_obj( OBJ_DATA *obj, int type );
+static void check_craft_obj( OBJ_DATA *obj, int type );
 
 struct materials_type
 {
@@ -25,7 +25,7 @@ struct materials_type
 };
 
 
-struct materials_type materials_table[] =
+static const struct materials_type materials_table[] =
 {
 /*    Vnum  , Rarity */
     { CRFT+0,  0 }, // Foul Essence
@@ -55,13 +55,13 @@ struct materials_type materials_table[] =
 
 struct crafting_type
 {
-    char *name;
+    const char *name;
     int crafting_vnum;
     int materials_vnum[MAX_MATERIALS];
     int level;
 };
 
-struct crafting_type crafting_table[] =
+static const struct crafting_type crafting_table[] =
 {
 //fine, splendid, mighty, master, glorious, champion
 //12  , 30      , 50    , 91    , 92      , 97
@@ -511,7 +511,7 @@ DEF_DO_FUN(do_extract)
 checks for a physical or mental parameter to make the items
 more useable - Astark  */
 
-void check_craft_obj( OBJ_DATA *obj, int type )
+static void check_craft_obj( OBJ_DATA *obj, int type )
 {
     if ( obj == NULL || !IS_OBJ_STAT(obj, ITEM_RANDOM) )
         return;

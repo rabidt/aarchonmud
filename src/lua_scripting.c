@@ -99,13 +99,13 @@ typedef struct lua_scripter
     const char *setup_fun;
 
     int narg; /* set during init */
-    const int nrtn;
+    int nrtn;
 
     const char *arg_list[];
 
 } LUA_SCRIPTER; 
 
-LUA_SCRIPTER mpscripter =
+static const LUA_SCRIPTER mpscripter =
 {
     .name= "MPROG",
     .type= &CH_type,
@@ -126,7 +126,7 @@ LUA_SCRIPTER mpscripter =
     }
 };
 
-static bool lua_load_prog( lua_State *LS, int vnum, const char *code, LUA_SCRIPTER *scripter)
+static bool lua_load_prog( lua_State *LS, int vnum, const char *code, const LUA_SCRIPTER *scripter)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 

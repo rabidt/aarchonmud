@@ -29,12 +29,12 @@
 #define TABLES_H
 
 /* other tables */
-extern const char* spell_target_names[];
-extern const char* spell_duration_names[];
+extern const char* const spell_target_names[];
+extern const char* const spell_duration_names[];
 
 struct flag_type
 {
-    char *name;
+    const char *name;
     int bit;
     bool settable;
 };
@@ -42,9 +42,9 @@ struct flag_type
 
 struct penalty_type
 {
-    char *name;                                /* "nochannel", "noemote", "freeze", etc. */
+    const char *name;                                /* "nochannel", "noemote", "freeze", etc. */
     long bit;                                  /* flag bit to assign to player */
-    char *apply_string;                        /* "no-channelled", "no-emoted", "frozen", etc. */
+    const char *apply_string;                        /* "no-channelled", "no-emoted", "frozen", etc. */
     long sev_duration[MAX_PENALTY_SEVERITY];   /* duration of penalty at each severity (-1 = specify, -2 = infinite)*/
     sh_int sev_points[MAX_PENALTY_SEVERITY];   /* demerit points assigned for various severities (-1 = specify) */
     sh_int sev_level[MAX_PENALTY_SEVERITY];    /* minimum level to impose this severity */
@@ -52,26 +52,26 @@ struct penalty_type
 
 struct stat_type
 {
-	char *name;
-	char *abbreviation;
+	const char *name;
+	const char *abbreviation;
 	int stat;
 	int dice[MAX_STATS];
 };
 
 struct position_type
 {
-    char *name;
-    char *short_name;
+    const char *name;
+    const char *short_name;
 };
 
 struct sex_type
 {
-    char *name;
+    const char *name;
 };
 
 struct size_type
 {
-    char *name;
+    const char *name;
 };
 
 struct bit_type
@@ -83,7 +83,7 @@ struct bit_type
 
 struct pkgrade_type
 {
-    char *grade;
+    const char *grade;
     int pkpoints;
     int earned;
     int lost;

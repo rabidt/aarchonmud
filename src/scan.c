@@ -32,7 +32,7 @@
 #include <time.h>
 #include "merc.h"
 
-char *const distance[4]=
+const char *const distance[4]=
 {
     "right here.", "nearby to the %s.", "not far %s.", "off in the distance %s."
 };
@@ -171,7 +171,6 @@ void scan_list(ROOM_INDEX_DATA *scan_room, CHAR_DATA *ch, sh_int depth,
 
 void scan_char(CHAR_DATA *victim, CHAR_DATA *ch, sh_int depth, sh_int door)
 {
-    extern char *const distance[];
     char buf[MAX_INPUT_LENGTH], buf2[MAX_INPUT_LENGTH];
     
     buf[0] = '\0';

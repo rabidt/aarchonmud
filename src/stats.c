@@ -1880,7 +1880,7 @@ struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch )
 
 /* class restriction stuff for ITEM_ALLOW_* */
 /* { Thf, War, Clr, Mag } */
-bool class_group_table[MAX_CLASS][4] =
+const bool class_group_table[MAX_CLASS][4] =
 {
     { 1, 0, 0, 0 }, // warrior
     { 0, 1, 0, 0 }, // thief

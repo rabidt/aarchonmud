@@ -2434,7 +2434,7 @@ struct
     const char *field;
     int status;
     bool (*func)(CHAR_DATA *, CHAR_DATA *, const char *, int);
-} mset_table [] =
+} const mset_table [] =
 {
     {"str",       MSETANY,      mset_str},
     {"con",       MSETANY,      mset_con},
