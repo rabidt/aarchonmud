@@ -20,7 +20,7 @@
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);
 
-char * war_list[] =
+const char * const war_list[] =
 {
     "{rArmageddon{6",
     "{cRace{6",

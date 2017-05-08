@@ -257,7 +257,7 @@ const   struct attack_type  attack_table    [MAX_DAMAGE_MESSAGE+1]    =
     {   NULL,           NULL,                   0               }
 };
 
-struct align_type align_table [] =
+const struct align_type align_table [] =
 {
 /*
     {
@@ -2314,7 +2314,7 @@ const struct subclass_type subclass_table[] =
 /*
  * Titles.
  */
-char *  const           title_table [MAX_CLASS][23] =
+const char *  const           title_table [MAX_CLASS][23] =
 {
 	{
 	"Citizen",

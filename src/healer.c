@@ -271,11 +271,11 @@ DEF_DO_FUN(do_heal)
 typedef struct spell_cost SPELL_COST;
 struct spell_cost
 {
-    char *name;
+    const char *name;
     int cost;
 };
 
-static SPELL_COST arcane_cost[] =
+static const SPELL_COST arcane_cost[] =
 {
     { "sanctuary", 200 },
     { "damned blade", 150 },

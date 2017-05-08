@@ -30,7 +30,7 @@ const char *cfg_word_of_day_default="bananahammock";
 const bool cfg_default_false = FALSE;
 const bool cfg_default_true = TRUE;
 
-CFG_DATA_ENTRY mudconfig_table[] =
+const CFG_DATA_ENTRY mudconfig_table[] =
 {
     { "enable_exp_mult",    CFG_BOOL,   &cfg_enable_exp_mult,   &cfg_default_false }, 
     { "show_exp_mult",      CFG_BOOL,   &cfg_show_exp_mult,     &cfg_default_true },
@@ -55,7 +55,7 @@ void mudconfig_init( void )
        really just be set in declaration, but can also be set with
        default_value fields */
     int i;
-    CFG_DATA_ENTRY *en;
+    const CFG_DATA_ENTRY *en;
 
     for ( i=0; mudconfig_table[i].name ; i++ )
     {

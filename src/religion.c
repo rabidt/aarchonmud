@@ -23,7 +23,7 @@
 
 //static RELIGION_DATA *religion_list = NULL;
 
-static RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK + 1] =
+static const RELIGION_RANK_DATA religion_ranks[RELIGION_MAX_RANK + 1] =
 {
     {    0, "Neophyte"   },
     {  100, "Acolyte"    },

@@ -1357,7 +1357,7 @@ const struct song_type songs [] =
     { NULL,                   0,                       NULL,                     FALSE, FALSE }
 };
 
-const char* spell_target_names[] =
+const char* const spell_target_names[] =
 {
     "ignore",
     "char_offensive",
@@ -1373,7 +1373,7 @@ const char* spell_target_names[] =
     "ignore_defensive",
 };
 
-const char* spell_duration_names[] =
+const char* const spell_duration_names[] =
 {
     "none",
     "special",

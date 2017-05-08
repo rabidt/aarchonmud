@@ -1530,7 +1530,7 @@ DEF_DO_FUN(do_pmote)
 
 struct  pose_table_type
 {
-    char *  message[8];
+    const char * const message[8];
 };
 
 const   struct  pose_table_type pose_table  [MAX_POSE]  =
@@ -3146,7 +3146,12 @@ DEF_DO_FUN(do_bounty)
 const char * makedrunk (const char *string, CHAR_DATA * ch)
 {
     /* This structure defines all changes for a character */
-    struct struckdrunk drunk[] =
+    static const struct 
+    {
+        int         min_drunk_level;
+        int         number_of_rep;
+        const char* replacement[11];      
+    } drunk[] =
     {
         {3, 10,
         {"a", "a", "a", "A", "aa", "ah", "Ah", "ao", "aw", "oa", "ahhhh"}},

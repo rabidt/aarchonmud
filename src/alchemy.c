@@ -18,9 +18,9 @@ DECLARE_SPELL_FUN( spell_blindness      );
 DECLARE_SPELL_FUN( spell_create_rose    );
 struct herb_type
 {
-    int vnum;
-    int sector;
-    int rarity;
+    const int vnum;
+    const int sector;
+    const int rarity;
     int reset_nr; // for counting nr of herbs reset
 };
 
@@ -185,7 +185,7 @@ DEF_DO_FUN(do_herbs)
 
 struct recipe_type
 {
-    char *name;
+    const char *name;
     int potion_vnum;
     int herb_vnum[MAX_HERB];
     int level;
@@ -206,7 +206,7 @@ struct recipe_type
     { AAS+11, SECT_MOUNTAIN,      5 }, // Wind Wisper (mottled)
 */
 
-struct recipe_type recipe_table[] =
+const struct recipe_type recipe_table[] =
 {
     { "energizing",  AAS+19, { AAS+11, AAS+6,  AAS+3 }, 80  },
     { "miracle",  AAS+20, { AAS+11, AAS+10, AAS+8 }, 80  },

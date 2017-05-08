@@ -31,7 +31,7 @@ DECLARE_SPEC_FUN( spec_temple_guard     );
 
 struct spell_type
 {
-    char    *spell;
+    const char    *spell;
     sh_int  min_level;
     sh_int  max_level;
 };
