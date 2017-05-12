@@ -263,6 +263,8 @@ sh_int  gsn_iron_maiden;
 sh_int  gsn_floating_disc;
 sh_int  gsn_restoration;
 sh_int  gsn_refresh;
+sh_int  gsn_cause_light;
+sh_int  gsn_cure_light;
 sh_int  gsn_cure_blindness;
 sh_int  gsn_cure_disease;
 sh_int  gsn_cure_mental;
