@@ -40,6 +40,7 @@
 #include "religion.h"
 #include "mudconfig.h"
 #include "songs.h"
+#include "special.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -185,6 +186,26 @@ int similar_spell( CHAR_DATA *ch, int spell )
     int sn, new_spell = spell;
     int found = 0;
     
+    // confused NPCs cast low-level spells
+    if ( IS_NPC(ch) )
+    {
+        bool is_cleric = IS_SET(ch->act, ACT_CLERIC) || ch->pIndexData->spec_fun == spec_cast_cleric;
+        if ( is_offensive(spell) )
+        {
+            if ( is_cleric )
+                return gsn_cause_light;
+            else
+                return gsn_magic_missile;
+        }
+        else
+        {
+            if ( is_cleric )
+                return gsn_cure_light;
+            else
+                return gsn_refresh;
+        }
+    }
+    
     for ( sn = 0; sn < MAX_SKILL; sn++ )
     {
         if ( skill_table[sn].name == NULL )
@@ -210,28 +231,28 @@ int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred )
     /* finds a spell the character can cast if possible */
     int sn, found = -1;
 
-    if (IS_NPC(ch))
-        return skill_lookup(name);
-
-    for ( sn = 0; sn < MAX_SKILL; sn++ )
-    {
-        if (skill_table[sn].name == NULL)
-            break;
-        if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
-                && !str_prefix(name,skill_table[sn].name)
-                && skill_table[sn].spell_fun != spell_null )
+    if ( IS_NPC(ch) )
+        found = skill_lookup(name);
+    else
+        for ( sn = 0; sn < MAX_SKILL; sn++ )
         {
-            if ( known_preferred && get_skill(ch, sn) > 0 )
-            {
-                found = sn;
+            if ( skill_table[sn].name == NULL )
                 break;
+            if ( LOWER(name[0]) == LOWER(skill_table[sn].name[0])
+                    && !str_prefix(name,skill_table[sn].name)
+                    && skill_table[sn].spell_fun != spell_null )
+            {
+                if ( known_preferred && get_skill(ch, sn) > 0 )
+                {
+                    found = sn;
+                    break;
+                }
+                // ensure we still return a match if one exists, even if unknown
+                // should preserve order of spells, so only overwrite if none found yet
+                if ( found == -1 )
+                    found = sn;
             }
-            // ensure we still return a match if one exists, even if unknown
-            // should preserve order of spells, so only overwrite if none found yet
-            if ( found == -1 )
-                found = sn;
         }
-    }
 
     // confusion
     if ( found > 0 && IS_AFFECTED(ch, AFF_INSANE) && number_bits(1)==0 )

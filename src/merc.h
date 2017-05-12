@@ -3401,6 +3401,8 @@ extern sh_int  gsn_iron_maiden;
 extern sh_int  gsn_floating_disc;
 extern sh_int  gsn_restoration;
 extern sh_int  gsn_refresh;
+extern sh_int  gsn_cause_light;
+extern sh_int  gsn_cure_light;
 extern sh_int  gsn_cure_blindness;
 extern sh_int  gsn_cure_disease;
 extern sh_int  gsn_cure_mental;

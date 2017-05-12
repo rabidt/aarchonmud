@@ -3071,7 +3071,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cause_harm,  TAR_CHAR_OFFENSIVE, POS_FIGHTING,
-    NULL, 2, 1, 8, DUR_NONE,
+    &gsn_cause_light, 2, 1, 8, DUR_NONE,
     "spell",        "!Cause Light!",    ""
     },
 
@@ -3291,7 +3291,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_light,   TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 2, 1, 8, DUR_NONE,
+    &gsn_cure_light, 2, 1, 8, DUR_NONE,
     "",         "!Cure Light!",     ""
     },
 
@@ -4035,7 +4035,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_magic_missile,    TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    NULL, 1, 1, 12, DUR_NONE,
+    &gsn_magic_missile, 1, 1, 12, DUR_NONE,
     "magic missile",    "!Magic Missile!",  ""
     },
 
