@@ -1039,6 +1039,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
             bugf("stance_hit: ch->in_room NULL for %s", ch->name);
             return;
         }
+        const int ch_align = get_align_type(ch);
         for ( vch = ch->in_room->people; vch != NULL; vch = vch_next )
         {
             vch_next = vch->next_in_room;
@@ -1054,6 +1055,12 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                         if ( ch->fighting != vch && per_chance(offhand_attack_chance(ch, TRUE)) )
                             one_hit(ch, vch, dt, TRUE);
                     }
+                }
+                // jihad only grants attacks against opponents of different alignment
+                else if ( ch->stance == STANCE_JIHAD )
+                {
+                    if ( ch_align != get_align_type(vch) )
+                        one_hit(ch, vch, dt, FALSE);
                 }
                 else
                     one_hit(ch, vch, dt, FALSE);
