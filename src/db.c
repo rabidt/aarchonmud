@@ -503,6 +503,7 @@ sh_int  gsn_wish;
 
 /* songs/bard skills */
 sh_int  gsn_wail;
+sh_int  gsn_swagger;
 sh_int  gsn_combat_symphony;
 sh_int  gsn_devastating_anthem;
 sh_int  gsn_lullaby;
