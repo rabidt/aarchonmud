@@ -2172,14 +2172,22 @@ DEF_DO_FUN(do_affects)
 
     bool separated = FALSE;
     
-    if (ch->leader != NULL && ch->leader != ch && ch->leader->in_room == ch->in_room)
+    if ( leadership != 0 )
     {
-        printf_to_char(ch, "%sYou receive a %d%% damage %s from %s's leadership.\n\r",
-            separated ? "" : "\n\r",
-            leadership,
-            leadership >= 0 ? "bonus" : "penalty",
-            PERS(ch->leader, ch)
-        );
+        const char *header = separated ? "" : "\n\r";
+        const char *type = leadership >= 0 ? "bonus" : "penalty";
+        if ( ch->leader != NULL && ch->leader != ch && ch->leader->in_room == ch->in_room )
+        {
+            printf_to_char(ch, "%sYou receive a %d%% damage %s from %s's leadership.\n\r",
+                header, leadership, type, PERS(ch->leader, ch)
+            );
+        }
+        else
+        {
+            printf_to_char(ch, "%sYou receive a %d%% damage %s from your swagger.\n\r",
+                header, leadership, type
+            );
+        }
         separated = TRUE;
     }
     

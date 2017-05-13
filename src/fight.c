@@ -2180,29 +2180,42 @@ static void handle_arrow_shot( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hi
     one_hit( victim, ch, TYPE_UNDEFINED, FALSE );
 }
 
-int get_leadership_bonus( CHAR_DATA *ch, bool improve )
+static int get_leadership_bonus_from( CHAR_DATA *ch, CHAR_DATA *leader, bool improve )
 {
     int bonus;
-    
-    if ( ch->leader == NULL || ch->leader == ch || ch->in_room != ch->leader->in_room )
-        return 0;
-
-    bonus = get_curr_stat( ch->leader, STAT_CHA ) - 50;
-    bonus += get_skill_total(ch->leader, gsn_leadership, 0.5);
-    bonus += ch->leader->level - ch->level;
+    bonus = get_curr_stat(leader, STAT_CHA) - 50;
+    bonus += get_skill_total(leader, gsn_leadership, 0.5);
+    bonus += leader->level - ch->level;
     
     if ( IS_UNDEAD(ch) )
     {
-        int dark_bonus = get_skill(ch->leader, gsn_army_of_darkness);
+        int dark_bonus = get_skill(leader, gsn_army_of_darkness);
         if ( weather_info.sunlight == SUN_DARK || room_is_dim(ch->in_room) )
             dark_bonus *= 2;
         bonus += dark_bonus;
     }
 
-    if (improve)
-        check_improve( ch->leader, gsn_leadership, TRUE, 8 );
+    if ( improve )
+        check_improve(leader, gsn_leadership, TRUE, 8);
 
     return bonus / 10;
+}
+
+int get_leadership_bonus( CHAR_DATA *ch, bool improve )
+{
+    if ( ch->leader == NULL || ch->leader == ch || ch->in_room != ch->leader->in_room )
+    {
+        int swagger = get_skill(ch, gsn_swagger) + mastery_bonus(ch, gsn_swagger, 60, 100);
+        if ( swagger > 0 )
+        {
+            if ( improve )
+                check_improve(ch, gsn_swagger, TRUE, 10);
+            return get_leadership_bonus_from(ch, ch, FALSE) * swagger / 200;
+        }
+        return 0;
+    }
+    
+    return get_leadership_bonus_from(ch, ch->leader, improve);
 }
 
 bool is_ranged_weapon( OBJ_DATA *weapon )

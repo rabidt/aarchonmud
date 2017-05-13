@@ -8141,6 +8141,17 @@ struct  skill_type
         "wail",                 "!Wail!",       ""
     },
 
+    {
+    "swagger",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102, 102,  18 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 12, 6,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_CHA, STAT_AGI, STAT_DEX,
+    spell_null, TAR_IGNORE, POS_FIGHTING,
+    &gsn_swagger, 0, 0, 0, DUR_NONE,
+    "swagger", "!swagger!", ""
+    },
+
     /* songs */
     {
     "combat symphony",
