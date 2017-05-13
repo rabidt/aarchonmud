@@ -2229,7 +2229,7 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
 
 bool is_calm( CHAR_DATA *ch )
 {
-    return ch->move <= ch->max_move * ch->calm/100;
+    return ch->calm == 100 || ch->move <= ch->max_move * ch->calm/100;
 }
 
 bool deduct_move_cost( CHAR_DATA *ch, int cost )
