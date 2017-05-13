@@ -228,7 +228,7 @@ bool is_nosac( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         497
+#define MAX_SKILL         498
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3709,6 +3709,7 @@ extern sh_int  gsn_chain_spell;
 extern sh_int  gsn_wish;
 
 extern sh_int  gsn_wail;
+extern sh_int  gsn_swagger;
 
 /* songs */
 extern sh_int  gsn_combat_symphony;
