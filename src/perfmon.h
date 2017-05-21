@@ -10,7 +10,9 @@ typedef struct
     int size;
     int ind;
     int count;
-    double *vals;
+    double *avgs;
+    double *mins;
+    double *maxes;
 } PERF_data;
 
 struct PERF_meas_s;
@@ -28,7 +30,9 @@ PERF_meas_end(& _ms_ ## name);
 
 #ifdef UNITTEST
 PERF_data *PERF_data_new(int size);
-int PERF_data_add(PERF_data *data, double val);
+int PERF_data_add(PERF_data *data, double avg, double min, double max);
 void PERF_data_free(PERF_data *data);
-double PERF_data_total(PERF_data *data);
+double PERF_data_avg_avg(PERF_data *data);
+double PERF_data_min_min(PERF_data *data);
+double PERF_data_max_max(PERF_data *data);
 #endif
