@@ -3,6 +3,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <math.h>
 #include "perfmon.h"
 
 #define PULSE_PER_SECOND 4
@@ -30,6 +31,26 @@ struct PERF_meas_s
 static struct PERF_meas_s measurements[MAX_MEAS];
 static int meas_ind = 0;
 static int curr_level = 0;
+
+
+static struct 
+{
+    int const threshold;
+    unsigned long count;
+} threshold_info [] =
+{
+    /* Must be in ascending order */
+    {10,    0},
+    {30,    0},
+    {50,    0},
+    {70,    0},
+    {90,    0},
+    {100,   0},
+    {250,   0},
+    {500,   0},
+    {1000,  0},
+    {2500,  0}
+};
 
 void PERF_meas_reset( void )
 {
@@ -114,12 +135,6 @@ static time_t init_time;
 
 static double last_pulse;
 static double max_pulse = 0;
-static unsigned long over100_count = 0;
-static unsigned long over90_count = 0;
-static unsigned long over70_count = 0;
-static unsigned long over50_count = 0;
-static unsigned long over30_count = 0;
-static unsigned long over10_count = 0;
 static unsigned long day_count = 0;
 
 static PERF_data *pulse_data;
@@ -136,7 +151,9 @@ PERF_data *PERF_data_new(int size)
     d->size = size;
     d->ind = 0;
     d->count = 0;
-    d->vals = malloc(sizeof(double) * size);
+    d->avgs = malloc(sizeof(double) * size);
+    d->mins = malloc(sizeof(double) * size);
+    d->maxes = malloc(sizeof(double) * size);
 
     return d;
 }
@@ -172,9 +189,11 @@ static void check_init( void )
 #ifndef UNITTEST
 static
 #endif
-int PERF_data_add(PERF_data *data, double val)
+int PERF_data_add(PERF_data *data, double avg, double min, double max)
 {
-    data->vals[data->ind] = val;
+    data->avgs[data->ind] = avg;
+    data->mins[data->ind] = min;
+    data->maxes[data->ind] = max;
 
     if (data->count <= data->ind)
         data->count = data->ind + 1;
@@ -194,20 +213,76 @@ int PERF_data_add(PERF_data *data, double val)
 #ifndef UNITTEST
 static
 #endif
-double PERF_data_total(PERF_data *data)
+double PERF_data_avg_avg(PERF_data *data)
 {
-    double rtn = 0;
+    double sum = 0;
     int i;
 
-    for (i=0; i < data->count; i++)
+    for (i=0; i < data->count; ++i)
     {
-        rtn += data->vals[i];
+        sum += data->avgs[i];
     }
 
-    return rtn;
+    return sum / data->count;
 }
 
-#define AVG(data) ( PERF_data_total(data) / data->count )
+#ifndef UNITTEST
+static
+#endif
+double PERF_data_min_min(PERF_data *data)
+{
+    double min = INFINITY;
+    int i;
+
+    for (i=0; i < data->count; ++i)
+    {
+        if (data->mins[i] < min)
+        {
+            min = data->mins[i];
+        }
+    }
+
+    return min;
+}
+
+#ifndef UNITTEST
+static
+#endif
+double PERF_data_max_max(PERF_data *data)
+{
+    double max = 0;
+    int i;
+
+    for (i=0; i < data->count; ++i)
+    {
+        if (data->maxes[i] > max)
+        {
+            max = data->maxes[i];
+        }
+    }
+
+    return max;
+}
+
+static void check_thresholds(double val)
+{
+    const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
+
+    unsigned int i;
+
+    for (i=0; i < thresh_count; ++i)
+    {
+        if (val > threshold_info[i].threshold)
+        {
+            ++(threshold_info[i].count);
+        }
+        else
+        {
+            break; //  Array should be in ascending order
+        }
+    }
+}
+
 void PERF_log_pulse(double val)
 {
     check_init();
@@ -216,36 +291,30 @@ void PERF_log_pulse(double val)
     if (val > max_pulse)
         max_pulse = val;
     
-    if (val > 100)
-        over100_count += 1;
-    if (val > 90)
-        over90_count += 1;
-    if (val > 70)
-        over70_count += 1;
-    if (val > 50)
-        over50_count += 1; 
-    if (val > 30)
-        over30_count += 1;
-    if (val > 10)
-        over10_count += 1;
-
-
-    if (!PERF_data_add(pulse_data, val))
+    check_thresholds(val);
+    
+    if (!PERF_data_add(pulse_data, val, val, val))
         return;
 
-    double sec_val = AVG(pulse_data);
-
-    if (!PERF_data_add(sec_data, sec_val))
+    if (!PERF_data_add(
+            sec_data, 
+            PERF_data_avg_avg(pulse_data),
+            PERF_data_min_min(pulse_data),
+            PERF_data_max_max(pulse_data)))
         return;
 
-    double min_val = AVG(sec_data);
-
-    if (!PERF_data_add(min_data, min_val))
+    if (!PERF_data_add(
+            min_data, 
+            PERF_data_avg_avg(sec_data),
+            PERF_data_min_min(sec_data),
+            PERF_data_max_max(sec_data)))
         return;
 
-    double hour_val = AVG(min_data);
-
-    if (!PERF_data_add(hour_data, hour_val))
+   if (!PERF_data_add(
+            hour_data, 
+            PERF_data_avg_avg(min_data),
+            PERF_data_min_min(min_data),
+            PERF_data_max_max(min_data)))
         return;
 
     day_count += 1;
@@ -254,41 +323,61 @@ void PERF_log_pulse(double val)
 
 const char *PERF_repr( void )
 {
-    static char buf[512];
-
+    const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
+    unsigned int i;
+    static char buf[1024];
+    unsigned int offset = 0;
     time_t total_secs = time(NULL) - init_time;
     double total_pulses = total_secs * PULSE_PER_SECOND;
 
-    snprintf(buf, sizeof(buf),
-        "Averages\n\r"
-        "  %3d Pulse:   %.2f%%\n\r"
-        "  %3d Pulses:  %.2f%%\n\r"
-        "  %3d Seconds: %.2f%%\n\r"
-        "  %3d Minutes: %.2f%%\n\r"
-        "  %3d Hours:   %.2f%%\n\r"
+    offset = snprintf(buf, sizeof(buf),
+        "                       Avg         Min         Max\n\r"
+        "  %3d Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
+        "  %3d Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
+        "  %3d Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
+        "  %3d Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
+        "  %3d Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
         "\n\r"
         "Max pulse:     %.2f%%\n\r"
-        "\n\r"
-        "Over  10%%:    %.2f%% (%ld)\n\r"
-        "Over  30%%:    %.2f%% (%ld)\n\r"
-        "Over  50%%:    %.2f%% (%ld)\n\r"
-        "Over  70%%:    %.2f%% (%ld)\n\r"
-        "Over  90%%:    %.2f%% (%ld)\n\r"
-        "Over 100%%:    %.2f%% (%ld)\n\r",
-        1, last_pulse,
-        pulse_data->count, AVG(pulse_data),
-        sec_data->count, AVG(sec_data),
-        min_data->count, AVG(min_data),
-        hour_data->count, AVG(hour_data),
-        max_pulse,
-        over10_count * 100 / total_pulses, over10_count,
-        over30_count * 100 / total_pulses, over30_count,
-        over50_count * 100 / total_pulses, over50_count,
-        over70_count * 100 / total_pulses, over70_count,
-        over90_count * 100 / total_pulses, over90_count,
-        over100_count * 100 / total_pulses, over100_count
+        "\n\r",
+        1, last_pulse, last_pulse, last_pulse,
+        
+        pulse_data->count, 
+        PERF_data_avg_avg(pulse_data), 
+        PERF_data_min_min(pulse_data), 
+        PERF_data_max_max(pulse_data),
+
+        sec_data->count, 
+        PERF_data_avg_avg(sec_data), 
+        PERF_data_min_min(sec_data), 
+        PERF_data_max_max(sec_data),
+
+        min_data->count, 
+        PERF_data_avg_avg(min_data), 
+        PERF_data_min_min(min_data), 
+        PERF_data_max_max(min_data),
+
+        hour_data->count, 
+        PERF_data_avg_avg(hour_data), 
+        PERF_data_min_min(hour_data), 
+        PERF_data_max_max(hour_data),
+
+        max_pulse    
     );
+
+    for (i=0; i < thresh_count; ++i)
+    {
+        if (offset >= (sizeof(buf) - 1) )
+        {
+            break;
+        }
+        offset += snprintf(buf + offset, (sizeof(buf) - offset), 
+            "Over %5d%%:    %.2f%% (%ld)\n\r",
+            threshold_info[i].threshold,
+            threshold_info[i].count / total_pulses,
+            threshold_info[i].count);
+    }
+
 
     return buf;
 }
-#undef AVG
