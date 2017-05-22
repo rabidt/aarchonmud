@@ -1768,7 +1768,7 @@ DEF_DO_FUN(do_pose)
     if ( IS_NPC(ch) )
         return;
 
-	switch (ch->class)
+	switch (ch->clss)
 	{
 	case 0: case 4: warrior = 10; break;
 	case 1: thief = 10; break;
@@ -2265,7 +2265,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
     sprintf( buf,
         "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
-        !IS_NPC(gch) ? class_table[gch->class].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
+        !IS_NPC(gch) ? class_table[gch->clss].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
         ch_name(gch),
         hp_col, gch->hit,   gch->max_hit,
         mn_col, gch->mana,  gch->max_mana,
@@ -2957,7 +2957,7 @@ DEF_DO_FUN(do_bounty)
     if ( ch == NULL || ch->in_room == NULL )
 	return;
 
-    if ( ch->class == class_lookup("assassin") || IS_IMMORTAL(ch) )
+    if ( ch->clss == class_lookup("assassin") || IS_IMMORTAL(ch) )
         hunter = ch;
     else 
     {

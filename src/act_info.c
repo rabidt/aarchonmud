@@ -2444,7 +2444,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
             && !is_granted_name(ch,pHelp->keyword) ) 
             continue;
 	*/
-        if ( is_name(argall, pHelp->keyword) && pHelp->delete == FALSE )
+        if ( is_name(argall, pHelp->keyword) && pHelp->to_delete == FALSE )
         {
 	    /* help found */
 	    count++;
@@ -2864,7 +2864,7 @@ DEF_DO_FUN(do_who)
 	     || ( fPkillOnly && !IS_SET(wch->act,PLR_PERM_PKILL)
 		  && (is_always_safe(ch, wch) || ch == wch || IS_IMMORTAL(ch)) )
 	     || ( fRemortOnly && wch->pcdata->remorts == 0 )
-	     || ( fClassRestrict && !rgfClass[wch->class] )
+	     || ( fClassRestrict && !rgfClass[wch->clss] )
 	     || ( fRaceRestrict && !rgfRace[wch->race])
 	     //|| ( fReligion && (get_religion(wch)!=get_religion(ch)) )
 	     || ( fClan && !is_same_clan(ch, wch))
@@ -2940,7 +2940,7 @@ void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
     /* a little formatting */
     sprintf(buf, "[%s %6s %s %c] %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s{x%s\n\r",
             levelbuf, racestr,
-            class_table[wch->class].who_name,
+            class_table[wch->clss].who_name,
             get_pkflag(ch, wch),
 
             clanbuf,
@@ -3348,7 +3348,7 @@ DEF_DO_FUN(do_title)
     if ( argument[0] == '\0' )
     {
         sprintf( buf, "the %s",
-            title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5] );
+            title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5] );
         set_title( ch, buf );
         REMOVE_BIT(ch->act, PLR_TITLE);
         return;
@@ -4639,7 +4639,7 @@ DEF_DO_FUN(do_score)
 
     /* Class, Race, Gender */
     sprintf(buf, "{D|{x Class: %11s        Race: %13s        Gender: %10s", 
-        class_table[ch->class].name, 
+        class_table[ch->clss].name, 
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
 
@@ -5954,7 +5954,7 @@ bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
     // cross-subclassing is possible after two ascents
     if ( ch->pcdata->ascents > 1 )
         return TRUE;
-    return can_take_subclass(ch->class, subclass);
+    return can_take_subclass(ch->clss, subclass);
 }
 
 static void show_subclass( CHAR_DATA *ch, int sc )

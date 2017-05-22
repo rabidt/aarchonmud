@@ -7234,7 +7234,7 @@ HEDIT( hedit_show)
     
     EDIT_HELP(ch,pHelp);
     
-    if(pHelp->delete)
+    if(pHelp->to_delete)
     {
         send_to_char("\n\nThis help has been marked for deletion!\n\r",ch);
         return FALSE;
@@ -7305,14 +7305,14 @@ HEDIT( hedit_delete)
     
     EDIT_HELP(ch,pHelp);
     
-    if(!pHelp->delete) 
+    if(!pHelp->to_delete) 
     {
-        pHelp->delete = TRUE;
+        pHelp->to_delete = TRUE;
         send_to_char("You have marked this help for deletion!\n\r",ch);
         return TRUE;
     }
     
-    pHelp->delete = FALSE;
+    pHelp->to_delete = FALSE;
     send_to_char("Help is no longer marked for deletion.\n\r",ch);
     return TRUE;
 }

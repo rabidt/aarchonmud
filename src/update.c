@@ -143,7 +143,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
     if (! IS_SET(ch->act, PLR_TITLE))
     {
         sprintf( buf, "the %s",
-                title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5]);
+                title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5]);
         set_title( ch, buf );
     }
 
@@ -407,7 +407,7 @@ int hit_gain( CHAR_DATA *ch )
        gain = (10 + ch->level) * get_curr_stat(ch, STAT_VIT); */
     gain = (10 + ch->level*4/3) * get_curr_stat(ch, STAT_VIT);
     if ( !IS_NPC(ch) )
-        gain = gain * class_table[ch->class].hp_gain / 100;
+        gain = gain * class_table[ch->clss].hp_gain / 100;
 
     gain += gain * (get_skill_total(ch, gsn_fast_healing, 0.5) + mastery_bonus(ch, gsn_fast_healing, 60, 100)) / 200;
     if ( ch->hit < hit_cap(ch) )
@@ -448,7 +448,7 @@ int mana_gain( CHAR_DATA *ch )
        gain = (10 + ch->level) * get_curr_stat(ch, STAT_INT); */
     gain = (10 + ch->level*4/3) * get_curr_stat(ch, STAT_INT);
     if ( !IS_NPC(ch) )
-        gain = gain * class_table[ch->class].mana_gain / 100;
+        gain = gain * class_table[ch->clss].mana_gain / 100;
 
     if ( ch->position == POS_RESTING )
     {
@@ -488,7 +488,7 @@ int move_gain( CHAR_DATA *ch )
        gain = (20 + ch->level) * get_curr_stat(ch, STAT_VIT); */
     gain = (20 + ch->level*4/3) * get_curr_stat(ch, STAT_VIT);
     if ( !IS_NPC(ch) )
-        gain = gain * class_table[ch->class].move_gain / 100;
+        gain = gain * class_table[ch->clss].move_gain / 100;
 
     gain += gain * (get_skill_total(ch, gsn_endurance, 0.5) + mastery_bonus(ch, gsn_endurance, 60, 100)) / 200;
     if ( ch->move < move_cap(ch) )

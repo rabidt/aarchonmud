@@ -2083,7 +2083,7 @@ bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
     }
 
     // class restriction
-    if ( !IS_NPC(ch) && !class_can_use_obj(ch->class, obj) )
+    if ( !IS_NPC(ch) && !class_can_use_obj(ch->clss, obj) )
     {
         umd_cost += 40;
         WEAR_FAIL("Your training prohibits the use of $p.")

@@ -252,7 +252,7 @@ DEF_SPELL_FUN(spell_call_sidekick)
         return FALSE;
     
     // mobsters get call sidekick as well
-    if ( ch->class != class_lookup("gunslinger") )
+    if ( ch->clss != class_lookup("gunslinger") )
     {
         REMOVE_BIT(mob->act, ACT_GUN);
         SET_BIT(mob->act, ACT_THIEF);

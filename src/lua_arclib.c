@@ -4080,7 +4080,7 @@ static int CH_get_class (lua_State *LS)
     }
 
     lua_pushstring( LS,
-            class_table[ud_ch->class].name);
+            class_table[ud_ch->clss].name);
     return 1;
 }
 
@@ -7827,7 +7827,7 @@ static int HELP_get_text( lua_State *LS )
 
 static int HELP_get_delete( lua_State *LS )
 {
-    lua_pushboolean( LS, check_HELP( LS, 1 )->delete );
+    lua_pushboolean( LS, check_HELP( LS, 1 )->to_delete );
     return 1;
 }
 
