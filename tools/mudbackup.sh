@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -e
+
+# based on concepts from http://www.mikerubel.org/computers/rsync_snapshots/
 
 
 TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -7,25 +8,58 @@ TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function backup()
 {
-    echo "-----MUD Backup-----" 
+    backup_dir=/home/m256ada/backup
+    data_dir=/home/m256ada/aeaea/data
 
-    echo `date`
+    DOW=$(date +%-u) # day of week
+    DOM=$(date +%-d) # day of month
 
-    dd=`date '+%d'`
-    mm=`date '+%m'`
-    Y=`date '+%Y'`
-    backdate="${mm}_${dd}_${Y}"
+    daily=$backup_dir/snapshots/daily
+    weekly=$backup_dir/snapshots/weekly
+    monthly=$backup_dir/snapshots/monthly
 
-    backup_dir="${HOME}/backup"
-    tarball="${backup_dir}/${backdate}.aarchon.tar.gz"
+    mkdir -p $daily
+    mkdir -p $weekly
+    mkdir -p $monthly
 
-    # save core dumps until manually deleted, but do not back them up
-    if ls $HOME/aeaea/data/area/core.tmp.*
+    # handle dailies
+    rm -rf $daily/backup.14
+    for i in `seq 13 -1 1`;
+    do
+        mv $daily/backup.$i $daily/backup.`expr $i + 1`
+    done
+    cp -al $daily/backup.0 $daily/backup.1
+
+    mkdir -p $daily/backup.0
+    rsync -aAv --delete $data_dir $daily/backup.0/
+
+    touch $daily/backup.0 # to have an accurate timestamp of backup time
+
+    # handle weeklies
+    if [ $DOW -eq 1 ]
     then
-        cp -rpf $HOME/aeaea/data/area/core.tmp.* $HOME/aeaea/coredumps
-        rm $HOME/aeaea/data/area/core.tmp.*
+        rm -rf $weekly/backup.4
+        for i in `seq 3 -1 0`;
+        do
+            mv $weekly/backup.$i $weekly/backup.`expr $i + 1`
+        done
+        cp -al $daily/backup.0 $weekly/backup.0
     fi
-    tar -czvf $HOME/backup/${backdate}.aarchon.tar.gz -C $HOME/aeaea data
+
+    # handle monthlies
+    if [ $DOM -eq 1 ]
+    then
+        rm -rf $monthly/backup.12
+        for i in `seq 11 -1 0`;
+        do
+            mv $monthly/backup.$i $monthly/backup.`expr $i + 1`
+        done
+        cp -al $daily/backup.0 $monthly/backup.0
+    fi
+
+    # now sync to remote sites
+    rsync -aAv --delete $backup_dir/snapshots m256ada@rooflez.com:
+    rsync -aAv --delete $backup_dir/snapshots m256ada@chia.rooflez.com:
 }
 
 backup > $TOOLS_DIR/backuplogfile.log 2>&1
