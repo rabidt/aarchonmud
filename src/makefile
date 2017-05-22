@@ -7,11 +7,20 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_FLAGS =  -ggdb -rdynamic -m32 -Wall -Wstrict-prototypes -Wold-style-definition $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-L_FLAGS =  $(PROF) -m32 -llua -ldl -lcrypt -lm -lsqlite3
+C_FLAGS =  -ggdb -rdynamic -m32 $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+C_WARN = -Wall -Wstrict-prototypes -Wold-style-definition
+CPP_WARN = -pedantic -Wall 
+# -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
+# 			-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
+# 			-Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
+# 			-Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
+# 			-Wswitch-default -Wundef -Wno-unused-parameter -Weffc++ -Werror
+L_FLAGS =  $(PROF) -m32 -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3 
 
-SRC_FILES := $(wildcard *.c) 
-O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
+C_SRC_FILES := $(wildcard *.c) 
+O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(C_SRC_FILES))
+CPP_SRC_FILES := $(wildcard *.cpp)
+OPP_FILES := $(patsubst %.cpp,$(OBJ_DIR)/%.opp,$(CPP_SRC_FILES))
 
 CU_TEST_C = tests/CuTest.c
 CU_TEST_O = $(OBJ_DIR)/CuTest.o
@@ -26,30 +35,36 @@ LIVETEST_O_FILE_NAMES = $(patsubst tests/%.c,%.o,$(LIVETEST_C_FILES))
 LIVETEST_O_FILES = $(addprefix $(OBJ_DIR)/,$(LIVETEST_O_FILE_NAMES))
 LIVETEST_O = $(OBJ_DIR)/LiveTests.o
 
-
+.PHONY: all
 all: aeaea
 
-aeaea: $(O_FILES)
+aeaea: $(OPP_FILES) $(O_FILES)
 	rm -f ../bin/aeaea 
-	$(CC) -o ../bin/aeaea $(O_FILES) $(L_FLAGS)
+	$(CC) -o ../bin/aeaea $(O_FILES) $(OPP_FILES) $(L_FLAGS)
 
+.PHONY: tester
 tester: C_FLAGS += -DTESTER
 tester: aeaea
 
+.PHONY: builder
 builder: C_FLAGS += -DBUILDER
 builder: aeaea
 
+.PHONY: remort
 remort: C_FLAGS += -DREMORT 
 remort: aeaea
 
+.PHONY: remort_tester
 remort_tester: C_FLAGS += -DREMORT -DTESTER
 remort_tester: aeaea
 
+.PHONY: osx
 osx: C_FLAGS = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
 osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
 osx: aeaea
 
-# Compile live tests. The binary needs to be run rom area directory as with normal startup
+# Compile live tests. The binary needs to be run from area directory as with normal startup
+.PHONY: livetest
 livetest: C_FLAGS += -DLIVETEST
 livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
 	rm -f ../bin/aeaea_livetest
@@ -61,6 +76,7 @@ livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
 		$(L_FLAGS)
 
 # Compile with unit tests and run immediately
+.PHONY: unittest
 unittest: C_FLAGS += -DUNITTEST
 unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
 	rm -f ../bin/aeaea_unittest
@@ -72,10 +88,12 @@ unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
 		$(L_FLAGS)
 	../bin/aeaea_unittest
 
+.PHONY: _live_tests
 _live_tests: $(OBJ_DIR)
 	./tests/make-live-tests.sh > ./tests/LiveTests.c
 	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/LiveTests.o ./tests/LiveTests.c
 
+.PHONY: _unit_tests
 _unit_tests: $(OBJ_DIR)
 	./tests/make-unit-tests.sh > ./tests/UnitTests.c
 	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
@@ -85,8 +103,12 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: %.c merc.h | $(OBJ_DIR)
-	$(CC) -c $(C_FLAGS) -o $@ $<
+	$(CC) -c $(C_FLAGS) $(C_WARN) -o $@ $<
 
+$(OBJ_DIR)/%.opp: %.cpp merc.h | $(OBJ_DIR)
+	$(CC) -c $(C_FLAGS) $(CPP_WARN) -o $@ $<
 
+.PHONY: clean
 clean:
 	rm -f $(OBJ_DIR)/*.o
+	rm -f $(OBJ_DIR)/*.opp

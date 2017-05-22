@@ -25,6 +25,7 @@
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
 #include <lua.h>
+#include "booltype.h"
 #include "protocol.h"
 #include "timer.h"
 
@@ -57,21 +58,7 @@
 #define DECLARE_SPEC_FUN( fun )     SPEC_FUN  fun
 #define DECLARE_SPELL_FUN( fun )    SPELL_FUN fun
 
-
-/*
- * Short scalar types.
- * Diavolo reports AIX compiler has bugs with short types.
- */
-#if !defined(FALSE)
-#define FALSE    0
-#endif
-
-#if !defined(TRUE)
-#define TRUE     1
-#endif
-
 typedef short   int         sh_int;
-typedef unsigned char           bool;
 
 /*
  * Structure types.
@@ -800,7 +787,7 @@ struct  help_data
    sh_int  level;
    const char* keyword;
    const char* text;
-   bool delete;    
+   bool to_delete;    
 };
 
 
@@ -2518,7 +2505,7 @@ struct  char_data
 	sh_int      group;
 	sh_int      clan;
 	sh_int      sex;
-	sh_int      class;
+	sh_int      clss;
 	sh_int      race;
 	sh_int      level;
 	sh_int      trust;
@@ -4435,7 +4422,7 @@ void    check_achievement( CHAR_DATA *ch );
 void    check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
-bool    can_take_subclass( int class, int subclass );
+bool    can_take_subclass( int clss, int subclass );
 bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
 
 /* act_move.c */
@@ -4667,7 +4654,7 @@ void    bug_string( const char *str );
 void    log_string  args( ( const char *str ) );
 void    log_trace( void );
 void    tail_chain  args( ( void ) );
-const char *	bin_info_string;
+extern const char *	bin_info_string;
 void    log_error( const char *str );
 void    arm_npc( CHAR_DATA *mob );
 void    cheat_log( const char *str );
@@ -4718,7 +4705,7 @@ void    violence_update args( ( void ) );
 bool    one_hit     args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary ));
 void    multi_hit   args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
 int     get_align_type( CHAR_DATA *ch );
-bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int class, bool show ) );
+bool    damage      args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int clss, bool show ) );
 bool    full_dam( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show );
 bool    deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_type, bool show, bool lethal );
 void    dam_message( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, bool immune );
@@ -5060,7 +5047,7 @@ int get_duration_by_type( int type, int level );
 int skill_lookup    args( ( const char *name ) );
 int skill_lookup_exact( const char *name );
 int known_skill_lookup( CHAR_DATA *ch, const char *name );
-int class_skill_lookup( int class, const char *name );
+int class_skill_lookup( int clss, const char *name );
 int affect_list_lookup( AFFECT_DATA *aff, const char *name );
 int spell_lookup( const char *name );
 bool saves_fear( CHAR_DATA *victim, CHAR_DATA *ch, int level );
@@ -5252,7 +5239,7 @@ void remort_update args( ( void) );
 void remort_load args( ( void) );
 void remort_remove args( (CHAR_DATA *ch, bool success) );
 void remort_begin args( (CHAR_DATA *ch) );
-int subclass_count( int class );
+int subclass_count( int clss );
 
 /* room_prog.c */
 bool rp_command_trigger( CHAR_DATA *ch, int cmd, const char *argument );
@@ -5274,7 +5261,7 @@ void rprog_timer_init( ROOM_INDEX_DATA *room );
 void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
-bool is_class_skill( int class, int sn );
+bool is_class_skill( int clss, int sn );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
@@ -5290,7 +5277,7 @@ int get_skill_overflow( CHAR_DATA *ch, int sn );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
 int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
-int get_group_base_cost( int gn, int class );
+int get_group_base_cost( int gn, int clss );
 int get_group_cost( CHAR_DATA *ch, int gn );
 int get_mastery( CHAR_DATA *ch, int sn );
 bool check_skill( CHAR_DATA *ch, int sn );
@@ -5316,7 +5303,7 @@ bool is_wait_based( SPEC_FUN *function );
 /* stats.c */
 int get_curr_stat   args( ( CHAR_DATA *ch, int stat ) );
 int     get_max_train   args( ( CHAR_DATA *ch, int stat ) );
-int class_bonus     args( ( int class, int stat ) );
+int class_bonus     args( ( int clss, int stat ) );
 int ch_dex_tohit        args( (CHAR_DATA *ch) );
 int ch_str_todam        args( (CHAR_DATA *ch) );
 int ch_str_carry        args( (CHAR_DATA *ch) );
@@ -5355,15 +5342,15 @@ int get_spell_penetration( CHAR_DATA *ch, int level );
 void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf );
 bool parse_roll_stats( CHAR_DATA *ch, const char *argument );
 int classes_can_use( tflag extra_flags );
-bool class_can_use_obj( int class, OBJ_DATA *obj );
+bool class_can_use_obj( int clss, OBJ_DATA *obj );
 void set_mob_race( CHAR_DATA *ch, int race );
 void take_default_stats( CHAR_DATA *ch );
 
 /* string.c */
 void string_edit( CHAR_DATA *ch, const char **pString );
 void string_append( CHAR_DATA *ch, const char **pString );
-const char * string_replace( const char *orig, const char *old, const char *new );
-const char * string_replace_ext( const char * orig, const char * old, const char * new, char *xbuf, int xbuf_length );
+const char * string_replace( const char *orig, const char *old, const char *new_str );
+const char * string_replace_ext( const char * orig, const char * old, const char * new_str, char *xbuf, int xbuf_length );
 void   string_add     args( ( CHAR_DATA *ch, const char *argument ) );
 const char * format_string( const char *oldstring /*, bool fSpace */ );
 const char *format_color_string( const char *argument, int width );

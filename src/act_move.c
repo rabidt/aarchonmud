@@ -125,7 +125,7 @@ bool can_move_room( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room, bool show )
                 if ( to_room->vnum == class_table[iClass].guild[iGuild] )
                 {
                     is_guild = TRUE;
-                    if ( iClass == ch->class )
+                    if ( iClass == ch->clss )
                         is_allowed = TRUE;
                 }
 

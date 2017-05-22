@@ -348,7 +348,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 
     bprintf( buf, "Sex  %d\n",   ch->sex         );
     
-    bprintf( buf, "Cla  %d\n",   ch->class       );
+    bprintf( buf, "Cla  %d\n",   ch->clss       );
     
     bprintf( buf, "Levl %d\n",   ch->level       );
     
@@ -1632,7 +1632,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 {
                     ch->perm_stat[stat] = (pc_race_table[ch->race].max_stats[stat]
                         + pc_race_table[ch->race].min_stats[stat])/2
-                        + number_range(0,10) + class_bonus(ch->class, stat);
+                        + number_range(0,10) + class_bonus(ch->clss, stat);
                     ch->pcdata->original_stats[stat] = ch->perm_stat[stat];
                 }
                 fMatch = TRUE;
@@ -1710,8 +1710,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         break;
         
     case 'C':
-        KEY( "Class",   ch->class,      bread_number( buf ) );
-        KEY( "Cla",     ch->class,      bread_number( buf ) );
+        KEY( "Class",   ch->clss,      bread_number( buf ) );
+        KEY( "Cla",     ch->clss,      bread_number( buf ) );
         KEY( "Calm",    ch->calm,       bread_number( buf ) );
         if ( !str_cmp(word, "Clan") )
         {
@@ -3270,7 +3270,7 @@ DEF_DO_FUN(do_finger)
         levelbuf,
         wch->sex == 0 ? "sexless" : wch->sex == 1 ? "male" : "female",
         wch->race < MAX_PC_RACE ? pc_race_table[wch->race].name : "     ",
-        class_table[wch->class].name,
+        class_table[wch->clss].name,
         clanbuf,
         pkstring);
     for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));

@@ -49,7 +49,7 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
     
     if ( !IS_NPC(ch) && MULTI_MORPH(ch) && (ch->pcdata->morph_race > 0) )
     {
-        int ch_class_bonus = class_bonus( ch->class, stat );
+        int ch_class_bonus = class_bonus( ch->clss, stat );
         /* adjust base stat for new race */
         struct pc_race_type *new_race_type = &pc_race_table[ch->pcdata->morph_race];
         int new_max = new_race_type->max_stats[stat];
@@ -157,7 +157,7 @@ int get_max_train( CHAR_DATA *ch, int stat )
         return MAX_CURRSTAT;
     
     max = pc_race_table[ch->race].max_stats[stat];
-    max += class_bonus(ch->class, stat);
+    max += class_bonus(ch->clss, stat);
     max += remort_bonus(ch, stat);
     
     if (!IS_SET(race_table[ch->race].form, FORM_CONSTRUCT))
@@ -305,9 +305,9 @@ int ch_dis_practice(CHAR_DATA *ch)
 
 int ch_prac_gains(CHAR_DATA *ch, int for_level)
 {
-    int x1 = 100*get_curr_stat(ch,class_table[ch->class].attr_prime)/30;
-    int x2 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[0])/45;
-    int x3 = 100*get_curr_stat(ch,class_table[ch->class].attr_second[1])/45;
+    int x1 = 100*get_curr_stat(ch,class_table[ch->clss].attr_prime)/30;
+    int x2 = 100*get_curr_stat(ch,class_table[ch->clss].attr_second[0])/45;
+    int x3 = 100*get_curr_stat(ch,class_table[ch->clss].attr_second[1])/45;
     int x = x1+x2+x3;
     return x * (1 + UMAX(0, for_level - LEVEL_MIN_HERO));
 };
@@ -385,7 +385,7 @@ int get_ac( CHAR_DATA *ch )
     }
     else
     {
-        defense_factor = class_table[ch->class].defense_factor;
+        defense_factor = class_table[ch->clss].defense_factor;
     }
     ac -= (level + 10) * defense_factor/20;
         
@@ -407,7 +407,7 @@ int get_hitroll( CHAR_DATA *ch )
     }
     else
     {
-        attack_factor = class_table[ch->class].attack_factor;
+        attack_factor = class_table[ch->clss].attack_factor;
     }
     hitroll += (modified_level(ch) + 10) * attack_factor/100;
 
@@ -430,7 +430,7 @@ int get_spell_penetration( CHAR_DATA *ch, int level )
     {
         float sp = (level + 10) * (400 + get_curr_stat(ch, STAT_INT)) / 500.0;
         // higher attack factor means stronger focus on physical attacks
-        sp *= (500 - class_table[ch->class].attack_factor) / 400.0;
+        sp *= (500 - class_table[ch->clss].attack_factor) / 400.0;
         // hitroll from items / buffs helps as well
         sp += ch->hitroll / 4.0;
         // bonus for using focus object
@@ -1240,7 +1240,7 @@ MIN_MAX_ROLLED* calc_min_max_rolled(CHAR_DATA *ch, int stat)
     result.min = pc_race_table[race].min_stats[stat];
     result.max = pc_race_table[race].max_stats[stat];
     
-    bonus = class_bonus(ch->class, stat) + remort_bonus(ch, stat);
+    bonus = class_bonus(ch->clss, stat) + remort_bonus(ch, stat);
     result.min += bonus;
     result.max += bonus;
     
@@ -1301,12 +1301,12 @@ void auto_assign_stats(CHAR_DATA *ch)
     
     // compute class factor for base stats
     for (i = 0; i < MAX_STATS; i++)
-        base_stat_weights[i] = class_table[ch->class].stat_weights[i];
+        base_stat_weights[i] = class_table[ch->clss].stat_weights[i];
     // bonus for primary/secondary stats, decreasing for higher remorts (practices get less important)
     int remort_level = ch->pcdata->remorts;
-    base_stat_weights[class_table[ch->class].attr_prime] += 4 * (15 - remort_level);
-    base_stat_weights[class_table[ch->class].attr_second[0]] += 3 * (15 - remort_level);
-    base_stat_weights[class_table[ch->class].attr_second[1]] += 3 * (15 - remort_level);
+    base_stat_weights[class_table[ch->clss].attr_prime] += 4 * (15 - remort_level);
+    base_stat_weights[class_table[ch->clss].attr_second[0]] += 3 * (15 - remort_level);
+    base_stat_weights[class_table[ch->clss].attr_second[1]] += 3 * (15 - remort_level);
     // bonus for int at low remort (needed for practicing skills)
     if (remort_level < 2)
         base_stat_weights[STAT_INT] += (2-remort_level)*10;
@@ -1579,7 +1579,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     /* calculate hp */
     stat_factor = 100 + get_curr_stat(ch, STAT_CON);
-    class_factor = class_table[ch->class].hp_gain;
+    class_factor = class_table[ch->clss].hp_gain;
     new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
     new_hp += (level + 10) * (ch->size - SIZE_MEDIUM);
@@ -1592,7 +1592,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     /* calculate mana */
     stat_factor = 100 + get_curr_stat(ch, STAT_WIS);
-    class_factor = class_table[ch->class].mana_gain;
+    class_factor = class_table[ch->clss].mana_gain;
     new_mana = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_WISE) )
@@ -1602,7 +1602,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     
     /* calculate move */
     stat_factor = 100 + get_curr_stat(ch, STAT_AGI);
-    class_factor = class_table[ch->class].move_gain;
+    class_factor = class_table[ch->clss].move_gain;
     new_move = 100 + level_factor * stat_factor * class_factor / 1000;
     /* form bonus */
     if ( IS_SET(ch->form, FORM_AGILE) )
@@ -1646,15 +1646,15 @@ void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap )
 
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
     // hp
-    gain_per_train = class_table[ch->class].hp_gain * train_factor;
+    gain_per_train = class_table[ch->clss].hp_gain * train_factor;
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
         gain_per_train += 4000;
     *hp_cap = base_hp * 1000 / gain_per_train;
     // mana
-    gain_per_train = class_table[ch->class].mana_gain * train_factor;
+    gain_per_train = class_table[ch->clss].mana_gain * train_factor;
     *mana_cap = base_mana * 1000 / gain_per_train;
     // move
-    gain_per_train = class_table[ch->class].move_gain * train_factor;
+    gain_per_train = class_table[ch->clss].move_gain * train_factor;
     if ( IS_SET(race_table[ch->race].form, FORM_CONSTRUCT) )
         gain_per_train += 2000;
     *move_cap = base_move * 1000 / gain_per_train;

@@ -1873,7 +1873,7 @@ DEF_DO_FUN(do_mpapply)
     sprintf( log_buf, "%s@%s new %s %s applying...", 
         victim->name, victim->desc->host, 
         race_table[victim->race].name, 
-        class_table[victim->class].who_name);
+        class_table[victim->clss].who_name);
 
     wiznet(log_buf, victim, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
     victim->pcdata->auth_state = 1;

@@ -10,6 +10,8 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include "booltype.h"
+
 /******************************************************************************
  Set your MUD_NAME, and change descriptor_t if necessary.
  ******************************************************************************/
@@ -98,11 +100,7 @@ typedef struct descriptor_data descriptor_t;
  Types.
  ******************************************************************************/
 
-typedef enum
-{
-   false, 
-   true
-} bool_t;
+typedef C_bool_t bool_t;
 
 typedef enum
 {

@@ -1466,7 +1466,7 @@ void save_helps( FILE *fp, HELP_AREA *ha )
     
     for ( ; help; help = help->next_area )
     {
-        if(help->delete)
+        if(help->to_delete)
             continue;
         
         rfprintf( fp, "%d %s~\n", help->level, help->keyword );

@@ -422,7 +422,7 @@ DEF_DO_FUN(do_combat)
         war.first_combatant = ch;
     sprintf( buf, "%s (Level %d %s %s %s) has gone to war!\n\r", ch->name, ch->level,
             get_base_sex(ch) == 2 ? "female" : get_base_sex(ch) == 1 ? "male" : "sexless",
-            race_table[ch->race].name, class_table[ch->class].name );
+            race_table[ch->race].name, class_table[ch->clss].name );
     warfare_to_all( buf );
     war.combatants++;
     send_to_char("Prepare for battle, my child.\n\r", ch );
@@ -821,7 +821,7 @@ DEF_DO_FUN(do_warsit)
                 move_percent,
                 wch->level,
                 pc_race_table[wch->race].who_name,
-                class_table[wch->class].who_name,
+                class_table[wch->clss].who_name,
                 god_name ? god_name : "none",
                 (wch->clan) ? clan_table[wch->clan].name : "",
                 (wch->fighting) ? wch->fighting->name : "" );
@@ -956,7 +956,7 @@ void check_war_win( void )
             if ( war.type == CLAN_WAR )
                 sprintf( buf, "The %s clan has won the war!\n\r", clan_table[ch->clan].name );
             else if ( war.type == CLASS_WAR )
-                sprintf( buf, "The %ss have won the war!\n\r", class_table[ch->class].name );
+                sprintf( buf, "The %ss have won the war!\n\r", class_table[ch->clss].name );
             else if ( war.type == RACE_WAR )
                 sprintf( buf, "The %ss have won the war!\n\r", race_table[ch->race].name );
             else if ( war.type == GENDER_WAR )
@@ -994,7 +994,7 @@ bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 )
     if ( war.type == RACE_WAR )
         return ( ch1->race == ch2->race );
     if ( war.type == CLASS_WAR )
-        return ( ch1->class == ch2->class );
+        return ( ch1->clss == ch2->clss );
     if ( war.type == GENDER_WAR )
         return ( get_base_sex(ch1) == get_base_sex(ch2) );
     if ( war.type == RELIGION_WAR )

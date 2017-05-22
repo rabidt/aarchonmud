@@ -2995,7 +2995,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	break;
     case STANCE_WITCH_HUNTING:
         if ( (IS_NPC(victim) && (IS_SET(victim->act,ACT_MAGE) || victim->spec_fun == spec_cast_mage))
-             || (!IS_NPC(victim) && (victim->class == 3 || victim->class == 11 || victim->class == 14)) )
+             || (!IS_NPC(victim) && (victim->clss == 3 || victim->clss == 11 || victim->clss == 14)) )
         {
             full_dam(ch, victim, dam, gsn_witch_hunting, DAM_DROWNING, TRUE);
             if ( per_chance(get_skill_overflow(ch, gsn_witch_hunting)) )
@@ -6358,10 +6358,10 @@ bool check_mercy( CHAR_DATA *ch )
     chance += ch->alignment;
     
     if (IS_SET(ch->act, PLR_KILLER) 
-        && ch->class != class_lookup("assassin"))
+        && ch->clss != class_lookup("assassin"))
         chance -= 500;
     if (IS_SET(ch->act, PLR_THIEF)
-        && ch->class != class_lookup("thief"))
+        && ch->clss != class_lookup("thief"))
         chance -= 500;
     
     return number_range(0, 2999) < chance;
@@ -7338,7 +7338,7 @@ DEF_DO_FUN(do_flee)
     if ( !IS_NPC(ch) && !IS_HERO(ch) && !IS_SET(ch->act, PLR_WAR) )
     {
         // Thieves are exempt from XP penalty
-        if ( ch->class == 1 )
+        if ( ch->clss == 1 )
             send_to_char("You snuck away safely.\n\r", ch);
         else
         {

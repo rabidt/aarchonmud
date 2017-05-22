@@ -679,6 +679,8 @@ const   struct  cmd_type    cmd_table   [] =
     { "rdoor",      do_rdoor,    POS_DEAD,  L9,  LOG_ALWAYS, 1, TRUE, FALSE },
     { "findlock",   do_findlock, POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rforce",     do_rforce,   POS_DEAD,  L6,  LOG_ALWAYS, 1, TRUE, FALSE },
+
+    { "cpptest",    do_cpptest,  POS_DEAD,  L9,  LOG_NEVER,  1, TRUE, FALSE },
     
     /*
     * End of list.
@@ -1436,7 +1438,7 @@ DEF_DO_FUN(do_disable)
                         &&  !str_prefix(arg1,skill_table[i].name))
                     {
                         found = TRUE;
-                        command_level = skill_table[i].skill_level[ch->class];
+                        command_level = skill_table[i].skill_level[ch->clss];
                         break;
                     }
                 }

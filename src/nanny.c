@@ -776,7 +776,7 @@ DEF_NANNY_FUN(nanny_remort_begin)
     CHAR_DATA *ch = d->character;
     
     // allow change of subclass for the first few remorts so players can test all
-    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
+    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->clss) )
         return get_new_subclass(d, argument);
     else
         return get_new_race(d, argument);
@@ -1185,7 +1185,7 @@ DEF_NANNY_FUN(get_new_class)
 		return FALSE;
 	}
 
-	ch->class = i;
+	ch->clss = i;
 
     sprintf( buf, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
     pbuff = buffer;
@@ -1199,7 +1199,7 @@ DEF_NANNY_FUN(get_new_class)
 static int nanny_show_subclasses( CHAR_DATA *ch )
 {
     int sc;
-    int count = subclass_count(ch->class);
+    int count = subclass_count(ch->clss);
     
     ptc(ch, "The following subclasses are available:\n\r[{W");
     for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
@@ -1378,7 +1378,7 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 {
 	CHAR_DATA *ch=d->character;
 
-	group_add(ch,class_table[ch->class].base_group,FALSE);
+	group_add(ch,class_table[ch->clss].base_group,FALSE);
 	
 	return;
 }	
@@ -1386,7 +1386,7 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 
 void take_class_defaults(DESCRIPTOR_DATA *d)
 {
-	group_add(d->character,class_table[d->character->class].default_group,TRUE);
+	group_add(d->character,class_table[d->character->clss].default_group,TRUE);
 	return;
 }
 
@@ -1399,10 +1399,10 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 	char *pbuff; 
 
 	for(i=0; weapon_table[i].name!=NULL; i++)
-		if (weapon_table[i].vnum == class_table[d->character->class].weapon)
+		if (weapon_table[i].vnum == class_table[d->character->clss].weapon)
 			break;
 
-	if (d->character->class == class_lookup("monk"))
+	if (d->character->clss == class_lookup("monk"))
 	{
 		sprintf( msg, "     {cYou have chosen to begin fighting barehanded.{x\n\r\n\r" );
 		pbuff = buffer;
@@ -1543,14 +1543,14 @@ DEF_NANNY_FUN(pick_weapon)
 		for ( w = 0; weapon_table[w].name != NULL; w++)
 		{
 		if ( ch->pcdata->learned[*weapon_table[w].gsn] > 0 
-			&& skill_table[*weapon_table[w].gsn].skill_level[ch->class] == 1 )
+			&& skill_table[*weapon_table[w].gsn].skill_level[ch->clss] == 1 )
 			{
 			    strcat(msg, " ");
 			    strcat(msg,weapon_table[w].name);
 			}
 	        }
 		if ( ch->pcdata->learned[gsn_hand_to_hand] > 0
-			&& skill_table[gsn_hand_to_hand].skill_level[ch->class] == 1 )
+			&& skill_table[gsn_hand_to_hand].skill_level[ch->clss] == 1 )
 		    strcat(msg," unarmed");
 	        strcat( msg, "{x ]\n\r" );
 
@@ -1586,7 +1586,7 @@ DEF_NANNY_FUN(pick_weapon)
 			for ( w = 0; weapon_table[w].name != NULL; w++)
 			{
 				if (ch->pcdata->learned[*weapon_table[w].gsn] > 0 
-				&& skill_table[*weapon_table[w].gsn].skill_level[ch->class] == 1)
+				&& skill_table[*weapon_table[w].gsn].skill_level[ch->clss] == 1)
 				{
 				    strcat(msg,weapon_table[w].name);
 				    strcat(msg, " ");
@@ -1933,7 +1933,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	reset_char(ch);
 
 	/* assassins are ALWAYS pkillers */
-	if (ch->class == class_lookup("assassin"))
+	if (ch->clss == class_lookup("assassin"))
 	    SET_BIT(ch->act, PLR_PERM_PKILL);
 	/* Set expire date for PK chars with none set yet */
 	if ( IS_SET( ch->act, PLR_PERM_PKILL) 
@@ -1972,7 +1972,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
         ch->calm = 20;
 
 	    sprintf( buf, "the %s",
-		     title_table [ch->class] [(ch->level+4-(ch->level+4)%5)/5]);
+		     title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5]);
 	    set_title( ch, buf );
 
 	    do_outfit(ch,"");

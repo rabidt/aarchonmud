@@ -812,7 +812,7 @@ int cmd_eval( int vnum, const char *line, int check,
 	case CHK_RACE:
 	    return( lval_char != NULL && lval_char->race == race_lookup( buf ) );
 	case CHK_CLASS:
-	    return( lval_char != NULL && lval_char->class == class_lookup( buf ) );
+	    return( lval_char != NULL && lval_char->clss == class_lookup( buf ) );
 	case CHK_OBJTYPE:
 	    return( lval_obj != NULL && lval_obj->item_type == item_lookup( buf ) );
 	case CHK_RELIGION:
