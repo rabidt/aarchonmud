@@ -1068,7 +1068,7 @@ DEF_DO_FUN(do_mstat)
 
     ptc(ch, "Lvl: %d  Class: %s  Subclass: %s  Exp: %d\n\r",
         victim->level,       
-        IS_NPC(victim) ? "mobile" : class_table[victim->class].name,
+        IS_NPC(victim) ? "mobile" : class_table[victim->clss].name,
         IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass].name);
 
     ptc(ch, "Align: %d  Gold: %ld  Silver: %ld\n\r",
@@ -1845,7 +1845,7 @@ DEF_DO_FUN(do_sset)
 
 bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
 {
-    int max_value = (IS_IMMORTAL(victim) || IS_NPC(victim)) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->class, stat);
+    int max_value = (IS_IMMORTAL(victim) || IS_NPC(victim)) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->clss, stat);
     if ( value < 1 || value > max_value )
     {
         ptc( ch, "%s range is 1 to %d.\n\r", stat_table[stat].name, max_value);
@@ -1894,7 +1894,7 @@ MSETFUN ( class )
         return FALSE;
     }
    
-    victim->class = class;
+    victim->clss = class;
     return TRUE;
 
 }

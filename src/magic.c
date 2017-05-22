@@ -337,7 +337,7 @@ void say_spell( CHAR_DATA *ch, int sn )
     for ( rch = ch->in_room->people; rch; rch = rch->next_in_room )
     {
         if ( rch != ch )
-            act((!IS_NPC(ch) && ch->class==rch->class) ? buf : buf2, ch, NULL, rch, TO_VICT );
+            act((!IS_NPC(ch) && ch->clss==rch->clss) ? buf : buf2, ch, NULL, rch, TO_VICT );
     }
 
     return;
@@ -427,7 +427,7 @@ int get_save(CHAR_DATA *ch, bool physical)
     }
     else
     {
-        int physical_factor = class_table[ch->class].attack_factor * 3/5 + class_table[ch->class].defense_factor / 2;
+        int physical_factor = class_table[ch->clss].attack_factor * 3/5 + class_table[ch->clss].defense_factor / 2;
         save_factor = 210 - physical_factor;
         // tweak so physically oriented classes get better physical and worse magic saves
         save_factor += (physical_factor - 110) * (physical ? 2 : -1) * 2/3;

@@ -397,7 +397,7 @@ void try_remove_pkill( CHAR_DATA *ch)
         send_to_char("You are not a player killer!\n\r", ch);
         return;
     }
-    if (ch->class == class_lookup("assassin") )
+    if (ch->clss == class_lookup("assassin") )
     {
         send_to_char("Assassins cannot remove pkill status.\n\r", ch );
         return;
@@ -436,7 +436,7 @@ void try_remove_pkill( CHAR_DATA *ch)
 
 void print_pkill_expire( CHAR_DATA *ch)
 {
-    if (ch->class == class_lookup("assassin") )
+    if (ch->clss == class_lookup("assassin") )
     {
         send_to_char("Assassins cannot remove pkill status.\n\r", ch );
         return;

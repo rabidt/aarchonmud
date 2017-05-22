@@ -1006,7 +1006,7 @@ void remort_complete(CHAR_DATA *ch)
     
     if (! IS_SET(ch->act, PLR_TITLE))
     {
-        sprintf( buf, "the %s", title_table [ch->class] [1]);
+        sprintf( buf, "the %s", title_table [ch->clss] [1]);
         set_title( ch, buf );
     }
     
@@ -1049,7 +1049,7 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     int qpcost = remort_cost_qp(ch->pcdata->remorts) / 2;
     int goldcost = remort_cost_gold(ch->pcdata->remorts) / 2;
     // after ascension, remort repeats are initially free to allow experimentation
-    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->class) )
+    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->clss) )
         qpcost = goldcost = 0;
     
     if ( strcmp(arg, "confirm") )
