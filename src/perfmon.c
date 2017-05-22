@@ -3,8 +3,11 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
-#include <math.h>
+#include <float.h>
 #include "perfmon.h"
+
+//static unsigned int const INFINITY = (unsigned int)(-1);
+static double const INFINITY = DBL_MAX;
 
 #define PULSE_PER_SECOND 4
 #define SEC_PER_MIN 60
@@ -330,6 +333,18 @@ const char *PERF_repr( void )
     time_t total_secs = time(NULL) - init_time;
     double total_pulses = total_secs * PULSE_PER_SECOND;
 
+    double pulse_min = PERF_data_min_min(pulse_data);
+    pulse_min = (pulse_min == INFINITY) ? 0 : pulse_min;
+
+    double sec_min = PERF_data_min_min(sec_data);
+    sec_min = (sec_min == INFINITY) ? 0 : sec_min;
+
+    double min_min = PERF_data_min_min(min_data);
+    min_min = (min_min == INFINITY) ? 0 : min_min;
+
+    double hour_min = PERF_data_min_min(hour_data);
+    hour_min = (hour_min == INFINITY) ? 0 : hour_min;
+
     offset = snprintf(buf, sizeof(buf),
         "                       Avg         Min         Max\n\r"
         "  %3d Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
@@ -344,22 +359,22 @@ const char *PERF_repr( void )
         
         pulse_data->count, 
         PERF_data_avg_avg(pulse_data), 
-        PERF_data_min_min(pulse_data), 
+        pulse_min, 
         PERF_data_max_max(pulse_data),
 
         sec_data->count, 
         PERF_data_avg_avg(sec_data), 
-        PERF_data_min_min(sec_data), 
+        sec_min, 
         PERF_data_max_max(sec_data),
 
         min_data->count, 
         PERF_data_avg_avg(min_data), 
-        PERF_data_min_min(min_data), 
+        min_min, 
         PERF_data_max_max(min_data),
 
         hour_data->count, 
         PERF_data_avg_avg(hour_data), 
-        PERF_data_min_min(hour_data), 
+        hour_min, 
         PERF_data_max_max(hour_data),
 
         max_pulse    
