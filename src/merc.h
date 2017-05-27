@@ -4745,6 +4745,7 @@ CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
 CD *    get_local_leader( CHAR_DATA *ch );
 CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
+bool    is_wielding_twohanded( CHAR_DATA *ch, OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
