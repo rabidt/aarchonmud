@@ -2378,7 +2378,7 @@ DEF_SPELL_FUN(spell_heroism)
     
     victim = (CHAR_DATA *) vo;
     
-    if ( is_affected( victim, sn ) || IS_AFFECTED(victim, AFF_HEROISM))
+    if ( is_affected(victim, sn) )
     {
         send_to_char("You are already a holy hero.\n\r",victim);
         return SR_AFFECTED;
