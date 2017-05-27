@@ -604,14 +604,40 @@ char* char_look_info( CHAR_DATA *ch )
     return buf;
 }
 
+bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool show_all )
+{
+    OBJ_DATA *obj = get_eq_char(victim, slot);
+    int tattoo = get_tattoo_ch(victim, slot);
+    
+    if ( obj != NULL && can_see_obj(ch, obj) )
+    {
+        ptc(ch, "%s%s", where_name[slot], format_obj_to_char(obj, ch, TRUE));
+        if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
+            ptc(ch, "above %s", tattoo_desc(tattoo));
+        ptc(ch, "\n\r");
+        return TRUE;
+    }
+    else if ( tattoo != TATTOO_NONE )
+    {
+        ptc(ch, "%s%s\n\r", where_name[slot], tattoo_desc(tattoo));
+        return TRUE;
+    }
+    else if ( obj != NULL && victim == ch )
+    {
+        ptc(ch, "%s%s\n\r", where_name[slot], "something");
+        return TRUE;
+    }
+    else if ( show_all )
+    {
+        ptc(ch, "%s%s\n\r", where_name[slot], "nothing");
+    }
+    return FALSE;
+}
 
 void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 {
     char buf[MAX_STRING_LENGTH];
-    OBJ_DATA *obj;
-    int i, tattoo;
-    int percent;
-    bool found;
+    int i, percent;
     bool victim_is_obj = IS_NPC(victim) && IS_SET(victim->act, ACT_OBJ);
 
     
@@ -680,42 +706,9 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     
     if ( !glance )
     {
-	found = FALSE;
-	for ( i = 0; i < MAX_WEAR; i++ )
-	{
-	    tattoo = get_tattoo_ch(victim, i);
-	    if ( (obj = get_eq_char(victim, i)) != NULL
-		 && can_see_obj(ch, obj) )
-	    {
-		if ( !found )
-		{
-		    send_to_char( "\n\r", ch );
-		    act( "$N is using:", ch, NULL, victim, TO_CHAR );
-		    found = TRUE;
-		}
-		send_to_char( where_name[i], ch );
-		send_to_char( format_obj_to_char( obj, ch, TRUE ), ch );
-        if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
-		{
-		    send_to_char( " above ", ch );
-		    send_to_char( tattoo_desc(tattoo), ch );
-		}
-		send_to_char( "\n\r", ch );
-	    }
-	    else if ( tattoo != TATTOO_NONE )
-	    {
-		if ( !found )
-		{
-		    send_to_char( "\n\r", ch );
-		    act( "$N is using:", ch, NULL, victim, TO_CHAR );
-		    found = TRUE;
-		}
-		send_to_char( where_name[i], ch );
-		send_to_char( tattoo_desc(tattoo), ch );
-		send_to_char( "\n\r", ch );
-		found = TRUE;
-	    } 
-	}
+        act( "\n\r$N is using:", ch, NULL, victim, TO_CHAR );
+        for ( i = 0; i < MAX_WEAR; i++ )
+            show_equipped_to_char(victim, ch, i, FALSE);
     }
     
     /* show spell affects */
@@ -3003,7 +2996,6 @@ DEF_DO_FUN(do_inventory)
 
 DEF_DO_FUN(do_equipment)
 {
-    OBJ_DATA *obj;
     int iWear;
     bool found, all_slots;
 
@@ -3022,47 +3014,9 @@ DEF_DO_FUN(do_equipment)
     found = FALSE;
     for ( iWear = 0; iWear < MAX_WEAR; iWear++ )
     {
-	int tattoo = get_tattoo_ch(ch, iWear);
-
-        if ( ( obj = get_eq_char( ch, iWear ) ) == NULL )
-	{
-	    if ( tattoo != TATTOO_NONE )
-	    {
-		send_to_char( where_name[iWear], ch );
-		send_to_char( tattoo_desc(tattoo), ch );
-		send_to_char( "\n\r", ch );
-		found = TRUE;
-	    } 
-	    else if ( all_slots )
-	    {
-		send_to_char( where_name[iWear], ch );
-		send_to_char( "nothing.\n\r", ch );
-	    }
-            continue;
-	}
-
-        send_to_char( where_name[iWear], ch );
-        if ( can_see_obj( ch, obj ) )
-        {
-            send_to_char( format_obj_to_char( obj, ch, TRUE ), ch );
-        if ( IS_OBJ_STAT(obj,ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
-	    {
-		send_to_char( " above ", ch );
-		send_to_char( tattoo_desc(tattoo), ch );
-	    }
-            send_to_char( "\n\r", ch );
-        }
-        else
-        {
-            if( tattoo != TATTOO_NONE )
-                send_to_char( tattoo_desc(tattoo), ch );
-	    else
-        	send_to_char( "something.", ch );
-            send_to_char( "\n\r", ch );
-        }
-        found = TRUE;
+        if ( show_equipped_to_char(ch, ch, iWear, all_slots) )
+            found = TRUE;
     }
-    
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
 
