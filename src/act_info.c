@@ -608,10 +608,15 @@ bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool sho
 {
     OBJ_DATA *obj = get_eq_char(victim, slot);
     int tattoo = get_tattoo_ch(victim, slot);
+    const char *where_desc = where_name[slot];
+    
+    // show if wheapon is wielded 2-handed
+    if ( slot == WEAR_WIELD && obj != NULL && is_wielding_twohanded(victim, obj) )
+        where_desc = "<wielded 2h>        ";
     
     if ( obj != NULL && can_see_obj(ch, obj) )
     {
-        ptc(ch, "%s%s", where_name[slot], format_obj_to_char(obj, ch, TRUE));
+        ptc(ch, "%s%s", where_desc, format_obj_to_char(obj, ch, TRUE));
         if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
             ptc(ch, "above %s", tattoo_desc(tattoo));
         ptc(ch, "\n\r");
@@ -619,17 +624,17 @@ bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool sho
     }
     else if ( tattoo != TATTOO_NONE )
     {
-        ptc(ch, "%s%s\n\r", where_name[slot], tattoo_desc(tattoo));
+        ptc(ch, "%s%s\n\r", where_desc, tattoo_desc(tattoo));
         return TRUE;
     }
     else if ( obj != NULL && victim == ch )
     {
-        ptc(ch, "%s%s\n\r", where_name[slot], "something");
+        ptc(ch, "%s%s\n\r", where_desc, "something");
         return TRUE;
     }
     else if ( show_all )
     {
-        ptc(ch, "%s%s\n\r", where_name[slot], "nothing");
+        ptc(ch, "%s%s\n\r", where_desc, "nothing");
     }
     return FALSE;
 }
