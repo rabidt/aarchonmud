@@ -411,6 +411,7 @@ void show_tattoo_syntax( CHAR_DATA *ch )
     send_to_char( "        tattoo loc\n\r", ch );
     send_to_char( "        tattoo buy <location> <name>\n\r", ch );
     send_to_char( "        tattoo remove <location>\n\r", ch );
+    send_to_char( "        tattoo refund\n\r", ch );
 }
 
 void show_tattoo_loc( CHAR_DATA *ch )
@@ -572,6 +573,11 @@ DEF_DO_FUN(do_tattoo)
             printf_to_char( ch, "Tattoos removed.\n\r" );
         }
     }
+    else if ( !strcmp(arg1, "refund") )
+    {
+        ptc(ch, "You currently get a %d%% refund when removing tattoos.\n\r", cfg_refund_tattoos ? 100 : 90);
+        return;
+    }
     else
-	show_tattoo_syntax( ch );
+        show_tattoo_syntax( ch );
 }
