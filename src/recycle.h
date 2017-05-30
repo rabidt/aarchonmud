@@ -24,6 +24,8 @@
 *	By using this code, you have agreed to follow the terms of the	   *
 *	ROM license, in the file Rom24/doc/rom.license			   *
 ***************************************************************************/
+#ifndef RECYCLE_H
+#define RECYCLE_H
 
 /* externs */
 extern char str_empty[1];
@@ -136,3 +138,4 @@ HELP_DATA  * new_help	  args( (void) );
 SORT_TABLE * new_sort     args( (void) );
 void		    free_sort    args( (SORT_TABLE * sort) );
 
+#endif // RECYCLE_H

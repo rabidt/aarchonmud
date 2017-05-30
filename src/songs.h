@@ -24,6 +24,8 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
+#ifndef SONGS_H
+#define SONGS_H
 
 DECLARE_DO_FUN( do_sing     );
 DECLARE_DO_FUN( do_wail     );
@@ -49,3 +51,5 @@ int get_instrument_skill( CHAR_DATA *ch );
 bool is_song( int sn );
 void song_heal( CHAR_DATA *ch );
 CHAR_DATA* get_singer( CHAR_DATA *ch, int song );
+
+#endif // SONGS_H

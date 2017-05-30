@@ -24,6 +24,10 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
+#ifndef MERC_H
+#define MERC_H
+
+
 #include <lua.h>
 #include "protocol.h"
 #include "timer.h"
@@ -5584,3 +5588,6 @@ declf(DESCRIPTOR, DESCRIPTOR_DATA)
 declf(BOSSACHV, BOSSACHV)
 declf(BOSSREC, BOSSREC)
 #undef declf
+
+
+#endif // MERC_H
