@@ -271,7 +271,8 @@ void violence_update_char( CHAR_DATA *ch )
     
     if ( ch->stop > 0 )
     {
-        ch->stop--;
+        // limit stacking of stop effects to 2 actual rounds
+        ch->stop = UMIN(1, ch->stop - 1);
         return;
     }
     
