@@ -1,3 +1,5 @@
+#ifndef PERFMON_H
+
 struct PERF_track;
 
 
@@ -36,3 +38,5 @@ double PERF_data_avg_avg(PERF_data *data);
 double PERF_data_min_min(PERF_data *data);
 double PERF_data_max_max(PERF_data *data);
 #endif
+
+#endif // PERFMON_H

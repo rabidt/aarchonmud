@@ -1,4 +1,6 @@
 /* warfare stuff by Viper, installed by Siva 9/30/98 */
+#ifndef WARFARE_H
+#define WARFARE_H
  
 struct war_data
 {
@@ -55,3 +57,6 @@ void proc_startduel( CHAR_DATA *ch, const char *argument);
 #define DUEL_ROOM_LAST  20189
 #define WAR_ROOM_LOSER  16298
 #define WAR_ROOM_WINNER 16297
+
+
+#endif // WARFARE_H
