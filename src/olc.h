@@ -15,7 +15,8 @@
  * merc.h if you wish.  Many of these routines may be handy elsewhere in
  * the code.  -Jason Dinkel
  */
-
+#ifndef OLC_H
+#define OLC_H
 
 /*
  * The version info.  Please use this info when reporting bugs.
@@ -461,3 +462,5 @@ void fix_rprog_rooms( CHAR_DATA *ch, PROG_CODE *pRcode );
 
 
 bool is_being_edited( void *ptr );
+
+#endif // OLC_H

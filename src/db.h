@@ -24,6 +24,9 @@
 *	By using this code, you have agreed to follow the terms of the	   *
 *	ROM license, in the file Rom24/doc/rom.license			   *
 ***************************************************************************/
+#ifndef DB_H
+#define DB_H
+
 
 /* vals from db.c */
 extern bool fBootDb;
@@ -58,3 +61,5 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex );
 
 /* from db2.c */
 MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );
+
+#endif // DB_H
