@@ -300,6 +300,12 @@ int rand_div(int divident, int divisor)
         return (divident - adjust) / divisor;
 }
 
+void show_quest_syntax( CHAR_DATA *ch )
+{
+    send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE GIVEUP LIST BUY SELL REFUND.\n\r",ch);
+    send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
+}
+
 /* The main quest function */
 DEF_DO_FUN(do_quest)
 {
@@ -324,8 +330,7 @@ DEF_DO_FUN(do_quest)
     
     if (arg1[0] == '\0')
     {
-        send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE LIST BUY SELL GIVEUP.\n\r",ch);
-        send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
+        show_quest_syntax(ch);
         return;
     }
     if (!strcmp(arg1, "info"))
@@ -433,6 +438,11 @@ DEF_DO_FUN(do_quest)
             sprintf(buf, "Time left for current quest: %d\n\r",ch->pcdata->countdown);
             send_to_char(buf, ch);
         }
+        return;
+    }
+    else if ( !strcmp(arg1, "refund") )
+    {
+        ptc(ch, "You currently get a %d%% refund when selling quest equipment.\n\r", cfg_refund_qeq ? 100 : 90);
         return;
     }
     
@@ -925,11 +935,8 @@ DEF_DO_FUN(do_quest)
         
         return;
     }
-    
-    send_to_char("QUEST commands: POINTS INFO TIME REQUEST COMPLETE LIST BUY.\n\r",ch);
-    send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
-    return;
-
+    else
+        show_quest_syntax(ch);
 }
 
 bool is_guild_room( int vnum )
