@@ -1329,7 +1329,16 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 
 bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
-    // safety-net
+    // adjust for mastery (helps with both attack and defense)
+    int mastery_diff = get_mastery(ch, sn) - get_mastery(victim, sn);
+    switch ( mastery_diff )
+    {
+        case -2: base_chance *= 0.75; break;
+        case -1: base_chance *= 0.80; break;
+        case  1: base_chance *= 1.20; break;
+        case  2: base_chance *= 1.25; break;
+        default: break;
+    }
     base_chance = URANGE(5, base_chance, 95);
     
     // half of all checks use base_chance

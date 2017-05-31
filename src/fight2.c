@@ -37,8 +37,9 @@ bool disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery )
         return FALSE;
     }
     
-    int mastery = get_mastery(victim, get_weapon_sn(victim)) - attack_mastery;
-    if ( per_chance(mastery == 2 ? 50 : mastery == 1 ? 30 : 0) )
+    int grip_chance = 20 + mastery_bonus(victim, get_weapon_sn(victim), 20, 30) - (attack_mastery == 1 ? 16 : attack_mastery == 2 ? 20 : 0);
+    
+    if ( per_chance(grip_chance) )
     {
         if ( !quiet )
         {
@@ -204,7 +205,7 @@ static void bash_char(CHAR_DATA *ch, const char *argument, int sn)
     int chance_hit = dodge_adjust_chance(ch, victim, skill);
     
     // automatic chance to connect, rest determined by skill/dodge
-    if ( !per_chance(chance_hit) && per_chance(66) )
+    if ( !per_chance(chance_hit) && per_chance(50) )
     {
         damage(ch, victim, 0, sn, DAM_BASH, FALSE);
         act("You fall flat on your face!", ch, NULL, victim, TO_CHAR);
