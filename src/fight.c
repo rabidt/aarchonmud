@@ -7959,7 +7959,7 @@ bool check_lose_stance( CHAR_DATA *ch )
     int sn = *(stances[ch->stance].gsn);
     int skill = get_skill(ch, sn);
     
-    if ( per_chance(mastery_bonus(ch, sn, 20, 30)) )
+    if ( per_chance(20 + mastery_bonus(ch, sn, 20, 30)) )
         return FALSE;
 
     if ( per_chance(skill * 9/10) ) /* Always keep 10% chance of failure */
@@ -7976,9 +7976,9 @@ bool destance( CHAR_DATA *ch, int attack_mastery )
         return FALSE;
     
     int sn = *(stances[ch->stance].gsn);
-    int mastery = get_mastery(ch, sn) - attack_mastery;
+    int resist_chance = 20 + mastery_bonus(ch, sn, 20, 30) - (attack_mastery == 1 ? 16 : attack_mastery == 2 ? 20 : 0);
     
-    if ( per_chance( mastery == 1 ? 20 : mastery == 2 ? 30 : 0) )
+    if ( per_chance(resist_chance) )
         return FALSE;
     
     send_to_char("You lose your stance!\n\r", ch);
