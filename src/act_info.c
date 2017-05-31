@@ -618,7 +618,7 @@ bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool sho
     {
         ptc(ch, "%s%s", where_desc, format_obj_to_char(obj, ch, TRUE));
         if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) && tattoo != TATTOO_NONE )
-            ptc(ch, "above %s", tattoo_desc(tattoo));
+            ptc(ch, " above %s", tattoo_desc(tattoo));
         ptc(ch, "\n\r");
         return TRUE;
     }
