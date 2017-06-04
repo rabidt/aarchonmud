@@ -212,8 +212,8 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
     REMORT_TABLE *i;
     int qpcost, goldcost;
     char buf[MAX_STRING_LENGTH];
-	int j, found;
-    
+    int j, found;
+
     for (j=0, found=0; chambers[j].name; j++)
         if (chambers[j].availability & (1<<(ch->pcdata->remorts)))
         {
@@ -221,20 +221,20 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
             break;
         }
 
-	if (found==0)
-	{
+    if (found==0)
+    {
         sprintf(buf, "You are too powerful for that, %s.", ch->name);
         do_say(adept, buf);
         return;
-	}
+    }
 
-	if (ch->level < 90 + ch->pcdata->remorts)
-	{
-		sprintf(buf, "You arent ready to leave this body behind, %s.", ch->name);
-		do_say(adept, buf);
-		return;
-	}
-        
+    if (ch->level < 90 + ch->pcdata->remorts)
+    {
+        sprintf(buf, "You arent ready to leave this body behind, %s.", ch->name);
+        do_say(adept, buf);
+        return;
+    }
+
     for (i = wait_list; i != NULL; i = i->next)
     {
         if (!str_cmp(ch->name, i->name))
@@ -244,37 +244,37 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
             return;
         }
     }
-    
+
     qpcost = remort_cost_qp(ch->pcdata->remorts + 1);
     goldcost = remort_cost_gold(ch->pcdata->remorts + 1);
-    
+
     if (ch->pcdata->questpoints < qpcost)
     {
         sprintf(buf, "You need %d quest points to get into remort, %s.", qpcost, ch->name);
         do_say(adept, buf);
         return;
     }
-    
+
     if (ch->gold<goldcost)
     {
         sprintf(buf, "There is a %d gold remort tax, %s.", goldcost, ch->name);
         do_say(adept, buf);
         return;
     }
-    
+
     sprintf(buf, "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
     do_say(adept, buf);
-    
+
     ch->pcdata->questpoints -= qpcost;
     ch->gold -= goldcost;
-    
+
     new = alloc_mem(sizeof(REMORT_TABLE));
     new->next = NULL;
     new->name = str_dup(ch->name);
     new->remorts = ch->pcdata->remorts;
     new->signup = current_time;
     new->limit = 0;
-    
+
     if ((i = wait_list) != NULL)
     {
         for(;i->next != NULL;) 
@@ -283,11 +283,11 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
     }
     else
         wait_list = new;
-    
+
     do_say(adept, "You are now on the list.");
     logpf( "%s signed up for remort for %d qp and %d gold",
-	   ch->name, qpcost, goldcost );
-    
+            ch->name, qpcost, goldcost );
+
     remort_update();
 }
 
@@ -592,27 +592,27 @@ void remort_update( void )
     CHAR_DATA *ch = NULL;
     DESCRIPTOR_DATA *d;
     bool used[MAX_CHAMBER];
-    
+
     for (j = 0; chambers[j].name != NULL; j++)
         if (chamber_list[j] != NULL &&
-            (chamber_list[j]->limit < current_time))
+                (chamber_list[j]->limit < current_time))
         {
-	    char log_buf[MSL];
+            char log_buf[MSL];
 
-	    sprintf( log_buf, "%s has run out of time for remort", chamber_list[j]->name );
-	    log_string( log_buf );
+            sprintf( log_buf, "%s has run out of time for remort", chamber_list[j]->name );
+            log_string( log_buf );
 
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
                 ch = d->original ? d->original : d->character;
                 if ((IS_PLAYING(d->connected)) 
-                    && !str_cmp(ch->name, chamber_list[j]->name))
+                        && !str_cmp(ch->name, chamber_list[j]->name))
                 {
                     found = TRUE;
                     break;
                 }
             }
-            
+
             if (found)
             {
                 send_to_char("You have run out of time to complete remort.\n\r",ch);
@@ -642,7 +642,7 @@ void remort_update( void )
                 }
                 free_descriptor(d);
             }
-            
+
             free_string(chamber_list[j]->name);
             free_mem(chamber_list[j], sizeof(REMORT_TABLE));
             chamber_list[j] = NULL;
@@ -653,41 +653,41 @@ void remort_update( void )
 
             remort_save();
         }
-        
-        for (i = wait_list; i != NULL; i = i->next)
+
+    for (i = wait_list; i != NULL; i = i->next)
+    {
+        if (i->limit && i->limit < current_time)
         {
-            if (i->limit && i->limit < current_time)
+            if (i == wait_list)
+                wait_list = i->next;
+            else
+                prev->next = i->next;
+
+            free_string(i->name);
+            free_mem(i, sizeof(REMORT_TABLE));
+            break;
+        }
+
+        prev = i;
+    }
+
+    for (j = 0; chambers[j].name != NULL; j++)
+        used[j] = (chamber_list[j] != NULL);
+
+    for (i = wait_list; i != NULL; i = i->next)
+    {
+        for (j = 0; chambers[j].name != NULL; j++)
+            if ( (chambers[j].availability & (1<<(i->remorts)) )
+                    && used[j] == FALSE && chambers[j].speed == FALSE)
             {
-                if (i == wait_list)
-                    wait_list = i->next;
-                else
-                    prev->next = i->next;
-                
-                free_string(i->name);
-                free_mem(i, sizeof(REMORT_TABLE));
+                used[j] = TRUE;
+                if (i->limit == 0)
+                    i->limit = current_time + WEEK;
                 break;
             }
-            
-            prev = i;
-        }
-        
-        for (j = 0; chambers[j].name != NULL; j++)
-            used[j] = (chamber_list[j] != NULL);
-        
-        for (i = wait_list; i != NULL; i = i->next)
-        {
-            for (j = 0; chambers[j].name != NULL; j++)
-                if ( (chambers[j].availability & (1<<(i->remorts)) )
-                    && used[j] == FALSE && chambers[j].speed == FALSE)
-                {
-                    used[j] = TRUE;
-                    if (i->limit == 0)
-                        i->limit = current_time + WEEK;
-                    break;
-                }
-        }
-        
-        remort_save();
+    }
+
+    remort_save();
 } 
 
 

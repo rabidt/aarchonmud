@@ -2233,76 +2233,76 @@ DEF_DO_FUN(do_chop)
     
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-        
-        chance = get_skill(ch, gsn_chop);
-        
-        check_killer(ch,victim);
-        mastery_adjusted_wait(ch, gsn_chop);
 
-        if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
-        {
-            dam = martial_damage( ch, victim, gsn_chop );
-            full_dam(ch,victim, dam, gsn_chop,DAM_SLASH,TRUE);
-            check_improve(ch,gsn_chop,TRUE,3);
-        }
-        else
-        {
-            damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
-            check_improve(ch,gsn_chop,FALSE,3);
-        }
+    chance = get_skill(ch, gsn_chop);
+
+    check_killer(ch,victim);
+    mastery_adjusted_wait(ch, gsn_chop);
+
+    if ( check_hit(ch, victim, gsn_chop, DAM_SLASH, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_chop );
+        full_dam(ch,victim, dam, gsn_chop,DAM_SLASH,TRUE);
+        check_improve(ch,gsn_chop,TRUE,3);
+    }
+    else
+    {
+        damage( ch, victim, 0, gsn_chop,DAM_SLASH,TRUE);
+        check_improve(ch,gsn_chop,FALSE,3);
+    }
 }
 
 DEF_DO_FUN(do_bite)
 {
     CHAR_DATA *victim;
     int dam, chance;
-    
+
     chance=get_skill(ch, gsn_bite);
     chance=UMAX(chance,get_skill(ch, gsn_venom_bite));
     chance=UMAX(chance,get_skill(ch, gsn_vampiric_bite));
-    
+
     if ( IS_SET(ch->parts, PART_FANGS) )
-    chance = (chance + 100) / 2;
+        chance = (chance + 100) / 2;
 
     if (chance==0)
     {
         send_to_char("Your teeth aren't that strong.\n\r", ch );
         return;
     }
-    
+
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
         return;
-        
-        mastery_adjusted_wait(ch, gsn_bite);
-        check_killer(ch,victim);
 
-        if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
-        {
-            dam = martial_damage( ch, victim, gsn_bite );
-            full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
-            check_improve(ch,gsn_bite,TRUE,3);
+    mastery_adjusted_wait(ch, gsn_bite);
+    check_killer(ch,victim);
+
+    if ( check_hit(ch, victim, gsn_bite, DAM_PIERCE, chance) )
+    {
+        dam = martial_damage( ch, victim, gsn_bite );
+        full_dam(ch,victim, dam, gsn_bite,DAM_PIERCE,TRUE);
+        check_improve(ch,gsn_bite,TRUE,3);
         CHECK_RETURN(ch, victim);
-        
-            if (get_skill(ch,gsn_venom_bite)>number_percent())
+
+        if (get_skill(ch,gsn_venom_bite)>number_percent())
         {
-                poison_effect(victim, ch->level,dam,TARGET_CHAR);
+            poison_effect(victim, ch->level,dam,TARGET_CHAR);
         }
-            else if (get_skill(ch,gsn_vampiric_bite)>number_percent())
-            {
-                /*dam = 1 + ch->level/2;*/
-                act("$n drains the life from $N.",ch,NULL,victim,TO_NOTVICT);
-                act("You feel $N drawing your life away.",victim,NULL,ch,TO_CHAR);
-                /*damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);*/
-                if (number_bits(4) == 0)
-            drop_align( ch );
-                gain_hit(ch, dam/5);
-            }
-        }
-        else
+        else if (get_skill(ch,gsn_vampiric_bite)>number_percent())
         {
-            damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
-            check_improve(ch,gsn_bite,FALSE,3);
+            /*dam = 1 + ch->level/2;*/
+            act("$n drains the life from $N.",ch,NULL,victim,TO_NOTVICT);
+            act("You feel $N drawing your life away.",victim,NULL,ch,TO_CHAR);
+            /*damage(ch,victim,dam,0,DAM_NEGATIVE,FALSE);*/
+            if (number_bits(4) == 0)
+                drop_align( ch );
+            gain_hit(ch, dam/5);
         }
+    }
+    else
+    {
+        damage( ch, victim, 0, gsn_bite,DAM_PIERCE,TRUE);
+        check_improve(ch,gsn_bite,FALSE,3);
+    }
 }
 
 
