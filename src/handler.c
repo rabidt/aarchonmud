@@ -109,15 +109,15 @@ int count_users(OBJ_DATA *obj)
 {
     CHAR_DATA *fch;
     int count = 0;
-    
+
     if (obj->in_room == NULL)
         return 0;
-    
+
     for (fch = obj->in_room->people; fch != NULL; fch = fch->next_in_room)
         if (fch->on == obj)
             count++;
-        
-        return count;
+
+    return count;
 }
 	
 /* returns material number */
@@ -158,21 +158,21 @@ int weapon_type (const char *name)
 const char *item_name(int item_type)
 {
     int type;
-    
+
     for (type = 0; item_table[type].name != NULL; type++)
         if (item_type == item_table[type].type)
             return item_table[type].name;
-        return "none";
+    return "none";
 }
 
 const char *weapon_name( int weapon_type)
 {
     int type;
-    
+
     for (type = 0; weapon_table[type].name != NULL; type++)
         if (weapon_type == weapon_table[type].type)
             return weapon_table[type].name;
-        return "exotic";
+    return "exotic";
 }
 
 int attack_exact_lookup  (const char *name)
@@ -1021,73 +1021,73 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;
-    
+
     if (where == TO_OBJECT || where == TO_WEAPON || vector == 0)
         return;
 
-	if (vector>0)
-	{
-	    struct race_type *race = get_morph_race_type( ch );
+    if (vector>0)
+    {
+        struct race_type *race = get_morph_race_type( ch );
 
-	    switch (where)
-	    {
-	    case TO_AFFECTS:
-		if ( IS_SET(race->affect_field, vector) )
-		{
-		    SET_BIT(ch->affect_field, vector);
-		    return;
-		}
-		break;
-	    case TO_IMMUNE:
-		if ( IS_SET(race->imm, vector) )
-		{
-		    SET_BIT(ch->imm_flags, vector);
-		    return;
-		}
-		break;
-	    case TO_RESIST:
-		if ( IS_SET(race->res, vector) )
-		{
-		    SET_BIT(ch->res_flags, vector);
-		    return;
-		}
-		break;
-	    case TO_VULN:
-		if ( IS_SET(race->vuln, vector) )
-		{
-		    SET_BIT(ch->vuln_flags, vector);
-		    return;
-		}
-		break;
-	    }
-	}
-    
+        switch (where)
+        {
+            case TO_AFFECTS:
+                if ( IS_SET(race->affect_field, vector) )
+                {
+                    SET_BIT(ch->affect_field, vector);
+                    return;
+                }
+                break;
+            case TO_IMMUNE:
+                if ( IS_SET(race->imm, vector) )
+                {
+                    SET_BIT(ch->imm_flags, vector);
+                    return;
+                }
+                break;
+            case TO_RESIST:
+                if ( IS_SET(race->res, vector) )
+                {
+                    SET_BIT(ch->res_flags, vector);
+                    return;
+                }
+                break;
+            case TO_VULN:
+                if ( IS_SET(race->vuln, vector) )
+                {
+                    SET_BIT(ch->vuln_flags, vector);
+                    return;
+                }
+                break;
+        }
+    }
+
     for (paf = ch->affected; paf != NULL; paf = paf->next)
         if (paf->where == where && paf->bitvector == vector)
         {
-	    set_affect_flag( ch, paf );
+            set_affect_flag( ch, paf );
             return;
         }
-        
-        for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
-        {
-            if (obj->wear_loc == -1)
-                continue;
-            
-            for (paf = obj->affected; paf != NULL; paf = paf->next)
-                if (paf->where == where && paf->bitvector == vector)
-                {
-		    set_affect_flag( ch, paf );
-                    return;
-                }
-                
-	    for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
-		if (paf->where == where && paf->bitvector == vector)
-                {
-		    set_affect_flag( ch, paf );
-		    return;
-		}
-        }
+
+    for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    {
+        if (obj->wear_loc == -1)
+            continue;
+
+        for (paf = obj->affected; paf != NULL; paf = paf->next)
+            if (paf->where == where && paf->bitvector == vector)
+            {
+                set_affect_flag( ch, paf );
+                return;
+            }
+
+        for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
+            if (paf->where == where && paf->bitvector == vector)
+            {
+                set_affect_flag( ch, paf );
+                return;
+            }
+    }
 }
 
 /*
@@ -2200,44 +2200,44 @@ void obj_from_room( OBJ_DATA *obj )
 {
     ROOM_INDEX_DATA *in_room;
     CHAR_DATA *ch;
-    
+
     if ( ( in_room = obj->in_room ) == NULL )
     {
         bug( "obj_from_room: NULL.", 0 );
         return;
     }
-    
+
     for (ch = in_room->people; ch != NULL; ch = ch->next_in_room)
         if (ch->on == obj)
             ch->on = NULL;
-        
-        if ( obj == in_room->contents )
+
+    if ( obj == in_room->contents )
+    {
+        in_room->contents = obj->next_content;
+    }
+    else
+    {
+        OBJ_DATA *prev;
+
+        for ( prev = in_room->contents; prev; prev = prev->next_content )
         {
-            in_room->contents = obj->next_content;
-        }
-        else
-        {
-            OBJ_DATA *prev;
-            
-            for ( prev = in_room->contents; prev; prev = prev->next_content )
+            if ( prev->next_content == obj )
             {
-                if ( prev->next_content == obj )
-                {
-                    prev->next_content = obj->next_content;
-                    break;
-                }
-            }
-            
-            if ( prev == NULL )
-            {
-                bug( "Obj_from_room: obj not found.", 0 );
-                return;
+                prev->next_content = obj->next_content;
+                break;
             }
         }
-        
-        obj->in_room      = NULL;
-        obj->next_content = NULL;
-        return;
+
+        if ( prev == NULL )
+        {
+            bug( "Obj_from_room: obj not found.", 0 );
+            return;
+        }
+    }
+
+    obj->in_room      = NULL;
+    obj->next_content = NULL;
+    return;
 }
 
 

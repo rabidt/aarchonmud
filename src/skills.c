@@ -1260,13 +1260,13 @@ DEF_DO_FUN(do_spells)
     if ( penalty > 0 )
         printf_to_char(ch, "{rNote: Your spells are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
 
-	buffer = new_buf();
-	for (level = 0; level < LEVEL_HERO + 1; level++)
-		if (spell_list[level][0] != '\0')
-		add_buf(buffer,spell_list[level]);
-	add_buf(buffer,"\n\r");
-	page_to_char(buf_string(buffer),ch);
-	free_buf(buffer);
+    buffer = new_buf();
+    for (level = 0; level < LEVEL_HERO + 1; level++)
+        if (spell_list[level][0] != '\0')
+            add_buf(buffer,spell_list[level]);
+    add_buf(buffer,"\n\r");
+    page_to_char(buf_string(buffer),ch);
+    free_buf(buffer);
 }
 
 void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
@@ -3597,38 +3597,38 @@ void count_stats( void )
 
 void load_skill(FILE *f, int cnum, int version)
 {
-	char buf[81];
-	char *s;
-	int i, sn;
+    char buf[81];
+    char *s;
+    int i, sn;
 
-	do
-		s=fgets(buf, 80, f);
-	while (s && (*s<=' '));
-	if (s==NULL) return;
+    do
+        s=fgets(buf, 80, f);
+    while (s && (*s<=' '));
+    if (s==NULL) return;
 
-	for (i=0; s[i]>=' '; i++);
-	s[i]='\0';
+    for (i=0; s[i]>=' '; i++);
+    s[i]='\0';
 
-	if ((sn=skill_lookup(s))<0)
-	{
-		bugf("Bad skill in skill.txt: %s.", s);
-		sn=0;
-	}
+    if ((sn=skill_lookup(s))<0)
+    {
+        bugf("Bad skill in skill.txt: %s.", s);
+        sn=0;
+    }
 
     skill_table[sn].beats = fread_number(f);
     skill_table[sn].min_mana = fread_number(f);
-    
+
     if ( version > 0 )
         skill_table[sn].min_rating = fread_number(f);
 
-	for (i=0; i<cnum; i++)
+    for (i=0; i<cnum; i++)
         skill_table[sn].skill_level[i] = fread_number(f);
 
     if ( version == 0 )
         for (i=0; i<cnum; i++)
             skill_table[sn].rating[i] = fread_number(f);
 
-	for (i=0; i<cnum; i++)
+    for (i=0; i<cnum; i++)
         skill_table[sn].cap[i] = fread_number(f);
 
     skill_table[sn].stat_prime = fread_number(f);

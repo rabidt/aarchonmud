@@ -2562,32 +2562,32 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
     OBJ_DATA    *LastObj = NULL;
     int iExit;
     bool last;
-    
+
     if ( !pRoom )
         return;
-    
+
     if ( !rp_prereset_trigger(pRoom) )
         return;
 
     pMob        = NULL;
     last        = FALSE;
-    
+
     for ( iExit = 0;  iExit < MAX_DIR;  iExit++ )
     {
         EXIT_DATA *pExit;
         if ( ( pExit = pRoom->exit[iExit] )
-            /*  && !IS_SET( pExit->exit_info, EX_BASHED )   ROM OLC */ )  
+                /*  && !IS_SET( pExit->exit_info, EX_BASHED )   ROM OLC */ )  
         {
             flag_copy( pExit->exit_info, pExit->rs_flags );
             if ( ( pExit->u1.to_room != NULL )
-                && ( ( pExit = pExit->u1.to_room->exit[rev_dir[iExit]] ) ) )
+                    && ( ( pExit = pExit->u1.to_room->exit[rev_dir[iExit]] ) ) )
             {
                 /* nail the other side */
                 flag_copy( pExit->exit_info, pExit->rs_flags );
             }
         }
     }
-    
+
     for ( pReset = pRoom->reset_first; pReset != NULL; pReset = pReset->next )
     {
         MOB_INDEX_DATA  *pMobIndex;
@@ -2596,273 +2596,273 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
         ROOM_INDEX_DATA *pRoomIndex;
         char buf[MAX_STRING_LENGTH];
         int count,limit=0;
-        
+
         switch ( pReset->command )
         {
-        default:
-            bug( "Reset_room: bad command %c.", pReset->command );
-            break;
-            
-        case 'M':
-            if ( !( pMobIndex = get_mob_index( pReset->arg1 ) ) )
-            {
-                bug( "Reset_room: 'M': bad vnum %d.", pReset->arg1 );
-                continue;
-            }
-            
-            if ( ( pRoomIndex = get_room_index( pReset->arg3 ) ) == NULL )
-            {
-                bug( "Reset_area: 'M': bad room vnum %d.", pReset->arg3 );
-                continue;
-            }
-            if ( pMobIndex->count >= pReset->arg2 )
-            {
-                last = FALSE;
+            default:
+                bug( "Reset_room: bad command %c.", pReset->command );
                 break;
-            }
-            /* */
-            count = 0;
-            for (mob = pRoomIndex->people; mob != NULL; mob = mob->next_in_room)
-                if (mob->pIndexData == pMobIndex && !mob->must_extract)
-                    
+
+            case 'M':
+                if ( !( pMobIndex = get_mob_index( pReset->arg1 ) ) )
                 {
-                    count++;
-                    if (count >= pReset->arg4)
-                    {
-                        last = FALSE;
-                        break;
-                    }
+                    bug( "Reset_room: 'M': bad vnum %d.", pReset->arg1 );
+                    continue;
                 }
-                
+
+                if ( ( pRoomIndex = get_room_index( pReset->arg3 ) ) == NULL )
+                {
+                    bug( "Reset_area: 'M': bad room vnum %d.", pReset->arg3 );
+                    continue;
+                }
+                if ( pMobIndex->count >= pReset->arg2 )
+                {
+                    last = FALSE;
+                    break;
+                }
+                /* */
+                count = 0;
+                for (mob = pRoomIndex->people; mob != NULL; mob = mob->next_in_room)
+                    if (mob->pIndexData == pMobIndex && !mob->must_extract)
+
+                    {
+                        count++;
+                        if (count >= pReset->arg4)
+                        {
+                            last = FALSE;
+                            break;
+                        }
+                    }
+
                 if (count >= pReset->arg4)
                     break;
-                
+
                 /* */
-                
+
                 pMob = create_mobile( pMobIndex );
-                
+
                 /*
-                * Some more hard coding.
-                */
+                 * Some more hard coding.
+                 */
 
-		/* 
-                if ( room_is_dark( pRoom ) )
-                    SET_BIT(pMob->affect_field, AFF_INFRARED);
-		*/
+                /* 
+                   if ( room_is_dark( pRoom ) )
+                   SET_BIT(pMob->affect_field, AFF_INFRARED);
+                   */
 
-		/*
-		 * Pet shop mobiles get ACT_PET set.
-		 */
+                /*
+                 * Pet shop mobiles get ACT_PET set.
+                 */
                 {
                     ROOM_INDEX_DATA *pRoomIndexPrev;
-                    
+
                     pRoomIndexPrev = get_room_index( pRoom->vnum - 1 );
                     if ( pRoomIndexPrev
-                        && IS_SET( pRoomIndexPrev->room_flags, ROOM_PET_SHOP ) )
+                            && IS_SET( pRoomIndexPrev->room_flags, ROOM_PET_SHOP ) )
                         SET_BIT( pMob->act, ACT_PET);
                 }
-                
+
                 pMob->zone = pRoomIndex->area;
-                
+
                 char_to_room( pMob, pRoom );
-		
+
                 LastMob = pMob;
                 last = TRUE;
 
-		if ( HAS_TRIGGER(pMob, TRIG_RESET) )
-		{
-		    mp_percent_trigger( pMob, NULL, NULL, 0, NULL, 0,TRIG_RESET );
-		    /* safety-net if mob kills himself with mprog */
-		    if ( IS_DEAD(pMob) )
-		    {
-			bug( "Reset_room: mob %d killed upon reset",
-			     pReset->arg1 );
-			last = FALSE;
-			LastMob = NULL;
-		    }
-		}
-                
+                if ( HAS_TRIGGER(pMob, TRIG_RESET) )
+                {
+                    mp_percent_trigger( pMob, NULL, NULL, 0, NULL, 0,TRIG_RESET );
+                    /* safety-net if mob kills himself with mprog */
+                    if ( IS_DEAD(pMob) )
+                    {
+                        bug( "Reset_room: mob %d killed upon reset",
+                                pReset->arg1 );
+                        last = FALSE;
+                        LastMob = NULL;
+                    }
+                }
+
                 break;
-                
-        case 'O':
-            if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
-            {
-                bug( "Reset_room: 'O' 1 : bad vnum %d", pReset->arg1 );
-                sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
-                    pReset->arg4 );
-                bug(buf,1);
-                continue;
-            }
-            
-            if ( !( pRoomIndex = get_room_index( pReset->arg3 ) ) )
-            {
-                bug( "Reset_room: 'O' 2 : bad vnum %d.", pReset->arg3 );
-                sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
-                    pReset->arg4 );
-                bug(buf,1);
-                continue;
-            }
-            
-            if ( /* pRoom->area->nplayer > 0
-		 ||*/ count_obj_list( pObjIndex, pRoom->contents ) > 0 )
-            {
-                last = FALSE;
-                break;
-            }
-            
-            pObj = create_object( pObjIndex );
-            //pObj->cost = 0;
-	    check_enchant_obj( pObj );
-            obj_to_room( pObj, pRoom );
-            last = TRUE;
-            break;
-            
-        case 'P':
-            if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
-            {
-                bug( "Reset_room: 'P': bad vnum %d.", pReset->arg1 );
-                continue;
-            }
-            
-            if ( !( pObjToIndex = get_obj_index( pReset->arg3 ) ) )
-            {
-                bug( "Reset_room: 'P': bad vnum %d.", pReset->arg3 );
-                continue;
-            }
-            
-            if (pReset->arg2 > 50) /* old format */
-                limit = 6;
-            else if (pReset->arg2 == -1) /* no limit */
-                limit = 999;
-            else
-                limit = pReset->arg2;
-            
-            if ( /* pRoom->area->nplayer > 0
-		 ||*/ ( LastObj = get_obj_type( pObjToIndex ) ) == NULL
-		 || ( LastObj->in_room == NULL && !last)
-		 || ( pObjIndex->count >= limit /* && number_range(0,4) != 0 */ )
-		 || ( count = count_obj_list( pObjIndex, LastObj->contains ) ) > pReset->arg4  )
-            {
-                last = FALSE;
-                break;
-            }
-            
-            while (count < pReset->arg4)
-            {
-                pObj = create_object( pObjIndex );
-		check_enchant_obj( pObj );
-                obj_to_obj( pObj, LastObj );
-                count++;
-                if (pObjIndex->count >= limit)
+
+            case 'O':
+                if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
+                {
+                    bug( "Reset_room: 'O' 1 : bad vnum %d", pReset->arg1 );
+                    sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
+                            pReset->arg4 );
+                    bug(buf,1);
+                    continue;
+                }
+
+                if ( !( pRoomIndex = get_room_index( pReset->arg3 ) ) )
+                {
+                    bug( "Reset_room: 'O' 2 : bad vnum %d.", pReset->arg3 );
+                    sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
+                            pReset->arg4 );
+                    bug(buf,1);
+                    continue;
+                }
+
+                if ( /* pRoom->area->nplayer > 0
+                        ||*/ count_obj_list( pObjIndex, pRoom->contents ) > 0 )
+                {
+                    last = FALSE;
                     break;
-            }
-            
-            /* fix object lock state! */
-            LastObj->value[1] = LastObj->pIndexData->value[1];
-            last = TRUE;
-            break;
-            
-        case 'G':
-        case 'E':
-            if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
-            {
-                bug( "Reset_room: 'E' or 'G': bad vnum %d.", pReset->arg1 );
-                continue;
-            }
-            
-            if ( !last )
-                break;
-            
-            if ( !LastMob )
-            {
-                bug( "Reset_room: 'E' or 'G': null mob for vnum %d.",
-                    pReset->arg1 );
-                last = FALSE;
-                break;
-            }
-            
-            if ( LastMob->pIndexData->pShop )   /* Shop-keeper? */
-            {
+                }
+
                 pObj = create_object( pObjIndex );
-                SET_BIT( pObj->extra_flags, ITEM_INVENTORY );  /* ROM OLC */
-                
-            }
-            else   /* ROM OLC else version */
-            {
-                int limit;
-                if (pReset->arg2 > 50 )  /* old format */
+                //pObj->cost = 0;
+                check_enchant_obj( pObj );
+                obj_to_room( pObj, pRoom );
+                last = TRUE;
+                break;
+
+            case 'P':
+                if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
+                {
+                    bug( "Reset_room: 'P': bad vnum %d.", pReset->arg1 );
+                    continue;
+                }
+
+                if ( !( pObjToIndex = get_obj_index( pReset->arg3 ) ) )
+                {
+                    bug( "Reset_room: 'P': bad vnum %d.", pReset->arg3 );
+                    continue;
+                }
+
+                if (pReset->arg2 > 50) /* old format */
                     limit = 6;
-                else if ( pReset->arg2 == -1 || pReset->arg2 == 0 )  /* no limit */
+                else if (pReset->arg2 == -1) /* no limit */
                     limit = 999;
                 else
                     limit = pReset->arg2;
-                
-                if ( pObjIndex->count < limit || number_range(0,4) == 0 )
+
+                if ( /* pRoom->area->nplayer > 0
+                        ||*/ ( LastObj = get_obj_type( pObjToIndex ) ) == NULL
+                        || ( LastObj->in_room == NULL && !last)
+                        || ( pObjIndex->count >= limit /* && number_range(0,4) != 0 */ )
+                        || ( count = count_obj_list( pObjIndex, LastObj->contains ) ) > pReset->arg4  )
+                {
+                    last = FALSE;
+                    break;
+                }
+
+                while (count < pReset->arg4)
                 {
                     pObj = create_object( pObjIndex );
-                    /* error message if it is too high */
-                    if (pObj->level > LastMob->level + 10)
-                        fprintf(stderr,
-                        "Err: obj %s (%d) -- %d, mob %s (%d) -- %d\n",
-                        pObj->short_descr,pObj->pIndexData->vnum,pObj->level,
-                        LastMob->short_descr,LastMob->pIndexData->vnum,LastMob->level);
+                    check_enchant_obj( pObj );
+                    obj_to_obj( pObj, LastObj );
+                    count++;
+                    if (pObjIndex->count >= limit)
+                        break;
                 }
-                else
-                    break;
-            }
-            
-            
-	    check_enchant_obj( pObj );
-            obj_to_char( pObj, LastMob );
-            if ( pReset->command == 'E' )
-	    {
-                equip_char( LastMob, pObj, pReset->arg3 );
-		/* special bow handling */
-		if ( pObj != NULL && pObj->item_type == ITEM_WEAPON
-		     && pObj->value[0] == WEAPON_BOW )
-		    equip_new_arrows( LastMob );
-		/* Restore hit,mana,move in case the eq changes them */
-                LastMob->hit     =       LastMob->max_hit;
-                LastMob->mana    =       LastMob->max_mana;
-                LastMob->move    =       LastMob->max_move;
-	    }
-            last = TRUE;
-            break;
-            
-        case 'D':
-            break;
-            
-        case 'R':
-            if ( !( pRoomIndex = get_room_index( pReset->arg1 ) ) )
-            {
-                bug( "Reset_room: 'R': bad vnum %d.", pReset->arg1 );
-                continue;
-            }
-            
-            {
-                EXIT_DATA *pExit;
-                int d0;
-                int d1;
-                
-                for ( d0 = 0; d0 < pReset->arg2 - 1; d0++ )
+
+                /* fix object lock state! */
+                LastObj->value[1] = LastObj->pIndexData->value[1];
+                last = TRUE;
+                break;
+
+            case 'G':
+            case 'E':
+                if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
                 {
-                    d1                   = number_range( d0, pReset->arg2-1 );
-                    pExit                = pRoomIndex->exit[d0];
-                    pRoomIndex->exit[d0] = pRoomIndex->exit[d1];
-                    pRoomIndex->exit[d1] = pExit;
+                    bug( "Reset_room: 'E' or 'G': bad vnum %d.", pReset->arg1 );
+                    continue;
                 }
-            }
-            break;
+
+                if ( !last )
+                    break;
+
+                if ( !LastMob )
+                {
+                    bug( "Reset_room: 'E' or 'G': null mob for vnum %d.",
+                            pReset->arg1 );
+                    last = FALSE;
+                    break;
+                }
+
+                if ( LastMob->pIndexData->pShop )   /* Shop-keeper? */
+                {
+                    pObj = create_object( pObjIndex );
+                    SET_BIT( pObj->extra_flags, ITEM_INVENTORY );  /* ROM OLC */
+
+                }
+                else   /* ROM OLC else version */
+                {
+                    int limit;
+                    if (pReset->arg2 > 50 )  /* old format */
+                        limit = 6;
+                    else if ( pReset->arg2 == -1 || pReset->arg2 == 0 )  /* no limit */
+                        limit = 999;
+                    else
+                        limit = pReset->arg2;
+
+                    if ( pObjIndex->count < limit || number_range(0,4) == 0 )
+                    {
+                        pObj = create_object( pObjIndex );
+                        /* error message if it is too high */
+                        if (pObj->level > LastMob->level + 10)
+                            fprintf(stderr,
+                                    "Err: obj %s (%d) -- %d, mob %s (%d) -- %d\n",
+                                    pObj->short_descr,pObj->pIndexData->vnum,pObj->level,
+                                    LastMob->short_descr,LastMob->pIndexData->vnum,LastMob->level);
+                    }
+                    else
+                        break;
+                }
+
+
+                check_enchant_obj( pObj );
+                obj_to_char( pObj, LastMob );
+                if ( pReset->command == 'E' )
+                {
+                    equip_char( LastMob, pObj, pReset->arg3 );
+                    /* special bow handling */
+                    if ( pObj != NULL && pObj->item_type == ITEM_WEAPON
+                            && pObj->value[0] == WEAPON_BOW )
+                        equip_new_arrows( LastMob );
+                    /* Restore hit,mana,move in case the eq changes them */
+                    LastMob->hit     =       LastMob->max_hit;
+                    LastMob->mana    =       LastMob->max_mana;
+                    LastMob->move    =       LastMob->max_move;
+                }
+                last = TRUE;
+                break;
+
+            case 'D':
+                break;
+
+            case 'R':
+                if ( !( pRoomIndex = get_room_index( pReset->arg1 ) ) )
+                {
+                    bug( "Reset_room: 'R': bad vnum %d.", pReset->arg1 );
+                    continue;
+                }
+
+                {
+                    EXIT_DATA *pExit;
+                    int d0;
+                    int d1;
+
+                    for ( d0 = 0; d0 < pReset->arg2 - 1; d0++ )
+                    {
+                        d1                   = number_range( d0, pReset->arg2-1 );
+                        pExit                = pRoomIndex->exit[d0];
+                        pRoomIndex->exit[d0] = pRoomIndex->exit[d1];
+                        pRoomIndex->exit[d1] = pExit;
+                    }
+                }
+                break;
         }
     }
-    
+
     /* stuff after resets are executed */
 
     //reset_herbs( pRoom );
 
     /* arm mobs with default weapons */
     for ( mob = pRoom->people; mob != NULL; mob = mob->next_in_room )
-	arm_npc( mob );
+        arm_npc( mob );
 
     rp_postreset_trigger( pRoom );
 
@@ -3479,31 +3479,31 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
         
     case ITEM_WAND:
     case ITEM_STAFF:
-	/*
-        if (level != -1 && !pObjIndex->new_format)
+        /*
+           if (level != -1 && !pObjIndex->new_format)
+           {
+           obj->value[0]   = number_fuzzy( obj->value[0] );
+           obj->value[1]   = number_fuzzy( obj->value[1] );
+           obj->value[2]   = obj->value[1];
+           }
+           if (!pObjIndex->new_format)
+           obj->cost *= 2;
+           */
+        /* hard-coded pill prices */
         {
-            obj->value[0]   = number_fuzzy( obj->value[0] );
-            obj->value[1]   = number_fuzzy( obj->value[1] );
-            obj->value[2]   = obj->value[1];
+            int base = spell_base_cost( obj->value[3] );
+            obj->cost = spell_obj_cost( obj->value[0], base );
+            // -1 charges means random amount up to max
+            if ( obj->value[2] < 0 )
+                obj->value[2] = number_range(0, obj->value[1]);
+            obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
+            if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+                obj->cost *= 1.5;
+            if ( obj->item_type == ITEM_WAND )
+                obj->cost /= 4;
+            if ( obj->item_type == ITEM_STAFF )
+                obj->cost /= 8;
         }
-        if (!pObjIndex->new_format)
-            obj->cost *= 2;
-	*/
-	/* hard-coded pill prices */
-	{
-	    int base = spell_base_cost( obj->value[3] );
-	    obj->cost = spell_obj_cost( obj->value[0], base );
-        // -1 charges means random amount up to max
-        if ( obj->value[2] < 0 )
-            obj->value[2] = number_range(0, obj->value[1]);
-        obj->cost *= (obj->value[1] + obj->value[2]) / 2.0;
-        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
-            obj->cost *= 1.5;
-	    if ( obj->item_type == ITEM_WAND )
-		obj->cost /= 4;
-	    if ( obj->item_type == ITEM_STAFF )
-		obj->cost /= 8;
-	}
         break;
         
     case ITEM_WEAPON:
@@ -3515,29 +3515,29 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
     case ITEM_SCROLL:
     case ITEM_POTION:
     case ITEM_PILL:
-	/*
-        if (level != -1 && !pObjIndex->new_format)
-            obj->value[0] = number_fuzzy( number_fuzzy( obj->value[0] ) );
-	*/
-	/* hard-coded pill prices */
-	{
-	    int base, i;
-	    base = 0;
-	    for ( i = 1; i <= 4; i++ )
-	    {
-		if ( obj->value[i] <= 0 )
-		    continue;
-		
-		base += spell_base_cost(obj->value[i]);
-	    }
-	    obj->cost = spell_obj_cost( obj->value[0], base );
-        if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
-            obj->cost *= 1.5;
-	    if ( obj->item_type == ITEM_POTION )
-		obj->cost /= 2;
-	    else if ( obj->item_type == ITEM_SCROLL )
-		obj->cost /= 8;
-	}
+        /*
+           if (level != -1 && !pObjIndex->new_format)
+           obj->value[0] = number_fuzzy( number_fuzzy( obj->value[0] ) );
+           */
+        /* hard-coded pill prices */
+        {
+            int base, i;
+            base = 0;
+            for ( i = 1; i <= 4; i++ )
+            {
+                if ( obj->value[i] <= 0 )
+                    continue;
+
+                base += spell_base_cost(obj->value[i]);
+            }
+            obj->cost = spell_obj_cost( obj->value[0], base );
+            if ( IS_OBJ_STAT(obj, ITEM_BURN_PROOF) )
+                obj->cost *= 1.5;
+            if ( obj->item_type == ITEM_POTION )
+                obj->cost /= 2;
+            else if ( obj->item_type == ITEM_SCROLL )
+                obj->cost /= 8;
+        }
         break;
         
     case ITEM_MONEY:

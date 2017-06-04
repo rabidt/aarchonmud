@@ -1400,19 +1400,19 @@ DEF_DO_FUN(do_crimelist)
                 send_to_char("That crime type is already in the list.\n\r", ch);
                 return;
             }
-            
-            cr = new_crime();
-            
-            cr->name      = str_dup(arg2);
-            cr->desc      = str_dup(argument);
-            
-            cr->next = crime_list;
-            crime_list = cr;
-            
-            save_crime_list();
-            
-            send_to_char("Crime type added.\n\r", ch);
-            return;
+
+        cr = new_crime();
+
+        cr->name      = str_dup(arg2);
+        cr->desc      = str_dup(argument);
+
+        cr->next = crime_list;
+        crime_list = cr;
+
+        save_crime_list();
+
+        send_to_char("Crime type added.\n\r", ch);
+        return;
     }
     
     send_to_char("Syntax:\n\r"
