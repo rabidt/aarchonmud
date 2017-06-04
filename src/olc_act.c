@@ -853,13 +853,13 @@ AEDIT( aedit_show )
     send_to_char( buf, ch );
     
     for ( i = 0; i < MAX_AREA_CLONE; i++ )
-	if ( pArea->clones[i] > 0 )
-	{
-	    sprintf( buf, "[%d] Clone: %5d\n\r", i, pArea->clones[i] );
-	    send_to_char( buf, ch );
-	}
-	
-	if ( pArea->aprogs )
+        if ( pArea->clones[i] > 0 )
+        {
+            sprintf( buf, "[%d] Clone: %5d\n\r", i, pArea->clones[i] );
+            send_to_char( buf, ch );
+        }
+
+    if ( pArea->aprogs )
     {
         int cnt;
 
@@ -875,8 +875,8 @@ AEDIT( aedit_show )
             }
 
             sprintf(buf, "[%5d] %4d %7s %s\n\r", cnt,
-                list->vnum,name_lookup(list->trig_type, aprog_flags),
-                list->trig_phrase);
+                    list->vnum,name_lookup(list->trig_type, aprog_flags),
+                    list->trig_phrase);
             send_to_char( buf, ch );
             cnt++;
         }
@@ -6821,9 +6821,9 @@ MEDIT( medit_stance )
     MOB_INDEX_DATA *pMob;
     char arg[MAX_INPUT_LENGTH];
     int i;
-    
+
     EDIT_MOB(ch, pMob);
-    
+
     if (argument[0] != '\0')
     {
         argument = one_argument(argument, arg);
@@ -6834,10 +6834,10 @@ MEDIT( medit_stance )
                 send_to_char("Stance set.\n\r", ch);
                 return TRUE;
             }
-            send_to_char("Stance unknown.\n\r", ch);
-            return FALSE;
+        send_to_char("Stance unknown.\n\r", ch);
+        return FALSE;
     }
-    
+
     send_to_char("Syntax: stance [stance]\n\r", ch);
     return FALSE;
 }

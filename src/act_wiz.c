@@ -2266,7 +2266,7 @@ DEF_DO_FUN(do_prefix)
             send_to_char("You have no prefix to clear.\r\n",ch);
             return;
         }
-        
+
         send_to_char("Prefix removed.\r\n",ch);
         free_string(ch->prefix);
         ch->prefix = str_dup("");
@@ -2736,15 +2736,15 @@ DEF_DO_FUN(do_reserve)
                 printf_to_char( ch, "The name %s has already been reserved.\n\r", arg );
                 return;
             }
-            
-            
-            res = alloc_mem(sizeof(RESERVED_DATA));
-            res->name = str_dup(arg);
-            
-            sort_reserved(res);
-            save_reserved();
-            send_to_char("Name reserved.\n\r", ch);
-            return;
+
+
+        res = alloc_mem(sizeof(RESERVED_DATA));
+        res->name = str_dup(arg);
+
+        sort_reserved(res);
+        save_reserved();
+        send_to_char("Name reserved.\n\r", ch);
+        return;
             
     }
     send_to_char("Syntax:\n\r"

@@ -205,29 +205,29 @@ void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
 void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
 {
     int cmd;
-    
+
     for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
         if (   cmd_table[cmd].level == level
-            && !is_granted(victim, cmd_table[cmd].do_fun)
-            && grant_duration(ch, cmd_table[cmd].do_fun) == -1)
+                && !is_granted(victim, cmd_table[cmd].do_fun)
+                && grant_duration(ch, cmd_table[cmd].do_fun) == -1)
         {
             grant_add(victim, 
-                cmd_table[cmd].name, 
-                cmd_table[cmd].do_fun, 
-                duration, 
-                cmd_table[cmd].level);
+                    cmd_table[cmd].name, 
+                    cmd_table[cmd].do_fun, 
+                    duration, 
+                    cmd_table[cmd].level);
         }
-        return;
+    return;
 }
 
 void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly )
 {
     int cmd;
-    
+
     for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
         if ( cmd_table[cmd].level == level
-            && is_granted(victim, cmd_table[cmd].do_fun)
-            && grant_duration(ch, cmd_table[cmd].do_fun) == -1)
+                && is_granted(victim, cmd_table[cmd].do_fun)
+                && grant_duration(ch, cmd_table[cmd].do_fun) == -1)
         {
             if (removeOnly)
             {
@@ -238,7 +238,7 @@ void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly 
                 grant_revoke(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun, FALSE);
             }
         }
-        return;
+    return;
 }
 
 void login_grant( CHAR_DATA *ch )
@@ -310,23 +310,23 @@ DEF_DO_FUN(do_grant)
     {
         int col = 0;
         int lvl;
-        
+
         printf_to_char(ch, "%s has not been granted the following commands:\n\r", rvictim->name);
-        
+
         for ( lvl = IM; lvl <= ( L1 + 1 ) ; lvl++ )
             for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
                 if (cmd_table[cmd].level >= LEVEL_IMMORTAL
-                    && !is_granted(victim,cmd_table[cmd].do_fun)
-                    && cmd_table[cmd].level == lvl)
+                        && !is_granted(victim,cmd_table[cmd].do_fun)
+                        && cmd_table[cmd].level == lvl)
                 {
                     printf_to_char( ch,"[L%3d] %-12s", cmd_table[cmd].level, cmd_table[cmd].name );
 
                     if ( ++col % 4 == 0 )
                         send_to_char( "\n\r", ch );
                 }
-                if ( col % 4 != 0 )
-                    send_to_char( "\n\r", ch);
-                return;
+        if ( col % 4 != 0 )
+            send_to_char( "\n\r", ch);
+        return;
     }
     
     dur = arg3[0] == '\0' ? -1 : (is_number(arg3) ? atoi(arg3) : 0);
@@ -367,73 +367,73 @@ DEF_DO_FUN(do_grant)
     
     for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
         if ( arg2[0] == cmd_table[cmd].name[0]
-            &&   is_exact_name( arg2, cmd_table[cmd].name ) )
+                &&   is_exact_name( arg2, cmd_table[cmd].name ) )
         {
             found = TRUE;
             break;
         }
-        
-        if (found)
+
+    if (found)
+    {
+        if (cmd_table[cmd].level < LEVEL_IMMORTAL)
         {
-            if (cmd_table[cmd].level < LEVEL_IMMORTAL)
-            {
-                send_to_char("You can only grant immortal commands.\n\r",ch);
-                return;
-            }
-            
-            if (grant_duration(ch,cmd_table[cmd].do_fun) != -1)
-            {
-                send_to_char("You can't grant that!\n\r",ch);
-                return;
-            }
-            
-            if (is_granted(victim,cmd_table[cmd].do_fun))
-            {
-                send_to_char("They already have that command!\n\r",ch);
-                return;
-            }
-            
-            grant_add(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun,
-                dur, cmd_table[cmd].level);
-            
-            printf_to_char(ch,"%s has been granted the %s command. ",rvictim->name,
-                cmd_table[cmd].name);
-
-            printf_to_char(victim,"%s has granted you the %s command. ",rch->name,
-                cmd_table[cmd].name);
-
-            if (dur > 0)
-            {
-                printf_to_char(victim, "Expiration: %d tick(s).\n\r", dur);
-                printf_to_char(ch, "Expiration: %d tick(s).\n\r", dur);
-            }
-            else
-            {
-                send_to_char("\n\r",victim);
-                send_to_char("\n\r",ch);
-            }
-
-
-            for (x = 0; pair_table[x].first[0] != '\0'; x++)
-                if (!str_cmp(arg2,pair_table[x].first)
-                    && !is_granted_name(victim,pair_table[x].second))
-                {
-                    sprintf(buf,"%s %s %s",rvictim->name, pair_table[x].second, arg3);
-                    do_grant(ch,buf);
-                }
-                else if (!str_cmp(arg2,pair_table[x].second)
-                    && pair_table[x].one_way != TRUE
-                    && !is_granted_name(victim,pair_table[x].first))
-                {
-                    sprintf(buf,"%s %s %s",rvictim->name,pair_table[x].first, arg3);
-                    do_grant(ch,buf);
-                }
-                
-                return;
+            send_to_char("You can only grant immortal commands.\n\r",ch);
+            return;
         }
 
-        send_to_char("Command not found!\n\r",ch);
+        if (grant_duration(ch,cmd_table[cmd].do_fun) != -1)
+        {
+            send_to_char("You can't grant that!\n\r",ch);
+            return;
+        }
+
+        if (is_granted(victim,cmd_table[cmd].do_fun))
+        {
+            send_to_char("They already have that command!\n\r",ch);
+            return;
+        }
+
+        grant_add(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun,
+                dur, cmd_table[cmd].level);
+
+        printf_to_char(ch,"%s has been granted the %s command. ",rvictim->name,
+                cmd_table[cmd].name);
+
+        printf_to_char(victim,"%s has granted you the %s command. ",rch->name,
+                cmd_table[cmd].name);
+
+        if (dur > 0)
+        {
+            printf_to_char(victim, "Expiration: %d tick(s).\n\r", dur);
+            printf_to_char(ch, "Expiration: %d tick(s).\n\r", dur);
+        }
+        else
+        {
+            send_to_char("\n\r",victim);
+            send_to_char("\n\r",ch);
+        }
+
+
+        for (x = 0; pair_table[x].first[0] != '\0'; x++)
+            if (!str_cmp(arg2,pair_table[x].first)
+                    && !is_granted_name(victim,pair_table[x].second))
+            {
+                sprintf(buf,"%s %s %s",rvictim->name, pair_table[x].second, arg3);
+                do_grant(ch,buf);
+            }
+            else if (!str_cmp(arg2,pair_table[x].second)
+                    && pair_table[x].one_way != TRUE
+                    && !is_granted_name(victim,pair_table[x].first))
+            {
+                sprintf(buf,"%s %s %s",rvictim->name,pair_table[x].first, arg3);
+                do_grant(ch,buf);
+            }
+
         return;
+    }
+
+    send_to_char("Command not found!\n\r",ch);
+    return;
 }
 
 DEF_DO_FUN(do_revoke)
@@ -478,23 +478,23 @@ DEF_DO_FUN(do_revoke)
     if (arg2[0] == '\0')
     {
         int col = 0, lvl;
-        
+
         printf_to_char(ch,"%s has been granted the following commands:\n\r", rvictim->name);
-        
+
         for ( lvl = IM; lvl <= ( L1 + 1 ) ; lvl++ )
             for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
                 if (cmd_table[cmd].level >= LEVEL_IMMORTAL
-                    && is_granted(victim,cmd_table[cmd].do_fun)
-                    && cmd_table[cmd].level == lvl )
+                        && is_granted(victim,cmd_table[cmd].do_fun)
+                        && cmd_table[cmd].level == lvl )
                 {
                     printf_to_char( ch,"[L%3d] %-12s", cmd_table[cmd].level, cmd_table[cmd].name );
 
                     if ( ++col % 4 == 0 )
                         send_to_char( "\n\r", ch );
                 }
-                if ( col % 4 != 0 )
-                    send_to_char( "\n\r", ch);
-                return;
+        if ( col % 4 != 0 )
+            send_to_char( "\n\r", ch);
+        return;
     }
     
     if (is_number(arg2))
@@ -521,50 +521,50 @@ DEF_DO_FUN(do_revoke)
             found = TRUE;
             break;
         }
-        
-        if (found)
+
+    if (found)
+    {
+        char buf[MAX_STRING_LENGTH];
+
+        if (grant_duration(ch,cmd_table[cmd].do_fun) != -1)
         {
-            char buf[MAX_STRING_LENGTH];
-            
-            if (grant_duration(ch,cmd_table[cmd].do_fun) != -1)
-            {
-                send_to_char("You can't revoke that!\n\r",ch);
-                return;
-            }
-            
-            if (!is_granted(victim,cmd_table[cmd].do_fun))
-            {
-                send_to_char("They don't have that command!\n\r",ch);
-                return;
-            }
-            
-            grant_revoke(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun,TRUE);
-            
-            printf_to_char(ch,"%s has lost access to the %s command.\n\r",
+            send_to_char("You can't revoke that!\n\r",ch);
+            return;
+        }
+
+        if (!is_granted(victim,cmd_table[cmd].do_fun))
+        {
+            send_to_char("They don't have that command!\n\r",ch);
+            return;
+        }
+
+        grant_revoke(victim, cmd_table[cmd].name, cmd_table[cmd].do_fun,TRUE);
+
+        printf_to_char(ch,"%s has lost access to the %s command.\n\r",
                 rvictim->name,cmd_table[cmd].name);
 
-            for (x = 0; pair_table[x].first[0] != '\0'; x++)
-                if (!str_cmp(arg2,pair_table[x].first)
+        for (x = 0; pair_table[x].first[0] != '\0'; x++)
+            if (!str_cmp(arg2,pair_table[x].first)
                     && is_granted_name(victim,pair_table[x].second))
-                {
-                    sprintf(buf,"%s %s",rvictim->name,pair_table[x].second);
-                    do_revoke(ch,buf);
-                }
-                else if (!str_cmp(arg2,pair_table[x].second)
+            {
+                sprintf(buf,"%s %s",rvictim->name,pair_table[x].second);
+                do_revoke(ch,buf);
+            }
+            else if (!str_cmp(arg2,pair_table[x].second)
                     && pair_table[x].one_way != TRUE
                     && is_granted_name(victim,pair_table[x].first))
-                {
-                    sprintf(buf,"%s %s",rvictim->name,pair_table[x].first);
-                    do_revoke(ch,buf);
-                }
-                
-                if (had_return && !is_granted_name(victim,"return") &&
-                    rvictim != victim) do_return(victim,"");
-                
-                return;
-        }
-        send_to_char("Command not found!\n\r",ch);
+            {
+                sprintf(buf,"%s %s",rvictim->name,pair_table[x].first);
+                do_revoke(ch,buf);
+            }
+
+        if (had_return && !is_granted_name(victim,"return") &&
+                rvictim != victim) do_return(victim,"");
+
         return;
+    }
+    send_to_char("Command not found!\n\r",ch);
+    return;
 }
 
 
