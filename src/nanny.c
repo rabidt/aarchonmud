@@ -1423,7 +1423,7 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 
 void newbie_alert(DESCRIPTOR_DATA *d)
 {
-	char buf[MAX_STRING_LENGTH];
+    char buf[MAX_STRING_LENGTH];
     PENALTY_DATA *p;
 
     /* If there are any residual penalties from a previous use of this player
@@ -1435,11 +1435,11 @@ void newbie_alert(DESCRIPTOR_DATA *d)
             save_penalties();
         }
 
-	sprintf( buf, "%s@%s new player.", d->character->name, d->host );
-	log_string( buf );
-	wiznet("Newbie alert!  $N sighted.",d->character,NULL,WIZ_NEWBIE,0,0);
-	wiznet(buf,NULL,NULL,WIZ_SITES,0,0);
-	return;
+    sprintf( buf, "%s@%s new player.", d->character->name, d->host );
+    log_string( buf );
+    wiznet("Newbie alert!  $N sighted.",d->character,NULL,WIZ_NEWBIE,0,0);
+    wiznet(buf,NULL,NULL,WIZ_SITES,0,0);
+    return;
 }
 
 

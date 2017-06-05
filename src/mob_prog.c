@@ -410,47 +410,47 @@ bool has_item( CHAR_DATA *ch, int vnum, int item_type, bool fWear )
 
 bool has_item_in_container( CHAR_DATA *ch, int vnum, const char *obj_name )
 {
-	OBJ_DATA *container;
-	OBJ_DATA *obj;
+    OBJ_DATA *container;
+    OBJ_DATA *obj;
 
-	for ( container = ch->carrying;  container != NULL;  container = container->next_content )
-	{
+    for ( container = ch->carrying;  container != NULL;  container = container->next_content )
+    {
         if (container->must_extract) 
             continue;
 
-	    if( container->item_type != ITEM_CONTAINER )
-		continue;
+        if( container->item_type != ITEM_CONTAINER )
+            continue;
 
-	    for( obj = container->contains; obj; obj=obj->next_content )
-	    {
-		if( vnum < 0 && is_name(obj_name, obj->name) )
-		    return TRUE;
-		if( vnum > 0 && obj->pIndexData->vnum == vnum )
-		    return TRUE;
-		if( obj->item_type == ITEM_CONTAINER )
-		    return check_in_container( obj, vnum, obj_name );
-	    }
-	}
-	return FALSE;
+        for( obj = container->contains; obj; obj=obj->next_content )
+        {
+            if( vnum < 0 && is_name(obj_name, obj->name) )
+                return TRUE;
+            if( vnum > 0 && obj->pIndexData->vnum == vnum )
+                return TRUE;
+            if( obj->item_type == ITEM_CONTAINER )
+                return check_in_container( obj, vnum, obj_name );
+        }
+    }
+    return FALSE;
 }
 
 bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name )
 {
-	OBJ_DATA *obj;
+    OBJ_DATA *obj;
 
-	for( obj = container->contains; obj; obj=obj->next_content )
-	{
+    for( obj = container->contains; obj; obj=obj->next_content )
+    {
         if (obj->must_extract) 
             continue;
 
-	    if( vnum < 0 && is_name(obj_name, obj->name) )
-		return TRUE;
-	    if( vnum > 0 && obj->pIndexData->vnum == vnum )
-		return TRUE;
-	    if( obj->item_type == ITEM_CONTAINER )
-		return check_in_container( obj, vnum, obj_name );
-	}
-	return FALSE;
+        if( vnum < 0 && is_name(obj_name, obj->name) )
+            return TRUE;
+        if( vnum > 0 && obj->pIndexData->vnum == vnum )
+            return TRUE;
+        if( obj->item_type == ITEM_CONTAINER )
+            return check_in_container( obj, vnum, obj_name );
+    }
+    return FALSE;
 }
 
 /*
@@ -858,57 +858,82 @@ int cmd_eval( int vnum, const char *line, int check,
             }
             break;
 	case CHK_HPCNT:
-	    if ( lval_char != NULL ) lval = (lval_char->hit * 100)/(UMAX(1,lval_char->max_hit)); break;
+	    if ( lval_char != NULL ) lval = (lval_char->hit * 100)/(UMAX(1,lval_char->max_hit)); 
+        break;
 	case CHK_MPCNT:
-	    if ( lval_char != NULL ) lval = (lval_char->mana * 100)/(UMAX(1,lval_char->max_mana)); break;
+	    if ( lval_char != NULL ) lval = (lval_char->mana * 100)/(UMAX(1,lval_char->max_mana)); 
+        break;
 	case CHK_ROOM:
-	    if ( lval_char != NULL && lval_char->in_room != NULL )
-		lval = lval_char->in_room->vnum; break;
-        case CHK_SEX:
-	    if ( lval_char != NULL ) lval = lval_char->sex; break;
-        case CHK_LEVEL:
-            if ( lval_char != NULL ) lval = lval_char->level; break;
+        if ( lval_char != NULL && lval_char->in_room != NULL )
+            lval = lval_char->in_room->vnum; 
+        break;
+    case CHK_SEX:
+        if ( lval_char != NULL ) lval = lval_char->sex; 
+        break;
+    case CHK_LEVEL:
+        if ( lval_char != NULL ) lval = lval_char->level; 
+        break;
 	case CHK_ALIGN:
-            if ( lval_char != NULL ) lval = lval_char->alignment; break;
+        if ( lval_char != NULL ) lval = lval_char->alignment; 
+        break;
 	case CHK_MONEY:  /* Money is converted to silver... */
-	    if ( lval_char != NULL ) 
-		lval = (lval_char->gold * 100) + lval_char->silver; break;
+        if ( lval_char != NULL ) 
+            lval = (lval_char->gold * 100) + lval_char->silver; 
+        break;
 	case CHK_OBJVAL0:
-            if ( lval_obj != NULL ) lval = lval_obj->value[0]; break;
-        case CHK_OBJVAL1:
-            if ( lval_obj != NULL ) lval = lval_obj->value[1]; break;
-        case CHK_OBJVAL2: 
-            if ( lval_obj != NULL ) lval = lval_obj->value[2]; break;
-        case CHK_OBJVAL3:
-            if ( lval_obj != NULL ) lval = lval_obj->value[3]; break;
+        if ( lval_obj != NULL ) lval = lval_obj->value[0]; 
+        break;
+    case CHK_OBJVAL1:
+        if ( lval_obj != NULL ) lval = lval_obj->value[1]; 
+        break;
+    case CHK_OBJVAL2: 
+        if ( lval_obj != NULL ) lval = lval_obj->value[2]; 
+        break;
+    case CHK_OBJVAL3:
+        if ( lval_obj != NULL ) lval = lval_obj->value[3]; 
+        break;
 	case CHK_OBJVAL4:
-	    if ( lval_obj != NULL ) lval = lval_obj->value[4]; break;
+	    if ( lval_obj != NULL ) lval = lval_obj->value[4]; 
+        break;
 	case CHK_GRPSIZE:
-	    if ( lval_char != NULL ) lval = count_people_room( lval_char, 4 ); break;
-        case CHK_QSTATUS:
-	    if ( lval_char != NULL ) lval = quest_status( lval_char, xval ); break;
-        case CHK_QTIMER:
-	    if ( lval_char != NULL ) lval = qset_timer( lval_char, xval ); break;
+        if ( lval_char != NULL ) lval = count_people_room( lval_char, 4 ); 
+        break;
+    case CHK_QSTATUS:
+        if ( lval_char != NULL ) lval = quest_status( lval_char, xval ); 
+        break;
+    case CHK_QTIMER:
+        if ( lval_char != NULL ) lval = qset_timer( lval_char, xval ); 
+        break;
 	case CHK_STATSTR:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_STR); break;
-	case CHK_STATCON:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CON); break;
-	case CHK_STATVIT:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_VIT); break;
-	case CHK_STATAGI:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_AGI); break;
-	case CHK_STATDEX:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_DEX); break;
-	case CHK_STATINT:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_INT); break;
-	case CHK_STATWIS:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_WIS); break;
-	case CHK_STATDIS:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_DIS); break;
-	case CHK_STATCHA:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CHA); break;
-	case CHK_STATLUC:
-            if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_LUC); break;
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_STR); 
+        break;
+    case CHK_STATCON:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CON); 
+        break;
+    case CHK_STATVIT:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_VIT); 
+        break;
+    case CHK_STATAGI:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_AGI); 
+        break;
+    case CHK_STATDEX:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_DEX); 
+        break;
+    case CHK_STATINT:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_INT); 
+        break;
+    case CHK_STATWIS:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_WIS); 
+        break;
+    case CHK_STATDIS:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_DIS); 
+        break;
+    case CHK_STATCHA:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_CHA); 
+        break;
+    case CHK_STATLUC:
+        if ( lval_char != NULL ) lval = get_curr_stat(lval_char, STAT_LUC); 
+        break;
     case CHK_REMORT:
             if ( lval_char != NULL )
             {
@@ -1529,40 +1554,40 @@ bool mp_give_trigger( CHAR_DATA *mob, CHAR_DATA *ch, OBJ_DATA *obj )
     PROG_LIST  *prg;
 
     for ( prg = mob->pIndexData->mprogs; prg; prg = prg->next )
-	if ( prg->trig_type == TRIG_GIVE )
-	{
-	    p = prg->trig_phrase;
-	    /*
-	     * Vnum argument
-	     */
-	    if ( is_r_number( p ) )
-	    {
-		if ( obj->pIndexData->vnum == r_atoi(mob, p) )
-		{
-		    program_flow( obj->name, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0, TRIG_GIVE, prg->script->security);
-		    return TRUE;
-		}
-	    }
-	    /*
-	     * Object name argument, e.g. 'sword'
-	     */
-	    else
-	    {
-	    	while( *p )
-	    	{
-		    p = one_argument( p, buf );
+        if ( prg->trig_type == TRIG_GIVE )
+        {
+            p = prg->trig_phrase;
+            /*
+             * Vnum argument
+             */
+            if ( is_r_number( p ) )
+            {
+                if ( obj->pIndexData->vnum == r_atoi(mob, p) )
+                {
+                    program_flow( obj->name, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0, TRIG_GIVE, prg->script->security);
+                    return TRUE;
+                }
+            }
+            /*
+             * Object name argument, e.g. 'sword'
+             */
+            else
+            {
+                while( *p )
+                {
+                    p = one_argument( p, buf );
 
-		    if ( is_name( buf, obj->name )
-		    ||   !str_cmp( "all", buf ) 
-            ||   !str_cmp( "*", buf ) )
-		    {
-		    	program_flow( obj->name, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0, TRIG_GIVE, prg->script->security);
-		    	return TRUE;
-		    }
-		}
-	    }
-	}
-	return FALSE;
+                    if ( is_name( buf, obj->name )
+                            ||   !str_cmp( "all", buf ) 
+                            ||   !str_cmp( "*", buf ) )
+                    {
+                        program_flow( obj->name, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, (void *) obj, ACT_ARG_OBJ, NULL, 0, TRIG_GIVE, prg->script->security);
+                        return TRUE;
+                    }
+                }
+            }
+        }
+    return FALSE;
 }
 
 void mp_greet_trigger( CHAR_DATA *ch )
