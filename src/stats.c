@@ -106,23 +106,23 @@ int get_curr_stat( CHAR_DATA *ch, int stat )
 int dice_lookup(char *stat)
 {
     int i;
-    
+
     for (i=0; stat_table[i].name!=NULL; i++)
         if (!str_prefix(stat, stat_table[i].name))
             break;
-        
-        return i;
+
+    return i;
 }
 
 int stat_lookup(char *stat)
 {
     int i;
-    
+
     for (i=0; i<MAX_STATS; i++)
         if (!str_prefix(stat, stat_table[i].name))
             break;
-        
-        return -1;
+
+    return -1;
 }
 
 int remort_bonus (CHAR_DATA *ch, int stat )
@@ -1437,7 +1437,7 @@ bool parse_roll_stats (CHAR_DATA *ch, const char *argument)
     else if (!str_prefix(arg, "assign"))
     {
         if (arg2[0]=='\0'||arg3[0]=='\0'||!is_number(arg3)
-            ||(stat=dice_lookup(arg2))==15)
+                ||(stat=dice_lookup(arg2))==15)
         {
             do_help(ch, "assign");
             return TRUE;
@@ -1451,17 +1451,17 @@ bool parse_roll_stats (CHAR_DATA *ch, const char *argument)
         for (i=0; i<15; i++)
             if (ch->gen_data->unused_die[i]==die)
                 break;
-            if (i==15||die==-1)
-            {
-                sprintf(buf, "You dont have any %d dice to assign.\n\r", die);
-                send_to_char(buf,ch);
-                return TRUE;
-            }
-            ch->gen_data->assigned_die[stat]=die;
-            calc_stats(ch);
-            for(j=i; j<14; j++)
-                ch->gen_data->unused_die[j]=ch->gen_data->unused_die[j+1];
-            ch->gen_data->unused_die[14]=-1;
+        if (i==15||die==-1)
+        {
+            sprintf(buf, "You dont have any %d dice to assign.\n\r", die);
+            send_to_char(buf,ch);
+            return TRUE;
+        }
+        ch->gen_data->assigned_die[stat]=die;
+        calc_stats(ch);
+        for(j=i; j<14; j++)
+            ch->gen_data->unused_die[j]=ch->gen_data->unused_die[j+1];
+        ch->gen_data->unused_die[14]=-1;
     }
     else if (str_prefix(arg, "show")) return FALSE;
     

@@ -1769,59 +1769,59 @@ static void mob_special_attacks( CHAR_DATA *ch )
 {
     if ( !IS_NPC(ch) || ch->wait > 0 || !ch->fighting || ch->position < POS_FIGHTING )
         return;
-    
-	switch( number_range(0,9) ) 
-	{
-	case (0) :
-	    if (IS_SET(ch->off_flags,OFF_BASH))
-		do_bash(ch,"");
-	    break;
-	    
-	case (1) :
-	    if (IS_SET(ch->off_flags,OFF_BERSERK) && !IS_AFFECTED(ch,AFF_BERSERK))
-		do_berserk(ch,"");
-	    break;
-	    
-	case (2) :
-	    if (IS_SET(ch->off_flags,OFF_DISARM))
-		do_disarm(ch,"");
-	    break;
-	    
-	case (3) :
-	    if (IS_SET(ch->off_flags,OFF_KICK))
-		do_kick(ch,"");
-	    break;
-	    
-	case (4) :
-	    if (IS_SET(ch->off_flags,OFF_KICK_DIRT))
-		do_dirt(ch,"");
-	    break;
-	    
-	case (5) :
-	    if (IS_SET(ch->off_flags,OFF_TAIL))
-	    {
-		do_leg_sweep(ch, "");
-	    }
-	    break; 
-	case (6) :
-	    if (IS_SET(ch->off_flags,OFF_TRIP))
-		do_trip(ch,"");
-	    break;
-	    
-	case (7) :
-	    if (IS_SET(ch->off_flags,OFF_CRUSH))
-		{
-		    do_crush(ch,"");
-		}
-	    break;
-	case (8) :
-	case (9) :
-	    if (IS_SET(ch->off_flags,OFF_CIRCLE))
-	    {
-		do_circle(ch,"");
-	    }
-	}
-    
+
+    switch( number_range(0,9) ) 
+    {
+        case (0) :
+            if (IS_SET(ch->off_flags,OFF_BASH))
+            do_bash(ch,"");
+            break;
+
+        case (1) :
+            if (IS_SET(ch->off_flags,OFF_BERSERK) && !IS_AFFECTED(ch,AFF_BERSERK))
+            do_berserk(ch,"");
+            break;
+
+        case (2) :
+            if (IS_SET(ch->off_flags,OFF_DISARM))
+            do_disarm(ch,"");
+            break;
+
+        case (3) :
+            if (IS_SET(ch->off_flags,OFF_KICK))
+            do_kick(ch,"");
+            break;
+
+        case (4) :
+            if (IS_SET(ch->off_flags,OFF_KICK_DIRT))
+            do_dirt(ch,"");
+            break;
+
+        case (5) :
+            if (IS_SET(ch->off_flags,OFF_TAIL))
+        {
+            do_leg_sweep(ch, "");
+        }
+            break; 
+        case (6) :
+            if (IS_SET(ch->off_flags,OFF_TRIP))
+            do_trip(ch,"");
+            break;
+
+        case (7) :
+            if (IS_SET(ch->off_flags,OFF_CRUSH))
+        {
+            do_crush(ch,"");
+        }
+            break;
+        case (8) :
+        case (9) :
+            if (IS_SET(ch->off_flags,OFF_CIRCLE))
+        {
+            do_circle(ch,"");
+        }
+    }
+
 }
 
 int get_align_type( CHAR_DATA *ch )
