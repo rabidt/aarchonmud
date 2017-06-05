@@ -120,7 +120,7 @@ void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
 {
     int           i;
     struct hash_link  *scan,*temp;
-    
+
     for(i=0;i<ht->table_size;i++)
         for(scan=ht->buckets[i];scan;)
         {
@@ -129,8 +129,8 @@ void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
             free(scan);
             scan = temp;
         }
-        free(ht->buckets);
-        free(ht->keylist);
+    free(ht->buckets);
+    free(ht->keylist);
 }
 
 void _hash_enter(struct hash_header *ht,int key,void *data)
@@ -187,36 +187,36 @@ int hash_enter(struct hash_header *ht,int key,void *data)
 void *hash_remove(struct hash_header *ht,int key)
 {
     struct hash_link **scan;
-    
+
     scan = ht->buckets+HASH_KEY(ht,key);
-    
+
     while(*scan && (*scan)->key!=key)
         scan = &(*scan)->next;
-    
+
     if(*scan)
     {
         int       i;
         struct hash_link  *temp, *aux;
-        
+
         temp  = (*scan)->data;
         aux   = *scan;
         *scan = aux->next;
         free(aux);
-        
+
         for(i=0;i<ht->klistlen;i++)
             if(ht->keylist[i]==key)
                 break;
-            
-            if(i<ht->klistlen)
-            {
-                bcopy((char *)ht->keylist+i+1,(char *)ht->keylist+i,(ht->klistlen-i)
+
+        if(i<ht->klistlen)
+        {
+            bcopy((char *)ht->keylist+i+1,(char *)ht->keylist+i,(ht->klistlen-i)
                     *sizeof(*ht->keylist));
-                ht->klistlen--;
-            }
-            
-            return temp;
+            ht->klistlen--;
+        }
+
+        return temp;
     }
-    
+
     return NULL;
 }
 

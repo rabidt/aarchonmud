@@ -1511,7 +1511,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
                 }
                 else continue;
             }
-                
+
             pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
             if ( pdesc != NULL )
             {
@@ -1523,7 +1523,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
                 }
                 else continue;
             }
-            
+
             if ( is_name( arg3, obj->name ) && ++count == number )
             {
                 if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
@@ -1535,7 +1535,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
             }
         }
     }
-    
+
     for ( obj = ch->in_room->contents; obj != NULL; obj = obj->next_content )
     {
         if ( can_see_obj( ch, obj ) )
@@ -1548,26 +1548,26 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
                         send_to_char( pdesc, ch );
                     return obj;
                 }
-                
-	    pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
-	    if ( pdesc != NULL )
-		if (++count == number)
-        {
-            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
-    		    send_to_char( pdesc, ch );
-		    return obj;
-		}
-	    
-	    if ( is_name( arg3, obj->name ) )
-		if (++count == number)
-		{
-            if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
-            {
-                send_to_char( obj->description, ch );
-		        send_to_char("\n\r",ch);
-            }
-		    return obj;
-		}
+
+            pdesc = get_extra_descr( arg3, obj->pIndexData->extra_descr );
+            if ( pdesc != NULL )
+                if (++count == number)
+                {
+                    if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                        send_to_char( pdesc, ch );
+                    return obj;
+                }
+
+            if ( is_name( arg3, obj->name ) )
+                if (++count == number)
+                {
+                    if ( op_act_trigger(obj, ch, NULL, arg3, OTRIG_LOOK) )
+                    {
+                        send_to_char( obj->description, ch );
+                        send_to_char("\n\r",ch);
+                    }
+                    return obj;
+                }
         }
     }
 
@@ -2307,13 +2307,13 @@ DEF_DO_FUN(do_weather)
 bool is_command( char *arg )
 {
     int cmd;
-    
+
     for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
         if ( UPPER(arg[0]) == UPPER(cmd_table[cmd].name[0])
-            && is_exact_name( cmd_table[cmd].name, arg ) )
+                && is_exact_name( cmd_table[cmd].name, arg ) )
             return TRUE;
-        
-        return FALSE;
+
+    return FALSE;
 }
 
 #if 0
@@ -3641,22 +3641,22 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     int ac = 0;
 
     sprintf( buf, "%s is %s %s with properties %s.", obj->short_descr,
-        aan(item_name(obj->item_type)), item_name(obj->item_type), extra_bits_name(obj->extra_flags) );
+            aan(item_name(obj->item_type)), item_name(obj->item_type), extra_bits_name(obj->extra_flags) );
     do_say(ch, buf);
-    
+
     /*
-    if (obj->owner != NULL)
-    {
-        sprintf( buf, "It is owned by %s.", obj->owner);
-        do_say(ch, buf);
-    }
-    */
+       if (obj->owner != NULL)
+       {
+       sprintf( buf, "It is owned by %s.", obj->owner);
+       do_say(ch, buf);
+       }
+       */
 
     sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
-	     obj->weight / 10,
-	     obj->level );
+            obj->weight / 10,
+            obj->level );
     do_say(ch, buf);
-    
+
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
@@ -3664,136 +3664,136 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
-    
+
     switch ( obj->item_type )
     {
-    case ITEM_LIGHT:
-        if ( obj->value[2] >= 0 )
-            sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
-        else
-            sprintf( buf, "It is an infinite light source." );
-        do_say( ch, buf );
-        break;
-    case ITEM_ARROWS:
-	sprintf( buf, "It contains %d arrows.", obj->value[0] );
-	do_say( ch, buf );
-	if ( obj->value[1] > 0 )
-	{
-	    sprintf( buf, "Each arrow deals %d extra %s damage.",
-		     obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
-	    do_say( ch, buf );
-	}
-        break;
-    case ITEM_SCROLL: 
-    case ITEM_POTION:
-    case ITEM_PILL:
-        sprintf( buf, "It has level %d spells of:", obj->value[0] );
-        
-        for ( c=1; c<5; c++)
-            if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
+        case ITEM_LIGHT:
+            if ( obj->value[2] >= 0 )
+                sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
+            else
+                sprintf( buf, "It is an infinite light source." );
+            do_say( ch, buf );
+            break;
+        case ITEM_ARROWS:
+            sprintf( buf, "It contains %d arrows.", obj->value[0] );
+            do_say( ch, buf );
+            if ( obj->value[1] > 0 )
             {
-                strcat( buf, " '");
-                strcat( buf, skill_table[obj->value[c]].name);
-                strcat( buf, "'");
+                sprintf( buf, "Each arrow deals %d extra %s damage.",
+                        obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
+                do_say( ch, buf );
             }
-            
+            break;
+        case ITEM_SCROLL: 
+        case ITEM_POTION:
+        case ITEM_PILL:
+            sprintf( buf, "It has level %d spells of:", obj->value[0] );
+
+            for ( c=1; c<5; c++)
+                if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
+                {
+                    strcat( buf, " '");
+                    strcat( buf, skill_table[obj->value[c]].name);
+                    strcat( buf, "'");
+                }
+
             strcat( buf, ".");
             do_say(ch, buf);
-            
-            break;
-            
-    case ITEM_WAND: 
-    case ITEM_STAFF: 
-        sprintf( buf, "It can hold %d charges of level %d",
-            obj->value[1], obj->value[0] );
-        
-        if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
-        {
-            strcat( buf, " '");
-            strcat( buf, skill_table[obj->value[3]].name);
-            strcat( buf, "'");
-        }
-        
-        strcat( buf, ".");
-        do_say(ch, buf);
-        
-        break;
-        
-    case ITEM_DRINK_CON:
-	/*
-        sprintf(buf,"It holds %s-colored %s.",
-            liq_table[obj->value[2]].liq_color,
-            liq_table[obj->value[2]].liq_name);
-        do_say(ch, buf);
-        */
-        break;
-        
-    case ITEM_CONTAINER:
-        sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
-            obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
-        do_say(ch, buf);
-        
-        if (obj->value[4] != 100)
-        {
-            sprintf(buf,"Weight multiplier: %d%%",
-                obj->value[4]);
-            do_say(ch, buf);
-            
-        }
-        break;
-       
-    case ITEM_WEAPON:
-        strcpy(buf, "The weapon is ");
-        switch (obj->value[0])
-        {
-        case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
-        case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
-        case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
-        case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
-        case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
-        case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
-        case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
-        case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
-        case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
-        case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
-        default             : strcat(buf, "of some unknown type."); break;
-        }
-        do_say(ch, buf);
-        
-	sprintf(buf,"It does %s damage of %dd%d (average %d).",
-		attack_table[obj->value[3]].noun,
-		obj->value[1],obj->value[2],
-		(1 + obj->value[2]) * obj->value[1] / 2);
-        do_say(ch, buf);
-        
-        
-        if (obj->value[4])  /* weapon flags */
-        {
-            sprintf(buf, "Weapons flags: %s",
-		    weapon_bits_name(obj->value[4]));
-            do_say(ch, buf);
-            
-        }
-        break;
-        
-    case ITEM_ARMOR:
-        {
-            const char *wear = wear_location_info(obj->wear_type);
-            if ( wear )
-            {
-                do_say(ch, wear);
-                ac = predict_obj_ac(obj, obj->wear_type);
-            } 
 
-            if ( ac > 0 )
+            break;
+
+        case ITEM_WAND: 
+        case ITEM_STAFF: 
+            sprintf( buf, "It can hold %d charges of level %d",
+                    obj->value[1], obj->value[0] );
+
+            if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
             {
-                sprintf( buf, "It provides an armor class of %d.", ac );
+                strcat( buf, " '");
+                strcat( buf, skill_table[obj->value[3]].name);
+                strcat( buf, "'");
+            }
+
+            strcat( buf, ".");
+            do_say(ch, buf);
+
+            break;
+
+        case ITEM_DRINK_CON:
+            /*
+               sprintf(buf,"It holds %s-colored %s.",
+               liq_table[obj->value[2]].liq_color,
+               liq_table[obj->value[2]].liq_name);
+               do_say(ch, buf);
+               */
+            break;
+
+        case ITEM_CONTAINER:
+            sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
+                    obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
+            do_say(ch, buf);
+
+            if (obj->value[4] != 100)
+            {
+                sprintf(buf,"Weight multiplier: %d%%",
+                        obj->value[4]);
                 do_say(ch, buf);
+
             }
             break;
-        }
-   }
+
+        case ITEM_WEAPON:
+            strcpy(buf, "The weapon is ");
+            switch (obj->value[0])
+            {
+                case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
+                case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
+                case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
+                case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
+                case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
+                case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
+                case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
+                case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
+                case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
+                case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
+                case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
+                default             : strcat(buf, "of some unknown type."); break;
+            }
+            do_say(ch, buf);
+
+            sprintf(buf,"It does %s damage of %dd%d (average %d).",
+                    attack_table[obj->value[3]].noun,
+                    obj->value[1],obj->value[2],
+                    (1 + obj->value[2]) * obj->value[1] / 2);
+            do_say(ch, buf);
+
+
+            if (obj->value[4])  /* weapon flags */
+            {
+                sprintf(buf, "Weapons flags: %s",
+                        weapon_bits_name(obj->value[4]));
+                do_say(ch, buf);
+
+            }
+            break;
+
+        case ITEM_ARMOR:
+            {
+                const char *wear = wear_location_info(obj->wear_type);
+                if ( wear )
+                {
+                    do_say(ch, wear);
+                    ac = predict_obj_ac(obj, obj->wear_type);
+                } 
+
+                if ( ac > 0 )
+                {
+                    sprintf( buf, "It provides an armor class of %d.", ac );
+                    do_say(ch, buf);
+                }
+                break;
+            }
+    }
 }
 
 /* same stupid thingy AGAIN.. */
@@ -3804,23 +3804,23 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     int ac = 0;
 
     sprintf( buf, "The %s is %s.",
-	     item_name(obj->item_type),
-	     extra_bits_name(obj->extra_flags) );
+            item_name(obj->item_type),
+            extra_bits_name(obj->extra_flags) );
     do_say(ch, buf);
-    
+
     /*
-    if (obj->owner != NULL)
-    {
-        sprintf( buf, "It is owned by %s.", obj->owner);
-        do_say(ch, buf);
-    }
-    */
+       if (obj->owner != NULL)
+       {
+       sprintf( buf, "It is owned by %s.", obj->owner);
+       do_say(ch, buf);
+       }
+       */
 
     sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
-	     obj->weight / 10,
-	     obj->level );
+            obj->weight / 10,
+            obj->level );
     do_say(ch, buf);
-    
+
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )
     {
         int lore_level = get_lore_level(ch, obj->level);
@@ -3828,135 +3828,135 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
-    
+
     switch ( obj->item_type )
     {
-    case ITEM_LIGHT:
-        if ( obj->value[2] >= 0 )
-            sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
-        else
-            sprintf( buf, "It is an infinite light source." );
-        do_say( ch, buf );
-        break;
-    case ITEM_ARROWS:
-	sprintf( buf, "It contains %d arrows.", obj->value[0] );
-	do_say( ch, buf );
-	if ( obj->value[1] > 0 )
-	{
-	    sprintf( buf, "Each arrow deals %d extra %s damage.",
-		     obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
-	    do_say( ch, buf );
-	}
-        break;
-    case ITEM_SCROLL: 
-    case ITEM_POTION:
-    case ITEM_PILL:
-        sprintf( buf, "It has level %d spells of:", obj->value[0] );
-        
-        for ( c=1; c<5; c++)
-            if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
+        case ITEM_LIGHT:
+            if ( obj->value[2] >= 0 )
+                sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
+            else
+                sprintf( buf, "It is an infinite light source." );
+            do_say( ch, buf );
+            break;
+        case ITEM_ARROWS:
+            sprintf( buf, "It contains %d arrows.", obj->value[0] );
+            do_say( ch, buf );
+            if ( obj->value[1] > 0 )
             {
-                strcat( buf, " '");
-                strcat( buf, skill_table[obj->value[c]].name);
-                strcat( buf, "'");
+                sprintf( buf, "Each arrow deals %d extra %s damage.",
+                        obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
+                do_say( ch, buf );
             }
-            
+            break;
+        case ITEM_SCROLL: 
+        case ITEM_POTION:
+        case ITEM_PILL:
+            sprintf( buf, "It has level %d spells of:", obj->value[0] );
+
+            for ( c=1; c<5; c++)
+                if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
+                {
+                    strcat( buf, " '");
+                    strcat( buf, skill_table[obj->value[c]].name);
+                    strcat( buf, "'");
+                }
+
             strcat( buf, ".");
             do_say(ch, buf);
-            
+
             break;
-            
-    case ITEM_WAND: 
-    case ITEM_STAFF: 
-        sprintf( buf, "It can hold %d charges of level %d",
-            obj->value[1], obj->value[0] );
-        
-        if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
-        {
-            strcat( buf, " '");
-            strcat( buf, skill_table[obj->value[3]].name);
-            strcat( buf, "'");
-        }
-        
-        strcat( buf, ".");
-        do_say(ch, buf);
-        
-        break;
-        
-    case ITEM_DRINK_CON:
-	/*
-        sprintf(buf,"It holds %s-colored %s.",
-            liq_table[obj->value[2]].liq_color,
-            liq_table[obj->value[2]].liq_name);
-        do_say(ch, buf);
-        */
-        break;
-        
-    case ITEM_CONTAINER:
-        sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
-            obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
-        do_say(ch, buf);
-        
-        if (obj->value[4] != 100)
-        {
-            sprintf(buf,"Weight multiplier: %d%%",
-                obj->value[4]);
-            do_say(ch, buf);
-            
-        }
-        break;
-        
-    case ITEM_WEAPON:
-        strcpy(buf, "The weapon is ");
-        switch (obj->value[0])
-        {
-        case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
-        case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
-        case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
-        case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
-        case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
-        case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
-        case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
-        case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
-        case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
-        case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
-        default             : strcat(buf, "of some unknown type."); break;
-        }
-        do_say(ch, buf);
-        
-	sprintf(buf,"It does %s damage of %dd%d (average %d).",
-		attack_table[obj->value[3]].noun ,
-		obj->value[1],obj->value[2],
-		(1 + obj->value[2]) * obj->value[1] / 2);
-        do_say(ch, buf);
-        
-        
-        if (obj->value[4])  /* weapon flags */
-        {
-            sprintf(buf, "Weapons flags: %s",
-		    weapon_bits_name(obj->value[4]));
-            do_say(ch, buf);
-            
-        }
-        break;
-        
-    case ITEM_ARMOR:
-        {
-            const char *wear = wear_location_info(obj->wear_type);
-            if ( wear )
+
+        case ITEM_WAND: 
+        case ITEM_STAFF: 
+            sprintf( buf, "It can hold %d charges of level %d",
+                    obj->value[1], obj->value[0] );
+
+            if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
             {
-                do_say(ch, wear);
-                ac = predict_obj_index_ac(obj, obj->wear_type);
+                strcat( buf, " '");
+                strcat( buf, skill_table[obj->value[3]].name);
+                strcat( buf, "'");
             }
-            if ( ac > 0 )
+
+            strcat( buf, ".");
+            do_say(ch, buf);
+
+            break;
+
+        case ITEM_DRINK_CON:
+            /*
+               sprintf(buf,"It holds %s-colored %s.",
+               liq_table[obj->value[2]].liq_color,
+               liq_table[obj->value[2]].liq_name);
+               do_say(ch, buf);
+               */
+            break;
+
+        case ITEM_CONTAINER:
+            sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
+                    obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
+            do_say(ch, buf);
+
+            if (obj->value[4] != 100)
             {
-                sprintf( buf, "It provides an armor class of %d.", ac );
+                sprintf(buf,"Weight multiplier: %d%%",
+                        obj->value[4]);
                 do_say(ch, buf);
+
             }
             break;
-        }
-   }
+
+        case ITEM_WEAPON:
+            strcpy(buf, "The weapon is ");
+            switch (obj->value[0])
+            {
+                case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
+                case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
+                case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
+                case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
+                case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
+                case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
+                case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
+                case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
+                case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
+                case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
+                case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
+                default             : strcat(buf, "of some unknown type."); break;
+            }
+            do_say(ch, buf);
+
+            sprintf(buf,"It does %s damage of %dd%d (average %d).",
+                    attack_table[obj->value[3]].noun ,
+                    obj->value[1],obj->value[2],
+                    (1 + obj->value[2]) * obj->value[1] / 2);
+            do_say(ch, buf);
+
+
+            if (obj->value[4])  /* weapon flags */
+            {
+                sprintf(buf, "Weapons flags: %s",
+                        weapon_bits_name(obj->value[4]));
+                do_say(ch, buf);
+
+            }
+            break;
+
+        case ITEM_ARMOR:
+            {
+                const char *wear = wear_location_info(obj->wear_type);
+                if ( wear )
+                {
+                    do_say(ch, wear);
+                    ac = predict_obj_index_ac(obj, obj->wear_type);
+                }
+                if ( ac > 0 )
+                {
+                    sprintf( buf, "It provides an armor class of %d.", ac );
+                    do_say(ch, buf);
+                }
+                break;
+            }
+    }
 }
 
 DEF_DO_FUN(do_lore)
@@ -4581,7 +4581,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->title);
 
     /* This line is used throughout to close each score line */
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Level, Remorts/Trust, Clan Name, Clan Rank */
@@ -4593,7 +4595,9 @@ DEF_DO_FUN(do_score)
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Class, Race, Gender */
@@ -4602,7 +4606,9 @@ DEF_DO_FUN(do_score)
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
     /* Remort, Ascent, Subclass */
     sprintf(buf, "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
@@ -4610,7 +4616,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->ascents,
         ch->pcdata->remorts);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     
 
     /* Age, Hours Played, Married Status */
@@ -4619,7 +4627,9 @@ DEF_DO_FUN(do_score)
         (ch->played + (int)(current_time - ch->logon))/3600,
         ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
 
     /* Holy Light, Wizinvis and Incog Levels */
@@ -4630,7 +4640,9 @@ DEF_DO_FUN(do_score)
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
 
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4644,7 +4656,9 @@ DEF_DO_FUN(do_score)
 
     sprintf( buf, "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
     
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
@@ -4652,13 +4666,17 @@ DEF_DO_FUN(do_score)
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
         mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Call the alignbuf here to show alignment */
     sprintf( buf, "{D|{x Alignment:   %s", alignbuf );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Cleaned up this section below but leaving commented out - Astark
@@ -4697,7 +4715,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Warfare grade, kills and points */
@@ -4706,7 +4726,9 @@ DEF_DO_FUN(do_score)
         pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
         ch->pcdata->warpoints);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Pkills and Pkill Deaths */
@@ -4714,7 +4736,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->pkill_count, 
         ch->pcdata->pkill_deaths);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4727,7 +4751,9 @@ DEF_DO_FUN(do_score)
             custombuf, 
             ch->pcdata->customduration );
         
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
 
@@ -4737,7 +4763,9 @@ DEF_DO_FUN(do_score)
         ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
         ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
     
     /* Clean this part up some more, but will only show when booleans are true */
@@ -4756,7 +4784,9 @@ DEF_DO_FUN(do_score)
             thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
 
@@ -4768,7 +4798,9 @@ DEF_DO_FUN(do_score)
         (int)can_carry_w(ch)/10,
         encumberbuf);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     /* Morph information for races that utilize it */
@@ -4780,7 +4812,9 @@ DEF_DO_FUN(do_score)
         else
             sprintf( buf, "{D|{x Morph:  {Gbasic form{x" );
         
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
     else if( ch->race == race_naga )
     {
@@ -4789,7 +4823,9 @@ DEF_DO_FUN(do_score)
         else
             sprintf( buf, "{D|{x Morph:    {Ghumanoid{x" );
     
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     }
 
 
@@ -4799,7 +4835,9 @@ DEF_DO_FUN(do_score)
     else
         sprintf( buf, "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4837,7 +4875,9 @@ DEF_DO_FUN(do_worth)
     if ( !ch->pcdata )
     {
         sprintf(buf, "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" );
         send_to_char( buf, ch );
         send_to_char("{D:============================================================================:{x\n\r", ch);
         return;
@@ -4850,7 +4890,9 @@ DEF_DO_FUN(do_worth)
         (int)ch->silver,
         (int)ch->pcdata->bank);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
@@ -4860,7 +4902,9 @@ DEF_DO_FUN(do_worth)
         (int)ch->pcdata->field,
         (int)ch->exp);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
@@ -4870,7 +4914,9 @@ DEF_DO_FUN(do_worth)
         ch->pcdata->faith,
         ch->pcdata->storage_boxes);
 
-    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
@@ -4878,7 +4924,9 @@ DEF_DO_FUN(do_worth)
     if ( ch->pcdata->bounty > 0 )
     {
         sprintf( buf, "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" );
+        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+            ; 
+        strcat( buf, "{D|{x\n\r" );
         send_to_char( buf, ch );
     }
 
@@ -4930,7 +4978,9 @@ DEF_DO_FUN(do_attributes)
         mn_col, ch->mana, ch->max_mana, 
         mv_col, ch->move, ch->max_move );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
  
     /* Armor Class, Saves Magic, Saves Physical */
@@ -4939,7 +4989,9 @@ DEF_DO_FUN(do_attributes)
         get_save(ch, TRUE),
         get_save(ch, FALSE));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
@@ -4948,7 +5000,9 @@ DEF_DO_FUN(do_attributes)
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
     /* Wimpy, Calm */
     sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
@@ -4956,7 +5010,9 @@ DEF_DO_FUN(do_attributes)
         ch->calm,
         get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " )); strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        ; 
+    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
