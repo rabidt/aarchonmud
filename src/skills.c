@@ -35,6 +35,7 @@
 #include "recycle.h"
 #include "tables.h"
 #include "special.h"
+#include "songs.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_groups    );
@@ -2439,8 +2440,8 @@ int pc_skill_level( CHAR_DATA *ch, int sn )
 {
     int level = skill_table[sn].skill_level[ch->class];
     int subclass = ch->pcdata->subclass;
-    // mastered spells and stances are gained earlier
-    if ( level <= LEVEL_HERO && (IS_SPELL(sn) || get_stance_index(sn) >= 0) )
+    // mastered spells, stances and songs are gained earlier
+    if ( level <= LEVEL_HERO && (IS_SPELL(sn) || get_stance_index(sn) >= 0 || is_song(sn)) )
         level -= mastery_bonus(ch, sn, 8, 10);
     // subclassing may help as well
     if ( level <= LEVEL_HERO && subclass == subclass_demolitionist && (sn == gsn_create_bomb || sn == gsn_ignite) )
