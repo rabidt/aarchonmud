@@ -2638,7 +2638,7 @@ DEF_SPELL_FUN(spell_soreness)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(victim, AFF_SORE) )
+    if ( is_affected(victim, sn) )
     {
         if (victim == ch)
             send_to_char("Don't you think you are hurting enough!\n\r",ch);
