@@ -321,7 +321,7 @@ const struct flag_type affect_flags[] =
     { "overcharge",        AFF_OVERCHARGE,           TRUE  },
     { "giant strength",    AFF_GIANT_STRENGTH,       TRUE  },
     { "phase",             AFF_PHASE,                TRUE  }, 
-    { "shroud of darkness",AFF_SHROUD,               TRUE  },
+//    { "shroud of darkness",AFF_SHROUD,               TRUE  },
 //    { "infectious_arrow",  AFF_INFECTIOUS_ARROW,     TRUE  },
 //    { "fervent_rage",      AFF_FERVENT_RAGE,         TRUE  },
 //    { "fervent_rage_cooldown",  AFF_FERVENT_RAGE_COOLDOWN,TRUE  },

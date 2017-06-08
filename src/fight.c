@@ -739,7 +739,7 @@ void special_affect_update(CHAR_DATA *ch)
         
 		if ( !saves_spell(ch, NULL, sunlight, DAM_LIGHT) )
 		{
-			if ( IS_AFFECTED(ch, AFF_SHROUD))
+			if ( IS_AFFECTED(ch, AFF_DARKNESS) )
 			{
 				sunlight /= 2;
 				act_gag("Your shroud absorbs part of the sunlight.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
