@@ -3024,7 +3024,8 @@ DEF_DO_FUN(do_equipment)
     }
     if ( !found && !all_slots )
         send_to_char( "Nothing.\n\r", ch );
-
+    ptc(ch, "\n\rYour current brightness level is %d%%.\n\r", light_status(ch));
+    
     if ( !IS_SET(ch->act, PLR_NOHELP) )
     {
         send_to_char("\n\r", ch);
