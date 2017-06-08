@@ -2489,7 +2489,7 @@ DEF_SPELL_FUN(spell_blessed_darkness)
     
     SPELL_CHECK_RETURN
     
-    if ( IS_AFFECTED( victim, AFF_DARKNESS ) )
+    if ( is_affected(victim, sn) )
     {
         if (victim == ch)
         { 
@@ -2514,7 +2514,7 @@ DEF_SPELL_FUN(spell_blessed_darkness)
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_DAMROLL;
     af.modifier  = (level + 20) / 8; 
-    af.bitvector = AFF_DARKNESS;
+    af.bitvector = 0;
     affect_to_char( victim, &af );
     
     af.location  = APPLY_SAVES;
@@ -2564,7 +2564,7 @@ DEF_SPELL_FUN(spell_glyph_of_evil)
         if ( is_same_group(ch, vch) )
         {
             /* little spellup */
-            if ( is_dark && !IS_AFFECTED(vch, AFF_DARKNESS) )
+            if ( is_dark && !is_affected(vch, blessed_darkness_num) )
                 spell_blessed_darkness(blessed_darkness_num, level, ch, (void*)vch, TARGET_CHAR, FALSE);
             if ( IS_EVIL(vch) && !IS_AFFECTED(vch, AFF_BERSERK) )
                 spell_frenzy(frenzy_num, level, ch, (void*)vch, TARGET_CHAR, FALSE);
@@ -4124,7 +4124,7 @@ DEF_SPELL_FUN(spell_shroud_of_darkness)
     CHAR_DATA *victim = (CHAR_DATA *) vo;
     AFFECT_DATA af;
     
-    if ( IS_AFFECTED(victim, AFF_SHROUD) )
+    if ( IS_AFFECTED(victim, AFF_DARKNESS) )
     {
         if (victim == ch)
             send_to_char("You are already enclosed in darkness.\n\r",ch);
@@ -4139,7 +4139,7 @@ DEF_SPELL_FUN(spell_shroud_of_darkness)
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_SAVES;
     af.modifier  = -(level + 20) / 12;
-    af.bitvector = AFF_SHROUD;
+    af.bitvector = AFF_DARKNESS;
     affect_to_char( victim, &af );
     af.where     = TO_RESIST;
     af.location  = APPLY_AC;
