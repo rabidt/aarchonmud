@@ -4067,13 +4067,13 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 	switch ( light_status(victim) )
 	{
 	case LIGHT_DARK:
-	    roll_victim *= 2;
+	    roll_victim *= 2.5;
 		break;
 	case LIGHT_NORMAL: 
 	    roll_victim *= 2;
 		break;
 	case LIGHT_GLOW: 
-	    roll_victim *= 2;
+	    roll_victim *= 1.5;
 		break;
 	case LIGHT_BRIGHT: 
 		break;
