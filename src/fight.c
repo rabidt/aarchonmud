@@ -2751,19 +2751,29 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     after_attack(ch, victim, dt, TRUE, secondary);
     
+    if ( wield )
+    {
+        op_percent_trigger(NULL, wield, NULL, ch, victim, OTRIG_HIT);
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
+    else
+    {
+        OBJ_DATA *gloves = get_eq_char(ch, WEAR_HANDS);
+        if ( gloves )
+        {
+            op_percent_trigger(NULL, gloves, NULL, ch, victim, OTRIG_HIT);
+            if ( stop_attack(ch, victim) )
+                return TRUE;
+        }
+    }
+
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
         act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
         one_hit(ch, victim, dt, secondary);
     }
-
-   if ( wield )
-   {
-       op_percent_trigger( NULL, wield, NULL, ch, victim, OTRIG_HIT );
-       if ( stop_attack(ch, victim) )
-            return TRUE;
-   }
 
    tail_chain( );
    return TRUE;
