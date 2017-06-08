@@ -2804,6 +2804,18 @@ static int CH_hit (lua_State *LS)
 
 }
 
+static int CH_behead (lua_State *LS)
+{
+    CHAR_DATA *ch = check_CH(LS, 1);
+    CHAR_DATA *victim = check_CH(LS, 2);
+    
+    if ( !ch || !victim )
+        return 1;
+    
+    behead(ch, victim);
+    return 0;
+}
+
 static int CH_mdo (lua_State *LS)
 {
     interpret( check_CH(LS, 1), check_fstring( LS, 2, MIL));
@@ -5011,6 +5023,7 @@ static const LUA_PROP_TYPE CH_method_table [] =
     CHMETH(setimmune, 1),
     CHMETH(setresist, 1),
     CHMETH(hit, 1),
+    CHMETH(behead, 1),
     CHMETH(randchar, 0),
     CHMETH(loadprog, 1),
     CHMETH(loadscript, 1),
