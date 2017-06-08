@@ -1439,6 +1439,8 @@ float get_affect_ops( AFFECT_DATA *aff, int level )
             case AFF_DETECT_MAGIC:
             case AFF_DETECT_GOOD:
             case AFF_DETECT_EVIL: result += 10; break;
+            // negative affects that cannot be abused are free
+            case AFF_SORE: break;
             default: result += 1000; break; // not allowed
         }
     }
