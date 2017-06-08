@@ -3979,36 +3979,34 @@ bool can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 #define LIGHT_DARK     0
-#define LIGHT_NORMAL   1
-#define LIGHT_GLOW     2
-#define LIGHT_BRIGHT   3
+#define LIGHT_NORMAL   20
+#define LIGHT_BRIGHT   100
 
 /* returns how bright a character is */
 int light_status( CHAR_DATA *ch )
 {
-    int min_light, wear;
+    int light_level, wear;
     OBJ_DATA *obj;
 
     if ( get_eq_char(ch, WEAR_LIGHT) != NULL || IS_SET(ch->form, FORM_BRIGHT) )
-	return LIGHT_BRIGHT;
+        return LIGHT_BRIGHT;
    
     if ( IS_AFFECTED(ch, AFF_DARKNESS) )
-	min_light = LIGHT_DARK;
-    else
-	min_light = LIGHT_NORMAL;
-
-    /* check for glowing or non_dark eq */
+        return LIGHT_DARK;
+    
+    /* check for glowing or dark eq */
+    light_level = LIGHT_NORMAL;
     for ( wear = WEAR_FINGER_L; wear <= WEAR_SECONDARY; wear++ )
     {
-	obj = get_eq_char( ch, wear );
-	if ( obj == NULL )
-	    continue;
-	if ( IS_OBJ_STAT(obj, ITEM_GLOW) )
-	    return LIGHT_GLOW;
-	if ( !IS_OBJ_STAT(obj, ITEM_DARK) )
-	    min_light = LIGHT_NORMAL;
+        obj = get_eq_char( ch, wear );
+        if ( obj == NULL )
+            continue;
+        if ( IS_OBJ_STAT(obj, ITEM_GLOW) )
+            light_level += 4;
+        if ( IS_OBJ_STAT(obj, ITEM_DARK) )
+            light_level -= 1;
     }
-    return min_light;
+    return URANGE(LIGHT_DARK, light_level, LIGHT_BRIGHT);
 }
 
 /*
@@ -4062,24 +4060,11 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     roll_victim = roll_victim * hide_skill / 100;
     
     /* easier to hide in dark rooms */
-    if (room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
-        (!IS_AFFECTED(ch, AFF_INFRARED) || IS_SET(victim->form, FORM_COLD_BLOOD)))
-	switch ( light_status(victim) )
-	{
-	case LIGHT_DARK:
-	    roll_victim *= 2;
-		break;
-	case LIGHT_NORMAL: 
-	    roll_victim *= 2;
-		break;
-	case LIGHT_GLOW: 
-	    roll_victim *= 2;
-		break;
-	case LIGHT_BRIGHT: 
-		break;
-	default:
-		break;
-	}
+    if ( room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
+        (!IS_AFFECTED(ch, AFF_INFRARED) || IS_SET(victim->form, FORM_COLD_BLOOD)) )
+    {
+        roll_victim += roll_victim * (LIGHT_BRIGHT - light_status(victim)) / LIGHT_BRIGHT;
+    }
     
     /* small races can hide better */
     roll_victim = roll_victim * (5 + SIZE_MEDIUM - victim->size) / 5;
