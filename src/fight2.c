@@ -2312,6 +2312,13 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	char buf[MAX_STRING_LENGTH];
 	OBJ_DATA *obj;
     const char *name;
+    
+    if ( !ch || !victim )
+    {
+        bugf("behead: ch = %s, victim = %s", ch ? ch->name : "null", victim ? victim->name : "null");
+        return;
+    }
+    
 	act( "$n's severed head plops on the ground.", victim, NULL, NULL, TO_ROOM );
 	damage(ch,victim, 0, gsn_beheading,0,TRUE);
         
