@@ -2592,7 +2592,7 @@ DEF_DO_FUN(do_sneak)
 
 int get_hips_skill( CHAR_DATA *ch )
 {
-    if ( room_is_dim(ch->in_room) || IS_AFFECTED(ch, AFF_SHROUD) )
+    if ( room_is_dim(ch->in_room) || IS_AFFECTED(ch, AFF_DARKNESS) )
         return get_skill(ch, gsn_hips);
     else if ( ch->stance == STANCE_SHADOWWALK )
         return get_skill(ch, gsn_hips) * get_skill(ch, gsn_shadowwalk) / 100;

@@ -1604,7 +1604,7 @@ struct  kill_data
 #define AFF_OVERCHARGE        63
 #define AFF_GIANT_STRENGTH    64
 #define AFF_PHASE             65
-#define AFF_SHROUD            66
+//#define AFF_SHROUD          66
 #define AFF_PARALYSIS         67
 #define AFF_INFECTIOUS_ARROW  68
 #define AFF_FERVENT_RAGE      69
