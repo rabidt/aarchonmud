@@ -2809,9 +2809,10 @@ static int CH_behead (lua_State *LS)
     CHAR_DATA *ch = check_CH(LS, 1);
     CHAR_DATA *victim = check_CH(LS, 2);
     
-    if ( ch && victim )
-        behead(ch, victim);
+    if ( !ch || !victim )
+        return 1;
     
+    behead(ch, victim);
     return 0;
 }
 

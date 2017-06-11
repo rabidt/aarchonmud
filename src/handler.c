@@ -3837,6 +3837,16 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     if ( ch->in_room == pRoomIndex )
         return TRUE;
     
+    // extra safety-nets as we had crash bugs here
+    if ( pRoomIndex == NULL )
+        return FALSE;
+    
+    if ( pRoomIndex->area == NULL )
+    {
+        bugf("NULL area for room %d", pRoomIndex->vnum);
+        return FALSE;
+    }
+    
     if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
         && !IS_IMMORTAL(ch)
         && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
