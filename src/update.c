@@ -2989,6 +2989,24 @@ void msdp_update( void )
     MSSPSetPlayers( PlayerCount );
 }
 
+/*
+#include <unistd.h>
+#include <sys/mman.h>
+
+// returns whether p points to a valid memory address
+// helpful for finding un-initialized pointers, but not cross-platform
+bool is_mem_valid(void *p)
+{
+    unsigned char vec[1];
+    // get start of memory page p resides in
+    unsigned int page_size = sysconf(_SC_PAGESIZE);
+    void *page = (void*)((unsigned int)(p) / page_size * page_size);
+    // check if page has been allocated
+    int mc = mincore(page, page_size, vec);
+    return mc == 0 && vec[0] == 1;
+}
+*/
+
 // data consistency checks for detecting corruption early
 // extend as needed for debugging, but keep it fast
 void validate_all( void )
@@ -2997,6 +3015,7 @@ void validate_all( void )
     DESCRIPTOR_DATA *desc, *desc_next;
     AREA_DATA *pArea;
     ROOM_INDEX_DATA *pRoom;
+    OBJ_DATA *pObj, *pObj_next;
     
     // characters
     for ( ch = char_list; ch; ch = ch_next )
@@ -3053,6 +3072,12 @@ void validate_all( void )
                 ch->desc = NULL;
                 continue;
             }
+        }
+        if ( ch->in_room && !valid_ROOM(ch->in_room) )
+        {
+            bugf("validate_all: ch (%s) has invalid in_room field", ch->name);
+            ch->in_room = NULL;
+            continue;
         }
         if ( ch->in_room && !is_in_room(ch) )
         {
@@ -3119,5 +3144,41 @@ void validate_all( void )
             pArea->nplayer = player_count;
         }
     }
+    // objects
+    for ( pObj = object_list; pObj != NULL; pObj = pObj_next )
+    {
+        pObj_next = pObj->next;
+        if ( !valid_OBJ(pObj) )
+        {
+            bugf("validate_all: invalid obj in object_list (%d)", pObj->pIndexData->vnum);
+            obj_from_object_list(pObj);
+            continue;
+        }
+        if ( pObj->in_room && !valid_ROOM(pObj->in_room) )
+        {
+            bugf("validate_all: obj (%d) has invalid in_room field", pObj->pIndexData->vnum);
+            pObj->in_room = NULL;
+            continue;
+        }
+        if ( pObj->carried_by && !valid_CH(pObj->carried_by) )
+        {
+            bugf("validate_all: obj (%d) has invalid carried_by field", pObj->pIndexData->vnum);
+            pObj->carried_by = NULL;
+            continue;
+        }
+        if ( pObj->on && !valid_OBJ(pObj->on) )
+        {
+            bugf("validate_all: obj (%d) has invalid on field", pObj->pIndexData->vnum);
+            pObj->on = NULL;
+            continue;
+        }
+        if ( pObj->in_obj && !valid_OBJ(pObj->in_obj) )
+        {
+            bugf("validate_all: obj (%d) has invalid in_obj field", pObj->pIndexData->vnum);
+            pObj->in_obj = NULL;
+            continue;
+        }
+    }
+
 }
 
