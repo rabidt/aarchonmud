@@ -1813,17 +1813,59 @@ static int L_rundelay( lua_State *LS)
     else
         lua_pop(LS, 1); // pop valid
 
+    /* kill the entry before call in case of error */
+    lua_pushvalue( LS, 1 ); /* lightud as key */
+    lua_pushnil( LS ); /* nil as value */
+    lua_settable( LS, 2 ); /* pops key and value */ 
+
     lua_getfield( LS, -2, "security");
     int sec=luaL_checkinteger( LS, -1);
     lua_pop(LS, 1);
 
     lua_getfield( LS, -2, "func");
-    lua_getfield( LS, -3, "args"); 
+    lua_getfield( LS, -3, "args");
 
-    /* kill the entry before call in case of error */
-    lua_pushvalue( LS, 1 ); /* lightud as key */
-    lua_pushnil( LS ); /* nil as value */
-    lua_settable( LS, 2 ); /* pops key and value */ 
+
+    /* Check if any args are userdata that are not valid. Don't run if so */
+    if ( !lua_isnil( LS, -1 ) )
+    {
+        push_ref( LS, REF_TABLE_MAXN );
+        lua_pushvalue( LS, -2 ); // args table
+        lua_call( LS, 1, 1); // call table.maxn
+        int args_cnt = luaL_checkinteger( LS, -1);
+        lua_pop( LS, 1 );
+    
+        int i;
+        for ( i = 1; i <= args_cnt; ++i )
+        {
+            lua_rawgeti( LS, -1, i );
+            if ( lua_isuserdata( LS, -1 ) )
+            {
+                // verify it's an arclib object
+                lua_getfield( LS, -1, "isarclibobject" );
+                bool isarclib = lua_toboolean( LS, -1 );
+                lua_pop( LS, 1 );
+
+                if ( !isarclib )
+                {
+                    continue;
+                }
+
+                // finally verify it's valid
+                lua_getfield( LS, -1, "valid" );
+                bool isvalid = lua_toboolean( LS, -1 );
+                lua_pop( LS, 1 );
+
+                if ( !isvalid )
+                {
+                    /* invalidated reference in arguments, do not run the function */
+                    return 0;
+                }
+            }
+            
+            lua_pop( LS, 1 );
+        } // for each arg
+    } // if args is nil
 
     if ( is_CH( LS, -3 ) )
     {
@@ -8305,6 +8347,11 @@ static int index_ ## LTYPE ( lua_State *LS )\
     const char *arg = luaL_checkstring( LS, 2 );\
     const LUA_PROP_TYPE *get = TPREFIX ## _get_table;\
     \
+    if (!strcmp("isarclibobject", arg))\
+    {\
+        lua_pushboolean( LS, TRUE );\
+        return 1;\
+    }\
     bool valid = valid_ ## LTYPE ( gobj );\
     if (!strcmp("valid", arg))\
     {\
