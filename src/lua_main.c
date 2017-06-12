@@ -24,33 +24,45 @@ int        g_LoopCheckCounter;
 
 
 /* keep these as LUAREFS for ease of use on the C side */
-static LUAREF TRACEBACK;
-static LUAREF TABLE_INSERT;
-static LUAREF TABLE_CONCAT;
-static LUAREF STRING_FORMAT;
+LUAREF REF_TRACEBACK;
+LUAREF REF_TABLE_INSERT;
+LUAREF REF_TABLE_MAXN;
+LUAREF REF_TABLE_CONCAT;
+LUAREF REF_STRING_FORMAT;
+LUAREF REF_UNPACK;
 
 void register_LUAREFS( lua_State *LS)
 {
     /* initialize the variables */
-    new_ref( &TABLE_INSERT );
-    new_ref( &TABLE_CONCAT );
-    new_ref( &STRING_FORMAT );
+    new_ref( &REF_TABLE_INSERT );
+    new_ref( &REF_TABLE_MAXN);
+    new_ref( &REF_TABLE_CONCAT );
+    new_ref( &REF_STRING_FORMAT );
+    new_ref( &REF_UNPACK );
 
     /* put stuff in the refs */
     lua_getglobal( LS, "table" );
 
     lua_getfield( LS, -1, "insert" );
-    save_ref( LS, -1, &TABLE_INSERT );
+    save_ref( LS, -1, &REF_TABLE_INSERT );
     lua_pop( LS, 1 ); /* insert */
 
+    lua_getfield( LS, -1, "maxn" );
+    save_ref( LS, -1, &REF_TABLE_MAXN );
+    lua_pop( LS, 1 ); /* maxn */
+
     lua_getfield( LS, -1, "concat" );
-    save_ref( LS, -1, &TABLE_CONCAT );
+    save_ref( LS, -1, &REF_TABLE_CONCAT );
     lua_pop( LS, 2 ); /* concat and table */
 
     lua_getglobal( LS, "string" );
     lua_getfield( LS, -1, "format" );
-    save_ref( LS, -1, &STRING_FORMAT );
+    save_ref( LS, -1, &REF_STRING_FORMAT );
     lua_pop( LS, 2 ); /* string and format */
+
+    lua_getglobal( LS, "unpack" );
+    save_ref( LS, -1, &REF_UNPACK );
+    lua_pop( LS, 1 );
 }
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
@@ -165,7 +177,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
     if ( (narg>1))
     {
-        push_ref( LS, STRING_FORMAT );
+        push_ref( LS, REF_STRING_FORMAT );
         lua_insert( LS, index );
         lua_call( LS, narg, 1);
     }
@@ -175,7 +187,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
 static void GetTracebackFunction (lua_State *LS)
 {
-    push_ref( LS, TRACEBACK );
+    push_ref( LS, REF_TRACEBACK );
 }  /* end of GetTracebackFunction */
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
@@ -632,7 +644,7 @@ void open_lua ( void )
     luaL_openlibs (LS);    /* open all standard libraries */
 
     /* special little tweak to debug.traceback here before anything else */
-    new_ref( &TRACEBACK );
+    new_ref( &REF_TRACEBACK );
     int rtn = luaL_dostring(g_mud_LS, 
         "local traceback = debug.traceback \n"
         "debug.traceback = function(message, level) \n"
@@ -650,7 +662,7 @@ void open_lua ( void )
         bugf("Error setting traceback function");
         exit(1);
     }
-    save_ref(LS, -1, &TRACEBACK);
+    save_ref(LS, -1, &REF_TRACEBACK);
     lua_pop(LS, 1);
 
     lua_pushcfunction(LS, luaopen_lsqlite3);
@@ -1347,7 +1359,7 @@ bool add_buf(BUFFER *buffer, const char *string)
         return FALSE;
     }
 
-    push_ref( g_mud_LS, TABLE_INSERT );
+    push_ref( g_mud_LS, REF_TABLE_INSERT );
     push_ref( g_mud_LS, buffer->table );
     lua_pushstring( g_mud_LS, string ); 
     lua_call( g_mud_LS, 2, 0 );
@@ -1365,7 +1377,7 @@ void clear_buf(BUFFER *buffer)
 
 const char *buf_string(BUFFER *buffer)
 {
-    push_ref( g_mud_LS, TABLE_CONCAT );
+    push_ref( g_mud_LS, REF_TABLE_CONCAT );
     push_ref( g_mud_LS, buffer->table );
     lua_call( g_mud_LS, 1, 1 );
 

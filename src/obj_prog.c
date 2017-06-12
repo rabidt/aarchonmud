@@ -36,7 +36,7 @@ bool op_percent_trigger(
         if ( prg->trig_type == type
                 && number_percent() <= atoi( prg->trig_phrase ) )
         {
-            return ( lua_obj_program( trigger, prg->vnum, prg->script->code, obj, obj2, ch1, ch2, type, prg->script->security)
+            return ( lua_obj_program( g_mud_LS, trigger, prg->vnum, prg->script->code, obj, obj2, ch1, ch2, type, prg->script->security)
                      && ( obj ? !obj->must_extract : TRUE )
                      && ( obj2 ? !obj2->must_extract : TRUE )
                      && ( ch1 ? !ch1->must_extract : TRUE )
@@ -63,7 +63,7 @@ bool op_act_trigger(OBJ_DATA *obj, CHAR_DATA *ch1, CHAR_DATA *ch2, const char *t
             && ( strstr(cap_all(trigger), cap_all(prg->trig_phrase)) != NULL
                     ||   !strcmp(prg->trig_phrase, "*") ) )
                     {
-                        return (lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch1, NULL, type, prg->script->security)
+                        return (lua_obj_program( g_mud_LS, trigger, prg->vnum, prg->script->code, obj, NULL, ch1, NULL, type, prg->script->security)
                                && ( obj ? !obj->must_extract : TRUE )
                                && ( ch1 ? !ch1->must_extract : TRUE )
                                && ( ch2 ? !ch2->must_extract : TRUE ) );
@@ -99,7 +99,7 @@ bool op_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
             {
                 if ( prg->trig_type == OTRIG_COMMAND && !str_cmp(cmd_table[cmd].name, prg->trig_phrase) )
                 {
-                    continu = lua_obj_program(cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
+                    continu = lua_obj_program(g_mud_LS, cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
                     if ( !continu )
                         return FALSE;
                 }
@@ -117,7 +117,7 @@ bool op_command_trigger( CHAR_DATA *ch, int cmd, const char *argument )
             {
                 if ( prg->trig_type == OTRIG_COMMAND && !str_cmp(cmd_table[cmd].name, prg->trig_phrase) )
                 {
-                    continu = lua_obj_program(cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
+                    continu = lua_obj_program(g_mud_LS, cmd_table[cmd].name, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_COMMAND, prg->script->security);
                     if ( !continu )
                         return FALSE;
                 }
@@ -156,7 +156,7 @@ bool op_try_trigger( const char *trigger, CHAR_DATA *ch )
                         ||   !strcmp(prg->trig_phrase, "*") ) )
                 {
                     found = TRUE;
-                    continu = lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
+                    continu = lua_obj_program( g_mud_LS, trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
 
                     if (!continu)
                         return found;
@@ -178,7 +178,7 @@ bool op_try_trigger( const char *trigger, CHAR_DATA *ch )
                         ||   !strcmp(prg->trig_phrase, "*") ) )
                 {
                     found = TRUE;
-                    continu = lua_obj_program( trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
+                    continu = lua_obj_program( g_mud_LS, trigger, prg->vnum, prg->script->code, obj, NULL, ch, NULL, OTRIG_TRY, prg->script->security);
 
                     if (!continu)
                         return found;
@@ -321,7 +321,7 @@ void op_timer_trigger( OBJ_DATA *obj )
     {
         if (prg->trig_type == OTRIG_TIMER)
         {
-            lua_obj_program( NULL, prg->vnum, prg->script->code, 
+            lua_obj_program( g_mud_LS, NULL, prg->vnum, prg->script->code, 
                     obj, NULL, NULL, NULL, 
                     OTRIG_TIMER, prg->script->security);
             return;
