@@ -296,7 +296,7 @@ env_meta={
         elseif type(tbl.self[key])=="function" then 
             return function(...) 
                         table.insert(arg, 1, tbl.self)
-                        return tbl.self[key](unpack(arg)) 
+                        return tbl.self[key](unpack(arg, 1, table.maxn(arg))) 
                    end
         end
     end

@@ -2,24 +2,24 @@
 #define LUA_SCRIPTING_H
 
 
-void lua_mob_program( const char *text, int pvnum, const char *source,
+void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
         const void *arg1, sh_int arg1type,
         const void *arg2, sh_int arg2type,
         int trig_type,
         int security );
 
-bool lua_obj_program( const char *trigger, int pvnum, const char *source,
+bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char *source,
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
         int trig_type,
         int security );
 
-bool lua_area_program( const char *trigger, int pvnum, const char *source,
+bool lua_area_program( lua_State *LS, const char *trigger, int pvnum, const char *source,
         AREA_DATA *area, CHAR_DATA *ch1,
         int trig_type,
         int security );
 
-bool lua_room_program( const char *trigger, int pvnum, const char *source,
+bool lua_room_program( lua_State *LS, const char *trigger, int pvnum, const char *source,
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2,
         OBJ_DATA *obj1, OBJ_DATA *obj2,
