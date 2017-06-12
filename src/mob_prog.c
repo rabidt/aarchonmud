@@ -1201,7 +1201,7 @@ void program_flow(
     
     if ( is_lua )
     {
-        lua_mob_program(text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type, trig_type, security);
+        lua_mob_program(g_mud_LS, text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type, trig_type, security);
         MPROG_RETURN;
     }
 

@@ -1817,37 +1817,38 @@ static int L_rundelay( lua_State *LS)
     int sec=luaL_checkinteger( LS, -1);
     lua_pop(LS, 1);
 
-    lua_getfield( LS, -2, "func"); 
+    lua_getfield( LS, -2, "func");
+    lua_getfield( LS, -3, "args"); 
 
     /* kill the entry before call in case of error */
     lua_pushvalue( LS, 1 ); /* lightud as key */
     lua_pushnil( LS ); /* nil as value */
     lua_settable( LS, 2 ); /* pops key and value */ 
 
-    if ( is_CH( LS, -2 ) )
+    if ( is_CH( LS, -3 ) )
     {
-        lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
-                check_CH(LS, -2), NULL, 
+        lua_mob_program( LS, NULL, RUNDELAY_VNUM, NULL,
+                check_CH(LS, -3), NULL, 
                 NULL, 0, NULL, 0,
                 TRIG_CALL, sec );
     }
-    else if ( is_OBJ( LS, -2 ) )
+    else if ( is_OBJ( LS, -3 ) )
     {
-        lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
-                check_OBJ(LS, -2), NULL,
+        lua_obj_program( LS, NULL, RUNDELAY_VNUM, NULL,
+                check_OBJ(LS, -3), NULL,
                 NULL, NULL,
                 TRIG_CALL, sec );
     }
-    else if ( is_AREA( LS, -2 ) )
+    else if ( is_AREA( LS, -3 ) )
     {
-        lua_area_program( NULL, RUNDELAY_VNUM, NULL,
-                check_AREA(LS, -2), NULL,
+        lua_area_program( LS, NULL, RUNDELAY_VNUM, NULL,
+                check_AREA(LS, -3), NULL,
                 TRIG_CALL, sec );
     }
-    else if ( is_ROOM( LS, -2 ) )
+    else if ( is_ROOM( LS, -3 ) )
     {
-        lua_room_program( NULL, RUNDELAY_VNUM, NULL, 
-                check_ROOM(LS, -2), NULL,
+        lua_room_program( LS, NULL, RUNDELAY_VNUM, NULL, 
+                check_ROOM(LS, -3), NULL,
                 NULL, NULL, NULL, NULL,
                 TRIG_CALL, sec );
     }
@@ -1876,12 +1877,14 @@ int L_delay (lua_State *LS)
     /* delaytbl has timer pointers as keys
        value is table with 'tableid' and 'func' keys */
     /* delaytbl[tmr]={ tableid=tableid, func=func } */
+    int narg = lua_gettop( LS );
     const char *tag=NULL;
     int val=luaL_checkint( LS, 2 );
     luaL_checktype( LS, 3, LUA_TFUNCTION);
-    if (!lua_isnone( LS, 4 ) )
-    {
-       tag=check_string( LS, 4, MIL );
+
+    if ( narg >= 4 && !lua_isnil( LS, 4 ) )
+    {   
+        tag = check_string( LS, 4, MIL );
     }
 
     lua_getglobal( LS, "delaytbl");
@@ -1889,22 +1892,30 @@ int L_delay (lua_State *LS)
     lua_pushlightuserdata( LS, (void *)tmr);
     lua_newtable( LS );
 
-/*
-    lua_pushliteral( LS, "tableid");
-    lua_getfield( LS, 1, "tableid");
-    lua_settable( LS, -3 );
-*/
-    lua_pushliteral( LS, "udobj");
+    if ( narg >= 5 )
+    {
+        /* args 5 and on are args to be passed to the delayed function */
+        int arg_ind;
+        int tbl_ind;
+
+        lua_newtable( LS );
+        for ( arg_ind = 5, tbl_ind = 1; arg_ind <= narg; ++arg_ind, ++tbl_ind )
+        {
+            lua_pushvalue( LS, arg_ind );
+            lua_rawseti( LS, -2, tbl_ind );
+        }
+
+        lua_setfield( LS, -2, "args");
+    }
+
     lua_pushvalue( LS, 1 );
-    lua_settable( LS, -3 );
+    lua_setfield( LS, -2, "udobj" );
 
-    lua_pushliteral( LS, "func");
     lua_pushvalue( LS, 3 );
-    lua_settable( LS, -3 );
+    lua_setfield( LS, -2, "func" );
 
-    lua_pushliteral( LS, "security");
     lua_pushinteger( LS, g_ScriptSecurity ); 
-    lua_settable( LS, -3 );
+    lua_setfield( LS, -2, "security" );
 
     lua_settable( LS, -3 );
 
@@ -2424,14 +2435,14 @@ static int CH_loadscript (lua_State *LS)
     lua_call( LS, 2, 1);
 
     /* now run the result as a regular mprog with vnum 0*/
-    lua_mob_program( NULL, LOADSCRIPT_VNUM, check_string(LS, -1, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    lua_mob_program( LS, NULL, LOADSCRIPT_VNUM, check_string(LS, -1, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
 
     return 0;
 }
 
 static int CH_loadfunction ( lua_State *LS )
 {
-    lua_mob_program( NULL, RUNDELAY_VNUM, NULL,
+    lua_mob_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_CH(LS, -2), NULL,
                 NULL, 0, NULL, 0,
                 TRIG_CALL, 0 );
@@ -2441,7 +2452,7 @@ static int CH_loadfunction ( lua_State *LS )
 static int CH_loadstring (lua_State *LS)
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
-    lua_mob_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
+    lua_mob_program( LS, NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH), ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 );
     return 0;
 } 
 
@@ -2463,7 +2474,7 @@ static int CH_loadprog (lua_State *LS)
         return 0;
     }
 
-    lua_mob_program( NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 ); 
+    lua_mob_program( LS, NULL, num, pMcode->code, ud_ch, NULL, NULL, 0, NULL, 0, TRIG_CALL, 0 ); 
 
     return 0;
 }
@@ -5088,7 +5099,7 @@ static int OBJ_rvnum ( lua_State *LS)
 
 static int OBJ_loadfunction (lua_State *LS)
 {
-    lua_obj_program( NULL, RUNDELAY_VNUM, NULL,
+    lua_obj_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_OBJ(LS, -2), NULL,
                 NULL, NULL,
                 TRIG_CALL, 0 );
@@ -5163,7 +5174,7 @@ static int OBJ_loadscript (lua_State *LS)
     /* now run the result as a regular oprog with vnum 0*/
 
     lua_pushboolean( LS,
-            lua_obj_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 
@@ -5173,7 +5184,7 @@ static int OBJ_loadstring (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     lua_pushboolean( LS,
-            lua_obj_program( NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
     return 1;
 }
 
@@ -5190,7 +5201,7 @@ static int OBJ_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            lua_obj_program( NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 }
@@ -5849,7 +5860,7 @@ static int AREA_rvnum ( lua_State *LS)
 
 static int AREA_loadfunction( lua_State *LS)
 {
-    lua_area_program( NULL, RUNDELAY_VNUM, NULL,
+    lua_area_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_AREA(LS, -2), NULL,
                 TRIG_CALL, 0 );
     return 0;
@@ -5907,7 +5918,7 @@ static int AREA_loadscript (lua_State *LS)
 
     /* now run the result as a regular aprog with vnum 0*/
     lua_pushboolean( LS,
-            lua_area_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
+            lua_area_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
 
     return 1;
 }
@@ -5916,7 +5927,7 @@ static int AREA_loadstring (lua_State *LS)
 {
     AREA_DATA *ud_area=check_AREA(LS,1);
     lua_pushboolean( LS,
-            lua_area_program( NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
+            lua_area_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_area, NULL, ATRIG_CALL, 0) );
     return 1;
 }
 
@@ -5933,7 +5944,7 @@ static int AREA_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            lua_area_program( NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL, 0) );
+            lua_area_program( LS, NULL, num, pAcode->code, ud_area, NULL, ATRIG_CALL, 0) );
 
     return 1;
 }
@@ -6341,7 +6352,7 @@ static int ROOM_rvnum ( lua_State *LS)
 
 static int ROOM_loadfunction ( lua_State *LS)
 {
-    lua_room_program( NULL, RUNDELAY_VNUM, NULL,
+    lua_room_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_ROOM(LS, -2), NULL,
                 NULL, NULL, NULL, NULL,
                 TRIG_CALL, 0 );
@@ -6485,7 +6496,7 @@ static int ROOM_loadscript (lua_State *LS)
     lua_call( LS, 2, 1);
 
     lua_pushboolean( LS,
-            lua_room_program( NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),
+            lua_room_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH),
                 ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
@@ -6494,7 +6505,7 @@ static int ROOM_loadstring (lua_State *LS)
 {
     ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
     lua_pushboolean( LS,
-            lua_room_program( NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH),
+            lua_room_program( LS, NULL, LOADSCRIPT_VNUM, check_string(LS, 2, MAX_SCRIPT_LENGTH),
                 ud_room, NULL, NULL, NULL, NULL, NULL, RTRIG_CALL, 0) );
     return 1;
 }
@@ -6512,7 +6523,7 @@ static int ROOM_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            lua_room_program( NULL, num, pRcode->code,
+            lua_room_program( LS, NULL, num, pRcode->code,
                 ud_room, NULL, NULL, NULL, NULL, NULL,
                 RTRIG_CALL, 0) );
     return 1;
