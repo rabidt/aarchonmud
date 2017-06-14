@@ -36,6 +36,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_arclib.h"
 #include "lua_scripting.h"
 #include "lookup.h"
 #include "simsave.h"

@@ -38,6 +38,7 @@
 #include "tables.h"
 #include "lookup.h"
 #include "mob_stats.h"
+#include "lua_arclib.h"
 
 
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
