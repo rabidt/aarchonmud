@@ -39,6 +39,7 @@
 #include "buffer_util.h"
 #include "dxport.h"
 #include "perfmon.h"
+#include "lua_arclib.h"
 
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );

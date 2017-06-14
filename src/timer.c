@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "merc.h"
+#include "lua_arclib.h"
 #include "timer.h"
 
 #define GO_TYPE_UNDEFINED 0
@@ -438,7 +439,7 @@ char * print_timer_list( void )
             unregcnt++;
             continue;
         }
-        else if ( tmr->tm_type==TM_PROG && !valid_UD( tmr->game_obj ) )
+        else if ( tmr->tm_type==TM_PROG && !arclib_valid( tmr->game_obj ) )
         {
             bugf("Invalid game_obj in print_timer_list.");
             continue;

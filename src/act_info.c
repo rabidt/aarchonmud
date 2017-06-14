@@ -41,6 +41,7 @@
 #include "lookup.h"
 #include "interp.h"
 #include "religion.h"
+#include "lua_arclib.h"
 #include "lua_scripting.h"
 #include "tattoo.h"
 #include "songs.h"
