@@ -1147,26 +1147,24 @@ static int mudlib_userdir( lua_State *LS)
 }
 
 /* dblib section */
-#define dbfunc(FUNC) \
-static int dblib_ ## FUNC (lua_State *LS) \
-{\
-    int narg=lua_gettop(LS);\
-    lua_getglobal(LS, "glob_db");\
-    lua_getfield(LS, -1, #FUNC);\
-    lua_remove(LS, -2);\
-    lua_insert(LS, 1);\
-    lua_call(LS, narg, LUA_MULTRET);\
-    \
-    return lua_gettop(LS);\
+static int dblib_helper( lua_State *LS, const char *field )
+{
+    int narg=lua_gettop(LS);
+    lua_getglobal(LS, "glob_db");
+    lua_getfield(LS, -1, field);
+    lua_remove(LS, -2);
+    lua_insert(LS, 1);
+    lua_call(LS, narg, LUA_MULTRET);
+    
+    return lua_gettop(LS);
 }
-dbfunc(errcode);
-dbfunc(errmsg);
-dbfunc(exec);
-dbfunc(nrows);
-dbfunc(prepare);
-dbfunc(rows);
-dbfunc(urows);
-#undef dbfunc
+static int dblib_errcode( lua_State *LS ) { return dblib_helper( LS, "errcode" ); }
+static int dblib_errmsg( lua_State *LS ) { return dblib_helper( LS, "errmsg" ); }
+static int dblib_exec( lua_State *LS ) { return dblib_helper( LS, "exec" ); }
+static int dblib_nrows( lua_State *LS ) { return dblib_helper( LS, "nrows" ); }
+static int dblib_prepare( lua_State *LS ) { return dblib_helper( LS, "prepare" ); }
+static int dblib_rows( lua_State *LS ) { return dblib_helper( LS, "rows" ); }
+static int dblib_urows( lua_State *LS ) { return dblib_helper( LS, "urows" ); }
 /* end dblib section */
 
 /* return tprintstr of the given global (string arg)*/
@@ -4075,50 +4073,51 @@ static int CH_set_align (lua_State *LS)
     return 0;
 }
 
-#define CHGETSTAT( statname, statnum ) \
-static int CH_get_ ## statname ( lua_State *LS ) \
-{\
-    lua_pushinteger( LS, \
-            get_curr_stat((check_CH(LS,1)), statnum ));\
-    return 1;\
+static int CH_get_stat_helper( lua_State *LS, int statnum )
+{
+    CHAR_DATA *ch = check_CH( LS, 1 );
+    int statval = get_curr_stat(ch, statnum);
+
+    lua_pushinteger( LS, statval );
+
+    return 1;
 }
+static int CH_get_str( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_STR ); }
+static int CH_get_con( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_CON ); }
+static int CH_get_vit( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_VIT ); }
+static int CH_get_agi( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_AGI ); }
+static int CH_get_dex( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_DEX ); }
+static int CH_get_int( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_INT ); }
+static int CH_get_wis( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_WIS ); }
+static int CH_get_dis( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_DIS ); }
+static int CH_get_cha( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_CHA ); }
+static int CH_get_luc( lua_State *LS ) { return CH_get_stat_helper( LS, STAT_LUC ); }
 
-CHGETSTAT( str, STAT_STR );
-CHGETSTAT( con, STAT_CON );
-CHGETSTAT( vit, STAT_VIT );
-CHGETSTAT( agi, STAT_AGI );
-CHGETSTAT( dex, STAT_DEX );
-CHGETSTAT( int, STAT_INT );
-CHGETSTAT( wis, STAT_WIS );
-CHGETSTAT( dis, STAT_DIS );
-CHGETSTAT( cha, STAT_CHA );
-CHGETSTAT( luc, STAT_LUC );
 
-#define CHSETSTAT( statname, statnum ) \
-static int CH_set_ ## statname ( lua_State *LS ) \
-{\
-    CHAR_DATA *ud_ch=check_CH(LS,1);\
-    if (!IS_NPC(ud_ch))\
-        luaL_error(LS, "Can't set stats on PCs.");\
-    \
-    int num = luaL_checkinteger( LS, 2);\
-    if (num < 1 || num > 200 )\
-        luaL_error(LS, "Invalid stat value: %d, range is 1 to 200.", num );\
-    \
-    ud_ch->perm_stat[ statnum ] = num;\
-    return 0;\
+static int CH_set_stat_helper( lua_State *LS, int statnum )
+{
+    CHAR_DATA *ud_ch=check_CH(LS,1);
+    if (!IS_NPC(ud_ch))
+        luaL_error(LS, "Can't set stats on PCs.");
+    
+    int num = luaL_checkinteger( LS, 2);
+    if (num < 1 || num > 200 )
+        luaL_error(LS, "Invalid stat value: %d, range is 1 to 200.", num );
+    
+    ud_ch->perm_stat[ statnum ] = num;
+    return 0;
 }
+static int CH_set_str( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_STR ); }
+static int CH_set_con( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_CON ); }
+static int CH_set_vit( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_VIT ); }
+static int CH_set_agi( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_AGI ); }
+static int CH_set_dex( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_DEX ); }
+static int CH_set_int( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_INT ); }
+static int CH_set_wis( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_WIS ); }
+static int CH_set_dis( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_DIS ); }
+static int CH_set_cha( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_CHA ); }
+static int CH_set_luc( lua_State *LS ) { return CH_set_stat_helper( LS, STAT_LUC ); }
 
-CHSETSTAT( str, STAT_STR );     
-CHSETSTAT( con, STAT_CON );
-CHSETSTAT( vit, STAT_VIT );
-CHSETSTAT( agi, STAT_AGI );
-CHSETSTAT( dex, STAT_DEX );
-CHSETSTAT( int, STAT_INT );
-CHSETSTAT( wis, STAT_WIS );
-CHSETSTAT( dis, STAT_DIS );
-CHSETSTAT( cha, STAT_CHA );
-CHSETSTAT( luc, STAT_LUC );
 
 static int CH_get_clan (lua_State *LS)
 {
@@ -6722,27 +6721,27 @@ static int ROOM_get_exits (lua_State *LS)
     return 1;
 }
 
-#define ROOM_dir(dirname, dirnumber) static int ROOM_get_ ## dirname (lua_State *LS)\
-{\
-    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);\
-    if (!ud_room->exit[dirnumber])\
-        return 0;\
-    if (!push_EXIT(LS, ud_room->exit[dirnumber]))\
-        return 0;\
-    else\
-        return 1;\
+static int ROOM_get_dir_helper( lua_State *LS, int dirnumber )
+{
+    ROOM_INDEX_DATA *ud_room=check_ROOM(LS,1);
+    if (!ud_room->exit[dirnumber])
+        return 0;
+    if (!push_EXIT(LS, ud_room->exit[dirnumber]))
+        return 0;
+    else
+        return 1;
 }
+static int ROOM_get_north( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_NORTH ); }
+static int ROOM_get_south( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_SOUTH ); }
+static int ROOM_get_east( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_EAST ); }
+static int ROOM_get_west( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_WEST ); }
+static int ROOM_get_northeast( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_NORTHEAST ); }
+static int ROOM_get_northwest( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_NORTHWEST ); }
+static int ROOM_get_southeast( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_SOUTHEAST ); }
+static int ROOM_get_southwest( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_SOUTHWEST ); }
+static int ROOM_get_up( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_UP ); }
+static int ROOM_get_down( lua_State *LS ) { return ROOM_get_dir_helper( LS, DIR_DOWN ); }
 
-ROOM_dir(north, DIR_NORTH)
-ROOM_dir(south, DIR_SOUTH)
-ROOM_dir(east, DIR_EAST)
-ROOM_dir(west, DIR_WEST)
-ROOM_dir(northeast, DIR_NORTHEAST)
-ROOM_dir(northwest, DIR_NORTHWEST)
-ROOM_dir(southeast, DIR_SOUTHEAST)
-ROOM_dir(southwest, DIR_SOUTHWEST)
-ROOM_dir(up, DIR_UP)
-ROOM_dir(down, DIR_DOWN)
 
 static int ROOM_get_resets (lua_State *LS)
 {
@@ -6981,17 +6980,30 @@ static int RESET_get_command(lua_State *LS)
     return 1;
 }
 
-#define RESETGETARG( num ) static int RESET_get_arg ## num ( lua_State *LS)\
-{\
-    lua_pushinteger( LS,\
-            (check_RESET(LS,1))->arg ## num);\
-    return 1;\
+static int RESET_get_arg1( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_RESET(LS,1))->arg1 );
+    return 1;
 }
-
-RESETGETARG(1);
-RESETGETARG(2);
-RESETGETARG(3);
-RESETGETARG(4);
+static int RESET_get_arg2( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_RESET(LS,1))->arg2 );
+    return 1;
+}
+static int RESET_get_arg3( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_RESET(LS,1))->arg3 );
+    return 1;
+}
+static int RESET_get_arg4( lua_State *LS )
+{
+    lua_pushinteger( LS,
+            (check_RESET(LS,1))->arg4 );
+    return 1;
+}
 
 static const LUA_PROP_TYPE RESET_get_table [] =
 {
@@ -7497,19 +7509,45 @@ static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 /* end MOBPROTO section */
 
 /* SHOP section */
-#define SHOPGETINT( lfield, cfield ) static int SHOP_get_ ## lfield ( lua_State *LS )\
-{\
-    SHOP_DATA *ud_shop=check_SHOP( LS, 1);\
-    lua_pushinteger( LS,\
-            ud_shop->cfield );\
-    return 1;\
+static int SHOP_get_keeper( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);
+    lua_pushinteger( LS,
+            ud_shop->keeper );
+    return 1;
 }
 
-SHOPGETINT( keeper, keeper)
-SHOPGETINT( profitbuy, profit_buy)
-SHOPGETINT( profitsell, profit_sell)
-SHOPGETINT( openhour, open_hour)
-SHOPGETINT( closehour, close_hour)
+static int SHOP_get_profitbuy( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);
+    lua_pushinteger( LS,
+            ud_shop->profit_buy );
+    return 1;
+}
+
+static int SHOP_get_profitsell( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);
+    lua_pushinteger( LS,
+            ud_shop->profit_sell );
+    return 1;
+}
+
+static int SHOP_get_openhour( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);
+    lua_pushinteger( LS,
+            ud_shop->open_hour );
+    return 1;
+}
+
+static int SHOP_get_closehour( lua_State *LS )
+{
+    SHOP_DATA *ud_shop=check_SHOP( LS, 1);
+    lua_pushinteger( LS,
+            ud_shop->close_hour );
+    return 1;
+}
 
 static int SHOP_buytype ( lua_State *LS )
 {
