@@ -5559,36 +5559,4 @@ void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
-bool valid_UD( void *ud );
-#define declf( ltype, ctype ) \
-ctype * check_ ## ltype ( lua_State *LS, int index ); \
-bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
-ctype * alloc_ ## ltype (void) ;\
-void    free_ ## ltype ( ctype * ud );\
-bool    valid_ ## ltype ( ctype *ud );\
-int     count_ ## ltype ( void );
-
-declf(CH, CHAR_DATA)
-declf(OBJ, OBJ_DATA)
-declf(AREA, AREA_DATA)
-declf(ROOM, ROOM_INDEX_DATA)
-declf(EXIT, EXIT_DATA)
-declf(RESET, RESET_DATA)
-declf(MOBPROTO, MOB_INDEX_DATA)
-declf(OBJPROTO, OBJ_INDEX_DATA)
-declf(PROG, PROG_CODE)
-declf(MTRIG, PROG_LIST)
-declf(OTRIG, PROG_LIST)
-declf(ATRIG, PROG_LIST)
-declf(RTRIG, PROG_LIST)
-declf(SHOP, SHOP_DATA)
-declf(AFFECT, AFFECT_DATA)
-declf(HELP, HELP_DATA)
-declf(DESCRIPTOR, DESCRIPTOR_DATA)
-declf(BOSSACHV, BOSSACHV)
-declf(BOSSREC, BOSSREC)
-#undef declf
-
-
 #endif // MERC_H
