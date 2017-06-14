@@ -8442,12 +8442,6 @@ static int L_arclib_tostring( lua_State *LS )
     return 1;
 }
 
-static int L_arclib_metatable_TYPE( lua_State *LS )
-{
-    lua_pushvalue( LS, lua_upvalueindex( 1 ) );
-    return 1;
-}
-
 static void register_arclib_type( LUA_OBJ_TYPE *type, lua_State *LS )
 {
     luaL_newmetatable( LS, type->type_name );
@@ -8465,7 +8459,6 @@ static void register_arclib_type( LUA_OBJ_TYPE *type, lua_State *LS )
     lua_setfield( LS, -2, "__tostring");
     
     lua_pushlightuserdata( LS, type );
-    lua_pushcclosure( LS, L_arclib_metatable_TYPE, 1 );
     lua_setfield( LS, -2, "TYPE" );
     
     lua_pop( LS, 1 );
