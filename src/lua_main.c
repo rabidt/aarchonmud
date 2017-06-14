@@ -461,7 +461,7 @@ DEF_DO_FUN(do_luai)
     if ( arg1[0]== '\0' )
     {
         victim=(void *)ch;
-        type=&CH_type;
+        type=p_CH_type;
         name=ch->name;
     }
     else if (!strcmp( arg1, "mob") )
@@ -480,7 +480,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim = (void *)mob;
-        type= &CH_type;
+        type= p_CH_type;
         name=mob->name;
     }
     else if (!strcmp( arg1, "obj") )
@@ -495,7 +495,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim= (void *)obj;
-        type=&OBJ_type;
+        type=p_OBJ_type;
         name=obj->name;
     }
     else if (!strcmp( arg1, "area") )
@@ -507,7 +507,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim= (void *)(ch->in_room->area);
-        type=&AREA_type;
+        type=p_AREA_type;
         name=ch->in_room->area->name;
     }
     else if (!strcmp( arg1, "room") )
@@ -519,7 +519,7 @@ DEF_DO_FUN(do_luai)
         }
         
         victim= (void *)(ch->in_room);
-        type=&ROOM_type;
+        type=p_ROOM_type;
         name=ch->in_room->name;
     }
     else
@@ -540,7 +540,7 @@ DEF_DO_FUN(do_luai)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !type->push(g_mud_LS, victim) )
+    if ( !arclib_push( type, g_mud_LS, victim) )
     {
         bugf("do_luai: couldn't make udtable argument %s",
                 argument);
@@ -548,25 +548,25 @@ DEF_DO_FUN(do_luai)
         return;
     }
 
-    if ( type == &CH_type )
+    if ( type == p_CH_type )
     {
         lua_pushliteral( g_mud_LS, "mob"); 
     }
-    else if ( type == &OBJ_type )
+    else if ( type == p_OBJ_type )
     {
         lua_pushliteral( g_mud_LS, "obj"); 
     }
-    else if ( type == &AREA_type )
+    else if ( type == p_AREA_type )
     {
         lua_pushliteral( g_mud_LS, "area"); 
     }
-    else if ( type == &ROOM_type )
+    else if ( type == p_ROOM_type )
     {
         lua_pushliteral( g_mud_LS, "room"); 
     }
     else
     {
-            bugf("do_luai: invalid type: %s", type->type_name);
+            bugf("do_luai: invalid type: %s", arclib_type_name(type));
             lua_settop(g_mud_LS, 0);
             return;
     }
@@ -599,15 +599,15 @@ DEF_DO_FUN(do_luai)
     ch->desc->lua.incmpl=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for %s %s\n\r", 
-            type->type_name,
+            arclib_type_name(type),
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
     ptc(ch, "Use do and end to create multiline chunks.\n\r");
     ptc(ch, "Use '%s' to access target's self.\n\r",
-            type == &CH_type ? "mob" :
-            type == &OBJ_type ? "obj" :
-            type == &ROOM_type ? "room" :
-            type == &AREA_type ? "area" :
+            type == p_CH_type ? "mob" :
+            type == p_OBJ_type ? "obj" :
+            type == p_ROOM_type ? "room" :
+            type == p_AREA_type ? "area" :
             "ERROR" );
 
     lua_settop(g_mud_LS, 0);
@@ -620,7 +620,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     time (&timer);
 
     init_genrand (timer);
-    type_init( LS );
+    arclib_type_init( LS );
 
     register_globals ( LS );
     sorted_ctable_init( LS );

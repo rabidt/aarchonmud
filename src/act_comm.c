@@ -40,6 +40,7 @@
 #include "interp.h"
 #include "warfare.h"
 #include "songs.h"
+#include "lua_arclib.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
