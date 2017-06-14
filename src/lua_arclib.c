@@ -125,7 +125,7 @@ typedef struct glob_type
     int status;
 } GLOB_TYPE;
 
-struct glob_type glob_table[];
+static struct glob_type glob_table[];
 
 static int utillib_func (lua_State *LS, const char *funcname)
 {
@@ -1282,7 +1282,7 @@ static int glob_arguments ( lua_State *LS)
 }
         
 
-GLOB_TYPE glob_table[] =
+static GLOB_TYPE glob_table[] =
 {
     { NULL,  "hour",              glob_hour,                         0, STS_ACTIVE },
     { NULL,  "gettime",           glob_gettime,                      0, STS_ACTIVE },
@@ -1329,49 +1329,49 @@ GLOB_TYPE glob_table[] =
     { NULL,  "do_luaquery",       glob_do_luaquery,       SEC_NOSCRIPT, STS_ACTIVE },
 #endif
 #ifdef LUA_TEST
-    { NULL,  "runglobal", glob_runglobal,, 9, STS_ACTIVE },
+    { NULL,  "runglobal", glob_runglobal, 9, STS_ACTIVE },
 #endif
 
-    { "god", "confuse",   godlib_confuse,   9 },
-    { "god", "curse",     godlib_curse,     9 },
-    { "god", "plague",    godlib_plague,    9 },
-    { "god", "bless",     godlib_bless,     9 },
-    { "god", "slow",      godlib_slow,      9 },
-    { "god", "speed",     godlib_speed,     9 },
-    { "god", "heal",      godlib_heal,      9 },
-    { "god", "enlighten", godlib_enlighten, 9 },
-    { "god", "protect",   godlib_protect,   9 },
-    { "god", "fortune",   godlib_fortune,   9 },
-    { "god", "haunt",     godlib_haunt,     9 },
-    { "god", "cleanse",   godlib_cleanse,   9 },
-    { "god", "defy",      godlib_defy,      9 },
+    { "god", "confuse",   godlib_confuse,   9, STS_ACTIVE },
+    { "god", "curse",     godlib_curse,     9, STS_ACTIVE },
+    { "god", "plague",    godlib_plague,    9, STS_ACTIVE },
+    { "god", "bless",     godlib_bless,     9, STS_ACTIVE },
+    { "god", "slow",      godlib_slow,      9, STS_ACTIVE },
+    { "god", "speed",     godlib_speed,     9, STS_ACTIVE },
+    { "god", "heal",      godlib_heal,      9, STS_ACTIVE },
+    { "god", "enlighten", godlib_enlighten, 9, STS_ACTIVE },
+    { "god", "protect",   godlib_protect,   9, STS_ACTIVE },
+    { "god", "fortune",   godlib_fortune,   9, STS_ACTIVE },
+    { "god", "haunt",     godlib_haunt,     9, STS_ACTIVE },
+    { "god", "cleanse",   godlib_cleanse,   9, STS_ACTIVE },
+    { "god", "defy",      godlib_defy,      9, STS_ACTIVE },
 
-    { "util", "trim",                  utillib_trim,                  0 },
-    { "util", "convert_time",          utillib_convert_time,          0 },
-    { "util", "capitalize",            utillib_capitalize,            0 },
-    { "util", "pluralize",             utillib_pluralize,             0 },
-    { "util", "format_list",           utillib_format_list,           0 },
-    { "util", "strlen_color",          utillib_strlen_color,          0 },
-    { "util", "truncate_color_string", utillib_truncate_color_string, 0 },
-    { "util", "format_color_string",   utillib_format_color_string,   0 },
+    { "util", "trim",                  utillib_trim,                  0, STS_ACTIVE },
+    { "util", "convert_time",          utillib_convert_time,          0, STS_ACTIVE },
+    { "util", "capitalize",            utillib_capitalize,            0, STS_ACTIVE },
+    { "util", "pluralize",             utillib_pluralize,             0, STS_ACTIVE },
+    { "util", "format_list",           utillib_format_list,           0, STS_ACTIVE },
+    { "util", "strlen_color",          utillib_strlen_color,          0, STS_ACTIVE },
+    { "util", "truncate_color_string", utillib_truncate_color_string, 0, STS_ACTIVE },
+    { "util", "format_color_string",   utillib_format_color_string,   0, STS_ACTIVE },
     
-    { "db", "errcode", dblib_errcode, 9 },
-    { "db", "errmsg",  dblib_errmsg,  9 },
-    { "db", "exec",    dblib_exec,    9 },
-    { "db", "nrows",   dblib_nrows,   9 },
-    { "db", "prepare", dblib_prepare, 9 },
-    { "db", "rows",    dblib_rows,    9 },
-    { "db", "urows",   dblib_urows,   9 },
+    { "db", "errcode", dblib_errcode, 9, STS_ACTIVE },
+    { "db", "errmsg",  dblib_errmsg,  9, STS_ACTIVE },
+    { "db", "exec",    dblib_exec,    9, STS_ACTIVE },
+    { "db", "nrows",   dblib_nrows,   9, STS_ACTIVE },
+    { "db", "prepare", dblib_prepare, 9, STS_ACTIVE },
+    { "db", "rows",    dblib_rows,    9, STS_ACTIVE },
+    { "db", "urows",   dblib_urows,   9, STS_ACTIVE },
     
-    { "debug", "show", dbglib_show,   9 },
+    { "debug", "show", dbglib_show,   9, STS_ACTIVE },
 
     /* SEC_NOSCRIPT means aren't available for prog scripts */
 
-    { "mt", "srand", mtlib_srand, SEC_NOSCRIPT },
-    { "mt", "rand",  mtlib_rand,  SEC_NOSCRIPT },
+    { "mt", "srand", mtlib_srand, SEC_NOSCRIPT, STS_ACTIVE },
+    { "mt", "rand",  mtlib_rand,  SEC_NOSCRIPT, STS_ACTIVE },
 
-    { "mud", "luadir",  mudlib_luadir,  SEC_NOSCRIPT },
-    { "mud", "userdir", mudlib_userdir, SEC_NOSCRIPT },
+    { "mud", "luadir",  mudlib_luadir,  SEC_NOSCRIPT, STS_ACTIVE },
+    { "mud", "userdir", mudlib_userdir, SEC_NOSCRIPT, STS_ACTIVE },
     
     { NULL, NULL, NULL, 0, 0 }
 };
