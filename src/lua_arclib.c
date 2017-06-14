@@ -103,64 +103,6 @@ LUA_OBJ_TYPE * const type_list [] =
 
 /* Define game object types and global functions */
 
-#define GETP(type, field, sec ) { \
-    #field , \
-    type ## _get_ ## field, \
-    sec,  \
-    STS_ACTIVE}
-
-#define SETP(type, field, sec) { \
-    #field, \
-    type ## _set_ ## field, \
-    sec, \
-    STS_ACTIVE}
-
-#define METH(type, field, sec) { \
-    #field, \
-    type ## _ ## field, \
-    sec, \
-    STS_ACTIVE}
-
-#define CHGET( field, sec ) GETP( CH, field, sec)
-#define CHSET( field, sec ) SETP( CH, field, sec)
-#define CHMETH( field, sec ) METH( CH, field, sec)
-
-#define OBJGET( field, sec ) GETP( OBJ, field, sec)
-#define OBJSET( field, sec ) SETP( OBJ, field, sec)
-#define OBJMETH( field, sec ) METH( OBJ, field, sec)
-
-#define AREAGET( field, sec ) GETP( AREA, field, sec)
-#define AREASET( field, sec ) SETP( AREA, field, sec)
-#define AREAMETH( field, sec ) METH( AREA, field, sec)
-
-#define ROOMGET( field, sec ) GETP( ROOM, field, sec)
-#define ROOMSET( field, sec ) SETP( ROOM, field sec)
-#define ROOMMETH( field, sec ) METH( ROOM, field, sec)
-
-#define OPGET( field, sec ) GETP( OBJPROTO, field, sec)
-#define OPSET( field, sec ) SETP( OBJPROTO, field sec)
-#define OPMETH( field, sec ) METH( OBJPROTO, field, sec)
-
-#define MPGET( field, sec ) GETP( MOBPROTO, field, sec)
-#define MPSET( field, sec ) SETP( MOBPROTO, field sec)
-#define MPMETH( field, sec ) METH( MOBPROTO, field, sec)
-
-#define EXGET( field, sec ) GETP( EXIT, field, sec)
-#define EXSET( field, sec ) SETP( EXIT, field sec)
-#define EXMETH( field, sec ) METH( EXIT, field, sec)
-
-#define RSTGET( field, sec ) GETP( RESET, field, sec)
-#define RSTSET( field, sec ) SETP( RESET, field sec)
-#define RSTMETH( field, sec ) METH( RESET, field, sec)
-
-#define PROGGET( field, sec) GETP( PROG, field, sec)
-
-#define TRIGGET( field, sec) GETP( TRIG, field, sec)
-
-#define SHOPGET( field, sec) GETP( SHOP, field, sec)
-#define SHOPMETH( field, sec) METH( SHOP, field, sec)
-
-#define AFFGET( field, sec) GETP( AFFECT, field, sec)
 
 typedef struct lua_prop_type
 {
@@ -172,8 +114,6 @@ typedef struct lua_prop_type
 
 #define STS_ACTIVE     0
 #define STS_DEPRECATED 1
-
-#define ENDPTABLE {NULL, NULL, 0, 0}
 
 /* global section */
 typedef struct glob_type
@@ -1344,106 +1284,98 @@ static int glob_arguments ( lua_State *LS)
 }
         
 
-
-#define ENDGTABLE { NULL, NULL, NULL, 0, 0 }
-#define GFUN( fun, sec ) { NULL, #fun , glob_ ## fun , sec, STS_ACTIVE }
-#define LFUN( lib, fun, sec) { #lib, #fun, lib ## lib_ ## fun , sec, STS_ACTIVE}
-#define GODF( fun ) LFUN( god, fun, 9 )
-#define DBGF( fun ) LFUN( dbg, fun, 9 )
-#define UTILF( fun ) LFUN( util, fun, 0)
-#define DBF( fun ) LFUN( db, fun, 9 )
-
 GLOB_TYPE glob_table[] =
 {
-    GFUN(hour,          0),
-    GFUN(gettime,       0),
-    GFUN(getroom,       0),
-    GFUN(randnum,       0),
-    GFUN(rand,          0),
-    GFUN(tprintstr,     0),
-    GFUN(getobjproto,   0),
-    GFUN(getobjworld,   0),
-    GFUN(getmobproto,   0),
-    GFUN(getmobworld,   0),
-    GFUN(getpc,         0),
-    GFUN(getrandomroom, 0),
-    GFUN(transfer,      0),
-    GFUN(gtransfer,     0),
-    GFUN(awardptitle,   5),
-    GFUN(sendtochar,    0),
-    GFUN(echoat,        0),
-    GFUN(echoaround,    0),
-    GFUN(gecho,         0),
-    GFUN(pagetochar,    0),
-    GFUN(arguments,    0),
-    GFUN(log,           0),
-    GFUN(getcharlist,   9),
-    GFUN(getobjlist,    9),
-    GFUN(getmoblist,    9),
-    GFUN(getplayerlist, 9),
-    GFUN(getarealist,   9),
-    GFUN(getshoplist,   9),
-    GFUN(gethelplist,   9),
-    GFUN(getdescriptorlist, 9),
-    GFUN(dammessage,    0),
-    GFUN(clearloopcount,9),
-    GFUN(mudconfig,     9),
-    GFUN(start_con_handler, 9),
-    GFUN(forceget,      SEC_NOSCRIPT),
-    GFUN(forceset,      SEC_NOSCRIPT),
-    GFUN(getluatype,    SEC_NOSCRIPT),
-    GFUN(getglobals,    SEC_NOSCRIPT),
+    { NULL,  "hour",              glob_hour,                         0, STS_ACTIVE },
+    { NULL,  "gettime",           glob_gettime,                      0, STS_ACTIVE },
+    { NULL,  "getroom",           glob_getroom,                      0, STS_ACTIVE },
+    { NULL,  "randnum",           glob_randnum,                      0, STS_ACTIVE },
+    { NULL,  "rand",              glob_rand,                         0, STS_ACTIVE },
+    { NULL,  "tprintstr",         glob_tprintstr,                    0, STS_ACTIVE },
+    { NULL,  "getobjproto",       glob_getobjproto,                  0, STS_ACTIVE },
+    { NULL,  "getobjworld",       glob_getobjworld,                  0, STS_ACTIVE },
+    { NULL,  "getmobproto",       glob_getmobproto,                  0, STS_ACTIVE },
+    { NULL,  "getmobworld",       glob_getmobworld,                  0, STS_ACTIVE },
+    { NULL,  "getpc",             glob_getpc,                        0, STS_ACTIVE },
+    { NULL,  "getrandomroom",     glob_getrandomroom,                0, STS_ACTIVE },
+    { NULL,  "transfer",          glob_transfer,                     0, STS_ACTIVE },
+    { NULL,  "gtransfer",         glob_gtransfer,                    0, STS_ACTIVE },
+    { NULL,  "awardptitle",       glob_awardptitle,                  5, STS_ACTIVE },
+    { NULL,  "sendtochar",        glob_sendtochar,                   0, STS_ACTIVE },
+    { NULL,  "echoat",            glob_echoat,                       0, STS_ACTIVE },
+    { NULL,  "echoaround",        glob_echoaround,                   0, STS_ACTIVE },
+    { NULL,  "gecho",             glob_gecho,                        0, STS_ACTIVE },
+    { NULL,  "pagetochar",        glob_pagetochar,                   0, STS_ACTIVE },
+    { NULL,  "arguments",         glob_arguments,                    0, STS_ACTIVE },
+    { NULL,  "log",               glob_log,                          0, STS_ACTIVE },
+    { NULL,  "getcharlist",       glob_getcharlist,                  9, STS_ACTIVE },
+    { NULL,  "getobjlist",        glob_getobjlist,                   9, STS_ACTIVE },
+    { NULL,  "getmoblist",        glob_getmoblist,                   9, STS_ACTIVE },
+    { NULL,  "getplayerlist",     glob_getplayerlist,                9, STS_ACTIVE },
+    { NULL,  "getarealist",       glob_getarealist,                  9, STS_ACTIVE },
+    { NULL,  "getshoplist",       glob_getshoplist,                  9, STS_ACTIVE },
+    { NULL,  "gethelplist",       glob_gethelplist,                  9, STS_ACTIVE },
+    { NULL,  "getdescriptorlist", glob_getdescriptorlist,            9, STS_ACTIVE },
+    { NULL,  "dammessage",        glob_dammessage,                   0, STS_ACTIVE },
+    { NULL,  "clearloopcount",    glob_clearloopcount,               9, STS_ACTIVE },
+    { NULL,  "mudconfig",         glob_mudconfig,                    9, STS_ACTIVE },
+    { NULL,  "start_con_handler", glob_start_con_handler,            9, STS_ACTIVE },
+    { NULL,  "forceget",          glob_forceget,          SEC_NOSCRIPT, STS_ACTIVE },
+    { NULL,  "forceset",          glob_forceset,          SEC_NOSCRIPT, STS_ACTIVE },
+    { NULL,  "getluatype",        glob_getluatype,        SEC_NOSCRIPT, STS_ACTIVE },
+    { NULL,  "getglobals",        glob_getglobals,        SEC_NOSCRIPT, STS_ACTIVE },
+
 #ifdef TESTER
-    GFUN(do_luaquery,   9),
+    { NULL,  "do_luaquery",       glob_do_luaquery,                  9, STS_ACTIVE },
 #else
-    GFUN(do_luaquery,   SEC_NOSCRIPT),
+    { NULL,  "do_luaquery",       glob_do_luaquery,       SEC_NOSCRIPT, STS_ACTIVE },
 #endif
 #ifdef LUA_TEST
-    GFUN(runglobal, 9),
+    { NULL,  "runglobal", glob_runglobal,, 9, STS_ACTIVE },
 #endif
 
-    GODF(confuse),
-    GODF(curse),
-    GODF(plague),
-    GODF(bless),
-    GODF(slow),
-    GODF(speed),
-    GODF(heal),
-    GODF(enlighten),
-    GODF(protect),
-    GODF(fortune),
-    GODF(haunt),
-    GODF(cleanse),
-    GODF(defy),
+    { "god", "confuse",   godlib_confuse,   9 },
+    { "god", "curse",     godlib_curse,     9 },
+    { "god", "plague",    godlib_plague,    9 },
+    { "god", "bless",     godlib_bless,     9 },
+    { "god", "slow",      godlib_slow,      9 },
+    { "god", "speed",     godlib_speed,     9 },
+    { "god", "heal",      godlib_heal,      9 },
+    { "god", "enlighten", godlib_enlighten, 9 },
+    { "god", "protect",   godlib_protect,   9 },
+    { "god", "fortune",   godlib_fortune,   9 },
+    { "god", "haunt",     godlib_haunt,     9 },
+    { "god", "cleanse",   godlib_cleanse,   9 },
+    { "god", "defy",      godlib_defy,      9 },
 
-    UTILF(trim),
-    UTILF(convert_time),
-    UTILF(capitalize),
-    UTILF(pluralize),
-    UTILF(format_list),
-    UTILF(strlen_color),
-    UTILF(truncate_color_string),
-    UTILF(format_color_string),
+    { "util", "trim",                  utillib_trim,                  0 },
+    { "util", "convert_time",          utillib_convert_time,          0 },
+    { "util", "capitalize",            utillib_capitalize,            0 },
+    { "util", "pluralize",             utillib_pluralize,             0 },
+    { "util", "format_list",           utillib_format_list,           0 },
+    { "util", "strlen_color",          utillib_strlen_color,          0 },
+    { "util", "truncate_color_string", utillib_truncate_color_string, 0 },
+    { "util", "format_color_string",   utillib_format_color_string,   0 },
     
-    DBF(errcode),
-    DBF(errmsg),
-    DBF(exec),
-    DBF(nrows),
-    DBF(prepare),
-    DBF(rows),
-    DBF(urows),
+    { "db", "errcode", dblib_errcode, 9 },
+    { "db", "errmsg",  dblib_errmsg,  9 },
+    { "db", "exec",    dblib_exec,    9 },
+    { "db", "nrows",   dblib_nrows,   9 },
+    { "db", "prepare", dblib_prepare, 9 },
+    { "db", "rows",    dblib_rows,    9 },
+    { "db", "urows",   dblib_urows,   9 },
     
-    DBGF(show),
+    { "debug", "show", dbglib_show,   9 },
 
     /* SEC_NOSCRIPT means aren't available for prog scripts */
 
-    LFUN( mt, srand,        SEC_NOSCRIPT ),
-    LFUN( mt, rand,         SEC_NOSCRIPT ),
+    { "mt", "srand", mtlib_srand, SEC_NOSCRIPT },
+    { "mt", "rand",  mtlib_rand,  SEC_NOSCRIPT },
 
-    LFUN( mud, luadir,      SEC_NOSCRIPT ),
-    LFUN( mud, userdir,     SEC_NOSCRIPT ),
+    { "mud", "luadir",  mudlib_luadir,  SEC_NOSCRIPT },
+    { "mud", "userdir", mudlib_userdir, SEC_NOSCRIPT },
     
-    ENDGTABLE
+    { NULL, NULL, NULL, 0, 0 }
 };
 
 static int global_sec_check (lua_State *LS)
@@ -4921,239 +4853,243 @@ static int CH_set_religionrank( lua_State *LS )
 
 static const LUA_PROP_TYPE CH_get_table [] =
 {
-    CHGET(name, 0),
-    CHGET(level, 0),
-    CHGET(hp, 0),
-    CHGET(maxhp, 0),
-    CHGET(mana, 0),
-    CHGET(maxmana, 0),
-    CHGET(move, 0),
-    CHGET(maxmove, 0),
-    CHGET(gold, 0),
-    CHGET(silver, 0),
-    CHGET(money, 0),
-    CHGET(sex, 0),
-    CHGET(size, 0),
-    CHGET(position, 0),
-    CHGET(align, 0),
-    CHGET(str, 0),
-    CHGET(con, 0),
-    CHGET(vit, 0),
-    CHGET(agi, 0),
-    CHGET(dex, 0),
-    CHGET(int, 0),
-    CHGET(wis, 0),
-    CHGET(dis, 0),
-    CHGET(cha, 0),
-    CHGET(ac, 0),
-    CHGET(acbase, 0),
-    CHGET(hitroll, 0),
-    CHGET(hitrollbase, 0),
-    CHGET(damroll, 0),
-    CHGET(damrollbase, 0),
-    CHGET(attacktype, 0),
-    CHGET(damnoun, 0),
-    CHGET(damtype, 0),
-    CHGET(savesphys, 0),
-    CHGET(savesmagic, 0),
-    CHGET(luc, 0),
-    CHGET(clan, 0),
-    CHGET(class, 0),
-    CHGET(race, 0),
-    CHGET(ispc, 0),
-    CHGET(isnpc, 0),
-    CHGET(isgood, 0),
-    CHGET(isevil, 0),
-    CHGET(isneutral, 0),
-    CHGET(isimmort, 0),
-    CHGET(ischarm, 0),
-    CHGET(isfollow, 0),
-    CHGET(isactive, 0),
-    CHGET(fighting, 0),
-    CHGET(stopcount, 0),
-    CHGET(waitcount, 0),
-    CHGET(heshe, 0),
-    CHGET(himher, 0),
-    CHGET(hisher, 0),
-    CHGET(inventory, 0),
-    CHGET(room, 0),
-    CHGET(groupsize, 0),
-    CHGET(stance, 0),
-    CHGET(description, 0),
-    CHGET(pet, 0),
-    CHGET(master, 0),
-    CHGET(leader, 0),
-    CHGET(affects, 0),
-    CHGET(scroll, 0),
-    CHGET(id, 0 ),
+    { "name", CH_get_name, 0, STS_ACTIVE },
+    { "level", CH_get_level, 0, STS_ACTIVE },
+    { "hp", CH_get_hp, 0, STS_ACTIVE },
+    { "maxhp", CH_get_maxhp, 0, STS_ACTIVE },
+    { "mana", CH_get_mana, 0, STS_ACTIVE },
+    { "maxmana", CH_get_maxmana, 0, STS_ACTIVE },
+    { "move", CH_get_move, 0, STS_ACTIVE },
+    { "maxmove", CH_get_maxmove, 0, STS_ACTIVE },
+    { "gold", CH_get_gold, 0, STS_ACTIVE },
+    { "silver", CH_get_silver, 0, STS_ACTIVE },
+    { "money", CH_get_money, 0, STS_ACTIVE },
+    { "sex", CH_get_sex, 0, STS_ACTIVE },
+    { "size", CH_get_size, 0, STS_ACTIVE },
+    { "position", CH_get_position, 0, STS_ACTIVE },
+    { "align", CH_get_align, 0, STS_ACTIVE },
+    { "str", CH_get_str, 0, STS_ACTIVE },
+    { "con", CH_get_con, 0, STS_ACTIVE },
+    { "vit", CH_get_vit, 0, STS_ACTIVE },
+    { "agi", CH_get_agi, 0, STS_ACTIVE },
+    { "dex", CH_get_dex, 0, STS_ACTIVE },
+    { "int", CH_get_int, 0, STS_ACTIVE },
+    { "wis", CH_get_wis, 0, STS_ACTIVE },
+    { "dis", CH_get_dis, 0, STS_ACTIVE },
+    { "cha", CH_get_cha, 0, STS_ACTIVE },
+    { "ac", CH_get_ac, 0, STS_ACTIVE },
+    { "acbase", CH_get_acbase, 0, STS_ACTIVE },
+    { "hitroll", CH_get_hitroll, 0, STS_ACTIVE },
+    { "hitrollbase", CH_get_hitrollbase, 0, STS_ACTIVE },
+    { "damroll", CH_get_damroll, 0, STS_ACTIVE },
+    { "damrollbase", CH_get_damrollbase, 0, STS_ACTIVE },
+    { "attacktype", CH_get_attacktype, 0, STS_ACTIVE },
+    { "damnoun", CH_get_damnoun, 0, STS_ACTIVE },
+    { "damtype", CH_get_damtype, 0, STS_ACTIVE },
+    { "savesphys", CH_get_savesphys, 0, STS_ACTIVE },
+    { "savesmagic", CH_get_savesmagic, 0, STS_ACTIVE },
+    { "luc", CH_get_luc, 0, STS_ACTIVE },
+    { "clan", CH_get_clan, 0, STS_ACTIVE },
+    { "class", CH_get_class, 0, STS_ACTIVE },
+    { "race", CH_get_race, 0, STS_ACTIVE },
+    { "ispc", CH_get_ispc, 0, STS_ACTIVE },
+    { "isnpc", CH_get_isnpc, 0, STS_ACTIVE },
+    { "isgood", CH_get_isgood, 0, STS_ACTIVE },
+    { "isevil", CH_get_isevil, 0, STS_ACTIVE },
+    { "isneutral", CH_get_isneutral, 0, STS_ACTIVE },
+    { "isimmort", CH_get_isimmort, 0, STS_ACTIVE },
+    { "ischarm", CH_get_ischarm, 0, STS_ACTIVE },
+    { "isfollow", CH_get_isfollow, 0, STS_ACTIVE },
+    { "isactive", CH_get_isactive, 0, STS_ACTIVE },
+    { "fighting", CH_get_fighting, 0, STS_ACTIVE },
+    { "stopcount", CH_get_stopcount, 0, STS_ACTIVE },
+    { "waitcount", CH_get_waitcount, 0, STS_ACTIVE },
+    { "heshe", CH_get_heshe, 0, STS_ACTIVE },
+    { "himher", CH_get_himher, 0, STS_ACTIVE },
+    { "hisher", CH_get_hisher, 0, STS_ACTIVE },
+    { "inventory", CH_get_inventory, 0, STS_ACTIVE },
+    { "room", CH_get_room, 0, STS_ACTIVE },
+    { "groupsize", CH_get_groupsize, 0, STS_ACTIVE },
+    { "stance", CH_get_stance, 0, STS_ACTIVE },
+    { "description", CH_get_description, 0, STS_ACTIVE },
+    { "pet", CH_get_pet, 0, STS_ACTIVE },
+    { "master", CH_get_master, 0, STS_ACTIVE },
+    { "leader", CH_get_leader, 0, STS_ACTIVE },
+    { "affects", CH_get_affects, 0, STS_ACTIVE },
+    { "scroll", CH_get_scroll, 0, STS_ACTIVE },
+    { "id", CH_get_id, 0, STS_ACTIVE },
     /* PC only */
-    CHGET(godname, 0),
-    CHGET(faith, 0),
-    CHGET(religionrank, 0),
-    CHGET(ascents, 0),
-    CHGET(subclass, 0),
-    CHGET(clanrank, 0),
-    CHGET(remorts, 0),
-    CHGET(explored, 0),
-    CHGET(beheads, 0),
-    CHGET(pkills, 0),
-    CHGET(pkdeaths, 0),
-    CHGET(questpoints, 0),
-    CHGET(achpoints, 0),
-    CHGET(bank, 0),
-    CHGET(mobkills, 0),
-    CHGET(mobdeaths, 0),
-    CHGET(descriptor, 0),
-    CHGET(bossachvs, 0),
-    CHGET(ptitle, 0),
-    CHGET(ptitles, 0),
+    { "godname", CH_get_godname, 0, STS_ACTIVE },
+    { "faith", CH_get_faith, 0, STS_ACTIVE },
+    { "religionrank", CH_get_religionrank, 0, STS_ACTIVE },
+    { "ascents", CH_get_ascents, 0, STS_ACTIVE },
+    { "subclass", CH_get_subclass, 0, STS_ACTIVE },
+    { "clanrank", CH_get_clanrank, 0, STS_ACTIVE },
+    { "remorts", CH_get_remorts, 0, STS_ACTIVE },
+    { "explored", CH_get_explored, 0, STS_ACTIVE },
+    { "beheads", CH_get_beheads, 0, STS_ACTIVE },
+    { "pkills", CH_get_pkills, 0, STS_ACTIVE },
+    { "pkdeaths", CH_get_pkdeaths, 0, STS_ACTIVE },
+    { "questpoints", CH_get_questpoints, 0, STS_ACTIVE },
+    { "achpoints", CH_get_achpoints, 0, STS_ACTIVE },
+    { "bank", CH_get_bank, 0, STS_ACTIVE },
+    { "mobkills", CH_get_mobkills, 0, STS_ACTIVE },
+    { "mobdeaths", CH_get_mobdeaths, 0, STS_ACTIVE },
+    { "descriptor", CH_get_descriptor, 0, STS_ACTIVE },
+    { "bossachvs", CH_get_bossachvs, 0, STS_ACTIVE },
+    { "ptitle", CH_get_ptitle, 0, STS_ACTIVE },
+    { "ptitles", CH_get_ptitles, 0, STS_ACTIVE },
     /* NPC only */
-    CHGET(vnum, 0),
-    CHGET(proto,0),
-    CHGET(ingame,0),
-    CHGET(shortdescr, 0),
-    CHGET(longdescr, 0),    
-    CHGET(dicenumber, 0),
-    CHGET(dicetype, 0),
-    ENDPTABLE
+    { "vnum", CH_get_vnum, 0, STS_ACTIVE },
+    { "proto", CH_get_proto, 0, STS_ACTIVE },
+    { "ingame", CH_get_ingame, 0, STS_ACTIVE },
+    { "shortdescr", CH_get_shortdescr, 0, STS_ACTIVE },
+    { "longdescr", CH_get_longdescr, 0, STS_ACTIVE },    
+    { "dicenumber", CH_get_dicenumber, 0, STS_ACTIVE },
+    { "dicetype", CH_get_dicetype, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE CH_set_table [] =
 {
-    CHSET(name, 5),
-    CHSET(level, 5),
-    CHSET(hp, 5),
-    CHSET(maxhp, 5),
-    CHSET(mana, 5),
-    CHSET(maxmana, 5),
-    CHSET(move, 5),
-    CHSET(maxmove, 5),
-    CHSET(gold, 5),
-    CHSET(silver, 5),
-    CHSET(sex, 5),
-    CHSET(size, 5),
-    CHSET(align, 5),
-    CHSET(str, 5),
-    CHSET(con, 5),
-    CHSET(vit, 5),
-    CHSET(agi, 5),
-    CHSET(dex, 5),
-    CHSET(int, 5),
-    CHSET(wis, 5),
-    CHSET(dis, 5),
-    CHSET(cha, 5),
-    CHSET(luc, 5),
-    CHSET(stopcount, 5),
-    CHSET(waitcount, 5),
-    CHSET(acpcnt, 5),
-    CHSET(acbase, 5),
-    CHSET(hrpcnt, 5),
-    CHSET(hitrollbase, 5),
-    CHSET(drpcnt, 5),
-    CHSET(damrollbase, 5),
-    CHSET(attacktype, 5),
-    CHSET(race, 5),
-    CHSET(shortdescr, 5),
-    CHSET(longdescr, 5),
-    CHSET(description, 5),
-    CHSET(pet, 5),
+    { "name", CH_set_name, 5, STS_ACTIVE },
+    { "level", CH_set_level, 5, STS_ACTIVE },
+    { "hp", CH_set_hp, 5, STS_ACTIVE },
+    { "maxhp", CH_set_maxhp, 5, STS_ACTIVE },
+    { "mana", CH_set_mana, 5, STS_ACTIVE },
+    { "maxmana", CH_set_maxmana, 5, STS_ACTIVE },
+    { "move", CH_set_move, 5, STS_ACTIVE },
+    { "maxmove", CH_set_maxmove, 5, STS_ACTIVE },
+    { "gold", CH_set_gold, 5, STS_ACTIVE },
+    { "silver", CH_set_silver, 5, STS_ACTIVE },
+    { "sex", CH_set_sex, 5, STS_ACTIVE },
+    { "size", CH_set_size, 5, STS_ACTIVE },
+    { "align", CH_set_align, 5, STS_ACTIVE },
+    { "str", CH_set_str, 5, STS_ACTIVE },
+    { "con", CH_set_con, 5, STS_ACTIVE },
+    { "vit", CH_set_vit, 5, STS_ACTIVE },
+    { "agi", CH_set_agi, 5, STS_ACTIVE },
+    { "dex", CH_set_dex, 5, STS_ACTIVE },
+    { "int", CH_set_int, 5, STS_ACTIVE },
+    { "wis", CH_set_wis, 5, STS_ACTIVE },
+    { "dis", CH_set_dis, 5, STS_ACTIVE },
+    { "cha", CH_set_cha, 5, STS_ACTIVE },
+    { "luc", CH_set_luc, 5, STS_ACTIVE },
+    { "stopcount", CH_set_stopcount, 5, STS_ACTIVE },
+    { "waitcount", CH_set_waitcount, 5, STS_ACTIVE },
+    { "acpcnt", CH_set_acpcnt, 5, STS_ACTIVE },
+    { "acbase", CH_set_acbase, 5, STS_ACTIVE },
+    { "hrpcnt", CH_set_hrpcnt, 5, STS_ACTIVE },
+    { "hitrollbase", CH_set_hitrollbase, 5, STS_ACTIVE },
+    { "drpcnt", CH_set_drpcnt, 5, STS_ACTIVE },
+    { "damrollbase", CH_set_damrollbase, 5, STS_ACTIVE },
+    { "attacktype", CH_set_attacktype, 5, STS_ACTIVE },
+    { "race", CH_set_race, 5, STS_ACTIVE },
+    { "shortdescr", CH_set_shortdescr, 5, STS_ACTIVE },
+    { "longdescr", CH_set_longdescr, 5, STS_ACTIVE },
+    { "description", CH_set_description, 5, STS_ACTIVE },
+    { "pet", CH_set_pet, 5, STS_ACTIVE },
     /* PC only */
-    CHSET(godname, 9),
-    CHSET(religionrank, 9),
+    { "godname", CH_set_godname, 9, STS_ACTIVE },
+    { "religionrank", CH_set_religionrank, 9, STS_ACTIVE },
 #ifdef TESTER
-    CHSET(subclass, 9),
+    { "subclass", CH_set_subclass, 9, STS_ACTIVE },
 #endif
-    CHSET(questpoints, SEC_NOSCRIPT),
-    CHSET(ptitles, SEC_NOSCRIPT),
-    CHSET(ptitle, SEC_NOSCRIPT),
+    { "questpoints", CH_set_questpoints, SEC_NOSCRIPT, STS_ACTIVE },
+    { "ptitles", CH_set_ptitles, SEC_NOSCRIPT, STS_ACTIVE },
+    { "ptitle", CH_set_ptitle, SEC_NOSCRIPT, STS_ACTIVE },
     /* NPC only */
-    CHSET(dicenumber, 5),
-    CHSET(dicetype, 5),
-    ENDPTABLE
+    { "dicenumber", CH_set_dicenumber, 5, STS_ACTIVE },
+    { "dicetype", CH_set_dicetype, 5, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE CH_method_table [] =
 {
-    CHMETH(mobhere, 0),
-    CHMETH(objhere, 0),
-    CHMETH(mobexists, 0),
-    CHMETH(objexists, 0),
-    CHMETH(affected, 0),
-    CHMETH(act, 0),
-    CHMETH(offensive, 0),
-    CHMETH(immune, 0),
-    CHMETH(carries, 0),
-    CHMETH(wears, 0),
-    CHMETH(has, 0),
-    CHMETH(uses, 0),
-    CHMETH(qstatus, 0),
-    CHMETH(resist, 0),
-    CHMETH(vuln, 0),
-    CHMETH(skilled, 0),
-    CHMETH(ccarries, 0),
-    CHMETH(qtimer, 0),
-    CHMETH(cansee, 0),
-    CHMETH(canattack, 0),
-    CHMETH(destroy, 1),
-    CHMETH(oload, 1),
-    CHMETH(say, 1),
-    CHMETH(emote, 1),
-    CHMETH(mdo, 1),
-    CHMETH(tell, 1),
-    CHMETH(asound, 1),
-    CHMETH(zecho, 1),
-    CHMETH(kill, 1),
-    CHMETH(assist, 1),
-    CHMETH(junk, 1),
-    CHMETH(echo, 1),
+    { "mobhere", CH_mobhere, 0, STS_ACTIVE },
+    { "objhere", CH_objhere, 0, STS_ACTIVE },
+    { "mobexists", CH_mobexists, 0, STS_ACTIVE },
+    { "objexists", CH_objexists, 0, STS_ACTIVE },
+    { "affected", CH_affected, 0, STS_ACTIVE },
+    { "act", CH_act, 0, STS_ACTIVE },
+    { "offensive", CH_offensive, 0, STS_ACTIVE },
+    { "immune", CH_immune, 0, STS_ACTIVE },
+    { "carries", CH_carries, 0, STS_ACTIVE },
+    { "wears", CH_wears, 0, STS_ACTIVE },
+    { "has", CH_has, 0, STS_ACTIVE },
+    { "uses", CH_uses, 0, STS_ACTIVE },
+    { "qstatus", CH_qstatus, 0, STS_ACTIVE },
+    { "resist", CH_resist, 0, STS_ACTIVE },
+    { "vuln", CH_vuln, 0, STS_ACTIVE },
+    { "skilled", CH_skilled, 0, STS_ACTIVE },
+    { "ccarries", CH_ccarries, 0, STS_ACTIVE },
+    { "qtimer", CH_qtimer, 0, STS_ACTIVE },
+    { "cansee", CH_cansee, 0, STS_ACTIVE },
+    { "canattack", CH_canattack, 0, STS_ACTIVE },
+    { "destroy", CH_destroy, 1, STS_ACTIVE },
+    { "oload", CH_oload, 1, STS_ACTIVE },
+    { "say", CH_say, 1, STS_ACTIVE },
+    { "emote", CH_emote, 1, STS_ACTIVE },
+    { "mdo", CH_mdo, 1, STS_ACTIVE },
+    { "tell", CH_tell, 1, STS_ACTIVE },
+    { "asound", CH_asound, 1, STS_ACTIVE },
+    { "zecho", CH_zecho, 1, STS_ACTIVE },
+    { "kill", CH_kill, 1, STS_ACTIVE },
+    { "assist", CH_assist, 1, STS_ACTIVE },
+    { "junk", CH_junk, 1, STS_ACTIVE },
+    { "echo", CH_echo, 1, STS_ACTIVE },
+    
     /* deprecated in favor of global funcs */
     { "echoaround", CH_echoaround, 1, STS_DEPRECATED},
     { "echoat", CH_echoat, 1, STS_DEPRECATED},
-    CHMETH(mload, 1),
-    CHMETH(purge, 1),
-    CHMETH(goto, 1),
-    CHMETH(at, 1),
+
+    { "mload", CH_mload, 1, STS_ACTIVE },
+    { "purge", CH_purge, 1, STS_ACTIVE },
+    { "goto", CH_goto, 1, STS_ACTIVE },
+    { "at", CH_at, 1, STS_ACTIVE },
+    
     /* deprecated in favor of global funcs */
     { "transfer", CH_transfer, 1, STS_DEPRECATED},
     { "gtransfer", CH_gtransfer, 1, STS_DEPRECATED},
-    CHMETH(otransfer, 1),
-    CHMETH(force, 1),
-    CHMETH(gforce, 1),
-    CHMETH(vforce, 1),
-    CHMETH(cast, 1),
-    CHMETH(damage, 1),
-    CHMETH(remove, 1),
-    CHMETH(remort, 1),
-    CHMETH(qset, 1),
-    CHMETH(qadvance, 1),
-    CHMETH(reward, 1),
-    CHMETH(peace, 1),
-    CHMETH(restore, 1),
-    CHMETH(setact, 1),
-    CHMETH(setoffensive, 1),
-    CHMETH(setvuln, 1),
-    CHMETH(setimmune, 1),
-    CHMETH(setresist, 1),
-    CHMETH(hit, 1),
-    CHMETH(behead, 1),
-    CHMETH(randchar, 0),
-    CHMETH(loadprog, 1),
-    CHMETH(loadscript, 1),
-    CHMETH(loadstring, 1),
-    CHMETH(loadfunction, 1),
-    CHMETH(savetbl, 1),
-    CHMETH(loadtbl, 1),
-    CHMETH(tprint, 1),
-    CHMETH(olc, 1),
-    CHMETH(delay, 1),
-    CHMETH(cancel, 1), 
-    CHMETH(setval, 1),
-    CHMETH(getval, 1),
-    CHMETH(rvnum, 0),
-    CHMETH(describe, 1),
-    CHMETH(addaffect, 9),
-    CHMETH(removeaffect,9),
-    ENDPTABLE
+    
+    { "otransfer", CH_otransfer, 1, STS_ACTIVE },
+    { "force", CH_force, 1, STS_ACTIVE },
+    { "gforce", CH_gforce, 1, STS_ACTIVE },
+    { "vforce", CH_vforce, 1, STS_ACTIVE },
+    { "cast", CH_cast, 1, STS_ACTIVE },
+    { "damage", CH_damage, 1, STS_ACTIVE },
+    { "remove", CH_remove, 1, STS_ACTIVE },
+    { "remort", CH_remort, 1, STS_ACTIVE },
+    { "qset", CH_qset, 1, STS_ACTIVE },
+    { "qadvance", CH_qadvance, 1, STS_ACTIVE },
+    { "reward", CH_reward, 1, STS_ACTIVE },
+    { "peace", CH_peace, 1, STS_ACTIVE },
+    { "restore", CH_restore, 1, STS_ACTIVE },
+    { "setact", CH_setact, 1, STS_ACTIVE },
+    { "setoffensive", CH_setoffensive, 1, STS_ACTIVE },
+    { "setvuln", CH_setvuln, 1, STS_ACTIVE },
+    { "setimmune", CH_setimmune, 1, STS_ACTIVE },
+    { "setresist", CH_setresist, 1, STS_ACTIVE },
+    { "hit", CH_hit, 1, STS_ACTIVE },
+    { "behead", CH_behead, 1, STS_ACTIVE },
+    { "randchar", CH_randchar, 0, STS_ACTIVE },
+    { "loadprog", CH_loadprog, 1, STS_ACTIVE },
+    { "loadscript", CH_loadscript, 1, STS_ACTIVE },
+    { "loadstring", CH_loadstring, 1, STS_ACTIVE },
+    { "loadfunction", CH_loadfunction, 1, STS_ACTIVE },
+    { "savetbl", CH_savetbl, 1, STS_ACTIVE },
+    { "loadtbl", CH_loadtbl, 1, STS_ACTIVE },
+    { "tprint", CH_tprint, 1, STS_ACTIVE },
+    { "olc", CH_olc, 1, STS_ACTIVE },
+    { "delay", CH_delay, 1, STS_ACTIVE },
+    { "cancel", CH_cancel, 1, STS_ACTIVE }, 
+    { "setval", CH_setval, 1, STS_ACTIVE },
+    { "getval", CH_getval, 1, STS_ACTIVE },
+    { "rvnum", CH_rvnum, 0, STS_ACTIVE },
+    { "describe", CH_describe, 1, STS_ACTIVE },
+    { "addaffect", CH_addaffect, 9, STS_ACTIVE },
+    { "removeaffect", CH_removeaffect, 9, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end CH section */
@@ -5793,86 +5729,86 @@ static int OBJ_set_attacktype ( lua_State *LS)
 
 static const LUA_PROP_TYPE OBJ_get_table [] =
 {
-    OBJGET(name, 0),
-    OBJGET(shortdescr, 0),
-    OBJGET(description, 0),
-    OBJGET(clan, 0),
-    OBJGET(clanrank, 0),
-    OBJGET(level, 0),
-    OBJGET(owner, 0),
-    OBJGET(cost, 0),
-    OBJGET(material, 0),
-    OBJGET(vnum, 0),
-    OBJGET(otype, 0),
-    OBJGET(weight, 0),
-    OBJGET(room, 0),
-    OBJGET(inobj, 0),
-    OBJGET(carriedby, 0),
-    OBJGET(v0, 0),
-    OBJGET(v1, 0),
-    OBJGET(v2, 0),
-    OBJGET(v3, 0),
-    OBJGET(v4, 0),
-    OBJGET(weartype, 0),
-    OBJGET(wearlocation, 0),
-    OBJGET(contents, 0),
-    OBJGET(proto, 0),
-    OBJGET(ingame, 0),
-    OBJGET(timer, 0),
-    OBJGET(affects, 0),
+    { "name", OBJ_get_name, 0, STS_ACTIVE },
+    { "shortdescr", OBJ_get_shortdescr, 0, STS_ACTIVE },
+    { "description", OBJ_get_description, 0, STS_ACTIVE },
+    { "clan", OBJ_get_clan, 0, STS_ACTIVE },
+    { "clanrank", OBJ_get_clanrank, 0, STS_ACTIVE },
+    { "level", OBJ_get_level, 0, STS_ACTIVE },
+    { "owner", OBJ_get_owner, 0, STS_ACTIVE },
+    { "cost", OBJ_get_cost, 0, STS_ACTIVE },
+    { "material", OBJ_get_material, 0, STS_ACTIVE },
+    { "vnum", OBJ_get_vnum, 0, STS_ACTIVE },
+    { "otype", OBJ_get_otype, 0, STS_ACTIVE },
+    { "weight", OBJ_get_weight, 0, STS_ACTIVE },
+    { "room", OBJ_get_room, 0, STS_ACTIVE },
+    { "inobj", OBJ_get_inobj, 0, STS_ACTIVE },
+    { "carriedby", OBJ_get_carriedby, 0, STS_ACTIVE },
+    { "v0", OBJ_get_v0, 0, STS_ACTIVE },
+    { "v1", OBJ_get_v1, 0, STS_ACTIVE },
+    { "v2", OBJ_get_v2, 0, STS_ACTIVE },
+    { "v3", OBJ_get_v3, 0, STS_ACTIVE },
+    { "v4", OBJ_get_v4, 0, STS_ACTIVE },
+    { "weartype", OBJ_get_weartype, 0, STS_ACTIVE },
+    { "wearlocation", OBJ_get_wearlocation, 0, STS_ACTIVE },
+    { "contents", OBJ_get_contents, 0, STS_ACTIVE },
+    { "proto", OBJ_get_proto, 0, STS_ACTIVE },
+    { "ingame", OBJ_get_ingame, 0, STS_ACTIVE },
+    { "timer", OBJ_get_timer, 0, STS_ACTIVE },
+    { "affects", OBJ_get_affects, 0, STS_ACTIVE },
     
     /*light*/
-    OBJGET(light, 0),
+    { "light", OBJ_get_light, 0, STS_ACTIVE },
 
     /*arrows*/
-    OBJGET(arrowcount, 0),
-    OBJGET(arrowdamage, 0),
-    OBJGET(arrowdamtype, 0),
+    { "arrowcount", OBJ_get_arrowcount, 0, STS_ACTIVE },
+    { "arrowdamage", OBJ_get_arrowdamage, 0, STS_ACTIVE },
+    { "arrowdamtype", OBJ_get_arrowdamtype, 0, STS_ACTIVE },
     
     /* wand, staff */
-    OBJGET(spelllevel, 0),
-    OBJGET(chargestotal, 0),
-    OBJGET(chargesleft, 0),
-    OBJGET(spellname, 0),
+    { "spelllevel", OBJ_get_spelllevel, 0, STS_ACTIVE },
+    { "chargestotal", OBJ_get_chargestotal, 0, STS_ACTIVE },
+    { "chargesleft", OBJ_get_chargesleft, 0, STS_ACTIVE },
+    { "spellname", OBJ_get_spellname, 0, STS_ACTIVE },
     
     /* portal */
     // chargesleft
-    OBJGET(toroom, 0),
+    { "toroom", OBJ_get_toroom, 0, STS_ACTIVE },
 
     /* furniture */
-    OBJGET(maxpeople, 0),
-    OBJGET(maxweight, 0),
-    OBJGET(healbonus, 0),
-    OBJGET(manabonus, 0),
+    { "maxpeople", OBJ_get_maxpeople, 0, STS_ACTIVE },
+    { "maxweight", OBJ_get_maxweight, 0, STS_ACTIVE },
+    { "healbonus", OBJ_get_healbonus, 0, STS_ACTIVE },
+    { "manabonus", OBJ_get_manabonus, 0, STS_ACTIVE },
 
     /* scroll, potion, pill */
     //spelllevel
-    OBJGET(spells, 0),
+    { "spells", OBJ_get_spells, 0, STS_ACTIVE },
 
     /* armor */
-    OBJGET( ac, 0),
+    { "ac", OBJ_get_ac, 0, STS_ACTIVE },
 
     /* weapon */
-    OBJGET( weapontype, 0),
-    OBJGET( numdice, 0),
-    OBJGET( dicetype, 0),
-    OBJGET( attacktype, 0),
-    OBJGET( damtype, 0),
-    OBJGET( damnoun, 0),
-    OBJGET( damavg, 0),
+    { "weapontype", OBJ_get_weapontype, 0, STS_ACTIVE },
+    { "numdice", OBJ_get_numdice, 0, STS_ACTIVE },
+    { "dicetype", OBJ_get_dicetype, 0, STS_ACTIVE },
+    { "attacktype", OBJ_get_attacktype, 0, STS_ACTIVE },
+    { "damtype", OBJ_get_damtype, 0, STS_ACTIVE },
+    { "damnoun", OBJ_get_damnoun, 0, STS_ACTIVE },
+    { "damavg", OBJ_get_damavg, 0, STS_ACTIVE },
 
     /* container */
     //maxweight
-    OBJGET( key, 0),
-    OBJGET( capacity, 0),
-    OBJGET( weightmult, 0),
+    { "key", OBJ_get_key, 0, STS_ACTIVE },
+    { "capacity", OBJ_get_capacity, 0, STS_ACTIVE },
+    { "weightmult", OBJ_get_weightmult, 0, STS_ACTIVE },
 
     /* drink container */
-    OBJGET( liquidtotal, 0),
-    OBJGET( liquidleft, 0),
-    OBJGET( liquid, 0),
-    OBJGET( liquidcolor, 0),
-    OBJGET( poisoned, 0),
+    { "liquidtotal", OBJ_get_liquidtotal, 0, STS_ACTIVE },
+    { "liquidleft", OBJ_get_liquidleft, 0, STS_ACTIVE },
+    { "liquid", OBJ_get_liquid, 0, STS_ACTIVE },
+    { "liquidcolor", OBJ_get_liquidcolor, 0, STS_ACTIVE },
+    { "poisoned", OBJ_get_poisoned, 0, STS_ACTIVE },
 
     /*fountain*/
     //liquid
@@ -5880,72 +5816,72 @@ static const LUA_PROP_TYPE OBJ_get_table [] =
     //liquidtotal
 
     /* food */
-    OBJGET( foodhours, 0),
-    OBJGET( fullhours, 0),
+    { "foodhours", OBJ_get_foodhours, 0, STS_ACTIVE },
+    { "fullhours", OBJ_get_fullhours, 0, STS_ACTIVE },
     // poisoned
     
     /* money */
-    OBJGET( silver, 0),
-    OBJGET( gold, 0),
+    { "silver", OBJ_get_silver, 0, STS_ACTIVE },
+    { "gold", OBJ_get_gold, 0, STS_ACTIVE },
     
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE OBJ_set_table [] =
 {
-    OBJSET(name, 5 ),
-    OBJSET(shortdescr, 5),
-    OBJSET(description, 5),
-    OBJSET(level, 5),
-    OBJSET(owner, 5),
-    OBJSET(material, 5),
-    OBJSET(weight, 5),
-    OBJSET(room, 5),
-    OBJSET(carriedby, 5),
-    OBJSET(attacktype, 5),
-    OBJSET(weapontype, 9),
+    { "name", OBJ_set_name, 5, STS_ACTIVE },
+    { "shortdescr", OBJ_set_shortdescr, 5, STS_ACTIVE },
+    { "description", OBJ_set_description, 5, STS_ACTIVE },
+    { "level", OBJ_set_level, 5, STS_ACTIVE },
+    { "owner", OBJ_set_owner, 5, STS_ACTIVE },
+    { "material", OBJ_set_material, 5, STS_ACTIVE },
+    { "weight", OBJ_set_weight, 5, STS_ACTIVE },
+    { "room", OBJ_set_room, 5, STS_ACTIVE },
+    { "carriedby", OBJ_set_carriedby, 5, STS_ACTIVE },
+    { "attacktype", OBJ_set_attacktype, 5, STS_ACTIVE },
+    { "weapontype", OBJ_set_weapontype, 9, STS_ACTIVE },
        
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 
 static const LUA_PROP_TYPE OBJ_method_table [] =
 {
-    OBJMETH(extra, 0),
-    OBJMETH(apply, 0),
-    OBJMETH(destroy, 1),
-    OBJMETH(clone, 1),
-    OBJMETH(echo, 1),
-    OBJMETH(loadprog, 1),
-    OBJMETH(loadscript, 1),
-    OBJMETH(loadstring, 1),
-    OBJMETH(loadfunction, 1),
-    OBJMETH(oload, 1),
-    OBJMETH(savetbl, 1),
-    OBJMETH(loadtbl, 1),
-    OBJMETH(tprint, 1),
-    OBJMETH(delay, 1),
-    OBJMETH(cancel, 1),
-    OBJMETH(setval, 1),
-    OBJMETH(getval, 1),
-    OBJMETH(rvnum, 1),
+    { "extra", OBJ_extra, 0, STS_ACTIVE },
+    { "apply", OBJ_apply, 0, STS_ACTIVE },
+    { "destroy", OBJ_destroy, 1, STS_ACTIVE },
+    { "clone", OBJ_clone, 1, STS_ACTIVE },
+    { "echo", OBJ_echo, 1, STS_ACTIVE },
+    { "loadprog", OBJ_loadprog, 1, STS_ACTIVE },
+    { "loadscript", OBJ_loadscript, 1, STS_ACTIVE },
+    { "loadstring", OBJ_loadstring, 1, STS_ACTIVE },
+    { "loadfunction", OBJ_loadfunction, 1, STS_ACTIVE },
+    { "oload", OBJ_oload, 1, STS_ACTIVE },
+    { "savetbl", OBJ_savetbl, 1, STS_ACTIVE },
+    { "loadtbl", OBJ_loadtbl, 1, STS_ACTIVE },
+    { "tprint", OBJ_tprint, 1, STS_ACTIVE },
+    { "delay", OBJ_delay, 1, STS_ACTIVE },
+    { "cancel", OBJ_cancel, 1, STS_ACTIVE },
+    { "setval", OBJ_setval, 1, STS_ACTIVE },
+    { "getval", OBJ_getval, 1, STS_ACTIVE },
+    { "rvnum", OBJ_rvnum, 1, STS_ACTIVE },
     
     /* portal only */
-    OBJMETH(exitflag, 0),
-    OBJMETH(setexitflag, 1),
-    OBJMETH(portalflag, 0),
+    { "exitflag", OBJ_exitflag, 0, STS_ACTIVE },
+    { "setexitflag", OBJ_setexitflag, 1, STS_ACTIVE },
+    { "portalflag", OBJ_portalflag, 0, STS_ACTIVE },
 
     /* furniture only */
-    OBJMETH(furnitureflag, 0),
+    { "furnitureflag", OBJ_furnitureflag, 0, STS_ACTIVE },
     
     /* weapon only */
-    OBJMETH(weaponflag, 0),
-    OBJMETH(setweaponflag, 5),
+    { "weaponflag", OBJ_weaponflag, 0, STS_ACTIVE },
+    { "setweaponflag", OBJ_setweaponflag, 5, STS_ACTIVE },
     
     /* container only */
-    OBJMETH(containerflag, 0),
+    { "containerflag", OBJ_containerflag, 0, STS_ACTIVE },
     
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end OBJ section */
@@ -6390,54 +6326,55 @@ static int AREA_get_builders ( lua_State *LS)
 
 static const LUA_PROP_TYPE AREA_get_table [] =
 {
-    AREAGET(name, 0),
-    AREAGET(filename, 0),
-    AREAGET(nplayer, 0),
-    AREAGET(minlevel, 0),
-    AREAGET(maxlevel, 0),
-    AREAGET(security, 0),
-    AREAGET(vnum, 0),
-    AREAGET(minvnum, 0),
-    AREAGET(maxvnum, 0),
-    AREAGET(credits, 0),
-    AREAGET(builders, 0),
-    AREAGET(ingame, 0),
-    AREAGET(rooms, 0),
-    AREAGET(people, 0),
-    AREAGET(players, 0),
-    AREAGET(mobs, 0),
-    AREAGET(mobprotos, 0),
-    AREAGET(objprotos, 0),
-    AREAGET(mprogs, 0),
-    AREAGET(oprogs, 0),
-    AREAGET(aprogs, 0),
-    AREAGET(rprogs, 0),
-    AREAGET(atrigs, 0),
-    ENDPTABLE
+    { "name", AREA_get_name, 0, STS_ACTIVE },
+    { "filename", AREA_get_filename, 0, STS_ACTIVE },
+    { "nplayer", AREA_get_nplayer, 0, STS_ACTIVE },
+    { "minlevel", AREA_get_minlevel, 0, STS_ACTIVE },
+    { "maxlevel", AREA_get_maxlevel, 0, STS_ACTIVE },
+    { "security", AREA_get_security, 0, STS_ACTIVE },
+    { "vnum", AREA_get_vnum, 0, STS_ACTIVE },
+    { "minvnum", AREA_get_minvnum, 0, STS_ACTIVE },
+    { "maxvnum", AREA_get_maxvnum, 0, STS_ACTIVE },
+    { "credits", AREA_get_credits, 0, STS_ACTIVE },
+    { "builders", AREA_get_builders, 0, STS_ACTIVE },
+    { "ingame", AREA_get_ingame, 0, STS_ACTIVE },
+    { "rooms", AREA_get_rooms, 0, STS_ACTIVE },
+    { "people", AREA_get_people, 0, STS_ACTIVE },
+    { "players", AREA_get_players, 0, STS_ACTIVE },
+    { "mobs", AREA_get_mobs, 0, STS_ACTIVE },
+    { "mobprotos", AREA_get_mobprotos, 0, STS_ACTIVE },
+    { "objprotos", AREA_get_objprotos, 0, STS_ACTIVE },
+    { "mprogs", AREA_get_mprogs, 0, STS_ACTIVE },
+    { "oprogs", AREA_get_oprogs, 0, STS_ACTIVE },
+    { "aprogs", AREA_get_aprogs, 0, STS_ACTIVE },
+    { "rprogs", AREA_get_rprogs, 0, STS_ACTIVE },
+    { "atrigs", AREA_get_atrigs, 0, STS_ACTIVE },
+    
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE AREA_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE AREA_method_table [] =
 {
-    AREAMETH(flag, 0),
-    AREAMETH(echo, 1),
-    AREAMETH(reset, 5),
-    AREAMETH(purge, 5),
-    AREAMETH(loadprog, 1),
-    AREAMETH(loadscript, 1),
-    AREAMETH(loadstring, 1),
-    AREAMETH(loadfunction, 1),
-    AREAMETH(savetbl, 1),
-    AREAMETH(loadtbl, 1),
-    AREAMETH(tprint, 1),
-    AREAMETH(delay, 1),
-    AREAMETH(cancel, 1),
-    AREAMETH(rvnum, 1),
-    ENDPTABLE
+    { "flag", AREA_flag, 0, STS_ACTIVE },
+    { "echo", AREA_echo, 1, STS_ACTIVE },
+    { "reset", AREA_reset, 5, STS_ACTIVE },
+    { "purge", AREA_purge, 5, STS_ACTIVE },
+    { "loadprog", AREA_loadprog, 1, STS_ACTIVE },
+    { "loadscript", AREA_loadscript, 1, STS_ACTIVE },
+    { "loadstring", AREA_loadstring, 1, STS_ACTIVE },
+    { "loadfunction", AREA_loadfunction, 1, STS_ACTIVE },
+    { "savetbl", AREA_savetbl, 1, STS_ACTIVE },
+    { "loadtbl", AREA_loadtbl, 1, STS_ACTIVE },
+    { "tprint", AREA_tprint, 1, STS_ACTIVE },
+    { "delay", AREA_delay, 1, STS_ACTIVE },
+    { "cancel", AREA_cancel, 1, STS_ACTIVE },
+    { "rvnum", AREA_rvnum, 1, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end AREA section */
@@ -6846,61 +6783,63 @@ static int ROOM_get_rtrigs ( lua_State *LS)
 
 static const LUA_PROP_TYPE ROOM_get_table [] =
 {
-    ROOMGET(name, 0),
-    ROOMGET(vnum, 0),
-    ROOMGET(clan, 0),
-    ROOMGET(clanrank, 0),
-    ROOMGET(healrate, 0),
-    ROOMGET(manarate, 0),
-    ROOMGET(owner, 0),
-    ROOMGET(description, 0),
-    ROOMGET(ingame, 0),
-    ROOMGET(sector, 0),
-    ROOMGET(contents, 0),
-    ROOMGET(area, 0),
-    ROOMGET(people, 0),
-    ROOMGET(players, 0),
-    ROOMGET(mobs, 0),
-    ROOMGET(exits, 0),
-    ROOMGET(north, 0),
-    ROOMGET(south, 0),
-    ROOMGET(east, 0),
-    ROOMGET(west, 0),
-    ROOMGET(northwest, 0),
-    ROOMGET(northeast, 0),
-    ROOMGET(southwest, 0),
-    ROOMGET(southeast, 0),
-    ROOMGET(up, 0),
-    ROOMGET(down, 0),
-    ROOMGET(resets, 0),
-    ROOMGET(rtrigs, 0),
-    ENDPTABLE
+    { "name", ROOM_get_name, 0, STS_ACTIVE },
+    { "vnum", ROOM_get_vnum, 0, STS_ACTIVE },
+    { "clan", ROOM_get_clan, 0, STS_ACTIVE },
+    { "clanrank", ROOM_get_clanrank, 0, STS_ACTIVE },
+    { "healrate", ROOM_get_healrate, 0, STS_ACTIVE },
+    { "manarate", ROOM_get_manarate, 0, STS_ACTIVE },
+    { "owner", ROOM_get_owner, 0, STS_ACTIVE },
+    { "description", ROOM_get_description, 0, STS_ACTIVE },
+    { "ingame", ROOM_get_ingame, 0, STS_ACTIVE },
+    { "sector", ROOM_get_sector, 0, STS_ACTIVE },
+    { "contents", ROOM_get_contents, 0, STS_ACTIVE },
+    { "area", ROOM_get_area, 0, STS_ACTIVE },
+    { "people", ROOM_get_people, 0, STS_ACTIVE },
+    { "players", ROOM_get_players, 0, STS_ACTIVE },
+    { "mobs", ROOM_get_mobs, 0, STS_ACTIVE },
+    { "exits", ROOM_get_exits, 0, STS_ACTIVE },
+    { "north", ROOM_get_north, 0, STS_ACTIVE },
+    { "south", ROOM_get_south, 0, STS_ACTIVE },
+    { "east", ROOM_get_east, 0, STS_ACTIVE },
+    { "west", ROOM_get_west, 0, STS_ACTIVE },
+    { "northwest", ROOM_get_northwest, 0, STS_ACTIVE },
+    { "northeast", ROOM_get_northeast, 0, STS_ACTIVE },
+    { "southwest", ROOM_get_southwest, 0, STS_ACTIVE },
+    { "southeast", ROOM_get_southeast, 0, STS_ACTIVE },
+    { "up", ROOM_get_up, 0, STS_ACTIVE },
+    { "down", ROOM_get_down, 0, STS_ACTIVE },
+    { "resets", ROOM_get_resets, 0, STS_ACTIVE },
+    { "rtrigs", ROOM_get_rtrigs, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE ROOM_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE ROOM_method_table [] =
 {
-    ROOMMETH(flag, 0),
-    ROOMMETH(reset, 5),
-    ROOMMETH(purge, 5),
-    ROOMMETH(oload, 1),
-    ROOMMETH(mload, 1),
-    ROOMMETH(echo, 1),
-    ROOMMETH(loadprog, 1),
-    ROOMMETH(loadscript, 1),
-    ROOMMETH(loadstring, 1),
-    ROOMMETH(loadfunction, 1),
-    ROOMMETH(tprint, 1),
-    ROOMMETH(delay, 1),
-    ROOMMETH(cancel, 1),
-    ROOMMETH(savetbl, 1),
-    ROOMMETH(loadtbl, 1),
-    ROOMMETH(rvnum, 1),
-    ENDPTABLE
+    { "flag", ROOM_flag, 0, STS_ACTIVE },
+    { "reset", ROOM_reset, 5, STS_ACTIVE },
+    { "purge", ROOM_purge, 5, STS_ACTIVE },
+    { "oload", ROOM_oload, 1, STS_ACTIVE },
+    { "mload", ROOM_mload, 1, STS_ACTIVE },
+    { "echo", ROOM_echo, 1, STS_ACTIVE },
+    { "loadprog", ROOM_loadprog, 1, STS_ACTIVE },
+    { "loadscript", ROOM_loadscript, 1, STS_ACTIVE },
+    { "loadstring", ROOM_loadstring, 1, STS_ACTIVE },
+    { "loadfunction", ROOM_loadfunction, 1, STS_ACTIVE },
+    { "tprint", ROOM_tprint, 1, STS_ACTIVE },
+    { "delay", ROOM_delay, 1, STS_ACTIVE },
+    { "cancel", ROOM_cancel, 1, STS_ACTIVE },
+    { "savetbl", ROOM_savetbl, 1, STS_ACTIVE },
+    { "loadtbl", ROOM_loadtbl, 1, STS_ACTIVE },
+    { "rvnum", ROOM_rvnum, 1, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end ROOM section */
@@ -7007,27 +6946,27 @@ static int EXIT_get_key (lua_State *LS)
 
 static const LUA_PROP_TYPE EXIT_get_table [] =
 {
-    EXGET(toroom, 0),
-    EXGET(keyword,0),
-    EXGET(description, 0),
-    EXGET(key, 0),
-    ENDPTABLE
+    { "toroom", EXIT_get_toroom, 0, STS_ACTIVE },
+    { "keyword", EXIT_get_keyword, 0, STS_ACTIVE },
+    { "description", EXIT_get_description, 0, STS_ACTIVE },
+    { "key", EXIT_get_key, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE EXIT_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE EXIT_method_table [] =
 {
-    EXMETH(flag, 0),
-    EXMETH(setflag, 1),
-    EXMETH(open, 1),
-    EXMETH(close, 1),
-    EXMETH(unlock, 1),
-    EXMETH(lock, 1),
-    ENDPTABLE
+    { "flag", EXIT_flag, 0, STS_ACTIVE },
+    { "setflag", EXIT_setflag, 1, STS_ACTIVE },
+    { "open", EXIT_open, 1, STS_ACTIVE },
+    { "close", EXIT_close, 1, STS_ACTIVE },
+    { "unlock", EXIT_unlock, 1, STS_ACTIVE },
+    { "lock", EXIT_lock, 1, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end EXIT section */
@@ -7056,22 +6995,22 @@ RESETGETARG(4);
 
 static const LUA_PROP_TYPE RESET_get_table [] =
 {
-    RSTGET( command, 0),
-    RSTGET( arg1, 0),
-    RSTGET( arg2, 0),
-    RSTGET( arg3, 0),
-    RSTGET( arg4, 0),
-    ENDPTABLE
+    { "command", RESET_get_command, 0, STS_ACTIVE },
+    { "arg1", RESET_get_arg1, 0, STS_ACTIVE },
+    { "arg2", RESET_get_arg2, 0, STS_ACTIVE },
+    { "arg3", RESET_get_arg3, 0, STS_ACTIVE },
+    { "arg4", RESET_get_arg4, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE RESET_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE RESET_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end RESET section */
@@ -7242,81 +7181,81 @@ static int OBJPROTO_get_rating ( lua_State *LS)
 
 static const LUA_PROP_TYPE OBJPROTO_get_table [] =
 {
-    OPGET( name, 0),
-    OPGET( shortdescr, 0),
-    OPGET( description, 0),
-    OPGET( clan, 0),
-    OPGET( clanrank, 0),
-    OPGET( level, 0),
-    OPGET( cost, 0),
-    OPGET( material, 0),
-    OPGET( vnum, 0),
-    OPGET( otype, 0),
-    OPGET( weartype, 0),
-    OPGET( weight, 0),
-    OPGET( rating, 0),
-    OPGET( v0, 0),
-    OPGET( v1, 0),
-    OPGET( v2, 0),
-    OPGET( v3, 0),
-    OPGET( v4, 0),
-    OPGET( area, 0),
-    OPGET( ingame, 0),
-    OPGET( otrigs, 0),
-    OPGET( affects, 0),
+    { "name", OBJPROTO_get_name, 0, STS_ACTIVE },
+    { "shortdescr", OBJPROTO_get_shortdescr, 0, STS_ACTIVE },
+    { "description", OBJPROTO_get_description, 0, STS_ACTIVE },
+    { "clan", OBJPROTO_get_clan, 0, STS_ACTIVE },
+    { "clanrank", OBJPROTO_get_clanrank, 0, STS_ACTIVE },
+    { "level", OBJPROTO_get_level, 0, STS_ACTIVE },
+    { "cost", OBJPROTO_get_cost, 0, STS_ACTIVE },
+    { "material", OBJPROTO_get_material, 0, STS_ACTIVE },
+    { "vnum", OBJPROTO_get_vnum, 0, STS_ACTIVE },
+    { "otype", OBJPROTO_get_otype, 0, STS_ACTIVE },
+    { "weartype", OBJPROTO_get_weartype, 0, STS_ACTIVE },
+    { "weight", OBJPROTO_get_weight, 0, STS_ACTIVE },
+    { "rating", OBJPROTO_get_rating, 0, STS_ACTIVE },
+    { "v0", OBJPROTO_get_v0, 0, STS_ACTIVE },
+    { "v1", OBJPROTO_get_v1, 0, STS_ACTIVE },
+    { "v2", OBJPROTO_get_v2, 0, STS_ACTIVE },
+    { "v3", OBJPROTO_get_v3, 0, STS_ACTIVE },
+    { "v4", OBJPROTO_get_v4, 0, STS_ACTIVE },
+    { "area", OBJPROTO_get_area, 0, STS_ACTIVE },
+    { "ingame", OBJPROTO_get_ingame, 0, STS_ACTIVE },
+    { "otrigs", OBJPROTO_get_otrigs, 0, STS_ACTIVE },
+    { "affects", OBJPROTO_get_affects, 0, STS_ACTIVE },
 
     /*light*/
-    OPGET(light, 0),
+    { "light", OBJPROTO_get_light, 0, STS_ACTIVE },
 
     /*arrows*/
-    OPGET(arrowcount, 0),
-    OPGET(arrowdamage, 0),
-    OPGET(arrowdamtype, 0),
+    { "arrowcount", OBJPROTO_get_arrowcount, 0, STS_ACTIVE },
+    { "arrowdamage", OBJPROTO_get_arrowdamage, 0, STS_ACTIVE },
+    { "arrowdamtype", OBJPROTO_get_arrowdamtype, 0, STS_ACTIVE },
     
     /* wand, staff */
-    OPGET(spelllevel, 0),
-    OPGET(chargestotal, 0),
-    OPGET(chargesleft, 0),
-    OPGET(spellname, 0),
+    { "spelllevel", OBJPROTO_get_spelllevel, 0, STS_ACTIVE },
+    { "chargestotal", OBJPROTO_get_chargestotal, 0, STS_ACTIVE },
+    { "chargesleft", OBJPROTO_get_chargesleft, 0, STS_ACTIVE },
+    { "spellname", OBJPROTO_get_spellname, 0, STS_ACTIVE },
     
     /* portal */
     // chargesleft
-    OPGET(toroom, 0),
+    { "toroom", OBJPROTO_get_toroom, 0, STS_ACTIVE },
 
     /* furniture */
-    OPGET(maxpeople, 0),
-    OPGET(maxweight, 0),
-    OPGET(healbonus, 0),
-    OPGET(manabonus, 0),
+    { "maxpeople", OBJPROTO_get_maxpeople, 0, STS_ACTIVE },
+    { "maxweight", OBJPROTO_get_maxweight, 0, STS_ACTIVE },
+    { "healbonus", OBJPROTO_get_healbonus, 0, STS_ACTIVE },
+    { "manabonus", OBJPROTO_get_manabonus, 0, STS_ACTIVE },
 
     /* scroll, potion, pill */
     //spelllevel
-    OPGET(spells, 0),
+    { "spells", OBJPROTO_get_spells, 0, STS_ACTIVE },
 
     /* armor */
-    OPGET( ac, 0),
+    { "ac", OBJPROTO_get_ac, 0, STS_ACTIVE },
 
     /* weapon */
-    OPGET( weapontype, 0),
-    OPGET( numdice, 0),
-    OPGET( dicetype, 0),
-    OPGET( attacktype, 0),
-    OPGET( damtype, 0),
-    OPGET( damnoun, 0),
-    OPGET( damavg, 0),
+    { "weapontype", OBJPROTO_get_weapontype, 0, STS_ACTIVE },
+    { "numdice", OBJPROTO_get_numdice, 0, STS_ACTIVE },
+    { "dicetype", OBJPROTO_get_dicetype, 0, STS_ACTIVE },
+    { "attacktype", OBJPROTO_get_attacktype, 0, STS_ACTIVE },
+    { "damtype", OBJPROTO_get_damtype, 0, STS_ACTIVE },
+    { "damnoun", OBJPROTO_get_damnoun, 0, STS_ACTIVE },
+    { "damavg", OBJPROTO_get_damavg, 0, STS_ACTIVE },
 
     /* container */
     //maxweight
-    OPGET( key, 0),
-    OPGET( capacity, 0),
-    OPGET( weightmult, 0),
+    { "key", OBJPROTO_get_key, 0, STS_ACTIVE },
+    { "capacity", OBJPROTO_get_capacity, 0, STS_ACTIVE },
+    { "weightmult", OBJPROTO_get_weightmult, 0, STS_ACTIVE },
 
     /* drink container */
-    OPGET( liquidtotal, 0),
-    OPGET( liquidleft, 0),
-    OPGET( liquid, 0),
-    OPGET( liquidcolor, 0),
-    OPGET( poisoned, 0),
+    { "liquidtotal", OBJPROTO_get_liquidtotal, 0, STS_ACTIVE },
+    { "liquidleft", OBJPROTO_get_liquidleft, 0, STS_ACTIVE },
+    { "liquid", OBJPROTO_get_liquid, 0, STS_ACTIVE },
+    { "liquidcolor", OBJPROTO_get_liquidcolor, 0, STS_ACTIVE },
+    { "poisoned", OBJPROTO_get_poisoned, 0, STS_ACTIVE },
 
     /*fountain*/
     //liquid
@@ -7324,42 +7263,42 @@ static const LUA_PROP_TYPE OBJPROTO_get_table [] =
     //liquidtotal
 
     /* food */
-    OPGET( foodhours, 0),
-    OPGET( fullhours, 0),
+    { "foodhours", OBJPROTO_get_foodhours, 0, STS_ACTIVE },
+    { "fullhours", OBJPROTO_get_fullhours, 0, STS_ACTIVE },
     // poisoned
     
     /* money */
-    OPGET( silver, 0),
-    OPGET( gold, 0),
+    { "silver", OBJPROTO_get_silver, 0, STS_ACTIVE },
+    { "gold", OBJPROTO_get_gold, 0, STS_ACTIVE },
 
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE OBJPROTO_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE OBJPROTO_method_table [] =
 {
-    OPMETH( extra, 0),
-    OPMETH( apply, 0),
+    { "extra", OBJPROTO_extra, 0, STS_ACTIVE },
+    { "apply", OBJPROTO_apply, 0, STS_ACTIVE },
    
     /* portal only */
-    OPMETH( exitflag, 0),
-    OPMETH( portalflag, 0),
+    { "exitflag", OBJPROTO_exitflag, 0, STS_ACTIVE },
+    { "portalflag", OBJPROTO_portalflag, 0, STS_ACTIVE },
     
     /* furniture only */
-    OPMETH(furnitureflag, 0),
+    { "furnitureflag", OBJPROTO_furnitureflag, 0, STS_ACTIVE },
     
     /* weapon only */
-    OPMETH(weaponflag, 0),
-    OPMETH(adjustdamage, 9),
+    { "weaponflag", OBJPROTO_weaponflag, 0, STS_ACTIVE },
+    { "adjustdamage", OBJPROTO_adjustdamage, 9, STS_ACTIVE },
     
     /* container only */
-    OPMETH(containerflag, 0),
+    { "containerflag", OBJPROTO_containerflag, 0, STS_ACTIVE },
     
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end OBJPROTO section */
@@ -7507,51 +7446,52 @@ static int MOBPROTO_get_bossachv ( lua_State *LS)
     
 static const LUA_PROP_TYPE MOBPROTO_get_table [] =
 {
-    MPGET( vnum, 0),
-    MPGET( name, 0),
-    MPGET( shortdescr, 0),
-    MPGET( longdescr, 0),
-    MPGET( description, 0),
-    MPGET( alignment, 0),
-    MPGET( level, 0),
-    MPGET( hppcnt, 0),
-    MPGET( mnpcnt, 0),
-    MPGET( mvpcnt, 0),
-    MPGET( hrpcnt, 0),
-    MPGET( drpcnt, 0),
-    MPGET( acpcnt, 0),
-    MPGET( savepcnt, 0),
-    MPGET( damtype, 0),
-    MPGET( startpos, 0),
-    MPGET( defaultpos, 0),
-    MPGET( sex, 0),
-    MPGET( race, 0),
-    MPGET( wealthpcnt, 0),
-    MPGET( size, 0),
-    MPGET( stance, 0),
-    MPGET( area, 0),
-    MPGET( ingame, 0),
-    MPGET( mtrigs, 0),
-    MPGET( shop, 0),
-    MPGET( bossachv, 0),
-    MPGET( count,0),
-    ENDPTABLE
+    { "vnum", MOBPROTO_get_vnum, 0, STS_ACTIVE },
+    { "name", MOBPROTO_get_name, 0, STS_ACTIVE },
+    { "shortdescr", MOBPROTO_get_shortdescr, 0, STS_ACTIVE },
+    { "longdescr", MOBPROTO_get_longdescr, 0, STS_ACTIVE },
+    { "description", MOBPROTO_get_description, 0, STS_ACTIVE },
+    { "alignment", MOBPROTO_get_alignment, 0, STS_ACTIVE },
+    { "level", MOBPROTO_get_level, 0, STS_ACTIVE },
+    { "hppcnt", MOBPROTO_get_hppcnt, 0, STS_ACTIVE },
+    { "mnpcnt", MOBPROTO_get_mnpcnt, 0, STS_ACTIVE },
+    { "mvpcnt", MOBPROTO_get_mvpcnt, 0, STS_ACTIVE },
+    { "hrpcnt", MOBPROTO_get_hrpcnt, 0, STS_ACTIVE },
+    { "drpcnt", MOBPROTO_get_drpcnt, 0, STS_ACTIVE },
+    { "acpcnt", MOBPROTO_get_acpcnt, 0, STS_ACTIVE },
+    { "savepcnt", MOBPROTO_get_savepcnt, 0, STS_ACTIVE },
+    { "damtype", MOBPROTO_get_damtype, 0, STS_ACTIVE },
+    { "startpos", MOBPROTO_get_startpos, 0, STS_ACTIVE },
+    { "defaultpos", MOBPROTO_get_defaultpos, 0, STS_ACTIVE },
+    { "sex", MOBPROTO_get_sex, 0, STS_ACTIVE },
+    { "race", MOBPROTO_get_race, 0, STS_ACTIVE },
+    { "wealthpcnt", MOBPROTO_get_wealthpcnt, 0, STS_ACTIVE },
+    { "size", MOBPROTO_get_size, 0, STS_ACTIVE },
+    { "stance", MOBPROTO_get_stance, 0, STS_ACTIVE },
+    { "area", MOBPROTO_get_area, 0, STS_ACTIVE },
+    { "ingame", MOBPROTO_get_ingame, 0, STS_ACTIVE },
+    { "mtrigs", MOBPROTO_get_mtrigs, 0, STS_ACTIVE },
+    { "shop", MOBPROTO_get_shop, 0, STS_ACTIVE },
+    { "bossachv", MOBPROTO_get_bossachv, 0, STS_ACTIVE },
+    { "count", MOBPROTO_get_count, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE MOBPROTO_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE MOBPROTO_method_table [] =
 {
-    MPMETH( act, 0),
-    MPMETH( vuln, 0),
-    MPMETH( immune, 0),
-    MPMETH( offensive, 0),
-    MPMETH( resist, 0),
-    MPMETH( affected, 0),
-    ENDPTABLE
+    { "act", MOBPROTO_act, 0, STS_ACTIVE },
+    { "vuln", MOBPROTO_vuln, 0, STS_ACTIVE },
+    { "immune", MOBPROTO_immune, 0, STS_ACTIVE },
+    { "offensive", MOBPROTO_offensive, 0, STS_ACTIVE },
+    { "resist", MOBPROTO_resist, 0, STS_ACTIVE },
+    { "affected", MOBPROTO_affected, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 }; 
 
 /* end MOBPROTO section */
@@ -7614,23 +7554,25 @@ static int SHOP_buytype ( lua_State *LS )
 
 static const LUA_PROP_TYPE SHOP_get_table [] =
 {
-    SHOPGET( keeper, 0),
-    SHOPGET( profitbuy, 0),
-    SHOPGET( profitsell, 0),
-    SHOPGET( openhour, 0),
-    SHOPGET( closehour, 0),
-    ENDPTABLE
+    { "keeper", SHOP_get_keeper, 0, STS_ACTIVE },
+    { "profitbuy", SHOP_get_profitbuy, 0, STS_ACTIVE },
+    { "profitsell", SHOP_get_profitsell, 0, STS_ACTIVE },
+    { "openhour", SHOP_get_openhour, 0, STS_ACTIVE },
+    { "closehour", SHOP_get_closehour, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE SHOP_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE SHOP_method_table [] =
 {
-    SHOPMETH( buytype, 0), 
-    ENDPTABLE
+    { "buytype", SHOP_buytype, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 /* end SHOP section */
 
@@ -7760,26 +7702,26 @@ static int AFFECT_get_tag ( lua_State *LS )
 
 static const LUA_PROP_TYPE AFFECT_get_table [] =
 {
-    AFFGET( where, 0),
-    AFFGET( type, 0),
-    AFFGET( level, 0),
-    AFFGET( duration, 0),
-    AFFGET( location, 0),
-    AFFGET( modifier, 0),
-    AFFGET( bitvector, 0),
-    AFFGET( detectlevel, 0),
-    AFFGET( tag, 0),
-    ENDPTABLE
+    { "where", AFFECT_get_where, 0, STS_ACTIVE },
+    { "type", AFFECT_get_type, 0, STS_ACTIVE },
+    { "level", AFFECT_get_level, 0, STS_ACTIVE },
+    { "duration", AFFECT_get_duration, 0, STS_ACTIVE },
+    { "location", AFFECT_get_location, 0, STS_ACTIVE },
+    { "modifier", AFFECT_get_modifier, 0, STS_ACTIVE },
+    { "bitvector", AFFECT_get_bitvector, 0, STS_ACTIVE },
+    { "detectlevel", AFFECT_get_detectlevel, 0, STS_ACTIVE },
+    { "tag", AFFECT_get_tag, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE AFFECT_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE AFFECT_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 
@@ -7816,21 +7758,21 @@ static int PROG_get_security ( lua_State *LS )
 
 static const LUA_PROP_TYPE PROG_get_table [] =
 {
-    PROGGET( islua, 0),
-    PROGGET( vnum, 0),
-    PROGGET( code, 0),
-    PROGGET( security, 0),
-    ENDPTABLE
+    { "islua", PROG_get_islua, 0, STS_ACTIVE },
+    { "vnum", PROG_get_vnum, 0, STS_ACTIVE },
+    { "code", PROG_get_code, 0, STS_ACTIVE },
+    { "security", PROG_get_security, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE PROG_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE PROG_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 /* end PROG section */
 
@@ -7913,20 +7855,20 @@ static int TRIG_get_prog ( lua_State *LS )
 
 static const LUA_PROP_TYPE TRIG_get_table [] =
 {
-    TRIGGET( trigtype, 0),
-    TRIGGET( trigphrase, 0),
-    TRIGGET( prog, 0),
-    ENDPTABLE
+    { "trigtype", TRIG_get_trigtype, 0, STS_ACTIVE },
+    { "trigphrase", TRIG_get_trigphrase, 0, STS_ACTIVE },
+    { "prog", TRIG_get_prog, 0, STS_ACTIVE },
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE TRIG_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE TRIG_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 /* end TRIG section */
@@ -7958,21 +7900,22 @@ static int HELP_get_delete( lua_State *LS )
 
 static const LUA_PROP_TYPE HELP_get_table [] =
 {
-    GETP( HELP, level, 0 ),
-    GETP( HELP, keywords, 0 ),
-    GETP( HELP, text, 0 ),
-    GETP( HELP, delete, 0 ),
-    ENDPTABLE
+    { "level", HELP_get_level, 0, STS_ACTIVE },
+    { "keywords", HELP_get_keywords, 0, STS_ACTIVE },
+    { "text", HELP_get_text, 0, STS_ACTIVE },
+    { "delete", HELP_get_delete, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE HELP_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE HELP_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 /* end HELP section */
@@ -8069,24 +8012,26 @@ static int DESCRIPTOR_set_conhandler( lua_State *LS )
 
 static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
 {
-    GETP( DESCRIPTOR, character, 0 ),
-    GETP( DESCRIPTOR, constate, SEC_NOSCRIPT ),
-    GETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT ),
-    GETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT ),
-    ENDPTABLE
+    { "character", DESCRIPTOR_get_character, 0, STS_ACTIVE },
+    { "constate", DESCRIPTOR_get_constate, SEC_NOSCRIPT, STS_ACTIVE },
+    { "inbuf", DESCRIPTOR_get_inbuf, SEC_NOSCRIPT, STS_ACTIVE },
+    { "conhandler", DESCRIPTOR_get_conhandler, SEC_NOSCRIPT, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
 {
-    SETP( DESCRIPTOR, constate, SEC_NOSCRIPT),
-    SETP( DESCRIPTOR, inbuf, SEC_NOSCRIPT),
-    SETP( DESCRIPTOR, conhandler, SEC_NOSCRIPT),
-    ENDPTABLE
+    { "constate", DESCRIPTOR_set_constate, SEC_NOSCRIPT, STS_ACTIVE },
+    { "inbuf", DESCRIPTOR_set_inbuf, SEC_NOSCRIPT, STS_ACTIVE },
+    { "conhandler", DESCRIPTOR_set_conhandler, SEC_NOSCRIPT, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE DESCRIPTOR_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 /* end DESCRIPTOR section */
 
@@ -8119,21 +8064,22 @@ static int BOSSACHV_get_achp( lua_State *LS )
 
 static const LUA_PROP_TYPE BOSSACHV_get_table [] =
 {
-    GETP( BOSSACHV, qp, SEC_NOSCRIPT ),
-    GETP( BOSSACHV, exp, SEC_NOSCRIPT ),
-    GETP( BOSSACHV, gold, SEC_NOSCRIPT ),
-    GETP( BOSSACHV, achp, SEC_NOSCRIPT ), 
-    ENDPTABLE
+    { "qp", BOSSACHV_get_qp, SEC_NOSCRIPT, STS_ACTIVE },
+    { "exp", BOSSACHV_get_exp, SEC_NOSCRIPT, STS_ACTIVE },
+    { "gold", BOSSACHV_get_gold, SEC_NOSCRIPT, STS_ACTIVE },
+    { "achp", BOSSACHV_get_achp, SEC_NOSCRIPT, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE BOSSACHV_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE BOSSACHV_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 /* end BOSSACHV section */
 
@@ -8153,19 +8099,20 @@ static int BOSSREC_get_timestamp( lua_State *LS )
 
 static const LUA_PROP_TYPE BOSSREC_get_table [] =
 {
-    GETP( BOSSREC, vnum, 0),
-    GETP( BOSSREC, timestamp, 0),
-    ENDPTABLE
+    { "vnum", BOSSREC_get_vnum, 0, STS_ACTIVE },
+    { "timestamp", BOSSREC_get_timestamp, 0, STS_ACTIVE },
+
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE BOSSREC_set_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE BOSSREC_method_table [] =
 {
-    ENDPTABLE
+    { NULL, NULL, 0, 0 }
 };
 /* end BOSSREC section */
 
