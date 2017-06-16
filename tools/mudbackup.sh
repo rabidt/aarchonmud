@@ -58,8 +58,8 @@ function backup()
     fi
 
     # now sync to remote sites
-    rsync -aAv --delete $backup_dir/snapshots m256ada@rooflez.com:
-    rsync -aAv --delete $backup_dir/snapshots m256ada@chia.rooflez.com:
+    rsync -aAvzH --delete $backup_dir/snapshots m256ada@rooflez.com:
+    rsync -aAvzH --delete $backup_dir/snapshots m256ada@chia.rooflez.com:
 }
 
 backup > $TOOLS_DIR/backuplogfile.log 2>&1

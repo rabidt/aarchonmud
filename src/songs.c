@@ -102,7 +102,7 @@ static void wail_at( CHAR_DATA *ch, CHAR_DATA *victim, int level, int dam )
             af.where     = TO_AFFECTS;
             af.type      = gsn_iron_maiden;
             af.level     = level;
-            af.duration  = 0;
+            af.duration  = 1;
             af.location  = 0;
             af.modifier  = 0;
             af.bitvector = AFF_IRON_MAIDEN;

@@ -398,32 +398,32 @@ void fire_effect(void *vo, int level, int dam, int target)
  
 	if (obj->carried_by != NULL)
 		act_gag(msg, obj->carried_by, obj, NULL, TO_ALL, GAG_EFFECT);
-	else if (obj->in_room != NULL && obj->in_room->people != NULL)
-		act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
+    else if (obj->in_room != NULL && obj->in_room->people != NULL)
+        act_gag(msg, obj->in_room->people, obj, NULL, TO_ALL, GAG_EFFECT);
 
-		if (obj->contains)
-		{
-			/* dump the contents */
- 
-			for (t_obj = obj->contains; t_obj != NULL; t_obj = n_obj)
-			{
-				n_obj = t_obj->next_content;
-				obj_from_obj(t_obj);
-		if (obj->in_room != NULL)
-					obj_to_room(t_obj,obj->in_room);
-		else if (obj->carried_by != NULL)
-			obj_to_char(t_obj,obj->carried_by);
-		else
-		{
-			extract_obj(t_obj);
-			continue;
-		}
-		fire_effect(t_obj,level/2,dam/2,TARGET_OBJ);
-			}
-		}
- 
-		extract_obj( obj );
-	return;
+    if (obj->contains)
+    {
+        /* dump the contents */
+
+        for (t_obj = obj->contains; t_obj != NULL; t_obj = n_obj)
+        {
+            n_obj = t_obj->next_content;
+            obj_from_obj(t_obj);
+            if (obj->in_room != NULL)
+                obj_to_room(t_obj,obj->in_room);
+            else if (obj->carried_by != NULL)
+                obj_to_char(t_obj,obj->carried_by);
+            else
+            {
+                extract_obj(t_obj);
+                continue;
+            }
+            fire_effect(t_obj,level/2,dam/2,TARGET_OBJ);
+        }
+    }
+
+    extract_obj( obj );
+    return;
 	}
 }
 
@@ -635,28 +635,28 @@ void dumb_effect(void *vo, int level, int dam, int target)
 
 void paralysis_effect(void *vo,int level, int dam, int target)
 {
-	if (target == TARGET_CHAR)   /* do the effect on a victim */
-	{
-	    CHAR_DATA *victim = (CHAR_DATA *) vo;
-	    
-	    /* chance of poisoning */
-	    if (!number_bits(1) && !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_POISON))
-	    {
-		AFFECT_DATA af;
-		
-		act_gag("A paralysis poison makes your limbs feel heavy and weak.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
-		act_gag("$n is consumed by a paralysis poison.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
-		
-		af.where     = TO_AFFECTS;
-		af.type      = gsn_paralysis_poison;
-		af.level     = level;
-		af.duration  = level/35;
-		af.location  = APPLY_AGI;
-		af.modifier  = -1 * (level/12);
-		af.bitvector = AFF_PARALYSIS;
-		affect_join( victim, &af );
-	    }
+    if (target == TARGET_CHAR)   /* do the effect on a victim */
+    {
+        CHAR_DATA *victim = (CHAR_DATA *) vo;
 
-	return;
-	}
+        /* chance of poisoning */
+        if (!number_bits(1) && !saves_spell(victim, NULL, level / 4 + dam / 20, DAM_POISON))
+        {
+            AFFECT_DATA af;
+
+            act_gag("A paralysis poison makes your limbs feel heavy and weak.", victim, NULL, NULL, TO_CHAR, GAG_EFFECT);
+            act_gag("$n is consumed by a paralysis poison.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
+
+            af.where     = TO_AFFECTS;
+            af.type      = gsn_paralysis_poison;
+            af.level     = level;
+            af.duration  = level/35;
+            af.location  = APPLY_AGI;
+            af.modifier  = -1 * (level/12);
+            af.bitvector = AFF_PARALYSIS;
+            affect_join( victim, &af );
+        }
+
+        return;
+    }
 }

@@ -154,7 +154,7 @@ DEF_DO_FUN(do_rprun)
             room->vnum,
             ch->name);
 
-    result=lua_room_program( NULL, vnum, pRcode->code, room,
+    result=lua_room_program( g_mud_LS, NULL, vnum, pRcode->code, room,
            ch, NULL, NULL, NULL, NULL,
            RTRIG_CALL, pRcode->security );
 

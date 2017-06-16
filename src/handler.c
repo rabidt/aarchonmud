@@ -36,6 +36,7 @@
 #include "magic.h"
 #include "recycle.h"
 #include "tables.h"
+#include "lua_arclib.h"
 #include "lua_scripting.h"
 #include "lookup.h"
 #include "simsave.h"
@@ -109,15 +110,15 @@ int count_users(OBJ_DATA *obj)
 {
     CHAR_DATA *fch;
     int count = 0;
-    
+
     if (obj->in_room == NULL)
         return 0;
-    
+
     for (fch = obj->in_room->people; fch != NULL; fch = fch->next_in_room)
         if (fch->on == obj)
             count++;
-        
-        return count;
+
+    return count;
 }
 	
 /* returns material number */
@@ -158,21 +159,21 @@ int weapon_type (const char *name)
 const char *item_name(int item_type)
 {
     int type;
-    
+
     for (type = 0; item_table[type].name != NULL; type++)
         if (item_type == item_table[type].type)
             return item_table[type].name;
-        return "none";
+    return "none";
 }
 
 const char *weapon_name( int weapon_type)
 {
     int type;
-    
+
     for (type = 0; weapon_table[type].name != NULL; type++)
         if (weapon_type == weapon_table[type].type)
             return weapon_table[type].name;
-        return "exotic";
+    return "exotic";
 }
 
 int attack_exact_lookup  (const char *name)
@@ -1021,73 +1022,73 @@ void affect_check(CHAR_DATA *ch,int where,int vector)
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;
-    
+
     if (where == TO_OBJECT || where == TO_WEAPON || vector == 0)
         return;
 
-	if (vector>0)
-	{
-	    struct race_type *race = get_morph_race_type( ch );
+    if (vector>0)
+    {
+        struct race_type *race = get_morph_race_type( ch );
 
-	    switch (where)
-	    {
-	    case TO_AFFECTS:
-		if ( IS_SET(race->affect_field, vector) )
-		{
-		    SET_BIT(ch->affect_field, vector);
-		    return;
-		}
-		break;
-	    case TO_IMMUNE:
-		if ( IS_SET(race->imm, vector) )
-		{
-		    SET_BIT(ch->imm_flags, vector);
-		    return;
-		}
-		break;
-	    case TO_RESIST:
-		if ( IS_SET(race->res, vector) )
-		{
-		    SET_BIT(ch->res_flags, vector);
-		    return;
-		}
-		break;
-	    case TO_VULN:
-		if ( IS_SET(race->vuln, vector) )
-		{
-		    SET_BIT(ch->vuln_flags, vector);
-		    return;
-		}
-		break;
-	    }
-	}
-    
+        switch (where)
+        {
+            case TO_AFFECTS:
+                if ( IS_SET(race->affect_field, vector) )
+                {
+                    SET_BIT(ch->affect_field, vector);
+                    return;
+                }
+                break;
+            case TO_IMMUNE:
+                if ( IS_SET(race->imm, vector) )
+                {
+                    SET_BIT(ch->imm_flags, vector);
+                    return;
+                }
+                break;
+            case TO_RESIST:
+                if ( IS_SET(race->res, vector) )
+                {
+                    SET_BIT(ch->res_flags, vector);
+                    return;
+                }
+                break;
+            case TO_VULN:
+                if ( IS_SET(race->vuln, vector) )
+                {
+                    SET_BIT(ch->vuln_flags, vector);
+                    return;
+                }
+                break;
+        }
+    }
+
     for (paf = ch->affected; paf != NULL; paf = paf->next)
         if (paf->where == where && paf->bitvector == vector)
         {
-	    set_affect_flag( ch, paf );
+            set_affect_flag( ch, paf );
             return;
         }
-        
-        for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
-        {
-            if (obj->wear_loc == -1)
-                continue;
-            
-            for (paf = obj->affected; paf != NULL; paf = paf->next)
-                if (paf->where == where && paf->bitvector == vector)
-                {
-		    set_affect_flag( ch, paf );
-                    return;
-                }
-                
-	    for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
-		if (paf->where == where && paf->bitvector == vector)
-                {
-		    set_affect_flag( ch, paf );
-		    return;
-		}
-        }
+
+    for (obj = ch->carrying; obj != NULL; obj = obj->next_content)
+    {
+        if (obj->wear_loc == -1)
+            continue;
+
+        for (paf = obj->affected; paf != NULL; paf = paf->next)
+            if (paf->where == where && paf->bitvector == vector)
+            {
+                set_affect_flag( ch, paf );
+                return;
+            }
+
+        for (paf = obj->pIndexData->affected; paf != NULL; paf = paf->next)
+            if (paf->where == where && paf->bitvector == vector)
+            {
+                set_affect_flag( ch, paf );
+                return;
+            }
+    }
 }
 
 /*
@@ -2200,44 +2201,44 @@ void obj_from_room( OBJ_DATA *obj )
 {
     ROOM_INDEX_DATA *in_room;
     CHAR_DATA *ch;
-    
+
     if ( ( in_room = obj->in_room ) == NULL )
     {
         bug( "obj_from_room: NULL.", 0 );
         return;
     }
-    
+
     for (ch = in_room->people; ch != NULL; ch = ch->next_in_room)
         if (ch->on == obj)
             ch->on = NULL;
-        
-        if ( obj == in_room->contents )
+
+    if ( obj == in_room->contents )
+    {
+        in_room->contents = obj->next_content;
+    }
+    else
+    {
+        OBJ_DATA *prev;
+
+        for ( prev = in_room->contents; prev; prev = prev->next_content )
         {
-            in_room->contents = obj->next_content;
-        }
-        else
-        {
-            OBJ_DATA *prev;
-            
-            for ( prev = in_room->contents; prev; prev = prev->next_content )
+            if ( prev->next_content == obj )
             {
-                if ( prev->next_content == obj )
-                {
-                    prev->next_content = obj->next_content;
-                    break;
-                }
-            }
-            
-            if ( prev == NULL )
-            {
-                bug( "Obj_from_room: obj not found.", 0 );
-                return;
+                prev->next_content = obj->next_content;
+                break;
             }
         }
-        
-        obj->in_room      = NULL;
-        obj->next_content = NULL;
-        return;
+
+        if ( prev == NULL )
+        {
+            bug( "Obj_from_room: obj not found.", 0 );
+            return;
+        }
+    }
+
+    obj->in_room      = NULL;
+    obj->next_content = NULL;
+    return;
 }
 
 
@@ -3837,6 +3838,16 @@ bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
     if ( ch->in_room == pRoomIndex )
         return TRUE;
     
+    // extra safety-nets as we had crash bugs here
+    if ( pRoomIndex == NULL )
+        return FALSE;
+    
+    if ( pRoomIndex->area == NULL )
+    {
+        bugf("NULL area for room %d", pRoomIndex->vnum);
+        return FALSE;
+    }
+    
     if ( IS_SET(pRoomIndex->area->area_flags, AREA_REMORT)
         && !IS_IMMORTAL(ch)
         && !(ch->in_room && ch->in_room->area == pRoomIndex->area) )
@@ -3979,36 +3990,34 @@ bool can_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 #define LIGHT_DARK     0
-#define LIGHT_NORMAL   1
-#define LIGHT_GLOW     2
-#define LIGHT_BRIGHT   3
+#define LIGHT_NORMAL   20
+#define LIGHT_BRIGHT   100
 
 /* returns how bright a character is */
 int light_status( CHAR_DATA *ch )
 {
-    int min_light, wear;
+    int light_level, wear;
     OBJ_DATA *obj;
 
     if ( get_eq_char(ch, WEAR_LIGHT) != NULL || IS_SET(ch->form, FORM_BRIGHT) )
-	return LIGHT_BRIGHT;
+        return LIGHT_BRIGHT;
    
     if ( IS_AFFECTED(ch, AFF_DARKNESS) )
-	min_light = LIGHT_DARK;
-    else
-	min_light = LIGHT_NORMAL;
-
-    /* check for glowing or non_dark eq */
+        return LIGHT_DARK;
+    
+    /* check for glowing or dark eq */
+    light_level = LIGHT_NORMAL;
     for ( wear = WEAR_FINGER_L; wear <= WEAR_SECONDARY; wear++ )
     {
-	obj = get_eq_char( ch, wear );
-	if ( obj == NULL )
-	    continue;
-	if ( IS_OBJ_STAT(obj, ITEM_GLOW) )
-	    return LIGHT_GLOW;
-	if ( !IS_OBJ_STAT(obj, ITEM_DARK) )
-	    min_light = LIGHT_NORMAL;
+        obj = get_eq_char( ch, wear );
+        if ( obj == NULL )
+            continue;
+        if ( IS_OBJ_STAT(obj, ITEM_GLOW) )
+            light_level += 4;
+        if ( IS_OBJ_STAT(obj, ITEM_DARK) )
+            light_level -= 1;
     }
-    return min_light;
+    return URANGE(LIGHT_DARK, light_level, LIGHT_BRIGHT);
 }
 
 /*
@@ -4062,24 +4071,11 @@ bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
     roll_victim = roll_victim * hide_skill / 100;
     
     /* easier to hide in dark rooms */
-    if (room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
-        (!IS_AFFECTED(ch, AFF_INFRARED) || IS_SET(victim->form, FORM_COLD_BLOOD)))
-	switch ( light_status(victim) )
-	{
-	case LIGHT_DARK:
-	    roll_victim *= 2;
-		break;
-	case LIGHT_NORMAL: 
-	    roll_victim *= 2;
-		break;
-	case LIGHT_GLOW: 
-	    roll_victim *= 2;
-		break;
-	case LIGHT_BRIGHT: 
-		break;
-	default:
-		break;
-	}
+    if ( room_is_dim(victim->in_room) && !IS_AFFECTED(ch, AFF_DARK_VISION) &&
+        (!IS_AFFECTED(ch, AFF_INFRARED) || IS_SET(victim->form, FORM_COLD_BLOOD)) )
+    {
+        roll_victim += roll_victim * (LIGHT_BRIGHT - light_status(victim)) / LIGHT_BRIGHT;
+    }
     
     /* small races can hide better */
     roll_victim = roll_victim * (5 + SIZE_MEDIUM - victim->size) / 5;

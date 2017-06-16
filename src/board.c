@@ -188,43 +188,43 @@ static void archive_note (BOARD_DATA *board, NOTE_DATA *pnote)
 /* Find the number of a board */
 int board_number (const BOARD_DATA *board)
 {
-   int i;
-   
-   for (i = 0; i < MAX_BOARD; i++)
-      if (board == &boards[i])
-         return i;
-      
-      return -1;
+    int i;
+
+    for (i = 0; i < MAX_BOARD; i++)
+        if (board == &boards[i])
+            return i;
+
+    return -1;
 }
 
 /* Find a board number based on  a string */
 int board_lookup (const char *name)
 {
-   int i;
-   
-   for (i = 0; i < MAX_BOARD; i++)
-      if (!str_cmp (boards[i].short_name, name))
-         return i;
-      
-      return BOARD_NOTFOUND;
+    int i;
+
+    for (i = 0; i < MAX_BOARD; i++)
+        if (!str_cmp (boards[i].short_name, name))
+            return i;
+
+    return BOARD_NOTFOUND;
 }
 
 
 /* Find the nth note on a board. Return NULL if ch has no access to that note */
 static NOTE_DATA* find_note (CHAR_DATA *ch, BOARD_DATA *board, int num)
 {
-   int count = 0;
-   NOTE_DATA *p;
-   
-   for (p = board->note_first; p ; p = p->next)
-      if (++count == num)
-         break;
-      
-      if ( (count == num) && is_note_to (ch, p))
-         return p;
-      else
-         return NULL;
-      
+    int count = 0;
+    NOTE_DATA *p;
+
+    for (p = board->note_first; p ; p = p->next)
+        if (++count == num)
+            break;
+
+    if ( (count == num) && is_note_to (ch, p))
+        return p;
+    else
+        return NULL;
+
 }
 
 /* save a single board */
@@ -645,51 +645,51 @@ static void do_nwrite (CHAR_DATA *ch, const char *argument)
 /* Read next note in current group. If no more notes, go to next board */
 static void do_nread (CHAR_DATA *ch, const char *argument)
 {
-   NOTE_DATA *p;
-   int count = 0, number;
-   time_t *last_note = &ch->pcdata->last_note[board_number(ch->pcdata->board)];
-   
-   if (is_number (argument))
-   {
-      number = atoi(argument);
-      
-      for (p = ch->pcdata->board->note_first; p; p = p->next)
-         if (++count == number)
-            break;
-         
-         if (!p || !is_note_to(ch, p))
+    NOTE_DATA *p;
+    int count = 0, number;
+    time_t *last_note = &ch->pcdata->last_note[board_number(ch->pcdata->board)];
+
+    if (is_number (argument))
+    {
+        number = atoi(argument);
+
+        for (p = ch->pcdata->board->note_first; p; p = p->next)
+            if (++count == number)
+                break;
+
+        if (!p || !is_note_to(ch, p))
             send_to_char ("No such note.\n\r",ch);
-         else
-         {
+        else
+        {
             show_note_to_char (ch,p,count);
             *last_note =  UMAX (*last_note, p->date_stamp);
-         }
-   }
-   else /* just next one */
-   {
-      char buf[200];
-      
-      count = 1;
-      for (p = ch->pcdata->board->note_first; p ; p = p->next, count++)
-         if ((p->date_stamp > *last_note) && is_note_to(ch,p) && !is_exact_name(ch->name, p->sender))
-         {
-            show_note_to_char (ch,p,count);
-            /* Advance if new note is newer than the currently newest for that char */
-            *last_note =  UMAX (*last_note, p->date_stamp);
-            return;
-         }
-         
-         send_to_char ("No new notes on this board.\n\r",ch);
-         
-         if (ch->pcdata->in_progress)
+        }
+    }
+    else /* just next one */
+    {
+        char buf[200];
+
+        count = 1;
+        for (p = ch->pcdata->board->note_first; p ; p = p->next, count++)
+            if ((p->date_stamp > *last_note) && is_note_to(ch,p) && !is_exact_name(ch->name, p->sender))
+            {
+                show_note_to_char (ch,p,count);
+                /* Advance if new note is newer than the currently newest for that char */
+                *last_note =  UMAX (*last_note, p->date_stamp);
+                return;
+            }
+
+        send_to_char ("No new notes on this board.\n\r",ch);
+
+        if (ch->pcdata->in_progress)
             sprintf (buf, "You have a note in progress on this board.\n\r" );
-         else if (next_board (ch))
+        else if (next_board (ch))
             sprintf (buf, "Changed to next board, %s.\n\r", ch->pcdata->board->short_name );
-         else
+        else
             sprintf (buf, "There are no more boards.\n\r");
 
-         send_to_char (buf,ch);
-   }
+        send_to_char (buf,ch);
+    }
 }
 
 /* Remove a note */
@@ -952,54 +952,54 @@ DEF_DO_FUN(do_board)
    /* Change board based on its number */
    if (is_number(argument))
    {
-      count = 0;
-      number = atoi(argument);
-      for (i = 0; i < MAX_BOARD; i++)
-         if (unread_notes(ch,&boards[i]) != BOARD_NOACCESS)		
-            if (++count == number)
-               break;
-            
-            if (count == number) /* found the board.. change to it */
-            {
-               ch->pcdata->board = &boards[i];
-               sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
-                  (get_trust(ch) < boards[i].write_level) 
-                  ? "You can only read here" 
-                  : "You can both read and write here");
-               send_to_char (buf,ch);
-            }			
-            else /* so such board */
-               send_to_char ("No such board.\n\r",ch);
-            
-            return;
+       count = 0;
+       number = atoi(argument);
+       for (i = 0; i < MAX_BOARD; i++)
+           if (unread_notes(ch,&boards[i]) != BOARD_NOACCESS)		
+               if (++count == number)
+                   break;
+
+       if (count == number) /* found the board.. change to it */
+       {
+           ch->pcdata->board = &boards[i];
+           sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
+                   (get_trust(ch) < boards[i].write_level) 
+                   ? "You can only read here" 
+                   : "You can both read and write here");
+           send_to_char (buf,ch);
+       }			
+       else /* so such board */
+           send_to_char ("No such board.\n\r",ch);
+
+       return;
    }
    
    /* Non-number given, find board with that name */
    
    for (i = 0; i < MAX_BOARD; i++)
-      /* BC: Using str_prefix() vs. str_cmp() here for easier user input. */
-      if (!str_prefix(argument, boards[i].short_name))
-         break;
-      
-      if (i == MAX_BOARD)
-      {
-         send_to_char ("No such board.\n\r",ch);
-         return;
-      }
-      
-      /* Does ch have access to this board? */	
-      if (unread_notes(ch,&boards[i]) == BOARD_NOACCESS)
-      {
-         send_to_char ("No such board.\n\r",ch);
-         return;
-      }
-      
-      ch->pcdata->board = &boards[i];
-      sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
-         (get_trust(ch) < boards[i].write_level) 
-         ? "You can only read here"  
-         : "You can both read and write here");
-      send_to_char (buf,ch);
+       /* BC: Using str_prefix() vs. str_cmp() here for easier user input. */
+       if (!str_prefix(argument, boards[i].short_name))
+           break;
+
+   if (i == MAX_BOARD)
+   {
+       send_to_char ("No such board.\n\r",ch);
+       return;
+   }
+
+   /* Does ch have access to this board? */	
+   if (unread_notes(ch,&boards[i]) == BOARD_NOACCESS)
+   {
+       send_to_char ("No such board.\n\r",ch);
+       return;
+   }
+
+   ch->pcdata->board = &boards[i];
+   sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
+           (get_trust(ch) < boards[i].write_level) 
+           ? "You can only read here"  
+           : "You can both read and write here");
+   send_to_char (buf,ch);
 }
 
 /* Send a note to someone on the personal board */
@@ -1096,42 +1096,42 @@ void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument)
    case DEF_INCLUDE: /* forced default */
       if (!is_exact_name (ch->pcdata->board->names, buf))
       {
-         strcat (buf, " ");
-         strcat (buf, ch->pcdata->board->names);
-         ch->pcdata->in_progress->to_list = str_dup(buf);
-         
-         printf_to_char(ch,"\n\rYou did not specify %s as recipient, so it was automatically added.\n\r"
-            "{YNew To{x:  %s\n\r",
-            ch->pcdata->board->names, ch->pcdata->in_progress->to_list);
+          strcat (buf, " ");
+          strcat (buf, ch->pcdata->board->names);
+          ch->pcdata->in_progress->to_list = str_dup(buf);
+
+          printf_to_char(ch,"\n\rYou did not specify %s as recipient, so it was automatically added.\n\r"
+                  "{YNew To{x:  %s\n\r",
+                  ch->pcdata->board->names, ch->pcdata->in_progress->to_list);
       }
       else
-         if (!buf[0])
-         {
-            send_to_char("You must specify a recipient.\n\r"
-               "{YTo{x:      ",ch);
-            return;
-         }
-         else
-            ch->pcdata->in_progress->to_list = str_dup (buf);
-         break;
+          if (!buf[0])
+          {
+              send_to_char("You must specify a recipient.\n\r"
+                      "{YTo{x:      ",ch);
+              return;
+          }
+          else
+              ch->pcdata->in_progress->to_list = str_dup (buf);
+      break;
          
    case DEF_EXCLUDE: /* forced exclude */
       if (is_exact_name (ch->pcdata->board->names, buf))
       {
-         printf_to_char(ch, "You are not allowed to send notes to %s on this board. Try again.\n\r"
-            "{YTo{x:      ", ch->pcdata->board->names);
-         return; /* return from nanny, not changing to the next state! */
+          printf_to_char(ch, "You are not allowed to send notes to %s on this board. Try again.\n\r"
+                  "{YTo{x:      ", ch->pcdata->board->names);
+          return; /* return from nanny, not changing to the next state! */
       }
       else
-         if (!buf[0])
-         {
-            send_to_char("You must specify a recipient.\n\r"
-               "{YTo{x:      ",ch);
-            return;
-         }
-         else
-            ch->pcdata->in_progress->to_list = str_dup (buf);
-         break;
+          if (!buf[0])
+          {
+              send_to_char("You must specify a recipient.\n\r"
+                      "{YTo{x:      ",ch);
+              return;
+          }
+          else
+              ch->pcdata->in_progress->to_list = str_dup (buf);
+      break;
          
    }		
    
@@ -1192,50 +1192,50 @@ void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument)
 
 void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument)
 {
-   CHAR_DATA *ch = d->character;
-   char buf[MAX_STRING_LENGTH];
-   time_t expire;
-   int days;
-   
-   if (!ch->pcdata->in_progress)
-   {
-      d->connected = CON_PLAYING;
-      bug ("board: In CON_NOTE_EXPIRE, but no note in progress",0);
-      return;
-   }
-   
-   /* Numeric argument. no tilde smashing */
-   strcpy (buf, argument);
-   if (!buf[0]) /* assume default expire */
-      days = 	ch->pcdata->board->purge_days;
-   else /* use this expire */
-      if (!is_number(buf))
-      {
-         send_to_char("Write the number of days!\n\r", ch);
-         send_to_char("{YExpire{x:  ", ch);
-         return;
-      }
-      else
-      {
-         days = atoi (buf);
-         if (days <= 0)
-         {
-            send_to_char("This is a positive MUD. Use positive numbers only! :)\n\r", ch);
+    CHAR_DATA *ch = d->character;
+    char buf[MAX_STRING_LENGTH];
+    time_t expire;
+    int days;
+
+    if (!ch->pcdata->in_progress)
+    {
+        d->connected = CON_PLAYING;
+        bug ("board: In CON_NOTE_EXPIRE, but no note in progress",0);
+        return;
+    }
+
+    /* Numeric argument. no tilde smashing */
+    strcpy (buf, argument);
+    if (!buf[0]) /* assume default expire */
+        days = 	ch->pcdata->board->purge_days;
+    else /* use this expire */
+        if (!is_number(buf))
+        {
+            send_to_char("Write the number of days!\n\r", ch);
             send_to_char("{YExpire{x:  ", ch);
             return;
-         }
-      }
-      
-      expire = current_time + (days*24L*3600L); /* 24 hours, 3600 seconds */
-      
-      ch->pcdata->in_progress->expire = expire;
-      
-      /* note that ctime returns XXX\n so we only need to add an \r */
-      
-      send_to_char ("\n\rEnter text. Type {+END{x, {+@{x, or {+.q{x to finish, {+.h{x for help.\n\r", ch );
-      send_to_char( note_line, ch );
-      
-      d->connected = CON_NOTE_TEXT;
+        }
+        else
+        {
+            days = atoi (buf);
+            if (days <= 0)
+            {
+                send_to_char("This is a positive MUD. Use positive numbers only! :)\n\r", ch);
+                send_to_char("{YExpire{x:  ", ch);
+                return;
+            }
+        }
+
+    expire = current_time + (days*24L*3600L); /* 24 hours, 3600 seconds */
+
+    ch->pcdata->in_progress->expire = expire;
+
+    /* note that ctime returns XXX\n so we only need to add an \r */
+
+    send_to_char ("\n\rEnter text. Type {+END{x, {+@{x, or {+.q{x to finish, {+.h{x for help.\n\r", ch );
+    send_to_char( note_line, ch );
+
+    d->connected = CON_NOTE_TEXT;
 }
 
 void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)

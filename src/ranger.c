@@ -538,15 +538,15 @@ DEF_DO_FUN(do_tame)
 
     if ( check_cha_follow(ch, victim->level) < victim->level )
         return;
-    
-	if ( IS_AFFECTED(victim, AFF_CHARM)
-	     || IS_AFFECTED(ch, AFF_CHARM)
-	     || ch->level < victim->level
-	     || IS_SET(victim->imm_flags, IMM_CHARM) )
-	{
-	   act("$N growls viciously at you.", ch, NULL, victim, TO_CHAR);
-	   return;
-	}
+
+    if ( IS_AFFECTED(victim, AFF_CHARM)
+            || IS_AFFECTED(ch, AFF_CHARM)
+            || ch->level < victim->level
+            || IS_SET(victim->imm_flags, IMM_CHARM) )
+    {
+        act("$N growls viciously at you.", ch, NULL, victim, TO_CHAR);
+        return;
+    }
 
 	/* Modify based on size difference, charisma of ch, and int of victim.*/
 	skill += 3 * (ch->size - victim->size);
