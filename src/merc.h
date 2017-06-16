@@ -24,6 +24,10 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
+#ifndef MERC_H
+#define MERC_H
+
+
 #include <lua.h>
 #include "booltype.h"
 #include "protocol.h"
@@ -1587,7 +1591,7 @@ struct  kill_data
 #define AFF_OVERCHARGE        63
 #define AFF_GIANT_STRENGTH    64
 #define AFF_PHASE             65
-#define AFF_SHROUD            66
+//#define AFF_SHROUD          66
 #define AFF_PARALYSIS         67
 #define AFF_INFECTIOUS_ARROW  68
 #define AFF_FERVENT_RAGE      69
@@ -4732,6 +4736,7 @@ CD *    check_bodyguard( CHAR_DATA *attacker, CHAR_DATA *victim );
 CD *    get_local_leader( CHAR_DATA *ch );
 CD *    get_combat_victim( CHAR_DATA *ch, const char *argument );
 bool    is_ranged_weapon( OBJ_DATA *weapon );
+bool    is_wielding_twohanded( CHAR_DATA *ch, OBJ_DATA *weapon );
 bool    check_lose_stance( CHAR_DATA *ch );
 bool    destance( CHAR_DATA *ch, int attack_mastery );
 bool    disarm( CHAR_DATA *ch, CHAR_DATA *victim, bool quiet, int attack_mastery );
@@ -4945,6 +4950,7 @@ int get_obj_number  args( ( OBJ_DATA *obj ) );
 int get_obj_weight  args( ( OBJ_DATA *obj ) );
 int get_true_weight args( ( OBJ_DATA *obj ) );
 int get_stance_index( int sn );
+int light_status( CHAR_DATA *ch );
 bool    room_is_dark    args( ( ROOM_INDEX_DATA *pRoomIndex ) );
 bool    room_is_dim( ROOM_INDEX_DATA *pRoomIndex );
 bool    room_is_sunlit( ROOM_INDEX_DATA *pRoomIndex );
@@ -5540,33 +5546,4 @@ void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 #define ACT_ARG_TEXT 2
 #define ACT_ARG_CHARACTER 3
 
-bool valid_UD( void *ud );
-#define declf( ltype, ctype ) \
-ctype * check_ ## ltype ( lua_State *LS, int index ); \
-bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
-ctype * alloc_ ## ltype (void) ;\
-void    free_ ## ltype ( ctype * ud );\
-bool    valid_ ## ltype ( ctype *ud );\
-int     count_ ## ltype ( void );
-
-declf(CH, CHAR_DATA)
-declf(OBJ, OBJ_DATA)
-declf(AREA, AREA_DATA)
-declf(ROOM, ROOM_INDEX_DATA)
-declf(EXIT, EXIT_DATA)
-declf(RESET, RESET_DATA)
-declf(MOBPROTO, MOB_INDEX_DATA)
-declf(OBJPROTO, OBJ_INDEX_DATA)
-declf(PROG, PROG_CODE)
-declf(MTRIG, PROG_LIST)
-declf(OTRIG, PROG_LIST)
-declf(ATRIG, PROG_LIST)
-declf(RTRIG, PROG_LIST)
-declf(SHOP, SHOP_DATA)
-declf(AFFECT, AFFECT_DATA)
-declf(HELP, HELP_DATA)
-declf(DESCRIPTOR, DESCRIPTOR_DATA)
-declf(BOSSACHV, BOSSACHV)
-declf(BOSSREC, BOSSREC)
-#undef declf
+#endif // MERC_H

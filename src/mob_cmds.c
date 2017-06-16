@@ -1349,15 +1349,15 @@ DEF_DO_FUN(do_mpforce)
     }
     else
     {
-	CHAR_DATA *victim;
+        CHAR_DATA *victim;
 
-    if ( (victim = pget_char_room(ch, arg)) == NULL )
-        return;
+        if ( (victim = pget_char_room(ch, arg)) == NULL )
+            return;
 
-	if ( victim == ch )
-	    return;
+        if ( victim == ch )
+            return;
 
-	interpret( victim, argument );
+        interpret( victim, argument );
     }
 
     return;

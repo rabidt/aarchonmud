@@ -24,7 +24,8 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
-
+#ifndef MAGIC_H
+#define MAGIC_H
 
 /*
  * Spell functions.
@@ -248,3 +249,5 @@ DECLARE_SPELL_FUN( spell_bardic_knowledge );
 // every spell function should return early (after any syntax/target/unable checks) if called for checking purposes only
 #define SPELL_CHECK_RETURN if (check) return TRUE;
 
+
+#endif // MAGIC_H

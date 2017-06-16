@@ -24,6 +24,8 @@
 *   By using this code, you have agreed to follow the terms of the     *
 *   ROM license, in the file Rom24/doc/rom.license             *
 ***************************************************************************/
+#ifndef INTERP_H
+#define INTERP_H
 
 /* this is a listing of all the commands and command related data */
 
@@ -613,3 +615,5 @@ DECLARE_DO_FUN( do_changelog);
 DECLARE_DO_FUN( do_ptitle);
 DECLARE_DO_FUN( do_protocol);
 DECLARE_DO_FUN( do_dxport);
+
+#endif // INTERP_H

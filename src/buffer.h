@@ -1,4 +1,6 @@
 /*** buffer.h ****/
+#ifndef BUFFER_H
+#define BUFFER_H
 
 /*#define BUFFER_DEBUG*/
 
@@ -30,3 +32,4 @@ int rsprintf(char *buf, const char *fmt, ...);
 
 char* next_sr_buf( SR_BUF *sr_buf );
 
+#endif // BUFFER_H

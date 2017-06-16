@@ -2028,7 +2028,8 @@ void show_string(struct descriptor_data *d, char *input)
         {
             *scan = '\0';
             write_to_buffer(d,buffer,strlen(buffer));
-            for (chk = d->showstr_point; isspace(*chk); chk++);
+            for (chk = d->showstr_point; isspace(*chk); chk++)
+                ;
             {
                 if (!*chk)
                 {
