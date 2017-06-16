@@ -1,29 +1,6 @@
 #ifndef LUA_ARCLIB_H
 #define LUA_ARCLIB_H
 
-struct lua_prop_type;
-typedef struct lua_obj_type
-{
-    const char * const type_name;
-
-    bool (* const valid)( void * );
-    void *(* const check)( lua_State *, int );
-    bool (* const is)( lua_State *, int );
-    bool (* const push)( lua_State *, void * );
-    void *(* const alloc)( void );
-    void (* const free)( void * );
-
-    int (* const index)( lua_State * );
-    int (* const newindex)( lua_State * );
-
-    void (* const reg)( lua_State * );
-
-    const struct lua_prop_type * const get_table;
-    const struct lua_prop_type * const set_table;
-    const struct lua_prop_type * const method_table;
-
-    int count;
-} LUA_OBJ_TYPE;
 
 typedef struct lua_extra_val
 {
@@ -37,27 +14,34 @@ typedef struct lua_extra_val
 
 } LUA_EXTRA_VAL;
 
-void type_init( lua_State *LS );
+void arclib_type_init( lua_State *LS );
 
-extern LUA_OBJ_TYPE CH_type;
-extern LUA_OBJ_TYPE OBJ_type;
-extern LUA_OBJ_TYPE AREA_type;
-extern LUA_OBJ_TYPE ROOM_type;
-extern LUA_OBJ_TYPE EXIT_type;
-extern LUA_OBJ_TYPE RESET_type;
-extern LUA_OBJ_TYPE OBJPROTO_type;
-extern LUA_OBJ_TYPE MOBPROTO_type;
-extern LUA_OBJ_TYPE SHOP_type;
-extern LUA_OBJ_TYPE PROG_type;
-extern LUA_OBJ_TYPE MTRIG_type;
-extern LUA_OBJ_TYPE OTRIG_type;
-extern LUA_OBJ_TYPE ATRIG_type;
-extern LUA_OBJ_TYPE RTRIG_type;
-extern LUA_OBJ_TYPE AFFECT_type;
-extern LUA_OBJ_TYPE HELP_type;
-extern LUA_OBJ_TYPE DESCRIPTOR_type;
-extern LUA_OBJ_TYPE BOSSACHV_type;
-extern LUA_OBJ_TYPE BOSSREC_type;
+typedef struct lua_obj_type LUA_OBJ_TYPE;
+
+extern LUA_OBJ_TYPE * const p_CH_type;
+extern LUA_OBJ_TYPE * const p_OBJ_type;
+extern LUA_OBJ_TYPE * const p_AREA_type;
+extern LUA_OBJ_TYPE * const p_ROOM_type;
+extern LUA_OBJ_TYPE * const p_EXIT_type;
+extern LUA_OBJ_TYPE * const p_RESET_type;
+extern LUA_OBJ_TYPE * const p_OBJPROTO_type;
+extern LUA_OBJ_TYPE * const p_MOBPROTO_type;
+extern LUA_OBJ_TYPE * const p_SHOP_type;
+extern LUA_OBJ_TYPE * const p_PROG_type;
+extern LUA_OBJ_TYPE * const p_MTRIG_type;
+extern LUA_OBJ_TYPE * const p_OTRIG_type;
+extern LUA_OBJ_TYPE * const p_ATRIG_type;
+extern LUA_OBJ_TYPE * const p_RTRIG_type;
+extern LUA_OBJ_TYPE * const p_AFFECT_type;
+extern LUA_OBJ_TYPE * const p_HELP_type;
+extern LUA_OBJ_TYPE * const p_DESCRIPTOR_type;
+extern LUA_OBJ_TYPE * const p_BOSSACHV_type;
+extern LUA_OBJ_TYPE * const p_BOSSREC_type;
+
+const char * arclib_type_name( LUA_OBJ_TYPE *type );
+bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud );
+void * arclib_check( LUA_OBJ_TYPE *type, lua_State *LS, int index );
+bool arclib_valid( void * );
 
 void init_script_db( void );
 void close_script_db( void );
@@ -66,37 +50,35 @@ LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool per
 void free_luaval( LUA_EXTRA_VAL *luaval );
 void cleanup_uds( void );
 
-/* moved to merc.h cause what if a file calls 
-   valid_CH without including lua_arclib.h?
-   It assumes int and doesn't work right.
-   */
-/*
-#define declf( ltype, ctype ) \
-ctype * check_ ## ltype ( lua_State *LS, int index ); \
-bool    is_ ## ltype ( lua_State *LS, int index ); \
-bool    push_ ## ltype ( lua_State *LS, ctype *ud );\
-ctype * alloc_ ## ltype (void) ;\
-void    free_ ## ltype ( ctype * ud );\
-bool valid_ ## ltype ( ctype *ud );
+#define DECLARETYPEFUNCS( LTYPE, CTYPE ) \
+    CTYPE * check_ ## LTYPE ( lua_State *LS, int index ); \
+    bool    is_ ## LTYPE ( lua_State *LS, int index ); \
+    bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud );\
+    CTYPE * alloc_ ## LTYPE (void) ;\
+    void    free_ ## LTYPE ( CTYPE * ud );\
+    bool    valid_ ## LTYPE ( CTYPE *ud );\
+    int     count_ ## LTYPE ( void )
 
-declf(CH, CHAR_DATA)
-declf(OBJ, OBJ_DATA)
-declf(AREA, AREA_DATA)
-declf(ROOM, ROOM_INDEX_DATA)
-declf(EXIT, EXIT_DATA)
-declf(RESET, RESET_DATA)
-declf(MOBPROTO, MOB_INDEX_DATA)
-declf(OBJPROTO, OBJ_INDEX_DATA)
-declf(PROG, PROG_CODE)
-declf(MTRIG, PROG_LIST)
-declf(OTRIG, PROG_LIST)
-declf(ATRIG, PROG_LIST)
-declf(RTRIG, PROG_LIST)
-declf(SHOP, SHOP_DATA)
-declf(AFFECT, AFFECT_DATA)
-declf(HELP, HELP_DATA)
-declf(DESCRIPTOR, DESCRIPTOR_DATA)
-*/
-#undef declf
+DECLARETYPEFUNCS(CH, CHAR_DATA);
+DECLARETYPEFUNCS(OBJ, OBJ_DATA);
+DECLARETYPEFUNCS(AREA, AREA_DATA);
+DECLARETYPEFUNCS(ROOM, ROOM_INDEX_DATA);
+DECLARETYPEFUNCS(EXIT, EXIT_DATA);
+DECLARETYPEFUNCS(RESET, RESET_DATA);
+DECLARETYPEFUNCS(MOBPROTO, MOB_INDEX_DATA);
+DECLARETYPEFUNCS(OBJPROTO, OBJ_INDEX_DATA);
+DECLARETYPEFUNCS(PROG, PROG_CODE);
+DECLARETYPEFUNCS(MTRIG, PROG_LIST);
+DECLARETYPEFUNCS(OTRIG, PROG_LIST);
+DECLARETYPEFUNCS(ATRIG, PROG_LIST);
+DECLARETYPEFUNCS(RTRIG, PROG_LIST);
+DECLARETYPEFUNCS(SHOP, SHOP_DATA);
+DECLARETYPEFUNCS(AFFECT, AFFECT_DATA);
+DECLARETYPEFUNCS(HELP, HELP_DATA);
+DECLARETYPEFUNCS(DESCRIPTOR, DESCRIPTOR_DATA);
+DECLARETYPEFUNCS(BOSSACHV, BOSSACHV);
+DECLARETYPEFUNCS(BOSSREC, BOSSREC);
+#undef DECLARETYPEFUNCS
+
 
 #endif

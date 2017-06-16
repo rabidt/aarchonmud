@@ -20,6 +20,7 @@
 #include <string.h>
 #include <time.h>
 #include "merc.h"
+#include "lua_arclib.h"
 
 /*
  * Globals

@@ -1,3 +1,7 @@
+#ifndef MUDCONFIG_H
+#define MUDCONFIG_H
+
+
 #define CFG_FLOAT 1
 #define CFG_INT 2
 #define CFG_STRING 3
@@ -32,3 +36,5 @@ typedef struct config_data_entry
 
 extern const CFG_DATA_ENTRY mudconfig_table[];
 
+
+#endif // MUDCONFIG_H

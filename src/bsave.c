@@ -1351,21 +1351,21 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
     /* initialize race */
     if (ch->race == 0)
         ch->race = race_lookup("human");
-        
-        ch->size = pc_race_table[ch->race].size;
-        ch->dam_type = 17; /*punch */
-        
-        for (i = 0; i < pc_race_table[ch->race].num_skills; i++)
-        {
-            group_add(ch,pc_race_table[ch->race].skills[i],FALSE);
-        }
-	
-        if (pc_race_table[ch->race].gender==0)
-	    ch->sex = SEX_NEUTRAL;
 
-	morph_update( ch );
+    ch->size = pc_race_table[ch->race].size;
+    ch->dam_type = 17; /*punch */
+
+    for (i = 0; i < pc_race_table[ch->race].num_skills; i++)
+    {
+        group_add(ch,pc_race_table[ch->race].skills[i],FALSE);
+    }
+
+    if (pc_race_table[ch->race].gender==0)
+        ch->sex = SEX_NEUTRAL;
+
+    morph_update( ch );
     fix_ptitles( ch );
-    
+
     read_wrap_free(buf);
 #if defined(SIM_DEBUG)
     log_string("mem_load_char_obj: done");
@@ -2051,7 +2051,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
             if (i > 0)
                 ch->pcdata->invitation[i] = bread_string(buf);
-                                       
+
             fMatch = TRUE;
             break;
         }
@@ -2060,41 +2060,41 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             GRANT_DATA *gran;
             int cmd;
-            
+
             gran = alloc_mem(sizeof(*gran));
             gran->name = str_dup(bread_word(buf));
             gran->duration = bread_number(buf);
             gran->next = NULL;
             gran->do_fun = NULL;
-            
+
             for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
                 if ( gran->name[0] == cmd_table[cmd].name[0]
-                    &&  is_exact_name( gran->name, cmd_table[cmd].name ) )
+                        &&  is_exact_name( gran->name, cmd_table[cmd].name ) )
                 {
                     gran->do_fun = cmd_table[cmd].do_fun;
                     gran->level = cmd_table[cmd].level;
                     break;
                 }
-                
-                if (gran->do_fun == NULL)
-                {
-                    sprintf(str_buf,"Grant: Command %s not found in pfile for %s",
-			    gran->name,ch->name);
-                    log_string(str_buf);
-		    /* drop the grant */
-		    free_string(gran->name);
-		    free_mem(gran,sizeof(*gran));
-                }
-                else
-		{
-		    gran->next = ch->pcdata->granted;
-		    ch->pcdata->granted = gran;
-		}
-                
-                fMatch = TRUE;
-                break;
+
+            if (gran->do_fun == NULL)
+            {
+                sprintf(str_buf,"Grant: Command %s not found in pfile for %s",
+                        gran->name,ch->name);
+                log_string(str_buf);
+                /* drop the grant */
+                free_string(gran->name);
+                free_mem(gran,sizeof(*gran));
+            }
+            else
+            {
+                gran->next = ch->pcdata->granted;
+                ch->pcdata->granted = gran;
+            }
+
+            fMatch = TRUE;
+            break;
         }
-        
+
         break;
         
     case 'L':

@@ -50,101 +50,78 @@ http://www.gammon.com.au/forum/?id=8015
 #include "lua_main.h"
 
 
-
-#define MOB_ARG "mob"
-#define NUM_MPROG_ARGS 8 
-#define CH_ARG "ch"
-#define OBJ1_ARG "obj1"
-#define OBJ2_ARG "obj2"
-#define TRIG_ARG "trigger"
-#define TEXT1_ARG "text1"
-#define TEXT2_ARG "text2"
-#define VICTIM_ARG "victim"
-#define TRIGTYPE_ARG "trigtype"
-
-/* oprogs args */
-#define OBJ_ARG "obj"
-#define NUM_OPROG_ARGS 5 
-/* OBJ2_ARG */ 
-#define CH1_ARG "ch1"
-#define CH2_ARG "ch2"
-/* TRIG_ARG */
-/* TRIGTYPE_ARG */
-#define NUM_OPROG_RESULTS 1
-
-/* aprog args */
-#define AREA_ARG "area"
-#define NUM_APROG_ARGS 3 
-/* CH1_ARG */
-/* TRIG_ARG */
-/* TRIGTYPE_ARG */
-#define NUM_APROG_RESULTS 1
-
-/* rprog args */
-#define ROOM_ARG "room"
-#define NUM_RPROG_ARGS 7 
-/* CH1_ARG */
-/* CH2_ARG */
-/* OBJ1_ARG */
-/* OBJ2_ARG */
-/* TEXT1_ARG */
-/* TRIG_ARG */
-/* TRIGTYPE_ARG */
-#define NUM_RPROG_RESULTS 1
-
-typedef struct lua_scripter
+struct lua_script_type
 {
     const char *name;
-    LUA_OBJ_TYPE *type;
-    const char *setup_fun;
-
-    int narg; /* set during init */
+    int narg;
     int nrtn;
-
     const char *arg_list[];
+}; 
 
-} LUA_SCRIPTER; 
 
-static const LUA_SCRIPTER mpscripter =
+#define MPARGS { "ch", "trigger", "obj1", "obj2", "text1", "text2", "victim", "trigtype" }
+static struct lua_script_type const mprog_type =
 {
-    .name= "MPROG",
-    .type= &CH_type,
-    .setup_fun = "mob_program_setup",
-    .narg=8,
-    .nrtn=0,
-    .arg_list=
-    {
-        CH_ARG,
-        TRIG_ARG,
-        OBJ1_ARG,
-        OBJ2_ARG,
-        TEXT1_ARG,
-        TEXT2_ARG,
-        VICTIM_ARG,
-        TRIGTYPE_ARG,
-        NULL
-    }
+    .name = "MPROG",
+    .narg = sizeof((const char *[])MPARGS) / sizeof(const char *),
+    .nrtn = 0,
+    .arg_list = MPARGS
+    
 };
+#undef MPARGS
 
-static bool lua_load_prog( lua_State *LS, int vnum, const char *code, const LUA_SCRIPTER *scripter)
+#define OPARGS { "obj2", "ch1", "ch2", "trigger", "trigtype" }
+static struct lua_script_type const oprog_type =
+{
+    .name = "OPROG",
+    .narg = sizeof((const char *[])OPARGS) / sizeof(const char *),
+    .nrtn = 1,
+    .arg_list = OPARGS
+};
+#undef OPARGS
+
+#define RPARGS { "ch1", "ch2", "obj1", "obj2", "text1", "trigger", "trigtype" }
+static struct lua_script_type const rprog_type =
+{
+    .name = "RPROG",
+    .narg = sizeof((const char *[])RPARGS) / sizeof(const char *),
+    .nrtn = 1,
+    .arg_list = RPARGS
+};
+#undef RPARGS
+
+#define APARGS { "ch1", "trigger", "trigtype" }
+static struct lua_script_type const aprog_type =
+{
+    .name = "APROG",
+    .narg = sizeof((const char *[])APARGS) / sizeof(const char *),
+    .nrtn = 1,
+    .arg_list = APARGS
+};
+#undef APARGS
+
+
+static bool lua_load_prog( lua_State *LS, int vnum, const char *code, struct lua_script_type const *script_type)
 {
     char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
 
     if ( strlen(code) >= MAX_SCRIPT_LENGTH )
     {
         bugf("%s script %d exceeds %d characters.",
-                scripter->name, vnum, MAX_SCRIPT_LENGTH);
+                script_type->name, vnum, MAX_SCRIPT_LENGTH);
         return FALSE;
     }
 
     strcpy( buf, "return function (" );
     
     int i;
-    for (i=0; scripter->arg_list[i] ; i++)
+    for (i=0; i < script_type->narg ; i++)
     {
         if (i>0)
+        {
             strcat( buf, ",");
-        strcat( buf, scripter->arg_list[i] );
+        }
+        strcat( buf, script_type->arg_list[i] );
     }
     strcat( buf, ") ");
     strcat( buf, code );
@@ -154,9 +131,11 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, const LUA_
             CallLuaWithTraceBack ( LS, 0, 1))
     {
         if ( vnum == LOADSCRIPT_VNUM )
+        {
             luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
+        }
         bugf ( "LUA %s error loading vnum %d:\n %s",
-                scripter->name,
+                script_type->name,
                 vnum,
                 lua_tostring( LS, -1));
         lua_settop( LS, 0 );
@@ -172,7 +151,7 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, const LUA_
 
 bool lua_load_mprog( lua_State *LS, int vnum, const char *code )
 {
-    return lua_load_prog( LS, vnum, code, &mpscripter);
+    return lua_load_prog( LS, vnum, code, &mprog_type);
 }
 
 void check_mprog( lua_State *LS, int vnum, const char *code )
@@ -183,32 +162,7 @@ void check_mprog( lua_State *LS, int vnum, const char *code )
 
 bool lua_load_aprog( lua_State *LS, int vnum, const char *code)
 {
-    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
-
-    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
-    {
-        bugf("APROG script %d exceeds %d characters.",
-                vnum, MAX_SCRIPT_LENGTH);
-        return FALSE;
-    }
-
-    sprintf(buf, "return function (%s,%s,%s) "
-            "%s\n"
-            "end",
-            CH1_ARG, TRIG_ARG, TRIGTYPE_ARG,
-            code);
-
-    if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 1))
-    {
-        if ( vnum == LOADSCRIPT_VNUM )
-            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
-        bugf ( "LUA aprog error loading vnum %d:\n %s",
-                vnum,
-                lua_tostring( LS, -1));
-        return FALSE;
-    }
-    else return TRUE;
+    return lua_load_prog( LS, vnum, code, &aprog_type );
 }
 
 void check_aprog( lua_State *LS, int vnum, const char *code )
@@ -219,34 +173,7 @@ void check_aprog( lua_State *LS, int vnum, const char *code )
 
 bool lua_load_rprog( lua_State *LS, int vnum, const char *code)
 {
-    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
-
-    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
-    {
-        bugf("RPROG script %d exceeds %d characters.",
-                vnum, MAX_SCRIPT_LENGTH);
-        return FALSE;
-    }
-
-    sprintf(buf, "return function (%s,%s,%s,%s,%s,%s,%s) "
-            "%s\n"
-            "end",
-            CH1_ARG, CH2_ARG, OBJ1_ARG, OBJ2_ARG,
-            TEXT1_ARG, TRIG_ARG, TRIGTYPE_ARG,
-            code);
-
-
-    if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 1))
-    {
-        if ( vnum == LOADSCRIPT_VNUM )
-            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
-        bugf ( "LUA Rprog error loading vnum %d:\n %s",
-                vnum,
-                lua_tostring( LS, -1));
-        return FALSE;
-    }
-    else return TRUE;
+    return lua_load_prog( LS, vnum, code, &rprog_type );
 }
 
 void check_rprog( lua_State *LS, int vnum, const char *code )
@@ -255,36 +182,9 @@ void check_rprog( lua_State *LS, int vnum, const char *code )
         lua_pop(LS, 1);
 }
 
-bool lua_load_oprog( lua_State *LS, int vnum, const char *code)
+bool lua_load_oprog( lua_State *LS, int vnum, const char *code )
 {
-    char buf[MAX_SCRIPT_LENGTH + MSL]; /* Allow big strings from loadscript */
-
-    if ( strlen(code) >= MAX_SCRIPT_LENGTH )
-    {
-        bugf("OPROG script %d exceeds %d characters.",
-                vnum, MAX_SCRIPT_LENGTH);
-        return FALSE;
-    }
-
-    sprintf(buf, "return function (%s,%s,%s,%s,%s) "
-            "%s\n"
-            "end",
-            OBJ2_ARG, CH1_ARG, CH2_ARG, TRIG_ARG, TRIGTYPE_ARG,
-            code);
-
-
-    if (luaL_loadstring ( LS, buf) ||
-            CallLuaWithTraceBack ( LS, 0, 1))
-    {
-        if ( vnum == LOADSCRIPT_VNUM )
-            luaL_error( LS, "Error loading script:\n%s", lua_tostring( LS, -1));
-        bugf ( "LUA oprog error loading vnum %d:\n %s",
-                vnum,
-                lua_tostring( LS, -1));
-
-        return FALSE;
-    }
-    else return TRUE;
+    return lua_load_prog( LS, vnum, code, &oprog_type);   
 }
 
 void check_oprog( lua_State *LS, int vnum, const char *code )
@@ -296,7 +196,7 @@ void check_oprog( lua_State *LS, int vnum, const char *code )
 /* lua_mob_program
    lua equivalent of program_flow
  */
-void lua_mob_program( const char *text, int pvnum, const char *source, 
+void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *source, 
         CHAR_DATA *mob, CHAR_DATA *ch, 
         const void *arg1, sh_int arg1type, 
         const void *arg2, sh_int arg2type,
@@ -304,14 +204,18 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         int security ) 
 
 {
-    lua_getglobal( g_mud_LS, "mob_program_setup");
+    int narg;
+    int nrtn;
+    int orig_top = lua_gettop( LS );
 
-    if ( !push_CH( g_mud_LS, mob ) )
+    lua_getglobal( LS, "mob_program_setup");
+
+    if ( !push_CH( LS, mob ) )
     {
         /* Most likely failed because the gobj was destroyed */
         return;
     }
-    if (lua_isnil(g_mud_LS, -1) )
+    if (lua_isnil(LS, -1) )
     {
         bugf("push_ud_table pushed nil to lua_mob_program");
         return;
@@ -319,60 +223,85 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
 
     if ( pvnum == RUNDELAY_VNUM )
     {
-        /* should already be at -3 (behind mob_program_setup)
-           let's rearrange */
-        lua_pushvalue( g_mud_LS, -3);
-        lua_remove( g_mud_LS, -4);
+        /* args should have been at top of stack, func at -1 */
+        lua_pushvalue( LS, orig_top - 1);
     }
-    else if ( !lua_load_mprog( g_mud_LS, pvnum, source) )
+    else if ( !lua_load_mprog( LS, pvnum, source) )
     {
         return;
     }
 
-    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error for mob_program_setup:\n %s",
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     } 
 
-    /* CH_ARG */
-    if ( !(ch && push_CH( g_mud_LS, ch)))
-        lua_pushnil(g_mud_LS);
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        /* args should be at orig_top index */
+        if ( lua_isnil( LS, orig_top ) )
+        {
+            narg = 0;
+        }
+        else
+        {
+            int ref_top = lua_gettop( LS );
+            push_ref( LS, REF_UNPACK);
+            lua_pushvalue( LS, orig_top );
+            lua_pushinteger( LS, 1 );
+            push_ref( LS, REF_TABLE_MAXN );
+            lua_pushvalue( LS, orig_top );
+            lua_call( LS, 1, 1); // call table.maxn
+            lua_call( LS, 3, LUA_MULTRET ); // call unpack
 
-    /* TRIG_ARG */
-    if (text)
-        lua_pushstring ( g_mud_LS, text);
-    else lua_pushnil(g_mud_LS);
+            narg = lua_gettop( LS ) - ref_top;
+        }
+        nrtn = 0;
+    }
+    else
+    {
+        /* CH_ARG */
+        if ( !(ch && push_CH( LS, ch)))
+            lua_pushnil(LS);
 
-    /* OBJ1_ARG */
-    if ( !((arg1type== ACT_ARG_OBJ && arg1) 
-                && push_OBJ(g_mud_LS, (OBJ_DATA*)arg1)))
-        lua_pushnil(g_mud_LS);
+        /* TRIG_ARG */
+        if (text)
+            lua_pushstring ( LS, text);
+        else lua_pushnil(LS);
 
-    /* OBJ2_ARG */
-    if ( !((arg2type== ACT_ARG_OBJ && arg2)
-                && push_OBJ( g_mud_LS, (OBJ_DATA*)arg2)))
-        lua_pushnil(g_mud_LS);
+        /* OBJ1_ARG */
+        if ( !((arg1type== ACT_ARG_OBJ && arg1) 
+                    && push_OBJ(LS, (OBJ_DATA*)arg1)))
+            lua_pushnil(LS);
 
-    /* TEXT1_ARG */
-    if (arg1type== ACT_ARG_TEXT && arg1)
-        lua_pushstring ( g_mud_LS, (char *)arg1);
-    else lua_pushnil(g_mud_LS);
+        /* OBJ2_ARG */
+        if ( !((arg2type== ACT_ARG_OBJ && arg2)
+                    && push_OBJ( LS, (OBJ_DATA*)arg2)))
+            lua_pushnil(LS);
 
-    /* TEXT2_ARG */
-    if (arg2type== ACT_ARG_TEXT && arg2)
-        lua_pushstring ( g_mud_LS, (char *)arg2);
-    else lua_pushnil(g_mud_LS);
+        /* TEXT1_ARG */
+        if (arg1type== ACT_ARG_TEXT && arg1)
+            lua_pushstring ( LS, (char *)arg1);
+        else lua_pushnil(LS);
 
-    /* VICTIM_ARG */
-    if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
-                && push_CH( g_mud_LS, (CHAR_DATA*)arg2)) )
-        lua_pushnil(g_mud_LS);
+        /* TEXT2_ARG */
+        if (arg2type== ACT_ARG_TEXT && arg2)
+            lua_pushstring ( LS, (char *)arg2);
+        else lua_pushnil(LS);
 
-    /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_bit_name(mprog_flags, trig_type) );
+        /* VICTIM_ARG */
+        if ( !((arg2type== ACT_ARG_CHARACTER && arg2)
+                    && push_CH( LS, (CHAR_DATA*)arg2)) )
+            lua_pushnil(LS);
 
+        /* TRIGTYPE_ARG */
+        lua_pushstring ( LS, flag_bit_name(mprog_flags, trig_type) );
+
+        narg = mprog_type.narg;
+        nrtn = mprog_type.nrtn;
+    }
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -383,86 +312,113 @@ void lua_mob_program( const char *text, int pvnum, const char *source,
         g_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_MPROG_ARGS, 0) ;
+    error=CallLuaWithTraceBack (LS, narg, nrtn) ;
     if (error > 0 )
     {
         bugf ( "LUA mprog error for %s(%d), mprog %d:\n %s",
                 mob->name,
                 mob->pIndexData ? mob->pIndexData->vnum : 0,
                 pvnum,
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
 
     if ( !nest )
     {
         g_LuaScriptInProgress=FALSE;
-        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (LS, 0);    /* get rid of stuff lying around */
         g_ScriptSecurity=SEC_NOSCRIPT; /*just in case*/
     }
 }
 
 
-bool lua_obj_program( const char *trigger, int pvnum, const char *source, 
+bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char *source, 
         OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
         int trig_type,
         int security ) 
 {
+    int narg;
+    int nrtn;
+    int orig_top = lua_gettop( LS );
     bool result=FALSE;
 
-    lua_getglobal( g_mud_LS, "obj_program_setup");
+    lua_getglobal( LS, "obj_program_setup");
 
-    if (!push_OBJ( g_mud_LS, obj))
+    if (!push_OBJ( LS, obj))
     {
         /* Most likely failed because the obj was destroyed */
         return FALSE;
     }
 
-    if (lua_isnil(g_mud_LS, -1) )
+    if (lua_isnil(LS, -1) )
     {
         bugf("push_ud_table pushed nil to lua_obj_program");
         return FALSE;
     }
 
-    /* load up the script as a function so args will be local */
-    char buf[MSL*2];
-    sprintf(buf, "O_%d", pvnum);
-
     if ( pvnum == RUNDELAY_VNUM )
     {
-        lua_pushvalue( g_mud_LS, -3 );
-        lua_remove( g_mud_LS, -4 );
+        /* args should have been at top of stack, func at -1 */
+        lua_pushvalue( LS, orig_top - 1);
     }
-    else if ( !lua_load_oprog( g_mud_LS, pvnum, source) )
+    else if ( !lua_load_oprog( LS, pvnum, source) )
     {
         return FALSE;
     }
 
-    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error running obj_program_setup: %s",
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
 
-    /* OBJ2_ARG */
-    if ( !(obj2 && push_OBJ(g_mud_LS,(void *) obj2)))
-        lua_pushnil(g_mud_LS);
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        /* args should be at orig_top index */
+        if ( lua_isnil( LS, orig_top ) )
+        {
+            narg = 0;
+        }
+        else
+        {
+            int ref_top = lua_gettop( LS );
+            push_ref( LS, REF_UNPACK);
+            lua_pushvalue( LS, orig_top );
+            lua_pushinteger( LS, 1 );
+            push_ref( LS, REF_TABLE_MAXN );
+            lua_pushvalue( LS, orig_top );
+            lua_call( LS, 1, 1); // call table.maxn
+            lua_call( LS, 3, LUA_MULTRET ); // call unpack
 
-    /* CH1_ARG */
-    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
-        lua_pushnil(g_mud_LS);
+            narg = lua_gettop( LS ) - ref_top;
+        }
+        nrtn = 0;
+    }
+    else
+    {
+        /* OBJ2_ARG */
+        if ( !(obj2 && push_OBJ(LS,(void *) obj2)))
+            lua_pushnil(LS);
 
-    /* CH2_ARG */
-    if ( !(ch2 && push_CH(g_mud_LS,(void *) ch2)))
-        lua_pushnil(g_mud_LS);
+        /* CH1_ARG */
+        if ( !(ch1 && push_CH(LS,(void *) ch1)))
+            lua_pushnil(LS);
 
-    /* TRIG_ARG */
-    if (trigger)
-        lua_pushstring(g_mud_LS,trigger);
-    else lua_pushnil(g_mud_LS);
+        /* CH2_ARG */
+        if ( !(ch2 && push_CH(LS,(void *) ch2)))
+            lua_pushnil(LS);
 
-    /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_bit_name(oprog_flags, trig_type) );
+        /* TRIG_ARG */
+        if (trigger)
+            lua_pushstring(LS,trigger);
+        else lua_pushnil(LS);
+
+        /* TRIGTYPE_ARG */
+        lua_pushstring ( LS, flag_bit_name(oprog_flags, trig_type) );
+
+        narg = oprog_type.narg;
+        nrtn = oprog_type.nrtn;        
+    }
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -473,37 +429,40 @@ bool lua_obj_program( const char *trigger, int pvnum, const char *source,
         g_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_OPROG_ARGS, NUM_OPROG_RESULTS) ;
+    error=CallLuaWithTraceBack (LS, narg, nrtn) ;
     if (error > 0 )
     {
         bugf ( "LUA oprog error for vnum %d:\n %s",
                 pvnum,
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
     else
     {
-        result=lua_toboolean (g_mud_LS, -1);
+        result=lua_toboolean (LS, -1);
     }
 
     if ( !nest )
     {
         g_LuaScriptInProgress=FALSE;
-        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (LS, 0);    /* get rid of stuff lying around */
         g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
     }
     return result;
 }
 
-bool lua_area_program( const char *trigger, int pvnum, const char *source, 
+bool lua_area_program( lua_State *LS, const char *trigger, int pvnum, const char *source, 
         AREA_DATA *area, CHAR_DATA *ch1,
         int trig_type,
         int security ) 
 {
+    int narg;
+    int nrtn;
+    int orig_top = lua_gettop( LS );
     bool result=FALSE;
 
-    lua_getglobal( g_mud_LS, "area_program_setup");
+    lua_getglobal( LS, "area_program_setup");
 
-    if (!push_AREA( g_mud_LS, area))
+    if (!push_AREA( LS, area))
     {
         bugf("Make_ud_table failed in lua_area_program. %s : %d",
                 area->name,
@@ -511,7 +470,7 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
         return FALSE;
     }
 
-    if (lua_isnil(g_mud_LS, -1) )
+    if (lua_isnil(LS, -1) )
     {
         bugf("push_ud_table pushed nil to lua_area_program");
         return FALSE;
@@ -519,32 +478,60 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
 
     if ( pvnum == RUNDELAY_VNUM )
     {
-        lua_pushvalue( g_mud_LS, -3 );
-        lua_remove( g_mud_LS, -4 );
+        /* args should have been at top of stack, func at -1 */
+        lua_pushvalue( LS, orig_top - 1);
     }
-    else if ( !lua_load_aprog( g_mud_LS, pvnum, source) )
+    else if ( !lua_load_aprog( LS, pvnum, source) )
     {
         return FALSE;
     }
 
-    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error running area_program_setup: %s",
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
 
-    /* CH1_ARG */
-    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
-        lua_pushnil(g_mud_LS);
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        /* args should be at orig_top index */
+        if ( lua_isnil( LS, orig_top ) )
+        {
+            narg = 0;
+        }
+        else
+        {
+            int ref_top = lua_gettop( LS );
+            push_ref( LS, REF_UNPACK);
+            lua_pushvalue( LS, orig_top );
+            lua_pushinteger( LS, 1 );
+            push_ref( LS, REF_TABLE_MAXN );
+            lua_pushvalue( LS, orig_top );
+            lua_call( LS, 1, 1); // call table.maxn
+            lua_call( LS, 3, LUA_MULTRET ); // call unpack
 
-    /* TRIG_ARG */
-    if (trigger)
-        lua_pushstring(g_mud_LS,trigger);
-    else lua_pushnil(g_mud_LS);
+            narg = lua_gettop( LS ) - ref_top;
+        }
+        nrtn = 0;
+    }
+    else
+        {
+        /* CH1_ARG */
+        if ( !(ch1 && push_CH(LS,(void *) ch1)))
+            lua_pushnil(LS);
 
-    /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_bit_name(aprog_flags, trig_type) );
+        /* TRIG_ARG */
+        if (trigger)
+            lua_pushstring(LS,trigger);
+        else lua_pushnil(LS);
+
+        /* TRIGTYPE_ARG */
+        lua_pushstring ( LS, flag_bit_name(aprog_flags, trig_type) );
+
+        narg = aprog_type.narg;
+        nrtn = aprog_type.nrtn;
+    }
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -555,38 +542,41 @@ bool lua_area_program( const char *trigger, int pvnum, const char *source,
         g_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_APROG_ARGS, NUM_APROG_RESULTS) ;
+    error=CallLuaWithTraceBack (LS, narg, nrtn) ;
     if (error > 0 )
     {
         bugf ( "LUA aprog error for vnum %d:\n %s",
                 pvnum,
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
     else
     {
-        result=lua_toboolean (g_mud_LS, -1);
+        result=lua_toboolean (LS, -1);
     }
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
         g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
-        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (LS, 0);    /* get rid of stuff lying around */
     }
     return result;
 }
 
-bool lua_room_program( const char *trigger, int pvnum, const char *source, 
+bool lua_room_program( lua_State *LS, const char *trigger, int pvnum, const char *source, 
         ROOM_INDEX_DATA *room, 
         CHAR_DATA *ch1, CHAR_DATA *ch2, OBJ_DATA *obj1, OBJ_DATA *obj2,
         const char *text1,
         int trig_type,
         int security ) 
 {
+    int narg;
+    int nrtn;
+    int orig_top = lua_gettop( LS );
     bool result=FALSE;
 
-    lua_getglobal( g_mud_LS, "room_program_setup");
+    lua_getglobal( LS, "room_program_setup");
 
-    if (!push_ROOM( g_mud_LS, room))
+    if (!push_ROOM( LS, room))
     {
         bugf("Make_ud_table failed in lua_room_program. %d : %d",
                 room->vnum,
@@ -594,7 +584,7 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         return FALSE;
     }
 
-    if (lua_isnil(g_mud_LS, -1) )
+    if (lua_isnil(LS, -1) )
     {
         bugf("push_ud_table pushed nil to lua_room_program");
         return FALSE;
@@ -602,50 +592,78 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
     
     if ( pvnum == RUNDELAY_VNUM )
     {
-        lua_pushvalue( g_mud_LS, -3 );
-        lua_remove( g_mud_LS, -4 );
+        /* args should have been at top of stack, func at -1 */
+        lua_pushvalue( LS, orig_top - 1);
     }
-    else if ( !lua_load_rprog( g_mud_LS, pvnum, source) )
+    else if ( !lua_load_rprog( LS, pvnum, source) )
     {
         return FALSE;
     }
 
-    int error=CallLuaWithTraceBack (g_mud_LS, 2, 1) ;
+    int error=CallLuaWithTraceBack (LS, 2, 1) ;
     if (error > 0 )
     {
         bugf ( "LUA error running room_program_setup: %s",
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
 
-    /* CH1_ARG */
-    if ( !(ch1 && push_CH(g_mud_LS,(void *) ch1)))
-        lua_pushnil(g_mud_LS);
-        
-    /* CH2_ARG */
-    if ( !(ch2 && push_CH(g_mud_LS,(void *) ch2)))
-        lua_pushnil(g_mud_LS);
+    if ( pvnum == RUNDELAY_VNUM )
+    {
+        /* args should be at orig_top index */
+        if ( lua_isnil( LS, orig_top ) )
+        {
+            narg = 0;
+        }
+        else
+        {
+            int ref_top = lua_gettop( LS );
+            push_ref( LS, REF_UNPACK);
+            lua_pushvalue( LS, orig_top );
+            lua_pushinteger( LS, 1 );
+            push_ref( LS, REF_TABLE_MAXN );
+            lua_pushvalue( LS, orig_top );
+            lua_call( LS, 1, 1); // call table.maxn
+            lua_call( LS, 3, LUA_MULTRET ); // call unpack
 
-    /* OBJ1_ARG */
-    if ( !(obj1 && push_OBJ(g_mud_LS,(void *) obj1)))
-        lua_pushnil(g_mud_LS);
-
-    /* OBJ2_ARG */
-    if ( !(obj2 && push_OBJ(g_mud_LS,(void *) obj2)))
-        lua_pushnil(g_mud_LS);
-
-    /* TEXT1_ARG */
-    if ( text1 )
-        lua_pushstring(g_mud_LS,text1);
+            narg = lua_gettop( LS ) - ref_top;
+        }
+        nrtn = 0;
+    }
     else
-        lua_pushnil(g_mud_LS);
+    {
+        /* CH1_ARG */
+        if ( !(ch1 && push_CH(LS,(void *) ch1)))
+            lua_pushnil(LS);
+            
+        /* CH2_ARG */
+        if ( !(ch2 && push_CH(LS,(void *) ch2)))
+            lua_pushnil(LS);
 
-    /* TRIG_ARG */
-    if (trigger)
-        lua_pushstring(g_mud_LS,trigger);
-    else lua_pushnil(g_mud_LS);
+        /* OBJ1_ARG */
+        if ( !(obj1 && push_OBJ(LS,(void *) obj1)))
+            lua_pushnil(LS);
 
-    /* TRIGTYPE_ARG */
-    lua_pushstring ( g_mud_LS, flag_bit_name(rprog_flags, trig_type) );
+        /* OBJ2_ARG */
+        if ( !(obj2 && push_OBJ(LS,(void *) obj2)))
+            lua_pushnil(LS);
+
+        /* TEXT1_ARG */
+        if ( text1 )
+            lua_pushstring(LS,text1);
+        else
+            lua_pushnil(LS);
+
+        /* TRIG_ARG */
+        if (trigger)
+            lua_pushstring(LS,trigger);
+        else lua_pushnil(LS);
+
+        /* TRIGTYPE_ARG */
+        lua_pushstring ( LS, flag_bit_name(rprog_flags, trig_type) );
+
+        narg = rprog_type.narg;
+        nrtn = rprog_type.nrtn;
+    }
 
     /* some snazzy stuff to prevent crashes and other bad things*/
     bool nest=g_LuaScriptInProgress;
@@ -656,22 +674,22 @@ bool lua_room_program( const char *trigger, int pvnum, const char *source,
         g_ScriptSecurity=security;
     }
 
-    error=CallLuaWithTraceBack (g_mud_LS, NUM_RPROG_ARGS, NUM_RPROG_RESULTS) ;
+    error=CallLuaWithTraceBack (LS, narg, nrtn) ;
     if (error > 0 )
     {
         bugf ( "LUA rprog error for vnum %d:\n %s",
                 pvnum,
-                lua_tostring(g_mud_LS, -1));
+                lua_tostring(LS, -1));
     }
     else
     {
-        result=lua_toboolean (g_mud_LS, -1);
+        result=lua_toboolean (LS, -1);
     }
     if (!nest)
     {
         g_LuaScriptInProgress=FALSE;
         g_ScriptSecurity=SEC_NOSCRIPT; /* just in case */
-        lua_settop (g_mud_LS, 0);    /* get rid of stuff lying around */
+        lua_settop (LS, 0);    /* get rid of stuff lying around */
     }
     return result;
 }

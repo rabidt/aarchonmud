@@ -156,7 +156,7 @@ DEF_DO_FUN(do_oprun)
 
     ptc( ch, " with %s as ch1\n\r", ch->name);
 
-   result=lua_obj_program( NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL, pOcode->security);
+   result=lua_obj_program( g_mud_LS, NULL, vnum, pOcode->code, obj, NULL, ch, NULL, OTRIG_CALL, pOcode->security);
 
    ptc( ch, "Oprog completed. Result is: %s\n\r", result ? "TRUE" : "FALSE" );
 

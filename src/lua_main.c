@@ -24,33 +24,45 @@ int        g_LoopCheckCounter;
 
 
 /* keep these as LUAREFS for ease of use on the C side */
-static LUAREF TRACEBACK;
-static LUAREF TABLE_INSERT;
-static LUAREF TABLE_CONCAT;
-static LUAREF STRING_FORMAT;
+LUAREF REF_TRACEBACK;
+LUAREF REF_TABLE_INSERT;
+LUAREF REF_TABLE_MAXN;
+LUAREF REF_TABLE_CONCAT;
+LUAREF REF_STRING_FORMAT;
+LUAREF REF_UNPACK;
 
 void register_LUAREFS( lua_State *LS)
 {
     /* initialize the variables */
-    new_ref( &TABLE_INSERT );
-    new_ref( &TABLE_CONCAT );
-    new_ref( &STRING_FORMAT );
+    new_ref( &REF_TABLE_INSERT );
+    new_ref( &REF_TABLE_MAXN);
+    new_ref( &REF_TABLE_CONCAT );
+    new_ref( &REF_STRING_FORMAT );
+    new_ref( &REF_UNPACK );
 
     /* put stuff in the refs */
     lua_getglobal( LS, "table" );
 
     lua_getfield( LS, -1, "insert" );
-    save_ref( LS, -1, &TABLE_INSERT );
+    save_ref( LS, -1, &REF_TABLE_INSERT );
     lua_pop( LS, 1 ); /* insert */
 
+    lua_getfield( LS, -1, "maxn" );
+    save_ref( LS, -1, &REF_TABLE_MAXN );
+    lua_pop( LS, 1 ); /* maxn */
+
     lua_getfield( LS, -1, "concat" );
-    save_ref( LS, -1, &TABLE_CONCAT );
+    save_ref( LS, -1, &REF_TABLE_CONCAT );
     lua_pop( LS, 2 ); /* concat and table */
 
     lua_getglobal( LS, "string" );
     lua_getfield( LS, -1, "format" );
-    save_ref( LS, -1, &STRING_FORMAT );
+    save_ref( LS, -1, &REF_STRING_FORMAT );
     lua_pop( LS, 2 ); /* string and format */
+
+    lua_getglobal( LS, "unpack" );
+    save_ref( LS, -1, &REF_UNPACK );
+    lua_pop( LS, 1 );
 }
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
@@ -165,7 +177,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
     if ( (narg>1))
     {
-        push_ref( LS, STRING_FORMAT );
+        push_ref( LS, REF_STRING_FORMAT );
         lua_insert( LS, index );
         lua_call( LS, narg, 1);
     }
@@ -175,7 +187,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
 static void GetTracebackFunction (lua_State *LS)
 {
-    push_ref( LS, TRACEBACK );
+    push_ref( LS, REF_TRACEBACK );
 }  /* end of GetTracebackFunction */
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
@@ -449,7 +461,7 @@ DEF_DO_FUN(do_luai)
     if ( arg1[0]== '\0' )
     {
         victim=(void *)ch;
-        type=&CH_type;
+        type=p_CH_type;
         name=ch->name;
     }
     else if (!strcmp( arg1, "mob") )
@@ -468,7 +480,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim = (void *)mob;
-        type= &CH_type;
+        type= p_CH_type;
         name=mob->name;
     }
     else if (!strcmp( arg1, "obj") )
@@ -483,7 +495,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim= (void *)obj;
-        type=&OBJ_type;
+        type=p_OBJ_type;
         name=obj->name;
     }
     else if (!strcmp( arg1, "area") )
@@ -495,7 +507,7 @@ DEF_DO_FUN(do_luai)
         }
 
         victim= (void *)(ch->in_room->area);
-        type=&AREA_type;
+        type=p_AREA_type;
         name=ch->in_room->area->name;
     }
     else if (!strcmp( arg1, "room") )
@@ -507,7 +519,7 @@ DEF_DO_FUN(do_luai)
         }
         
         victim= (void *)(ch->in_room);
-        type=&ROOM_type;
+        type=p_ROOM_type;
         name=ch->in_room->name;
     }
     else
@@ -528,7 +540,7 @@ DEF_DO_FUN(do_luai)
 
     /* do the stuff */
     lua_getglobal( g_mud_LS, "interp_setup");
-    if ( !type->push(g_mud_LS, victim) )
+    if ( !arclib_push( type, g_mud_LS, victim) )
     {
         bugf("do_luai: couldn't make udtable argument %s",
                 argument);
@@ -536,25 +548,25 @@ DEF_DO_FUN(do_luai)
         return;
     }
 
-    if ( type == &CH_type )
+    if ( type == p_CH_type )
     {
         lua_pushliteral( g_mud_LS, "mob"); 
     }
-    else if ( type == &OBJ_type )
+    else if ( type == p_OBJ_type )
     {
         lua_pushliteral( g_mud_LS, "obj"); 
     }
-    else if ( type == &AREA_type )
+    else if ( type == p_AREA_type )
     {
         lua_pushliteral( g_mud_LS, "area"); 
     }
-    else if ( type == &ROOM_type )
+    else if ( type == p_ROOM_type )
     {
         lua_pushliteral( g_mud_LS, "room"); 
     }
     else
     {
-            bugf("do_luai: invalid type: %s", type->type_name);
+            bugf("do_luai: invalid type: %s", arclib_type_name(type));
             lua_settop(g_mud_LS, 0);
             return;
     }
@@ -587,15 +599,15 @@ DEF_DO_FUN(do_luai)
     ch->desc->lua.incmpl=FALSE;
 
     ptc(ch, "Entered lua interpreter mode for %s %s\n\r", 
-            type->type_name,
+            arclib_type_name(type),
             name);
     ptc(ch, "Use @ on a blank line to exit.\n\r");
     ptc(ch, "Use do and end to create multiline chunks.\n\r");
     ptc(ch, "Use '%s' to access target's self.\n\r",
-            type == &CH_type ? "mob" :
-            type == &OBJ_type ? "obj" :
-            type == &ROOM_type ? "room" :
-            type == &AREA_type ? "area" :
+            type == p_CH_type ? "mob" :
+            type == p_OBJ_type ? "obj" :
+            type == p_ROOM_type ? "room" :
+            type == p_AREA_type ? "area" :
             "ERROR" );
 
     lua_settop(g_mud_LS, 0);
@@ -608,7 +620,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     time (&timer);
 
     init_genrand (timer);
-    type_init( LS );
+    arclib_type_init( LS );
 
     register_globals ( LS );
     sorted_ctable_init( LS );
@@ -632,7 +644,7 @@ void open_lua ( void )
     luaL_openlibs (LS);    /* open all standard libraries */
 
     /* special little tweak to debug.traceback here before anything else */
-    new_ref( &TRACEBACK );
+    new_ref( &REF_TRACEBACK );
     int rtn = luaL_dostring(g_mud_LS, 
         "local traceback = debug.traceback \n"
         "debug.traceback = function(message, level) \n"
@@ -650,7 +662,7 @@ void open_lua ( void )
         bugf("Error setting traceback function");
         exit(1);
     }
-    save_ref(LS, -1, &TRACEBACK);
+    save_ref(LS, -1, &REF_TRACEBACK);
     lua_pop(LS, 1);
 
     lua_pushcfunction(LS, luaopen_lsqlite3);
@@ -1347,7 +1359,7 @@ bool add_buf(BUFFER *buffer, const char *string)
         return FALSE;
     }
 
-    push_ref( g_mud_LS, TABLE_INSERT );
+    push_ref( g_mud_LS, REF_TABLE_INSERT );
     push_ref( g_mud_LS, buffer->table );
     lua_pushstring( g_mud_LS, string ); 
     lua_call( g_mud_LS, 2, 0 );
@@ -1365,7 +1377,7 @@ void clear_buf(BUFFER *buffer)
 
 const char *buf_string(BUFFER *buffer)
 {
-    push_ref( g_mud_LS, TABLE_CONCAT );
+    push_ref( g_mud_LS, REF_TABLE_CONCAT );
     push_ref( g_mud_LS, buffer->table );
     lua_call( g_mud_LS, 1, 1 );
 

@@ -1101,18 +1101,18 @@ DEF_DO_FUN(do_mstat)
     if ( victim->stance != 0 )
         printf_to_char(ch, "Stance: %s\n\r", capitalize(stances[victim->stance].name));
 
-	if ( !IS_NPC(victim) )
-	{
-	sprintf( buf,
-		"Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Deep Sleep: %d  Bounty: %d\n\r",
-		victim->pcdata->condition[COND_THIRST],
-		victim->pcdata->condition[COND_HUNGER],
-		victim->pcdata->condition[COND_FULL],
-		victim->pcdata->condition[COND_DRUNK],
-		victim->pcdata->condition[COND_DEEP_SLEEP],
-		victim->pcdata->bounty );
-	send_to_char( buf, ch );
-	}
+    if ( !IS_NPC(victim) )
+    {
+        sprintf( buf,
+                "Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Deep Sleep: %d  Bounty: %d\n\r",
+                victim->pcdata->condition[COND_THIRST],
+                victim->pcdata->condition[COND_HUNGER],
+                victim->pcdata->condition[COND_FULL],
+                victim->pcdata->condition[COND_DRUNK],
+                victim->pcdata->condition[COND_DEEP_SLEEP],
+                victim->pcdata->bounty );
+        send_to_char( buf, ch );
+    }
 
 	sprintf( buf, "Carry number: %d  Carry weight: %ld\n\r",
 	victim->carry_number, get_carry_weight(victim) / 10 );
@@ -2708,7 +2708,7 @@ DEF_DO_FUN(do_oset)
     if ( !str_prefix( arg2, "owner" ) )
     {
         CHAR_DATA *owner, *wch;
-        
+
         if (!str_prefix(arg3, "clear"))
         {
             free_string(obj->owner);
@@ -2716,22 +2716,22 @@ DEF_DO_FUN(do_oset)
             send_to_char("Owner cleared.\n\r",ch);
             return;
         }
-        
+
         owner = NULL;
         for ( wch = char_list; wch != NULL ; wch = wch->next )
             if (!str_cmp(wch->name,arg3))
                 owner = wch;
-            
-            if (owner == NULL || IS_NPC(owner))
-            {
-                send_to_char("No such player is currently online.\n\r",ch);
-                return;
-            }
-            
-            free_string(obj->owner);
-            obj->owner = str_dup(owner->name);
-            send_to_char("Owner set.\n\r",ch);
+
+        if (owner == NULL || IS_NPC(owner))
+        {
+            send_to_char("No such player is currently online.\n\r",ch);
             return;
+        }
+
+        free_string(obj->owner);
+        obj->owner = str_dup(owner->name);
+        send_to_char("Owner set.\n\r",ch);
+        return;
     }
     
     /*

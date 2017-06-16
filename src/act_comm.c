@@ -40,6 +40,7 @@
 #include "interp.h"
 #include "warfare.h"
 #include "songs.h"
+#include "lua_arclib.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -1763,58 +1764,58 @@ DEF_DO_FUN(do_pose)
 {
     int level;
     int pose;
-	int clas, warrior=0, thief=0, cleric=0, mage=0;
-    
+    int clas, warrior=0, thief=0, cleric=0, mage=0;
+
     if ( IS_NPC(ch) )
         return;
 
-	switch (ch->clss)
-	{
-	case 0: case 4: warrior = 10; break;
-	case 1: thief = 10; break;
-	case 2: cleric = 10; break;
-	case 3: mage = 10; break;
-	case 5: warrior = 9; mage = 2; break;
-	case 6: warrior = 9; cleric = 3; break;
-	case 7: warrior = 7; thief = 7; break;
-	case 8: warrior = 7; thief = 6; mage = 2; break;
-	case 9: warrior = 5; cleric = 8; break;
-	case 10: cleric = 7; mage = 7; break;
-	case 11: mage = 9; thief = 4; break;
-	case 12: warrior = 6; thief = 6; break;
-	case 13: warrior = 5; thief = 5; cleric = 5; mage = 5; break;
-	case 14: mage = 9; cleric = 3; break;
+    switch (ch->clss)
+    {
+        case 0: case 4: warrior = 10; break;
+        case 1: thief = 10; break;
+        case 2: cleric = 10; break;
+        case 3: mage = 10; break;
+        case 5: warrior = 9; mage = 2; break;
+        case 6: warrior = 9; cleric = 3; break;
+        case 7: warrior = 7; thief = 7; break;
+        case 8: warrior = 7; thief = 6; mage = 2; break;
+        case 9: warrior = 5; cleric = 8; break;
+        case 10: cleric = 7; mage = 7; break;
+        case 11: mage = 9; thief = 4; break;
+        case 12: warrior = 6; thief = 6; break;
+        case 13: warrior = 5; thief = 5; cleric = 5; mage = 5; break;
+        case 14: mage = 9; cleric = 3; break;
     }
 
-	clas = number_range(1, warrior+thief+cleric+mage);
-	if (clas <= warrior)
-	{
-		clas = 0;
-		level = warrior;
-	} else {
-	clas-=warrior;
-	if (clas <= thief)
-	{
-		clas = 1;
-		level = thief;
-	} else {
-	clas-=thief;
-	if (clas <= cleric)
-	{
-		clas = 2;
-		level = cleric;
-	} else {
-	clas-=cleric;
-	if (clas <= mage)
-	{
-		clas = 3;
-		level = mage;
-	} else
-		return;
-	}}}
+    clas = number_range(1, warrior+thief+cleric+mage);
+    if (clas <= warrior)
+    {
+        clas = 0;
+        level = warrior;
+    } else {
+        clas-=warrior;
+        if (clas <= thief)
+        {
+            clas = 1;
+            level = thief;
+        } else {
+            clas-=thief;
+            if (clas <= cleric)
+            {
+                clas = 2;
+                level = cleric;
+            } else {
+                clas-=cleric;
+                if (clas <= mage)
+                {
+                    clas = 3;
+                    level = mage;
+                } else
+                    return;
+            }}}
 
-	level = MAX_POSE*((ch->level+2*ch->pcdata->remorts) * (2+level))/1400;
-	level = URANGE(0, level, MAX_POSE-1);
+    level = MAX_POSE*((ch->level+2*ch->pcdata->remorts) * (2+level))/1400;
+    level = URANGE(0, level, MAX_POSE-1);
     pose  = number_range(0, level);
 
     act(pose_table[pose].message[2*clas+0], ch, NULL, NULL, TO_CHAR );

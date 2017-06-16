@@ -271,7 +271,8 @@ void violence_update_char( CHAR_DATA *ch )
     
     if ( ch->stop > 0 )
     {
-        ch->stop--;
+        // limit stacking of stop effects to 2 actual rounds
+        ch->stop = UMIN(1, ch->stop - 1);
         return;
     }
     
@@ -738,7 +739,7 @@ void special_affect_update(CHAR_DATA *ch)
         
 		if ( !saves_spell(ch, NULL, sunlight, DAM_LIGHT) )
 		{
-			if ( IS_AFFECTED(ch, AFF_SHROUD))
+			if ( IS_AFFECTED(ch, AFF_DARKNESS) )
 			{
 				sunlight /= 2;
 				act_gag("Your shroud absorbs part of the sunlight.",ch,NULL,NULL,TO_CHAR,GAG_SUNBURN);
@@ -1328,7 +1329,16 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 
 bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
-    // safety-net
+    // adjust for mastery (helps with both attack and defense)
+    int mastery_diff = get_mastery(ch, sn) - get_mastery(victim, sn);
+    switch ( mastery_diff )
+    {
+        case -2: base_chance *= 0.75; break;
+        case -1: base_chance *= 0.80; break;
+        case  1: base_chance *= 1.20; break;
+        case  2: base_chance *= 1.25; break;
+        default: break;
+    }
     base_chance = URANGE(5, base_chance, 95);
     
     // half of all checks use base_chance
@@ -1759,59 +1769,59 @@ static void mob_special_attacks( CHAR_DATA *ch )
 {
     if ( !IS_NPC(ch) || ch->wait > 0 || !ch->fighting || ch->position < POS_FIGHTING )
         return;
-    
-	switch( number_range(0,9) ) 
-	{
-	case (0) :
-	    if (IS_SET(ch->off_flags,OFF_BASH))
-		do_bash(ch,"");
-	    break;
-	    
-	case (1) :
-	    if (IS_SET(ch->off_flags,OFF_BERSERK) && !IS_AFFECTED(ch,AFF_BERSERK))
-		do_berserk(ch,"");
-	    break;
-	    
-	case (2) :
-	    if (IS_SET(ch->off_flags,OFF_DISARM))
-		do_disarm(ch,"");
-	    break;
-	    
-	case (3) :
-	    if (IS_SET(ch->off_flags,OFF_KICK))
-		do_kick(ch,"");
-	    break;
-	    
-	case (4) :
-	    if (IS_SET(ch->off_flags,OFF_KICK_DIRT))
-		do_dirt(ch,"");
-	    break;
-	    
-	case (5) :
-	    if (IS_SET(ch->off_flags,OFF_TAIL))
-	    {
-		do_leg_sweep(ch, "");
-	    }
-	    break; 
-	case (6) :
-	    if (IS_SET(ch->off_flags,OFF_TRIP))
-		do_trip(ch,"");
-	    break;
-	    
-	case (7) :
-	    if (IS_SET(ch->off_flags,OFF_CRUSH))
-		{
-		    do_crush(ch,"");
-		}
-	    break;
-	case (8) :
-	case (9) :
-	    if (IS_SET(ch->off_flags,OFF_CIRCLE))
-	    {
-		do_circle(ch,"");
-	    }
-	}
-    
+
+    switch( number_range(0,9) ) 
+    {
+        case (0) :
+            if (IS_SET(ch->off_flags,OFF_BASH))
+            do_bash(ch,"");
+            break;
+
+        case (1) :
+            if (IS_SET(ch->off_flags,OFF_BERSERK) && !IS_AFFECTED(ch,AFF_BERSERK))
+            do_berserk(ch,"");
+            break;
+
+        case (2) :
+            if (IS_SET(ch->off_flags,OFF_DISARM))
+            do_disarm(ch,"");
+            break;
+
+        case (3) :
+            if (IS_SET(ch->off_flags,OFF_KICK))
+            do_kick(ch,"");
+            break;
+
+        case (4) :
+            if (IS_SET(ch->off_flags,OFF_KICK_DIRT))
+            do_dirt(ch,"");
+            break;
+
+        case (5) :
+            if (IS_SET(ch->off_flags,OFF_TAIL))
+        {
+            do_leg_sweep(ch, "");
+        }
+            break; 
+        case (6) :
+            if (IS_SET(ch->off_flags,OFF_TRIP))
+            do_trip(ch,"");
+            break;
+
+        case (7) :
+            if (IS_SET(ch->off_flags,OFF_CRUSH))
+        {
+            do_crush(ch,"");
+        }
+            break;
+        case (8) :
+        case (9) :
+            if (IS_SET(ch->off_flags,OFF_CIRCLE))
+        {
+            do_circle(ch,"");
+        }
+    }
+
 }
 
 int get_align_type( CHAR_DATA *ch )
@@ -2741,19 +2751,29 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
 
     after_attack(ch, victim, dt, TRUE, secondary);
     
+    if ( wield )
+    {
+        op_percent_trigger(NULL, wield, NULL, ch, victim, OTRIG_HIT);
+        if ( stop_attack(ch, victim) )
+            return TRUE;
+    }
+    else
+    {
+        OBJ_DATA *gloves = get_eq_char(ch, WEAR_HANDS);
+        if ( gloves )
+        {
+            op_percent_trigger(NULL, gloves, NULL, ch, victim, OTRIG_HIT);
+            if ( stop_attack(ch, victim) )
+                return TRUE;
+        }
+    }
+
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
         act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
         one_hit(ch, victim, dt, secondary);
     }
-
-   if ( wield )
-   {
-       op_percent_trigger( NULL, wield, NULL, ch, victim, OTRIG_HIT );
-       if ( stop_attack(ch, victim) )
-            return TRUE;
-   }
 
    tail_chain( );
    return TRUE;
@@ -7958,7 +7978,7 @@ bool check_lose_stance( CHAR_DATA *ch )
     int sn = *(stances[ch->stance].gsn);
     int skill = get_skill(ch, sn);
     
-    if ( per_chance(mastery_bonus(ch, sn, 20, 30)) )
+    if ( per_chance(20 + mastery_bonus(ch, sn, 20, 30)) )
         return FALSE;
 
     if ( per_chance(skill * 9/10) ) /* Always keep 10% chance of failure */
@@ -7975,9 +7995,9 @@ bool destance( CHAR_DATA *ch, int attack_mastery )
         return FALSE;
     
     int sn = *(stances[ch->stance].gsn);
-    int mastery = get_mastery(ch, sn) - attack_mastery;
+    int resist_chance = 20 + mastery_bonus(ch, sn, 20, 30) - (attack_mastery == 1 ? 16 : attack_mastery == 2 ? 20 : 0);
     
-    if ( per_chance( mastery == 1 ? 20 : mastery == 2 ? 30 : 0) )
+    if ( per_chance(resist_chance) )
         return FALSE;
     
     send_to_char("You lose your stance!\n\r", ch);

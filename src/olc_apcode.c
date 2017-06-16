@@ -157,7 +157,7 @@ DEF_DO_FUN(do_aprun)
             area->name,
             ch->name);
 
-    result=lua_area_program( NULL, vnum, pAcode->code, area, ch, ATRIG_CALL, pAcode->security );
+    result=lua_area_program( g_mud_LS, NULL, vnum, pAcode->code, area, ch, ATRIG_CALL, pAcode->security );
 
     ptc( ch, "Aprog completed. Result: %s\n\r", result ? "TRUE" : "FALSE" );
 

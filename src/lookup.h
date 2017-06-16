@@ -24,7 +24,8 @@
 *	By using this code, you have agreed to follow the terms of the	   *
 *	ROM license, in the file Rom24/doc/rom.license			   *
 ***************************************************************************/
-
+#ifndef LOOKUP_H
+#define LOOKUP_H
 
 int   clan_lookup	args( (const char *name) );
 int   clan_rank_lookup args ( (sh_int clan, const char *name) );
@@ -37,3 +38,6 @@ int   stance_lookup args( (const char *name) );
 const char *name_lookup args( (const int bit, const struct flag_type *) );
 int index_lookup( const int bit, const struct flag_type *flag_table );
 int subclass_lookup (const char *name);
+
+
+#endif

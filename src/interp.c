@@ -695,25 +695,25 @@ bool can_order( const char *command, CHAR_DATA *victim )
     int cmd;
     for ( cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
         if ( command[0] == cmd_table[cmd].name[0]
-	     && !str_prefix( command, cmd_table[cmd].name ) )
-	{
-	    /* some special commands CAN be ordered to NPCs */
-	    if ( victim == NULL || IS_NPC(victim) )
-	    {
-            if ( cmd_table[cmd].do_fun == do_give
-                || cmd_table[cmd].do_fun == do_put
-                || cmd_table[cmd].do_fun == do_drop
-                || cmd_table[cmd].do_fun == do_sacrifice
-                || cmd_table[cmd].do_fun == do_spellup
-                || cmd_table[cmd].do_fun == do_heal
-                )
-		    return TRUE;
-	    }
+                && !str_prefix( command, cmd_table[cmd].name ) )
+        {
+            /* some special commands CAN be ordered to NPCs */
+            if ( victim == NULL || IS_NPC(victim) )
+            {
+                if ( cmd_table[cmd].do_fun == do_give
+                        || cmd_table[cmd].do_fun == do_put
+                        || cmd_table[cmd].do_fun == do_drop
+                        || cmd_table[cmd].do_fun == do_sacrifice
+                        || cmd_table[cmd].do_fun == do_spellup
+                        || cmd_table[cmd].do_fun == do_heal
+                   )
+                    return TRUE;
+            }
 
-	    return (cmd_table[cmd].charm);
-	}
+            return (cmd_table[cmd].charm);
+        }
 
-	return TRUE;
+    return TRUE;
 }
 
 bool is_either_str( const char *prefix, const char *str, bool exact )
@@ -1334,18 +1334,18 @@ DEF_DO_FUN(do_disable)
     int i;
     DISABLED_DATA *p,*q;
     char buf[100];
-    
+
     char arg1[MAX_INPUT_LENGTH];
     int spell = 0;  /* Set to 1 if cmd to disable is a spell */
     int command_level = MAX_LEVEL + 1;
     bool found;
-    
+
     if (IS_NPC(ch))
     {
         send_to_char ("RETURN first.\n\r",ch);
         return;
     }
-    
+
     if (!argument[0]) /* Nothing specified. Show disabled commands. */
     {
         if (!disabled_first) /* Any disabled at all ? */
@@ -1353,10 +1353,10 @@ DEF_DO_FUN(do_disable)
             send_to_char ("There are no commands disabled.\n\r",ch);
             return;
         }
-        
+
         send_to_char ("Disabled commands:\n\r"
-            "Command      Level   Disabled By\n\r",ch);
-        
+                "Command      Level   Disabled By\n\r",ch);
+
         for (p = disabled_first; p; p = p->next)
         {
             sprintf (buf, "%-12s %5d   %-12s   %s\n\r",p->command_name, p->level, p->disabled_by, p->spell ? "(spell)" : "");
@@ -1364,134 +1364,134 @@ DEF_DO_FUN(do_disable)
         }
         return;
     }
-    
+
     /* command given */
     argument = one_argument( argument, arg1 );
-    
+
     /* Detect if user wants to disable a spell. */
     if (!strcmp(arg1, "spell"))
     {
         spell = 1;
         argument = one_argument( argument, arg1 );
-        
+
         if (arg1[0] == '\0')
         {
             send_to_char("Disable which spell?\n\r", ch);
             return;
         }
     }
-    
+
     /* First check if it is one of the disabled commands */
     for (p = disabled_first; p ; p = p->next)
         if (!str_cmp(arg1, p->command_name) && p->spell == spell)
             break;
-        
-        if (p) /* this command is disabled */
-        {
+
+    if (p) /* this command is disabled */
+    {
         /* Optional: The level of the imm to enable the command must equal or exceed level
-            of the one that disabled it */
-            
-            if (get_trust(ch) < p->level)
-            {
-                send_to_char ("This command was disabled by a higher power.\n\r",ch);
-                return;
-            }
-            
-            /* Remove */
-            
-            if (disabled_first == p) /* node to be removed == head ? */
-                disabled_first = p->next;
-            else /* Find the node before this one */
-            {
-                for (q = disabled_first; q->next != p; q = q->next); /* empty for */
-                q->next = p->next;
-            }
-            
-            free_string(p->command_name);
-            free_string (p->disabled_by); /* free name of disabler */
-            free_mem (p,sizeof(DISABLED_DATA)); /* free node */
-            save_disabled(); /* save to disk */
-            send_to_char ("Command enabled.\n\r",ch);
-        }
-        else /* not a disabled command, check if that command exists */
+           of the one that disabled it */
+
+        if (get_trust(ch) < p->level)
         {
-            /* IQ test */
-            if (!str_cmp(arg1,"disable"))
+            send_to_char ("This command was disabled by a higher power.\n\r",ch);
+            return;
+        }
+
+        /* Remove */
+
+        if (disabled_first == p) /* node to be removed == head ? */
+            disabled_first = p->next;
+        else /* Find the node before this one */
+        {
+            for (q = disabled_first; q->next != p; q = q->next); /* empty for */
+            q->next = p->next;
+        }
+
+        free_string(p->command_name);
+        free_string (p->disabled_by); /* free name of disabler */
+        free_mem (p,sizeof(DISABLED_DATA)); /* free node */
+        save_disabled(); /* save to disk */
+        send_to_char ("Command enabled.\n\r",ch);
+    }
+    else /* not a disabled command, check if that command exists */
+    {
+        /* IQ test */
+        if (!str_cmp(arg1,"disable"))
+        {
+            send_to_char ("You cannot disable the disable command.\n\r",ch);
+            return;
+        }
+
+        /* Here's the hack to support spells. */
+
+        found = FALSE;
+
+        if (spell)
+        {
+            for ( i = 0; i < MAX_SKILL; i++ )
             {
-                send_to_char ("You cannot disable the disable command.\n\r",ch);
-                return;
-            }
-            
-            /* Here's the hack to support spells. */
-            
-            found = FALSE;
-            
-            if (spell)
-            {
-                for ( i = 0; i < MAX_SKILL; i++ )
-                {
-                    if (skill_table[i].name == NULL)
-                        break;
-                    if (LOWER(arg1[0]) == LOWER(skill_table[i].name[0])
+                if (skill_table[i].name == NULL)
+                    break;
+                if (LOWER(arg1[0]) == LOWER(skill_table[i].name[0])
                         &&  !str_prefix(arg1,skill_table[i].name))
-                    {
-                        found = TRUE;
-                        command_level = skill_table[i].skill_level[ch->clss];
-                        break;
-                    }
+                {
+                    found = TRUE;
+                    command_level = skill_table[i].skill_level[ch->clss];
+                    break;
                 }
             }
-            else
-            {
-                /* Search for the command */
-                for (i = 0; cmd_table[i].name[0] != '\0'; i++)
-                    if (!str_cmp(cmd_table[i].name, arg1))
-                    {
-                        found = TRUE;
-                        command_level = cmd_table[i].level;
-                        break;
-                    }
-            }
-            
-            /* Found? */
-            if (!found)
-            {
-                send_to_char (spell ? "No such spell.\n\r" : "No such command.\n\r",ch);
-                return;
-            }
-            
-            /* Can the imm use this command at all ? */
-            if (command_level > get_trust(ch))
-            {
-                send_to_char ("You do not have access to that command -- you cannot disable it.\n\r",ch);
-                return;
-            }
-            
-            /* Disable the command */
-            
-            p = alloc_mem (sizeof(DISABLED_DATA));
-            
-            p->spell = spell;
-            if (spell)
-            {
-                p->spell_fun = skill_table[i].spell_fun;
-                p->do_fun = NULL;
-                p->command_name = str_dup(skill_table[i].name);
-            }
-            else
-            {
-                p->spell_fun = NULL;
-                p->do_fun = cmd_table[i].do_fun;
-                p->command_name = str_dup(cmd_table[i].name);
-            }
-            p->disabled_by = str_dup (ch->name); /* save name of disabler */
-            p->level = get_trust(ch); /* save trust */
-            p->next = disabled_first;
-            disabled_first = p; /* add before the current first element */
-            
-            send_to_char ("Command disabled.\n\r",ch);
-            save_disabled(); /* save to disk */
         }
+        else
+        {
+            /* Search for the command */
+            for (i = 0; cmd_table[i].name[0] != '\0'; i++)
+                if (!str_cmp(cmd_table[i].name, arg1))
+                {
+                    found = TRUE;
+                    command_level = cmd_table[i].level;
+                    break;
+                }
+        }
+
+        /* Found? */
+        if (!found)
+        {
+            send_to_char (spell ? "No such spell.\n\r" : "No such command.\n\r",ch);
+            return;
+        }
+
+        /* Can the imm use this command at all ? */
+        if (command_level > get_trust(ch))
+        {
+            send_to_char ("You do not have access to that command -- you cannot disable it.\n\r",ch);
+            return;
+        }
+
+        /* Disable the command */
+
+        p = alloc_mem (sizeof(DISABLED_DATA));
+
+        p->spell = spell;
+        if (spell)
+        {
+            p->spell_fun = skill_table[i].spell_fun;
+            p->do_fun = NULL;
+            p->command_name = str_dup(skill_table[i].name);
+        }
+        else
+        {
+            p->spell_fun = NULL;
+            p->do_fun = cmd_table[i].do_fun;
+            p->command_name = str_dup(cmd_table[i].name);
+        }
+        p->disabled_by = str_dup (ch->name); /* save name of disabler */
+        p->level = get_trust(ch); /* save trust */
+        p->next = disabled_first;
+        disabled_first = p; /* add before the current first element */
+
+        send_to_char ("Command disabled.\n\r",ch);
+        save_disabled(); /* save to disk */
+    }
 }
 
 /* Check if that command is disabled
@@ -1501,24 +1501,24 @@ that disabling 'chat' will also disable the '.' command
 bool check_disabled (const struct cmd_type *command)
 {
     DISABLED_DATA *p;
-    
+
     for (p = disabled_first; p ; p = p->next)
         if (!(p->spell) && (p->do_fun == command->do_fun))
             return TRUE;
-        
-        return FALSE;
+
+    return FALSE;
 }
 
 
 bool check_spell_disabled (const struct skill_type *command)
 {
     DISABLED_DATA *p;
-    
+
     for (p = disabled_first; p ; p = p->next)
         if (p->spell && (p->spell_fun == command->spell_fun))
             return TRUE;
-        
-        return FALSE;
+
+    return FALSE;
 }
 
 
@@ -1531,24 +1531,24 @@ void load_disabled( void )
     int i = 0;
     int spell;
     bool found;
-    
+
     disabled_first = NULL;
-    
+
     fp = fopen (DISABLED_FILE, "r");
-    
+
     if (!fp) /* No disabled file.. no disabled commands : */
         return;
-    
+
     name = fread_word (fp);
-    
+
     while (str_cmp(name, END_MARKER)) /* as long as name is NOT END_MARKER :) */
     {
         spell = fread_number(fp);
-        
+
         /* Find the command in the appropriate table */
-        
+
         found = FALSE;
-        
+
         if (spell)
         {
             if ((i = skill_lookup(name)) > 0)
@@ -1561,38 +1561,38 @@ void load_disabled( void )
                     found = TRUE;
                     break;
                 }
-                
-                if (found) /* add new disabled command */
-                {
-                    p = alloc_mem(sizeof(DISABLED_DATA));
-                    p->command_name = str_dup(name);
-                    p->spell = spell;
-                    if (spell)
-                    {
-                        p->spell_fun = skill_table[i].spell_fun;
-                        p->do_fun = NULL;
-                    }
-                    else
-                    {
-                        p->spell_fun = NULL;
-                        p->do_fun = cmd_table[i].do_fun;
-                    }
-                    p->disabled_by = str_dup(fread_word(fp));
-                    p->level = fread_number(fp);
-                    p->next = disabled_first;
-                    
-                    disabled_first = p;
-                }
-                else  /* command does not exist? */
-                {
-                    bugf ("Skipping uknown command %s in " DISABLED_FILE " file.", name);
-                    fread_word(fp);   /* disabled_by */
-                    fread_number(fp); /* level */
-                }
-                
-                name = fread_word(fp);
+
+        if (found) /* add new disabled command */
+        {
+            p = alloc_mem(sizeof(DISABLED_DATA));
+            p->command_name = str_dup(name);
+            p->spell = spell;
+            if (spell)
+            {
+                p->spell_fun = skill_table[i].spell_fun;
+                p->do_fun = NULL;
+            }
+            else
+            {
+                p->spell_fun = NULL;
+                p->do_fun = cmd_table[i].do_fun;
+            }
+            p->disabled_by = str_dup(fread_word(fp));
+            p->level = fread_number(fp);
+            p->next = disabled_first;
+
+            disabled_first = p;
+        }
+        else  /* command does not exist? */
+        {
+            bugf ("Skipping uknown command %s in " DISABLED_FILE " file.", name);
+            fread_word(fp);   /* disabled_by */
+            fread_number(fp); /* level */
+        }
+
+        name = fread_word(fp);
     }
-    
+
     fclose (fp);
 }
 

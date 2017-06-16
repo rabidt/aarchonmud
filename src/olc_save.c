@@ -99,8 +99,8 @@ void save_area_list( void )
     AREA_DATA *pArea;
     extern HELP_AREA * had_list;
     HELP_AREA * ha;
-    
-    
+
+
     if ( ( fp = fopen( "area.lst", "w" ) ) == NULL )
     {
         bug( "Save_area_list: fopen", 0 );
@@ -111,18 +111,18 @@ void save_area_list( void )
         for ( ha = had_list; ha; ha = ha->next )
             if ( ha->area == NULL )
                 fprintf( fp, "%s\n", ha->filename );
-            
-            
-            for( pArea = area_first; pArea; pArea = pArea->next )
-            {
-                if ( must_save_area(pArea) )
-                    fprintf( fp, "%s\n", pArea->file_name );
-            }
-            
-            fprintf( fp, "$\n" );
-            fclose( fp );
+
+
+        for( pArea = area_first; pArea; pArea = pArea->next )
+        {
+            if ( must_save_area(pArea) )
+                fprintf( fp, "%s\n", pArea->file_name );
+        }
+
+        fprintf( fp, "$\n" );
+        fclose( fp );
     }
-    
+
     return;
 }
 
@@ -140,17 +140,17 @@ char *fwrite_flag( long flags, char buf[] )
 {
     char offset;
     char *cp;
-    
+
     buf[0] = '\0';
-    
+
     if ( flags == 0 )
     {
         strcpy( buf, "0" );
         return buf;
     }
-    
+
     /* 32 -- number of bits in a long */
-    
+
     for ( offset = 0, cp = buf; offset < 32; offset++ )
         if ( flags & ( (long)1 << offset ) )
         {
@@ -159,10 +159,10 @@ char *fwrite_flag( long flags, char buf[] )
             else
                 *(cp++) = 'a' + offset - ( 'Z' - 'A' + 1 );
         }
-        
-        *cp = '\0';
-        
-        return buf;
+
+    *cp = '\0';
+
+    return buf;
 }
 
 /* reverses the order of the affect list of pObjIndex
@@ -1483,22 +1483,22 @@ void save_other_helps( void )
     extern HELP_AREA * had_list;
     HELP_AREA *ha;
     FILE *fp;
-    
+
     for ( ha = had_list; ha; ha = ha->next )
         if ( ha->area == NULL )
         {
             fp = fopen( ha->filename, "w" );
-            
+
             if ( !fp )
             {
                 log_error( ha->filename );
                 return;
             }
-            
+
             save_helps( fp, ha );
             fprintf( fp, "#$\n" );
             fclose( fp );
         }
-        
-        return;
+
+    return;
 }
