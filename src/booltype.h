@@ -32,15 +32,15 @@ typedef unsigned char C_bool_t;
   STATIC_ASSERT(C_TRUE == true, C_CPP_true_equiv);
   STATIC_ASSERT(C_FALSE == false, C_CPP_false_equiv);
 
-  STATIC_ASSERT(!C_TRUE == C_FALSE, C_TRUE_not);
-  STATIC_ASSERT(!C_TRUE == false, C_TRUE_not);
-  STATIC_ASSERT(!true == C_FALSE, CPP_true_not);
-  STATIC_ASSERT(!true == false, CPP_true_not);
+  STATIC_ASSERT((!C_TRUE) == C_FALSE, C_TRUE_not);
+  STATIC_ASSERT((!C_TRUE) == false, C_TRUE_not);
+  STATIC_ASSERT((!true) == C_FALSE, CPP_true_not);
+  STATIC_ASSERT((!true) == false, CPP_true_not);
 
-  STATIC_ASSERT(!C_FALSE == C_TRUE, C_FALSE_not);
-  STATIC_ASSERT(!C_FALSE == true, C_FALSE_not);
-  STATIC_ASSERT(!false == C_TRUE, CPP_false_not);
-  STATIC_ASSERT(!false == true, CPP_false_not);
+  STATIC_ASSERT((!C_FALSE) == C_TRUE, C_FALSE_not);
+  STATIC_ASSERT((!C_FALSE) == true, C_FALSE_not);
+  STATIC_ASSERT((!false) == C_TRUE, CPP_false_not);
+  STATIC_ASSERT((!false) == true, CPP_false_not);
 
 #endif // !defined(__cplusplus)
 

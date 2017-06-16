@@ -8,11 +8,19 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_FLAGS =  -ggdb -rdynamic -Wall -Wstrict-prototypes -Wold-style-definition $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-L_FLAGS =  $(PROF) -llua -ldl -lcrypt -lm -lsqlite3
+C_WARN = -Wall -Wstrict-prototypes -Wold-style-definition
+CPP_WARN = -pedantic -Wall
 
-SRC_FILES := $(wildcard *.c) 
-O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
+C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN)
+C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN)
+
+L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
+
+SRC_FILES_C := $(wildcard *.c) 
+O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES_C))
+SRC_FILES_CPP := $(wildcard *.cpp)
+OPP_FILES := $(patsubst %.cpp,$(OBJ_DIR)/%.opp,$(SRC_FILES_CPP))
 
 CU_TEST_C = tests/CuTest.c
 CU_TEST_O = $(OBJ_DIR)/CuTest.o
@@ -30,9 +38,9 @@ LIVETEST_O = $(OBJ_DIR)/LiveTests.o
 
 .PHONY: aeaea
 aeaea: $(BIN_DIR)/aeaea
-$(BIN_DIR)/aeaea: $(O_FILES)
+$(BIN_DIR)/aeaea: $(OPP_FILES) $(O_FILES)
 	rm -f $(BIN_DIR)/aeaea
-	$(CC) -o $(BIN_DIR)/aeaea $(O_FILES) $(L_FLAGS)
+	$(CC) -o $(BIN_DIR)/aeaea $(OPP_FILES) $(O_FILES) $(L_FLAGS)
 
 .PHONY: tester
 tester: C_FLAGS += -DTESTER
@@ -93,8 +101,11 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: %.c merc.h | $(OBJ_DIR)
-	$(CC) -c $(C_FLAGS) -o $@ $<
+	$(CC) -c $(C_FLAGS_C) -o $@ $<
+
+$(OBJ_DIR)/%.opp: %.cpp merc.h | $(OBJ_DIR)
+	$(CC) -c $(C_FLAGS_CPP) -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ_DIR)/*.o
+	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.opp
