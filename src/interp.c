@@ -680,8 +680,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "findlock",   do_findlock, POS_DEAD,  L9,  LOG_NORMAL, 1, TRUE, FALSE },
     { "rforce",     do_rforce,   POS_DEAD,  L6,  LOG_ALWAYS, 1, TRUE, FALSE },
 
-    { "cpptest",    do_cpptest,  POS_DEAD,  L9,  LOG_NEVER,  1, TRUE, FALSE },
-    
     /*
     * End of list.
     */
