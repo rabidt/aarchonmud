@@ -3424,6 +3424,7 @@ DEF_DO_FUN(do_protocol)
     wrbool(bATCP);
     wrbool(bMSP);
     wrbool(bMXP);
+    wrbool(bMXPchat);
     wrbool(bMCCP);
     wrbool(bSGA);
     
