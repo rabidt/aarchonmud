@@ -1078,6 +1078,8 @@ const char *CopyoverGet( descriptor_t *apDescriptor )
          *pBuffer++ = 'G';
       if ( pProtocol->pVariables[eMSDP_MXP]->ValueInt )
          *pBuffer++ = 'X';
+      if ( pProtocol->bMXPchat )
+         *pBuffer++ = 'W';
       if ( pProtocol->bMCCP )
       {
          *pBuffer++ = 'c';
@@ -1132,6 +1134,9 @@ void CopyoverSet( descriptor_t *apDescriptor, const char *apData )
             case 'X':
                pProtocol->bMXP = true;
                pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
+               break;
+            case 'W':
+               pProtocol->bMXPchat = true;
                break;
             case 'c':
                pProtocol->bMCCP = true;
@@ -2107,6 +2112,8 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(&(pClientName[7]));
                    }
+
+                   pProtocol->bMXPchat = true;
                }
                else if (PrefixString("ArcWeb", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
                {
@@ -2117,6 +2124,8 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(pClientName);
                    }
+
+                   pProtocol->bMXPchat = true;
                }
             }
 

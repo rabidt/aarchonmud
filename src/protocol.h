@@ -270,6 +270,7 @@ typedef struct
    bool_t    bATCP;            /* The client supports ATCP */
    bool_t    bMSP;             /* The client supports MSP */
    bool_t    bMXP;             /* The client supports MXP */
+   bool_t    bMXPchat;         /* The client supports MXP chat window */
    bool_t    bMCCP;            /* The client supports MCCP */
    bool_t    bSGA;             /* Suppress (don't send) Go Ahead to client */
    support_t b256Support;      /* The client supports XTerm 256 colors */

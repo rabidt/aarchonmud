@@ -3536,20 +3536,11 @@ void close_chat_window( CHAR_DATA *ch )
 
 void gui_login_setup( CHAR_DATA *ch )
 {
-    const char *client= ch->desc ? ch->desc->pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString : "";
-
-    if ( strstr(client, "mudportal" ) || strstr(client, "ArcWeb") )
+    if (USE_CHAT_WIN(ch))
     {
         ch->pcdata->guiconfig.chat_window=TRUE;
         open_chat_window( ch );
-        ptc( ch, "{CI see you're using %s. Chat window enabled.{x\n\r", client );
-    }
-    else if (USE_CHAT_WIN(ch))
-    {
-        /* Probably only get here if they reconnect from a different client */
-        ch->pcdata->guiconfig.chat_window=FALSE;
-        close_chat_window( ch );
-        ptc( ch, "{CDisabling chat window.\n\r");
+        ptc( ch, "{CChat window enabled.{x\n\r" );
     }
 }
 
