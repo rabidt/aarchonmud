@@ -3538,7 +3538,6 @@ void gui_login_setup( CHAR_DATA *ch )
 {
     if (USE_CHAT_WIN(ch))
     {
-        ch->pcdata->guiconfig.chat_window=TRUE;
         open_chat_window( ch );
         ptc( ch, "{CChat window enabled.{x\n\r" );
     }
@@ -3564,14 +3563,14 @@ DEF_DO_FUN(do_guiconfig)
     
     if (!str_cmp(argument, "on"))
     {
-        ch->pcdata->guiconfig.chat_window = TRUE;
+        ch->desc->pProtocol->bMXPchat = TRUE;
         open_chat_window(ch);
         ptc(ch, "Chat window enabled.\n\r");
         return;
     }
     if (!str_cmp(argument, "off"))
     {
-        ch->pcdata->guiconfig.chat_window = FALSE;
+        ch->desc->pProtocol->bMXPchat = FALSE;
         close_chat_window(ch);
         ptc(ch, "Chat window disabled.\n\r");
         return;
