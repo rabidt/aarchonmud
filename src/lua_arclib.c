@@ -1094,7 +1094,7 @@ static int glob_gethelplist ( lua_State *LS )
 
 static int mtlib_srand (lua_State *LS)
 {
-    int i;
+    size_t i;
 
     /* allow for table of seeds */
 

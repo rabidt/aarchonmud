@@ -1185,7 +1185,7 @@ int meta_magic_sn( int meta )
 void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument )
 {
     tflag meta_flag;
-    int i;
+    size_t i;
     
     if ( meta_arg[0] == '\0' )
     {
