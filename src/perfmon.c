@@ -107,7 +107,7 @@ const char *PERF_meas_repr( void )
     for (i=0; i < meas_ind; i++)
     {
         char indent[] = "                    ";
-        int lvl = measurements[i].level;
+        size_t lvl = measurements[i].level;
 
         if ((lvl*2) < sizeof(indent))
         {

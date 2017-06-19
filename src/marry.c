@@ -89,7 +89,7 @@ DEF_DO_FUN(do_marry)
         return;
     }
     
-    if (victim->pcdata->spouse > 0 || victim2->pcdata->spouse > 0)
+    if (victim->pcdata->spouse != NULL || victim2->pcdata->spouse != NULL)
     {
         send_to_char( "At least one of them is already married!\n\r", ch);
         return;

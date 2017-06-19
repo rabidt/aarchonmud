@@ -8,8 +8,14 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_WARN = -Wall -Wstrict-prototypes -Wold-style-definition
-CPP_WARN = -pedantic -Wall
+C_WARN = --Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter \
+	-Wno-missing-field-initializers
+CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
+	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
+	-Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
+	-Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
+	-Wswitch-default -Wundef -Wno-unused-parameter -Weffc++ -Werror
+
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN)

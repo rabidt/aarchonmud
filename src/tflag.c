@@ -93,7 +93,7 @@ void flag_remove_field( tflag f, const tflag f_rem )
 
 void flag_set_vector( tflag f, long vector )
 {
-    int i;
+    size_t i;
     for ( i = 1; i <= VSIZE; i++ )
 	if ( I_IS_SET(vector, i) )
 	    flag_set( f, i );
@@ -101,7 +101,7 @@ void flag_set_vector( tflag f, long vector )
 
 void flag_remove_vector( tflag f, long vector )
 {
-    int i;
+    size_t i;
     for ( i = 1; i <= VSIZE; i++ )
 	if ( I_IS_SET(vector, i) )
 	    flag_remove( f, i );
@@ -150,7 +150,7 @@ void bit_list_to_tflag( tflag f )
 int flag_convert_old( long vector )
 {
     tflag buf = {};
-    int i;
+    size_t i;
     /* take special care of affected_by2 - flags */
     bool aff2_fix = (vector < 0);
 

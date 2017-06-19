@@ -110,7 +110,7 @@ const char * szFinishPrompt = "({+C{x)ontinue, ({+V{x)iew, ({+P{x)ost or ({+F{x)
 long last_note_stamp = 0; /* To generate unique timestamps on notes */
 
 static bool next_board (CHAR_DATA *ch);
-const static char* note_line = 
+static const char* note_line = 
 "===============================================================================\n\r";
 
 /* In the section below, I made the following changes. Added Druids board, Mechanics board,

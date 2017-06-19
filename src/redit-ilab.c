@@ -93,7 +93,8 @@ const struct wear_location wear_locations [] =
 // returns number of WEAR_ locations written into wear
 int get_wear_locs( const int item_wear_flag, int *wear_locs )
 {
-    int i, count = 0;
+    size_t i;
+    int count = 0;
     for ( i = 0; i < MAX_WEAR_LOCATIONS; i++ )
         if ( item_wear_flag == wear_locations[i].item_wear_bit ) 
             wear_locs[count++] = wear_locations[i].wear_loc;

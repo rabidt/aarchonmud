@@ -1578,7 +1578,7 @@ void MXPSendTag( descriptor_t *apDescriptor, const char *apTag )
 
 void SoundSend( descriptor_t *apDescriptor, const char *apTrigger )
 {
-   const int MaxTriggerLength = 128; /* Used for the buffer size */
+   const size_t MaxTriggerLength = 128; /* Used for the buffer size */
 
    if ( apDescriptor != NULL && apTrigger != NULL )
    {
