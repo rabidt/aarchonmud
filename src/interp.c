@@ -507,6 +507,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "guiconfig",  do_guiconfig, POS_DEAD,  0, LOG_NORMAL, 1, FALSE, FALSE },
 
     { "changelog",  do_changelog, POS_DEAD,  0, LOG_NORMAL, 1, FALSE, FALSE },
+    { "tables",     do_tables,  POS_DEAD,    0, LOG_NORMAL, 1, FALSE, FALSE },
 
     /* Freeze Tag */
     { "ftag",       do_ftag, POS_SLEEPING,  L8, LOG_NORMAL, 1, FALSE, FALSE },
@@ -617,7 +618,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "cheatlog",   do_cheatlog,POS_DEAD,   L8,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "qset",       do_qset    ,POS_DEAD,   L2,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "mortlag",    do_mortlag, POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
-    { "tables",     do_tables,  POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luai",       do_luai,    POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luahelp",    do_luahelp, POS_DEAD,   L9,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "luaconfig",  do_luaconfig, POS_DEAD, L9,  LOG_NORMAL, 1, FALSE, FALSE  },

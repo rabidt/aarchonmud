@@ -6083,3 +6083,285 @@ DEF_DO_FUN(do_showsubclass)
     send_to_char("That's not a valid subclass or base class.\n\r", ch);
     send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
 }
+
+/* do_tables stuff */
+static void print_flag_table(CHAR_DATA *ch, const void *ptr)
+{
+    const struct flag_type *tbl = ptr;
+    char buf[MSL];
+    BUFFER *buffer=new_buf();
+
+    int i;
+    sprintf(buf, "%-20s %s\n\r", "Name", "Settable");
+    add_buf( buffer, buf );
+    add_buf( buffer, "----------------------------------------\n\r");
+    for ( i=0; tbl[i].name ; i++ )
+    {
+        sprintf( buf, "%-20s %s\n\r", tbl[i].name, tbl[i].settable ? "TRUE" : "FALSE" );
+        if (!add_buf( buffer, buf ))
+        {
+            bugf("Bad stuff happened");
+            free_buf(buffer);
+            return;
+        }
+    }
+
+    page_to_char( buf_string(buffer), ch );
+    free_buf(buffer);
+    return;
+}
+
+static void print_item_table(CHAR_DATA *ch, const void *ptr)
+{
+    const struct item_type *tbl = ptr;
+    ptc( ch, "Name\n\r");
+    ptc( ch, "------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc(ch, "%s\n\r", tbl[i].name );
+    }
+}
+
+static void print_attack_table(CHAR_DATA *ch, const void *ptr)
+{
+    const struct attack_type *tbl = ptr;
+    ptc( ch, "%-20s %-20s %-20s\n\r", "Name", "Noun", "Damtype");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc(ch, "%-20s %-20s %-20s\n\r",
+                tbl[i].name,
+                tbl[i].noun,
+                flag_bit_name(damage_type, tbl[i].damage) );
+    }
+}
+
+static void print_liq_table(CHAR_DATA *ch, const void *ptr)
+{
+    const struct liq_type *tbl = ptr;
+    ptc( ch, "%-20s %-20s %5s %5s %5s %5s %5s\n\r",
+            "Name", "Color",
+            "Proof", "Full", "Thrst", "Food", "Ssize");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].liq_name ; i++)
+    {
+        ptc( ch, "%-20s %-20s %5d %5d %5d %5d %5d\n\r",
+                tbl[i].liq_name,
+                tbl[i].liq_color,
+                tbl[i].liq_affect[0],
+                tbl[i].liq_affect[1],
+                tbl[i].liq_affect[2],
+                tbl[i].liq_affect[3],
+                tbl[i].liq_affect[4] );
+    }
+}
+
+static void print_stances(CHAR_DATA *ch, const void *ptr)
+{
+    const struct stance_type *tbl = ptr;
+    ptc( ch, "%-18s %-10s %-16s %-3s %-3s %-4s\n\r",
+            "Name",
+            "Damtype",
+            "Verb",
+            "Hth",
+            "Wpn",
+            "Cost");
+    ptc( ch, "--------------------------------------------------------------------------------\n\r");
+    int i;
+    for (i=0 ; tbl[i].name ; i++)
+    {
+        ptc( ch, "%-18s %-10s %-16s %-3s %-3s %4d\n\r",
+                tbl[i].name,
+                flag_bit_name(damage_type, tbl[i].type),
+                tbl[i].verb,
+                tbl[i].martial ? "YES" : "no",
+                tbl[i].weapon ? "YES" : "no",
+                tbl[i].cost);
+    }
+
+}
+
+static void print_skill_table (CHAR_DATA *ch, const void *ptr)
+{
+    const struct skill_type *tbl = ptr;
+    ptc( ch, "%3s %s\n\r", "SN","Name");
+    int sn;
+    for ( sn=0 ; tbl[sn].name ; sn++)
+    {
+        ptc( ch, "%3d %s\n\r",
+                sn,
+                tbl[sn].name);
+    }
+}
+
+static void print_wiznet_table (CHAR_DATA *ch, const void *ptr)
+{
+    const struct wiznet_type *tbl = ptr;
+    ptc( ch, "%3s %s\n\r", "Lvl", "Channel");
+
+    int i;
+    for ( i=0 ; tbl[i].name ; i++)
+    {
+        ptc( ch, "%3d %s\n\r",
+                tbl[i].level,
+                tbl[i].name);
+    }
+}
+
+static void print_race_table (CHAR_DATA *ch, const void *ptr)
+{
+    const struct race_type *tbl = ptr;
+    char buf[MSL];
+    BUFFER *buffer = new_buf();
+
+    int i;
+    sprintf(buf, "%-20s %s\n\r", "Name", "PC");
+    add_buf(buffer, buf);
+    add_buf(buffer, "----------------------------------------\n\r");
+
+    for (i=0; tbl[i].name; i++)
+    {
+        sprintf(buf, "%-20s %s\n\r", tbl[i].name, (tbl[i].pc_race) ? "TRUE" : "FALSE");
+        if (!add_buf(buffer, buf))
+        {
+            bugf("BUFFER OVERFLOW???");
+            free_buf(buffer);
+            return;
+        }
+    }
+
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+    return;
+}
+
+static void print_title_table (CHAR_DATA *ch, const void *ptr)
+{
+    title_table_type *tbl = ptr;
+    BUFFER *buffer = new_buf();
+
+    const size_t class_cnt = sizeof(*tbl) / sizeof(*tbl[0]);
+    const size_t title_cnt = sizeof(*tbl[0]) / sizeof(*tbl[0][0]);
+
+
+    size_t i, j;
+    for ( i=0 ; i < class_cnt ; ++i )
+    {
+        add_buf(buffer, "---------------------------------------------\n\r");
+        add_buf(buffer, class_table[i].name );
+        add_buf(buffer, " titles\n\r");
+        add_buf(buffer, "---------------------------------------------\n\r");
+
+        for ( j=0; j < title_cnt ; ++j )
+        {
+            add_buf(buffer, " ");
+            add_buf(buffer, title_table[i][j]);
+            add_buf(buffer, "\n\r");
+        }
+    }
+
+    page_to_char(buf_string(buffer), ch);
+    free_buf(buffer);
+}
+
+#define PRFLAG( flgtbl, note ) { #flgtbl , print_flag_table, flgtbl, note, FALSE }
+
+static struct
+{
+    const char * const name;
+    void (* const printfun)(CHAR_DATA *, const void *);
+    const void * const table;
+    const char * const note;
+    const bool mort; /* Whether mortals can view it */
+} dotable_table[]=
+{
+    PRFLAG( area_flags, "" ),
+    PRFLAG( exit_flags, "" ),
+    PRFLAG( damage_type, "" ),
+    PRFLAG( type_flags, "Item type flags." ),
+    PRFLAG( affect_flags, "" ),
+    PRFLAG( off_flags, "Offensive flags." ),
+    PRFLAG( imm_flags, "Immune flags." ),
+    PRFLAG( res_flags, "Resist flags." ),
+    PRFLAG( vuln_flags, ""),
+    PRFLAG( extra_flags, "Item extra flags." ),
+    PRFLAG( wear_types, "" ),
+    PRFLAG( room_flags, "" ),
+    PRFLAG( wear_loc_flags, ""),
+    PRFLAG( act_flags, ""),
+    PRFLAG( plr_flags, ""),
+    PRFLAG( form_flags, ""),
+    PRFLAG( part_flags, ""),
+    PRFLAG( comm_flags, ""),
+    PRFLAG( mprog_flags, ""),
+    PRFLAG( oprog_flags, ""),
+    PRFLAG( aprog_flags, ""),
+    PRFLAG( rprog_flags, ""),
+    PRFLAG( sex_flags, ""),
+    PRFLAG( door_resets, ""),
+    PRFLAG( sector_flags, ""),
+    PRFLAG( apply_flags, ""),
+    PRFLAG( wear_loc_strings, ""),
+    PRFLAG( container_flags, ""),
+    PRFLAG( size_flags, ""),
+    PRFLAG( weapon_class, ""),
+    PRFLAG( weapon_type2, ""),
+    PRFLAG( position_flags, ""),
+    PRFLAG( portal_flags, ""),
+    PRFLAG( furniture_flags, ""),
+    PRFLAG( apply_types, ""),
+
+    { "item_table",   print_item_table,   item_table,   "Item types.",      FALSE },
+    { "attack_table", print_attack_table, attack_table, "Attack types.",    FALSE },
+    { "liq_table",    print_liq_table,    liq_table,    "Liquid types.",    FALSE },
+    { "stances",      print_stances,      stances,      "Stances.",         FALSE },
+    { "skill_table",  print_skill_table,  skill_table,  "Skills.",          FALSE },
+    { "wiznet_table", print_wiznet_table, wiznet_table, "Wiznet channels.", FALSE },
+    { "race_table",   print_race_table,   race_table,   "Race table.",      FALSE },
+
+    { "title_table",  print_title_table,  title_table,  "Title table.",     TRUE  },
+    { NULL, NULL, NULL, NULL, FALSE }
+};
+#undef PRFLAG
+
+DEF_DO_FUN(do_tables)
+{
+    int i;
+
+    bool immort = IS_IMMORTAL(ch);
+
+    if ( argument[0] == '\0' )
+    {
+        ptc( ch, "%-20s %s\n\r", "Table", "Note");
+        ptc( ch, "-----------------------------------------------------------\n\r");
+        for ( i=0; dotable_table[i].name ; i++ )
+        {
+            if ( dotable_table[i].mort || immort )
+            {
+                ptc(ch, "%-20s %s\n\r", 
+                    dotable_table[i].name,
+                    dotable_table[i].note );
+            }
+        }
+        return;
+    }
+
+    for ( i=0; dotable_table[i].name ; i++ )
+    {
+
+        if ( (dotable_table[i].mort || immort) 
+            && !str_prefix( argument, dotable_table[i].name ) )
+        {
+            dotable_table[i].printfun(
+                    ch,
+                    dotable_table[i].table);
+            return;
+        }
+    }
+
+    do_tables( ch, "");
+
+}
