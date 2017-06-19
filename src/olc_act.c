@@ -1098,7 +1098,7 @@ AEDIT( aedit_clone )
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
 
-    if ( arg1[0] == '\0' || arg1[0] == '\0'
+    if ( arg1[0] == '\0' || arg2[0] == '\0'
 	 || !is_number(arg1) || !is_number(arg2) )
     {
         send_to_char( "Syntax: clone <nr> <min_vnum>\n\r", ch );

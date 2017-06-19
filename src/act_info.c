@@ -3104,7 +3104,7 @@ DEF_DO_FUN(do_compare)
     }
     else
     {
-        if (obj1->item_type == ITEM_WEAPON && obj1->item_type == ITEM_WEAPON)
+        if (obj1->item_type == ITEM_WEAPON && obj2->item_type == ITEM_WEAPON)
         {
             value1 += 4 * average_weapon_dam( obj1 );
             value2 += 4 * average_weapon_dam( obj2 );

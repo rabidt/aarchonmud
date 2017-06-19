@@ -947,7 +947,11 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
             log_string( "EOF encountered on read." );
             return FALSE;
         }
-        else if ( errno == EWOULDBLOCK || errno == EAGAIN )
+        else if ( errno == EWOULDBLOCK 
+#if EAGAIN != EWOULDBLOCK // avoid duplicate check to avoid compiler warning
+            || errno == EAGAIN 
+#endif
+            )
             break;
         else
         {
