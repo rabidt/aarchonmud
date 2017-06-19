@@ -33,7 +33,7 @@
 #include <lua.h>
 #include "merc.h"
 #include "tables.h"
-#include "lua_scripting.h"
+#include "lua_main.h"
 #include "mudconfig.h"
 #include "mob_stats.h"
 

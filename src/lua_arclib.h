@@ -1,6 +1,7 @@
 #ifndef LUA_ARCLIB_H
 #define LUA_ARCLIB_H
 
+#include "merc.h"
 
 typedef struct lua_extra_val
 {
@@ -49,6 +50,8 @@ void register_globals( lua_State *LS );
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );
 void free_luaval( LUA_EXTRA_VAL *luaval );
 void cleanup_uds( void );
+
+void run_delayed_function( TIMER_NODE *tmr );
 
 #define DECLARETYPEFUNCS( LTYPE, CTYPE ) \
     CTYPE * check_ ## LTYPE ( lua_State *LS, int index ); \

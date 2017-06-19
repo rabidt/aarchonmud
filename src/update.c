@@ -38,7 +38,7 @@
 #include "buffer_util.h"
 #include "olc.h"
 #include "mob_stats.h"
-#include "lua_scripting.h"
+#include "lua_main.h"
 #include "lua_arclib.h"
 #include "mudconfig.h"
 #include "warfare.h"
