@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 
@@ -108,12 +109,6 @@ void init_hash_table(struct hash_header *ht,int rec_size,int table_size)
     ht->buckets   = (void*)calloc(sizeof(struct hash_link**),table_size);
     ht->keylist   = (void*)malloc(sizeof(ht->keylist)*(ht->klistsize=128));
     ht->klistlen  = 0;
-}
-
-void init_world(ROOM_INDEX_DATA *room_db[])
-{
-    /* zero out the world */
-    bzero((char *)room_db,sizeof(ROOM_INDEX_DATA *)*WORLD_SIZE);
 }
 
 void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
@@ -296,7 +291,7 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
         {
             // direction and distance of successors
             // direction is that of ancestor (unless first step, then updated below)
-            int dir_dist = (int)hash_find(&x_room, q_head->room_nr);
+            int dir_dist = (int)(intptr_t)hash_find(&x_room, q_head->room_nr);
             int dist = DD_DIST(dir_dist) + 1;
             int dir = DD_DIR(dir_dist);
             // regular exits
@@ -345,7 +340,7 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
                             q_tail->next_q = tmp_q;
                             q_tail = tmp_q;
                             //logpf("Hunting: #%d -> #%d (%d), dir=%d, dist=%d", q_head->room_nr, tmp_room, i, dir, dist);
-                            hash_enter( &x_room, tmp_room, (void*) DD(dir,dist) );
+                            hash_enter( &x_room, tmp_room, (void *)(intptr_t) DD(dir,dist) );
                         }
                     }
                     else
