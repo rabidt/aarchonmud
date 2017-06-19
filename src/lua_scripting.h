@@ -32,28 +32,10 @@ bool lua_load_oprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_aprog( lua_State *LS, int vnum, const char *code);
 bool lua_load_rprog( lua_State *LS, int vnum, const char *code);
 
-DECLARE_DO_FUN(do_lboard);
-DECLARE_DO_FUN(do_lhistory);
-void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
-void save_lboards( void );
-void load_lboards( void );
-void check_lboard_reset( void );
 void check_mprog( lua_State *LS, int vnum, const char *code );
 void check_oprog( lua_State *LS, int vnum, const char *code );
 void check_aprog( lua_State *LS, int vnum, const char *code );
 void check_rprog( lua_State *LS, int vnum, const char *code );
-DECLARE_DO_FUN(do_lua);
-bool run_lua_interpret( DESCRIPTOR_DATA *d );
-void lua_unregister_desc( DESCRIPTOR_DATA *d );
-void run_delayed_function( TIMER_NODE *tmr );
-void open_lua( void );
-bool run_lua_interpret( DESCRIPTOR_DATA *d);
-DECLARE_DO_FUN(do_luai);
 
-int GetLuaMemoryUsage( void );
-int GetLuaGameObjectCount( void );
-int GetLuaEnvironmentCount( void );
 
-extern lua_State *g_mud_LS;
-extern bool g_LuaScriptInProgress;
 #endif

@@ -12,8 +12,9 @@
 #include "tables.h"
 #include "olc.h"
 #include "recycle.h"
-#include "lua_scripting.h"
 #include "lua_main.h"
+#include "lua_scripting.h"
+
 
 #define RPEDIT( fun ) bool fun( CHAR_DATA *ch, const char *argument )
 

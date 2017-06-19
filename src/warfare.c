@@ -16,6 +16,7 @@
 #include "lookup.h"
 #include "buffer_util.h"
 #include "religion.h"
+#include "lua_main.h"
 
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);

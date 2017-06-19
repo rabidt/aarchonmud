@@ -40,6 +40,7 @@
 #include "mob_stats.h"
 #include "songs.h"
 #include "dxport.h"
+#include "lua_main.h"
 
 extern WAR_DATA war;
 

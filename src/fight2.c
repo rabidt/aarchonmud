@@ -6,6 +6,7 @@
 #include "merc.h"
 #include "mob_stats.h"
 #include "songs.h"
+#include "lua_main.h"
 
 bool  check_lose_stance args( (CHAR_DATA *ch) );
 bool  can_steal     args( ( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose ) );
