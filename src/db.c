@@ -3999,7 +3999,7 @@ const char *fread_string( FILE *fp )
                     char *  pc;
                     char    rgc[sizeof(char *)];
                 } u1;
-                int ic;
+                size_t ic;
                 int iHash;
                 char *pHash;
                 char *pHashPrev;
@@ -4136,7 +4136,7 @@ const char *fread_string_eol_old( FILE *fp )
                     char *      pc;
                     char        rgc[sizeof(char *)];
                 } u1;
-                int ic;
+                size_t ic;
                 int iHash;
                 char *pHash;
                 char *pHashPrev;
@@ -5669,7 +5669,7 @@ const char* bread_string( RBUFFER *rbuf )
                     char *  pc;
                     char    rgc[sizeof(char *)];
                 } u1;
-                int ic;
+                size_t ic;
                 int iHash;
                 char *pHash;
                 char *pHashPrev;
@@ -5772,7 +5772,7 @@ const char* bread_string_eol( RBUFFER *rbuf )
                     char *      pc;
                     char        rgc[sizeof(char *)];
                 } u1;
-                int ic;
+                size_t ic;
                 int iHash;
                 char *pHash;
                 char *pHashPrev;
