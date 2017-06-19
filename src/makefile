@@ -8,7 +8,7 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
-C_WARN = --Wall -Wextra -Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter \
+C_WARN = -Werror -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op -Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter \
 	-Wno-missing-field-initializers
 CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
