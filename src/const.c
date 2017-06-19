@@ -2314,7 +2314,7 @@ const struct subclass_type subclass_table[] =
 /*
  * Titles.
  */
-const char *  const           title_table [MAX_CLASS][23] =
+title_table_type title_table =
 {
 	{
 	"Citizen",
