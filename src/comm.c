@@ -61,6 +61,7 @@
 #include "timer.h"
 #include "dxport.h"
 #include "perfmon.h"
+#include "lua_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );

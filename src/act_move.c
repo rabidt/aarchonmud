@@ -34,6 +34,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "songs.h"
+#include "lua_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );

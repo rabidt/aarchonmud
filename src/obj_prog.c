@@ -8,7 +8,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "lookup.h"
-#include "lua_scripting.h"
+#include "lua_main.h"
 #include "interp.h"
 
 /*

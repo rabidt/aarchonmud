@@ -24,6 +24,10 @@ int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn
 void stackDump (lua_State *LS);
 void dump_prog( CHAR_DATA *ch, const char *prog, bool numberlines);
 
+int GetLuaMemoryUsage( void );
+int GetLuaGameObjectCount( void );
+int GetLuaEnvironmentCount( void );
+
 
 extern lua_State *g_mud_LS;
 extern bool       g_LuaScriptInProgress;
@@ -41,6 +45,13 @@ bool is_set_ref( LUAREF ref );
 void quest_buy_ptitle( CHAR_DATA *ch, const char *argument);
 void fix_ptitles( CHAR_DATA *ch );
 
+void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment );
+void save_lboards( void );
+void load_lboards( void );
+void check_lboard_reset( void );
+
+void lua_unregister_desc (DESCRIPTOR_DATA *d);
+bool run_lua_interpret( DESCRIPTOR_DATA *d);
 
 extern LUAREF REF_TRACEBACK;
 extern LUAREF REF_TABLE_INSERT;
