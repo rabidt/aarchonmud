@@ -4230,7 +4230,8 @@ extern  struct  skill_type  skill_table [MAX_SKILL+1];
 extern  struct  group_type  group_table [MAX_GROUP];
 extern  const   struct  mastery_group_type mastery_group_table [];
 extern          struct  social_type *social_table;
-extern  const char *  const           title_table [MAX_CLASS] [23];
+typedef const char * const title_table_type[MAX_CLASS][23];
+extern title_table_type title_table;
 extern	        struct  clan_data       clan_table[MAX_CLAN];
 
 
