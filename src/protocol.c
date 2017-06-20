@@ -323,6 +323,7 @@ protocol_t *ProtocolCreate( void )
    pProtocol->bATCP = false;
    pProtocol->bMSP = false;
    pProtocol->bMXP = false;
+   pProtocol->bMXPchat = false;
    pProtocol->bMCCP = false;
 
    /* SGA is special case. Set as on by default unless client tells us otherwise */
