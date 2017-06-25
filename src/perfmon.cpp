@@ -1,10 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <vector>
+#include <ctime>
+#include <cfloat>
+#include <cstring>
+
+extern "C" {
 #include <sys/time.h>
-#include <string.h>
-#include <float.h>
 #include "perfmon.h"
+} // extern "C"
 
 //static unsigned int const INFINITY = (unsigned int)(-1);
 static double const INFINITY = DBL_MAX;
@@ -21,11 +26,12 @@ static double const INFINITY = DBL_MAX;
 
 #define MAX_MEAS 128 
 
+
 struct PERF_meas_s 
 {
     int index;
     int level;
-    const char *tag;
+    char *tag;
     struct timeval start;
     struct timeval end;
 };
@@ -71,7 +77,7 @@ void PERF_meas_start(struct PERF_meas_s **m, const char *tag)
     ptr->level = curr_level++;
     if (ptr->tag)
     {
-        free((void *)ptr->tag);
+        free(static_cast<void *>(ptr->tag));
     }
     if (tag)
     {
@@ -96,40 +102,40 @@ void PERF_meas_end(struct PERF_meas_s **m)
     *m = NULL;
 }
 
-const char *PERF_meas_repr( void )
+void PERF_meas_repr( char *out_buf, size_t n )
 {
-    static char buf[MAX_MEAS * 80];
-    // assume max depth 10
-    
-    int offset = 0;
+    std::ostringstream os;
+    os << std::setprecision(2) << std::fixed;
 
-    int i;
-    for (i=0; i < meas_ind; i++)
+    for ( int i=0; i < meas_ind; i++ )
     {
-        char indent[] = "                    ";
-        size_t lvl = measurements[i].level;
-
-        if ((lvl*2) < sizeof(indent))
+        int lvl = measurements[i].level;
+        for ( int j = 0 ; j < lvl ; ++j )
         {
-            indent[lvl*2] = '\0';
-            if (lvl > 0)
-            {
-               indent[lvl*2-1] = '-';
-               indent[lvl*2-2] = '|';
-            } 
-        } 
+            os << "  ";
+        }
+        if ( lvl > 0 )
+        {
+            os << "|-";
+        }
 
         long elapsed = (measurements[i].end.tv_sec  - measurements[i].start.tv_sec )*1000000 + 
                        (measurements[i].end.tv_usec - measurements[i].start.tv_usec);
-        offset += snprintf(
-                buf + offset, 
-                80, "%s%-20s - %.2f%%\n\r", 
-                indent,
-                measurements[i].tag ? measurements[i].tag : "", 
-                100 * ((double)elapsed / USEC_PER_PULSE));
+
+        if ( measurements[i].tag )
+        {
+            os << std::left << std::setw(20) << measurements[i].tag;    
+        }
+        os << " - " 
+           << std::setw(20) << ( 100 * (static_cast<double>(elapsed) / USEC_PER_PULSE))
+           << "\n\r";
+
+        
     }
 
-    return buf;
+    std::string str = os.str();
+    size_t copied = str.copy( out_buf, n - 1 );
+    out_buf[copied] = '\0';
 }
 
 static int init_done = 0;
@@ -138,46 +144,130 @@ static time_t init_time;
 
 static double last_pulse;
 static double max_pulse = 0;
-static unsigned long day_count = 0;
 
-static PERF_data *pulse_data;
-static PERF_data *sec_data;
-static PERF_data *min_data;
-static PERF_data *hour_data;
 
-#ifndef UNITTEST
-static 
-#endif
-PERF_data *PERF_data_new(int size)
+class PerfIntvlData
 {
-    PERF_data *d = malloc(sizeof(PERF_data));
-    d->size = size;
-    d->ind = 0;
-    d->count = 0;
-    d->avgs = malloc(sizeof(double) * size);
-    d->mins = malloc(sizeof(double) * size);
-    d->maxes = malloc(sizeof(double) * size);
+public:
+    explicit PerfIntvlData( size_t size, PerfIntvlData *next )
+        : mSize( size )
+        , mInd( 0 )
+        , mCount( 0 )
+        , mAvgs( size )
+        , mMins( size )
+        , mMaxes( size )
+        , mpNextIntvl( next )
+    {
 
-    return d;
+    }
+
+    void AddData(double avg, double min, double max);
+    double GetAvgAvg() const;
+    double GetMinMin() const;
+    double GetMaxMax() const;
+
+    size_t GetCount() const { return mCount; }
+
+private:
+    PerfIntvlData( const PerfIntvlData & );
+    PerfIntvlData & operator=( const PerfIntvlData & );
+
+    size_t mSize;
+    size_t mInd;
+    size_t mCount;
+
+    std::vector<double> mAvgs;
+    std::vector<double> mMins;
+    std::vector<double> mMaxes;
+
+    PerfIntvlData *mpNextIntvl;
+};
+
+static PerfIntvlData sHourData( HOUR_PER_DAY, NULL );
+static PerfIntvlData sMinuteData( MIN_PER_HOUR, &sHourData );
+static PerfIntvlData sSecData( SEC_PER_MIN, &sMinuteData );
+static PerfIntvlData sPulseData( PULSE_PER_SECOND, &sPulseData );
+
+
+void 
+PerfIntvlData::AddData(double avg, double min, double max)
+{
+    mAvgs[mInd] = avg;
+    mMins[mInd] = min;
+    mMaxes[mInd] = max;
+
+    if ( mCount <= mInd )
+    {
+        mCount = mInd + 1;
+    }
+
+    if ( mInd < (mSize - 1) )
+    {
+        mInd += 1;
+    }
+    else
+    {
+        mInd = 0;
+
+        if ( mpNextIntvl )
+        {
+            mpNextIntvl->AddData(
+                this->GetAvgAvg(),
+                this->GetMinMin(),
+                this->GetMaxMax());
+        }
+    }
+}
+
+double
+PerfIntvlData::GetAvgAvg() const
+{
+    double sum = 0;
+
+    for ( size_t i = 0 ; i < mCount ; ++i)
+    {
+        sum += mAvgs[i];
+    }
+
+    return sum / mCount;
+}
+
+double
+PerfIntvlData::GetMinMin() const
+{
+    double min = INFINITY;
+
+    for ( size_t i = 0 ; i < mCount ; ++i )
+    {
+        if ( mMins[i] < min )
+        {
+            min = mMins[i];
+        }
+    }
+
+    return min;
+}
+
+double
+PerfIntvlData::GetMaxMax() const
+{
+    double max = 0;
+
+    for ( size_t i = 0 ; i < mCount ; ++i )
+    {
+        if ( mMaxes[i] > max )
+        {
+            max = mMaxes[i];
+        }
+    }
+
+    return max;   
 }
 
 static void init( void )
 {
     init_time = time(NULL);
-
-    pulse_data = PERF_data_new(PULSE_PER_SECOND);
-    sec_data = PERF_data_new(SEC_PER_MIN);
-    min_data = PERF_data_new(MIN_PER_HOUR);
-    hour_data = PERF_data_new(HOUR_PER_DAY);
 }
-
-#ifdef UNITTEST
-void PERF_data_free(PERF_data *data)
-{
-    free(data->vals);
-    free(data);
-}
-#endif
 
 static void check_init( void )
 {
@@ -187,84 +277,6 @@ static void check_init( void )
     init();
 
     init_done = 1;
-}
-
-#ifndef UNITTEST
-static
-#endif
-int PERF_data_add(PERF_data *data, double avg, double min, double max)
-{
-    data->avgs[data->ind] = avg;
-    data->mins[data->ind] = min;
-    data->maxes[data->ind] = max;
-
-    if (data->count <= data->ind)
-        data->count = data->ind + 1;
-
-    if (data->ind < (data->size - 1))
-    {
-        data->ind += 1;
-        return 0;
-    }
-    else
-    {
-        data->ind = 0;
-        return 1;
-    }
-}
-
-#ifndef UNITTEST
-static
-#endif
-double PERF_data_avg_avg(PERF_data *data)
-{
-    double sum = 0;
-    int i;
-
-    for (i=0; i < data->count; ++i)
-    {
-        sum += data->avgs[i];
-    }
-
-    return sum / data->count;
-}
-
-#ifndef UNITTEST
-static
-#endif
-double PERF_data_min_min(PERF_data *data)
-{
-    double min = INFINITY;
-    int i;
-
-    for (i=0; i < data->count; ++i)
-    {
-        if (data->mins[i] < min)
-        {
-            min = data->mins[i];
-        }
-    }
-
-    return min;
-}
-
-#ifndef UNITTEST
-static
-#endif
-double PERF_data_max_max(PERF_data *data)
-{
-    double max = 0;
-    int i;
-
-    for (i=0; i < data->count; ++i)
-    {
-        if (data->maxes[i] > max)
-        {
-            max = data->maxes[i];
-        }
-    }
-
-    return max;
 }
 
 static void check_thresholds(double val)
@@ -296,103 +308,76 @@ void PERF_log_pulse(double val)
     
     check_thresholds(val);
     
-    if (!PERF_data_add(pulse_data, val, val, val))
-        return;
-
-    if (!PERF_data_add(
-            sec_data, 
-            PERF_data_avg_avg(pulse_data),
-            PERF_data_min_min(pulse_data),
-            PERF_data_max_max(pulse_data)))
-        return;
-
-    if (!PERF_data_add(
-            min_data, 
-            PERF_data_avg_avg(sec_data),
-            PERF_data_min_min(sec_data),
-            PERF_data_max_max(sec_data)))
-        return;
-
-   if (!PERF_data_add(
-            hour_data, 
-            PERF_data_avg_avg(min_data),
-            PERF_data_min_min(min_data),
-            PERF_data_max_max(min_data)))
-        return;
-
-    day_count += 1;
-
+    sPulseData.AddData( val, val, val );
 }
 
-const char *PERF_repr( void )
+void PERF_repr( char *out_buf, size_t n )
 {
+    if ( !out_buf )
+        return;
+    if ( n < 1 )
+        return;
+
+    std::ostringstream os;
+
     const unsigned int thresh_count = sizeof(threshold_info) / sizeof(threshold_info[0]);
     unsigned int i;
-    static char buf[1024];
-    unsigned int offset = 0;
     time_t total_secs = time(NULL) - init_time;
     double total_pulses = total_secs * PULSE_PER_SECOND;
 
-    double pulse_min = PERF_data_min_min(pulse_data);
+    double pulse_min = sPulseData.GetMinMin();
     pulse_min = (pulse_min == INFINITY) ? 0 : pulse_min;
 
-    double sec_min = PERF_data_min_min(sec_data);
+    double sec_min = sSecData.GetMinMin();
     sec_min = (sec_min == INFINITY) ? 0 : sec_min;
 
-    double min_min = PERF_data_min_min(min_data);
+    double min_min = sMinuteData.GetMinMin();
     min_min = (min_min == INFINITY) ? 0 : min_min;
 
-    double hour_min = PERF_data_min_min(hour_data);
+    double hour_min = sHourData.GetMinMin();
     hour_min = (hour_min == INFINITY) ? 0 : hour_min;
 
-    offset = snprintf(buf, sizeof(buf),
-        "                       Avg         Min         Max\n\r"
-        "  %3d Pulse:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-        "  %3d Pulses:  %10.2f%% %10.2f%% %10.2f%%\n\r"
-        "  %3d Seconds: %10.2f%% %10.2f%% %10.2f%%\n\r"
-        "  %3d Minutes: %10.2f%% %10.2f%% %10.2f%%\n\r"
-        "  %3d Hours:   %10.2f%% %10.2f%% %10.2f%%\n\r"
-        "\n\r"
-        "Max pulse:     %.2f%%\n\r"
-        "\n\r",
-        1, last_pulse, last_pulse, last_pulse,
-        
-        pulse_data->count, 
-        PERF_data_avg_avg(pulse_data), 
-        pulse_min, 
-        PERF_data_max_max(pulse_data),
+    os << std::fixed << std::setprecision(2)
+       << "                     Avg         Min         Max\n\r"
+       << std::setw(3) << 1 << " Pulse:   " 
+       << std::setw(10) << last_pulse << "% " 
+       << std::setw(10) << last_pulse << "% " 
+       << std::setw(10) << last_pulse << "%\n\r"
 
-        sec_data->count, 
-        PERF_data_avg_avg(sec_data), 
-        sec_min, 
-        PERF_data_max_max(sec_data),
+       << std::setw(3) << sPulseData.GetCount() << " Pulses:  " 
+       << std::setw(10) << sPulseData.GetAvgAvg() << "% "
+       << std::setw(10) << pulse_min << "% "
+       << std::setw(10) << sPulseData.GetMaxMax() << "%\n\r"
 
-        min_data->count, 
-        PERF_data_avg_avg(min_data), 
-        min_min, 
-        PERF_data_max_max(min_data),
+       << std::setw(3) << sSecData.GetCount() << " Seconds: " << std::setw(10)
+       << std::setw(10) << sSecData.GetAvgAvg() << "% "
+       << std::setw(10) << sec_min << "% "
+       << std::setw(10) << sSecData.GetMaxMax() << "%\n\r"
 
-        hour_data->count, 
-        PERF_data_avg_avg(hour_data), 
-        hour_min, 
-        PERF_data_max_max(hour_data),
+       << std::setw(3) << sMinuteData.GetCount() << " Minutes: " << std::setw(10)
+       << std::setw(10) << sMinuteData.GetAvgAvg() << "% "
+       << std::setw(10) << min_min << "% "
+       << std::setw(10) << sMinuteData.GetMaxMax() << "%\n\r"
 
-        max_pulse    
-    );
+       << std::setw(3) << sHourData.GetCount() << " Hours:   " << std::setw(10)
+       << std::setw(10) << sHourData.GetAvgAvg() << "% "
+       << std::setw(10) << hour_min << "% "
+       << std::setw(10) << sHourData.GetMaxMax() << "%\n\r"
+
+       << "\n\rMax pulse:      " << max_pulse << "\n\r\n\r";
+  
 
     for (i=0; i < thresh_count; ++i)
     {
-        if (offset >= (sizeof(buf) - 1) )
-        {
-            break;
-        }
-        offset += snprintf(buf + offset, (sizeof(buf) - offset), 
-            "Over %5d%%:    %.2f%% (%ld)\n\r",
-            threshold_info[i].threshold,
-            threshold_info[i].count / total_pulses,
-            threshold_info[i].count);
+        os << "Over " << std::setw(5)  
+           << threshold_info[i].threshold << "%:      "
+           << (threshold_info[i].count / total_pulses) << "% "
+           << "(" << threshold_info[i].count << ")\n\r";
     }
 
+    
 
-    return buf;
+    std::string str = os.str();
+    size_t copied = str.copy( out_buf, n - 1 );
+    out_buf[copied] = '\0';
 }
