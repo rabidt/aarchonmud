@@ -331,13 +331,18 @@ void game_loop_unix( int control )
     /* Main loop */
     while ( !merc_down )
     {
+        static struct PERF_prof_sect *pr_main_loop = NULL;
+        PERF_prof_sect_init(&pr_main_loop, "Main loop");
+
         struct PERF_meas_s *ms_main;
         struct PERF_meas_s *ms_check_lua_stack;
         struct PERF_meas_s *ms_update_handler;
        
         PERF_meas_reset();
+        PERF_prof_reset();
 
-        PERF_meas_start(&ms_main, "main"); 
+        PERF_meas_start(&ms_main, "main");
+        PERF_prof_sect_enter(pr_main_loop);
 
         PERF_meas_start(&ms_check_lua_stack, "check_lua_stack"); 
         check_lua_stack();
@@ -357,6 +362,10 @@ void game_loop_unix( int control )
         /*
          * Poll all active descriptors.
          */
+        static struct PERF_prof_sect *pr_poll_desc = NULL;
+        PERF_prof_sect_init(&pr_poll_desc, "Poll descriptors");
+        PERF_prof_sect_enter(pr_poll_desc);
+
         FD_ZERO( &in_set  );
         FD_ZERO( &out_set );
         FD_ZERO( &exc_set );
@@ -377,6 +386,7 @@ void game_loop_unix( int control )
             log_error( "Game_loop: select: poll" );
             exit( 1 );
         }
+        PERF_prof_sect_exit(pr_poll_desc);
 
         /*
          * New connection?
@@ -404,6 +414,10 @@ void game_loop_unix( int control )
         /*
          * Process input.
          */
+        static struct PERF_prof_sect *pf_process_input = NULL;
+        PERF_prof_sect_init(&pf_process_input, "Process input");
+        PERF_prof_sect_enter(pf_process_input);
+
         #define MAX_LINE_COUNT 100 
         int linecnt=0; /* track number of lines processed
                         when processing lag free 
@@ -565,6 +579,7 @@ void game_loop_unix( int control )
             }
 
         }
+        PERF_prof_sect_exit(pf_process_input);
 
         /*
          * Autonomous game motion.
@@ -577,6 +592,10 @@ void game_loop_unix( int control )
          * Output.
          */
         /* snooped chars first */
+        static struct PERF_prof_sect *pr_output = NULL;
+        PERF_prof_sect_init(&pr_output, "Output");
+        PERF_prof_sect_enter(pr_output);
+
         for ( d = descriptor_list; d != NULL; d = d_next )
         {
             d_next = d->next;
@@ -611,8 +630,10 @@ void game_loop_unix( int control )
                 }
             }
         }
+        PERF_prof_sect_exit(pr_output);
 
         PERF_meas_end(&ms_main);
+        PERF_prof_sect_exit(pr_main_loop);
 
         /*
          * Synchronize to a clock.
@@ -652,6 +673,8 @@ void game_loop_unix( int control )
                 log_string("Pulse usage > 100%. Trace info: ");
                 char buf[MSL];
                 PERF_meas_repr(buf, sizeof(buf));
+                log_string(buf);
+                PERF_prof_repr(buf, sizeof(buf));
                 log_string(buf);
             }
 
