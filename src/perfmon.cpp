@@ -27,6 +27,12 @@ static double const INFINITY = DBL_MAX;
 #define MAX_MEAS 128 
 
 
+static long calc_elapsed_usec(struct timeval *start, struct timeval *end)
+{
+    return ( (end->tv_sec  - start->tv_sec )*1000000 +
+             (end->tv_usec - start->tv_usec) );
+}
+
 struct PERF_meas_s 
 {
     int index;
@@ -104,6 +110,16 @@ void PERF_meas_end(struct PERF_meas_s **m)
 
 void PERF_meas_repr( char *out_buf, size_t n )
 {
+    if (!out_buf)
+    {
+        return;
+    }
+    if (n < 1)
+    {
+        out_buf[0] = '\0';
+        return;
+    }
+
     std::ostringstream os;
     os << std::setprecision(2) << std::fixed;
 
@@ -169,8 +185,8 @@ public:
     size_t GetCount() const { return mCount; }
 
 private:
-    PerfIntvlData( const PerfIntvlData & );
-    PerfIntvlData & operator=( const PerfIntvlData & );
+    PerfIntvlData( const PerfIntvlData & ); // unimplemented
+    PerfIntvlData & operator=( const PerfIntvlData & ); // unimplemented
 
     size_t mSize;
     size_t mInd;
@@ -313,10 +329,15 @@ void PERF_log_pulse(double val)
 
 void PERF_repr( char *out_buf, size_t n )
 {
-    if ( !out_buf )
+    if (!out_buf)
+    {
         return;
-    if ( n < 1 )
+    }
+    if (n < 1)
+    {
+        out_buf[0] = '\0';
         return;
+    }
 
     std::ostringstream os;
 
@@ -380,4 +401,176 @@ void PERF_repr( char *out_buf, size_t n )
     std::string str = os.str();
     size_t copied = str.copy( out_buf, n - 1 );
     out_buf[copied] = '\0';
+}
+
+
+
+class PERF_prof_sect
+{
+public:
+    explicit PERF_prof_sect(const char *id)
+        : mId( id )
+        , mLastEnterTime( )
+        , mUsecTotal( 0 )
+        , mEnterCount( 0 )
+    {
+
+    }
+
+    void Reset();
+    void Enter();
+    void Exit();
+
+    std::string const & GetId() { return mId; }
+    long GetUsecTotal() { return mUsecTotal; }
+    unsigned int GetEnterCount() { return mEnterCount; }
+
+private:
+    PERF_prof_sect( const PERF_prof_sect & ); // unimplemented
+    PERF_prof_sect & operator=( const PERF_prof_sect & ); // unimplemented
+
+    std::string mId;
+    struct timeval mLastEnterTime;
+    long mUsecTotal;
+    unsigned int mEnterCount;
+};
+
+class PerfProfMgr
+{
+public:
+    PerfProfMgr()
+        : mSections( )
+    {
+
+    };
+
+    PERF_prof_sect *NewSection(const char *id);
+    void ResetAll();
+    void Repr( char *out_buf, size_t n );
+
+private:
+    std::vector<PERF_prof_sect *> mSections;
+};
+
+void
+PerfProfMgr::Repr(char *out_buf, size_t n)
+{
+    if (!out_buf)
+    {
+        return;
+    }
+    if (n < 1)
+    {
+        out_buf[0] = '\0';
+        return;
+    }
+
+    std::ostringstream os;
+
+    os << std::setprecision(2) << std::fixed
+       << "\n\r"
+       << std::left 
+       << std::setw(20) << "Section name" << " "
+       << std::right 
+       << std::setw(12) << "Enter Count" << " "
+       << std::setw(12) << "usec total" << " "
+       << std::setw(12) << "pulse %\n\r"
+       << std::setfill('-') << std::setw(80) << " " << std::setfill(' ') << "\n\r" ;
+
+
+    for ( std::vector<PERF_prof_sect *>::iterator itr = mSections.begin() ;
+          itr != mSections.end();
+          ++itr )
+    {
+        /* Only bother to print sections that were active this pulse */
+        if ( (*itr)->GetEnterCount() < 1 )
+        {
+            continue;
+        }
+
+        os << std::left 
+           << std::setw(20) << (*itr)->GetId() << " " 
+           << std::right 
+           << std::setw(12) << (*itr)->GetEnterCount() << " "
+           << std::setw(12) << (*itr)->GetUsecTotal() << " "
+           << std::setw(12) << ( 100 * static_cast<double>((*itr)->GetUsecTotal()) / USEC_PER_PULSE ) << "%\n\r";
+    }
+
+    std::string str = os.str();
+    size_t copied = str.copy( out_buf, n - 1 );
+    out_buf[copied] = '\0';
+}
+
+PERF_prof_sect * 
+PerfProfMgr::NewSection(const char *id)
+{
+    // mSections.push_back( PERF_prof_sect( id ) );
+    PERF_prof_sect *ptr = new PERF_prof_sect( id );
+    mSections.push_back( ptr );
+    return ptr;
+}
+
+void
+PerfProfMgr::ResetAll()
+{
+    for ( std::vector<PERF_prof_sect *>::iterator itr = mSections.begin() ;
+          itr != mSections.end() ;
+          ++itr )
+    {
+        (*itr)->Reset();
+    }
+}
+
+void
+PERF_prof_sect::Reset()
+{
+    mEnterCount = 0;
+    mUsecTotal = 0;
+}
+
+void
+PERF_prof_sect::Enter()
+{
+    ++mEnterCount;
+    gettimeofday(&mLastEnterTime, NULL);
+}
+
+void PERF_prof_sect::Exit()
+{
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    mUsecTotal += calc_elapsed_usec(&mLastEnterTime, &now);
+}
+
+static PerfProfMgr sProfMgr;
+
+void PERF_prof_sect_init(PERF_prof_sect **ptr, const char *id)
+{
+    /* If already inited then do nothing */
+    if (*ptr)
+    {
+        return;
+    }
+
+    *ptr = sProfMgr.NewSection(id);
+}
+
+void PERF_prof_sect_enter(PERF_prof_sect *ptr)
+{
+    ptr->Enter();
+}
+
+void PERF_prof_sect_exit(PERF_prof_sect *ptr)
+{
+    ptr->Exit();
+}
+
+void PERF_prof_reset( void )
+{
+    sProfMgr.ResetAll();
+}
+
+void PERF_prof_repr( char *out_buf, size_t n )
+{
+    return sProfMgr.Repr(out_buf, n);
 }

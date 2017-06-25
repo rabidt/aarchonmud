@@ -1,7 +1,5 @@
 #ifndef PERFMON_H
 
-struct PERF_track;
-
 
 void PERF_log_pulse(double val);
 void PERF_repr( char *out_buf, size_t n );
@@ -17,6 +15,15 @@ struct PERF_meas_s *_ms_ ## name;\
 PERF_meas_start(& _ms_ ## name, #name);\
 section \
 PERF_meas_end(& _ms_ ## name);
+
+
+struct PERF_prof_sect;
+
+void PERF_prof_sect_init(struct PERF_prof_sect **ptr, const char *id);
+void PERF_prof_sect_enter(struct PERF_prof_sect *ptr);
+void PERF_prof_sect_exit(struct PERF_prof_sect *ptr);
+void PERF_prof_reset( void );
+void PERF_prof_repr( char *out_buf, size_t n );
 
 
 #endif // PERFMON_H
