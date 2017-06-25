@@ -31,6 +31,7 @@
 #include <lua.h>
 #include "booltype.h"
 #include "protocol.h"
+#include "perfmon.h"
 #include "timer.h"
 
 #ifdef TESTER
@@ -122,10 +123,35 @@ typedef int LUAREF;
  * Function types.
  */
 typedef void DO_FUN args( ( CHAR_DATA *ch, const char *argument ) );
-#define DEF_DO_FUN(fun) void fun( CHAR_DATA *ch, const char *argument )
+#define DEF_DO_FUN(fun)                                                \
+static void impl_ ## fun ## _ ( CHAR_DATA *ch, const char *argument ); \
+void fun( CHAR_DATA *ch, const char *argument )                        \
+{                                                                      \
+    static struct PERF_prof_sect * pr = NULL;                          \
+    PERF_prof_sect_init( &pr, #fun );                                  \
+    PERF_prof_sect_enter(pr);                                          \
+    impl_ ## fun ## _ (ch, argument);                                  \
+    PERF_prof_sect_exit(pr);                                           \
+}                                                                      \
+static void impl_ ## fun ## _ ( CHAR_DATA *ch, const char *argument)
+
+
 typedef bool SPEC_FUN   args( ( CHAR_DATA *ch ) );
 typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check ) );
-#define DEF_SPELL_FUN(fun) bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check )
+#define DEF_SPELL_FUN(fun)                                                                             \
+static bool impl_ ## fun ## _ ( int sn, int level, CHAR_DATA  *ch, void *vo, int target, bool check ); \
+bool fun( int sn, int level, CHAR_DATA *ch, void *vo, int target, bool check )                         \
+{                                                                                                      \
+    static struct PERF_prof_sect * pr = NULL;                                                          \
+    PERF_prof_sect_init( &pr, #fun );                                                                  \
+    PERF_prof_sect_enter(pr);                                                                          \
+    bool result = impl_ ## fun ## _ ( sn, level, ch, vo, target, check );                              \
+    PERF_prof_sect_exit(pr);                                                                           \
+                                                                                                       \
+    return result;                                                                                     \
+}                                                                                                      \
+static bool impl_ ## fun ## _ ( int sn, int level, CHAR_DATA  *ch, void *vo, int target, bool check )
+
 
 /* for object and affect locating in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );

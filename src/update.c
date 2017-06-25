@@ -619,6 +619,10 @@ void mobile_special_update( void )
  */
 void mobile_update( void )
 {
+    static struct PERF_prof_sect *pr_mobile_update = NULL;
+    PERF_prof_sect_init(&pr_mobile_update, "mobile_update");
+    PERF_prof_sect_enter(pr_mobile_update);
+
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     EXIT_DATA *pexit;
@@ -636,6 +640,10 @@ void mobile_update( void )
         if ( !IS_NPC(ch) || ch->in_room == NULL )
             continue;
 
+        static struct PERF_prof_sect * pr_shop_update = NULL;
+        PERF_prof_sect_init(&pr_shop_update, "Shop update");
+        PERF_prof_sect_enter(pr_shop_update);
+
         /* shop updates even if area is empty*/
         if (ch->pIndexData->pShop != NULL) /* give him some gold */
         {
@@ -647,10 +655,16 @@ void mobile_update( void )
             }
         }
 
+        PERF_prof_sect_exit(pr_shop_update);
+
         if ( !ch->fighting && ch->in_room->area->empty && !IS_SET(ch->act, ACT_UPDATE_ALWAYS) )
             continue;
 
         /* Examine call for special procedure */
+        static struct PERF_prof_sect * pr_spec_proc = NULL;
+        PERF_prof_sect_init(&pr_spec_proc, "Special procedure");
+        PERF_prof_sect_enter(pr_spec_proc);
+
         if ( ch->wait == 0 && !IS_AFFECTED(ch, AFF_PETRIFIED) )
         {
             if ( ch->fighting && is_wimpy(ch) )
@@ -679,12 +693,17 @@ void mobile_update( void )
                     continue;
             }
         }
+        PERF_prof_sect_exit(pr_spec_proc);
         
         /* Avoid mprogs on charmed mobs - can be strange and/or abusable */
         if ( IS_AFFECTED(ch, AFF_CHARM) )
             continue;
 
         /* Delay */
+        static struct PERF_prof_sect * pr_delay_trigger = NULL;
+        PERF_prof_sect_init(&pr_delay_trigger, "Delay trigger");
+        PERF_prof_sect_enter(pr_delay_trigger);
+
         if ( HAS_TRIGGER(ch, TRIG_DELAY) && ch->mprog_delay > 0 )
         {
             if ( --ch->mprog_delay <= 0 )
@@ -692,10 +711,15 @@ void mobile_update( void )
                 mp_percent_trigger(ch, NULL, NULL,0, NULL,0, TRIG_DELAY);
                 continue;
             }
-        } 
+        }
+        PERF_prof_sect_exit(pr_delay_trigger);
+
         /*
          * Check random triggers only if mobile still in default position
          */
+        static struct PERF_prof_sect * pr_rand_trigger = NULL;
+        PERF_prof_sect_init(&pr_rand_trigger, "Rand trigger");
+        PERF_prof_sect_enter(pr_rand_trigger);
         if ( ch->position == ch->pIndexData->default_pos )
         {
             if ( HAS_TRIGGER( ch, TRIG_RANDOM) )
@@ -707,6 +731,7 @@ void mobile_update( void )
         {
             do_stand(ch, "");
         }
+        PERF_prof_sect_exit(pr_rand_trigger);
 
         /* This if check was added to make mobs that were recently disarmed
            have a chance to re-equip their weapons. The mobile_update gets
@@ -736,6 +761,10 @@ void mobile_update( void )
             continue;
 
         /* Scavenge */
+        static struct PERF_prof_sect * pr_scavenge = NULL;
+        PERF_prof_sect_init(&pr_scavenge, "scavenge");
+        PERF_prof_sect_enter(pr_scavenge);
+
         if ( IS_SET(ch->act, ACT_SCAVENGER)
                 &&   ch->in_room->contents != NULL
                 &&   !IS_SET(ch->in_room->room_flags, ROOM_DONATION)
@@ -768,11 +797,15 @@ void mobile_update( void )
                 act( "$n gets $p.", ch, obj_best, NULL, TO_ROOM );
             }
         }
+        PERF_prof_sect_exit(pr_scavenge);
 
         if (ch->pIndexData->vnum==MOB_VNUM_ZOMBIE &&
                 !IS_AFFECTED(ch, AFF_CHARM))
             SET_BIT(ch->act, ACT_AGGRESSIVE);
 
+        static struct PERF_prof_sect * pr_wander;
+        PERF_prof_sect_init(&pr_wander, "Wander");
+        PERF_prof_sect_enter(pr_wander);
         /* Wander */
         if ( !IS_SET(ch->act, ACT_SENTINEL) 
                 && number_bits(3) == 0
@@ -790,8 +823,10 @@ void mobile_update( void )
         {
             move_char( ch, door, FALSE );
         }
+        PERF_prof_sect_exit(pr_wander);
     }
 
+    PERF_prof_sect_exit(pr_mobile_update);
     return;
 }
 
@@ -2185,6 +2220,11 @@ void core_tick( void )
 
 void update_handler( void )
 {
+    static struct PERF_prof_sect *pr_update_handler = NULL;
+    PERF_prof_sect_init(&pr_update_handler, "update_handler");
+    PERF_prof_sect_enter(pr_update_handler);
+
+
     static  int     pulse_area;
     static  int     pulse_mobile;
     static  int     pulse_mobile_special;
@@ -2355,6 +2395,7 @@ void update_handler( void )
         PERF_MEASURE(validate_all, validate_all(););
     }
 
+    PERF_prof_sect_exit(pr_update_handler);
     tail_chain( );
     return;
 }
