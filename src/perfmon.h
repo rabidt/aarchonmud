@@ -4,24 +4,13 @@ struct PERF_track;
 
 
 void PERF_log_pulse(double val);
-const char *PERF_repr( void );
-
-
-typedef struct 
-{
-    int size;
-    int ind;
-    int count;
-    double *avgs;
-    double *mins;
-    double *maxes;
-} PERF_data;
+void PERF_repr( char *out_buf, size_t n );
 
 struct PERF_meas_s;
 void PERF_meas_reset( void );
 void PERF_meas_start(struct PERF_meas_s **tr, const char *tag);
 void PERF_meas_end(struct PERF_meas_s **tr);
-const char *PERF_meas_repr( void );
+void PERF_meas_repr( char *out_buf, size_t n );
 
 #define PERF_MEASURE(name, section) \
 struct PERF_meas_s *_ms_ ## name;\
@@ -29,14 +18,5 @@ PERF_meas_start(& _ms_ ## name, #name);\
 section \
 PERF_meas_end(& _ms_ ## name);
 
-
-#ifdef UNITTEST
-PERF_data *PERF_data_new(int size);
-int PERF_data_add(PERF_data *data, double avg, double min, double max);
-void PERF_data_free(PERF_data *data);
-double PERF_data_avg_avg(PERF_data *data);
-double PERF_data_min_min(PERF_data *data);
-double PERF_data_max_max(PERF_data *data);
-#endif
 
 #endif // PERFMON_H

@@ -3267,5 +3267,7 @@ DEF_DO_FUN(do_dxport)
 
 DEF_DO_FUN(do_perfmon)
 {
-    send_to_char(PERF_repr(), ch);
+    char buf[MSL];
+    PERF_repr( buf, sizeof(buf) );
+    send_to_char(buf, ch);
 }

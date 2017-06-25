@@ -650,7 +650,9 @@ void game_loop_unix( int control )
             if (usage >= 100)
             {
                 log_string("Pulse usage > 100%. Trace info: ");
-                log_string(PERF_meas_repr());
+                char buf[MSL];
+                PERF_meas_repr(buf, sizeof(buf));
+                log_string(buf);
             }
 
             if ( secDelta > 0 || ( secDelta == 0 && usecDelta > 0 ) )
