@@ -202,7 +202,7 @@ private:
 static PerfIntvlData sHourData( HOUR_PER_DAY, NULL );
 static PerfIntvlData sMinuteData( MIN_PER_HOUR, &sHourData );
 static PerfIntvlData sSecData( SEC_PER_MIN, &sMinuteData );
-static PerfIntvlData sPulseData( PULSE_PER_SECOND, &sPulseData );
+static PerfIntvlData sPulseData( PULSE_PER_SECOND, &sSecData );
 
 
 void 
