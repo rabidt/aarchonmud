@@ -49,6 +49,8 @@ struct herb_type herb_table[] =
 /* some routines to make herb reset independant of area reset */
 void reset_herbs_world( void )
 {
+    PERF_PROF_ENTER( pr_, "reset_herbs_world" );
+
     AREA_DATA *pArea;
 #ifdef HERB_DEBUG
     int i;
@@ -61,6 +63,7 @@ void reset_herbs_world( void )
 #ifdef HERB_DEBUG
     update_herb_reset();
 #endif
+    PERF_PROF_EXIT( pr_ );
 }
 
 void reset_herbs_area( AREA_DATA *pArea )
@@ -76,6 +79,8 @@ void reset_herbs_area( AREA_DATA *pArea )
 /* reset herbs in a room */
 void reset_herbs( ROOM_INDEX_DATA *room )
 {
+    PERF_PROF_ENTER( pr_, "reset_herbs" );
+
     int i;
     OBJ_DATA *herb;
 
@@ -108,6 +113,8 @@ void reset_herbs( ROOM_INDEX_DATA *room )
 	obj_to_room( herb, room );
 	herb_table[i].reset_nr++;
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /* rot herbs that haven't been picked up */
@@ -136,6 +143,7 @@ int rot_herbs( int vnum )
 /* to check nr of herbs reset */
 void update_herb_reset( void )
 {
+    PERF_PROF_ENTER( pr_, "update_herb_reset" );
     int i, nr;
     char buf[MSL], outbuf[MSL];
 
@@ -151,6 +159,8 @@ void update_herb_reset( void )
 	herb_table[i].reset_nr = 0;
     }
     log_string( outbuf );
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 DEF_DO_FUN(do_herbs)
