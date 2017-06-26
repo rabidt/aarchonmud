@@ -299,15 +299,19 @@ class PERF_prof_sect
 public:
     explicit PERF_prof_sect(const char *id)
         : mId( id )
-        , mLastEnterTime( { 0, 0 } )
-        , mPulseTotal( { 0, 0 } )
-        , mPulseMax( { 0, 0 } )
-        , mTotal( { 0, 0 } )
-        , mMax( {0, 0} )
+        , mLastEnterTime( )
+        , mPulseTotal( )
+        , mPulseMax( )
+        , mTotal( )
+        , mMax( )
         , mPulseEnterCount( 0 )
         , mTotalEnterCount( 0 )
     {
-
+        timerclear(&mLastEnterTime);
+        timerclear(&mPulseTotal);
+        timerclear(&mPulseMax);
+        timerclear(&mTotal);
+        timerclear(&mMax);
     }
 
     void PulseReset();
@@ -478,8 +482,8 @@ void
 PERF_prof_sect::PulseReset()
 {
     mPulseEnterCount = 0;
-    mPulseTotal = { 0, 0 };
-    mPulseMax = { 0, 0 };
+    timerclear( &mPulseTotal );
+    timerclear( &mPulseMax );
 }
 
 void
@@ -548,3 +552,4 @@ size_t PERF_prof_repr_total( char *out_buf, size_t n )
 {
     return sProfMgr.ReprTotal(out_buf, n);
 }
+
