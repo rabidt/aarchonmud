@@ -970,7 +970,9 @@ DEF_DO_FUN(do_name)
 
 
 void auth_update( void ) 
-{ 
+{
+    PERF_PROF_ENTER( pr_, "auth_update" );
+
     AUTH_LIST *auth;
     char buf [MAX_STRING_LENGTH], log_buf [MAX_STRING_LENGTH];
     bool found_hit = FALSE;       /* was at least one found? */
@@ -994,5 +996,7 @@ void auth_update( void )
 
     if ( found_hit )
         wiznet(log_buf, NULL, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
+
+    PERF_PROF_EXIT( pr_ );
 }
 

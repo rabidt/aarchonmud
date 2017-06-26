@@ -145,13 +145,11 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
         return NULL;    
     
 #if defined(unix)
-    struct PERF_meas_s *ms_god_file;
     /* create god log */
     if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
     {
         FILE *fp;
         sprintf(strsave, "%s%s",GOD_DIR, capitalize(ch->name));
-        PERF_meas_start(&ms_god_file, strsave);
         if ((fp = fopen(strsave,"w")) == NULL)
         {
             bug("mem_save_char_obj: fopen",0);
@@ -163,7 +161,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
                     ch->level, get_trust(ch), ch->name, ch->pcdata->title);
             fclose( fp );
         }
-        PERF_meas_end(&ms_god_file);
     }
 #endif
     

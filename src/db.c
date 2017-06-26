@@ -2515,6 +2515,8 @@ void fix_roomprogs( void )
 */
 void area_update( bool all )
 {
+    PERF_PROF_ENTER( pr_, "area_update");
+
     AREA_DATA *pArea;
     char buf[MAX_STRING_LENGTH];
     
@@ -2547,6 +2549,8 @@ void area_update( bool all )
         if ( pArea->nplayer == 0 )
             pArea->empty = TRUE;
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 
