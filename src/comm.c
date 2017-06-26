@@ -650,6 +650,26 @@ void game_loop_unix( int control )
             if (usage >= 100)
             {
                 log_string("Pulse usage > 100%. Trace info: ");
+
+                if ( last_command[0] != '\0' )
+                    logpf( "Last command: %s", last_command );
+
+                /* catch other debug info too */
+                if ( last_mprog[0] != '\0' )
+                    logpf( "Last mprog: %s", last_mprog );
+
+                if ( last_debug[0] != '\0' )
+                    logpf( "Last debug: %s", last_debug );
+
+                CHAR_DATA *ch;
+                for ( ch = char_list ; ch ; ch = ch->next )
+                {
+                    if (IS_NPC(ch))
+                        continue;
+
+                    logpf("%-20s in %d", ch->name, ch->in_room ? ch->in_room->vnum : 0);
+                }
+                
                 char buf[MSL * 12];
                 PERF_prof_repr_pulse(buf, sizeof(buf));
                 log_string(buf);
