@@ -206,15 +206,28 @@ void act_non_wizi(const char *format, CHAR_DATA *ch,
  */
 CHAR_DATA* get_mp_char( CHAR_DATA *ch, const char *argument )
 {
+    PERF_PROF_ENTER( pr_ , "get_mp_char" );
+
     CHAR_DATA *victim = get_char_area( ch, argument );
 
     if ( ch->in_room == NULL )
-	return NULL;
+    {
+        PERF_PROF_EXIT( pr_ );
+        return NULL;
+    }
 
     if ( victim != NULL || IS_SET(ch->in_room->area->area_flags, AREA_REMORT) )
-	return victim;
+    {
+        PERF_PROF_EXIT( pr_ );
+        return victim;
+    }
     else
-	return get_char_world(ch, argument);
+    {
+
+        victim = get_char_world(ch, argument);
+        PERF_PROF_EXIT( pr_ );
+        return victim;
+    }
 }
 
 OBJ_DATA* get_mp_obj( CHAR_DATA *ch, const char *argument )

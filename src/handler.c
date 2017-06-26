@@ -760,16 +760,27 @@ MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch )
 
 bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
 {
+    PERF_PROF_ENTER( pr_, "is_ch_name" );
+
     MOB_INDEX_DATA *mimic;
 
     if ( is_either_name(str, ch->name, exact) )
-	return TRUE;
+    {
+        PERF_PROF_EXIT( pr_ );
+        return TRUE;    
+    }
+
 
     if ( !IS_NPC(viewer) && ch != viewer && is_mimic(ch) )
     {
-	if ( (mimic = get_mimic(ch)) != NULL )
-	     return is_either_name( str, mimic->player_name, exact );
+        if ( (mimic = get_mimic(ch)) != NULL )
+        {
+            bool rtn = is_either_name( str, mimic->player_name, exact );
+            PERF_PROF_EXIT( pr_ );
+            return rtn;
+        }
     }
+    PERF_PROF_EXIT( pr_ );
     return FALSE;
 }
 
@@ -2995,12 +3006,21 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
  */
 CHAR_DATA *get_char_world( CHAR_DATA *ch, const char *argument )
 {
+    PERF_PROF_ENTER( pr_, "get_char_world" );
+
     CHAR_DATA *wch;
 
+    PERF_PROF_ENTER( pr1_, "get_char_world get_char exact");
     wch = get_char_new( ch, argument, FALSE, TRUE );
+    PERF_PROF_EXIT( pr1_ );
     if ( wch == NULL )
-	wch = get_char_new( ch, argument, FALSE, FALSE );
+    {
+        PERF_PROF_ENTER( pr2_, "get_char_world get_char not exact");
+        wch = get_char_new( ch, argument, FALSE, FALSE );
+        PERF_PROF_EXIT( pr2_ );
+    }
 
+    PERF_PROF_EXIT( pr_ );
     return wch;    
 }
 
@@ -3012,12 +3032,15 @@ CHAR_DATA *get_char_world( CHAR_DATA *ch, const char *argument )
  */
 CHAR_DATA *get_char_area( CHAR_DATA *ch, const char *argument )
 {
+    PERF_PROF_ENTER( pr_, "get_char_area" );
+
     CHAR_DATA *ach;
 
     ach = get_char_new( ch, argument, TRUE, TRUE );
     if ( ach == NULL )
 	ach = get_char_new( ch, argument, TRUE, FALSE );
 
+    PERF_PROF_EXIT( pr_ );
     return ach;
 }
 
@@ -3041,18 +3064,29 @@ static char target_location(const char *argument, const char **nextarg)
 
 CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
+    PERF_PROF_ENTER( pr_, "get_char_new");
+
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *target;
     int number;
     int count;
     
     if ( ch == NULL || ch->in_room == NULL )
+    {
+        PERF_PROF_EXIT( pr_ );
         return NULL;
+    }
 
     if ( !str_cmp(argument, "self") )
+    {
+        PERF_PROF_EXIT( pr_ );
         return ch;
+    }
     if ( !str_cmp(argument, "opponent") )
+    {
+        PERF_PROF_EXIT( pr_ );
         return ch->fighting;
+    }
 
     char location = target_location(argument, &argument);
     number = number_argument( argument, arg );
@@ -3063,9 +3097,14 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
         location = 'x';
     
     if ( location == 'g' )
-        return get_char_group_new(ch, argument, exact);
+    {
+        CHAR_DATA *rtn = get_char_group_new(ch, argument, exact);
+        PERF_PROF_EXIT( pr_ );
+        return rtn;
+    }
     
     // search in room first, keeping count
+    PERF_PROF_ENTER( pr_room_, "get_char in room");
     if ( location == 'x' )
         for ( target = ch->in_room->people; target != NULL; target = target->next_in_room )
         {
@@ -3073,10 +3112,16 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
                 continue;
 
             if ( ++count == number )
+            {
+                PERF_PROF_EXIT( pr_ );
+                PERF_PROF_EXIT( pr_room_ );
                 return target;
+            }
         }
+    PERF_PROF_EXIT( pr_room_ );
     
     // then in area, excluding room
+    PERF_PROF_ENTER( pr_area_, "get_char in area");
     if ( location == 'x' || location == 'a' )
         for ( target = char_list; target != NULL ; target = target->next )
         {
@@ -3090,13 +3135,22 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
                 continue;
 
             if ( ++count == number )
+            {
+                PERF_PROF_EXIT( pr_ );
+                PERF_PROF_EXIT( pr_area_ );
                 return target;
+            }
         }
+    PERF_PROF_EXIT( pr_area_ );
     
     if ( area || location == 'a' )
+    {
+        PERF_PROF_EXIT( pr_ );
         return NULL;
+    }
     
     // finally in world
+    PERF_PROF_ENTER( pr_world_, "get_char in world" );
     for ( target = char_list; target != NULL ; target = target->next )
     {
         if ( target->in_room == NULL )
@@ -3105,25 +3159,41 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
         if ( location == 'x' && target->in_room->area == ch->in_room->area )
             continue;
         
+        PERF_PROF_ENTER( pr_check_name_, "get_char in world check name");
         if ( !can_see( ch, target ) || !is_ch_name(arg, target, exact, ch) )
+        {
+            PERF_PROF_EXIT( pr_check_name_ );
             continue;
+        }
+        PERF_PROF_EXIT( pr_check_name_ );
 
         if ( ++count == number )
+        {
+            PERF_PROF_EXIT( pr_ );
+            PERF_PROF_EXIT( pr_world_ );
             return target;
+        }
     }
+    PERF_PROF_EXIT( pr_world_ );
     
+    PERF_PROF_EXIT( pr_ );
     return NULL;
 }
 
 CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
+    PERF_PROF_ENTER( pr_, "get_char_group_new" );
+
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *gch;
     int number;
     int count;
     
     if ( !ch || !ch->in_room )
+    {
+        PERF_PROF_EXIT( pr_ );
         return NULL;
+    }
 
     number = number_argument( argument, arg );
     count  = 0;
@@ -3135,7 +3205,10 @@ CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
             continue;
 
         if ( ++count == number )
+        {
+            PERF_PROF_EXIT( pr_ );
             return gch;
+        }
     }    
     // then all others
     for ( gch = char_list; gch != NULL ; gch = gch->next )
@@ -3144,9 +3217,13 @@ CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
             continue;
         
         if ( ++count == number )
+        {
+            PERF_PROF_EXIT( pr_ );
             return gch;
+        }
     }
     
+    PERF_PROF_EXIT( pr_ );
     return NULL;    
 }
 
@@ -3720,7 +3797,15 @@ int get_true_weight(OBJ_DATA *obj)
 /*
  * True if room is dark.
  */
+static bool impl_room_is_dark_( ROOM_INDEX_DATA *pRoomIndex );
 bool room_is_dark( ROOM_INDEX_DATA *pRoomIndex )
+{
+    PERF_PROF_ENTER( pr_, "room_is_dark" );
+    bool rtn = impl_room_is_dark_(pRoomIndex);
+    PERF_PROF_EXIT( pr_ );
+    return rtn;
+}
+static bool impl_room_is_dark_( ROOM_INDEX_DATA *pRoomIndex )
 {
     if (!pRoomIndex)
         return FALSE;
@@ -3833,7 +3918,15 @@ bool room_is_private( ROOM_INDEX_DATA *pRoomIndex )
 }
 
 /* visibility on a room -- for entering and exits */
+static bool impl_can_see_room_( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex );
 bool can_see_room( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
+{
+    PERF_PROF_ENTER( pr_, "can_see_room");
+    bool rtn = impl_can_see_room_(ch, pRoomIndex);
+    PERF_PROF_EXIT( pr_ );
+    return rtn;
+}
+static bool impl_can_see_room_( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex )
 {
     if ( ch->in_room == pRoomIndex )
         return TRUE;
@@ -3902,7 +3995,15 @@ bool ignore_invisible = FALSE; // hunt etc.
 /* returns whether ch does see victim, does not see victim, or has a chance
  * to see victim (hide not checked!)
  */
+static int impl_can_see_new_( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
 int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
+{
+    PERF_PROF_ENTER( pr_, "can_see_new" );
+    int rtn = impl_can_see_new_(ch, victim, combat);
+    PERF_PROF_EXIT( pr_ );
+    return rtn;
+}
+static int impl_can_see_new_( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 {
     if ( victim->must_extract )
         return SEE_CANT;

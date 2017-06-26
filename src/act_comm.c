@@ -2668,7 +2668,15 @@ CHAR_DATA *ultimate_master( CHAR_DATA *ch )
 * (2) if A ~ B then B ~ A
 * (3) if A ~ B  and B ~ C, then A ~ C
 */
+static bool impl_is_same_group_( CHAR_DATA *ach, CHAR_DATA *bch );
 bool is_same_group( CHAR_DATA *ach, CHAR_DATA *bch )
+{
+    PERF_PROF_ENTER( pr_, "is_same_group" );
+    bool rtn = impl_is_same_group_(ach, bch);
+    PERF_PROF_EXIT( pr_ );
+    return rtn;
+}
+static bool impl_is_same_group_( CHAR_DATA *ach, CHAR_DATA *bch )
 {
     if ( ach == NULL || bch == NULL)
         return FALSE;

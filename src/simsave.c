@@ -41,6 +41,8 @@ void sim_save_other( void );
  */
 void handle_player_save( void )
 {
+  PERF_PROF_ENTER( pr_, "handle_player_save" );
+
   MEMFILE *mf;
   MEMFILE *box_mf;
   char command[MSL];
@@ -49,67 +51,46 @@ void handle_player_save( void )
   sprintf(command, "handle_player_save: start, state = %d", player_save_state);
   log_string(command);
 #endif
-  struct PERF_meas_s *ms_SAVE_STATE_SIMSAVE;
-  struct PERF_meas_s *ms_SAVE_STATE_TEMPSAVE;
-  struct PERF_meas_s *ms_SAVE_STATE_TEMPCOPY;
-  struct PERF_meas_s *ms_sim_save_to_mem;
-  struct PERF_meas_s *ms_mem_sim_save_other;
-  struct PERF_meas_s *ms_sim_save_other;
-  struct PERF_meas_s *ms_SIMSAVE_rm_f_temp;
-  struct PERF_meas_s *ms_SIMSAVE_rm_f_box_temp;
 
   switch (player_save_state)
   {
 
   case SAVE_STATE_SIMSAVE:
-    PERF_meas_start(&ms_SAVE_STATE_SIMSAVE, "SAVE_STATE_SIMSAVE");
-
-    PERF_meas_start(&ms_sim_save_to_mem, "sim_save_to_mem");
     sim_save_to_mem();
-    PERF_meas_end(&ms_sim_save_to_mem);
     if (player_save_list != NULL)
     {
       player_save_state = SAVE_STATE_TEMPSAVE;
       /* save other non-player files to memory */
-      PERF_meas_start(&ms_mem_sim_save_other, "mem_sim_save_other");
       mem_sim_save_other();
-      PERF_meas_end(&ms_mem_sim_save_other);
       /* clear temp directory */
       if (!bootup_temp_clean_done)
       {
         sprintf(command, "rm -f %s*", PLAYER_TEMP_DIR);
-        PERF_meas_start(&ms_SIMSAVE_rm_f_temp, command);
+        
         if ( system(command) == -1 )
         {
             bugf("handle_player_save: failed to execute command '%s'", command);
             exit(1);
         }
-        PERF_meas_end(&ms_SIMSAVE_rm_f_temp);
 
         sprintf(command, "rm -f %s*", BOX_TEMP_DIR);
-        PERF_meas_start(&ms_SIMSAVE_rm_f_box_temp, command);
         if ( system(command) == -1 )
         {
             bugf("handle_player_save: failed to execute command '%s'", command);
             exit(1);
         }
-        PERF_meas_end(&ms_SIMSAVE_rm_f_box_temp);
         bootup_temp_clean_done = TRUE;
       }
     }
-    PERF_meas_end(&ms_SAVE_STATE_SIMSAVE);
     break;
 
   case SAVE_STATE_TEMPSAVE:
-    PERF_meas_start(&ms_SAVE_STATE_TEMPSAVE, "SAVE_STATE_TEMPSAVE");
     /* char might have deleted => player_save_list is empty */
     if (player_save_list != NULL)
     {
 	mf = player_save_list;
 	player_save_list = player_save_list->next;
 
-    struct PERF_meas_s *ms_save_to_dir;
-    PERF_meas_start(&ms_save_to_dir, mf->filename);
 	if (!save_to_dir( mf, PLAYER_TEMP_DIR ))
 	{
 	    bugf( "handle_player_save: couldn't save %s, exit to avoid corruption",
@@ -117,7 +98,6 @@ void handle_player_save( void )
 	    /* we don't want corrupt player files */
 	    exit(1);
 	}
-    PERF_meas_end(&ms_save_to_dir);
        
        /* See if corresponding box in box_mf_list */
        sprintf(buf, "%s_box", mf->filename);
@@ -139,22 +119,16 @@ void handle_player_save( void )
     if (player_save_list == NULL )
       player_save_state = SAVE_STATE_TEMPCOPY;
 
-    PERF_meas_end(&ms_SAVE_STATE_TEMPSAVE);
     break;
 
   case SAVE_STATE_TEMPCOPY:
-    PERF_meas_start(&ms_SAVE_STATE_TEMPCOPY, "SAVE_STATE_TEMPCOPY");
     sprintf(command, "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
 
-    struct PERF_meas_s *ms_mv_temp_plr;
-
-    PERF_meas_start(&ms_mv_temp_plr, command);
     if ( system(command) == -1 )
     {
         bugf("handle_player_save: failed to execute command '%s'", command);
         exit(1);
     }
-    PERF_meas_end(&ms_mv_temp_plr);
     if (boxtemp)
     {
       sprintf(command, "mv %s* %s", BOX_TEMP_DIR, BOX_DIR);
@@ -167,13 +141,10 @@ void handle_player_save( void )
     }
 
     /* save remort etc. files as well */
-    PERF_meas_start(&ms_sim_save_other, "sim_save_other");
     sim_save_other();
-    PERF_meas_end(&ms_sim_save_other);
 
     player_save_state = SAVE_STATE_SIMSAVE;
     
-    PERF_meas_end(&ms_SAVE_STATE_TEMPCOPY);
     break;
     
   case SAVE_STATE_NOSAVE:
@@ -242,6 +213,8 @@ void final_player_save( void )
  */
 void sim_save_to_mem( void )
 {
+  PERF_PROF_ENTER( pr_, "sim_save_to_mem" );
+
   MEMFILE *mf;
   //DESCRIPTOR_DATA *d;
   CHAR_DATA *ch;
@@ -282,6 +255,7 @@ void sim_save_to_mem( void )
 #if defined(SIM_DEBUG)
    log_string("sim_save_to_mem: done");
 #endif
+   PERF_PROF_EXIT( pr_ );
 }
 
 /* return wether a descriptor is ready for a player save 
@@ -711,6 +685,8 @@ MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
  */
 void mem_sim_save_other( void )
 {
+    PERF_PROF_ENTER( pr_, "mem_sim_save_other" );
+
     MEMFILE *mf;
     int i;
 #if defined(SIM_DEBUG)
@@ -724,9 +700,7 @@ void mem_sim_save_other( void )
     }
 
     /* remort */
-    PERF_MEASURE(remort_mem_save,
-        mf = remort_mem_save();
-    );
+    mf = remort_mem_save();
     if ( mf != NULL )
     {
 	mf->next = other_save_list;
@@ -734,7 +708,7 @@ void mem_sim_save_other( void )
     }
 
 
-    PERF_MEASURE(mem_save_clans, 
+
     /* clans */
     for (i = 0; i < MAX_CLAN; i++)
         if (clan_table[i].changed == TRUE)
@@ -746,8 +720,7 @@ void mem_sim_save_other( void )
 		other_save_list = mf;
 	    }
 	}
-    );
-
+    
     /* religion */
     /*
     mf = save_religions();

@@ -8166,8 +8166,10 @@ void arclib_type_init( lua_State *LS)
 
 void cleanup_uds( void )
 {
+    PERF_PROF_ENTER( pr_, "cleanup_uds" );
     lua_newtable( g_mud_LS );
     lua_setglobal( g_mud_LS, "cleanup" );
+    PERF_PROF_EXIT( pr_ );
 } 
 
 

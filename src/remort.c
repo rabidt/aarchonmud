@@ -584,6 +584,8 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
 
 void remort_update( void )
 {
+    PERF_PROF_ENTER( pr_, "remort_update" );
+
     REMORT_TABLE *i;
     REMORT_TABLE *prev = NULL;
     AREA_DATA *pArea;
@@ -688,6 +690,8 @@ void remort_update( void )
     }
 
     remort_save();
+
+    PERF_PROF_EXIT( pr_ );
 } 
 
 
@@ -825,6 +829,8 @@ void remort_save( void )
  */
 MEMFILE* remort_mem_save( void )
 {
+    PERF_PROF_ENTER( pr_, "remort_mem_save" );
+
     REMORT_TABLE *p;
     int i;
     MEMFILE *mf;
@@ -835,13 +841,18 @@ MEMFILE* remort_mem_save( void )
 #endif
 
     if ( !remort_save_needed )
-	return NULL;
+    {
+        PERF_PROF_EXIT( pr_ );
+        return NULL;    
+    }
+	
 
     mf = memfile_new( REMORT_FILE, 1024 );
     
     if (mf == NULL)
     {
       bug("remort_mem_save: out of memory", 0);
+      PERF_PROF_EXIT( pr_ );
       return NULL;
     }
 
@@ -868,6 +879,7 @@ MEMFILE* remort_mem_save( void )
     {
       bug("remort_mem_save: buffer overflow", 0);
       memfile_free(mf);
+      PERF_PROF_EXIT( pr_ );
       return NULL;
     }
     
@@ -876,6 +888,7 @@ MEMFILE* remort_mem_save( void )
 #endif
 
    remort_save_needed = FALSE;
+   PERF_PROF_EXIT( pr_ );
    return mf;
 }
 
