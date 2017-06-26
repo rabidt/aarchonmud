@@ -3267,7 +3267,51 @@ DEF_DO_FUN(do_dxport)
 
 DEF_DO_FUN(do_perfmon)
 {
-    char buf[MSL];
-    PERF_repr( buf, sizeof(buf) );
-    send_to_char(buf, ch);
+    char arg1[MIL];
+
+    argument = one_argument(argument, arg1);
+
+    if (arg1[0] == '\0')
+    {
+        send_to_char( 
+            "perfmon all  - Print all perfmon info.\n\r"
+            "perfmon summ - Print summary,\n\r"
+            "perfmon prof - Print profiling info.\n\r",
+            ch );
+        return;
+    }
+
+    if (!str_cmp( arg1, "all"))
+    {
+        char buf[MSL * 12];
+
+        size_t written = PERF_repr( buf, sizeof(buf) );
+        written = PERF_prof_repr_total( buf + written, sizeof(buf) - written);
+
+        page_to_char( buf, ch );
+
+        return;
+    }
+    else if (!str_cmp( arg1, "summ"))
+    {
+        char buf[MSL * 12];
+
+        PERF_repr( buf, sizeof(buf) );
+        page_to_char( buf, ch );
+        return;
+    }
+    else if (!str_cmp( arg1, "prof"))
+    {
+        char buf[MSL * 12];
+
+        PERF_prof_repr_total( buf, sizeof(buf) );
+        page_to_char( buf, ch );
+
+        return;
+    }
+    else
+    {
+        do_perfmon( ch, "" );
+        return;
+    }
 }

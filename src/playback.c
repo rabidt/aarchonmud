@@ -523,13 +523,16 @@ static int L_load_comm_histories( lua_State *LS )
 } 
 void save_comm_histories( void )
 {
+    PERF_PROF_ENTER( pr_, "save_comm_histories" );
     lua_pushcfunction( g_mud_LS, L_save_comm_histories );
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with L_save_comm_histories:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        PERF_PROF_EXIT( pr_ );
         return;
     }
+    PERF_PROF_EXIT( pr_ );
 }
 
 void load_comm_histories( void )

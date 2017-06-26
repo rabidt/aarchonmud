@@ -587,6 +587,8 @@ void update_learning( CHAR_DATA *ch )
  */
 void mobile_special_update( void )
 {
+    PERF_PROF_ENTER( pr_, "mobile_special_update" );
+
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
 
@@ -610,6 +612,8 @@ void mobile_special_update( void )
         }
     }
     sprintf( last_mprog, "(Finished) mobile_special_update" );
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /*
@@ -619,9 +623,7 @@ void mobile_special_update( void )
  */
 void mobile_update( void )
 {
-    static struct PERF_prof_sect *pr_mobile_update = NULL;
-    PERF_prof_sect_init(&pr_mobile_update, "mobile_update");
-    PERF_prof_sect_enter(pr_mobile_update);
+    PERF_PROF_ENTER( pr_, "mobile_update");
 
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
@@ -826,12 +828,14 @@ void mobile_update( void )
         PERF_prof_sect_exit(pr_wander);
     }
 
-    PERF_prof_sect_exit(pr_mobile_update);
+    PERF_PROF_EXIT( pr_ );
     return;
 }
 
 void mobile_timer_update( void )
 {
+    PERF_PROF_ENTER( pr_, "mobile_timer_update" );
+
     CHAR_DATA *ch;
 
     /* go through mob list */
@@ -844,6 +848,7 @@ void mobile_timer_update( void )
         }
     }
     
+    PERF_PROF_EXIT( pr_ );
     return;
 }
 
@@ -1036,6 +1041,7 @@ void weather_update( void )
 /* makes sure that every victim is fighting */
 void update_fighting( void )
 {
+    PERF_PROF_ENTER( pr_, "update_fighting" );
     CHAR_DATA *fch;
 
     for ( fch = char_list; fch != NULL; fch = fch->next )
@@ -1050,6 +1056,8 @@ void update_fighting( void )
         if ( fch->position == POS_STANDING )
             fch->position = POS_FIGHTING;
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /* makes sure that every victim in a room is fighting */
@@ -2008,6 +2016,8 @@ void obj_update( void )
  */
 void aggr_update( void )
 {
+    PERF_PROF_ENTER( pr_, "aggr_update" );
+
     CHAR_DATA *wch;
     CHAR_DATA *wch_next;
     CHAR_DATA *ch;
@@ -2138,21 +2148,28 @@ void aggr_update( void )
             multi_hit (ch, victim, TYPE_UNDEFINED); 
         }
     }
+
+    PERF_PROF_EXIT( pr_ );
     return;
 }
 
 /* resets just_killed flag */
 void death_update( void )
 {
+    PERF_PROF_ENTER( pr_, "death_update" );
     CHAR_DATA *ch;
 
     for ( ch = char_list; ch != NULL; ch = ch->next )
         ch->just_killed = FALSE;
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /* delayed removal of purged chars */
 void extract_update( void )
 {
+    PERF_PROF_ENTER( pr_, "extract_update" );
+
     // extraction of containers or character with pets may trigger extraction of the next object or object in the list
     // hence we start new after any (potentially recursive) extraction
     CHAR_DATA *ch = char_list;
@@ -2197,18 +2214,22 @@ void extract_update( void )
             obj = obj->next;
         }
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 // core functions executed each tick
 // separate to enable imm-forced ticks
 void core_tick( void )
 {
+    PERF_PROF_ENTER( _pr, "core_tick" );
     time_update();
     weather_update();
     char_update();
     war_update();  
     quest_update();  
     obj_update();
+    PERF_PROF_EXIT( _pr );
 }
 
 
@@ -2220,10 +2241,7 @@ void core_tick( void )
 
 void update_handler( void )
 {
-    static struct PERF_prof_sect *pr_update_handler = NULL;
-    PERF_prof_sect_init(&pr_update_handler, "update_handler");
-    PERF_prof_sect_enter(pr_update_handler);
-
+    PERF_PROF_ENTER( pr_, "update_handler");
 
     static  int     pulse_area;
     static  int     pulse_mobile;
@@ -2244,45 +2262,33 @@ void update_handler( void )
     {
         pulse_timer     = PULSE_TIMER_TRIG;
 
-        PERF_MEASURE(timer_update,
-            timer_update();
-        );
+        timer_update();
     }
 
     if ( --pulse_msdp <= 0 )
     {
         pulse_msdp      = PULSE_PER_SECOND;
-        PERF_MEASURE(msdp_update,
-            msdp_update();
-        );
+        msdp_update();
     } 
 
     if ( --pulse_save <= 0 )
     {
         pulse_save = PULSE_SAVE;
-        PERF_MEASURE(handle_player_save,
-            handle_player_save();
-        );
+        handle_player_save();
     }
 
     if ( update_all && --pulse_area <= 0 )
     {
         pulse_area  = PULSE_AREA;
         /* number_range( PULSE_AREA / 2, 3 * PULSE_AREA / 2 ); */
-        PERF_MEASURE(area_update,
-            area_update ( FALSE );
-        );
-        PERF_MEASURE(remort_update,
-            remort_update();
-        );
+        area_update ( FALSE );
+        remort_update();
     }
 
     if ( update_all && --pulse_herb <= 0 )
     {
         pulse_herb  = PULSE_HERB;
-        PERF_MEASURE(reset_herbs_world,
-            reset_herbs_world();
-        );
+        reset_herbs_world();
     }
 
     if ( update_all )
@@ -2291,25 +2297,20 @@ void update_handler( void )
         if ( --pulse_mobile <= 0 )
         {
             pulse_mobile         = PULSE_MOBILE;
-            PERF_MEASURE(mobile_update,
-                mobile_update   ( );
-            );
+            mobile_update   ( );
         }
         if ( --pulse_mobile_special <= 0 )
         {
             pulse_mobile_special = PULSE_MOBILE_SPECIAL;
-            PERF_MEASURE(mobile_special_update,
-                mobile_special_update   ( );
-            );
+            mobile_special_update   ( );
+
         }
     }
 
     if ( update_all && --pulse_violence <= 0 )
     {
         pulse_violence  = PULSE_VIOLENCE;
-        PERF_MEASURE(violence_update,
-            violence_update ( );
-        );
+        violence_update ( );
         /* relics */
         //all_religions( &religion_relic_damage );
     }
@@ -2320,13 +2321,9 @@ void update_handler( void )
         pulse_point     = PULSE_TICK;
         /* number_range( PULSE_TICK / 2, 3 * PULSE_TICK / 2 ); */
 
-        PERF_MEASURE(auth_update,
-            auth_update();
-        );
-        PERF_MEASURE(core_tick,
-            core_tick();
-        );
-        
+        auth_update();
+        core_tick();
+
         /* clan_update(); */
         //all_religions( &religion_create_relic );
         //update_relic_bonus();
@@ -2340,13 +2337,11 @@ void update_handler( void )
                could check once an hour or even once a day 
                but 'current_time % HOUR' doesn't account for local time
                so doesn't synch up. */
-            PERF_MEASURE(check_lboard_reset,
-                check_lboard_reset();
-            );
 
-            PERF_MEASURE(save_lboards, save_lboards(););
+            check_lboard_reset();
+            save_lboards();
 
-            PERF_MEASURE(save_comm_histories, save_comm_histories(););
+            save_comm_histories();
         }
         minute_update = FALSE;
     }
@@ -2361,9 +2356,7 @@ void update_handler( void )
             /* update herb_resets every 6 hours */
             if ( current_time % (6*HOUR) == 0 )
             {
-                PERF_MEASURE(update_herb_reset,
-                    update_herb_reset();
-                );
+                update_herb_reset();
             }
 
             /* update priests once per day
@@ -2382,20 +2375,17 @@ void update_handler( void )
 
     if ( update_all )
     {
-        PERF_MEASURE(update_fighting,
-            update_fighting();
-        );
-        PERF_MEASURE(aggr_update,
-            aggr_update();
-        );
-        PERF_MEASURE(show_violence_summary, show_violence_summary(););
-        PERF_MEASURE(death_update, death_update(););
-        PERF_MEASURE(extract_update, extract_update(););
-        PERF_MEASURE(cleanup_uds, cleanup_uds(););
-        PERF_MEASURE(validate_all, validate_all(););
+        update_fighting();
+        aggr_update();
+        show_violence_summary();
+        death_update();
+        extract_update();
+        cleanup_uds();
+        validate_all();
     }
 
-    PERF_prof_sect_exit(pr_update_handler);
+    PERF_PROF_EXIT( pr_ );
+
     tail_chain( );
     return;
 }
@@ -2887,6 +2877,8 @@ void check_shadow_companion( CHAR_DATA *ch )
 
 void msdp_update( void )
 {
+    PERF_PROF_ENTER( pr_, "msdp_update" );
+
     DESCRIPTOR_DATA *d;
     int PlayerCount = 0;
 
@@ -3028,6 +3020,8 @@ void msdp_update( void )
      * snippet simple.  Optimise as you see fit.
      */
     MSSPSetPlayers( PlayerCount );
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /*
@@ -3052,6 +3046,8 @@ bool is_mem_valid(void *p)
 // extend as needed for debugging, but keep it fast
 void validate_all( void )
 {
+    PERF_PROF_ENTER( pr_, "validate_all" );
+
     CHAR_DATA *ch, *ch_next, *dch, *lch;
     DESCRIPTOR_DATA *desc, *desc_next;
     AREA_DATA *pArea;
@@ -3221,5 +3217,6 @@ void validate_all( void )
         }
     }
 
+    PERF_PROF_EXIT( pr_ );
 }
 

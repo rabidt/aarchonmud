@@ -259,13 +259,15 @@ void update_lboard( int lboard_type, CHAR_DATA *ch, int current, int increment )
 
 void save_lboards( void )
 {
+    PERF_PROF_ENTER( pr_, "save_lboards" );
     lua_getglobal( g_mud_LS, "save_lboards");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with save_lboard:\n %s",
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
-    }  
+    }
+    PERF_PROF_EXIT( pr_ );
 }
 
 void load_lboards( void )
@@ -281,6 +283,8 @@ void load_lboards( void )
 
 void check_lboard_reset( void )
 {
+    PERF_PROF_ENTER( pr_, "check_lboard_reset" );
+
     lua_getglobal( g_mud_LS, "check_lboard_reset");
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
@@ -288,6 +292,8 @@ void check_lboard_reset( void )
                 lua_tostring(g_mud_LS, -1));
         lua_pop( g_mud_LS, 1);
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 void load_mudconfig( void )
@@ -306,9 +312,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     if (!d->lua.interpret) /* not in interpreter */
         return FALSE; 
 
-    struct PERF_meas_s *ms_run_lua_interpret;
-    PERF_meas_start(&ms_run_lua_interpret, "run_lua_interpret");
-
     if (!strcmp( d->incomm, "@") )
     {
         /* kick out of interpret */
@@ -318,7 +321,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
         lua_unregister_desc(d);
 
         ptc(d->character, "Exited lua interpreter.\n\r");
-        PERF_meas_end(&ms_run_lua_interpret);
         return TRUE;
     }
 
@@ -331,7 +333,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         bugf("Couldn't find " INTERP_TABLE_NAME);
         lua_settop(g_mud_LS, 0);
-        PERF_meas_end(&ms_run_lua_interpret);
         return TRUE;
     }
     bool interpalive=FALSE;
@@ -356,7 +357,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
-        PERF_meas_end(&ms_run_lua_interpret);
         return TRUE;
     }
     /* object pointer should be sitting at -1, interptbl at -2, desc lightud at -3 */
@@ -369,7 +369,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     {
         bugf("Couldn't find " ENV_TABLE_NAME);
         lua_settop(g_mud_LS, 0);
-        PERF_meas_end(&ms_run_lua_interpret);
         return TRUE;
     }
     lua_pushvalue( g_mud_LS, -2);
@@ -385,7 +384,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
 
         ptc(d->character, "Exited lua interpreter.\n\r");
         lua_settop(g_mud_LS, 0);
-        PERF_meas_end(&ms_run_lua_interpret);
         return TRUE;
     }
 
@@ -421,7 +419,6 @@ bool run_lua_interpret( DESCRIPTOR_DATA *d)
     g_LuaScriptInProgress=FALSE;
 
     lua_settop( g_mud_LS, 0);
-    PERF_meas_end(&ms_run_lua_interpret);
     return TRUE;
 
 }

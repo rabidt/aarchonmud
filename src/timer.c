@@ -299,6 +299,8 @@ static void timer_debug( void )
 /* Should be called every second */
 void timer_update( void )
 {
+    PERF_PROF_ENTER( pr_, "timer_update" );
+
     TIMER_NODE *tmr, *tmr_next, *tmr_prev;
     CHAR_DATA *ch;
     OBJ_DATA *obj;
@@ -423,6 +425,7 @@ void timer_update( void )
     /* DEBUGGGGGG */
     timer_debug();
     /* DEBUGGGGGG */
+    PERF_PROF_EXIT( pr_ );
 }
 
 char * print_timer_list( void )
