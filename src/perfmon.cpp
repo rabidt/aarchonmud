@@ -24,28 +24,8 @@ static double const INFINITY = DBL_MAX;
 
 #define USEC_PER_PULSE (1000000 / PULSE_PER_SECOND)
 
-#define MAX_MEAS 128 
 
-
-static long calc_elapsed_usec(struct timeval *start, struct timeval *end)
-{
-    return ( (end->tv_sec  - start->tv_sec )*1000000 +
-             (end->tv_usec - start->tv_usec) );
-}
-
-struct PERF_meas_s 
-{
-    int index;
-    int level;
-    char *tag;
-    struct timeval start;
-    struct timeval end;
-};
-
-
-static struct PERF_meas_s measurements[MAX_MEAS];
-static int meas_ind = 0;
-static int curr_level = 0;
+#define USEC_TOTAL( val ) ( ( (val)->tv_sec * 1000000) + (val)->tv_usec )
 
 
 static struct 
@@ -67,94 +47,6 @@ static struct
     {2500,  0}
 };
 
-void PERF_meas_reset( void )
-{
-    meas_ind = 0;
-}
-
-void PERF_meas_start(struct PERF_meas_s **m, const char *tag)
-{
-    if (meas_ind >= MAX_MEAS)
-        return; // TODO: return an error
-
-    struct PERF_meas_s *ptr = &(measurements[meas_ind]);
-
-    ptr->index = meas_ind;
-    ptr->level = curr_level++;
-    if (ptr->tag)
-    {
-        free(static_cast<void *>(ptr->tag));
-    }
-    if (tag)
-    {
-        ptr->tag = strdup(tag);
-    }
-    else
-    {
-        ptr->tag = NULL;
-    }
-
-    gettimeofday(&(ptr->start), NULL);
-
-    meas_ind += 1;
-
-    *m = ptr; 
-}
-
-void PERF_meas_end(struct PERF_meas_s **m)
-{
-    gettimeofday(&((*m)->end), NULL);
-    curr_level--;
-    *m = NULL;
-}
-
-void PERF_meas_repr( char *out_buf, size_t n )
-{
-    if (!out_buf)
-    {
-        return;
-    }
-    if (n < 1)
-    {
-        out_buf[0] = '\0';
-        return;
-    }
-
-    std::ostringstream os;
-    os << std::setprecision(2) << std::fixed;
-
-    for ( int i=0; i < meas_ind; i++ )
-    {
-        int lvl = measurements[i].level;
-        for ( int j = 0 ; j < lvl ; ++j )
-        {
-            os << "  ";
-        }
-        if ( lvl > 0 )
-        {
-            os << "|-";
-        }
-
-        long elapsed = (measurements[i].end.tv_sec  - measurements[i].start.tv_sec )*1000000 + 
-                       (measurements[i].end.tv_usec - measurements[i].start.tv_usec);
-
-        if ( measurements[i].tag )
-        {
-            os << std::left << std::setw(20) << measurements[i].tag;    
-        }
-        os << " - " 
-           << std::setw(20) << ( 100 * (static_cast<double>(elapsed) / USEC_PER_PULSE))
-           << "\n\r";
-
-        
-    }
-
-    std::string str = os.str();
-    size_t copied = str.copy( out_buf, n - 1 );
-    out_buf[copied] = '\0';
-}
-
-static int init_done = 0;
 
 static time_t init_time;
 
@@ -280,19 +172,15 @@ PerfIntvlData::GetMaxMax() const
     return max;   
 }
 
-static void init( void )
-{
-    init_time = time(NULL);
-}
-
 static void check_init( void )
 {
+    static bool init_done = false;
     if (init_done)
         return;
     
-    init();
+    init_time = time(NULL);
 
-    init_done = 1;
+    init_done = true;
 }
 
 static void check_thresholds(double val)
@@ -327,16 +215,16 @@ void PERF_log_pulse(double val)
     sPulseData.AddData( val, val, val );
 }
 
-void PERF_repr( char *out_buf, size_t n )
+size_t PERF_repr( char *out_buf, size_t n )
 {
     if (!out_buf)
     {
-        return;
+        return 0;
     }
     if (n < 1)
     {
         out_buf[0] = '\0';
-        return;
+        return 0;
     }
 
     std::ostringstream os;
@@ -401,8 +289,9 @@ void PERF_repr( char *out_buf, size_t n )
     std::string str = os.str();
     size_t copied = str.copy( out_buf, n - 1 );
     out_buf[copied] = '\0';
-}
 
+    return copied;
+}
 
 
 class PERF_prof_sect
@@ -410,20 +299,30 @@ class PERF_prof_sect
 public:
     explicit PERF_prof_sect(const char *id)
         : mId( id )
-        , mLastEnterTime( )
-        , mUsecTotal( 0 )
-        , mEnterCount( 0 )
+        , mLastEnterTime( { 0, 0 } )
+        , mPulseTotal( { 0, 0 } )
+        , mPulseMax( { 0, 0 } )
+        , mTotal( { 0, 0 } )
+        , mMax( {0, 0} )
+        , mPulseEnterCount( 0 )
+        , mTotalEnterCount( 0 )
     {
 
     }
 
-    void Reset();
-    void Enter();
-    void Exit();
+    void PulseReset();
+    inline void Enter();
+    inline void Exit();
 
     std::string const & GetId() { return mId; }
-    long GetUsecTotal() { return mUsecTotal; }
-    unsigned int GetEnterCount() { return mEnterCount; }
+    
+    struct timeval const & GetPulseTotal() { return mPulseTotal; }
+    struct timeval const & GetPulseMax() { return mPulseMax; }
+    struct timeval const & GetTotal() { return mTotal; }
+    struct timeval const & GetMax() { return mMax; }
+
+    unsigned long int GetPulseEnterCount() { return mPulseEnterCount; }
+    unsigned long int GetTotalEnterCount() { return mTotalEnterCount; }
 
 private:
     PERF_prof_sect( const PERF_prof_sect & ); // unimplemented
@@ -431,8 +330,12 @@ private:
 
     std::string mId;
     struct timeval mLastEnterTime;
-    long mUsecTotal;
-    unsigned int mEnterCount;
+    struct timeval mPulseTotal;
+    struct timeval mPulseMax;
+    struct timeval mTotal;
+    struct timeval mMax;
+    unsigned long int mPulseEnterCount;
+    unsigned long int mTotalEnterCount;
 };
 
 class PerfProfMgr
@@ -446,65 +349,115 @@ public:
 
     PERF_prof_sect *NewSection(const char *id);
     void ResetAll();
-    void Repr( char *out_buf, size_t n );
+    size_t ReprPulse( char *out_buf, size_t n ) { return ReprBase( out_buf, n, false ); }
+    size_t ReprTotal( char *out_buf, size_t n ) { return ReprBase( out_buf, n, true  ); }
 
 private:
+    size_t ReprBase( char *out_buf, size_t n, bool isTotal );
     std::vector<PERF_prof_sect *> mSections;
 };
 
-void
-PerfProfMgr::Repr(char *out_buf, size_t n)
+size_t
+PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal)
 {
     if (!out_buf)
     {
-        return;
+        return 0;
     }
     if (n < 1)
     {
         out_buf[0] = '\0';
-        return;
+        return 0;
     }
 
     std::ostringstream os;
 
+    if (isTotal)
+    {
+        os << "Cumulative profiling info\n\r";
+    }
+    else
+    {
+        os << "Pulse profiling info\n\r";
+    }
+
     os << std::setprecision(2) << std::fixed
        << "\n\r"
        << std::left 
-       << std::setw(20) << "Section name" << " "
+       << std::setw(20) << "Section name" << "|"
        << std::right 
-       << std::setw(12) << "Enter Count" << " "
-       << std::setw(12) << "usec total" << " "
-       << std::setw(12) << "pulse %\n\r"
-       << std::setfill('-') << std::setw(80) << " " << std::setfill(' ') << "\n\r" ;
+       << std::setw(12) << "Enter Count" << "|"
+       << std::setw(12) << "usec total" << "|";
 
+    if (isTotal)
+    {
+        os << std::setw(12) << "total %" << "|";
+    }
+    else
+    {
+        os << std::setw(12) << "pulse %" << "|";
+    }
+    os << std::setw(20) << "max pulse % (1 entry)" << "\n\r";
+       
+    os << std::setfill('-') << std::setw(80) << " " << std::setfill(' ') << "\n\r" ;
 
     for ( std::vector<PERF_prof_sect *>::iterator itr = mSections.begin() ;
           itr != mSections.end();
           ++itr )
     {
+        unsigned long int enterCount;
+        long int usecTotal;
+        long int usecMax;
+
+        if (isTotal)
+        {
+            enterCount = (*itr)->GetTotalEnterCount();
+            usecTotal = USEC_TOTAL( &((*itr)->GetTotal()) );
+            usecMax = USEC_TOTAL( &((*itr)->GetMax()) );
+        }
+        else
+        {
+            enterCount = (*itr)->GetPulseEnterCount();
+            usecTotal = USEC_TOTAL( &((*itr)->GetPulseTotal()) );
+            usecMax = USEC_TOTAL( &((*itr)->GetPulseMax()) );
+        }
+
         /* Only bother to print sections that were active this pulse */
-        if ( (*itr)->GetEnterCount() < 1 )
+        if ( enterCount < 1 )
         {
             continue;
         }
 
         os << std::left 
-           << std::setw(20) << (*itr)->GetId() << " " 
+           << std::setw(20) << (*itr)->GetId() << "|" 
            << std::right 
-           << std::setw(12) << (*itr)->GetEnterCount() << " "
-           << std::setw(12) << (*itr)->GetUsecTotal() << " "
-           << std::setw(12) << ( 100 * static_cast<double>((*itr)->GetUsecTotal()) / USEC_PER_PULSE ) << "%\n\r";
+           << std::setw(12) << enterCount << "|"
+           << std::setw(12) << usecTotal << "|";
+
+        if (isTotal)
+        {
+            time_t total_secs = time(NULL) - init_time;
+            double sect_secs = static_cast<double>(usecTotal) / 1000000;
+
+            os << std::setw(12-1) << ( 100 * sect_secs / total_secs) << "%|";
+        }
+        else
+        {
+            os << std::setw(12-1) << ( 100 * static_cast<double>(usecTotal) / USEC_PER_PULSE ) << "%|";
+        }
+        os << std::setw(20-1) << ( 100 * static_cast<double>(usecMax) / USEC_PER_PULSE ) << "%\n\r";
     }
 
     std::string str = os.str();
     size_t copied = str.copy( out_buf, n - 1 );
     out_buf[copied] = '\0';
+
+    return copied;
 }
 
 PERF_prof_sect * 
 PerfProfMgr::NewSection(const char *id)
 {
-    // mSections.push_back( PERF_prof_sect( id ) );
     PERF_prof_sect *ptr = new PERF_prof_sect( id );
     mSections.push_back( ptr );
     return ptr;
@@ -517,29 +470,45 @@ PerfProfMgr::ResetAll()
           itr != mSections.end() ;
           ++itr )
     {
-        (*itr)->Reset();
+        (*itr)->PulseReset();
     }
 }
 
 void
-PERF_prof_sect::Reset()
+PERF_prof_sect::PulseReset()
 {
-    mEnterCount = 0;
-    mUsecTotal = 0;
+    mPulseEnterCount = 0;
+    mPulseTotal = { 0, 0 };
+    mPulseMax = { 0, 0 };
 }
 
 void
 PERF_prof_sect::Enter()
 {
-    ++mEnterCount;
+    ++mPulseEnterCount;
+    ++mTotalEnterCount;
     gettimeofday(&mLastEnterTime, NULL);
 }
 
-void PERF_prof_sect::Exit()
+void
+PERF_prof_sect::Exit()
 {
     struct timeval now;
+    struct timeval diff;
     gettimeofday(&now, NULL);
-    mUsecTotal += calc_elapsed_usec(&mLastEnterTime, &now);
+ 
+    timersub(&now, &mLastEnterTime, &diff);   
+    timeradd(&mPulseTotal, &diff, &mPulseTotal);
+    timeradd(&mTotal, &diff, &mTotal);
+
+    if ( timercmp(&diff, &mPulseMax, > ) )
+    {
+        mPulseMax = diff;
+    }
+    if ( timercmp(&diff, &mMax, > ) )
+    {
+        mMax = diff;
+    }
 }
 
 static PerfProfMgr sProfMgr;
@@ -570,7 +539,12 @@ void PERF_prof_reset( void )
     sProfMgr.ResetAll();
 }
 
-void PERF_prof_repr( char *out_buf, size_t n )
+size_t PERF_prof_repr_pulse( char *out_buf, size_t n )
 {
-    return sProfMgr.Repr(out_buf, n);
+    return sProfMgr.ReprPulse(out_buf, n);
+}
+
+size_t PERF_prof_repr_total( char *out_buf, size_t n )
+{
+    return sProfMgr.ReprTotal(out_buf, n);
 }

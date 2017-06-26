@@ -322,6 +322,8 @@ void violence_update_char( CHAR_DATA *ch )
 // show damage dealt since last round and reset
 void show_violence_summary( void )
 {
+    PERF_PROF_ENTER( pr_, "show_violence_summary" );
+
     CHAR_DATA *ch, *ch_next, *gch;
     char buf[MSL];
     const char *vs, *vp;
@@ -381,6 +383,8 @@ void show_violence_summary( void )
         ch->round_dam_dealt = 0;
         ch->round_dam_taken = 0;
     }
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 /*
@@ -389,6 +393,8 @@ void show_violence_summary( void )
  */
 void violence_update( void )
 {
+    PERF_PROF_ENTER( pr_, "violence_update" );
+
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     CHAR_DATA *victim;
@@ -434,6 +440,8 @@ void violence_update( void )
     /* restore the old order in char list */
     if ( reverse_order )
         reverse_char_list();
+
+    PERF_PROF_EXIT( pr_ );
 }
 
 void reverse_char_list( void )
