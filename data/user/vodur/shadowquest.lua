@@ -316,6 +316,7 @@ local function cntrl_check_crystals(mob)
 
     if entry
       and entry.shadow_kills >= MAX_SHADOW_KILL 
+      and entry.darkness_kills < MAX_DARKNESS_KILL
       and entry.darkness_timer < currtime
       and not(plr.room.area:flag("remort"))
       and not(plr:carries(VO_CRYSTAL))
