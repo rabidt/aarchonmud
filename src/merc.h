@@ -5124,6 +5124,8 @@ void decompose_update( CHAR_DATA *ch, int level );
 void check_spouse( CHAR_DATA *ch );
 
 /* mob_prog.c */
+void    log_mprog_history( void );
+void    reset_mprog_history( void );
 bool    is_mprog_running  args( (void) );
 void    program_flow( const char *text, bool is_lua, int vnum, const char *source, CHAR_DATA *mob, CHAR_DATA *ch,
                 const void *arg1, sh_int arg1type,

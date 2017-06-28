@@ -60,6 +60,64 @@ int cmd_eval( int vnum, const char *line, int check,
 char last_mprog[MSL] = "";
 char last_debug[MSL] = "";
 
+
+/* MPROG HISTORY */
+/* TODO: make this all part of perfmon eventually */
+static struct
+{
+    struct 
+    {
+        int mob_vnum;
+        int mprog_vnum;
+        int room_vnum;
+    } entries[256];
+
+    size_t index;
+} mprog_history;
+
+void reset_mprog_history( void )
+{
+    mprog_history.index = 0;
+}
+
+void log_mprog_history( void )
+{
+    log_string("MPROG HISTORY");
+
+    size_t i;
+    
+    for ( i = 0 ; i < mprog_history.index ; ++i )
+    {
+
+        logpf("%5d. MOB: %6d, MPROG: %6d, ROOM: %6d", 
+            i,
+            mprog_history.entries[i].mob_vnum,
+            mprog_history.entries[i].mprog_vnum,
+            mprog_history.entries[i].room_vnum);
+    }
+}
+
+static void add_mprog_hist( int mob_vnum, int mprog_vnum, int room_vnum )
+{
+    const size_t entry_count = sizeof(mprog_history.entries) / sizeof(mprog_history.entries[0]);
+    
+    if (mprog_history.index >= entry_count)
+    {
+        // TODO: log this somewhere
+        return;
+    }
+
+    size_t ind = mprog_history.index;
+
+    mprog_history.entries[ind].mob_vnum = mob_vnum;
+    mprog_history.entries[ind].mprog_vnum = mprog_vnum;
+    mprog_history.entries[ind].room_vnum = room_vnum;
+
+    ++mprog_history.index;
+}
+
+/* end MPROG HISTORY */
+
 /*
  * These defines correspond to the entries in fn_keyword[] table.
  * If you add a new if_check, you must also add a #define here.
@@ -1193,6 +1251,9 @@ void program_flow(
     int security )
 {
     int mvnum = (mob->pIndexData ? mob->pIndexData->vnum : 0);
+
+
+    add_mprog_hist(mvnum, pvnum, mob ? mob->in_room ? mob->in_room->vnum : 0 : 0);
 
     if ( mprog_call_level_increase() > MAX_CALL_LEVEL )
     {
