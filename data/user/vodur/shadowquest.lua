@@ -297,6 +297,8 @@ local VO_SCROLL = 4750 -- scroll of charred skin
 local VO_PIT_PORTAL = 4751 -- portal to pit
 local VO_SPHERE = 4752 -- create pit portal
 
+local VR_GROUP_FIGHT = 4703 -- room where gorup fight happens
+
 local DLY_PLACE_SHADOWS = 300 -- 5 mins
 local DLY_CHECK_CRYSTAL = 360 -- 6 mins
 local DLY_CHECK_SPHERE = 720 -- 12 mins
@@ -594,8 +596,6 @@ end
 local groupfight
 local round
 local function priest_timer(mob, ch, trigger)
-    if #mob.room.players < 1 then return end
-
     if groupfight then -- fight has started, let's see if it finished
         local stillfighting = false
         for k,v in pairs(mob.room.people) do
@@ -694,6 +694,22 @@ local function priest_timer(mob, ch, trigger)
     groupfight = true
 end
 
+local function group_player_death()
+    local room = getroom(VR_GROUP_FIGHT)
+
+    -- fires during death before the dead char actually leaves room
+    if #room.players < 2 then
+        groupfight = nil
+        round = nil
+
+        for _,mob in pairs(room.mobs) do
+            if not(mob.vnum == VM_PRIEST) then
+                mob:destroy()
+            end
+        end
+    end
+end
+
 function shadowquest.priest_trigger(mob, ch, trigger, trigtype)
     if trigtype == "grall" then
         return priest_grall(mob, ch, trigger)
@@ -711,6 +727,12 @@ function shadowquest.groupfight_fight(mob, ch, trigger)
             mob:say("hit")
         end
         mob:hit(ch.name)
+    end
+end
+
+function shadowquest.area_death(area, ch1, trigger, trigtype)
+    if ch1.room.vnum == VR_GROUP_FIGHT then
+        group_player_death() 
     end
 end
 
