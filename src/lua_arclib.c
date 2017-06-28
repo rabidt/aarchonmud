@@ -2473,8 +2473,10 @@ static int CH_loadscript (lua_State *LS)
 
 static int CH_loadfunction ( lua_State *LS )
 {
+    /* push empty "args" */
+    lua_pushnil(LS);
     lua_mob_program( LS, NULL, RUNDELAY_VNUM, NULL,
-                check_CH(LS, -2), NULL,
+                check_CH(LS, -3), NULL,
                 NULL, 0, NULL, 0,
                 TRIG_CALL, 0 );
     return 0;
@@ -5135,8 +5137,10 @@ static int OBJ_rvnum ( lua_State *LS)
 
 static int OBJ_loadfunction (lua_State *LS)
 {
+    /* push empty "args" */
+    lua_pushnil(LS);
     lua_obj_program( LS, NULL, RUNDELAY_VNUM, NULL,
-                check_OBJ(LS, -2), NULL,
+                check_OBJ(LS, -3), NULL,
                 NULL, NULL,
                 TRIG_CALL, 0 );
     return 0;
@@ -5896,8 +5900,10 @@ static int AREA_rvnum ( lua_State *LS)
 
 static int AREA_loadfunction( lua_State *LS)
 {
+    /* push empty "args" */
+    lua_pushnil(LS);
     lua_area_program( LS, NULL, RUNDELAY_VNUM, NULL,
-                check_AREA(LS, -2), NULL,
+                check_AREA(LS, -3), NULL,
                 TRIG_CALL, 0 );
     return 0;
 }
@@ -6389,8 +6395,10 @@ static int ROOM_rvnum ( lua_State *LS)
 
 static int ROOM_loadfunction ( lua_State *LS)
 {
+    /* push empty "args" */
+    lua_pushnil(LS);
     lua_room_program( LS, NULL, RUNDELAY_VNUM, NULL,
-                check_ROOM(LS, -2), NULL,
+                check_ROOM(LS, -3), NULL,
                 NULL, NULL, NULL, NULL,
                 TRIG_CALL, 0 );
     return 0;
