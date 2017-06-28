@@ -332,6 +332,7 @@ void game_loop_unix( int control )
     while ( !merc_down )
     {
         PERF_prof_reset();
+        reset_mprog_history();
         
         PERF_PROF_ENTER( pr_, "Main loop" );
 
@@ -669,11 +670,11 @@ void game_loop_unix( int control )
 
                     logpf("%-20s in %d", ch->name, ch->in_room ? ch->in_room->vnum : 0);
                 }
+
+                log_mprog_history();
                 
                 char buf[MSL * 12];
                 PERF_prof_repr_pulse(buf, sizeof(buf));
-                log_string(buf);
-                PERF_prof_repr_total(buf, sizeof(buf));
                 log_string(buf);
             }
 
