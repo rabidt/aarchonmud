@@ -2887,6 +2887,18 @@ void copyover_recover ( void )
         {
             write_to_descriptor (desc, "\n\rand reality resumes around you, as if nothing had ever happened.\n\r",0, d->pProtocol->bSGA);
 
+            if ( d && d->pProtocol && d->character)
+            {
+                if (IS_SET(d->character->act, PLR_COLOUR))
+                {
+                    d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+                }
+                else
+                {
+                    d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;   
+                }
+            }
+
             /* Just In Case */
             if (!d->character->in_room)
                 d->character->in_room = get_room_index (ROOM_VNUM_TEMPLE);
