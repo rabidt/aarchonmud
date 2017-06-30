@@ -710,13 +710,27 @@ DEF_NANNY_FUN(get_colour)
 
 	switch ( argument[0] )
 	{
-	case 'y': case 'Y': 	SET_BIT( ch->act, PLR_COLOUR );
-				return TRUE;
-	case 'n': case 'N':	/* do nothing */
-				return TRUE;
-	default:
-		write_to_buffer( d, "Please answer yes or no.\n\rWould you like COLOUR activated? ", 0 );
-		break;
+        case 'y': 
+        case 'Y': 	
+            SET_BIT( ch->act, PLR_COLOUR );
+            if ( d && d->pProtocol )
+            {
+                d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+            }
+			return TRUE;
+	
+        case 'n': 
+        case 'N':
+            REMOVE_BIT( ch->act, PLR_COLOUR );
+            if ( d && d->pProtocol )
+            {
+                d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;
+            }
+			return TRUE;
+        
+        default:
+            write_to_buffer( d, "Please answer yes or no.\n\rWould you like COLOUR activated? ", 0 );
+            break;
 	}
 	return FALSE;
 }
@@ -1811,6 +1825,18 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
                 d->connected = CON_PLAYING;
                 MXPSendTag( d, "<VERSION>" );
                 gui_login_setup( d->character );
+
+                if ( d && d->pProtocol)
+                {
+                    if (IS_SET(ch->act, PLR_COLOUR))
+                    {
+                        d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+                    }
+                    else
+                    {
+                        d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;   
+                    }
+                }
        /* Removed by Vodur, messes with box saving
           no downside to keeping it on the list*/
 	//	remove_from_quit_list( ch->name );
@@ -1946,6 +1972,18 @@ void enter_game ( DESCRIPTOR_DATA *d )
 	{
 	    ch->in_room = NULL;
 	}
+
+    if ( d && d->pProtocol)
+    {
+        if (IS_SET(ch->act, PLR_COLOUR))
+        {
+            d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+        }
+        else
+        {
+            d->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;   
+        }
+    }
 
 	if ( ch->level == 0 )
 	{

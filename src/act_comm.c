@@ -2735,6 +2735,10 @@ DEF_DO_FUN(do_colour)
         if( !IS_SET( ch->act, PLR_COLOUR ) )
         {
             SET_BIT( ch->act, PLR_COLOUR );
+            if ( ch->desc && ch->desc->pProtocol )
+            {
+                ch->desc->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 1;
+            }
             send_to_char( "{bC{ro{yl{co{mu{gr{x is now {rON{x, Way Cool!\n\r", ch );
             send_to_char( "Further syntax:\n\r  colour {c<{xfield{c> <{xcolour{c>{x"
                 "  colour {c<{xfield{c>{x {cbeep{x|{cnobeep{x\n\r", ch );
@@ -2743,6 +2747,10 @@ DEF_DO_FUN(do_colour)
         {
             send_to_char_bw( "Colour is now OFF, <sigh>\n\r", ch );
             REMOVE_BIT( ch->act, PLR_COLOUR );
+            if ( ch->desc && ch->desc->pProtocol )
+            {
+                ch->desc->pProtocol->pVariables[eMSDP_ANSI_COLORS]->ValueInt = 0;
+            }
         }
         return;
     }
