@@ -6240,7 +6240,7 @@ static void print_race_table (CHAR_DATA *ch, const void *ptr)
 
 static void print_title_table (CHAR_DATA *ch, const void *ptr)
 {
-    title_table_type *tbl = ptr;
+    const title_table_type *tbl = (const title_table_type *) ptr;
     BUFFER *buffer = new_buf();
 
     const size_t class_cnt = sizeof(*tbl) / sizeof(*tbl[0]);
