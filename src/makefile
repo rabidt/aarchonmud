@@ -8,8 +8,12 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
+
+MODE_FLAGS =
+
 C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op \
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers
+
 CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
 	-Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
@@ -18,8 +22,8 @@ CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wct
 
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN)
-C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN)
+C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN) $(MODE_FLAGS)
+C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(MODE_FLAGS)
 
 L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
 
@@ -49,30 +53,31 @@ $(BIN_DIR)/aeaea: $(OPP_FILES) $(O_FILES)
 	$(CC) -o $(BIN_DIR)/aeaea $(OPP_FILES) $(O_FILES) $(L_FLAGS)
 
 .PHONY: tester
-tester: C_FLAGS += -DTESTER
+tester: MODE_FLAGS += -DTESTER
 tester: aeaea
 
 .PHONY: builder
-builder: C_FLAGS += -DBUILDER
+builder: MODE_FLAGS += -DBUILDER
 builder: aeaea
 
 .PHONY: remort
-remort: C_FLAGS += -DREMORT 
+remort: MODE_FLAGS += -DREMORT 
 remort: aeaea
 
 .PHONY: osx
-osx: C_FLAGS = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
+osx: C_FLAGS_BASE = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
 osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
 osx: aeaea
 
 # Compile live tests. The binary needs to be run rom area directory as with normal startup
 .PHONY: livetest
 livetest: $(BIN_DIR)/aeaea_livetest
-$(BIN_DIR)/aeaea_livetest: C_FLAGS += -DLIVETEST
-$(BIN_DIR)/aeaea_livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
+$(BIN_DIR)/aeaea_livetest: MODE_FLAGS += -DLIVETEST
+$(BIN_DIR)/aeaea_livetest: _live_tests $(OPP_FILES) $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
 	rm -f $(BIN_DIR)/aeaea_livetest
 	$(CC) -o $(BIN_DIR)/aeaea_livetest \
 		$(O_FILES) \
+		$(OPP_FILES) \
 		$(LIVETEST_O_FILES) \
 		$(LIVETEST_O) \
 		$(CU_TEST_O) \
@@ -81,11 +86,12 @@ $(BIN_DIR)/aeaea_livetest: _live_tests $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_
 # Compile with unit tests and run immediately
 .PHONY: unittest
 unittest: $(BIN_DIR)/aeaea_unittest
-$(BIN_DIR)/aeaea_unittest: C_FLAGS += -DUNITTEST
-$(BIN_DIR)/aeaea_unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
+$(BIN_DIR)/aeaea_unittest: MODE_FLAGS += -DUNITTEST
+$(BIN_DIR)/aeaea_unittest: _unit_tests $(OPP_FILES) $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
 	rm -f $(BIN_DIR)/aeaea_unittest
 	$(CC) -o $(BIN_DIR)/aeaea_unittest \
 		$(O_FILES) \
+		$(OPP_FILES) \
 		$(UNITTEST_O_FILES) \
 		$(UNITTEST_O) \
 		$(CU_TEST_O) \
@@ -95,13 +101,12 @@ $(BIN_DIR)/aeaea_unittest: _unit_tests $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_
 .PHONY: _live_tests
 _live_tests: $(OBJ_DIR)
 	./tests/make-live-tests.sh > ./tests/LiveTests.c
-	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/LiveTests.o ./tests/LiveTests.c
+	$(CC) -c $(C_FLAGS_C) -o $(OBJ_DIR)/LiveTests.o ./tests/LiveTests.c
 
 .PHONY: _unit_tests
 _unit_tests: $(OBJ_DIR)
 	./tests/make-unit-tests.sh > ./tests/UnitTests.c
-	$(CC) -c $(C_FLAGS) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
-
+	$(CC) -c $(C_FLAGS_C) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
