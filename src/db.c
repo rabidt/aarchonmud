@@ -2600,25 +2600,24 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
         OBJ_INDEX_DATA  *pObjIndex;
         OBJ_INDEX_DATA  *pObjToIndex;
         ROOM_INDEX_DATA *pRoomIndex;
-        char buf[MAX_STRING_LENGTH];
         int count,limit=0;
 
         switch ( pReset->command )
         {
             default:
-                bug( "Reset_room: bad command %c.", pReset->command );
+                bugf("Reset_room(%d): bad command %c.", pRoom->vnum, pReset->command );
                 break;
 
             case 'M':
                 if ( !( pMobIndex = get_mob_index( pReset->arg1 ) ) )
                 {
-                    bug( "Reset_room: 'M': bad vnum %d.", pReset->arg1 );
+                    bugf( "Reset_room(%d): 'M': bad vnum %d.", pRoom->vnum, pReset->arg1 );
                     continue;
                 }
 
                 if ( ( pRoomIndex = get_room_index( pReset->arg3 ) ) == NULL )
                 {
-                    bug( "Reset_area: 'M': bad room vnum %d.", pReset->arg3 );
+                    bugf( "Reset_room(%d): 'M': bad room vnum %d.", pRoom->vnum, pReset->arg3 );
                     continue;
                 }
                 if ( pMobIndex->count >= pReset->arg2 )
@@ -2681,8 +2680,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                     /* safety-net if mob kills himself with mprog */
                     if ( IS_DEAD(pMob) )
                     {
-                        bug( "Reset_room: mob %d killed upon reset",
-                                pReset->arg1 );
+                        bugf( "Reset_room(%d): mob %d killed upon reset", pRoom->vnum, pReset->arg1 );
                         last = FALSE;
                         LastMob = NULL;
                     }
@@ -2693,19 +2691,15 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             case 'O':
                 if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
                 {
-                    bug( "Reset_room: 'O' 1 : bad vnum %d", pReset->arg1 );
-                    sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
-                            pReset->arg4 );
-                    bug(buf,1);
+                    bugf( "Reset_room(%d): 'O' 1 : bad vnum %d", pRoom->vnum, pReset->arg1 );
+                    bugf( "%d %d %d %d", pReset->arg1, pReset->arg2, pReset->arg3, pReset->arg4 );
                     continue;
                 }
 
                 if ( !( pRoomIndex = get_room_index( pReset->arg3 ) ) )
                 {
-                    bug( "Reset_room: 'O' 2 : bad vnum %d.", pReset->arg3 );
-                    sprintf (buf,"%d %d %d %d",pReset->arg1, pReset->arg2, pReset->arg3,
-                            pReset->arg4 );
-                    bug(buf,1);
+                    bugf( "Reset_room(%d): 'O' 2 : bad vnum %d.", pRoom->vnum, pReset->arg3 );
+                    bugf( "%d %d %d %d", pReset->arg1, pReset->arg2, pReset->arg3, pReset->arg4 );
                     continue;
                 }
 
@@ -2726,13 +2720,13 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             case 'P':
                 if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
                 {
-                    bug( "Reset_room: 'P': bad vnum %d.", pReset->arg1 );
+                    bugf( "Reset_room(%d): 'P': bad vnum %d.", pRoom->vnum, pReset->arg1 );
                     continue;
                 }
 
                 if ( !( pObjToIndex = get_obj_index( pReset->arg3 ) ) )
                 {
-                    bug( "Reset_room: 'P': bad vnum %d.", pReset->arg3 );
+                    bugf( "Reset_room(%d): 'P': bad vnum %d.", pRoom->vnum, pReset->arg3 );
                     continue;
                 }
 
@@ -2772,7 +2766,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             case 'E':
                 if ( !( pObjIndex = get_obj_index( pReset->arg1 ) ) )
                 {
-                    bug( "Reset_room: 'E' or 'G': bad vnum %d.", pReset->arg1 );
+                    bugf( "Reset_room(%d): 'E' or 'G': bad vnum %d.", pRoom->vnum, pReset->arg1 );
                     continue;
                 }
 
@@ -2781,8 +2775,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
 
                 if ( !LastMob )
                 {
-                    bug( "Reset_room: 'E' or 'G': null mob for vnum %d.",
-                            pReset->arg1 );
+                    bugf( "Reset_room(%d): 'E' or 'G': null mob for vnum %d.", pRoom->vnum, pReset->arg1 );
                     last = FALSE;
                     break;
                 }
@@ -2841,7 +2834,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
             case 'R':
                 if ( !( pRoomIndex = get_room_index( pReset->arg1 ) ) )
                 {
-                    bug( "Reset_room: 'R': bad vnum %d.", pReset->arg1 );
+                    bugf( "Reset_room(%d): 'R': bad vnum %d.", pRoom->vnum, pReset->arg1 );
                     continue;
                 }
 
