@@ -625,7 +625,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "luareset",   do_luareset, POS_DEAD,  L2,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "mudconfig",  do_mudconfig, POS_DEAD, ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
     { "protocol",   do_protocol, POS_DEAD,  L9,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "dxport",     do_dxport,  POS_DEAD,   ML,  LOG_ALWAYS, 1, FALSE, FALSE  },
 
     /*
     * OLC

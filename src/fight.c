@@ -39,7 +39,6 @@
 #include "mudconfig.h"
 #include "mob_stats.h"
 #include "songs.h"
-#include "dxport.h"
 #include "lua_main.h"
 
 extern WAR_DATA war;
@@ -4358,7 +4357,6 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         ch->pcdata->mob_kills++;
         update_lboard( LBOARD_MKILL, ch, ch->pcdata->mob_kills, 1);
         check_achievement(ch);
-        DXPORT_mob_kill(ch->name, victim->pIndexData->vnum, ch->in_room->vnum, current_time);
     }
 
     #ifdef FSTAT
