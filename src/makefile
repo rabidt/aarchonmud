@@ -14,7 +14,7 @@ MODE_FLAGS =
 C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op \
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers
 
-CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
+CPP_WARN = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
 	-Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
 	-Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
@@ -23,7 +23,7 @@ CPP_WARN = -pedantic -Wall -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wct
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN) $(MODE_FLAGS)
-C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(MODE_FLAGS)
+C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(MODE_FLAGS) -std=c++11
 
 L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
 
