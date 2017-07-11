@@ -11,7 +11,6 @@
 #include "recycle.h"
 #include "tables.h"
 #include "warfare.h"
-#include "dxport.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -581,7 +580,6 @@ DEF_NANNY_FUN(get_old_password)
 		sprintf( buf, "%s@%s has connected.", ch->name, d->host );
 		log_string( buf );
 		wiznet(buf,NULL,NULL,WIZ_SITES,0,get_trust(ch));
-        DXPORT_player_connect(ch->name, d->host, current_time);
 
 		return TRUE;
 	}
