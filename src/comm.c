@@ -61,6 +61,7 @@
 #include "timer.h"
 #include "perfmon.h"
 #include "lua_main.h"
+#include "dx_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_help      );
@@ -226,6 +227,8 @@ int main( int argc, char **argv )
     }
 
     boot_db();
+
+    DX_init();
 
     sprintf( log_buf, "ROM is ready to rock on port %d.", port );
     log_string( log_buf );
@@ -2685,6 +2688,8 @@ static void copyover_mud( const char *argument )
             write_to_descriptor (d->descriptor, buf, 0, d->pProtocol->bSGA);
         }
     }
+
+    DX_close();
 
     fprintf (fp, "-1\n");
     fclose (fp);

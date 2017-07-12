@@ -108,6 +108,7 @@ private:
     int32_t mVal;
 };
 
+
 class DxValDbl : public DxVal
 {
 public:
@@ -123,6 +124,7 @@ public:
 private:
     double mVal;
 };
+
 
 class DxValString : public DxVal
 {
@@ -171,6 +173,7 @@ private:
     std::unique_ptr<const DxVal> mMsgVal;
 };
 
+
 std::unique_ptr<const DxMsg> ParseDxMsg(char const *buf, size_t len);
 
 
@@ -192,5 +195,6 @@ public:
 private:
     std::string mMsg;
 };
+
 
 #endif // DX_MSG_HPP_
