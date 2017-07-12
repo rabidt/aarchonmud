@@ -45,6 +45,7 @@
 #include "special.h"
 #include "songs.h"
 #include "perfmon.h"
+#include "dx_main.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2252,11 +2253,19 @@ void update_handler( void )
     static  int     pulse_herb;
     static  int     pulse_msdp;
     static  int     pulse_timer;
+    static  int     pulse_dx;
     static bool hour_update = TRUE;
     static bool minute_update = TRUE;
     /* if nobody is logged on, update less to safe CPU power */
     bool update_all = (descriptor_list != NULL );
 
+
+    if ( --pulse_dx <= 0 )
+    {
+        pulse_dx        = 1;
+
+        DX_pulse();
+    }
 
     if ( --pulse_timer <= 0 )
     {
