@@ -640,7 +640,7 @@ void load_objects( FILE *fp )
         switch(pObjIndex->item_type)
         {
             case ITEM_WEAPON:
-                pObjIndex->value[0]		= weapon_type(fread_word(fp));
+                pObjIndex->value[0]		= weapon_type_from_name(fread_word(fp));
                 pObjIndex->value[1]		= fread_number(fp);
                 pObjIndex->value[2]		= fread_number(fp);
                 pObjIndex->value[3]		= attack_lookup(fread_word(fp));
