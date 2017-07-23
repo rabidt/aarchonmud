@@ -24,7 +24,7 @@ DxPfileSync::ReqPfileSeqHndlr::HandleMsg( const DxMsg &msg )
         return;
     }
 
-    unique_ptr<DxValSeq> seq( new DxValSeq );
+    DxSeq seq;
 
     struct dirent *pEnt;
 
@@ -44,16 +44,11 @@ DxPfileSync::ReqPfileSeqHndlr::HandleMsg( const DxMsg &msg )
             struct stat statBuf;
             ::stat(fPath.c_str(), &statBuf);
 
-            unique_ptr<DxValSeq> entry( new DxValSeq );
-            entry->AddVal(unique_ptr<DxVal>( 
-                new DxValString( &(pEnt->d_name[0]))
-                ));
-            entry->AddVal(unique_ptr<DxVal>(
-                new DxValString(
-                    std::to_string(statBuf.st_mtime))
-                ));
+            DxSeq entry;
+            entry.AddVal(DxStr(&(pEnt->d_name[0])));
+            entry.AddVal(DxStr(std::to_string(statBuf.st_mtime)));
 
-            seq->AddVal( move(entry) );
+            seq.AddVal( move(entry) );
         }
     }
 
@@ -66,12 +61,10 @@ DxPfileSync::ReqPfileSeqHndlr::HandleMsg( const DxMsg &msg )
 
     ::closedir( pDir );
 
-    unique_ptr<const DxMsg> outMsg( 
-        new DxMsg(
-            unique_ptr<DxValString>(new DxValString("pfile_seq")),
-            move(seq)
-        )
-    );
+    unique_ptr<const DxMsg> outMsg( new DxMsg( 
+        DxStr("pfile_seq"),
+        move(seq)
+    )); 
 
     mpParent->mpDc->PushMsg( move(outMsg) );
 }
@@ -79,52 +72,69 @@ DxPfileSync::ReqPfileSeqHndlr::HandleMsg( const DxMsg &msg )
 void
 DxPfileSync::ReqPfileHndlr::HandleMsg( const DxMsg &msg )
 {
-    if (msg.GetMsgVal().GetType() != DX_STRING)
+    if (msg.GetMsgVal().GetType() != DxValTypeEnum::DX_STR)
     {
         // TODO: bug message
         return;
     }
 
-    const DxValString &msgVal = dynamic_cast<const DxValString &>(msg.GetMsgVal());
+    const DxStr &msgVal = dynamic_cast<const DxStr &>(msg.GetMsgVal());
     const std::string &pfileName = msgVal.GetVal();
 
     DESCRIPTOR_DATA *d = new_descriptor();
 
     if (!load_char_obj(d, pfileName.c_str(), true))
     {
-        // TODO: bug out
+        // no pfile found, TODO: bug out
         if (d->character)
         {
             free_char(d->character);
             d->character = NULL;
         }
         free_descriptor(d);
+
+        DxMap outMsgVal;
+        outMsgVal.AddKeyVal(
+            DxStr("pfile_name"),
+            DxStr(std::string(pfileName)));
+        outMsgVal.AddKeyVal(
+            DxStr("pfile_val"),
+            DxNull());
+
+        unique_ptr<DxMsg> outMsg( new DxMsg(
+            DxStr("pfile"),
+            move( outMsgVal )
+            ));
+        
+        mpParent->mpDc->PushMsg( move(outMsg) );
         return;
     }
 
     CHAR_DATA *ch = d->character;
 
-    unique_ptr<DxValMap> plrMap( new DxValMap );
+    DxMap pfileVal;
 
-    plrMap->AddKeyVal(
-        new DxValString("name"),
-        new DxValString(ch->name)
-        );
+    pfileVal.AddKeyVal(
+        DxStr( "name" ),
+        DxStr( ch->name ));
+    pfileVal.AddKeyVal(
+        DxStr( "level" ),
+        DxInt32( ch->level ));
 
-    plrMap->AddKeyVal(
-        new DxValString("level"),
-        new DxValInt32(ch->level));
-
-
-    unique_ptr<const DxMsg> outMsg(
-        new DxMsg(
-            unique_ptr<const DxValString>( new DxValString("pfile")),
-            move(plrMap)
-        )
-    );
+    DxMap outMsgVal;
+    outMsgVal.AddKeyVal(
+        DxStr( "pfile_name" ),
+        DxStr( std::string(pfileName) ));
+    outMsgVal.AddKeyVal(
+        DxStr( "pfile_val" ),
+        move( pfileVal ));
 
     free_char(ch);
     free_descriptor(d);
+
+    unique_ptr<const DxMsg> outMsg( new DxMsg(
+        DxStr( "pfile" ),
+        move( outMsgVal )));
 
     mpParent->mpDc->PushMsg( move(outMsg) );
 }

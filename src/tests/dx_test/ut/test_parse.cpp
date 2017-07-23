@@ -25,8 +25,8 @@ static unique_ptr<DxMsg> GetSimpleStringMsg( void )
 {
     return unique_ptr<DxMsg>(
         new DxMsg(
-            unique_ptr<DxValString>( new DxValString("some type") ),
-            unique_ptr<DxVal>( new DxValString("some val") )
+            DxStr("some type"),
+            DxStr("some val")
         )
     );
 }
@@ -35,50 +35,47 @@ static unique_ptr<DxMsg> GetSimpleInt32Msg( void )
 {
     return unique_ptr<DxMsg>(
         new DxMsg(
-            unique_ptr<DxValString>( new DxValString("some type") ),
-            unique_ptr<DxVal>( new DxValInt32(123456789) )
+            DxStr("some type"),
+            DxInt32(123456789)
         )
     );
 }
 
 static unique_ptr<DxMsg> GetComplexMsg1( void )
 {
-    unique_ptr<DxValMap> m( new DxValMap );
+    DxMap m;
 
-    m->AddKeyVal(
-        unique_ptr<DxVal>(new DxValString("Taco")),
-        unique_ptr<DxVal>(new DxValString("Tuesday")));
+    m.AddKeyVal(
+        DxStr("Taco"),
+        DxStr("Tuesday"));
 
-    m->AddKeyVal(
-        unique_ptr<DxVal>(new DxValString("Purple")),
-        unique_ptr<DxVal>(new DxValString("Nurple")));
+    m.AddKeyVal(
+        DxStr("Purple"),
+        DxStr("Nurple"));
 
-    m->AddKeyVal(
-        unique_ptr<DxVal>(new DxValInt32(0xFFFF)),
-        unique_ptr<DxVal>(new DxValInt32(0xAAAA)));
+    m.AddKeyVal(
+        DxInt32(0xFFFF),
+        DxInt32(0xAAAA));
 
-    m->AddKeyVal(
-        unique_ptr<DxVal>(new DxValDbl(1.2345)),
-        unique_ptr<DxVal>(new DxValDbl(10.987654321)));
+    m.AddKeyVal(
+        DxInt32(12345),
+        DxDbl(10.987654321));
 
 
-    unique_ptr<DxValSeq> seq( new DxValSeq() );
+    DxSeq seq;
 
-    seq->AddVal(unique_ptr<DxVal>(new DxValInt32(1234)));
-    seq->AddVal(unique_ptr<DxVal>(new DxValString("Herrrrro")));
-    seq->AddVal(unique_ptr<DxVal>(new DxValNull));
+    seq.AddVal(DxInt32(1234));
+    seq.AddVal(DxStr("Herrrrro"));
+    seq.AddVal(DxNull());
 
-    m->AddKeyVal(
-        unique_ptr<DxVal>(new DxValString("ALIST")),
+    m.AddKeyVal(
+        DxStr("ALIST"),
         std::move(seq));
 
     unique_ptr<DxMsg> msg1( 
         new DxMsg(
-            unique_ptr<DxValString>( new DxValString("llama") ),
-            //unique_ptr<DxVal>( m.release() )
-            std::move(m)
-        )
-    );
+            DxStr("llama"),
+            std::move(m)));
 
     return msg1;
 }
