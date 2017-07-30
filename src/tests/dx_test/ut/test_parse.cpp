@@ -46,30 +46,70 @@ static unique_ptr<DxMsg> GetComplexMsg1( void )
     DxMap m;
 
     m.AddKeyVal(
-        DxStr("Taco"),
-        DxStr("Tuesday"));
+        "Taco",
+        "Tuesday");
 
     m.AddKeyVal(
-        DxStr("Purple"),
-        DxStr("Nurple"));
+        "Purple",
+        "Nurple");
 
     m.AddKeyVal(
-        DxInt32(0xFFFF),
-        DxInt32(0xAAAA));
+        0xFFFF,
+        0xAAAA);
 
     m.AddKeyVal(
-        DxInt32(12345),
-        DxDbl(10.987654321));
+        12345,
+        10.987654321);
+
+    m.AddKeyVal(
+        "HerpDDDDDerp",
+        true);
+
+    m.AddKeyVal(
+        4433221,
+        0xFFFFFFFFFFFFFFFF);
+
+    m.AddKeyVal(
+        "int16",
+        int16_t(1234));
+
+    m.AddKeyVal(
+        "uint16",
+        uint16_t(4321));
+
+    m.AddKeyVal(
+        "int32",
+        int32_t(1234));
+
+    m.AddKeyVal(
+        "uint32",
+        uint32_t(4321));
+
+    m.AddKeyVal(
+        "int64",
+        int64_t(1234));
+
+    m.AddKeyVal(
+        "uint64",
+        uint64_t(4321));
+
+    m.AddKeyVal(
+        "float",
+        1.234f);
+
+    m.AddKeyVal(
+        "double",
+        1.234);
 
 
     DxSeq seq;
 
-    seq.AddVal(DxInt32(1234));
-    seq.AddVal(DxStr("Herrrrro"));
-    seq.AddVal(DxNull());
+    seq.AddVal(1234);
+    seq.AddVal("Herrrrro");
+    seq.AddVal(nullptr);
 
-    m.AddKeyVal(
-        DxStr("ALIST"),
+    m.AddKeyVal<DxVal &&>(
+        "ALIST",
         std::move(seq));
 
     unique_ptr<DxMsg> msg1( 
@@ -116,6 +156,8 @@ void TestSerializeDeserialize(CuTest *tc)
         os.str("");
         msg2->Dump( os );
         std::string msgDumpStr2 = os.str();
+
+        std::cout <<  msgDumpStr1;
 
         CuAssertTrue( tc, msgSerStr1   ==  msgSerStr2  );
         CuAssertTrue( tc, msgDumpStr1  ==  msgDumpStr2 );    
