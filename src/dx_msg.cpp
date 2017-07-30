@@ -2,8 +2,9 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cstddef>
 
-
+using std::string;
 using std::unique_ptr;
 using std::move;
 
@@ -16,26 +17,131 @@ static void SerializeInt32( std::ostream &os, int32_t val );
 static void DumpInt32( std::ostream &os, int level, int32_t val );
 
 
-static std::string DxValTypeToString( DxValTypeEnum val )
+std::string DxValTypeToString( DxValTypeEnum val )
 {
+    #define entry( V ) case DxValTypeEnum::V : return #V
     switch (val)
     {
-        case DxValTypeEnum::DX_NULL:
-            return "DX_NULL";
-        case DxValTypeEnum::DX_MAP:
-            return "DX_MAP";
-        case DxValTypeEnum::DX_SEQ:
-            return "DX_SEQ";
-        case DxValTypeEnum::DX_STR:
-            return "DX_STR";
-        case DxValTypeEnum::DX_INT32:
-            return "DX_INT32";
-        case DxValTypeEnum::DX_DBL:
-            return "DX_DBL";
+        entry( DX_NULL );
+        entry( DX_MAP );
+        entry( DX_SEQ );
+        entry( DX_STR );
+        entry( DX_INT16 );
+        entry( DX_UINT16 );
+        entry( DX_INT32 );
+        entry( DX_UINT32 );
+        entry( DX_INT64 );
+        entry( DX_UINT64 );
+        entry( DX_FLT );
+        entry( DX_DBL );
+        entry( DX_BOOL );
         default:
             return "UNKNOWN";
     }
+    #undef entry
 }
+
+
+/* DxVal section */
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<nullptr_t>( nullptr_t v )
+{
+    return unique_ptr<DxVal>( new DxNull() );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<string &&>( string &&v )
+{
+    return unique_ptr<DxVal>( new DxStr( move(v) ) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<char const *>( char const *v )
+{
+    return unique_ptr<DxVal>( new DxStr( v ) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<int16_t>( int16_t v )
+{
+    return unique_ptr<DxVal>( new DxInt16(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<uint16_t>( uint16_t v )
+{
+    return unique_ptr<DxVal>( new DxUint16(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<int32_t>( int32_t v )
+{
+    return unique_ptr<DxVal>( new DxInt32(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<uint32_t>( uint32_t v )
+{
+    return unique_ptr<DxVal>( new DxUint32(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<int64_t>( int64_t v )
+{
+    return unique_ptr<DxVal>( new DxInt64(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<uint64_t>( uint64_t v )
+{
+    return unique_ptr<DxVal>( new DxUint64(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<float>( float v )
+{
+    return unique_ptr<DxVal>( new DxFlt( v ) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<double>( double v )
+{
+    return unique_ptr<DxVal>( new DxDbl(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<bool>( bool v )
+{
+    return unique_ptr<DxVal>( new DxBool(v) );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<DxVal &&>( DxVal &&v)
+{
+    return unique_ptr<DxVal>( v.MoveToNew() );
+}
+
+template<>
+unique_ptr<DxVal>
+DxVal::MakeVal<unique_ptr<DxVal>>( unique_ptr<DxVal> v )
+{
+    return move(v);
+}
+
+/* end DxVal section */
 
 
 /* DxNull section */
@@ -63,30 +169,6 @@ DxMap *
 DxMap::MoveToNew()
 {
     return new DxMap(std::move(*this));
-}
-
-void
-DxMap::AddKeyVal( DxInt32 &&key, DxVal &&val )
-{
-    mIntMap[ key.GetVal() ] = unique_ptr<const DxVal>( val.MoveToNew() );
-}
-
-void
-DxMap::AddKeyVal( unique_ptr<const DxInt32> key, unique_ptr<const DxVal> val )
-{
-    mIntMap[ key->GetVal() ] = move(val);
-}
-
-void
-DxMap::AddKeyVal( DxStr &&key, DxVal &&val )
-{
-    mStrMap[ key.MoveVal() ] = unique_ptr<const DxVal>( val.MoveToNew() );
-}
-
-void
-DxMap::AddKeyVal( unique_ptr<const DxStr> key, unique_ptr<const DxVal> val )
-{
-    mStrMap[ key->GetVal() ] = move(val);
 }
 
 void
@@ -145,18 +227,6 @@ DxMap::Dump(std::ostream &os, int level ) const
 /* end DxMap section */
 
 /* DxSeq section */
-void
-DxSeq::AddVal( DxVal &&val )
-{
-    mVal.push_back( std::unique_ptr<DxVal>( val.MoveToNew() ) );
-}
-
-void
-DxSeq::AddVal( std::unique_ptr<const DxVal> val )
-{
-    mVal.push_back( move(val) );
-}
-
 DxSeq *
 DxSeq::MoveToNew()
 {
@@ -220,59 +290,26 @@ DxStr::Dump(std::ostream &os, int level) const
 }
 /* end DxStr section */
 
-/* DxInt32 section */
-DxInt32 *
-DxInt32::MoveToNew()
+/* DxBool section */
+DxBool *
+DxBool::MoveToNew()
 {
-    return new DxInt32(mVal);
+    return new DxBool(mVal);
 }
 
 void
-DxInt32::Serialize(std::ostream &os) const
+DxBool::Serialize(std::ostream &os) const
 {
-    SerializeInt32( os, mVal );
+    os << ((mVal == true) ? DX_TRUE_BYTE : DX_FALSE_BYTE);
 }
 
 void
-DxInt32::Dump(std::ostream &os, int level) const
+DxBool::Dump(std::ostream &os, int level) const
 {
-    DumpInt32(os, level, mVal);
+    os << (( mVal == true ) ? "true" : "false");
 }
 
-/* end DxInt32 section */
-
-/* DxDbl section */
-DxDbl *
-DxDbl::MoveToNew()
-{
-    return new DxDbl(std::move(*this));
-}
-
-void
-DxDbl::Serialize(std::ostream &os) const
-{
-    static_assert(sizeof(mVal) == 8, "");
-
-    char const * bytes = static_cast<char const *>(static_cast<void const *>(&mVal));
-
-    os  << DX_DBL_START
-        << bytes[0]
-        << bytes[1]
-        << bytes[2]
-        << bytes[3]
-        << bytes[4]
-        << bytes[5]
-        << bytes[6]
-        << bytes[7];
-}
-
-void
-DxDbl::Dump(std::ostream &os, int level) const
-{
-    os << mVal;
-}
-
-/* end DxDbl section */
+/* end DxBool section */
 
 
 /* DxMsg section */
@@ -299,7 +336,7 @@ DxMsg::Dump(std::ostream &os) const
 
 static void SerializeStr( std::ostream &os, const std::string &val )
 {
-    os  << DX_STRING_START
+    os  << DX_STR_START
         << val
         << DX_VAL_END;
 }
@@ -329,14 +366,13 @@ static void DumpInt32( std::ostream &os, int level, int32_t val )
 }
 
 /* Parse section */
-static unique_ptr<const DxVal> ParseVal(char const *buf, size_t len, size_t &ind);
-static unique_ptr<const DxMap> ParseMapVal(char const *buf, size_t len, size_t &ind);
-static unique_ptr<const DxSeq> ParseSeqVal(char const *buf, size_t len, size_t &ind);
-static unique_ptr<const DxDbl> ParseDblVal(char const *buf, size_t len, size_t &ind);
-static unique_ptr<const DxInt32> ParseInt32Val(char const *buf, size_t len, size_t &ind);
-static unique_ptr<const DxStr> ParseStrVal(char const *buf, size_t len, size_t &ind);
+static unique_ptr<DxVal> ParseVal(char const *buf, size_t len, size_t &ind);
+static unique_ptr<DxMap> ParseMapVal(char const *buf, size_t len, size_t &ind);
+static unique_ptr<DxSeq> ParseSeqVal(char const *buf, size_t len, size_t &ind);
+static unique_ptr<DxStr> ParseStrVal(char const *buf, size_t len, size_t &ind);
 
-static unique_ptr<const DxMap>
+
+static unique_ptr<DxMap>
 ParseMapVal(char const *buf, size_t len, size_t &ind)
 {
     unique_ptr<DxMap> rtn( new DxMap );
@@ -352,21 +388,21 @@ ParseMapVal(char const *buf, size_t len, size_t &ind)
             // end of map
             break;
         }
-        unique_ptr<const DxVal> k = ParseVal(buf, len, ind);
-        unique_ptr<const DxVal> v = ParseVal(buf, len, ind);
+        unique_ptr<DxVal> k = ParseVal(buf, len, ind);
+        unique_ptr<DxVal> v = ParseVal(buf, len, ind);
 
         switch (k->GetType())
         {
             case DxValTypeEnum::DX_STR:
             {
-                unique_ptr<const DxStr> kStr( static_cast<const DxStr *>(k.release()) );
-                rtn->AddKeyVal( move(kStr), move(v) );
+                unique_ptr<DxStr> kStr( static_cast<DxStr *>(k.release()) );
+                rtn->AddKeyVal( kStr->MoveVal(), move(v) );
                 break;
             }
             case DxValTypeEnum::DX_INT32:
             {
-                unique_ptr<const DxInt32> kInt32( static_cast<const DxInt32 *>(k.release()) );
-                rtn->AddKeyVal( move(kInt32), move(v) );
+                unique_ptr<DxInt32> kInt32( static_cast<DxInt32 *>(k.release()) );
+                rtn->AddKeyVal( kInt32->GetVal(), move(v) );
                 break;
             }
             default:
@@ -382,7 +418,7 @@ ParseMapVal(char const *buf, size_t len, size_t &ind)
     return move(rtn);
 }
 
-static unique_ptr<const DxSeq>
+static unique_ptr<DxSeq>
 ParseSeqVal(char const *buf, size_t len, size_t &ind)
 {
     unique_ptr<DxSeq> rtn( new DxSeq );
@@ -398,7 +434,7 @@ ParseSeqVal(char const *buf, size_t len, size_t &ind)
             // end of seq
             break; 
         }
-        unique_ptr<const DxVal> val = ParseVal(buf, len, ind);
+        unique_ptr<DxVal> val = ParseVal(buf, len, ind);
         rtn->AddVal( move(val) );
     }
 
@@ -407,7 +443,7 @@ ParseSeqVal(char const *buf, size_t len, size_t &ind)
     return move(rtn);
 }
 
-static unique_ptr<const DxStr>
+static unique_ptr<DxStr>
 ParseStrVal(char const *buf, size_t len, size_t &ind)
 {
     size_t start = ind;
@@ -426,54 +462,14 @@ ParseStrVal(char const *buf, size_t len, size_t &ind)
         ++ind;
     }
 
-    unique_ptr<const DxStr> rtn( new DxStr( std::string(buf + start, ind - start) ) );
+    unique_ptr<DxStr> rtn( new DxStr( std::string(buf + start, ind - start) ) );
 
     ind += 1;  // pass up DX_VAL_END
 
     return rtn;
 }
 
-static unique_ptr<const DxInt32>
-ParseInt32Val(char const *buf, size_t len, size_t &ind)
-{
-    static_assert(sizeof(int32_t) == 4, "");
-
-    if ( (len - ind) < 4 )
-    {
-        std::ostringstream os;
-        os << "ParseInt32Val: only " << (len - ind) << " bytes available, 4 needed";
-        std::string msg = os.str();
-        throw DxParseException(msg);
-    }
-
-    int32_t val = *(static_cast<const int32_t *>(static_cast<const void *>(&buf[ind])));
-
-    ind += 4;
-
-    return unique_ptr<DxInt32>( new DxInt32(val) );
-}
-
-static unique_ptr<const DxDbl>
-ParseDblVal(char const *buf, size_t len, size_t &ind)
-{
-    static_assert(sizeof(double) == 8, "");
-
-    if ( (len - ind) < 8 )
-    {
-        std::ostringstream os;
-        os << "ParseDblVal: only " << (len - ind) << " bytes available, 8 needed";
-        std::string msg = os.str();
-        throw DxParseException(msg);
-    }
-
-    double val = *(static_cast<const double *>(static_cast<const void *>(&buf[ind])));
-
-    ind += 8;
-
-    return unique_ptr<const DxDbl>( new DxDbl(val) );
-}
-
-static unique_ptr<const DxVal>
+static unique_ptr<DxVal>
 ParseVal(char const *buf, size_t len, size_t &ind)
 {
     
@@ -486,25 +482,37 @@ ParseVal(char const *buf, size_t len, size_t &ind)
 
     switch (valType)
     {
-        case DX_STRING_START:
-        {
-            unique_ptr<const DxStr> rtn = ParseStrVal(buf, len, ++ind);
-            return move(rtn);
-        }
+        case DX_STR_START:
+            return ParseStrVal(buf, len, ++ind);
+        case DX_INT16_START:
+            return DxInt16::Parse(buf, len, ++ind);
+        case DX_UINT16_START:
+            return DxUint16::Parse(buf, len, ++ind);
         case DX_INT32_START:
-        {
-            unique_ptr<const DxInt32> rtn = ParseInt32Val(buf, len, ++ind);
-            return move(rtn);
-        }
+            return DxInt32::Parse(buf, len, ++ind);
+        case DX_UINT32_START:
+            return DxUint32::Parse(buf, len, ++ind);
+        case DX_INT64_START:
+            return DxInt64::Parse(buf, len, ++ind);
+        case DX_UINT64_START:
+            return DxUint64::Parse(buf, len, ++ind);
+        case DX_FLT_START:
+            return DxFlt::Parse(buf, len, ++ind);
         case DX_DBL_START:
-            return ParseDblVal(buf, len, ++ind);
+            return DxDbl::Parse(buf, len, ++ind);
+        case DX_TRUE_BYTE:
+            ++ind;
+            return unique_ptr<DxBool>(new DxBool(true));
+        case DX_FALSE_BYTE:
+            ++ind;
+            return unique_ptr<DxBool>(new DxBool(false));
         case DX_MAP_START:
             return ParseMapVal(buf, len, ++ind);
         case DX_SEQ_START:
             return ParseSeqVal(buf, len, ++ind);
         case DX_NULL_BYTE:
             ++ind;
-            return unique_ptr<const DxVal>(new DxNull);
+            return unique_ptr<DxVal>(new DxNull);
         default:
         {
             unsigned int uintVal = static_cast<unsigned int>(static_cast<unsigned char>(valType));
@@ -517,12 +525,12 @@ ParseVal(char const *buf, size_t len, size_t &ind)
     }
 }
 
-unique_ptr<const DxMsg>
+unique_ptr<DxMsg>
 ParseDxMsg(char const *buf, size_t len)
 {
     size_t ind = 0;
 
-    unique_ptr<const DxVal> msgType = ParseVal(buf, len, ind);
+    unique_ptr<DxVal> msgType = ParseVal(buf, len, ind);
 
     if (msgType->GetType() != DxValTypeEnum::DX_STR)
     {
@@ -538,11 +546,11 @@ ParseDxMsg(char const *buf, size_t len)
         throw DxParseException(msg);
     }
     
-    unique_ptr<const DxStr> msgTypeStr(
-        static_cast<const DxStr *>(msgType.release())
+    unique_ptr<DxStr> msgTypeStr(
+        static_cast<DxStr *>(msgType.release())
         );
 
-    unique_ptr<const DxVal> msgVal = ParseVal(buf, len, ind);
+    unique_ptr<DxVal> msgVal = ParseVal(buf, len, ind);
 
     if (ind < len)
     {

@@ -45,10 +45,10 @@ DxPfileSync::ReqPfileSeqHndlr::HandleMsg( const DxMsg &msg )
             ::stat(fPath.c_str(), &statBuf);
 
             DxSeq entry;
-            entry.AddVal(DxStr(&(pEnt->d_name[0])));
-            entry.AddVal(DxStr(std::to_string(statBuf.st_mtime)));
+            entry.AddVal<const char *>((&(pEnt->d_name[0])));
+            entry.AddVal(statBuf.st_mtime);
 
-            seq.AddVal( move(entry) );
+            seq.AddVal<DxVal &&>( move(entry) );
         }
     }
 
@@ -78,7 +78,7 @@ DxPfileSync::ReqPfileHndlr::HandleMsg( const DxMsg &msg )
         return;
     }
 
-    const DxStr &msgVal = dynamic_cast<const DxStr &>(msg.GetMsgVal());
+    const DxStr &msgVal = static_cast<const DxStr &>(msg.GetMsgVal());
     const std::string &pfileName = msgVal.GetVal();
 
     DESCRIPTOR_DATA *d = new_descriptor();
@@ -94,12 +94,8 @@ DxPfileSync::ReqPfileHndlr::HandleMsg( const DxMsg &msg )
         free_descriptor(d);
 
         DxMap outMsgVal;
-        outMsgVal.AddKeyVal(
-            DxStr("pfile_name"),
-            DxStr(std::string(pfileName)));
-        outMsgVal.AddKeyVal(
-            DxStr("pfile_val"),
-            DxNull());
+        outMsgVal.AddKeyVal( "pfile_name", pfileName.c_str() );
+        outMsgVal.AddKeyVal( "pfile_val", nullptr );
 
         unique_ptr<DxMsg> outMsg( new DxMsg(
             DxStr("pfile"),
@@ -114,20 +110,43 @@ DxPfileSync::ReqPfileHndlr::HandleMsg( const DxMsg &msg )
 
     DxMap pfileVal;
 
-    pfileVal.AddKeyVal(
-        DxStr( "name" ),
-        DxStr( ch->name ));
-    pfileVal.AddKeyVal(
-        DxStr( "level" ),
-        DxInt32( ch->level ));
+    pfileVal.AddKeyVal( "name", ch->name );
+    pfileVal.AddKeyVal( "prompt", ch->prompt );
+    pfileVal.AddKeyVal( "clan", clan_table[ch->clan].name );
+    pfileVal.AddKeyVal( "sex", ( ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female"));
+    pfileVal.AddKeyVal( "class", class_table[ch->clss].name );
+    if ( ch->race < MAX_PC_RACE )
+    {
+        pfileVal.AddKeyVal( "race", pc_race_table[ch->race].name );
+    }
+    else
+    {
+        pfileVal.AddKeyVal( "race", nullptr );
+    }
+    pfileVal.AddKeyVal( "level", ch->level );
+    pfileVal.AddKeyVal( "played", ch->played );
+    pfileVal.AddKeyVal( "hit", ch->hit );
+    pfileVal.AddKeyVal( "max_hit", ch->max_hit );
+    pfileVal.AddKeyVal( "mana", ch->mana );
+    pfileVal.AddKeyVal( "max_mana", ch->max_mana );
+    pfileVal.AddKeyVal( "move", ch->move );
+    pfileVal.AddKeyVal( "max_move", ch->max_move );
+    pfileVal.AddKeyVal( "gold", ch->gold );
+    pfileVal.AddKeyVal( "exp", ch->exp );
+    pfileVal.AddKeyVal( "hitroll", ch->hitroll);
+    pfileVal.AddKeyVal( "damroll", ch->damroll);
+    pfileVal.AddKeyVal( "armor", ch->armor);
+    pfileVal.AddKeyVal( "heavy_armor", ch->heavy_armor );
+
+    PC_DATA *pc = ch->pcdata;
+
+    pfileVal.AddKeyVal( "remorts", pc->remorts );
+    pfileVal.AddKeyVal( "ascents", pc->ascents );
+
 
     DxMap outMsgVal;
-    outMsgVal.AddKeyVal(
-        DxStr( "pfile_name" ),
-        DxStr( std::string(pfileName) ));
-    outMsgVal.AddKeyVal(
-        DxStr( "pfile_val" ),
-        move( pfileVal ));
+    outMsgVal.AddKeyVal( "pfile_name", pfileName.c_str() );
+    outMsgVal.AddKeyVal<DxVal &&>( "pfile_val", move( pfileVal ) );
 
     free_char(ch);
     free_descriptor(d);
