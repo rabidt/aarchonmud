@@ -72,6 +72,8 @@ DxClient::Close()
 
     mSockFd = 0;
 
+    mOutMsgQueue = std::queue<std::unique_ptr<const DxMsg>>();
+
     return; // eDXPORT_SUCCESS;
 }
 
