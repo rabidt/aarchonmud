@@ -529,7 +529,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         if ( ch->pcdata->subclass )
         {
             if ( ch->pcdata->subclass2 )
-                bprintf( buf, "Subclasses %s %s\n",
+                bprintf( buf, "Subclasses %s~%s~\n",
                     subclass_table[ch->pcdata->subclass].name,
                     subclass_table[ch->pcdata->subclass2].name );
             else
@@ -2346,9 +2346,12 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
         if ( !str_cmp(word, "Subclasses") )
         {
-            ch->pcdata->subclass = subclass_lookup(bread_word(buf));
-            ch->pcdata->subclass2 = subclass_lookup(bread_word(buf));
-            bread_to_eol(buf);
+            const char *temp = bread_string(buf);
+            const char *temp2 = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            ch->pcdata->subclass2 = subclass_lookup(temp2);
+            free_string(temp);
+            free_string(temp2);
             fMatch = TRUE;
             break;
         }
