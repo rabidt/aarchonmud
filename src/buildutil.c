@@ -1066,10 +1066,11 @@ DEF_DO_FUN(do_mstat)
 	    send_to_char( buf, ch );
 	}
 
-    ptc(ch, "Lvl: %d  Class: %s  Subclass: %s  Exp: %d\n\r",
+    ptc(ch, "Lvl: %d  Class: %s  Subclass: %s  Dual: %s\n\r",
         victim->level,       
         IS_NPC(victim) ? "mobile" : class_table[victim->clss].name,
-        IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass].name);
+        IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass].name,
+        IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass2].name);
 
     ptc(ch, "Align: %d  Gold: %ld  Silver: %ld\n\r",
         victim->alignment, victim->gold, victim->silver, victim->exp );
@@ -1899,38 +1900,70 @@ MSETFUN ( class )
 
 }
 
+static void show_subclasses(CHAR_DATA * ch)
+{
+    char buf[MAX_STRING_LENGTH];
+    int subclass;
+
+    strcpy( buf, "Possible subclasses are: " );
+    for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
+    {
+        if ( subclass > 0 )
+            strcat( buf, " " );
+        strcat( buf, subclass_table[subclass].name );
+    }
+    strcat(buf, ".\n\r");
+
+    send_to_char(buf, ch);
+}
 
 MSETFUN ( subclass )
 {
     if ( !str_prefix(arg3, "None") )
     {
         victim->pcdata->subclass = 0;
+        victim->pcdata->subclass2 = 0;
         return TRUE;
     }
     
     int subclass = subclass_lookup(arg3);
-    
     if ( subclass == 0 )
     {
-        char buf[MAX_STRING_LENGTH];
-       
-        strcpy( buf, "Possible subclasses are: " );
-        for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
-        {
-            if ( subclass > 0 )
-                strcat( buf, " " );
-            strcat( buf, subclass_table[subclass].name );
-        }
-        strcat(buf, ".\n\r");
-       
-        send_to_char(buf, ch);
+        show_subclasses(ch);
         return FALSE;
     }
-   
+    
     victim->pcdata->subclass = subclass;
     return TRUE;
 }
 
+MSETFUN ( subclass2 )
+{
+    if ( !str_prefix(arg3, "None") )
+    {
+        victim->pcdata->subclass2 = 0;
+        return TRUE;
+    }
+    if ( !victim->pcdata->subclass )
+    {
+        ptc(ch, "Set subclass first.\n\r");
+        return FALSE;
+    }
+    
+    const int subclass = subclass_lookup(arg3);
+    if ( subclass == 0 )
+    {
+        show_subclasses(ch);
+        return FALSE;
+    }
+    if ( subclass == victim->pcdata->subclass )
+    {
+        ptc(ch, "%s already has that subclass.\n\r", victim->name);
+        return FALSE;
+    }
+    victim->pcdata->subclass2 = subclass;
+    return TRUE;
+}
 
 MSETFUN( race )
 {
@@ -2448,6 +2481,7 @@ struct
     {"luc",       MSETANY,      mset_luc},
     {"class",     MSETPCONLY,   mset_class},
     {"subclass",  MSETPCONLY,   mset_subclass},
+    {"subclass2", MSETPCONLY,   mset_subclass2},
     {"race",      MSETPCONLY,   mset_race},
     {"sex",       MSETANY,      mset_sex},
     {"group",     MSETNPCONLY,  mset_group},
