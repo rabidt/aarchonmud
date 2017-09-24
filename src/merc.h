@@ -2691,6 +2691,7 @@ struct  pc_data
     sh_int      remorts;
     sh_int      ascents;
     sh_int      subclass;
+    sh_int      subclass2;
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;

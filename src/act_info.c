@@ -4623,11 +4623,10 @@ DEF_DO_FUN(do_score)
     strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     
 
-    /* Age, Hours Played, Married Status */
-    sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs        Married: %9s",
-        get_age(ch), 
-        (ch->played + (int)(current_time - ch->logon))/3600,
-        ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
+    sprintf(buf, "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
+        subclass_table[ch->pcdata->subclass2].name,
+        get_age(ch),
+        (ch->played + (int)(current_time - ch->logon))/3600);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
         ; 
