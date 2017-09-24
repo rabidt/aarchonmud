@@ -5973,6 +5973,16 @@ bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
     return can_take_subclass(ch->clss, subclass);
 }
 
+bool ch_can_take_dual_subclass( CHAR_DATA *ch, int dual_subclass )
+{
+    if ( !ch || !ch->pcdata )
+        return FALSE;
+    if ( !ch->pcdata->subclass || ch->pcdata->subclass == dual_subclass )
+        return FALSE;
+    // dual-subclassing becomes available after 3 ascents
+    return ch->pcdata->ascents > 2;
+}
+
 static void show_subclass( CHAR_DATA *ch, int sc )
 {
     int class, i;
