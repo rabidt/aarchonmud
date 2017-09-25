@@ -424,7 +424,7 @@ DEF_DO_FUN(do_trip)
         DAZE_STATE(victim, skill_table[gsn_trip].beats);
         set_pos(victim, POS_RESTING);
 
-        int dam = martial_damage(ch, victim, gsn_trip) * (3 + victim->size) / 10;
+        int dam = martial_damage(ch, victim, gsn_trip) * (3 + get_ch_size(victim, false)) / 10;
         full_dam(ch, victim, dam, gsn_trip, DAM_BASH, TRUE);
     }
     else
@@ -2072,8 +2072,7 @@ DEF_DO_FUN(do_tumble)
         check_lose_stance(ch);
 
         set_pos( ch, POS_RESTING );
-        damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_tumbling,
-            DAM_BASH,TRUE);
+        damage(ch, ch, number_range(4, 6 +  3 * get_ch_size(ch, false)), gsn_tumbling, DAM_BASH, TRUE);
     }
 }
 
@@ -2610,7 +2609,7 @@ DEF_DO_FUN(do_roundhouse)
       check_lose_stance(ch);
       DAZE_STATE(ch, 2*PULSE_VIOLENCE);
       set_pos( ch, POS_RESTING );
-      damage(ch,ch,number_range(4, 6 +  3 * ch->size),gsn_roundhouse, DAM_BASH,TRUE);
+      damage(ch, ch, number_range(4, 6 +  3 * get_ch_size(ch, false)), gsn_roundhouse, DAM_BASH, TRUE);
    }
    else
       check_improve(ch, gsn_roundhouse, TRUE, 2);
@@ -2663,7 +2662,7 @@ DEF_DO_FUN(do_hurl)
         act("$n hurls $N across the room!", ch, NULL, victim, TO_NOTVICT);
         check_improve(ch,gsn_hurl,TRUE,3);
         
-        dam = martial_damage(ch, victim, gsn_hurl) * (3 + victim->size) / 5;
+        dam = martial_damage(ch, victim, gsn_hurl) * (3 + get_ch_size(victim, false)) / 5;
         
         DAZE_STATE( victim, skill_table[gsn_hurl].beats * 3/2 );
         WAIT_STATE( victim, skill_table[gsn_hurl].beats * 3/4 );
@@ -2939,7 +2938,7 @@ DEF_DO_FUN(do_crush)
     if ( (victim = get_combat_victim(ch, argument)) == NULL )
 	return;
     
-    if ( ch->size <= victim->size )
+    if ( get_ch_size(ch, true) <= get_ch_size(victim, true) )
     {
 	/*
 	send_to_char( "You can only crush smaller people.\n\r", ch );
@@ -2953,7 +2952,7 @@ DEF_DO_FUN(do_crush)
     if ( check_dodge(ch, victim) )
 	return;
 
-    power = ch->size - victim->size;
+    power = get_ch_size(ch, true) - get_ch_size(victim, true);
     dam = power * dice( ch->level, 2 );
     full_dam( ch, victim, dam, gsn_crush, DAM_BASH, TRUE );
     DAZE_STATE( victim, PULSE_VIOLENCE * power );
@@ -3069,7 +3068,7 @@ DEF_DO_FUN(do_blackjack)
             act("$n smashes you in the side of the head, stunning you!",ch,NULL,victim,TO_VICT);
             act("You smash $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_CHAR);
             act("$n smashes $N in the side of $S head, stunning $M!",ch,NULL,victim,TO_NOTVICT);
-            DAZE_STATE(victim, 2*PULSE_VIOLENCE + ch->size - victim->size );
+            DAZE_STATE(victim, 2*PULSE_VIOLENCE + get_ch_size(ch, true) - get_ch_size(victim, true));
         }
 
         damage( ch, victim,dam,gsn_blackjack, DAM_BASH, TRUE);

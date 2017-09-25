@@ -4792,6 +4792,7 @@ bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance );
+int     get_ch_size( const CHAR_DATA *ch, bool bigger_is_better );
 int     dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );

@@ -1381,7 +1381,7 @@ void char_update( void )
             }
             else
             {
-                gain_condition( ch, COND_FULL, (ch->size > SIZE_MEDIUM) ? -2 : -1 );
+                gain_condition( ch, COND_FULL, (get_ch_size(ch, false) > SIZE_MEDIUM) ? -2 : -1 );
                 gain_condition( ch, COND_DRUNK,  -1 );
 
                 if ( !starvation_immune(ch) )
@@ -1391,8 +1391,7 @@ void char_update( void )
                             -1 : -(curr_tick%2) );
 
                     if ((ch->pcdata->condition[COND_HUNGER]>=20) || curr_tick>2)
-                        gain_condition( ch, COND_HUNGER, 
-                                ch->size > SIZE_MEDIUM ? -1 : -(curr_tick%2));
+                        gain_condition( ch, COND_HUNGER, get_ch_size(ch, false) > SIZE_MEDIUM ? -1 : -(curr_tick%2));
 
                     if ((ch->pcdata->condition[COND_HUNGER]==0) && (ch->level>4))
                     {
