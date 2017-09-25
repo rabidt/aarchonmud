@@ -2133,8 +2133,33 @@ const   struct  class_type  class_table [MAX_CLASS] =
 #define NECROMANCER (1<<14)
 #define BARD        (1<<15)
 
+const sh_int subclass_juggernaut = 1;
+const sh_int subclass_warhulk = 2;
+const sh_int subclass_blademaster = 3;
+const sh_int subclass_mobster = 4;
+const sh_int subclass_shadowdancer = 5;
+const sh_int subclass_shadowblade = 6;
 const sh_int subclass_chosen = 7;
+const sh_int subclass_mystic = 8;
+const sh_int subclass_warpriest = 9;
+const sh_int subclass_warmage = 10;
+const sh_int subclass_warlock = 11;
+const sh_int subclass_berserker = 12;
+const sh_int subclass_kensai = 13;
+const sh_int subclass_stormlord = 14;
+const sh_int subclass_crusader = 15;
 const sh_int subclass_demolitionist = 16;
+const sh_int subclass_slayer = 17;
+const sh_int subclass_shaolin = 18;
+const sh_int subclass_sacred_fist = 19;
+const sh_int subclass_trickster = 20;
+const sh_int subclass_terminator = 21;
+const sh_int subclass_sniper = 22;
+const sh_int subclass_beastmaster = 23;
+const sh_int subclass_defiler = 24;
+const sh_int subclass_dreadlord = 25;
+const sh_int subclass_skald = 26;
+const sh_int subclass_songhealer = 27;
 
 const struct subclass_type subclass_table[] =
 {
@@ -2250,7 +2275,7 @@ const struct subclass_type subclass_table[] =
         { "holy avenger", "divine retribution", "smite" },
         { 30, 50, 170 },
         { 100, 100, 75 },
-        "avenger - smite deals +25% damaged, gained 30 levels earlier"
+        "zealot - smite deals +25% damage, gained 30 levels earlier"
     },
     {
         "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
