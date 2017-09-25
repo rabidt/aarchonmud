@@ -3321,8 +3321,33 @@ extern sh_int race_vampire;
 extern sh_int race_rakshasa;
 extern sh_int race_dragonborn;
 
+extern const sh_int subclass_juggernaut;
+extern const sh_int subclass_warhulk;
+extern const sh_int subclass_blademaster;
+extern const sh_int subclass_mobster;
+extern const sh_int subclass_shadowdancer;
+extern const sh_int subclass_shadowblade;
 extern const sh_int subclass_chosen;
+extern const sh_int subclass_mystic;
+extern const sh_int subclass_warpriest;
+extern const sh_int subclass_warmage;
+extern const sh_int subclass_warlock;
+extern const sh_int subclass_berserker;
+extern const sh_int subclass_kensai;
+extern const sh_int subclass_stormlord;
+extern const sh_int subclass_crusader;
 extern const sh_int subclass_demolitionist;
+extern const sh_int subclass_slayer;
+extern const sh_int subclass_shaolin;
+extern const sh_int subclass_sacred_fist;
+extern const sh_int subclass_trickster;
+extern const sh_int subclass_terminator;
+extern const sh_int subclass_sniper;
+extern const sh_int subclass_beastmaster;
+extern const sh_int subclass_defiler;
+extern const sh_int subclass_dreadlord;
+extern const sh_int subclass_skald;
+extern const sh_int subclass_songhealer;
 
 /*
  * These are skill_lookup return values for common skills and spells.
