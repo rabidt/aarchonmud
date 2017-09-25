@@ -1582,7 +1582,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     class_factor = class_table[ch->clss].hp_gain;
     new_hp = 100 + level_factor * stat_factor * class_factor / 1000;
     /* size and form bonus */
-    new_hp += (level + 10) * (ch->size - SIZE_MEDIUM);
+    new_hp += (level + 10) * (get_ch_size(ch, true) - SIZE_MEDIUM);
     if ( IS_SET(ch->form, FORM_TOUGH) )
         new_hp += level * 10;
     if ( ch->pcdata->subclass == subclass_juggernaut )
