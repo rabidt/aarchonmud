@@ -5317,6 +5317,7 @@ void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
 bool is_class_skill( int clss, int sn );
+bool has_subclass( const CHAR_DATA *ch, int subclass );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );

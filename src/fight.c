@@ -1332,7 +1332,7 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
 int get_ch_size( const CHAR_DATA *ch, bool bigger_is_better )
 {
     int size = ch->size;
-    if ( bigger_is_better && ch->pcdata && ch->pcdata->subclass == subclass_warhulk )
+    if ( bigger_is_better && has_subclass(ch, subclass_warhulk) )
         size++;
     return size;
 }
@@ -5339,6 +5339,13 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     chance -= defence_penalty(ch);
     chance += mastery_bonus(ch, gsn_parry, 3, 5);
     
+    if ( has_subclass(ch, subclass_blademaster) && gsn_weapon != gsn_hand_to_hand )
+    {
+        chance += 5;
+        if ( get_eq_char(ch, WEAR_SECONDARY) )
+            chance += 5;
+    }
+    
     if ( improve )
         check_improve(ch, gsn_parry, TRUE, 6);
     
@@ -6380,7 +6387,7 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
 /* check if the gods have mercy on a character */
 bool check_mercy( CHAR_DATA *ch )
 {
-    if ( ch->pcdata && ch->pcdata->subclass == subclass_chosen )
+    if ( has_subclass(ch, subclass_chosen) )
         return TRUE;
     
     int chance = 1000;
