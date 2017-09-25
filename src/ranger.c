@@ -549,7 +549,7 @@ DEF_DO_FUN(do_tame)
     }
 
 	/* Modify based on size difference, charisma of ch, and int of victim.*/
-	skill += 3 * (ch->size - victim->size);
+	skill += 3 * (get_ch_size(ch, true) - get_ch_size(victim, true));
 	skill += (get_curr_stat(ch, STAT_CHA) - get_curr_stat(victim, STAT_INT)) / 4;
 	skill += (ch->level - victim->level) - 25;
 

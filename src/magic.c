@@ -557,7 +557,7 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     save_roll = -get_save(victim, TRUE);
     if ( ch )
     {
-        int size_diff = ch->size - victim->size;
+        int size_diff = get_ch_size(ch, true) - get_ch_size(victim, true);
         hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_STR) + 20 * size_diff) / 500;
     }
     else

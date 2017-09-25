@@ -1329,6 +1329,14 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
+int get_ch_size( const CHAR_DATA *ch, bool bigger_is_better )
+{
+    int size = ch->size;
+    if ( bigger_is_better && ch->pcdata && ch->pcdata->subclass == subclass_warhulk )
+        size++;
+    return size;
+}
+
 bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
     // adjust for mastery (helps with both attack and defense)
@@ -1350,13 +1358,13 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     int ch_roll = (10 + ch->level + get_hitroll(ch)) / 2;
     if ( ch_stat != STAT_NONE )
         ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
-    ch_roll *= 5 + ch->size;
+    ch_roll *= 5 + get_ch_size(ch, true);
     ch_roll *= (500 + get_skill_overflow(ch, sn)) / 500.0;
     
     int victim_roll = -get_save(victim, TRUE);
     if ( victim_stat != STAT_NONE )
         victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
-    victim_roll *= 5 + victim->size;
+    victim_roll *= 5 + get_ch_size(victim, true);
     victim_roll *= (500 + get_skill_overflow(victim, sn)) / 500.0;
     
     // adjust for base chance
@@ -1922,7 +1930,7 @@ static bool has_combat_advantage( CHAR_DATA *ch, CHAR_DATA *victim )
 
 static int giantfeller_sizediff( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int size_diff = (victim->size - ch->size) * (1 + get_mastery(ch, gsn_giantfeller));
+    int size_diff = (get_ch_size(victim, false) - get_ch_size(ch, false)) * (1 + get_mastery(ch, gsn_giantfeller));
     return URANGE(0, size_diff, 3);
 }
 
@@ -2358,7 +2366,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // massive swing - chance to hit secondary targets
     if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
     {
-        int chance = (twohanded ? 50 : 40) + ch->size * 5;
+        int chance = (twohanded ? 50 : 40) + get_ch_size(ch, true) * 4;
         CHAR_DATA *opp, *next;
         for ( opp = ch->in_room->people; opp; opp = next )
         {
@@ -2793,8 +2801,8 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
     
     /* size */
-    if ( number_percent() <= 3 * (ch->size - victim->size) )
-	return FALSE;
+    if ( number_percent() <= 3 * (get_ch_size(ch, false) - get_ch_size(victim, false)) )
+        return FALSE;
 
     /* aura of menace */
     if ( !IS_AFFECTED(ch, AFF_HEROISM) && (IS_AFFECTED(ch, AFF_FEAR) || per_chance(50)) )
