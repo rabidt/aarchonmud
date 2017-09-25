@@ -55,6 +55,7 @@ int get_sickness_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
 int mob_get_skill( CHAR_DATA *ch, int sn );
 int pc_skill_level( CHAR_DATA *ch, int sn );
+int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level );
 
 bool is_class_skill( int class, int sn )
 {
@@ -1080,106 +1081,140 @@ DEF_DO_FUN(do_skill)
     send_to_char( buf, ch );
 }
 
-/* RT spells and skills show the players spells (or skills) */
-
-DEF_DO_FUN(do_spells)
+/* data structure for formating info by level into multiple columns */
+struct info_by_level
 {
-	BUFFER *buffer;
-	char arg[MAX_INPUT_LENGTH];
-	char spell_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
-	char spell_columns[LEVEL_HERO + 1];
-	int i, sn, level, skill, min_lev = 1, max_lev = LEVEL_HERO, mana, prac;
-	bool fAll = FALSE, found = FALSE;
-	char buf[MAX_STRING_LENGTH];
+    char info_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
+    int info_count[LEVEL_HERO + 1]; // for column formatting
+};
+typedef struct info_by_level INFO_BY_LEVEL;
 
-	if (IS_NPC(ch))
-	  return;
+void init_info_by_level(INFO_BY_LEVEL *ibl)
+{
+    int level;
+    for ( level = 0; level < LEVEL_HERO + 1; level++ )
+    {
+        ibl->info_count[level] = 0;
+        ibl->info_list[level][0] = '\0';
+    }
+}
 
-	if (argument[0] != '\0')
-	{
-	fAll = TRUE;
+void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
+{
+    if ( ibl->info_count[level] == 0 )
+    {
+        sprintf(ibl->info_list[level], "\n\rLevel %2d: %s", level, info);
+    }
+    else
+    {
+        if ( ibl->info_count[level] % 2 == 0)
+            strcat(ibl->info_list[level], "\n\r          ");
+        strcat(ibl->info_list[level], info);
+    }
+    ibl->info_count[level] += 1;
+}
 
-	if (str_prefix(argument,"all"))
-	{
-		argument = one_argument(argument,arg);
-		if (!is_number(arg))
-		{
-		send_to_char("Arguments must be numerical or all.\n\r",ch);
-		return;
-		}
-		max_lev = atoi(arg);
+void print_info_by_level(BUFFER *buffer, const INFO_BY_LEVEL *ibl)
+{
+    int level;
+    for (level = 0; level < LEVEL_HERO + 1; level++)
+        if (ibl->info_count[level] > 0)
+            add_buf(buffer, ibl->info_list[level]);
+    add_buf(buffer, "\n\r");
+}
 
-		if (max_lev < 1 || max_lev > LEVEL_HERO)
-		{
-		sprintf(buf,"Levels must be between 1 and %d.\n\r",LEVEL_HERO);
-		send_to_char(buf,ch);
-		return;
-		}
+/* combined function for showing skills/spells to player */
 
-		if (argument[0] != '\0')
-		{
-		argument = one_argument(argument,arg);
-		if (!is_number(arg))
-		{
-			send_to_char("Arguments must be numerical or all.\n\r",ch);
-			return;
-		}
-		min_lev = max_lev;
-		max_lev = atoi(arg);
+void do_skills_or_spells( CHAR_DATA *ch, const char *argument, bool show_spells )
+{
+    BUFFER *buffer;
+    char arg[MAX_INPUT_LENGTH];
+    INFO_BY_LEVEL skill_info;
+    int i, sn, level, skill, min_lev = 1, max_lev = LEVEL_HERO, prac;
+    bool fAll = FALSE, found = FALSE;
+    char buf[MAX_STRING_LENGTH];
 
-		if (max_lev < 1 || max_lev > LEVEL_HERO)
-		{
-			sprintf(buf,
-			"Levels must be between 1 and %d.\n\r",LEVEL_HERO);
-			send_to_char(buf,ch);
-			return;
-		}
+    if ( IS_NPC(ch) )
+      return;
 
-		if (min_lev > max_lev)
-		{
-			send_to_char("That would be silly.\n\r",ch);
-			return;
-		}
-		}
-	}
-	}
+    if ( argument[0] != '\0' )
+    {
+        fAll = TRUE;
 
+        if ( str_prefix(argument, "all") )
+        {
+            argument = one_argument(argument, arg);
+            if ( !is_number(arg) )
+            {
+                send_to_char("Arguments must be numerical or all.\n\r", ch);
+                return;
+            }
+            max_lev = atoi(arg);
 
-	/* initialize data */
-	for (level = 0; level < LEVEL_HERO + 1; level++)
-	{
-		spell_columns[level] = 0;
-		spell_list[level][0] = '\0';
-	}
+            if ( max_lev < 1 || max_lev > LEVEL_HERO )
+            {
+                ptc(ch, "Levels must be between 1 and %d.\n\r", LEVEL_HERO);
+                return;
+            }
 
-	for (sn = 0; sn < MAX_SKILL; sn++)
-	{
-	    if (skill_table[sn].name == NULL )
-		break;
+            if ( argument[0] != '\0' )
+            {
+                argument = one_argument(argument, arg);
+                if ( !is_number(arg) )
+                {
+                    send_to_char("Arguments must be numerical or all.\n\r", ch);
+                    return;
+                }
+                min_lev = max_lev;
+                max_lev = atoi(arg);
 
-	    if ((level = pc_skill_level(ch, sn)) < LEVEL_HERO + 1
-		&&  (fAll || level <= ch->level)
-		&&  level >= min_lev && level <= max_lev
-                &&  skill_table[sn].spell_fun != spell_null
-		&&  ch->pcdata->learned[sn] > 0)
-	    {
-		found = TRUE;
-		prac = ch->pcdata->learned[sn];
-		skill = get_skill(ch, sn);
-		mana = mana_cost(ch, sn, skill);
-		sprintf(buf,"%-16s %3dm %3d%%(%3d%%) ",
-			skill_table[sn].name, mana, prac, skill);
+                if ( max_lev < 1 || max_lev > LEVEL_HERO )
+                {
+                    ptc(ch, "Levels must be between 1 and %d.\n\r", LEVEL_HERO);
+                    return;
+                }
 
-		if (spell_list[level][0] == '\0')
-			sprintf(spell_list[level],"\n\rLevel %2d: %s",level,buf);
-		else /* append */
-		{
-			if ( ++spell_columns[level] % 2 == 0)
-			strcat(spell_list[level],"\n\r          ");
-			strcat(spell_list[level],buf);
-		}
-	}
-	}
+                if ( min_lev > max_lev )
+                {
+                    send_to_char("That would be silly.\n\r", ch);
+                    return;
+                }
+            }
+        }
+    }
+
+    init_info_by_level(&skill_info);
+
+    // class skills
+    for ( sn = 0; sn < MAX_SKILL; sn++ )
+    {
+        if ( skill_table[sn].name == NULL )
+            break;
+
+        level = pc_skill_level(ch, sn);
+
+        if ( level < LEVEL_HERO + 1
+            && (fAll || level <= ch->level)
+            && level >= min_lev && level <= max_lev
+            && IS_SPELL(sn) == show_spells
+            && ch->pcdata->learned[sn] > 0 )
+        {
+            found = TRUE;
+            prac = ch->pcdata->learned[sn];
+            skill = get_skill(ch, sn);
+
+            if ( IS_SPELL(sn) )
+            {
+                int mana = mana_cost(ch, sn, skill);
+                sprintf(buf, "%-16s %3dm %3d%%(%3d%%) ", skill_table[sn].name, mana, prac, skill);
+            }
+            else
+            {
+                sprintf(buf, "%-21s %3d%%(%3d%%) ", skill_table[sn].name, prac, skill);
+            }
+            add_info_by_level(&skill_info, level, buf);
+        }
+    }
 
     // race skills
     struct pc_race_type *pc_race = MULTI_MORPH(ch) ? &pc_race_table[ch->race] : get_morph_pc_race_type(ch);
@@ -1187,26 +1222,25 @@ DEF_DO_FUN(do_spells)
     {
         sn = skill_lookup_exact(pc_race->skills[i]);
         level = pc_race->skill_level[i];
-        prac = pc_race->skill_percent[i];
-        
+
         if ( (fAll || level <= ch->level)
             && level >= min_lev && level <= max_lev
-            && skill_table[sn].spell_fun != spell_null )
+            && IS_SPELL(sn) == show_spells )
         {
             found = TRUE;
+            prac = pc_race->skill_percent[i];
             skill = get_skill(ch, sn);
-            mana = mana_cost(ch, sn, skill);
-            sprintf(buf, "{g%-16s %3dm %3d%%(%3d%%){x ",
-                skill_table[sn].name, mana, prac, skill);
 
-            if ( spell_list[level][0] == '\0' )
-                sprintf(spell_list[level], "\n\rLevel %2d: %s", level, buf);
-            else /* append */
+            if ( IS_SPELL(sn) )
             {
-                if ( ++spell_columns[level] % 2 == 0 )
-                    strcat(spell_list[level], "\n\r          ");
-                strcat(spell_list[level], buf);
+                int mana = mana_cost(ch, sn, skill);
+                sprintf(buf, "{g%-16s %3dm %3d%%(%3d%%){x ", skill_table[sn].name, mana, prac, skill);
             }
+            else
+            {
+                sprintf(buf, "{g%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, skill);
+            }
+            add_info_by_level(&skill_info, level, buf);
         }
     }
 
@@ -1218,56 +1252,95 @@ DEF_DO_FUN(do_spells)
         {
             if ( subclass->skills[i] == NULL )
                 break;
-            
+
             if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
                 continue;
+
             level = subclass->skill_level[i] % 100;
-            int min_ascent = 1 + subclass->skill_level[i] / 100;
-            prac = subclass->skill_percent[i];
-            
+            prac = get_subclass_skill_at(ch, sn, level);
+
             if ( (fAll || level <= ch->level)
-                && ch->pcdata->ascents >= min_ascent
+                && prac > 0
                 && level >= min_lev && level <= max_lev
-                && skill_table[sn].spell_fun != spell_null )
+                && IS_SPELL(sn) == show_spells )
             {
                 found = TRUE;
                 skill = get_skill(ch, sn);
-                mana = mana_cost(ch, sn, skill);
-                sprintf(buf, "{B%-16s %3dm %3d%%(%3d%%){x ",
-                    skill_table[sn].name, mana, prac, skill);
 
-                if ( spell_list[level][0] == '\0' )
-                    sprintf(spell_list[level], "\n\rLevel %2d: %s", level, buf);
-                else /* append */
+                if ( IS_SPELL(sn) )
                 {
-                    if ( ++spell_columns[level] % 2 == 0 )
-                        strcat(spell_list[level], "\n\r          ");
-                    strcat(spell_list[level], buf);
+                    int mana = mana_cost(ch, sn, skill);
+                    sprintf(buf, "{B%-16s %3dm %3d%%(%3d%%){x ", skill_table[sn].name, mana, prac, skill);
+                }
+                else
+                {
+                    sprintf(buf, "{B%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, skill);
+                }
+                add_info_by_level(&skill_info, level, buf);
+            }
+        }
+        // and again for dual subclass
+        if ( ch->pcdata->subclass2 > 0 )
+        {
+            subclass = &subclass_table[ch->pcdata->subclass2];
+            for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+            {
+                if ( subclass->skills[i] == NULL )
+                    break;
+
+                if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
+                    continue;
+
+                level = subclass->skill_level[i] % 100;
+                prac = get_subclass_skill_at(ch, sn, level);
+
+                if ( (fAll || level <= ch->level)
+                    && prac > 0
+                    && level >= min_lev && level <= max_lev
+                    && IS_SPELL(sn) == show_spells )
+                {
+                    found = TRUE;
+                    skill = get_skill(ch, sn);
+
+                    if ( IS_SPELL(sn) )
+                    {
+                        int mana = mana_cost(ch, sn, skill);
+                        sprintf(buf, "{B%-16s %3dm %3d%%(%3d%%){x ", skill_table[sn].name, mana, prac, skill);
+                    }
+                    else
+                    {
+                        sprintf(buf, "{B%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, skill);
+                    }
+                    add_info_by_level(&skill_info, level, buf);
                 }
             }
         }
     }
-    
-	/* return results */
 
-	if (!found)
-	{
-		send_to_char("No spells found.\n\r",ch);
-		return;
-	}
+    /* return results */
+
+    if (!found)
+    {
+        ptc(ch, "No %s found.\n\r", show_spells ? "spells" : "skills");
+        return;
+    }
 
     // show injury penalty
     int penalty = get_injury_penalty(ch) + get_sickness_penalty(ch);
     if ( penalty > 0 )
-        printf_to_char(ch, "{rNote: Your spells are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
+        printf_to_char(ch, "{rNote: Your %s are reduced by up to %d%% due to injury and/or sickness.{x\n\r", show_spells ? "spells" : "skills", penalty);
 
     buffer = new_buf();
-    for (level = 0; level < LEVEL_HERO + 1; level++)
-        if (spell_list[level][0] != '\0')
-            add_buf(buffer,spell_list[level]);
-    add_buf(buffer,"\n\r");
-    page_to_char(buf_string(buffer),ch);
+    print_info_by_level(buffer, &skill_info);
+    page_to_char(buf_string(buffer), ch);
     free_buf(buffer);
+}
+
+/* RT spells and skills show the players spells (or skills) */
+
+DEF_DO_FUN(do_spells)
+{
+    do_skills_or_spells(ch, argument, true);
 }
 
 void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
@@ -1320,13 +1393,7 @@ void show_advanced_skills( CHAR_DATA *ch )
 
 DEF_DO_FUN(do_skills)
 {
-	BUFFER *buffer;
-	char arg[MAX_INPUT_LENGTH];
-	char skill_list[LEVEL_HERO + 1][MAX_STRING_LENGTH];
-	char skill_columns[LEVEL_HERO + 1];
-	int i, sn, level, prac, min_lev = 1, max_lev = LEVEL_HERO;
-	bool fAll = FALSE, found = FALSE;
-	char buf[MAX_STRING_LENGTH];
+    char arg[MAX_INPUT_LENGTH];
 
     if ( IS_NPC(ch) )
     {
@@ -1335,184 +1402,23 @@ DEF_DO_FUN(do_skills)
         return;
     }
 
-	if (argument[0] != '\0')
-	{
-	fAll = TRUE;
-
-    argument = one_argument(argument,arg);
-    if (!strcmp(arg, "class" ) )
+    if (argument[0] != '\0')
     {
-        show_class_skills( ch, argument);
-        return;
-    }
-
-    if ( !strcmp(arg, "advanced") )
-    {
-        show_advanced_skills(ch);
-        return;
-    }
-
-	if (str_prefix(arg,"all"))
-	{
-		if (!is_number(arg))
-		{
-		send_to_char("Arguments must be numerical, advanced or all.\n\r",ch);
-		return;
-		}
-		max_lev = atoi(arg);
-
-		if (max_lev < 1 || max_lev > LEVEL_HERO)
-		{
-		sprintf(buf,"Levels must be between 1 and %d.\n\r",LEVEL_HERO);
-		send_to_char(buf,ch);
-		return;
-		}
-
-		if (argument[0] != '\0')
-		{
-		argument = one_argument(argument,arg);
-		if (!is_number(arg))
-		{
-			send_to_char("Argument must be numerical.\n\r",ch);
-			return;
-		}
-		min_lev = max_lev;
-		max_lev = atoi(arg);
-
-		if (max_lev < 1 || max_lev > LEVEL_HERO)
-		{
-			sprintf(buf,
-			"Levels must be between 1 and %d.\n\r",LEVEL_HERO);
-			send_to_char(buf,ch);
-			return;
-		}
-
-		if (min_lev > max_lev)
-		{
-			send_to_char("That would be silly.\n\r",ch);
-			return;
-		}
-		}
-	}
-	}
-
-
-	/* initialize data */
-	for (level = 0; level < LEVEL_HERO + 1; level++)
-	{
-		skill_columns[level] = 0;
-		skill_list[level][0] = '\0';
-	}
-
-	for (sn = 0; sn < MAX_SKILL; sn++)
-	{
-	    if (skill_table[sn].name == NULL )
-		break;
-
-	    if ((level = pc_skill_level(ch, sn)) < LEVEL_HERO + 1
-		&&  (fAll || level <= ch->level)
-		&&  level >= min_lev && level <= max_lev
-		&&  skill_table[sn].spell_fun == spell_null
-		&&  ch->pcdata->learned[sn] > 0)
-	    {
-		found = TRUE;
-		prac = ch->pcdata->learned[sn];
-		sprintf(buf,"%-21s %3d%%(%3d%%) ",
-			skill_table[sn].name, prac, get_skill(ch, sn));
-		
-		if (skill_list[level][0] == '\0')
-		    sprintf(skill_list[level],"\n\rLevel %2d: %s",level,buf);
-		else /* append */
-		{
-		    if ( ++skill_columns[level] % 2 == 0)
-			strcat(skill_list[level],"\n\r          ");
-		    strcat(skill_list[level],buf);
-		}
-	    }
-	}
-
-    // race skills
-    struct pc_race_type *pc_race = MULTI_MORPH(ch) ? &pc_race_table[ch->race] : get_morph_pc_race_type(ch);
-    for ( i = 0; i < pc_race->num_skills; i++ )
-    {
-        sn = skill_lookup_exact(pc_race->skills[i]);
-        level = pc_race->skill_level[i];
-        prac = pc_race->skill_percent[i];
-        
-        if ( (fAll || level <= ch->level)
-            && level >= min_lev && level <= max_lev
-            && skill_table[sn].spell_fun == spell_null )
+        const char *next_arg = one_argument(argument, arg);
+        if ( !strcmp(arg, "class") )
         {
-            found = TRUE;
-            sprintf(buf, "{g%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, get_skill(ch, sn));
-            if ( skill_list[level][0] == '\0' )
-                sprintf(skill_list[level], "\n\rLevel %2d: %s", level, buf);
-            else /* append */
-            {
-                if ( ++skill_columns[level] % 2 == 0 )
-                    strcat(skill_list[level], "\n\r          ");
-                strcat(skill_list[level], buf);
-            }
+            show_class_skills(ch, next_arg);
+            return;
+        }
+
+        if ( !strcmp(arg, "advanced") )
+        {
+            show_advanced_skills(ch);
+            return;
         }
     }
 
-    // subclass skills
-    if ( ch->pcdata->subclass > 0 )
-    {
-        const struct subclass_type *subclass = &subclass_table[ch->pcdata->subclass];
-        for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
-        {
-            if ( subclass->skills[i] == NULL )
-                break;
-            
-            if ( (sn = skill_lookup_exact(subclass->skills[i])) < 1 )
-                continue;
-            level = subclass->skill_level[i] % 100;
-            int min_ascent = 1 + subclass->skill_level[i] / 100;
-            prac = subclass->skill_percent[i];
-            
-            if ( (fAll || level <= ch->level)
-                && ch->pcdata->ascents >= min_ascent
-                && level >= min_lev && level <= max_lev
-                && skill_table[sn].spell_fun == spell_null )
-            {
-                found = TRUE;
-                sprintf(buf, "{B%-21s %3d%%(%3d%%){x ", skill_table[sn].name, prac, get_skill(ch, sn));
-                if ( skill_list[level][0] == '\0' )
-                    sprintf(skill_list[level], "\n\rLevel %2d: %s", level, buf);
-                else /* append */
-                {
-                    if ( ++skill_columns[level] % 2 == 0 )
-                        strcat(skill_list[level], "\n\r          ");
-                    strcat(skill_list[level], buf);
-                }
-            }
-        }
-    }
-    
-	/* return results */
-
-	if (!found)
-	{
-		send_to_char("No skills found.\n\r",ch);
-		return;
-	}
-
-	// show injury penalty
-    int penalty = get_injury_penalty(ch) + get_sickness_penalty(ch);
-    if ( penalty > 0 )
-        printf_to_char(ch, "{rNote: Your skills are reduced by up to %d%% due to injury and/or sickness.{x\n\r", penalty);
-
-    /* let's show exotic */
-    printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -2));
-
-	buffer = new_buf();
-	for (level = 0; level < LEVEL_HERO + 1; level++)
-		if (skill_list[level][0] != '\0')
-		add_buf(buffer,skill_list[level]);
-	add_buf(buffer,"\n\r");
-	page_to_char(buf_string(buffer),ch);
-	free_buf(buffer);
+    do_skills_or_spells(ch, argument, false);
 }
 
 void show_class_skills( CHAR_DATA *ch, const char *argument )
@@ -2382,32 +2288,45 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
-int get_subclass_skill( CHAR_DATA *ch, int sn )
+int get_skill_for_subclass( CHAR_DATA *ch, int sn, int subclass, int at_level )
+{
+    const struct subclass_type *sc = &subclass_table[subclass];
+    int i;
+
+    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
+    {
+        if ( sc->skills[i] == NULL )
+            break;
+        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
+        {
+            int level = sc->skill_level[i] % 100;
+            int min_ascent = 1 + sc->skill_level[i] / 100;
+            if ( at_level >= level && ch->pcdata->ascents >= min_ascent )
+                return sc->skill_percent[i];
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level )
 {
     if ( IS_NPC(ch) || !ch->pcdata->subclass )
         return 0;
     if ( sn < 0 || sn >= MAX_SKILL )
         return 0;
-    
-    const struct subclass_type *sc = &subclass_table[ch->pcdata->subclass];
 
-    int i;
-    for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
-    {
-        if ( sc->skills[i] == NULL )
-            return 0;
-        if ( !strcmp(sc->skills[i], skill_table[sn].name) )
-        {
-            int level = sc->skill_level[i] % 100;
-            int min_ascent = 1 + sc->skill_level[i] / 100;
-            if ( ch->level >= level && ch->pcdata->ascents >= min_ascent )
-                return sc->skill_percent[i];
-            else
-                return 0;
-        }
-    }
+    int skill = get_skill_for_subclass(ch, sn, ch->pcdata->subclass, at_level);
+    if ( ch->pcdata->subclass2 )
+        skill = skill * 0.6 + get_skill_for_subclass(ch, sn, ch->pcdata->subclass2, at_level) * 0.4;
 
-    return 0;
+    return skill;
+}
+
+int get_subclass_skill( CHAR_DATA *ch, int sn )
+{
+    return get_subclass_skill_at(ch, sn, ch->level);
 }
 
 int pc_skill_prac(CHAR_DATA *ch, int sn)
