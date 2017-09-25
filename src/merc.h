@@ -893,6 +893,7 @@ struct subclass_type
     const char* skills[MAX_SUBCLASS_SKILL];
     sh_int skill_level[MAX_SUBCLASS_SKILL];
     sh_int skill_percent[MAX_SUBCLASS_SKILL];
+    const char* specialty; // descriptive text
 };
 
 struct item_type
