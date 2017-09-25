@@ -2144,169 +2144,197 @@ const struct subclass_type subclass_table[] =
     const char* skills[5];
     sh_int skill_level[5];
     sh_int skill_percent[5];
+    const char* specialty;
     */
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
         { "true grit", "shield wall", "bulwark", "shield block" },
         { 10, 20, 30, 105 },
-        { 100, 100, 100, 75 }
+        { 100, 100, 100, 75 },
+        "diehard - gain +3 hp per hitdie"
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
         { "goblincleaver", "massive swing", "twohand weapons" },
         { 10, 50, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "powerful build - count as 1 size larger where beneficial"
     },
     {
         "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
         { "riposte", "blade barrier", "parry" },
         { 30, 50, 170 },
-        { 100, 100, 50 }
+        { 100, 100, 50 },
+        "supreme parry - increase parry by +%5 per weapon wielded"
     },
     {
         "mobster", THIEF,
         { "gang up", "call sidekick", "flanking" },
         { 30, 50, 170 },
-        { 100, 90, 50 }
+        { 100, 90, 50 },
+        "shakedown - gain +20% gold from kills"
     },
     {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
         { "hide in plain sight", "shadow companion", "hide", "backstab" },
         { 10, 30, 105, 120 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "shrouded - permanently surrounded by shadows"
     },
     {
         "shadowblade", NINJA,
         { "shadow strike", "shadow body", "shadowwalk" },
         { 30, 50, 140 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "shadowstep - increase fade chances by +5% (max 50%), half cost for shadowwalk"
     },
     {
         "chosen", CLERIC|PALADIN|MONK|TEMPLAR,
         { "divine channel", "prayer" },
         { 1, 190 },
-        { 100, 75 }
+        { 100, 75 },
+        "blessed - mercyful death, increased channel speed with prayer"
     },
     {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
         { "mystic infusion", "fireball", "heal" },
         { 10, 130, 170 },
-        { 100, 75, 75 }
+        { 100, 75, 75 },
+        "attuned - regenerate mana 20% faster"
     },
     {
         "warpriest", CLERIC,
         { "heroism", "divine power", "bloodbath", "extend spell" },
         { 30, 50, 70, 190 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "divine champion - divine power grants haste and giant strength"
     },
     {
         "warmage", MAGE|ILLUSIONIST,
         { "warmage edge", "combat casting", "fire breath" },
         { 30, 50, 170 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "focused - damroll grants +1d4 spell damage per 3 damroll"
     },
     {
         "warlock", MAGE|NECROMANCER,
         { "eldritch blast", "eldritch curse", "shadowwalk", "mana shield" },
         { 10, 30, 50, 170 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "spellbane - spell damage can trigger eldritch curse"
     },
     {
         "berserker", GLADIATOR,
         { "savage frenzy", "berserk" },
         { 30, 120 },
-        { 100, 75 }
+        { 100, 75 },
+        "tireless - recover 1 move with each successful attack"
     },
     {
         "kensai", SAMURAI,
         { "bonded blade", "piercing blade", "beheading", "twohand weapons" },
         { 10, 30, 50, 105 },
-        { 100, 100, 100, 75 }
+        { 100, 100, 100, 75 },
+        "honed blade - up to +5% critical chance, scaling up to 25% cap"
     },
     {
         "stormlord", SAMURAI|RANGER,
         { "elemental strike", "immolation", "electrocution", "absolute zero", "elemental blade" },
         { 10, 40, 41, 42, 190 },
-        { 100, 80, 80, 80, 75 }
+        { 100, 80, 80, 80, 75 },
+        "stormborn - increase elemental strike damage to 2d12 per mana"
     },
     {
         "crusader", PALADIN|TEMPLAR,
         { "holy avenger", "divine retribution", "smite" },
         { 30, 50, 170 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "avenger - smite deals +25% damaged, gained 30 levels earlier"
     },
     {
         "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
         { "evasion", "high explosives", "create bomb", "ignite" },
         { 30, 50, 140, 140 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "bombastic - reroll failed ignite, create bomb and ignite gained 30 levels earlier"
     },
     {
         "slayer", ASSASSIN,
         { "estimate", "exploit weakness", "dagger" },
         { 10, 30, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "lethal - 0.2% chance to inflict pierce vulnerability on hit"
     },
     {
         "shaolin", NINJA|MONK,
         { "lethal hands", "unarmed parry", "kung fu" },
         { 10, 30, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "iron hands - 10% base chance for unarmed parry"
     },
     {
         "sacred fist", MONK,
         { "mantra", "sacred touch", "empower spell", "heal" },
         { 30, 50, 70, 160 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "sacred strike - unarmed attacks deal half divine damage when beneficial"
     },
     {
         "trickster", ILLUSIONIST|BARD,
         { "deception", "improved invis", "flanking", "betray" },
         { 30, 50, 70, 120 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "figment - doubles ac bonus from improved invisibility"
     },
     {
         "terminator", GUNSLINGER,
         { "rapid fire", "third attack", "bullet rain", "gun" },
         { 10, 50, 70, 105 },
-        { 100, 80, 100, 75 }
+        { 100, 80, 100, 75 },
+        "covering fire - each hit imposes -1 hitroll penalty"
     },
     {
         "sniper", GUNSLINGER|RANGER,
         { "precise shot", "ambush", "gun", "snipe" },
         { 10, 60, 105, 150 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "steady - +5% damage with bows and two-handed guns"
     },
     {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental", "chain spell", "tree golem" },
         { 10, 50, 70, 180 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "pack leader - can support 10% more summons"
     },
     {
         "defiler", NECROMANCER,
         { "arcane defiling", "inquisition", "energy drain" },
         { 10, 30, 120 },
-        { 100, 80, 75 }
+        { 100, 80, 75 },
+        "siphon life - regain mana when creatures die"
     },
     {
         "dreadlord", NECROMANCER,
         { "army of darkness", "aura of menace", "animate dead" },
         { 30, 50, 120 },
-        { 100, 80, 75 }
+        { 100, 80, 75 },
+        "eternal horde - summoned undead gain death's door"
     },
     {
         "skald", BARD,
         { "frenzy", "inspired rage", "furious ballad", "blade dance", "bears endurance" },
         { 10, 30, 50, 70, 120 },
-        { 100, 100, 100, 80, 75 }
+        { 100, 100, 100, 80, 75 },
+        "vocalist - use passive songs as if 10 levels higher"
     },
     {
         "songhealer", BARD,
         { "song healing", "minor group heal", "group heal", "lullaby" },
         { 30, 50, 70, 120 },
-        { 100, 80, 80, 75 }
+        { 100, 80, 80, 75 },
+        "reliable - reroll spell failure when casting healing spells"
     },
     { NULL }
 };

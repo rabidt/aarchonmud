@@ -5986,12 +5986,16 @@ bool ch_can_take_dual_subclass( CHAR_DATA *ch, int dual_subclass )
 static void show_subclass( CHAR_DATA *ch, int sc )
 {
     int class, i;
-    
+
     ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
     for ( class = 0; class < MAX_CLASS; class++ )
         if ( can_take_subclass(class, sc) )
             ptc(ch, " %s", class_table[class].name);
-    ptc(ch, " )\n\r\n\r%-20s  Level  Percent\n\r", "Skill");
+    ptc(ch, " )\n\r");
+
+    ptc(ch, "\n\rSpecialty: %s\n\r", subclass_table[sc].specialty);
+
+    ptc(ch, "\n\r%-20s  Level  Percent\n\r", "Skill");
     for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
     {
         if ( subclass_table[sc].skills[i] == NULL )
