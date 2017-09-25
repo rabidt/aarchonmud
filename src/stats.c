@@ -1585,7 +1585,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     new_hp += (level + 10) * (get_ch_size(ch, true) - SIZE_MEDIUM);
     if ( IS_SET(ch->form, FORM_TOUGH) )
         new_hp += level * 10;
-    if ( ch->pcdata->subclass == subclass_juggernaut )
+    if ( has_subclass(ch, subclass_juggernaut) )
         new_hp += 3 * level_factor;
     /* train bonus */
     trained_hp_bonus = UMIN(max_train,ch->pcdata->trained_hit) * train_factor * class_factor / 2000;

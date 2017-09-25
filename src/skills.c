@@ -2358,12 +2358,11 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 int pc_skill_level( CHAR_DATA *ch, int sn )
 {
     int level = skill_table[sn].skill_level[ch->clss];
-    int subclass = ch->pcdata->subclass;
     // mastered spells, stances and songs are gained earlier
     if ( level <= LEVEL_HERO && (IS_SPELL(sn) || get_stance_index(sn) >= 0 || is_song(sn)) )
         level -= mastery_bonus(ch, sn, 8, 10);
     // subclassing may help as well
-    if ( level <= LEVEL_HERO && subclass == subclass_demolitionist && (sn == gsn_create_bomb || sn == gsn_ignite) )
+    if ( level <= LEVEL_HERO && has_subclass(ch, subclass_demolitionist) && (sn == gsn_create_bomb || sn == gsn_ignite) )
         level -= 30;
     return UMAX(1, level);
 }
@@ -3014,6 +3013,12 @@ bool has_race_skill( int skill, int rn )
 	    return TRUE;
 
     return FALSE;
+}
+
+// primary subclass only
+bool has_subclass( const CHAR_DATA *ch, int subclass )
+{
+    return ch && ch->pcdata && ch->pcdata->subclass == subclass;
 }
 
 bool has_subclass_skill( int skill, int subclass )
