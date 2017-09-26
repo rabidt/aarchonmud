@@ -6050,27 +6050,23 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         
         if ( killer && !IS_NPC(killer) && !go_morgue && IS_SET(killer->act, PLR_NOLOOT) )
             corpse->owner = str_dup(killer->name);
-        
+        // bonuses to wealth
+        int base_wealth = mob_base_wealth(victim->pIndexData);
+        if ( base_wealth > 0 && killer != NULL )
+        {
+            int bonus = 0;
+            if ( IS_AFFECTED(killer, AFF_FORTUNE) )
+                bonus += base_wealth / 2;
+            if ( has_subclass(killer, subclass_mobster) )
+                bonus += base_wealth / 5;
+            victim->gold += bonus / 100;
+            victim->silver += bonus % 100;
+        }
         if ( victim->gold > 0 || victim->silver > 0 )
         {
-
-         /* Added a check for the fortune bit. This is assigned by the new god_fortune
-            blessing, and increases gold/silver drops by 50 percent - Astark 12-23-12 */
-
-         /* This was causing a crash from commands like slay, that have a null killer
-            value. Fixed by adding a killer null check. 1-8-13 - Astark */
-            if (killer != NULL)
-            {
-                if (IS_AFFECTED(killer, AFF_FORTUNE))
-                {
-                    int bonus = mob_base_wealth(victim->pIndexData) / 2;
-                    victim->gold += bonus / 100;
-                    victim->silver += bonus % 100;
-                }
-                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-                victim->gold = 0;
-                victim->silver = 0;
-            }
+            obj_to_obj(create_money(victim->gold, victim->silver), corpse);
+            victim->gold = 0;
+            victim->silver = 0;
         }
         corpse->cost = 0;
     }
