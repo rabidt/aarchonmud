@@ -4303,7 +4303,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
     }
     
     // must be in shadowy area for this to work
-    if ( !room_is_dim(ch->in_room) )
+    if ( !room_is_dim(ch->in_room) && !has_subclass(ch, subclass_shadowdancer) )
     {
         send_to_char("There's not enough shadows around here.\n\r", ch);
         return SR_UNABLE;
