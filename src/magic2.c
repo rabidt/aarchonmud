@@ -2410,6 +2410,7 @@ DEF_SPELL_FUN(spell_divine_power)
     SPELL_CHECK_RETURN
     
     AFFECT_DATA af;
+    bool warpriest = has_subclass(ch, subclass_warpriest);
     
     if ( is_affected(ch, sn) )
     {
@@ -2423,10 +2424,10 @@ DEF_SPELL_FUN(spell_divine_power)
     af.duration  = get_duration(sn, level);
     af.location  = APPLY_HITROLL;
     af.modifier  = (level + 20) * 3/4;
-    af.bitvector = AFF_HASTE;
+    af.bitvector = warpriest ? AFF_HASTE : 0;
     affect_to_char(ch, &af);
     af.location  = APPLY_DAMROLL;
-    af.bitvector = AFF_GIANT_STRENGTH;
+    af.bitvector = warpriest ? AFF_GIANT_STRENGTH : 0;
     affect_to_char(ch, &af);
     
     send_to_char( "Your feel infused with divine power.\n\r", ch );
