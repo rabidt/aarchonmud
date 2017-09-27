@@ -4803,6 +4803,7 @@ int     fade_chance( CHAR_DATA *ch );
 int     misfade_chance( CHAR_DATA *ch );
 int     dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
+int     mercy_chance( CHAR_DATA *ch );
 bool    offhand_occupied( CHAR_DATA *ch );
 int     shield_block_chance( CHAR_DATA *ch, bool improve );
 int     critical_chance( CHAR_DATA *ch, bool secondary );
@@ -5331,6 +5332,7 @@ void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
 void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer );
 int get_skill_overflow( CHAR_DATA *ch, int sn );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
+int get_subclass_skill( CHAR_DATA *ch, int sn ); // max granted by subclass(es)
 int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int clss );
