@@ -5121,14 +5121,16 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 int fade_chance( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_shadow_body);
-    int bonus = skill ? 5 : 0;
+    int bonus = has_subclass(ch, subclass_shadowblade) ? 5 : 0;
     if ( ch->stance == STANCE_SHADOWWALK )
         return 50;
     if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_CHAOS_FADE) || NPC_OFF(ch, OFF_FADE) )
         return 30 + bonus;
     if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
         return 15 + bonus;
-    return skill * 0.15 + bonus;
+    if ( skill )
+        return skill * 0.15 + bonus;
+    return 0;
 }
 
 int misfade_chance( CHAR_DATA *ch )
@@ -5331,7 +5333,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
         chance -= 5;
 
-    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION || ch->stance == STANCE_BLADE_BARRIER )
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
     else if ( ch->stance == STANCE_BLADE_BARRIER )
         chance += 20;
@@ -7826,6 +7828,9 @@ int stance_cost( CHAR_DATA *ch, int stance )
     int cost = stances[stance].cost * (140-skill)/40;
 
     cost -= cost * mastery_bonus(ch, sn, 20, 30) / 100;
+    
+    if ( stance == STANCE_SHADOWWALK && has_subclass(ch, subclass_shadowblade) )
+        cost /= 2;
 
     return cost;
 }
