@@ -457,6 +457,9 @@ int mana_gain( CHAR_DATA *ch )
             check_improve(ch, gsn_meditation, TRUE, 3);
     }
 
+    if ( has_subclass(ch, subclass_mystic) )
+        gain += gain / 5;
+
     /* healing ratio */
     ratio = ch->in_room->mana_rate;
     if (ch->on != NULL && ch->on->item_type == ITEM_FURNITURE)
