@@ -2219,10 +2219,11 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg, CHAR_DATA *v
         edge += 2 * get_skill_total(ch, gsn_flanking, 0.5);
     int bonus = ch->level * edge / 150;
     // damroll from affects applies here as well
+    int damroll_dice = has_subclass(ch, subclass_warmage) ? ch->damroll / 3 : ch->damroll / 4;
     if ( avg )
-        bonus += (ch->damroll / 4) * 2.5;
+        bonus += damroll_dice * 2.5;
     else
-        bonus += dice(ch->damroll / 4, 4);
+        bonus += dice(damroll_dice, 4);
 
     // adjust for casting time
     bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
