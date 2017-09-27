@@ -3773,6 +3773,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
+    // divine channel grants up to 25% DR while affected by (bought/daily) god bless
+    if ( is_affected(victim, gsn_god_bless) )
+    {
+        const AFFECT_DATA *aff = affect_find(victim->affected, gsn_divine_channel);
+        if ( aff )
+            // modifier is negative, capped at -100
+            dam += dam * aff->modifier / 400;
+    }
+
     if ( dam > 1 && is_spell && victim->stance == STANCE_ARCANA )
         dam -= dam / 3;
     if ( dam > 1 && (is_spell || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
@@ -6382,26 +6391,27 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
     return corpse_created;
 }
 
-/* check if the gods have mercy on a character */
-bool check_mercy( CHAR_DATA *ch )
+int mercy_chance( CHAR_DATA *ch )
 {
-    if ( has_subclass(ch, subclass_chosen) )
-        return TRUE;
-    
     int chance = 1000;
     chance += get_curr_stat(ch, STAT_CHA) * 4 + get_curr_stat(ch, STAT_LUC);
     chance += ch->alignment;
-    
     if (IS_SET(ch->act, PLR_KILLER) 
         && ch->clss != class_lookup("assassin"))
         chance -= 500;
     if (IS_SET(ch->act, PLR_THIEF)
         && ch->clss != class_lookup("thief"))
         chance -= 500;
-    
-    return number_range(0, 2999) < chance;
+    return URANGE(0, chance / 30, 100);
 }
 
+/* check if the gods have mercy on a character */
+bool check_mercy( CHAR_DATA *ch )
+{
+    if ( has_subclass(ch, subclass_chosen) )
+        return TRUE;
+    return per_chance(mercy_chance(ch));
+}
 
 /* penalize players if they die */
 void death_penalty( CHAR_DATA *ch )

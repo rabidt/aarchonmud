@@ -1164,15 +1164,19 @@ void char_update( void )
         /* divine channel */
         if ( !is_affected(ch, gsn_god_bless) && check_skill(ch, gsn_divine_channel) )
         {
+            int cap = get_subclass_skill(ch, gsn_divine_channel);
+            bool double_increase = has_subclass(ch, gsn_divine_channel)
+                && is_affected(ch, gsn_prayer)
+                && per_chance(mercy_chance(ch));
             AFFECT_DATA af;
             af.where    = TO_AFFECTS;
             af.type     = gsn_divine_channel;
             af.level    = ch->level;
             af.location = APPLY_SAVES;
             af.duration = -1;
-            af.modifier = is_affected(ch, gsn_prayer) ? -2 : -1;
+            af.modifier = double_increase ? -2 : -1;
             af.bitvector = 0;
-            affect_join_capped(ch, &af, -100);
+            affect_join_capped(ch, &af, -cap);
         }
 
         if ( ch->position >= POS_STUNNED )
