@@ -4283,7 +4283,7 @@ DEF_DO_FUN(do_blast)
     // ok, it's happening
     WAIT_STATE(ch, skill_table[gsn_eldritch_blast].beats);
     
-    if ( !per_chance(skill) )
+    if ( !per_chance(skill) && per_chance(50) )
     {
         send_to_char("You lose control of the eldritch power surging through you.\n\r", ch);
         return;

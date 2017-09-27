@@ -4002,8 +4002,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
-    // damage spells can also imbue eldritch cursed
-    if ( is_spell && number_range(0, victim->max_hit) < 2 * dam )
+    // damage spells can also imbue eldritch curse
+    if ( is_spell && has_subclass(ch, subclass_warlock) && number_range(0, victim->max_hit) < 2 * dam )
         eldritch_curse(ch, victim);
     
     /*
