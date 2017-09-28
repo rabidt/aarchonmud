@@ -2317,7 +2317,7 @@ const struct subclass_type subclass_table[] =
         { "rapid fire", "third attack", "bullet rain", "gun" },
         { 10, 50, 70, 105 },
         { 100, 80, 100, 75 },
-        "covering fire - each hit imposes -1 hitroll penalty"
+        "covering fire - each shot imposes 1% miss chance for one round"
     },
     {
         "sniper", GUNSLINGER|RANGER,
@@ -6043,7 +6043,7 @@ struct  skill_type
         STAT_LUC, STAT_DEX, STAT_CON,
         spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_rapid_fire, 0, 0, 0, DUR_NONE,
-        "", "!rapid fire!", ""
+        "", "You are no longer under fire.", ""
     },
 
     {
