@@ -1756,6 +1756,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if ( IS_NPC(ch) )
         mob_special_attacks(ch);
     
+    // strip affects that last only 1 combat round
+    affect_strip(ch, gsn_rapid_fire);
+    
     return;
 }
 
@@ -2333,6 +2336,18 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         act_gag("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT, GAG_EFFECT);
         act_gag("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
     }
+    if ( has_subclass(ch, subclass_terminator) && wield && wield->value[0] == WEAPON_GUN )
+    {
+        AFFECT_DATA af;
+        af.where     = TO_AFFECTS;
+        af.type      = gsn_rapid_fire;
+        af.level     = ch->level;
+        af.duration  = 0;
+        af.location  = APPLY_HITROLL;
+        af.modifier  = -1;
+        af.bitvector = 0;
+        affect_join_capped(victim, &af, -10);
+    }
 
     // divine retribution
     if ( hit && check_skill(victim, gsn_divine_retribution) )
@@ -2826,7 +2841,10 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     /* size */
     if ( number_percent() <= 3 * (get_ch_size(ch, false) - get_ch_size(victim, false)) )
         return FALSE;
-
+    /* terminator specialty imposes miss chance */
+    AFFECT_DATA *miss_aff = affect_find(ch->affected, gsn_rapid_fire);
+    if ( miss_aff && per_chance(-(miss_aff->modifier)) )
+        return FALSE;
     /* aura of menace */
     if ( !IS_AFFECTED(ch, AFF_HEROISM) && (IS_AFFECTED(ch, AFF_FEAR) || per_chance(50)) )
     {
