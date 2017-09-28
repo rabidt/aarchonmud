@@ -1971,7 +1971,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             int armor_penalty = (100 - get_heavy_armor_bonus(ch)) * (100 - get_skill(ch, gsn_heavy_armor)) / 100;
             skill = skill * (600 - armor_penalty) / 600;
             // reduced bonus when tired
-            float fitness = 0.5 + 0.5 * ch->move / UMAX(1, ch->max_move);
+            float fitness = 0.333 + 0.667 * ch->move / UMAX(1, ch->max_move);
             // base damage is doubled at 100% skill and total fitness
             dam += dam * fitness * skill / 100;
         }
@@ -2313,6 +2313,9 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         }
     }
     
+    if ( hit && has_subclass(ch, subclass_berserker) )
+        gain_move(ch, dice(1, 4));
+
     // divine retribution
     if ( hit && check_skill(victim, gsn_divine_retribution) )
     {
