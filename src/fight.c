@@ -2884,8 +2884,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     ch_roll = ch_roll * skill/100;
     
     /* blind attacks */
-    if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
-	ch_roll = ch_roll * 3/4;
+    bool figment = has_subclass(victim, subclass_trickster) && is_affected(victim, gsn_improved_invis);
+    if ( (figment || !can_see_combat(ch, victim)) && blind_penalty(ch) )
+        ch_roll = ch_roll * 3/4;
 
     /* bad combat position */
     if ( ch->position < POS_FIGHTING )
@@ -3518,7 +3519,7 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim == ch )
         return;
     
-    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !is_affected(ch, gsn_improved_invis) )
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !has_subclass(ch, subclass_trickster) && !is_affected(ch, gsn_improved_invis) )
     {
         affect_strip_flag( ch, AFF_INVISIBLE );
         REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
