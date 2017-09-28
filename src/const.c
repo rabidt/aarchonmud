@@ -2254,7 +2254,7 @@ const struct subclass_type subclass_table[] =
         { "savage frenzy", "berserk" },
         { 30, 120 },
         { 100, 75 },
-        "tireless - recover 1 move with each successful attack"
+        "tireless - recover 1d4 moves with each successful attack"
     },
     {
         "kensai", SAMURAI,
