@@ -5335,6 +5335,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
     int skill = get_skill_total(ch, gsn_parry, 0.2);
+    int base_chance = 10;
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -5345,9 +5346,12 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
             return 0;
         // against armed opponent, both parry and unarmed parry skills are needed
         if ( opp && get_weapon_sn(opp) != gsn_hand_to_hand )
-            skill = (skill + unarmed_skill) / 2;
+            skill = unarmed_skill * (100 + UMIN(skill, 100)) / 200;
         else
             skill = unarmed_skill;
+        // only shaolin get 10% base chance
+        if ( !has_subclass(ch, subclass_shaolin) )
+            base_chance = 0;
     }
     
     int opponent_adjust = 0;
@@ -5357,7 +5361,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
         opponent_adjust = (level_diff + stat_diff/4) / 2;
     }
-    int chance = 10 + (skill + opponent_adjust) / 4;
+    int chance = base_chance + (skill + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )
