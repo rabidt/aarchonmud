@@ -2358,11 +2358,15 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 int pc_skill_level( CHAR_DATA *ch, int sn )
 {
     int level = skill_table[sn].skill_level[ch->clss];
+    if ( level > LEVEL_HERO )
+        return level;
     // mastered spells, stances and songs are gained earlier
-    if ( level <= LEVEL_HERO && (IS_SPELL(sn) || get_stance_index(sn) >= 0 || is_song(sn)) )
+    if ( IS_SPELL(sn) || get_stance_index(sn) >= 0 || is_song(sn) )
         level -= mastery_bonus(ch, sn, 8, 10);
     // subclassing may help as well
-    if ( level <= LEVEL_HERO && has_subclass(ch, subclass_demolitionist) && (sn == gsn_create_bomb || sn == gsn_ignite) )
+    if ( has_subclass(ch, subclass_demolitionist) && (sn == gsn_create_bomb || sn == gsn_ignite) )
+        level -= 30;
+    if ( has_subclass(ch, subclass_crusader) && sn == gsn_smite )
         level -= 30;
     return UMAX(1, level);
 }
