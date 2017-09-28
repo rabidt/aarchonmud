@@ -3825,14 +3825,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             pierce = pierce || second_dam_type == DAM_PIERCE;
             dam = adjust_damage(ch, victim, dam / 2, first_dam_type, pierce) +
             adjust_damage(ch, victim, (dam+1) / 2, second_dam_type, pierce);
-            immune = ((check_immune(victim, first_dam_type) == IS_IMMUNE)
-                && (check_immune(victim, second_dam_type) == IS_IMMUNE));
         }
         else
         {
+            int alternate_dam = 0;
+            // sacred fist unarmed strike is half holy if beneficial
+            if ( normal_hit && has_subclass(ch, subclass_sacred_fist) && get_eq_char(ch, WEAR_WIELD) == NULL )
+                alternate_dam = adjust_damage(ch, victim, dam, DAM_HOLY, pierce);
+            // see if half alternate damage would be beneficial
             dam = adjust_damage(ch, victim, dam, dam_type, pierce);
-            immune = (check_immune(victim, dam_type) == IS_IMMUNE);
+            if ( dam < alternate_dam )
+                dam = (dam + alternate_dam) / 2;
         }
+        immune = (dam == 0);
     }
 
     if ( dam > 0 && normal_hit )
