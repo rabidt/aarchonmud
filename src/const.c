@@ -2310,7 +2310,7 @@ const struct subclass_type subclass_table[] =
         { "deception", "improved invis", "flanking", "betray" },
         { 30, 50, 70, 120 },
         { 100, 100, 80, 75 },
-        "figment - doubles ac bonus from improved invisibility"
+        "figment - improves regular & improved invisibility"
     },
     {
         "terminator", GUNSLINGER,
