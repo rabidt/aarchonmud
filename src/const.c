@@ -6098,7 +6098,7 @@ struct  skill_type
         STAT_INT, STAT_WIS, STAT_LUC,
         spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_exploit_weakness, 0, 0, 0, DUR_NONE,
-        "", "!exploit weakness!", ""
+        "", "You hide your weak spots.", ""
     },
 
     {
