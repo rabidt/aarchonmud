@@ -186,9 +186,12 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical)
+    int chance = get_skill(ch, gsn_critical)
         + 2 * get_bonded_blade(ch)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+    if ( chance < 500 && has_subclass(ch, subclass_kensai) )
+        chance += (500 - chance) / 5;
+    return chance;
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
