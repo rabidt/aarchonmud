@@ -2318,7 +2318,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     
     if ( hit && has_subclass(ch, subclass_berserker) )
         gain_move(ch, dice(1, 4));
-    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(4) == 6 )
+    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(9) == 69 )
     {
         AFFECT_DATA af;
         af.where     = TO_VULN;
