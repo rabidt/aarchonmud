@@ -1934,6 +1934,9 @@ MSETFUN ( subclass )
     }
     
     victim->pcdata->subclass = subclass;
+    if ( victim->pcdata->subclass2 == subclass )
+        victim->pcdata->subclass2 = 0;
+    
     return TRUE;
 }
 
