@@ -2338,7 +2338,7 @@ const struct subclass_type subclass_table[] =
         { "arcane defiling", "inquisition", "energy drain" },
         { 10, 30, 120 },
         { 100, 80, 75 },
-        "siphon life - regain mana when creatures die"
+        "siphon life - regain hp/mana/moves when living creatures die"
     },
     {
         "dreadlord", NECROMANCER,
