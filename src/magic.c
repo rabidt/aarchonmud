@@ -6438,7 +6438,10 @@ DEF_SPELL_FUN(spell_word_of_recall)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * (200 + cha) / 100;
+    int follow = ch->level * (200 + cha);
+    if ( has_subclass(ch, subclass_beastmaster) )
+        follow += follow / 10;
+    return follow / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )
