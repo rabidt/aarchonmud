@@ -2026,6 +2026,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam *= 2;
             check_improve (ch, gsn_sharp_shooting, TRUE, 5);
         }
+        if ( has_subclass(ch, subclass_sniper) && (twohanded || wield->value[0] == WEAPON_BOW) )
+            dam += dam / 20;
     }
     else
     {
