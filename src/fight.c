@@ -4568,7 +4568,9 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         CHAR_DATA *rch;
         for ( rch = victim->in_room->people; rch != NULL; rch = rch->next_in_room )
         {
-            if ( rch != victim && check_skill(rch, gsn_dark_reaping) )
+            if ( rch == victim )
+                continue;
+            if ( check_skill(rch, gsn_dark_reaping) )
             {
                 int power = victim->level;
                 AFFECT_DATA af;
@@ -4584,6 +4586,15 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
                 send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", rch);
                 act("{D$n {Dis filled with a dark power!{x", rch, NULL, NULL, TO_ROOM);
+            }
+            if ( has_subclass(rch, subclass_defiler) )
+            {
+                int power = dice(1,8) + victim->max_hit / 100;
+                gain_hit(rch, power);
+                gain_mana(rch, power);
+                gain_move(rch, power);
+                act("{DYou absorb some of the life energy leaving $N.{x", rch, NULL, victim, TO_CHAR);
+                act("{D$n absorbs some of the life energy leaving $N.{x", rch, NULL, victim, TO_NOTVICT);
             }
         }
     }
