@@ -1164,6 +1164,20 @@ bool check_concentration( CHAR_DATA *ch )
     return TRUE;
 }
 
+bool check_casting_failure( CHAR_DATA *ch, int sn, int chance )
+{
+    // 50% base chance to succeed
+    if ( per_chance(50) || per_chance(chance) )
+        return FALSE;
+    // songhealers get reroll for healing spells
+    if ( has_subclass(ch, subclass_songhealer) && is_healing_spell(sn) )
+    {
+        if ( per_chance(50) || per_chance(chance) )
+            return FALSE;
+    }
+    return TRUE;
+}
+
 // global variable for storing what meta-magic skills are used
 tflag meta_magic = {};
 // sometimes meta-magic skills are applied for free
@@ -1760,7 +1774,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         reduce_mana(ch, mana/2);
         return;
     }
-    else if ( 2*number_percent() > (chance+100)
+    else if ( check_casting_failure(ch, sn, chance)
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
@@ -3247,6 +3261,21 @@ bool is_disease( int sn )
     return sn == gsn_plague
         || sn == gsn_necrosis
         || sn == gsn_decompose;
+}
+
+bool is_healing_spell( int sn )
+{
+    return sn == gsn_cure_light
+        || sn == gsn_cure_serious
+        || sn == gsn_cure_critical
+        || sn == gsn_heal
+        || sn == gsn_cure_mortal
+        || sn == gsn_restoration
+        || sn == gsn_minor_group_heal
+        || sn == gsn_group_heal
+        || sn == gsn_major_group_heal
+        || sn == gsn_refresh
+        || sn == gsn_mass_healing;
 }
 
 DEF_SPELL_FUN(spell_cure_mental)
