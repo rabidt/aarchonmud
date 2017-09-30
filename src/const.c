@@ -3322,7 +3322,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_critical,    TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 20, 3, 12, DUR_NONE,
+    &gsn_cure_critical, 20, 3, 12, DUR_NONE,
     "",         "!Cure Critical!",  ""
     },
 
@@ -3355,7 +3355,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_mortal,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
-    NULL, 100, 10, 14, DUR_NONE,
+    &gsn_cure_mortal, 100, 10, 14, DUR_NONE,
     "",                     "!Cure Mortal!",        ""
     },
 
@@ -3388,7 +3388,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_serious, TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 10, 2, 10, DUR_NONE,
+    &gsn_cure_serious, 10, 2, 10, DUR_NONE,
     "",         "!Cure Serious!",   ""
     },
 
@@ -3853,7 +3853,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 60, 5, 14, DUR_NONE,
+    &gsn_group_heal, 60, 5, 14, DUR_NONE,
     "",                     "!Group Heal!",   ""
     },
 
@@ -3922,7 +3922,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_heal,     TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 50, 5, 14, DUR_NONE,
+    &gsn_heal, 50, 5, 14, DUR_NONE,
     "",         "!Heal!",       ""
     },
   
@@ -4099,7 +4099,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_major_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 100, 10, 14, DUR_NONE,
+    &gsn_major_group_heal, 100, 10, 14, DUR_NONE,
     "",                     "!Major Group Heal!",   ""
     },
 
@@ -4143,7 +4143,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_mass_healing, TAR_IGNORE_DEF, POS_STANDING,
-    NULL, 100, 10, 32, DUR_NONE,
+    &gsn_mass_healing, 100, 10, 32, DUR_NONE,
     "",         "!Mass Healing!",   ""
     },
 
@@ -4176,7 +4176,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_minor_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 20, 2, 10, DUR_NONE,
+    &gsn_minor_group_heal, 20, 2, 10, DUR_NONE,
     "",                     "!Minor Group Heal!",   ""
     },
 
