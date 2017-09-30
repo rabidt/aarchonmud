@@ -2352,7 +2352,7 @@ const struct subclass_type subclass_table[] =
         { "frenzy", "inspired rage", "furious ballad", "blade dance", "bears endurance" },
         { 10, 30, 50, 70, 120 },
         { 100, 100, 100, 80, 75 },
-        "vocalist - use passive songs as if 10 levels higher"
+        "vocalist - use passive songs as if 20 levels higher"
     },
     {
         "songhealer", BARD,

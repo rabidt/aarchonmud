@@ -4074,6 +4074,9 @@ DEF_DO_FUN(do_inspire)
     int level = ch->level * (100 + skill) / 200;
     bool rage = IS_AFFECTED(ch, AFF_BERSERK) && check_skill(ch, gsn_inspired_rage);
     
+    if ( has_subclass(ch, subclass_skald) )
+        level += 20;
+    
     if ( !skill )
     {
         send_to_char("You don't know how.\n\r", ch);
