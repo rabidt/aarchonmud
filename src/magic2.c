@@ -863,11 +863,13 @@ DEF_SPELL_FUN(spell_animate_dead)
     extract_obj (cor);
     change_align(ch, -10);
     
-    /* Added new spell effect to destroy zombie after timer. -Rim 3/20/98 */
+    int duration = get_duration(sn, level) * (100 + puppet_skill) / 100;
+    bool eternal = has_subclass(ch, subclass_dreadlord);
+    
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = get_duration(sn, level) * (100+puppet_skill) / 100;
+    af.duration  = eternal ? -1 : duration;
     af.location  = 0;
     af.modifier  = 0;
     af.bitvector = AFF_ANIMATE_DEAD;
@@ -886,7 +888,13 @@ DEF_SPELL_FUN(spell_animate_dead)
         add_follower( mob, ch );
         mob->leader = ch;
         af.bitvector = AFF_CHARM;
+        if ( eternal )
+        {
+            af.location  = APPLY_HIT;
+            af.modifier  = 3 * duration;
+        }
         affect_to_char( mob, &af );
+        mob->hit = mob->max_hit;
     }
     return TRUE;
 }
@@ -941,14 +949,18 @@ DEF_SPELL_FUN(spell_ghost_chant)
     char_to_room( mob, ch->in_room );
     change_align(ch, -10);
     
+    int duration = get_duration(sn, level) * (100 + puppet_skill) / 100;
+    bool eternal = has_subclass(ch, subclass_dreadlord);
+    
     af.where     = TO_AFFECTS;
     af.type      = sn;
     af.level     = level;
-    af.duration  = get_duration(sn, level) * (100+puppet_skill) / 100;
-    af.location  = 0;
-    af.modifier  = 0;
+    af.duration  = eternal ? -1 : duration;
+    af.location  = eternal ? APPLY_HIT : 0;
+    af.modifier  = eternal ? 2 * duration : 0;
     af.bitvector = AFF_CHARM;
     affect_to_char( mob, &af );
+    mob->hit = mob->max_hit;
 
     add_follower( mob, ch );
     mob->leader = ch;
