@@ -2345,7 +2345,7 @@ const struct subclass_type subclass_table[] =
         { "army of darkness", "aura of menace", "animate dead" },
         { 30, 50, 120 },
         { 100, 80, 75 },
-        "eternal horde - summoned undead gain death's door"
+        "eternal horde - summon undead are tougher and bound forever"
     },
     {
         "skald", BARD,
