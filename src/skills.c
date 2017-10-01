@@ -1662,6 +1662,8 @@ int exp_per_level(CHAR_DATA *ch)
     asc_add = ch->pcdata->ascents ? 100 * (ch->pcdata->ascents + 5) : 0;
     if ( ch->pcdata->subclass && !can_take_subclass(ch->clss, ch->pcdata->subclass) )
         asc_add += 200;
+    if ( ch->pcdata->subclass2 && !can_take_subclass(ch->clss, ch->pcdata->subclass2) )
+        asc_add += 100;
     
     return 10 * (race_factor) + asc_add;
 }
