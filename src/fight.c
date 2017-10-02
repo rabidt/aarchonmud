@@ -983,22 +983,15 @@ void check_assist(CHAR_DATA *ch)
             }
             
             /* now check the NPC cases */
-            
-            if (IS_NPC(ch) && !IS_AFFECTED(ch,AFF_CHARM) && IS_NPC(rch))
+            if ( IS_NPC(ch) && !IS_AFFECTED(ch, AFF_CHARM)
+                && IS_NPC(rch) && !IS_AFFECTED(rch, AFF_CHARM) )
             {
-                if ( (IS_SET(rch->off_flags,ASSIST_ALL))
-		     || (rch->group && rch->group == ch->group)
-		     || (rch->race == ch->race && IS_SET(rch->off_flags,ASSIST_RACE))
-		     || (IS_SET(rch->off_flags,ASSIST_ALIGN)
-			 && ((IS_GOOD(rch) && IS_GOOD(ch))
-			     || (IS_EVIL(rch) && IS_EVIL(ch))
-			     || (IS_NEUTRAL(rch) && IS_NEUTRAL(ch))))
-		     || (IS_SET(rch->off_flags, ASSIST_GUARD)
-			 && (ch->spec_fun == spec_guard
-			     || ch->spec_fun == spec_executioner))
-		     || (rch->pIndexData == ch->pIndexData 
-			 && IS_SET(rch->off_flags,ASSIST_VNUM)))
-                    
+                if ( IS_SET(rch->off_flags, ASSIST_ALL)
+                    || (rch->group && rch->group == ch->group)
+                    || (IS_SET(rch->off_flags, ASSIST_RACE) && rch->race == ch->race)
+                    || (IS_SET(rch->off_flags, ASSIST_ALIGN) && get_align_type(rch) == get_align_type(ch))
+                    || (IS_SET(rch->off_flags, ASSIST_GUARD) && (ch->spec_fun == spec_guard || ch->spec_fun == spec_executioner))
+                    || (IS_SET(rch->off_flags, ASSIST_VNUM) && rch->pIndexData == ch->pIndexData) )
                 {
                     CHAR_DATA *vch;
                     CHAR_DATA *target;

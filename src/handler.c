@@ -142,7 +142,7 @@ int weapon_lookup (const char *name)
     return -1;
 }
 
-int weapon_type (const char *name)
+int weapon_type_from_name (const char *name)
 {
     int type;
     
