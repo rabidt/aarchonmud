@@ -4535,7 +4535,6 @@ void personal_message args((const char *sender, const char *to,
    const char *subject, const int expire_days, const char *text));
 void load_boards args((void));
 void save_notes args((void));
-void free_note args((NOTE_DATA *note));
 int board_lookup args((const char *name));
 void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument);
 void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument);
@@ -4849,7 +4848,7 @@ bool has_money( CHAR_DATA *ch, int cost, bool bank );
 int     check_immune    args( (CHAR_DATA *ch, int dam_type) );
 int     material_lookup args( ( const char *name) );
 int weapon_lookup   args( ( const char *name) );
-int weapon_type args( ( const char *name) );
+int weapon_type_from_name args( ( const char *name) );
 const char* weapon_name( int weapon_Type );
 const char* item_name( int item_type ); 
 int attack_lookup   args( ( const char *name) );
