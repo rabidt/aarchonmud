@@ -6088,7 +6088,19 @@ DEF_DO_FUN(do_showsubclass)
         }
         return;
     }
-    
+
+    char arg1[MSL], arg2[MSL];
+    if ( split_string(argument, '/', arg1, arg2) )
+    {
+        int sc1 = subclass_lookup(arg1);
+        int sc2 = subclass_lookup(arg2);
+        if ( sc1 > 0 && sc2 > 0 && sc1 != sc2 )
+        {
+            show_dual_subclass(ch, sc1, sc2);
+            return;
+        }
+    }
+
     if ( (sc = subclass_lookup(argument)) > 0 )
     {
         show_subclass(ch, sc);
@@ -6111,8 +6123,8 @@ DEF_DO_FUN(do_showsubclass)
         return;
     }
     
-    send_to_char("That's not a valid subclass or base class.\n\r", ch);
-    send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+    send_to_char("That's not a valid subclass, dual subclass or base class.\n\r", ch);
+    send_to_char("Syntax: showsubclass <subclass|sc/sc|class|all>\n\r", ch);
 }
 
 /* do_tables stuff */

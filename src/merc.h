@@ -5436,6 +5436,7 @@ const char* aan       args( ( const char *s ) );
 char prompt_color_code( const char *prompt, char var );
 bool is_empty_string( const char *s );
 bool is_alpha_string( const char *s );
+bool split_string( const char *s, char split_char, char *prefix, char *suffix );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );
