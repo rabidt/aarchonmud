@@ -2219,7 +2219,7 @@ const struct subclass_type subclass_table[] =
         { "divine channel", "prayer" },
         { 1, 190 },
         { 100, 75 },
-        "blessed - mercyful death, increased channel speed with prayer"
+        "blessed - merciful death, increased channel speed with prayer"
     },
     {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
