@@ -527,7 +527,14 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         bprintf( buf, "Remort %d\n",  ch->pcdata->remorts);
         bprintf( buf, "Ascent %d\n",  ch->pcdata->ascents);
         if ( ch->pcdata->subclass )
-            bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
+        {
+            if ( ch->pcdata->subclass2 )
+                bprintf( buf, "Subclasses %s~%s~\n",
+                    subclass_table[ch->pcdata->subclass].name,
+                    subclass_table[ch->pcdata->subclass2].name );
+            else
+                bprintf( buf, "Subclass %s~\n", subclass_table[ch->pcdata->subclass].name );
+        }
         
         if (ch->pcdata->bamfin[0] != '\0')
             bprintf( buf, "Bin  %s~\n",  ch->pcdata->bamfin);
@@ -2336,6 +2343,18 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+
+        if ( !str_cmp(word, "Subclasses") )
+        {
+            const char *temp = bread_string(buf);
+            const char *temp2 = bread_string(buf);
+            ch->pcdata->subclass = subclass_lookup(temp);
+            ch->pcdata->subclass2 = subclass_lookup(temp2);
+            free_string(temp);
+            free_string(temp2);
+            fMatch = TRUE;
+            break;
+        }
         
         break;
         
@@ -3157,7 +3176,17 @@ void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
     }
 }
 
-
+const char * subclass_string(const CHAR_DATA * ch)
+{
+    static char buf[1024];
+    if ( !ch || !ch->pcdata )
+        return "None";
+    if ( !ch->pcdata->subclass2 )
+        return subclass_table[ch->pcdata->subclass].name;
+    // dual subclassing
+    sprintf(buf, "%s/%s", subclass_table[ch->pcdata->subclass].name, subclass_table[ch->pcdata->subclass2].name);
+    return buf;
+}
 
 DEF_DO_FUN(do_finger)
 {
@@ -3325,7 +3354,7 @@ DEF_DO_FUN(do_finger)
         sprintf(buf, "{D|{x ");
         sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
             wch->pcdata->ascents,
-            subclass_table[wch->pcdata->subclass].name);
+            subclass_string(wch));
         strcat( buf, buf2 );
         for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
