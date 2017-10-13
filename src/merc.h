@@ -4505,7 +4505,7 @@ bool can_loot       args( (CHAR_DATA *ch, OBJ_DATA *obj, bool allow_group) );
 int  umd_max_item_level( CHAR_DATA *ch );
 bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace) );
-void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
+bool get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container );
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace );
 bool in_donation_room args((OBJ_DATA *obj));
 void describe_item      args( (CHAR_DATA *ch, OBJ_DATA *obj) );
