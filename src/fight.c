@@ -186,9 +186,12 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     if ( !get_eq_char(ch, secondary ? WEAR_SECONDARY : WEAR_WIELD) )
         return 0;
     int weapon_sn = get_weapon_sn_new(ch, secondary);
-    return get_skill(ch, gsn_critical)
+    int chance = get_skill(ch, gsn_critical)
         + 2 * get_bonded_blade(ch)
         + mastery_bonus(ch, weapon_sn, 60, 100) + mastery_bonus(ch, gsn_critical, 60, 100);
+    if ( chance < 500 && has_subclass(ch, subclass_kensai) )
+        chance += (500 - chance) / 5;
+    return chance;
 }
 
 bool check_critical(CHAR_DATA *ch, bool secondary)
@@ -1329,6 +1332,14 @@ int offhand_attack_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
+int get_ch_size( const CHAR_DATA *ch, bool bigger_is_better )
+{
+    int size = ch->size;
+    if ( bigger_is_better && has_subclass(ch, subclass_warhulk) )
+        size++;
+    return size;
+}
+
 bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance )
 {
     // adjust for mastery (helps with both attack and defense)
@@ -1350,13 +1361,13 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     int ch_roll = (10 + ch->level + get_hitroll(ch)) / 2;
     if ( ch_stat != STAT_NONE )
         ch_roll = ch_roll * (200 + get_curr_stat(ch, ch_stat)) / 300;
-    ch_roll *= 5 + ch->size;
+    ch_roll *= 5 + get_ch_size(ch, true);
     ch_roll *= (500 + get_skill_overflow(ch, sn)) / 500.0;
     
     int victim_roll = -get_save(victim, TRUE);
     if ( victim_stat != STAT_NONE )
         victim_roll = victim_roll * (200 + get_curr_stat(victim, victim_stat)) / 300;
-    victim_roll *= 5 + victim->size;
+    victim_roll *= 5 + get_ch_size(victim, true);
     victim_roll *= (500 + get_skill_overflow(victim, sn)) / 500.0;
     
     // adjust for base chance
@@ -1745,6 +1756,9 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if ( IS_NPC(ch) )
         mob_special_attacks(ch);
     
+    // strip affects that last only 1 combat round
+    affect_strip(ch, gsn_rapid_fire);
+    
     return;
 }
 
@@ -1922,7 +1936,7 @@ static bool has_combat_advantage( CHAR_DATA *ch, CHAR_DATA *victim )
 
 static int giantfeller_sizediff( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    int size_diff = (victim->size - ch->size) * (1 + get_mastery(ch, gsn_giantfeller));
+    int size_diff = (get_ch_size(victim, false) - get_ch_size(ch, false)) * (1 + get_mastery(ch, gsn_giantfeller));
     return URANGE(0, size_diff, 3);
 }
 
@@ -1963,7 +1977,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             int armor_penalty = (100 - get_heavy_armor_bonus(ch)) * (100 - get_skill(ch, gsn_heavy_armor)) / 100;
             skill = skill * (600 - armor_penalty) / 600;
             // reduced bonus when tired
-            float fitness = 0.5 + 0.5 * ch->move / UMAX(1, ch->max_move);
+            float fitness = 0.333 + 0.667 * ch->move / UMAX(1, ch->max_move);
             // base damage is doubled at 100% skill and total fitness
             dam += dam * fitness * skill / 100;
         }
@@ -2012,6 +2026,8 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
             dam *= 2;
             check_improve (ch, gsn_sharp_shooting, TRUE, 5);
         }
+        if ( has_subclass(ch, subclass_sniper) && (twohanded || wield->value[0] == WEAPON_BOW) )
+            dam += dam / 20;
     }
     else
     {
@@ -2281,7 +2297,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
             // additional mana cost
             int mana_cost = UMIN(ch->mana, 2 + ch->mana / 500);
             reduce_mana(ch, mana_cost);
-            int dam = dice(2*mana_cost, 12);
+            int dam = dice(2 * mana_cost, has_subclass(ch, subclass_stormlord) ? 12 : 10);
             // random damtype unless shield is active
             int strike_dt = -1;
             if ( IS_AFFECTED(ch, AFF_ELEMENTAL_SHIELD) )
@@ -2305,6 +2321,36 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         }
     }
     
+    if ( hit && has_subclass(ch, subclass_berserker) )
+        gain_move(ch, dice(1, 4));
+    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(9) == 69 )
+    {
+        AFFECT_DATA af;
+        af.where     = TO_VULN;
+        af.type      = gsn_exploit_weakness;
+        af.level     = ch->level;
+        af.duration  = 1;
+        af.location  = APPLY_NONE;
+        af.modifier  = 0;
+        af.bitvector = VULN_PIERCE;
+        affect_join(victim, &af);
+        act_gag("{RYou pierce a hole into the armor of $N!{x", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
+        act_gag("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT, GAG_EFFECT);
+        act_gag("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
+    }
+    if ( has_subclass(ch, subclass_terminator) && wield && wield->value[0] == WEAPON_GUN )
+    {
+        AFFECT_DATA af;
+        af.where     = TO_AFFECTS;
+        af.type      = gsn_rapid_fire;
+        af.level     = ch->level;
+        af.duration  = 0;
+        af.location  = APPLY_HITROLL;
+        af.modifier  = -1;
+        af.bitvector = 0;
+        affect_join_capped(victim, &af, -10);
+    }
+
     // divine retribution
     if ( hit && check_skill(victim, gsn_divine_retribution) )
     {
@@ -2358,7 +2404,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     // massive swing - chance to hit secondary targets
     if ( dt >= TYPE_HIT && victim == ch->fighting && !is_ranged_weapon(wield) && check_skill(ch, gsn_massive_swing) )
     {
-        int chance = (twohanded ? 50 : 40) + ch->size * 5;
+        int chance = (twohanded ? 50 : 40) + get_ch_size(ch, true) * 4;
         CHAR_DATA *opp, *next;
         for ( opp = ch->in_room->people; opp; opp = next )
         {
@@ -2638,6 +2684,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         int align_diff = ABS(ch->alignment - victim->alignment);
         int skill = get_skill(ch, gsn_smite);
         dam += dam * align_diff / 2000 * skill / 100;
+        if ( has_subclass(ch, subclass_crusader) )
+            dam += dam / 4;
     }
     if ( dt == gsn_power_attack )
     {
@@ -2793,9 +2841,12 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
 	return FALSE;
     
     /* size */
-    if ( number_percent() <= 3 * (ch->size - victim->size) )
-	return FALSE;
-
+    if ( number_percent() <= 3 * (get_ch_size(ch, false) - get_ch_size(victim, false)) )
+        return FALSE;
+    /* terminator specialty imposes miss chance */
+    AFFECT_DATA *miss_aff = affect_find(ch->affected, gsn_rapid_fire);
+    if ( miss_aff && per_chance(-(miss_aff->modifier)) )
+        return FALSE;
     /* aura of menace */
     if ( !IS_AFFECTED(ch, AFF_HEROISM) && (IS_AFFECTED(ch, AFF_FEAR) || per_chance(50)) )
     {
@@ -2853,8 +2904,9 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     ch_roll = ch_roll * skill/100;
     
     /* blind attacks */
-    if ( !can_see_combat( ch, victim ) && blind_penalty(ch) )
-	ch_roll = ch_roll * 3/4;
+    bool figment = has_subclass(victim, subclass_trickster) && is_affected(victim, gsn_improved_invis);
+    if ( (figment || !can_see_combat(ch, victim)) && blind_penalty(ch) )
+        ch_roll = ch_roll * 3/4;
 
     /* bad combat position */
     if ( ch->position < POS_FIGHTING )
@@ -3487,7 +3539,7 @@ void attack_affect_strip( CHAR_DATA *ch, CHAR_DATA *victim )
     if ( victim == ch )
         return;
     
-    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !is_affected(ch, gsn_improved_invis) )
+    if ( IS_AFFECTED(ch, AFF_INVISIBLE) && !has_subclass(ch, subclass_trickster) && !is_affected(ch, gsn_improved_invis) )
     {
         affect_strip_flag( ch, AFF_INVISIBLE );
         REMOVE_BIT( ch->affect_field, AFF_INVISIBLE );
@@ -3765,6 +3817,15 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 	    dam -= diff*dam/4000;
     }
 
+    // divine channel grants up to 25% DR while affected by (bought/daily) god bless
+    if ( is_affected(victim, gsn_god_bless) )
+    {
+        const AFFECT_DATA *aff = affect_find(victim->affected, gsn_divine_channel);
+        if ( aff )
+            // modifier is negative, capped at -100
+            dam += dam * aff->modifier / 400;
+    }
+
     if ( dam > 1 && is_spell && victim->stance == STANCE_ARCANA )
         dam -= dam / 3;
     if ( dam > 1 && (is_spell || dt == gsn_ignite) && check_evasion(ch, victim, dt, show) )
@@ -3785,14 +3846,19 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             pierce = pierce || second_dam_type == DAM_PIERCE;
             dam = adjust_damage(ch, victim, dam / 2, first_dam_type, pierce) +
             adjust_damage(ch, victim, (dam+1) / 2, second_dam_type, pierce);
-            immune = ((check_immune(victim, first_dam_type) == IS_IMMUNE)
-                && (check_immune(victim, second_dam_type) == IS_IMMUNE));
         }
         else
         {
+            int alternate_dam = 0;
+            // sacred fist unarmed strike is half holy if beneficial
+            if ( normal_hit && has_subclass(ch, subclass_sacred_fist) && get_eq_char(ch, WEAR_WIELD) == NULL )
+                alternate_dam = adjust_damage(ch, victim, dam, DAM_HOLY, pierce);
+            // see if half alternate damage would be beneficial
             dam = adjust_damage(ch, victim, dam, dam_type, pierce);
-            immune = (check_immune(victim, dam_type) == IS_IMMUNE);
+            if ( dam < alternate_dam )
+                dam = (dam + alternate_dam) / 2;
         }
+        immune = (dam == 0);
     }
 
     if ( dam > 0 && normal_hit )
@@ -3985,8 +4051,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
         }
     }
 
-    // damage spells can also imbue eldritch cursed
-    if ( is_spell && number_range(0, victim->max_hit) < 2 * dam )
+    // damage spells can also imbue eldritch curse
+    if ( is_spell && has_subclass(ch, subclass_warlock) && number_range(0, victim->max_hit) < 2 * dam )
         eldritch_curse(ch, victim);
     
     /*
@@ -4502,7 +4568,9 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         CHAR_DATA *rch;
         for ( rch = victim->in_room->people; rch != NULL; rch = rch->next_in_room )
         {
-            if ( rch != victim && check_skill(rch, gsn_dark_reaping) )
+            if ( rch == victim )
+                continue;
+            if ( check_skill(rch, gsn_dark_reaping) )
             {
                 int power = victim->level;
                 AFFECT_DATA af;
@@ -4518,6 +4586,15 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
                 send_to_char("{DA dark power fills you as you start to reap the living!{x\n\r", rch);
                 act("{D$n {Dis filled with a dark power!{x", rch, NULL, NULL, TO_ROOM);
+            }
+            if ( has_subclass(rch, subclass_defiler) )
+            {
+                int power = dice(1,8) + victim->max_hit / 100;
+                gain_hit(rch, power);
+                gain_mana(rch, power);
+                gain_move(rch, power);
+                act("{DYou absorb some of the life energy leaving $N.{x", rch, NULL, victim, TO_CHAR);
+                act("{D$n absorbs some of the life energy leaving $N.{x", rch, NULL, victim, TO_NOTVICT);
             }
         }
     }
@@ -5113,14 +5190,16 @@ bool check_avoid_hit( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
 int fade_chance( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_shadow_body);
-    int bonus = skill ? 5 : 0;
+    int bonus = has_subclass(ch, subclass_shadowblade) ? 5 : 0;
     if ( ch->stance == STANCE_SHADOWWALK )
         return 50;
     if ( IS_AFFECTED(ch, AFF_FADE) || IS_AFFECTED(ch, AFF_CHAOS_FADE) || NPC_OFF(ch, OFF_FADE) )
         return 30 + bonus;
     if ( IS_AFFECTED(ch, AFF_MINOR_FADE) )
         return 15 + bonus;
-    return skill * 0.15 + bonus;
+    if ( skill )
+        return skill * 0.15 + bonus;
+    return 0;
 }
 
 int misfade_chance( CHAR_DATA *ch )
@@ -5293,6 +5372,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 {
     int gsn_weapon = get_weapon_sn(ch);
     int skill = get_skill_total(ch, gsn_parry, 0.2);
+    int base_chance = 10;
 
     if ( gsn_weapon == gsn_gun || gsn_weapon == gsn_bow )
         return 0;
@@ -5303,9 +5383,12 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
             return 0;
         // against armed opponent, both parry and unarmed parry skills are needed
         if ( opp && get_weapon_sn(opp) != gsn_hand_to_hand )
-            skill = (skill + unarmed_skill) / 2;
+            skill = unarmed_skill * (100 + UMIN(skill, 100)) / 200;
         else
             skill = unarmed_skill;
+        // only shaolin get 10% base chance
+        if ( !has_subclass(ch, subclass_shaolin) )
+            base_chance = 0;
     }
     
     int opponent_adjust = 0;
@@ -5315,7 +5398,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
         int stat_diff = get_curr_stat(ch, STAT_DEX) - get_curr_stat(opp, STAT_DEX);
         opponent_adjust = (level_diff + stat_diff/4) / 2;
     }
-    int chance = 10 + (skill + opponent_adjust) / 4;
+    int chance = base_chance + (skill + opponent_adjust) / 4;
     
     /* some weapons are better for parrying, some are worse */
     if ( gsn_weapon == gsn_sword )
@@ -5323,13 +5406,20 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
     else if ( gsn_weapon == gsn_flail || gsn_weapon == gsn_whip )
         chance -= 5;
 
-    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION || ch->stance == STANCE_BLADE_BARRIER )
+    if ( ch->stance == STANCE_SWAYDES_MERCY || ch->stance == STANCE_AVERSION )
         chance += 10;
     else if ( ch->stance == STANCE_BLADE_BARRIER )
         chance += 20;
     
     chance -= defence_penalty(ch);
     chance += mastery_bonus(ch, gsn_parry, 3, 5);
+    
+    if ( has_subclass(ch, subclass_blademaster) && gsn_weapon != gsn_hand_to_hand )
+    {
+        chance += 5;
+        if ( get_eq_char(ch, WEAR_SECONDARY) )
+            chance += 5;
+    }
     
     if ( improve )
         check_improve(ch, gsn_parry, TRUE, 6);
@@ -6035,27 +6125,23 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
         
         if ( killer && !IS_NPC(killer) && !go_morgue && IS_SET(killer->act, PLR_NOLOOT) )
             corpse->owner = str_dup(killer->name);
-        
+        // bonuses to wealth
+        int base_wealth = mob_base_wealth(victim->pIndexData);
+        if ( base_wealth > 0 && killer != NULL )
+        {
+            int bonus = 0;
+            if ( IS_AFFECTED(killer, AFF_FORTUNE) )
+                bonus += base_wealth / 2;
+            if ( has_subclass(killer, subclass_mobster) )
+                bonus += base_wealth / 5;
+            victim->gold += bonus / 100;
+            victim->silver += bonus % 100;
+        }
         if ( victim->gold > 0 || victim->silver > 0 )
         {
-
-         /* Added a check for the fortune bit. This is assigned by the new god_fortune
-            blessing, and increases gold/silver drops by 50 percent - Astark 12-23-12 */
-
-         /* This was causing a crash from commands like slay, that have a null killer
-            value. Fixed by adding a killer null check. 1-8-13 - Astark */
-            if (killer != NULL)
-            {
-                if (IS_AFFECTED(killer, AFF_FORTUNE))
-                {
-                    int bonus = mob_base_wealth(victim->pIndexData) / 2;
-                    victim->gold += bonus / 100;
-                    victim->silver += bonus % 100;
-                }
-                obj_to_obj( create_money( victim->gold, victim->silver ), corpse );
-                victim->gold = 0;
-                victim->silver = 0;
-            }
+            obj_to_obj(create_money(victim->gold, victim->silver), corpse);
+            victim->gold = 0;
+            victim->silver = 0;
         }
         corpse->cost = 0;
     }
@@ -6369,26 +6455,27 @@ bool raw_kill( CHAR_DATA *victim, CHAR_DATA *killer, bool to_morgue )
     return corpse_created;
 }
 
-/* check if the gods have mercy on a character */
-bool check_mercy( CHAR_DATA *ch )
+int mercy_chance( CHAR_DATA *ch )
 {
-    if ( ch->pcdata && ch->pcdata->subclass == subclass_chosen )
-        return TRUE;
-    
     int chance = 1000;
     chance += get_curr_stat(ch, STAT_CHA) * 4 + get_curr_stat(ch, STAT_LUC);
     chance += ch->alignment;
-    
     if (IS_SET(ch->act, PLR_KILLER) 
         && ch->clss != class_lookup("assassin"))
         chance -= 500;
     if (IS_SET(ch->act, PLR_THIEF)
         && ch->clss != class_lookup("thief"))
         chance -= 500;
-    
-    return number_range(0, 2999) < chance;
+    return URANGE(0, chance / 30, 100);
 }
 
+/* check if the gods have mercy on a character */
+bool check_mercy( CHAR_DATA *ch )
+{
+    if ( has_subclass(ch, subclass_chosen) )
+        return TRUE;
+    return per_chance(mercy_chance(ch));
+}
 
 /* penalize players if they die */
 void death_penalty( CHAR_DATA *ch )
@@ -7815,6 +7902,9 @@ int stance_cost( CHAR_DATA *ch, int stance )
     int cost = stances[stance].cost * (140-skill)/40;
 
     cost -= cost * mastery_bonus(ch, sn, 20, 30) / 100;
+    
+    if ( stance == STANCE_SHADOWWALK && has_subclass(ch, subclass_shadowblade) )
+        cost /= 2;
 
     return cost;
 }

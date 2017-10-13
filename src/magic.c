@@ -557,7 +557,7 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
     save_roll = -get_save(victim, TRUE);
     if ( ch )
     {
-        int size_diff = ch->size - victim->size;
+        int size_diff = get_ch_size(ch, true) - get_ch_size(victim, true);
         hit_roll = (level + 10) * (500 + get_curr_stat(ch, STAT_STR) + 20 * size_diff) / 500;
     }
     else
@@ -1164,6 +1164,20 @@ bool check_concentration( CHAR_DATA *ch )
     return TRUE;
 }
 
+bool check_casting_failure( CHAR_DATA *ch, int sn, int chance )
+{
+    // 50% base chance to succeed
+    if ( per_chance(50) || per_chance(chance) )
+        return FALSE;
+    // songhealers get reroll for healing spells
+    if ( has_subclass(ch, subclass_songhealer) && is_healing_spell(sn) )
+    {
+        if ( per_chance(50) || per_chance(chance) )
+            return FALSE;
+    }
+    return TRUE;
+}
+
 // global variable for storing what meta-magic skills are used
 tflag meta_magic = {};
 // sometimes meta-magic skills are applied for free
@@ -1760,7 +1774,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         reduce_mana(ch, mana/2);
         return;
     }
-    else if ( 2*number_percent() > (chance+100)
+    else if ( check_casting_failure(ch, sn, chance)
             || !meta_magic_concentration_check(ch)
             || (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
@@ -2219,10 +2233,11 @@ int get_spell_bonus_damage( CHAR_DATA *ch, int cast_time, bool avg, CHAR_DATA *v
         edge += 2 * get_skill_total(ch, gsn_flanking, 0.5);
     int bonus = ch->level * edge / 150;
     // damroll from affects applies here as well
+    int damroll_dice = has_subclass(ch, subclass_warmage) ? ch->damroll / 3 : ch->damroll / 4;
     if ( avg )
-        bonus += (ch->damroll / 4) * 2.5;
+        bonus += damroll_dice * 2.5;
     else
-        bonus += dice(ch->damroll / 4, 4);
+        bonus += dice(damroll_dice, 4);
 
     // adjust for casting time
     bonus = bonus * (cast_time + 1) / (PULSE_VIOLENCE + 1);
@@ -3246,6 +3261,21 @@ bool is_disease( int sn )
     return sn == gsn_plague
         || sn == gsn_necrosis
         || sn == gsn_decompose;
+}
+
+bool is_healing_spell( int sn )
+{
+    return sn == gsn_cure_light
+        || sn == gsn_cure_serious
+        || sn == gsn_cure_critical
+        || sn == gsn_heal
+        || sn == gsn_cure_mortal
+        || sn == gsn_restoration
+        || sn == gsn_minor_group_heal
+        || sn == gsn_group_heal
+        || sn == gsn_major_group_heal
+        || sn == gsn_refresh
+        || sn == gsn_mass_healing;
 }
 
 DEF_SPELL_FUN(spell_cure_mental)
@@ -6437,7 +6467,10 @@ DEF_SPELL_FUN(spell_word_of_recall)
 int cha_max_follow( CHAR_DATA *ch )
 {
     int cha = get_curr_stat(ch, STAT_CHA) + mastery_bonus(ch, gsn_puppetry, 30, 50);
-    return ch->level * (200 + cha) / 100;
+    int follow = ch->level * (200 + cha);
+    if ( has_subclass(ch, subclass_beastmaster) )
+        follow += follow / 10;
+    return follow / 100;
 }
 
 int cha_cur_follow( CHAR_DATA *ch )

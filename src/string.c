@@ -1138,3 +1138,21 @@ char prompt_color_code( const char *prompt, char var )
     return color_code;
 }
 
+// returns true if s contains split_char
+// in that case, also splits s and returns parts in prefix and suffix
+bool split_string( const char *s, char split_char, char *prefix, char *suffix )
+{
+    int split_pos;
+
+    for ( split_pos = 0; s[split_pos] != '\0'; split_pos++ )
+        if ( s[split_pos] == split_char )
+            break;
+    if ( s[split_pos] == '\0' )
+        return false;
+
+    strncpy(prefix, s, split_pos);
+    prefix[split_pos] = '\0';
+    strcpy(suffix, s + split_pos + 1);
+
+    return true;
+}

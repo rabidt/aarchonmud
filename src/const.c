@@ -2133,8 +2133,33 @@ const   struct  class_type  class_table [MAX_CLASS] =
 #define NECROMANCER (1<<14)
 #define BARD        (1<<15)
 
+const sh_int subclass_juggernaut = 1;
+const sh_int subclass_warhulk = 2;
+const sh_int subclass_blademaster = 3;
+const sh_int subclass_mobster = 4;
+const sh_int subclass_shadowdancer = 5;
+const sh_int subclass_shadowblade = 6;
 const sh_int subclass_chosen = 7;
+const sh_int subclass_mystic = 8;
+const sh_int subclass_warpriest = 9;
+const sh_int subclass_warmage = 10;
+const sh_int subclass_warlock = 11;
+const sh_int subclass_berserker = 12;
+const sh_int subclass_kensai = 13;
+const sh_int subclass_stormlord = 14;
+const sh_int subclass_crusader = 15;
 const sh_int subclass_demolitionist = 16;
+const sh_int subclass_slayer = 17;
+const sh_int subclass_shaolin = 18;
+const sh_int subclass_sacred_fist = 19;
+const sh_int subclass_trickster = 20;
+const sh_int subclass_terminator = 21;
+const sh_int subclass_sniper = 22;
+const sh_int subclass_beastmaster = 23;
+const sh_int subclass_defiler = 24;
+const sh_int subclass_dreadlord = 25;
+const sh_int subclass_skald = 26;
+const sh_int subclass_songhealer = 27;
 
 const struct subclass_type subclass_table[] =
 {
@@ -2144,169 +2169,197 @@ const struct subclass_type subclass_table[] =
     const char* skills[5];
     sh_int skill_level[5];
     sh_int skill_percent[5];
+    const char* specialty;
     */
     { "None" }, // subclass=0 means no subclass
     {
         "juggernaut", WARRIOR,
         { "true grit", "shield wall", "bulwark", "shield block" },
         { 10, 20, 30, 105 },
-        { 100, 100, 100, 75 }
+        { 100, 100, 100, 75 },
+        "diehard - gain +3 hp per hitdie"
     },
     {
         "warhulk", WARRIOR|GLADIATOR,
         { "goblincleaver", "massive swing", "twohand weapons" },
         { 10, 50, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "powerful build - count as 1 size larger where beneficial"
     },
     {
         "blademaster", WARRIOR|GLADIATOR|SAMURAI|PALADIN,
         { "riposte", "blade barrier", "parry" },
         { 30, 50, 170 },
-        { 100, 100, 50 }
+        { 100, 100, 50 },
+        "supreme parry - increase parry by +%5 per weapon wielded"
     },
     {
         "mobster", THIEF,
         { "gang up", "call sidekick", "flanking" },
         { 30, 50, 170 },
-        { 100, 90, 50 }
+        { 100, 90, 50 },
+        "shakedown - gain +20% gold from kills"
     },
     {
         "shadowdancer", THIEF|ASSASSIN|NINJA,
         { "hide in plain sight", "shadow companion", "hide", "backstab" },
         { 10, 30, 105, 120 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "shrouded - permanently surrounded by shadows"
     },
     {
         "shadowblade", NINJA,
         { "shadow strike", "shadow body", "shadowwalk" },
         { 30, 50, 140 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "shadowstep - increase fade chances by +5% (max 50%), half cost for shadowwalk"
     },
     {
         "chosen", CLERIC|PALADIN|MONK|TEMPLAR,
         { "divine channel", "prayer" },
         { 1, 190 },
-        { 100, 75 }
+        { 100, 75 },
+        "blessed - merciful death, increased channel speed with prayer"
     },
     {
         "mystic", CLERIC|MAGE|TEMPLAR|ILLUSIONIST,
         { "mystic infusion", "fireball", "heal" },
         { 10, 130, 170 },
-        { 100, 75, 75 }
+        { 100, 75, 75 },
+        "attuned - regenerate mana 20% faster"
     },
     {
         "warpriest", CLERIC,
         { "heroism", "divine power", "bloodbath", "extend spell" },
         { 30, 50, 70, 190 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "divine champion - divine power grants haste and giant strength"
     },
     {
         "warmage", MAGE|ILLUSIONIST,
         { "warmage edge", "combat casting", "fire breath" },
         { 30, 50, 170 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "focused - damroll grants +1d4 spell damage per 3 damroll"
     },
     {
         "warlock", MAGE|NECROMANCER,
         { "eldritch blast", "eldritch curse", "shadowwalk", "mana shield" },
         { 10, 30, 50, 170 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "spellbane - spell damage can trigger eldritch curse"
     },
     {
         "berserker", GLADIATOR,
         { "savage frenzy", "berserk" },
         { 30, 120 },
-        { 100, 75 }
+        { 100, 75 },
+        "tireless - recover 1d4 moves with each successful attack"
     },
     {
         "kensai", SAMURAI,
         { "bonded blade", "piercing blade", "beheading", "twohand weapons" },
         { 10, 30, 50, 105 },
-        { 100, 100, 100, 75 }
+        { 100, 100, 100, 75 },
+        "honed blade - up to +5% critical chance, scaling up to 25% cap"
     },
     {
         "stormlord", SAMURAI|RANGER,
         { "elemental strike", "immolation", "electrocution", "absolute zero", "elemental blade" },
         { 10, 40, 41, 42, 190 },
-        { 100, 80, 80, 80, 75 }
+        { 100, 80, 80, 80, 75 },
+        "stormborn - increase elemental strike damage to 2d12 per mana"
     },
     {
         "crusader", PALADIN|TEMPLAR,
         { "holy avenger", "divine retribution", "smite" },
         { 30, 50, 170 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "zealot - smite deals +25% damage, gained 30 levels earlier"
     },
     {
         "demolitionist", THIEF|ASSASSIN|GUNSLINGER,
         { "evasion", "high explosives", "create bomb", "ignite" },
         { 30, 50, 140, 140 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "bombastic - reroll failed ignite, create bomb and ignite gained 30 levels earlier"
     },
     {
         "slayer", ASSASSIN,
         { "estimate", "exploit weakness", "dagger" },
         { 10, 30, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "lethal - 0.2% chance to inflict pierce vulnerability on hit"
     },
     {
         "shaolin", NINJA|MONK,
         { "lethal hands", "unarmed parry", "kung fu" },
         { 10, 30, 105 },
-        { 100, 100, 75 }
+        { 100, 100, 75 },
+        "iron hands - 10% base chance for unarmed parry"
     },
     {
         "sacred fist", MONK,
         { "mantra", "sacred touch", "empower spell", "heal" },
         { 30, 50, 70, 160 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "sacred strike - unarmed attacks deal half divine damage when beneficial"
     },
     {
         "trickster", ILLUSIONIST|BARD,
         { "deception", "improved invis", "flanking", "betray" },
         { 30, 50, 70, 120 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "figment - improves regular & improved invisibility"
     },
     {
         "terminator", GUNSLINGER,
         { "rapid fire", "third attack", "bullet rain", "gun" },
         { 10, 50, 70, 105 },
-        { 100, 80, 100, 75 }
+        { 100, 80, 100, 75 },
+        "covering fire - each shot imposes 1% miss chance for one round"
     },
     {
         "sniper", GUNSLINGER|RANGER,
         { "precise shot", "ambush", "gun", "snipe" },
         { 10, 60, 105, 150 },
-        { 100, 100, 75, 75 }
+        { 100, 100, 75, 75 },
+        "steady - +5% damage with bows and two-handed guns"
     },
     {
         "beastmaster", RANGER,
         { "beast mastery", "water elemental", "chain spell", "tree golem" },
         { 10, 50, 70, 180 },
-        { 100, 100, 80, 75 }
+        { 100, 100, 80, 75 },
+        "pack leader - can support 10% more summons"
     },
     {
         "defiler", NECROMANCER,
         { "arcane defiling", "inquisition", "energy drain" },
         { 10, 30, 120 },
-        { 100, 80, 75 }
+        { 100, 80, 75 },
+        "siphon life - regain hp/mana/moves when living creatures die"
     },
     {
         "dreadlord", NECROMANCER,
         { "army of darkness", "aura of menace", "animate dead" },
         { 30, 50, 120 },
-        { 100, 80, 75 }
+        { 100, 80, 75 },
+        "eternal horde - summon undead are tougher and bound forever"
     },
     {
         "skald", BARD,
         { "frenzy", "inspired rage", "furious ballad", "blade dance", "bears endurance" },
         { 10, 30, 50, 70, 120 },
-        { 100, 100, 100, 80, 75 }
+        { 100, 100, 100, 80, 75 },
+        "vocalist - use passive songs as if 20 levels higher"
     },
     {
         "songhealer", BARD,
         { "song healing", "minor group heal", "group heal", "lullaby" },
         { 30, 50, 70, 120 },
-        { 100, 80, 80, 75 }
+        { 100, 80, 80, 75 },
+        "reliable - reroll spell failure when casting healing spells"
     },
     { NULL }
 };
@@ -3269,7 +3322,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_critical,    TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 20, 3, 12, DUR_NONE,
+    &gsn_cure_critical, 20, 3, 12, DUR_NONE,
     "",         "!Cure Critical!",  ""
     },
 
@@ -3302,7 +3355,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_mortal,      TAR_CHAR_DEFENSIVE,     POS_FIGHTING,
-    NULL, 100, 10, 14, DUR_NONE,
+    &gsn_cure_mortal, 100, 10, 14, DUR_NONE,
     "",                     "!Cure Mortal!",        ""
     },
 
@@ -3335,7 +3388,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_cure_serious, TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 10, 2, 10, DUR_NONE,
+    &gsn_cure_serious, 10, 2, 10, DUR_NONE,
     "",         "!Cure Serious!",   ""
     },
 
@@ -3800,7 +3853,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 60, 5, 14, DUR_NONE,
+    &gsn_group_heal, 60, 5, 14, DUR_NONE,
     "",                     "!Group Heal!",   ""
     },
 
@@ -3869,7 +3922,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_heal,     TAR_CHAR_DEFENSIVE, POS_FIGHTING,
-    NULL, 50, 5, 14, DUR_NONE,
+    &gsn_heal, 50, 5, 14, DUR_NONE,
     "",         "!Heal!",       ""
     },
   
@@ -4046,7 +4099,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_major_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 100, 10, 14, DUR_NONE,
+    &gsn_major_group_heal, 100, 10, 14, DUR_NONE,
     "",                     "!Major Group Heal!",   ""
     },
 
@@ -4090,7 +4143,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_mass_healing, TAR_IGNORE_DEF, POS_STANDING,
-    NULL, 100, 10, 32, DUR_NONE,
+    &gsn_mass_healing, 100, 10, 32, DUR_NONE,
     "",         "!Mass Healing!",   ""
     },
 
@@ -4123,7 +4176,7 @@ struct  skill_type
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
     spell_minor_group_heal, TAR_IGNORE_DEF, POS_FIGHTING,
-    NULL, 20, 2, 10, DUR_NONE,
+    &gsn_minor_group_heal, 20, 2, 10, DUR_NONE,
     "",                     "!Minor Group Heal!",   ""
     },
 
@@ -5990,7 +6043,7 @@ struct  skill_type
         STAT_LUC, STAT_DEX, STAT_CON,
         spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_rapid_fire, 0, 0, 0, DUR_NONE,
-        "", "!rapid fire!", ""
+        "", "You are no longer under fire.", ""
     },
 
     {
@@ -6045,7 +6098,7 @@ struct  skill_type
         STAT_INT, STAT_WIS, STAT_LUC,
         spell_null, TAR_IGNORE, POS_FIGHTING,
     &gsn_exploit_weakness, 0, 0, 0, DUR_NONE,
-        "", "!exploit weakness!", ""
+        "", "You hide your weak spots.", ""
     },
 
     {
