@@ -893,6 +893,7 @@ struct subclass_type
     const char* skills[MAX_SUBCLASS_SKILL];
     sh_int skill_level[MAX_SUBCLASS_SKILL];
     sh_int skill_percent[MAX_SUBCLASS_SKILL];
+    const char* specialty; // descriptive text
 };
 
 struct item_type
@@ -2691,6 +2692,7 @@ struct  pc_data
     sh_int      remorts;
     sh_int      ascents;
     sh_int      subclass;
+    sh_int      subclass2;
     sh_int      original_stats[MAX_STATS];
     sh_int      history_stats[MAX_STATS];
     long        field;
@@ -3319,8 +3321,33 @@ extern sh_int race_vampire;
 extern sh_int race_rakshasa;
 extern sh_int race_dragonborn;
 
+extern const sh_int subclass_juggernaut;
+extern const sh_int subclass_warhulk;
+extern const sh_int subclass_blademaster;
+extern const sh_int subclass_mobster;
+extern const sh_int subclass_shadowdancer;
+extern const sh_int subclass_shadowblade;
 extern const sh_int subclass_chosen;
+extern const sh_int subclass_mystic;
+extern const sh_int subclass_warpriest;
+extern const sh_int subclass_warmage;
+extern const sh_int subclass_warlock;
+extern const sh_int subclass_berserker;
+extern const sh_int subclass_kensai;
+extern const sh_int subclass_stormlord;
+extern const sh_int subclass_crusader;
 extern const sh_int subclass_demolitionist;
+extern const sh_int subclass_slayer;
+extern const sh_int subclass_shaolin;
+extern const sh_int subclass_sacred_fist;
+extern const sh_int subclass_trickster;
+extern const sh_int subclass_terminator;
+extern const sh_int subclass_sniper;
+extern const sh_int subclass_beastmaster;
+extern const sh_int subclass_defiler;
+extern const sh_int subclass_dreadlord;
+extern const sh_int subclass_skald;
+extern const sh_int subclass_songhealer;
 
 /*
  * These are skill_lookup return values for common skills and spells.
@@ -3412,6 +3439,14 @@ extern sh_int  gsn_restoration;
 extern sh_int  gsn_refresh;
 extern sh_int  gsn_cause_light;
 extern sh_int  gsn_cure_light;
+extern sh_int  gsn_cure_serious;
+extern sh_int  gsn_cure_critical;
+extern sh_int  gsn_heal;
+extern sh_int  gsn_cure_mortal;
+extern sh_int  gsn_minor_group_heal;
+extern sh_int  gsn_group_heal;
+extern sh_int  gsn_major_group_heal;
+extern sh_int  gsn_mass_healing;
 extern sh_int  gsn_cure_blindness;
 extern sh_int  gsn_cure_disease;
 extern sh_int  gsn_cure_mental;
@@ -4447,6 +4482,7 @@ bool    can_locate( CHAR_DATA *ch, CHAR_DATA *victim );
 HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output );
 bool    can_take_subclass( int clss, int subclass );
 bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
+bool    ch_can_take_dual_subclass( CHAR_DATA *ch, int dual_subclass );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
@@ -4764,6 +4800,7 @@ bool    start_combat( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_petrify( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    check_dodge( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_stat, int victim_stat, int base_chance );
+int     get_ch_size( const CHAR_DATA *ch, bool bigger_is_better );
 int     dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance );
 int     get_leadership_bonus( CHAR_DATA *ch, bool improve );
 int     level_power( CHAR_DATA *ch );
@@ -4774,6 +4811,7 @@ int     fade_chance( CHAR_DATA *ch );
 int     misfade_chance( CHAR_DATA *ch );
 int     dodge_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
 int     parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve );
+int     mercy_chance( CHAR_DATA *ch );
 bool    offhand_occupied( CHAR_DATA *ch );
 int     shield_block_chance( CHAR_DATA *ch, bool improve );
 int     critical_chance( CHAR_DATA *ch, bool secondary );
@@ -5101,6 +5139,7 @@ bool is_mental( int sn );
 bool is_blindness( int sn );
 bool is_curse( int sn );
 bool is_disease( int sn );
+bool is_healing_spell( int sn );
 int cha_max_follow( CHAR_DATA *ch );
 int cha_cur_follow( CHAR_DATA *ch );
 int get_save(CHAR_DATA *ch, bool physical);
@@ -5288,6 +5327,7 @@ void rprog_setup( ROOM_INDEX_DATA *room );
 
 /* skills.c */
 bool is_class_skill( int clss, int sn );
+bool has_subclass( const CHAR_DATA *ch, int subclass );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
 void    list_group_known args( ( CHAR_DATA *ch ) );
@@ -5301,6 +5341,7 @@ void    group_remove    args( ( CHAR_DATA *ch, const char *name) );
 void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer );
 int get_skill_overflow( CHAR_DATA *ch, int sn );
 int get_skill   args( ( CHAR_DATA *ch, int sn ) );
+int get_subclass_skill( CHAR_DATA *ch, int sn ); // max granted by subclass(es)
 int get_skill_total( CHAR_DATA *ch, int sn, float overflow_weight );
 int get_weapon_skill args(( CHAR_DATA *ch, int sn ) );
 int get_group_base_cost( int gn, int clss );
@@ -5395,6 +5436,7 @@ const char* aan       args( ( const char *s ) );
 char prompt_color_code( const char *prompt, char var );
 bool is_empty_string( const char *s );
 bool is_alpha_string( const char *s );
+bool split_string( const char *s, char split_char, char *prefix, char *suffix );
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

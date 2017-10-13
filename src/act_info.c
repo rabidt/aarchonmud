@@ -4623,11 +4623,10 @@ DEF_DO_FUN(do_score)
     strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
     
 
-    /* Age, Hours Played, Married Status */
-    sprintf(buf, "{D|{x Age:   %5d years        Played:   %5d hrs        Married: %9s",
-        get_age(ch), 
-        (ch->played + (int)(current_time - ch->logon))/3600,
-        ch->pcdata->spouse ? ch->pcdata->spouse : "Single");
+    sprintf(buf, "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
+        subclass_table[ch->pcdata->subclass2].name,
+        get_age(ch),
+        (ch->played + (int)(current_time - ch->logon))/3600);
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
         ; 
@@ -5974,35 +5973,70 @@ bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
     return can_take_subclass(ch->clss, subclass);
 }
 
-static void show_subclass( CHAR_DATA *ch, int sc )
+bool ch_can_take_dual_subclass( CHAR_DATA *ch, int dual_subclass )
 {
-    int class, i;
-    
-    ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
-    for ( class = 0; class < MAX_CLASS; class++ )
-        if ( can_take_subclass(class, sc) )
-            ptc(ch, " %s", class_table[class].name);
-    ptc(ch, " )\n\r\n\r%-20s  Level  Percent\n\r", "Skill");
+    if ( !ch || !ch->pcdata )
+        return FALSE;
+    if ( !ch->pcdata->subclass || ch->pcdata->subclass == dual_subclass )
+        return FALSE;
+    // dual-subclassing becomes available after 3 ascents
+    return ch->pcdata->ascents > 2;
+}
+
+static void show_subclass_skills( CHAR_DATA *ch, int sc, int percent )
+{
+    int i;
+    char skill_header[100];
+
+    if ( percent == 100 )
+        sprintf(skill_header, "Skill");
+    else
+        sprintf(skill_header, "Skill (%.12s)", subclass_table[sc].name);
+    ptc(ch, "\n\r%-20s  Level  Percent\n\r", skill_header);
+
     for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
     {
         if ( subclass_table[sc].skills[i] == NULL )
             break;
         int level = subclass_table[sc].skill_level[i] % 100;
         int min_ascent = 1 + subclass_table[sc].skill_level[i] / 100;
+        int skill_percent = subclass_table[sc].skill_percent[i] * percent / 100;
         if ( min_ascent == 1 )
             ptc(ch, "%20s    %3d    %3d%%\n\r",
                 subclass_table[sc].skills[i],
                 level,
-                subclass_table[sc].skill_percent[i]
+                skill_percent
             );
         else
             ptc(ch, "%20s    %3d    %3d%%   (A%d+)\n\r",
                 subclass_table[sc].skills[i],
                 level,
-                subclass_table[sc].skill_percent[i],
+                skill_percent,
                 min_ascent
             );
     }
+}
+
+static void show_subclass( CHAR_DATA *ch, int sc )
+{
+    int class;
+
+    ptc(ch, "{BSubclass: %s{x (", subclass_table[sc].name);
+    for ( class = 0; class < MAX_CLASS; class++ )
+        if ( can_take_subclass(class, sc) )
+            ptc(ch, " %s", class_table[class].name);
+    ptc(ch, " )\n\r");
+
+    ptc(ch, "\n\rSpecialty: %s\n\r", subclass_table[sc].specialty);
+    show_subclass_skills(ch, sc, 100);
+}
+
+static void show_dual_subclass( CHAR_DATA *ch, int sc, int dual )
+{
+    ptc(ch, "{BSubclass: %s/%s{x\n\r", subclass_table[sc].name, subclass_table[dual].name);
+    ptc(ch, "\n\rSpecialty: %s\n\r", subclass_table[sc].specialty);
+    show_subclass_skills(ch, sc, 60);
+    show_subclass_skills(ch, dual, 40);
 }
 
 DEF_DO_FUN(do_showsubclass)
@@ -6013,15 +6047,12 @@ DEF_DO_FUN(do_showsubclass)
     if ( argument[0] == '\0' )
     {
         if (ch->pcdata->subclass == 0)
-        {
             send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
-            return;
-        }
-        else
-        {
+        else if ( ch->pcdata->subclass2 == 0 )
             show_subclass(ch, ch->pcdata->subclass);
-            return;
-        }
+        else
+            show_dual_subclass(ch, ch->pcdata->subclass, ch->pcdata->subclass2);
+        return;
     }
     
     /*
@@ -6057,7 +6088,19 @@ DEF_DO_FUN(do_showsubclass)
         }
         return;
     }
-    
+
+    char arg1[MSL], arg2[MSL];
+    if ( split_string(argument, '/', arg1, arg2) )
+    {
+        int sc1 = subclass_lookup(arg1);
+        int sc2 = subclass_lookup(arg2);
+        if ( sc1 > 0 && sc2 > 0 && sc1 != sc2 )
+        {
+            show_dual_subclass(ch, sc1, sc2);
+            return;
+        }
+    }
+
     if ( (sc = subclass_lookup(argument)) > 0 )
     {
         show_subclass(ch, sc);
@@ -6080,8 +6123,8 @@ DEF_DO_FUN(do_showsubclass)
         return;
     }
     
-    send_to_char("That's not a valid subclass or base class.\n\r", ch);
-    send_to_char("Syntax: showsubclass <subclass|class|all>\n\r", ch);
+    send_to_char("That's not a valid subclass, dual subclass or base class.\n\r", ch);
+    send_to_char("Syntax: showsubclass <subclass|sc/sc|class|all>\n\r", ch);
 }
 
 /* do_tables stuff */

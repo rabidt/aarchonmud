@@ -1214,6 +1214,7 @@ static int nanny_show_subclasses( CHAR_DATA *ch )
 {
     int sc;
     int count = subclass_count(ch->clss);
+    bool dual = ch->pcdata->subclass != 0;
     
     ptc(ch, "The following subclasses are available:\n\r[{W");
     for ( sc = 1; subclass_table[sc].name != NULL; sc++ )
@@ -1222,9 +1223,12 @@ static int nanny_show_subclasses( CHAR_DATA *ch )
             ptc(ch, " %s", subclass_table[sc].name);
     }
     ptc(ch, "{x ]\n\r");
-    if ( count == ch->pcdata->remorts )
+    if ( !dual && count == ch->pcdata->remorts )
         ptc(ch, "{RWARNING: This time your choice of subclass will be final!{x\n\r");
-    ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+    if ( dual )
+        ptc(ch, "{CChoose a secondary subclass (\"none\" to skip):{x");
+    else
+        ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>): {x");
     return count;
 }
 
@@ -1236,6 +1240,9 @@ DEF_NANNY_FUN(get_new_subclass)
 
     if ( con_state(d) != CON_GET_NEW_SUBCLASS )
     {
+        ch->pcdata->subclass = 0;
+        ch->pcdata->subclass2 = 0;
+
         ptc(ch, "\n\r");
         do_help(ch, "subclasses");
         nanny_show_subclasses(ch);
@@ -1252,14 +1259,19 @@ DEF_NANNY_FUN(get_new_subclass)
             do_help(ch, "subclasses");
         else
             do_showsubclass(ch, argument);
-        ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>):{x");
+        ptc(ch, "{CChoose a subclass (for more information type HELP <SUBCLASS NAME>): {x");
         return FALSE;
     }
-    
+
     sc = subclass_lookup(arg);
 
     if ( sc == 0 )
     {
+        if ( ch->pcdata->subclass && !str_cmp(arg, "none") )
+        {
+            ptc(ch, "{cYou have chosen not to dual-subclass.{x\n\r");
+            return TRUE;
+        }
         if ( arg[0] )
             ptc(ch, "That's not a subclass.\n\r");
         int count = nanny_show_subclasses(ch);
@@ -1271,16 +1283,43 @@ DEF_NANNY_FUN(get_new_subclass)
         }
         return FALSE;
     }
-    if ( !ch_can_take_subclass(ch, sc) )
+    // subclass chosen may be primary or secondary, depending on whether we already have a subclass
+    if ( !ch->pcdata->subclass )
     {
-        ptc(ch, "You do not qualify for that subclass.\n\r");
+        if ( !ch_can_take_subclass(ch, sc) )
+        {
+            ptc(ch, "You do not qualify for that subclass.\n\r");
+            nanny_show_subclasses(ch);
+            return FALSE;
+        }
+
+        ch->pcdata->subclass = sc;
+        ptc(ch, "\n\r     {cYou have chosen to be %s %s.{x\n\r", aan(subclass_table[sc].name), subclass_table[sc].name);
+        if ( ch->pcdata->ascents > 2 )
+        {
+            ptc(ch, "\n\r{CYou may select a secondary subclass. Type \"none\" to skip: {x");
+            return FALSE;
+        }
+        return TRUE;
+    }
+    // ok, we're picking secondary subclass
+    else if ( sc == ch->pcdata->subclass )
+    {
+        ptc(ch, "Your secondary subclass must be different from your primary one.\n\r");
         nanny_show_subclasses(ch);
         return FALSE;
     }
-
-    ch->pcdata->subclass = sc;
-    ptc(ch, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(subclass_table[sc].name), subclass_table[sc].name);
-    
+    else if ( !ch_can_take_dual_subclass(ch, sc) )
+    {
+        // should never get here, but just in case
+        ptc(ch, "\n\r{RSubclass unavailable, not sure why. Moving on.{x\n\r");
+        return TRUE;
+    }
+    else
+    {
+        ch->pcdata->subclass2 = sc;
+        ptc(ch, "\n\r     {cYou have chosen to dual-subclass as %s.{x\n\r", subclass_table[sc].name);
+    }
     return TRUE;
 }
 

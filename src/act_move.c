@@ -2593,12 +2593,16 @@ DEF_DO_FUN(do_sneak)
 
 int get_hips_skill( CHAR_DATA *ch )
 {
+    int skill = get_skill(ch, gsn_hips);
     if ( room_is_dim(ch->in_room) || IS_AFFECTED(ch, AFF_DARKNESS) )
-        return get_skill(ch, gsn_hips);
-    else if ( ch->stance == STANCE_SHADOWWALK )
-        return get_skill(ch, gsn_hips) * get_skill(ch, gsn_shadowwalk) / 100;
-    else
-        return 0;
+        return skill;
+    // still possible, but with penalty
+    int factor = 0;
+    if ( ch->stance == STANCE_SHADOWWALK )
+        factor = get_skill(ch, gsn_shadowwalk);
+    if ( has_subclass(ch, subclass_shadowdancer) )
+        factor = UMAX(factor, 100 - light_status(ch));
+    return skill * factor / 100;
 }
 
 void hide_char( CHAR_DATA *ch )

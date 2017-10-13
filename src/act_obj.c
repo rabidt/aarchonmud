@@ -4432,7 +4432,8 @@ DEF_DO_FUN(do_ignite)
     chance = (90 + skill + level_diff) / 2;
     chance = URANGE(5, chance, 95);
 
-    if ( per_chance(chance) )
+    // demolitionists can reroll failed check
+    if ( per_chance(chance) || (has_subclass(ch, subclass_demolitionist) && per_chance(chance)) )
     {
         act( "$n ignites $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_ROOM );
         act( "You ignite $p, and it begins sputtering and crackling ominously!", ch, obj, NULL, TO_CHAR );
