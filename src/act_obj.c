@@ -197,7 +197,7 @@ bool in_donation_room(OBJ_DATA *obj)
     return FALSE;
 }
 
-void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
+bool get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
 {
     /* variables for AUTOSPLIT */
     CHAR_DATA *gch;
@@ -207,7 +207,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     if ( CAN_WEAR(obj, ITEM_NO_CARRY) )
     {
         send_to_char( "You can't take that.\n\r", ch );
-        return;
+        return FALSE;
     }
 
     if ( (!obj->in_obj || obj->in_obj->carried_by != ch)
@@ -215,7 +215,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     {
         act( "$p: you can't carry that many items.",
                 ch, obj, NULL, TO_CHAR );
-        return;
+        return FALSE;
     }
 
     if ((!obj->in_obj || obj->in_obj->carried_by != ch)
@@ -223,19 +223,19 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     {
         act( "$p: you can't carry that much weight.",
                 ch, obj, NULL, TO_CHAR );
-        return;
+        return FALSE;
     }
 
     if (container == NULL && !can_loot(ch,obj,FALSE))
     {
         send_to_char("You can't take that.\n\r",ch);
-        return;
+        return FALSE;
     }
 
     if (container != NULL && !can_loot(ch,container,FALSE))
     {
         send_to_char("You can't take things from that container.\n\r",ch);
-        return;
+        return FALSE;
     }
 
     if (obj->in_room != NULL)
@@ -245,7 +245,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
             {
                 act("$N appears to be using $p.",
                         ch,obj,gch,TO_CHAR);
-                return;
+                return FALSE;
             }
     }
 
@@ -254,7 +254,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
         if (get_trust(ch) < obj->level - 2)
         {
             send_to_char("You are not powerful enough to use that.\n\r",ch);
-            return;
+            return FALSE;
         }
         else if (!IS_OBJ_STAT(obj, ITEM_HAD_TIMER))
             obj->timer = 0;
@@ -263,7 +263,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
     }
 
     if ( !op_percent_trigger( NULL, obj, container, ch, NULL, OTRIG_GET) )
-        return;
+        return FALSE;
 
     if ( obj->item_type != ITEM_MONEY)
     {
@@ -326,7 +326,7 @@ void get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
         extract_obj( obj );
     }
 
-    return;
+    return TRUE;
 }
 
 
@@ -448,9 +448,9 @@ DEF_DO_FUN(do_get)
                         ch, container, NULL, TO_CHAR );
                 return;
             }
-            get_obj( ch, obj, container );
+            bool gotten = get_obj( ch, obj, container );
 #ifdef BOX_LOG
-            if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+            if ( gotten && container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX && IS_VALID(obj) )
             {
                 char buf[MSL];
                 sprintf(buf, "BOX_LOG:%s got %s (%d) from storage box.",
@@ -482,9 +482,9 @@ DEF_DO_FUN(do_get)
                         &&   can_see_obj( ch, obj ) )
                 {
                     found = TRUE;
-                    get_obj( ch, obj, container );
+                    bool gotten = get_obj( ch, obj, container );
 #ifdef BOX_LOG
-                    if (container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX)
+                    if ( gotten && container->pIndexData->vnum == OBJ_VNUM_STORAGE_BOX && IS_VALID(obj) )
                     {
                         char buf[MSL];
                         sprintf(buf, "BOX_LOG:%s got %s (%d) from storage box.",
@@ -505,7 +505,6 @@ DEF_DO_FUN(do_get)
                         }
                     }
 #endif
-
                 }
             }
 
