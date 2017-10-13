@@ -964,6 +964,7 @@ void remort_complete(CHAR_DATA *ch)
     OBJ_DATA *obj, *obj_next;
 
     REMOVE_BIT(ch->act, PLR_REMORT_ROLL);
+    REMOVE_BIT(ch->act, PLR_REMORT_REPEAT);
     
     for ( obj = ch->carrying; obj != NULL; obj = obj_next )
     {
@@ -1099,7 +1100,8 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
     ch->pcdata->questpoints -= qpcost;
     ch->gold -= goldcost;    
     logpf("Repeating remort for %s. Deducted %d qp and %d gold.", ch->name, qpcost, goldcost);
-    
+
+    SET_BIT(ch->act, PLR_REMORT_REPEAT);
     remort_begin(ch);
 } 
 
