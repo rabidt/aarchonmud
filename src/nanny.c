@@ -790,7 +790,9 @@ DEF_NANNY_FUN(nanny_remort_begin)
     CHAR_DATA *ch = d->character;
     
     // allow change of subclass for the first few remorts so players can test all
-    if ( ch->pcdata->ascents > 0 && ch->pcdata->remorts <= subclass_count(ch->clss) )
+    // remort repeat also allows subclass change - the "Damad special"
+    if ( ch->pcdata->ascents > 0 &&
+        (ch->pcdata->remorts <= subclass_count(ch->clss) || IS_SET(ch->act, PLR_REMORT_REPEAT)) )
         return get_new_subclass(d, argument);
     else
         return get_new_race(d, argument);
