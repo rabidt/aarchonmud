@@ -2691,9 +2691,9 @@ DEF_SPELL_FUN(spell_cancellation)
     const char *arg = one_argument( target_name, NULL);
     if ( arg[0] != '\0' )
     {
-        int sn = affect_list_lookup(victim->affected, arg);
+        int sn1 = affect_list_lookup(victim->affected, arg);
 
-        if ( sn == -1 )
+        if ( sn1 == -1 )
         {
             send_to_char("Cancel which spell?\n\r",ch);
             return SR_SYNTAX;
@@ -2701,7 +2701,7 @@ DEF_SPELL_FUN(spell_cancellation)
 
         SPELL_CHECK_RETURN
         
-        if ( can_dispel(sn) && check_cancel(level, victim, sn) )
+        if ( can_dispel(sn1) && check_cancel(level, victim, sn1) )
             send_to_char( "Ok.\n\r", ch);
         else
             send_to_char( "Spell failed.\n\r", ch);

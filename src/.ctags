@@ -1,4 +1,5 @@
 -R
+--excmd=number
 --regex-c=/DEF_DO_FUN[ ]*\(([ ]*[^\)]+)[ ]*\)/\1/
 --regex-c=/DEF_SPELL_FUN[ ]*\(([ ]*[^\)]+)[ ]*\)/\1/
 --regex-c=/DEF_NANNY_FUN[ ]*\(([ ]*[^\)]+)[ ]*\)/\1/

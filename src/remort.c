@@ -599,10 +599,10 @@ void remort_update( void )
         if (chamber_list[j] != NULL &&
                 (chamber_list[j]->limit < current_time))
         {
-            char log_buf[MSL];
+            char log_buf1[MSL];
 
-            sprintf( log_buf, "%s has run out of time for remort", chamber_list[j]->name );
-            log_string( log_buf );
+            sprintf( log_buf1, "%s has run out of time for remort", chamber_list[j]->name );
+            log_string( log_buf1 );
 
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
@@ -699,7 +699,7 @@ void remort_remove(CHAR_DATA *ch, bool success)
 {
     int j;
     AREA_DATA *pArea;
-    char log_buf[MSL];
+    char log_buf1[MSL];
 
     if (IS_NPC(ch) || ch->level<90)
 	return;
@@ -708,9 +708,9 @@ void remort_remove(CHAR_DATA *ch, bool success)
         if (chamber_list[j] != NULL)
             if (!str_cmp(ch->name, chamber_list[j]->name))
             {
-		sprintf( log_buf, "%s removed from remort after %s",
+		sprintf( log_buf1, "%s removed from remort after %s",
 			 ch->name, success ? "completion" : "failure" );
-		log_string( log_buf );
+		log_string( log_buf1 );
 
                 free_string(chamber_list[j]->name);
                 free_mem(chamber_list[j], sizeof(REMORT_TABLE));

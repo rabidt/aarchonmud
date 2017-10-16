@@ -557,12 +557,12 @@ void load_objects( FILE *fp )
     for ( ; ; )
     {
         int vnum;
-        char letter;
+        char letter1;
         int iHash;
         AFFECT_DATA *paf = NULL; // last affect read
 
-        letter                          = fread_letter( fp );
-        if ( letter != '#' )
+        letter1                          = fread_letter( fp );
+        if ( letter1 != '#' )
         {
             bug( "Load_objects: # not found.", 0 );
             exit( 1 );
@@ -837,8 +837,8 @@ void load_objects( FILE *fp )
         /* load obj progs if any */
         while (TRUE)
         {
-            letter = fread_letter( fp );
-            if ( letter == 'O' ) /* we have oprogs */
+            letter1 = fread_letter( fp );
+            if ( letter1 == 'O' ) /* we have oprogs */
             {
                 PROG_LIST *pOprog;
                 const char *word;
@@ -858,13 +858,13 @@ void load_objects( FILE *fp )
                 pOprog->next        = pObjIndex->oprogs;
                 pObjIndex->oprogs   = pOprog;
             }
-            else if ( letter == 'N' )
+            else if ( letter1 == 'N' )
             {
                 pObjIndex->comments = fread_string( fp );
             }
             else
             {
-                ungetc( letter, fp );
+                ungetc( letter1, fp );
                 break;
             }
         }

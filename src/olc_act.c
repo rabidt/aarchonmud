@@ -2471,15 +2471,15 @@ REDIT( redit_delete )
         return FALSE;
     }
 
-    int vnum=atoi(command);
+    int vnum1=atoi(command);
 
-    if ( (pRoom = get_room_index(vnum)) == NULL )
+    if ( (pRoom = get_room_index(vnum1)) == NULL )
     {
         send_to_char("Room does not exist.\n\r", ch );
         return FALSE;
     }
 
-    AREA_DATA *ad = get_vnum_area( vnum );
+    AREA_DATA *ad = get_vnum_area( vnum1 );
 
     if ( ad == NULL )
     {
@@ -2571,7 +2571,7 @@ REDIT( redit_delete )
     }
 
     /* if we're here, it's ok to delete */
-    int iHash=vnum % MAX_KEY_HASH;
+    int iHash=vnum1 % MAX_KEY_HASH;
 
     ROOM_INDEX_DATA *curr, *last=NULL;
 
@@ -3311,7 +3311,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
 bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
 {
-    int value;
+    int value1;
 
     switch( pObj->item_type )
     {
@@ -3346,10 +3346,10 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 	    pObj->value[1] = atoi( argument );
 	    break;
 	case 2:
-	    if ( (value = flag_lookup(argument, damage_type)) != NO_FLAG )
+	    if ( (value1 = flag_lookup(argument, damage_type)) != NO_FLAG )
 	    {
 		send_to_char( "DAMAGE TYPE SET.\n\r\n\r", ch );
-		pObj->value[2] = value;
+		pObj->value[2] = value1;
 	    }
 	    break;
 	}
@@ -3435,10 +3435,10 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 	    do_help( ch, "ITEM_WEAPON" );
 	    return FALSE;
 	case 0:
-	    if ( (value = flag_lookup(argument, weapon_class)) != NO_FLAG )
+	    if ( (value1 = flag_lookup(argument, weapon_class)) != NO_FLAG )
 		{
 		    send_to_char( "WEAPON CLASS SET.\n\r\n\r", ch );
-		    pObj->value[0] = value;
+		    pObj->value[0] = value1;
 		}
 	    break;
 	case 1:
@@ -3834,7 +3834,7 @@ OEDIT( oedit_show )
     PROG_LIST *list;
     char buf[MAX_STRING_LENGTH];
     AFFECT_DATA *paf;
-    int cnt;
+    int cnt1;
     
     EDIT_OBJ(ch, pObj);
     
@@ -3920,15 +3920,15 @@ OEDIT( oedit_show )
     sprintf( buf, "Comments:\n\r%s", pObj->comments );
     send_to_char( buf, ch );
     
-    for ( cnt = 0, paf = pObj->affected; paf; paf = paf->next )
+    for ( cnt1 = 0, paf = pObj->affected; paf; paf = paf->next )
     {
-        if ( cnt == 0 )
+        if ( cnt1 == 0 )
         {
             send_to_char( "Number Modifier Affects\n\r", ch );
             send_to_char( "------ -------- -------\n\r", ch );
         }
 
-        sprintf( buf, "[%4d] %-8d %s", cnt,
+        sprintf( buf, "[%4d] %-8d %s", cnt1,
             paf->modifier,
             flag_bit_name(apply_flags, paf->location) );
         send_to_char( buf, ch );
@@ -3973,7 +3973,7 @@ OEDIT( oedit_show )
 	}
 
 	send_to_char( "\n\r", ch );
-        cnt++;
+        cnt1++;
     }
     
     show_obj_values( ch, pObj );

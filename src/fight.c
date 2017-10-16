@@ -660,7 +660,7 @@ void check_guard( CHAR_DATA *ch )
 /* handle affects that do things each round */
 void special_affect_update(CHAR_DATA *ch)
 {
-    AFFECT_DATA *af;
+    AFFECT_DATA *af1;
 	
     /* guard */
     /*
@@ -682,10 +682,10 @@ void special_affect_update(CHAR_DATA *ch)
 	int chance, dam;
 	
 	/* determine strength of choking affect */
-	for ( af = ch->affected; af != NULL; af = af->next )
-	    if ( af->type == gsn_choke_hold )
+	for ( af1 = ch->affected; af1 != NULL; af1 = af1->next )
+	    if ( af1->type == gsn_choke_hold )
 	    {
-		choke_level = af->level;
+		choke_level = af1->level;
 		break;
 	    }
 	
@@ -861,9 +861,9 @@ void special_affect_update(CHAR_DATA *ch)
     /* Iron maiden - Reset damage dealt, stored in modifier */
     if ( IS_AFFECTED(ch, AFF_IRON_MAIDEN) )
     {
-        af = affect_find(ch->affected, gsn_iron_maiden);
-        if ( af != NULL )
-            af->modifier = 0;
+        af1 = affect_find(ch->affected, gsn_iron_maiden);
+        if ( af1 != NULL )
+            af1->modifier = 0;
     }
     
     /* Quickling invisibility */
@@ -2667,13 +2667,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     int gf_diff = giantfeller_sizediff(ch, victim);
     if ( gf_diff > 0 )
     {
-        int skill = get_skill_total(ch, gsn_giantfeller, 0.5);
+        int skill1 = get_skill_total(ch, gsn_giantfeller, 0.5);
         if ( wield && wield->value[0] == WEAPON_SPEAR )
-            skill += 100;
+            skill1 += 100;
         // +5% to damage per size difference
-        if ( skill )
+        if ( skill1 )
         {
-            dam += dam * gf_diff * skill / 2000;
+            dam += dam * gf_diff * skill1 / 2000;
             check_improve(ch, gsn_giantfeller, TRUE, 6);
         }
     }
@@ -2682,15 +2682,15 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     if ( dt == gsn_smite )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
-        int skill = get_skill(ch, gsn_smite);
-        dam += dam * align_diff / 2000 * skill / 100;
+        int skill1 = get_skill(ch, gsn_smite);
+        dam += dam * align_diff / 2000 * skill1 / 100;
         if ( has_subclass(ch, subclass_crusader) )
             dam += dam / 4;
     }
     if ( dt == gsn_power_attack )
     {
-        int skill = get_skill(ch, gsn_power_attack);
-        dam += dam * skill / 100;
+        int skill1 = get_skill(ch, gsn_power_attack);
+        dam += dam * skill1 / 100;
         dam += dam * mastery_bonus(ch, gsn_power_attack, 20, 25) / 100;
     }
 

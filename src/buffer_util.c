@@ -342,7 +342,7 @@ bool write_buffer_to_file( DBUFFER *buf, FILE *fp )
 bool save_to_dir( MEMFILE *mf, char *dir )
 {
   char strsave[MAX_INPUT_LENGTH];
-  char bug_buf[MSL];
+  char bug_buf1[MSL];
   bool success;
   FILE *fp;
 #if defined(SIM_DEBUG)
@@ -358,8 +358,8 @@ bool save_to_dir( MEMFILE *mf, char *dir )
   sprintf(strsave, "%s%s", dir, mf->filename);
   if ( ( fp = fopen( strsave, "w" ) ) == NULL )
   {
-    sprintf(bug_buf, "save_to_dir: couldn't open %s", strsave);
-    bug(bug_buf, 0);
+    sprintf(bug_buf1, "save_to_dir: couldn't open %s", strsave);
+    bug(bug_buf1, 0);
     return FALSE;
   }
 
@@ -368,8 +368,8 @@ bool save_to_dir( MEMFILE *mf, char *dir )
 
   if (!success)
   {
-    sprintf(bug_buf, "save_to_dir: error saving %s", strsave);
-    bug (bug_buf, 0);
+    sprintf(bug_buf1, "save_to_dir: error saving %s", strsave);
+    bug (bug_buf1, 0);
   }
 #if defined(SIM_DEBUG)
    log_string("save_to_dir: done");

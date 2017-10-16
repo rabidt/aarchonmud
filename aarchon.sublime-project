@@ -1,0 +1,24 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+            "folder_exclude_patterns": ["bin", "data", "doc", "obj"]
+		}
+	],
+    "build_systems":
+    [
+        {
+            "name": "aarchon make",
+            "shell_cmd": "make -C $project_path/src",
+            "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+            "variants":
+            [
+                {
+                    "name": "clean",
+                    "shell_cmd": "make -C $project_path/src clean"
+                }
+            ]
+        }
+    ]
+}

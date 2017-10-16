@@ -3401,8 +3401,8 @@ int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
 
 DEF_DO_FUN(do_buy)
 {
-    char buf[MAX_STRING_LENGTH];
-    int cost;
+    char buf1[MAX_STRING_LENGTH];
+    int cost1;
 
     if ( argument[0] == '\0' )
     {
@@ -3422,15 +3422,15 @@ DEF_DO_FUN(do_buy)
 
         if ( !banker )
         {
-            sprintf( buf, "The banker is currently not available.\n\r" );
-            send_to_char( buf, ch );
+            sprintf( buf1, "The banker is currently not available.\n\r" );
+            send_to_char( buf1, ch );
             return;
         }
 
         if (str_cmp(argument, "box"))
         {
-            sprintf(buf, "Sorry, %s, all I can sell you is a storage 'box'.",ch->name);
-            do_say(banker,buf);
+            sprintf(buf1, "Sorry, %s, all I can sell you is a storage 'box'.",ch->name);
+            do_say(banker,buf1);
             return;
         }
         else if (ch->pcdata->storage_boxes < MAX_STORAGE_BOX)
@@ -3441,23 +3441,23 @@ DEF_DO_FUN(do_buy)
             if ( (money < cost) ||
                     (ch->pcdata->questpoints < qpcost) )
             {
-                sprintf(buf, "Sorry, %s, you can't afford a storage box.", ch->name);
-                do_say(banker,buf);
+                sprintf(buf1, "Sorry, %s, you can't afford a storage box.", ch->name);
+                do_say(banker,buf1);
                 return;
             }
             deduct_cost(ch, cost);
             ch->pcdata->questpoints -= qpcost;
             ch->pcdata->storage_boxes += 1;
-            sprintf(buf, "Congratulations, %s, you bought a new storage box.",
+            sprintf(buf1, "Congratulations, %s, you bought a new storage box.",
                     ch->name);
-            do_say(banker, buf);
+            do_say(banker, buf1);
             do_say(banker, "Head west to find a room to access your box.");
             return;
         }
         else
         {
-            sprintf(buf, "Sorry, %s, you can't buy any more boxes.", ch->name);
-            do_say(banker, buf);
+            sprintf(buf1, "Sorry, %s, you can't buy any more boxes.", ch->name);
+            do_say(banker, buf1);
         }
         return;
     }
@@ -3504,11 +3504,11 @@ DEF_DO_FUN(do_buy)
             return;
         }
 
-        cost = 10 * pet->level * pet->level;
-        cost = haggle_cost( ch, cost, cost/2 );
+        cost1 = 10 * pet->level * pet->level;
+        cost1 = haggle_cost( ch, cost1, cost1/2 );
         int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
 
-        if ( money < cost )
+        if ( money < cost1 )
         {
             send_to_char( "You can't afford it.\n\r", ch );
             return;
@@ -3521,7 +3521,7 @@ DEF_DO_FUN(do_buy)
             return;
         }
 
-        deduct_cost(ch,cost);
+        deduct_cost(ch,cost1);
         pet         = create_mobile( pet->pIndexData );
         SET_BIT(pet->act, ACT_PET);
         SET_BIT(pet->affect_field, AFF_CHARM);
@@ -3558,9 +3558,9 @@ DEF_DO_FUN(do_buy)
         number = mult_argument(argument,arg);
         number = URANGE(0, number, 100);
         obj  = get_obj_keeper( ch,keeper, arg );
-        cost = get_cost( keeper, obj, TRUE );
+        cost1 = get_cost( keeper, obj, TRUE );
 
-        if ( cost <= 0 || !can_see_obj( ch, obj ) )
+        if ( cost1 <= 0 || !can_see_obj( ch, obj ) )
         {
             act( "$n tells you 'I don't sell that -- try 'list''.",
                     keeper, NULL, ch, TO_VICT );
@@ -3590,10 +3590,10 @@ DEF_DO_FUN(do_buy)
             }
         }
 
-        cost = haggle_cost( ch, cost, obj->cost );
+        cost1 = haggle_cost( ch, cost1, obj->cost );
 
         int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
-        if (money < cost * number )
+        if (money < cost1 * number )
         {
             if (number > 1)
                 act("$n tells you 'You can't afford to buy that many.",
@@ -3631,20 +3631,20 @@ DEF_DO_FUN(do_buy)
 
         if (number > 1)
         {
-            sprintf(buf,"$n buys $p[%d].",number);
-            act(buf,ch,obj,NULL,TO_ROOM);
-            sprintf(buf,"You buy $p[%d] for %d silver.",number,cost * number);
-            act(buf,ch,obj,NULL,TO_CHAR);
+            sprintf(buf1,"$n buys $p[%d].",number);
+            act(buf1,ch,obj,NULL,TO_ROOM);
+            sprintf(buf1,"You buy $p[%d] for %d silver.",number,cost1 * number);
+            act(buf1,ch,obj,NULL,TO_CHAR);
         }
         else
         {
             act( "$n buys $p.", ch, obj, NULL, TO_ROOM );
-            sprintf(buf,"You buy $p for %d silver.",cost);
-            act( buf, ch, obj, NULL, TO_CHAR );
+            sprintf(buf1,"You buy $p for %d silver.",cost1);
+            act( buf1, ch, obj, NULL, TO_CHAR );
         }
-        deduct_cost(ch,cost * number);
-        keeper->gold += cost * number/100;
-        keeper->silver += cost * number - (cost * number/100) * 100;
+        deduct_cost(ch,cost1 * number);
+        keeper->gold += cost1 * number/100;
+        keeper->silver += cost1 * number - (cost1 * number/100) * 100;
 
         for (count = 0; count < number; count++)
         {
@@ -3664,8 +3664,8 @@ DEF_DO_FUN(do_buy)
                 t_obj->timer = 0;
             REMOVE_BIT(t_obj->extra_flags,ITEM_HAD_TIMER);
             obj_to_char( t_obj, ch );
-            if (cost < t_obj->cost)
-                t_obj->cost = cost;
+            if (cost1 < t_obj->cost)
+                t_obj->cost = cost1;
         }
     }
 }

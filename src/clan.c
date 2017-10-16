@@ -1258,7 +1258,7 @@ DEF_DO_FUN(do_cset)
     char arg2 [MAX_INPUT_LENGTH];
     char arg3 [MAX_INPUT_LENGTH];
     CLAN_DATA *clan;
-    int clannum, value;
+    int clannum;
     bool found = FALSE;
     
     argument = smash_tilde_cpy( arg_buf, argument );
@@ -1396,6 +1396,7 @@ DEF_DO_FUN(do_cset)
 	clan->changed = TRUE;
 	return;
     }
+    int value;
 
     /* Snarf the value (which need not be numeric). */
     value = is_number( arg3 ) ? atoi( arg3 ) : -1001;
