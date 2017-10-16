@@ -1081,7 +1081,6 @@ DEF_DO_FUN(do_rdrop)
 	char arg1[MAX_INPUT_LENGTH];
 	char arg2[MAX_INPUT_LENGTH];
 	char buf[200];
-	MOB_INDEX_DATA *mob = NULL;
 	RESET_DATA *p, *pReset;
 	
 	int count;
@@ -1182,7 +1181,8 @@ DEF_DO_FUN(do_rdrop)
 		vnum = mob->vnum;
 	}
 	
-	
+	MOB_INDEX_DATA *mob = NULL;
+
 	if (vnum != 0) /* 0 - at the beginning of the area */
 	{
 		/* Find out where that mobs reset in the current area, if anywhere */	
@@ -1319,7 +1319,7 @@ DEF_DO_FUN(do_rwhere)
 	char buf[200];
 	int number = 1;
 	MOB_INDEX_DATA *mob = NULL;
-	ROOM_INDEX_DATA * room;
+	ROOM_INDEX_DATA * room1;
 	int i, vnum;
 	
 	if (argument[0] == NUL)
@@ -1339,11 +1339,11 @@ DEF_DO_FUN(do_rwhere)
 	
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
 	{
-		room = get_room_index (i);
-		if (!room)
+		room1 = get_room_index (i);
+		if (!room1)
 			continue;
 			
-    	for (p = room->reset_first ; p ; p=p->next)
+    	for (p = room1->reset_first ; p ; p=p->next)
     		if (p->command == 'M')
     		{
     			ROOM_INDEX_DATA *room = get_room_index (p->arg3);
@@ -1366,12 +1366,12 @@ DEF_DO_FUN(do_rwhere)
 
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
 	{
-		room = get_room_index (i);
-		if (!room)
+		room1 = get_room_index (i);
+		if (!room1)
 			continue;
 			
 	
-    	for (p = room->reset_first ; p ; p=p->next)
+    	for (p = room1->reset_first ; p ; p=p->next)
     		switch (p->command)
     		{
 

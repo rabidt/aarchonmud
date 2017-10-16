@@ -3848,31 +3848,31 @@ DEF_SPELL_FUN(spell_astarks_rejuvenation)
 
     if ( target_name[0] != '\0' )
     {
-        int sn = affect_list_lookup(ch->affected, target_name);
-        if ( sn == -1 )
+        int sn2 = affect_list_lookup(ch->affected, target_name);
+        if ( sn2 == -1 )
         {
             ptc(ch, "Which affliction do you wish to purge?\n\r");
             return SR_SYNTAX;
         }
-        if ( sn == gsn_custom_affect || sn == gsn_god_curse )
+        if ( sn2 == gsn_custom_affect || sn2 == gsn_god_curse )
         {
             ptc(ch, "This effect is beyond your power.\n\r");
             return SR_SYNTAX;
         }
-        if ( !is_offensive(sn) )
+        if ( !is_offensive(sn2) )
         {
-            ptc(ch, "The %s effect is not an affliction.\n\r", skill_table[sn].name);
+            ptc(ch, "The %s effect is not an affliction.\n\r", skill_table[sn2].name);
             return SR_SYNTAX;
         }
         
         SPELL_CHECK_RETURN
         
         // afflictions that can be cured normally are removed without a check
-        bool curable = IS_SPELL(sn) || is_mental(sn) || is_blindness(sn) || is_curse(sn) || is_disease(sn);
+        bool curable = IS_SPELL(sn2) || is_mental(sn2) || is_blindness(sn2) || is_curse(sn2) || is_disease(sn2);
         if ( curable )
-            dispel_sn(ch, sn);
-        else if ( !check_dispel(level, ch, sn) )
-            ptc(ch, "Your attempt to purge the %s affliction fails.\n\r", skill_table[sn].name);
+            dispel_sn(ch, sn2);
+        else if ( !check_dispel(level, ch, sn2) )
+            ptc(ch, "Your attempt to purge the %s affliction fails.\n\r", skill_table[sn2].name);
         return TRUE;
     }    
     

@@ -116,7 +116,7 @@ int close       args( ( int fd ) );
  * Global variables.
  */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
-DESCRIPTOR_DATA *   d_next;     /* Next descriptor in loop  */
+DESCRIPTOR_DATA *   g_d_next;     /* Next descriptor in loop  */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
 bool            wizlock;        /* Game is wizlocked        */
@@ -144,8 +144,8 @@ void    stop_idling     args( ( CHAR_DATA *ch ) );
 void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 
 /* Needs to be global because of do_copyover */
-u_short port;
-int control;
+static u_short s_port;
+static int s_control;
 
 #ifdef UNITTEST
 int main( int argc, char **argv )
@@ -188,7 +188,7 @@ int main( int argc, char **argv )
     /*
      * Get the port number.
      */
-    port = 7000;
+    s_port = 7000;
 
     if ( argc > 1 )
     {
@@ -197,7 +197,7 @@ int main( int argc, char **argv )
             fprintf( stderr, "Usage: %s [port #]\n", argv[0] );
             exit( 1 );
         }
-        else if ( ( port = atoi( argv[1] ) ) <= 1024 )
+        else if ( ( s_port = atoi( argv[1] ) ) <= 1024 )
         {
             fprintf( stderr, "Port number must be above 1024.\n" );
             exit( 1 );
@@ -211,7 +211,7 @@ int main( int argc, char **argv )
                     && is_number(argv[3]))
             {
                 fCopyOver = TRUE; 
-                control = atoi(argv[3]);
+                s_control = atoi(argv[3]);
             }
             else
                 fCopyOver = FALSE;
@@ -223,13 +223,13 @@ int main( int argc, char **argv )
      */
     if (!fCopyOver)
     {
-        control = init_socket( port );
+        s_control = init_socket( s_port );
     }
 
     boot_db();
     DXPORT_init();
 
-    sprintf( log_buf, "ROM is ready to rock on port %d.", port );
+    sprintf( log_buf, "ROM is ready to rock on port %d.", s_port );
     log_string( log_buf );
 
     if (fCopyOver)
@@ -240,9 +240,9 @@ int main( int argc, char **argv )
 #ifdef LIVETEST 
     RunAllTests();
 #else
-    game_loop_unix( control );
+    game_loop_unix( s_control );
 #endif
-    close (control);
+    close (s_control);
 
     /*
      * That's all, folks.
@@ -387,9 +387,9 @@ void game_loop_unix( int control )
         /*
          * Kick out the freaky folks.
          */
-        for ( d = descriptor_list; d != NULL; d = d_next )
+        for ( d = descriptor_list; d != NULL; d = g_d_next )
         {
-            d_next = d->next;   
+            g_d_next = d->next;   
             if ( FD_ISSET( d->descriptor, &exc_set ) )
             {
                 FD_CLR( (unsigned short)d->descriptor, &in_set  );
@@ -409,9 +409,9 @@ void game_loop_unix( int control )
                         when processing lag free 
                       (cases where we pull a d_next=d trick*/
                         
-        for ( d = descriptor_list; d != NULL; d = d_next )
+        for ( d = descriptor_list; d != NULL; d = g_d_next )
         {
-            d_next  = d->next;
+            g_d_next  = d->next;
             d->fcommand = FALSE;
 
             if ( FD_ISSET( d->descriptor, &in_set ) )
@@ -497,7 +497,7 @@ void game_loop_unix( int control )
                            in string editor */
                         linecnt++;
                         if (linecnt<MAX_LINE_COUNT)
-                            d_next=d;
+                            g_d_next=d;
                         else
                             linecnt=0;
                         /* and wait for next pulse to grab
@@ -514,7 +514,7 @@ void game_loop_unix( int control )
                                        into interpreter */
                                     linecnt++;
                                     if (linecnt<MAX_LINE_COUNT)
-                                        d_next=d;
+                                        g_d_next=d;
                                     else
                                         linecnt=0;
                                     /* and wait for next pulse to grab
@@ -578,9 +578,9 @@ void game_loop_unix( int control )
         /* snooped chars first */
         PERF_PROF_ENTER( pr_output_, "Output" );
 
-        for ( d = descriptor_list; d != NULL; d = d_next )
+        for ( d = descriptor_list; d != NULL; d = g_d_next )
         {
-            d_next = d->next;
+            g_d_next = d->next;
 
             if ( d->snoop_by == NULL )
                 continue;
@@ -595,9 +595,9 @@ void game_loop_unix( int control )
                 }
             }
         }
-        for ( d = descriptor_list; d != NULL; d = d_next )
+        for ( d = descriptor_list; d != NULL; d = g_d_next )
         {
-            d_next = d->next;
+            g_d_next = d->next;
 
             if ( d->snoop_by != NULL )
                 continue;
@@ -911,8 +911,8 @@ void close_socket( DESCRIPTOR_DATA *dclose )
         }
     }
 
-    if ( d_next == dclose )
-        d_next = d_next->next;   
+    if ( g_d_next == dclose )
+        g_d_next = g_d_next->next;   
 
     desc_from_descriptor_list(dclose);
 
@@ -1343,7 +1343,7 @@ void bust_a_prompt( CHAR_DATA *ch )
     EXIT_DATA *pexit;
     bool found;
     bool insane;
-    const char *dir_name[] = {"N","E","S","W","U","D","Ne","Se","Sw","Nw"};
+    const char *dir_name_lookup[] = {"N","E","S","W","U","D","Ne","Se","Sw","Nw"};
     int door;
     int pct;
 
@@ -1408,7 +1408,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                             &&  !IS_SET(pexit->exit_info,EX_DORMANT))
                     {
                         found = TRUE;
-                        strcat(doors,dir_name[door]);
+                        strcat(doors,dir_name_lookup[door]);
                     }
                 }
                 if (!found)
@@ -2630,7 +2630,6 @@ static void copyover_mud( const char *argument )
     DESCRIPTOR_DATA *d, *d_next;
     char buf [200];
     char arg0[50], arg1[10], arg2[10], arg3[10];
-    extern int control; /* db.c */
 
 
     fp = fopen (COPYOVER_FILE, "w");
@@ -2699,9 +2698,9 @@ static void copyover_mud( const char *argument )
     /* exec - descriptors are inherited */
 
     sprintf (arg0, "%s", "aeaea");
-    sprintf (arg1, "%d", port);
+    sprintf (arg1, "%d", s_port);
     sprintf (arg2, "%s", "copyover");
-    sprintf (arg3, "%d", control);
+    sprintf (arg3, "%d", s_control);
     logpf( "copyover_mud: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 

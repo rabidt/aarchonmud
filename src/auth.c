@@ -974,15 +974,15 @@ void auth_update( void )
     PERF_PROF_ENTER( pr_, "auth_update" );
 
     AUTH_LIST *auth;
-    char buf [MAX_STRING_LENGTH], log_buf [MAX_STRING_LENGTH];
+    char buf [MAX_STRING_LENGTH], log_buf1 [MAX_STRING_LENGTH];
     bool found_hit = FALSE;       /* was at least one found? */
     
 
     /* Auth notification no longer beeps - Elik, Jan 16, 2006. */
     /* beep imms.. */
     /* Readded the beep too many auths going unnoticed */
-      strcpy( log_buf, "{*{+--- Characters awaiting approval ---{x\n\r" ); 
-    /* strcpy(log_buf, "{+--- Characters awaiting approval ---{x\n\r"); */
+      strcpy( log_buf1, "{*{+--- Characters awaiting approval ---{x\n\r" ); 
+    /* strcpy(log_buf1, "{+--- Characters awaiting approval ---{x\n\r"); */
 
     for ( auth = first_auth_name; auth; auth = auth->next )
     {
@@ -990,12 +990,12 @@ void auth_update( void )
         {
             found_hit = TRUE;
             sprintf( buf, "Name: %s      Status: %s\n\r", auth->name, ( auth->state == AUTH_ONLINE ) ? "Online" : "Offline" ); 
-            strcat( log_buf, buf );
+            strcat( log_buf1, buf );
         }
     }
 
     if ( found_hit )
-        wiznet(log_buf, NULL, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
+        wiznet(log_buf1, NULL, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
 
     PERF_PROF_EXIT( pr_ );
 }

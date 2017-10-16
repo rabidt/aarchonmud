@@ -631,7 +631,7 @@ void mobile_update( void )
     CHAR_DATA *ch;
     CHAR_DATA *ch_next;
     EXIT_DATA *pexit;
-    OBJ_DATA *obj;
+    OBJ_DATA *obj1;
     OBJ_DATA *obj_next;
 
     int door;
@@ -749,12 +749,12 @@ void mobile_update( void )
 
         if ( ch->position == POS_FIGHTING && number_bits( 2 ) == 0 )
         {
-            for ( obj = ch->carrying; obj != NULL; obj = obj_next )
+            for ( obj1 = ch->carrying; obj1 != NULL; obj1 = obj_next )
             {
-                obj_next = obj->next_content;
-                if ( obj->wear_loc == WEAR_NONE && can_see_obj(ch, obj) && obj->item_type == ITEM_WEAPON )
+                obj_next = obj1->next_content;
+                if ( obj1->wear_loc == WEAR_NONE && can_see_obj(ch, obj1) && obj1->item_type == ITEM_WEAPON )
                 {
-                    wear_obj(ch, obj, FALSE);
+                    wear_obj(ch, obj1, FALSE);
                     break;
                 }
             }
