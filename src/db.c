@@ -1175,14 +1175,14 @@ void new_load_area( FILE *fp )
             if (!str_cmp(word, "AProg") )
             {
                 PROG_LIST *pAprog;
-                const char *word;
+                const char *word1;
                 int trigger = 0;
 
                 pAprog              = alloc_ATRIG();
-                word                = fread_word( fp );
-                if ( (trigger = flag_lookup( word, aprog_flags )) == NO_FLAG )
+                word1                = fread_word( fp );
+                if ( (trigger = flag_lookup( word1, aprog_flags )) == NO_FLAG )
                 {   
-                    bugf("load_area.AProg: invalid trigger '%s' for area %s.", word, pArea->name);
+                    bugf("load_area.AProg: invalid trigger '%s' for area %s.", word1, pArea->name);
                     exit(1);
                 }
                 SET_BIT(pArea->aprog_flags, trigger );
@@ -2608,7 +2608,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
         OBJ_INDEX_DATA  *pObjIndex;
         OBJ_INDEX_DATA  *pObjToIndex;
         ROOM_INDEX_DATA *pRoomIndex;
-        int count,limit=0;
+        int count,limit1=0;
 
         switch ( pReset->command )
         {
@@ -2739,16 +2739,16 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                 }
 
                 if (pReset->arg2 > 50) /* old format */
-                    limit = 6;
+                    limit1 = 6;
                 else if (pReset->arg2 == -1) /* no limit */
-                    limit = 999;
+                    limit1 = 999;
                 else
-                    limit = pReset->arg2;
+                    limit1 = pReset->arg2;
 
                 if ( /* pRoom->area->nplayer > 0
                         ||*/ ( LastObj = get_obj_type( pObjToIndex ) ) == NULL
                         || ( LastObj->in_room == NULL && !last)
-                        || ( pObjIndex->count >= limit /* && number_range(0,4) != 0 */ )
+                        || ( pObjIndex->count >= limit1 /* && number_range(0,4) != 0 */ )
                         || ( count = count_obj_list( pObjIndex, LastObj->contains ) ) > pReset->arg4  )
                 {
                     last = FALSE;
@@ -2761,7 +2761,7 @@ void reset_room( ROOM_INDEX_DATA *pRoom )
                     check_enchant_obj( pObj );
                     obj_to_obj( pObj, LastObj );
                     count++;
-                    if (pObjIndex->count >= limit)
+                    if (pObjIndex->count >= limit1)
                         break;
                 }
 
@@ -3397,7 +3397,7 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;
-    int i;
+    int i1;
     
     if ( pObjIndex == NULL )
     {
@@ -3480,8 +3480,8 @@ OBJ_DATA *create_object( OBJ_INDEX_DATA *pObjIndex )
         break;
         
     case ITEM_JUKEBOX:
-        for (i = 0; i < 5; i++)
-            obj->value[i] = -1;
+        for (i1 = 0; i1 < 5; i1++)
+            obj->value[i1] = -1;
         break;
         
     case ITEM_WAND:

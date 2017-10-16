@@ -322,7 +322,7 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
   FILE *fp;
   char strsave[MAX_INPUT_LENGTH];
   char filename[MAX_INPUT_LENGTH];
-  char bug_buf[MSL];
+  char bug_buf11[MSL];
   bool found_in_mem;
 
 #if defined(SIM_DEBUG)
@@ -365,8 +365,8 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
       fclose( fp );
       if (buf == NULL)
       {
-	sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
-	bug( bug_buf, 0 );
+	sprintf( bug_buf11, "load_char_obj: error loading %s", strsave );
+	bug( bug_buf11, 0 );
 	return FALSE;
       }
       mf = memfile_wrap_buffer( filename, buf );
@@ -386,8 +386,8 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
       fclose( fp );
       if (buf == NULL)
       {
-	sprintf( bug_buf, "load_char_obj: error loading %s", strsave );
-	bug( bug_buf, 0 );
+	sprintf( bug_buf11, "load_char_obj: error loading %s", strsave );
+	bug( bug_buf11, 0 );
 	return FALSE;
       }
       mf = memfile_wrap_buffer( filename, buf );
@@ -420,7 +420,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
   FILE *fp;
   char strsave[MAX_INPUT_LENGTH];
   char filename[MAX_INPUT_LENGTH];
-  char bug_buf[MSL];
+  char bug_buf1[MSL];
   bool found_in_mem;
   sh_int i;
 
@@ -463,8 +463,8 @@ bool load_storage_boxes(CHAR_DATA *ch )
       fclose( fp );
       if (buf == NULL)
       {
-        sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
-		        bug( bug_buf, 0 );
+        sprintf( bug_buf1, "load_storage_box: error loading %s", strsave );
+		        bug( bug_buf1, 0 );
         return FALSE;
       }
       mf = memfile_wrap_buffer( filename, buf );
@@ -484,8 +484,8 @@ bool load_storage_boxes(CHAR_DATA *ch )
       fclose( fp );
       if (buf == NULL)
       {
-        sprintf( bug_buf, "load_storage_box: error loading %s", strsave );
-        bug( bug_buf, 0 );
+        sprintf( bug_buf1, "load_storage_box: error loading %s", strsave );
+        bug( bug_buf1, 0 );
         return FALSE;
       }
       mf = memfile_wrap_buffer( filename, buf );
