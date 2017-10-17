@@ -1908,7 +1908,7 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
             }
         }
 
-        if ( p_dest >= p_dest_last )
+        if ( p_dest > p_dest_last )
         {
             *p_dest_last = '\0';
             bugf("%s: buffer truncated for %s", __func__, ch->name);
