@@ -1849,9 +1849,10 @@ void send_to_char( const char *txt, CHAR_DATA *ch )
 
 void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
-    const  char    *point;
-    char    *point2;
-    char    buf[ MAX_STRING_LENGTH*4 ];
+    const char * p_src;
+    char       * p_dest;
+    char         buf[ MAX_STRING_LENGTH*4 ];
+    char * const p_dest_last = &(buf[sizeof(buf) - 1]);
     int skip = 0;
 
     // players may overwrite whether color is sent in raw format
@@ -1859,49 +1860,65 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
         raw = TRUE;
     
     buf[0] = '\0';
-    point2 = buf;
+    p_dest = buf;
     if( txt && ch->desc )
     {
         if ( raw )
         {
-            for( point = txt ; *point ; point++ )
+            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
             {
                 // escape MXP
-                if ( *point == '\t' && *(point+1) == '<' )
-                    *(point2++) = '~';
+                if ( *p_src == '\t' && *(p_src+1) == '<' )
+                {
+                    *(p_dest++) = '~';
+                }
                 else
-                    *(point2++) = *point;
+                {
+                    *(p_dest++) = *p_src;
+                }
             }
         }
         else if ( IS_SET(ch->act, PLR_COLOUR) )
         {
-            for( point = txt ; *point ; point++ )
+            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
             {
-                if( *point == '{' )
+                if( *p_src == '{' )
                 {
-                    point++;
-                    skip = colour( *point, ch, point2 );
+                    p_src++;
+                    skip = colour( *p_src, ch, p_dest );
                     while( skip-- > 0 )
-                        ++point2;
+                    {
+                        ++p_dest;
+                    }
                     continue;
                 }
-                *(point2++) = *point;
+                *(p_dest++) = *p_src;
             }
         }
         else
         {
-            for( point = txt ; *point ; point++ )
+            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
             {
-                if( *point == '{' )
+                if( *p_src == '{' )
                 {
-                    point++;
+                    p_src++;
                     continue;
                 }
-                *(point2++) = *point;
+                *(p_dest++) = *p_src;
             }
         }
-        *point2 = '\0';
-        write_to_buffer(ch->desc, buf, point2 - buf);
+
+        if ( p_dest >= p_dest_last )
+        {
+            *p_dest_last = '\0';
+            bugf("%s: buffer truncated for %s", __func__, ch->name);
+        }
+        else
+        {
+            *p_dest = '\0';    
+        }
+        
+        write_to_buffer(ch->desc, buf, p_dest - buf);
     }
     return;
 }
