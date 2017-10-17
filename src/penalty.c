@@ -921,13 +921,14 @@ void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument )
 /* Handle CON_PENALTY_FINISH state */
 void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
 {
-    char buf[MSL], to_buf[MSL];   
+    char buf[MSL], to_buf[MSL];
+    size_t buf_i = 0;
 
     CHAR_DATA *ch = d->character;
     CHAR_DATA *victim = NULL;
     PENALTY_DATA *p = ch->pcdata->new_penalty;
     PENALTY_DATA *q = NULL;
-    
+
     if (!p)
     {
         d->connected = CON_PLAYING;
@@ -954,7 +955,7 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
         p->next           = penalty_list;
         penalty_list      = p;
         ch->pcdata->new_penalty = NULL;
-        
+
         save_penalties();
 
         if ((victim = get_char_world(ch, p->victim_name)) == NULL)
@@ -969,19 +970,19 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
     }
     else
     {
-	bool delete = FALSE;
+        bool delete = FALSE;
         /* Parole or Pardon */
         q = p->next; /* Recall here the hack that saved a pointer to the chosen */
-                     /* penalty to be paroled/pardoned in p->next.              */
-        
+        /* penalty to be paroled/pardoned in p->next.              */
+
         if (!q)
             bug ("penalty: Lost reference to penalty to be paroled/pardoned.",0);
         else
         {
             if (q->status == PENALTY_STATUS_PENDING)
-		/* It hasn't taken effect yet, just delete it */
+                /* It hasn't taken effect yet, just delete it */
                 /* delete_penalty_node(q); */
-		delete = TRUE;
+                delete = TRUE;
             else
             {
                 q->status = p->status;
@@ -989,22 +990,33 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
                 q->changed_time = current_time;
             }
 
-            sprintf(buf, "%s of %s %s",
-               capitalize(q->penalty_type),
-               q->victim_name,
-               p->status == PENALTY_STATUS_PAROLE_PENDING ? "paroled" : "pardoned");
+            buf_i = snprintf(buf, sizeof(buf), "%s of %s %s",
+                    capitalize(q->penalty_type),
+                    q->victim_name,
+                    p->status == PENALTY_STATUS_PAROLE_PENDING ? "paroled" : "pardoned");
+            buf_i = UMIN(buf_i, sizeof(buf));
 
 
             if (q->duration > 0) /* Also recall p->duration has victim->playing in it at this point. */
-                sprintf(buf, "%s, %.1f hrs remaining", buf, (float)(q->start_time + q->duration - p->duration) / 3600.0);
-	    sprintf( to_buf, "imm %s", p->victim_name );
+            {
+                snprintf(buf + buf_i, sizeof(buf) - buf_i, ", %.1f hrs remaining", 
+                    (float)(q->start_time + q->duration - p->duration) / 3600.0);
+                buf_i = UMIN(buf_i, sizeof(buf));
+            }
+
+            if (buf_i >= sizeof(buf))
+            {
+                bugf("%s: buffer truncation", __func__);
+            }
+
+            sprintf( to_buf, "imm %s", p->victim_name );
             make_note("Penalty", p->imm_name, to_buf, buf, 30, p->text);
 
-	    if ( delete )
-		delete_penalty_node(q);
+            if ( delete )
+                delete_penalty_node(q);
         }
 
-        
+
         free_string(p->imm_name);
         free_string(p->victim_name);
         free_string(p->changed_by);
@@ -1012,7 +1024,7 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
         free_string(p->text);
         free_mem(p, sizeof(PENALTY_DATA));
         ch->pcdata->new_penalty = NULL;
-        
+
         save_penalties();
 
         if ((victim = get_char_world(ch, p->victim_name)) == NULL)
