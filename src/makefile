@@ -15,6 +15,10 @@ C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogica
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers \
 	-Wshadow
 
+ifeq ($(C_WERROR),1)
+	C_WARN += -Werror
+endif
+
 CPP_WARN = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
 	-Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \

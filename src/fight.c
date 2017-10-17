@@ -352,7 +352,7 @@ void show_violence_summary( void )
                     continue;
                 if ( gch != ch )
                 {
-                    sprintf(buf, "$n %s $s foes%c", vp, punct);
+                    snprintf(buf, sizeof(buf), "$n %s $s foes%c", vp, punct);
                     act(buf, ch, NULL, gch, TO_VICT);
                 }
                 else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
@@ -370,7 +370,7 @@ void show_violence_summary( void )
                     continue;
                 if ( gch != ch )
                 {
-                    sprintf(buf, "$s foes %s $n%c", vs, punct);
+                    snprintf(buf, sizeof(buf), "$s foes %s $n%c", vs, punct);
                     act(buf, ch, NULL, gch, TO_VICT);
                 }
                 else if ( IS_AFFECTED(ch, AFF_BATTLE_METER) )
@@ -1383,7 +1383,7 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     if ( cfg_show_rolls )
     {
         char buf[MSL];
-        sprintf(buf, "Combat maneuver roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+        snprintf(buf, sizeof(buf), "Combat maneuver roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
                 ch_name(ch), ch_rolled, ch_roll,
                 ch_name(victim), victim_rolled, victim_roll,
                 (success ? "success" : "failure"));
@@ -2932,7 +2932,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( cfg_show_rolls )
     {
         char buf[MSL];
-        sprintf(buf, "To-hit roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+        snprintf(buf, sizeof(buf), "To-hit roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
                 ch_name(ch), ch_rolled, ch_roll,
                 ch_name(victim), victim_rolled, victim_roll,
                 (is_hit ? "hit" : "miss"));
@@ -3269,7 +3269,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 	     && !IS_WEAPON_STAT(wield->pIndexData, bit) )
 	{
 	    char buf[MSL];
-	    sprintf( buf, "The %s effect on $p has worn off.", 
+	    snprintf( buf, sizeof(buf), "The %s effect on $p has worn off.", 
 		     weapon_type2[flag].name );
 	    act( buf, ch, wield, NULL, TO_CHAR );
 	    I_REMOVE_BIT(wield->value[4], bit );
@@ -4220,7 +4220,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 // message
                 ptc(victim, "{Y*** %s has protected you from dying! ***{x\n\r", get_god_name(victim));
                 char buf[MSL];
-                sprintf(buf, "{Y*** %s resurrects $n! ***{x", get_god_name(victim));
+                snprintf(buf, sizeof(buf), "{Y*** %s resurrects $n! ***{x", get_god_name(victim));
                 act(buf, victim, NULL, NULL, TO_ROOM);
             }
         }
@@ -4444,7 +4444,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
     if (!IS_NPC(victim))
     {
-        sprintf( log_buf, "%s killed by %s at %d",
+        snprintf( log_buf, sizeof(log_buf), "%s killed by %s at %d",
                 victim->name,
                 (IS_NPC(ch) ? ch->short_descr : ch->name),
                 ch->in_room->vnum );
@@ -4452,7 +4452,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
         if ( IS_SET(victim->act, PLR_WAR) )
         {
-            sprintf( buf, "%s has been slain by %s!\n\r", victim->name, ch->name );
+            snprintf( buf, sizeof(buf), "%s has been slain by %s!\n\r", victim->name, ch->name );
             warfare_to_all( buf );
 
             if ( victim != ch && PLR_ACT(ch, PLR_WAR) )
@@ -4467,7 +4467,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         }
         else if ( IS_NPC(ch) )
         {                
-            sprintf(log_buf, "%s has been killed by %s!", victim->name, ch->short_descr);
+            snprintf(log_buf, sizeof(log_buf), "%s has been killed by %s!", victim->name, ch->short_descr);
             info_message(victim, log_buf, TRUE);            
         }
         else if (ch != victim)
@@ -4480,7 +4480,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 
                 if (!clan_table[ch->clan].active)
                 {
-                    sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
+                    snprintf(log_buf, sizeof(log_buf), "%s has been pkilled by %s!",victim->name, ch->name);
                     info_message(victim, log_buf, TRUE);         
                 }
                 else
@@ -4494,11 +4494,11 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
                     {
                         p->pkills++;
 
-                        sprintf(log_buf, "%s has been pkilled by %s of clan %s!",
+                        snprintf(log_buf, sizeof(log_buf), "%s has been pkilled by %s of clan %s!",
                                 victim->name, ch->name, capitalize(clan_table[ch->clan].name));
                         info_message(victim, log_buf, TRUE);
 
-                        sprintf(log_buf, "Clan %s has now killed %d %s during the current war!",
+                        snprintf(log_buf, sizeof(log_buf), "Clan %s has now killed %d %s during the current war!",
                                 capitalize(clan_table[ch->clan].name),
                                 p->pkills,
                                 capitalize(clan_table[victim->clan].name));
@@ -4507,7 +4507,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
                     }
                     else   // kill did not contribute to clanwar pkills, so don't mention clan (good for religion!)
                     {
-                        sprintf(log_buf, "%s has been pkilled by %s!",victim->name, ch->name);
+                        snprintf(log_buf, sizeof(log_buf), "%s has been pkilled by %s!",victim->name, ch->name);
                         info_message(victim, log_buf, TRUE);
                     }
                 }
@@ -4515,13 +4515,13 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
         }
         else 
         {
-            sprintf(log_buf, "%s has carelessly gotten killed.", victim->name);
+            snprintf(log_buf, sizeof(log_buf), "%s has carelessly gotten killed.", victim->name);
             info_message(NULL, log_buf, TRUE);
         }
     }
 
 
-    sprintf( log_buf, "%s got toasted by %s at %s [room %d]",
+    snprintf( log_buf, sizeof(log_buf), "%s got toasted by %s at %s [room %d]",
             (IS_NPC(victim) ? victim->short_descr : victim->name),
             (IS_NPC(ch) ? ch->short_descr : ch->name),
             ch->in_room->name, ch->in_room->vnum);
@@ -4538,7 +4538,7 @@ void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         if (!IS_NPC(ch))
         {
-            sprintf(buf,"You receive a %d gold bounty, for killing %s.\n\r",
+            snprintf(buf, sizeof(buf),"You receive a %d gold bounty, for killing %s.\n\r",
                     victim->pcdata->bounty, victim->name);
             send_to_char(buf, ch);
             ch->gold += victim->pcdata->bounty;
@@ -5046,7 +5046,7 @@ void check_killer( CHAR_DATA *ch, CHAR_DATA *victim )
         {
             char buf[MAX_STRING_LENGTH];
             
-            sprintf( buf, "Check_killer: %s bad AFF_CHARM",
+            snprintf( buf, sizeof(buf), "Check_killer: %s bad AFF_CHARM",
                 IS_NPC(ch) ? ch->short_descr : ch->name );
             bug( buf, 0 );
             affect_strip( ch, gsn_charm_person );
@@ -5076,12 +5076,12 @@ void check_killer( CHAR_DATA *ch, CHAR_DATA *victim )
     {
         SET_BIT(ch->act, PLR_KILLER);
         
-        sprintf(buf, "%s has engaged %s in mortal combat!", ch->name, victim->name);
+        snprintf(buf, sizeof(buf), "%s has engaged %s in mortal combat!", ch->name, victim->name);
         info_message(ch, buf, TRUE);
-        sprintf(buf, "%s is now a KILLER!", ch->name);
+        snprintf(buf, sizeof(buf), "%s is now a KILLER!", ch->name);
         info_message(ch, buf, TRUE);
         
-        sprintf(buf,"$N is attempting to murder %s",victim->name);
+        snprintf(buf, sizeof(buf),"$N is attempting to murder %s",victim->name);
         wiznet(buf,ch,NULL,WIZ_FLAGS,0,0);
     }
     
@@ -6188,11 +6188,11 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     free_string( corpse->name );
     corpse->name = str_dup( buf );
 
-    sprintf( buf, corpse->short_descr, desc );
+    snprintf( buf, sizeof(buf), corpse->short_descr, desc );
     free_string( corpse->short_descr );
     corpse->short_descr = str_dup( buf );
     
-    sprintf( buf, corpse->description, desc );
+    snprintf( buf, sizeof(buf), corpse->description, desc );
     free_string( corpse->description );
     corpse->description = str_dup( buf );
     
@@ -6248,7 +6248,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 
         if (!IS_NPC(victim))
         {
-            sprintf( buf, "%s died in room %d. EQ To Corpse = %d", victim->name, 
+            snprintf( buf, sizeof(buf), "%s died in room %d. EQ To Corpse = %d", victim->name, 
                 victim->in_room->vnum, obj->pIndexData->vnum );
     	    log_string( buf );
         }
@@ -6355,11 +6355,11 @@ void death_cry( CHAR_DATA *ch )
         obj     = create_object_vnum(vnum);
         obj->timer  = number_range( 4, 7 );
         
-        sprintf( buf, obj->short_descr, name );
+        snprintf( buf, sizeof(buf), obj->short_descr, name );
         free_string( obj->short_descr );
         obj->short_descr = str_dup( buf );
         
-        sprintf( buf, obj->description, name );
+        snprintf( buf, sizeof(buf), obj->description, name );
         free_string( obj->description );
         obj->description = str_dup( buf );
         
@@ -6674,7 +6674,7 @@ void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 	  if ( ch != gch && is_same_player(ch, gch) )
 	{
         char buf[MSL];
-	    sprintf( buf, "Multiplay: %s gaining experience from %s's kill",
+	    snprintf( buf, sizeof(buf), "Multiplay: %s gaining experience from %s's kill",
 		     gch->name, ch->name );
 	    cheat_log( buf );
 	    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
@@ -7087,7 +7087,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     get_local_leader(ch)->round_dam_dealt += dam;
     victim->round_dam_taken += dam;
 
-	sprintf(buf, " for %d damage", dam);
+	snprintf(buf, sizeof(buf), " for %d damage", dam);
 	#ifdef TESTER
 	chmeter = buf;
 	victmeter = buf;
@@ -7107,14 +7107,14 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
     {
         if (ch  == victim)
         {
-            sprintf( buf1, "$n %s $melf%c",vp,punct);
-            sprintf( buf2, "You %s yourself%s%c",vs,chmeter,punct);
+            snprintf( buf1, sizeof(buf1), "$n %s $melf%c",vp,punct);
+            snprintf( buf2, sizeof(buf2), "You %s yourself%s%c",vs,chmeter,punct);
         }
         else
         {
-            sprintf( buf1, "$N %s $n%c",  vp, punct );
-            sprintf( buf2, "You %s $n%s%c", vs, chmeter, punct );
-            sprintf( buf3, "$N %s you%s%c", vp, victmeter, punct );
+            snprintf( buf1, sizeof(buf1), "$N %s $n%c",  vp, punct );
+            snprintf( buf2, sizeof(buf2), "You %s $n%s%c", vs, chmeter, punct );
+            snprintf( buf3, sizeof(buf3), "$N %s you%s%c", vp, victmeter, punct );
         }
     }
     else
@@ -7140,28 +7140,28 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
         {
             if (ch == victim)
             {
-                sprintf(buf1,"$n is unaffected by $s own %s.",attack);
-                sprintf(buf2,"Luckily, you are immune to that.");
+                snprintf(buf1, sizeof(buf1),"$n is unaffected by $s own %s.",attack);
+                snprintf(buf2, sizeof(buf2),"Luckily, you are immune to that.");
             } 
             else
             {
-                sprintf(buf1,"$n is unaffected by $N's %s!",attack);
-                sprintf(buf2,"$n is unaffected by your %s!",attack);
-                sprintf(buf3,"$N's %s is powerless against you.",attack);
+                snprintf(buf1, sizeof(buf1),"$n is unaffected by $N's %s!",attack);
+                snprintf(buf2, sizeof(buf2),"$n is unaffected by your %s!",attack);
+                snprintf(buf3, sizeof(buf3),"$N's %s is powerless against you.",attack);
             }
         }
         else
         {
             if (ch == victim)
             {
-                sprintf( buf1, "$n's %s %s $m%c",attack,vp,punct);
-                sprintf( buf2, "Your %s %s you%s%c", attack, vp, chmeter, punct);
+                snprintf( buf1, sizeof(buf1), "$n's %s %s $m%c",attack,vp,punct);
+                snprintf( buf2, sizeof(buf2), "Your %s %s you%s%c", attack, vp, chmeter, punct);
             }
             else
             {
-                sprintf( buf1, "$N's %s %s $n%c",  attack, vp, punct );
-                sprintf( buf2, "Your %s %s $n%s%c",  attack, vp, chmeter, punct );
-                sprintf( buf3, "$N's %s %s you%s%c", attack, vp, victmeter, punct );
+                snprintf( buf1, sizeof(buf1), "$N's %s %s $n%c",  attack, vp, punct );
+                snprintf( buf2, sizeof(buf2), "Your %s %s $n%s%c",  attack, vp, chmeter, punct );
+                snprintf( buf3, sizeof(buf3), "$N's %s %s you%s%c", attack, vp, victmeter, punct );
             }
         }
     }
@@ -7435,9 +7435,9 @@ DEF_DO_FUN(do_flee)
 
     /* char might have been transed by an mprog */
     if ( dir == -1 )
-        sprintf(buf, "$n has fled!");
+        snprintf(buf, sizeof(buf), "$n has fled!");
     else
-        sprintf(buf, "$n has fled %s!", dir_name[dir]);
+        snprintf(buf, sizeof(buf), "$n has fled %s!", dir_name[dir]);
         
     ch->in_room = was_in;
     act(buf, ch, NULL, NULL, TO_ROOM);
@@ -7862,11 +7862,11 @@ DEF_DO_FUN(do_murder)
     WAIT_STATE( ch, 1 * PULSE_VIOLENCE );
     /*
     if (IS_NPC(ch))
-        sprintf(buf, "Help! I am being attacked by %s!", ch->short_descr);
+        snprintf(buf, sizeof(buf), "Help! I am being attacked by %s!", ch->short_descr);
     else
-        sprintf( buf, "Help!  I am being attacked by %s!", ch->name );
+        snprintf( buf, sizeof(buf), "Help!  I am being attacked by %s!", ch->name );
     */
-    sprintf( buf, "Help!  I am being attacked by %s!", PERS(ch, victim) );
+    snprintf( buf, sizeof(buf), "Help!  I am being attacked by %s!", PERS(ch, victim) );
     
     do_yell( victim, buf );
     check_killer( ch, victim );
@@ -8006,7 +8006,7 @@ DEF_DO_FUN(do_stance)
         if (ch->stance && stances[ch->stance].name)
         {
             char buffer[80];
-            if (sprintf(buffer, "You do not know that stance so you stay in the %s stance.\n\r", stances[ch->stance].name) > 0)
+            if (snprintf(buffer, sizeof(buffer), "You do not know that stance so you stay in the %s stance.\n\r", stances[ch->stance].name) > 0)
             {
                 send_to_char(buffer, ch);    
                 return;
@@ -8059,7 +8059,7 @@ DEF_DO_FUN(do_stance)
     if ( ch->fighting != NULL )
     {
 	char buf[MSL];
-	sprintf( buf, "$n begins to fight in the %s style.", stances[i].name);
+	snprintf( buf, sizeof(buf), "$n begins to fight in the %s style.", stances[i].name);
 	act( buf, ch, NULL, NULL, TO_ROOM );
     }
 }

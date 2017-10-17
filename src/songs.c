@@ -317,7 +317,7 @@ DEF_DO_FUN(do_sing)
         if (ch->song && songs[ch->song].name)
         {
             char buffer[80];
-            if (sprintf(buffer, "You don't know that song so you continue to sing %s.\n\r", songs[ch->song].name) > 0)
+            if (snprintf(buffer, sizeof(buffer), "You don't know that song so you continue to sing %s.\n\r", songs[ch->song].name) > 0)
             {
                 send_to_char(buffer, ch);
                 return;
@@ -349,7 +349,7 @@ DEF_DO_FUN(do_sing)
     if ( ch->fighting != NULL )
     {
         char buf[MSL];
-        sprintf( buf, "$n begins to sing the %s.", songs[i].name);
+        snprintf( buf, sizeof(buf), "$n begins to sing the %s.", songs[i].name);
         act( buf, ch, NULL, NULL, TO_ROOM );
     }
 

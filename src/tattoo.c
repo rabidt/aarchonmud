@@ -80,10 +80,10 @@ char* print_tattoos( tattoo_list tl )
     char nr_buf[10];
     int i;
 
-    sprintf( buf, "%d", tl[0] );
+    snprintf( buf, sizeof(buf), "%d", tl[0] );
     for ( i = 1; i < MAX_WEAR; i++ )
     {
-	sprintf( nr_buf, " %d", tl[i] );
+	snprintf( nr_buf, sizeof(nr_buf), " %d", tl[i] );
 	strcat( buf, nr_buf );
     }
     
@@ -399,7 +399,7 @@ void show_tattoos( CHAR_DATA *ch )
 	if ( (obj = tattoo_obj(ID)) == NULL )
 	    continue;
 
-	sprintf( buf, "%-10s: %d qp\n\r",
+	snprintf( buf, sizeof(buf), "%-10s: %d qp\n\r",
 		 capitalize(obj->name), tattoo_cost(ID) );
 	send_to_char( buf, ch );
     }
@@ -423,7 +423,7 @@ void show_tattoo_loc( CHAR_DATA *ch )
     for ( loc = 0; loc < MAX_WEAR; loc++ )
 	if ( is_tattoo_loc(loc) )
 	{
-	    sprintf( buf, "  %s\n\r", flag_bit_name(wear_loc_flags, loc) );
+	    snprintf( buf, sizeof(buf), "  %s\n\r", flag_bit_name(wear_loc_flags, loc) );
 	    send_to_char( buf, ch );
 	}
 }

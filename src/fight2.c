@@ -2333,11 +2333,11 @@ void behead(CHAR_DATA *ch, CHAR_DATA *victim)
 	obj  = create_object_vnum(OBJ_VNUM_SEVERED_HEAD);
 	obj->timer  = -1;
 					 
-	sprintf( buf, obj->short_descr, name );
+	snprintf( buf, sizeof(buf), obj->short_descr, name );
 	free_string( obj->short_descr );
 	obj->short_descr = str_dup( buf );
 					 
-	sprintf( buf, obj->description, name );
+	snprintf( buf, sizeof(buf), obj->description, name );
 	free_string( obj->description );
 	obj->description = str_dup( buf );
 					 
@@ -2800,7 +2800,7 @@ DEF_DO_FUN(do_mug)
                     act("Bingo! You snag $p from $N.",ch, obj_found, victim, TO_CHAR);
                     if ( !IS_NPC(victim) )
                     {
-                        sprintf( buf, "$N stole $p from %s.", victim->name );
+                        snprintf( buf, sizeof(buf), "$N stole $p from %s.", victim->name );
                         wiznet( buf, ch, obj_found, WIZ_FLAGS, 0, 0 );
 
                         if( !IS_NPC(ch) )
@@ -3312,9 +3312,9 @@ DEF_DO_FUN(do_rolldice)
  
     result = dice (num, size);
  
-    sprintf (buf, "Rolldice: You roll %d on %d %d-sided dice.\n\r", result, num, size);
+    snprintf (buf, sizeof(buf), "Rolldice: You roll %d on %d %d-sided dice.\n\r", result, num, size);
     send_to_char (buf, ch);
-    sprintf (buf, "Rolldice: $n rolls %d on %d %d-sided dice.\n\r", result, num, size);
+    snprintf (buf, sizeof(buf), "Rolldice: $n rolls %d on %d %d-sided dice.\n\r", result, num, size);
     act (buf, ch, NULL, NULL, TO_ROOM);
 }
 
@@ -3767,7 +3767,7 @@ DEF_DO_FUN(do_power_thrust)
     }
     else
     {
-    sprintf (buf, "Chance = %d", chance);
+    snprintf (buf, sizeof(buf), "Chance = %d", chance);
     send_to_char (buf, ch);
         send_to_char("Your power thrust misses.\n\r",ch);
         check_improve(ch,gsn_rupture,FALSE,3);

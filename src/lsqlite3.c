@@ -263,7 +263,7 @@ static int dbvm_tostring(lua_State *L) {
     if (svm->vm == NULL)
         strcpy(buff, "closed");
     else
-        sprintf(buff, "%p", svm);
+        snprintf(buff, sizeof(buff), "%p", svm);
     lua_pushfstring(L, "sqlite virtual machine (%s)", buff);
     return 1;
 }
@@ -758,7 +758,7 @@ static int lcontext_tostring(lua_State *L) {
     if (ctx->ctx == NULL)
         strcpy(buff, "closed");
     else
-        sprintf(buff, "%p", ctx->ctx);
+        snprintf(buff, sizeof(buff), "%p", ctx->ctx);
     lua_pushfstring(L, "sqlite function context (%s)", buff);
     return 1;
 }
@@ -1846,7 +1846,7 @@ static int db_tostring(lua_State *L) {
     if (db->db == NULL)
         strcpy(buff, "closed");
     else
-        sprintf(buff, "%p", lua_touserdata(L, 1));
+        snprintf(buff, sizeof(buff), "%p", lua_touserdata(L, 1));
     lua_pushfstring(L, "sqlite database (%s)", buff);
     return 1;
 }

@@ -526,7 +526,7 @@ void show_can_train( CHAR_DATA *ch )
     for ( stat = 0; stat < MAX_STATS; stat++ )
         if ( (inc = train_stat_inc(ch, stat)) > 0 )
         {
-            sprintf( buf2, " %s(+%d)", stat_table[stat].abbreviation, inc );
+            snprintf( buf2, sizeof(buf2), " %s(+%d)", stat_table[stat].abbreviation, inc );
             strcat( buf, buf2); 
         }
         
@@ -565,7 +565,7 @@ DEF_DO_FUN(do_train)
     argument = one_argument( argument, arg );
     if ( arg[0] == '\0' )
     {
-        sprintf( buf, "You have %d training sessions.\n\r", ch->train );
+        snprintf( buf, sizeof(buf), "You have %d training sessions.\n\r", ch->train );
         send_to_char( buf, ch );
         show_can_train(ch);
         return;
@@ -599,7 +599,7 @@ DEF_DO_FUN(do_train)
             }
             ch->pcdata->trained_hit += inc;
             ch->train -= cost;
-            sprintf( buf, "Your durability increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            snprintf( buf, sizeof(buf), "Your durability increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
             send_to_char( buf, ch );
             act("$n's durability increases!", ch, NULL, NULL, TO_ROOM);
         }
@@ -612,7 +612,7 @@ DEF_DO_FUN(do_train)
             }
             ch->pcdata->trained_mana += inc;
             ch->train -= cost;
-            sprintf( buf, "Your power increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            snprintf( buf, sizeof(buf), "Your power increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
             send_to_char( buf, ch );
             act("$n's power increases!", ch, NULL, NULL, TO_ROOM);
         }
@@ -625,7 +625,7 @@ DEF_DO_FUN(do_train)
             }
             ch->pcdata->trained_move += inc;
             ch->train -= cost;
-            sprintf( buf, "Your stamina increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
+            snprintf( buf, sizeof(buf), "Your stamina increases! [%d %s spent].\n\r", cost, cost > 1 ? "trains" : "train");
             send_to_char( buf, ch );
             act("$n's stamina increases!", ch, NULL, NULL, TO_ROOM);
         }
@@ -664,13 +664,13 @@ DEF_DO_FUN(do_train)
         cost = construct_train_cost(ch->perm_stat[stat], ch->perm_stat[stat] + train_stat_inc(ch, stat));
         if (cost > ch->gold)
         {
-            sprintf(buf, "You need %d gold to upgrade your %s.\n\r",
+            snprintf(buf, sizeof(buf), "You need %d gold to upgrade your %s.\n\r",
                 cost, stat_table[stat].name);
             send_to_char(buf, ch);
             return;
         }
         ch->train -= 1;
-        sprintf(buf, "You upgrade your %s systems for %d gold.\n\r",
+        snprintf(buf, sizeof(buf), "You upgrade your %s systems for %d gold.\n\r",
             stat_table[stat].name, cost);
         send_to_char(buf, ch);
         ch->gold -= cost;
@@ -750,7 +750,7 @@ DEF_DO_FUN(do_stats)
 	    if (pc_race_table[i].remorts > tier)          
 	    {
 		tier = pc_race_table[i].remorts;
-		sprintf(buf,    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++\n\r",tier);
+		snprintf(buf, sizeof(buf),    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++\n\r",tier);
 		add_buf(output, buf);
 		add_buf(output, "={WRace{x= ={WStr{x== ={WCon{x== ={WVit{x== ={WAgi{x== ={WDex{x==");
             	add_buf(output, " ={WInt{x== ={WWis{x== ={WDis{x== ={WCha{x== ={WLuc{x==");
@@ -758,12 +758,12 @@ DEF_DO_FUN(do_stats)
 
 
  
-	    sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+	    snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
             
             for (j=0; j<MAX_STATS; j++)
             {
-                sprintf(buf, " {%c%2d-%3d", (j%2)?'c':'y', pc_race_table[i].min_stats[j],
+                snprintf(buf, sizeof(buf), " {%c%2d-%3d", (j%2)?'c':'y', pc_race_table[i].min_stats[j],
                 pc_race_table[i].max_stats[j]);
                 add_buf(output,buf);
             }
@@ -799,19 +799,19 @@ DEF_DO_FUN(do_stats)
             if (pc_race_table[i].remorts > tier)
             {
                 tier = pc_race_table[i].remorts;
-                sprintf(buf,    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++\n\r",tier);
+                snprintf(buf, sizeof(buf),    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %2d{x +++++++++++++++++++++++++++++++++\n\r",tier);
                 add_buf(output, buf);
                 add_buf(output, "={WRace{x= ={WStr{x== ={WCon{x== ={WVit{x== ={WAgi{x== ={WDex{x==");
                 add_buf(output, " ={WInt{x== ={WWis{x== ={WDis{x== ={WCha{x== ={WLuc{x==");
             }
 
 
-            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
             
             for (j=0; j<MAX_STATS; j++)
             {
-                sprintf(buf, " {%c%2d-%3d",(j%2)?'c':'y', pc_race_table[i].min_stats[j], pc_race_table[i].max_stats[j]);
+                snprintf(buf, sizeof(buf), " {%c%2d-%3d",(j%2)?'c':'y', pc_race_table[i].min_stats[j], pc_race_table[i].max_stats[j]);
                 add_buf(output,buf);
 		add_buf(output, "{x");
             }
@@ -837,7 +837,7 @@ DEF_DO_FUN(do_stats)
 
 
 	output = new_buf();
-        sprintf(buf,    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %3d{x ++++++++++++++++++++++++++++++++\n\r", r_num);
+        snprintf(buf, sizeof(buf),    "\n\r\n\r++++++++++++++++++++++++++++++++ {CRemort %3d{x ++++++++++++++++++++++++++++++++\n\r", r_num);
         add_buf(output, buf);
         add_buf(output, "={WRace{x= ={WStr{x== ={WCon{x== ={WVit{x== ={WAgi{x== ={WDex{x==");
         add_buf(output, " ={WInt{x== ={WWis{x== ={WDis{x== ={WCha{x== ={WLuc{x==");
@@ -847,12 +847,12 @@ DEF_DO_FUN(do_stats)
 	{
 	    if( pc_race_table[i].remorts != r_num )
 		continue;
-            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
             
             for (j=0; j<MAX_STATS; j++)
             {
-                sprintf(buf, " {%c%2d-%3d",(j%2)?'c':'y', pc_race_table[i].min_stats[j],
+                snprintf(buf, sizeof(buf), " {%c%2d-%3d",(j%2)?'c':'y', pc_race_table[i].min_stats[j],
                     pc_race_table[i].max_stats[j]);
                 add_buf(output,buf);
 		add_buf(output,"{x");
@@ -872,7 +872,7 @@ DEF_DO_FUN(do_stats)
         
         for (j=0; j<MAX_STATS; j++)
         {
-            sprintf(buf, "{%c%2d-%3d ", (j%2)?'c':'y', pc_race_table[race].min_stats[j],
+            snprintf(buf, sizeof(buf), "{%c%2d-%3d ", (j%2)?'c':'y', pc_race_table[race].min_stats[j],
                 pc_race_table[race].max_stats[j]);
             send_to_char(buf, ch);
         }
@@ -888,7 +888,7 @@ void show_remort_bonus( CHAR_DATA *ch, int race )
         
     for ( i = 0; i < MAX_STATS; i++)
     {
-	sprintf( buf, "  +%d   ", pc_race_table[race].remort_bonus[i] );
+	snprintf( buf, sizeof(buf), "  +%d   ", pc_race_table[race].remort_bonus[i] );
 	send_to_char( buf, ch );
     }
     send_to_char( "\n\r", ch );
@@ -913,18 +913,18 @@ DEF_DO_FUN(do_etls)
             if (pc_race_table[i].remorts > tier)          
             {
                 tier = pc_race_table[i].remorts;
-                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
+                snprintf(buf, sizeof(buf),    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
                 add_buf(output, buf);
                 add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
                 add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
             }
 
-	    sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+	    snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
+                snprintf(buf, sizeof(buf), " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
 
@@ -960,18 +960,18 @@ DEF_DO_FUN(do_etls)
             if (pc_race_table[i].remorts > tier)
             {
                 tier = pc_race_table[i].remorts;
-                sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
+                snprintf(buf, sizeof(buf),    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r",tier);
                 add_buf(output, buf);
                 add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
                 add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
             }
         
-            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
+                snprintf(buf, sizeof(buf), " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }
@@ -995,7 +995,7 @@ DEF_DO_FUN(do_etls)
         }
         
         output = new_buf();
-        sprintf(buf,    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r", r_num);
+        snprintf(buf, sizeof(buf),    "\n\r\n\r+++++++++++++++++++++++++++++++++++++ {CRemort %2d{x ++++++++++++++++++++++++++++++++++++++\n\r", r_num);
         add_buf(output, buf);
         add_buf(output, "{WRace{x    {yWar  {cThi  {yCle  {cMag  {yGla  {cSam  {yPal  {cAsn");
         add_buf(output, "  {yNin  {cMon  {yTem  {cIlu  {yGun  {cRan  {yNec{x  {cBar{x");
@@ -1005,13 +1005,13 @@ DEF_DO_FUN(do_etls)
         {
             if( pc_race_table[i].remorts != r_num )
                 continue;
-            sprintf(buf, "\n\r{D%6s", pc_race_table[i].who_name);
+            snprintf(buf, sizeof(buf), "\n\r{D%6s", pc_race_table[i].who_name);
             add_buf(output,buf);
 
 
             for (j=0; j<MAX_CLASS; j++)
             {
-                sprintf(buf, " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
+                snprintf(buf, sizeof(buf), " {%c%3d0{x",(j%2)?'c':'y', pc_race_table[i].class_mult[j]);
                 add_buf(output,buf);
             }
         }   
@@ -1026,14 +1026,14 @@ DEF_DO_FUN(do_etls)
     {
         for (i=0; i<MAX_CLASS; i++)
         {
-            sprintf(buf, " %3s ", class_table[i].who_name);
+            snprintf(buf, sizeof(buf), " %3s ", class_table[i].who_name);
             send_to_char(buf, ch);
         }
         send_to_char("\n\r", ch);
         
         for (j=0; j<MAX_CLASS; j++)
         {
-            sprintf(buf, "%3d0 ", pc_race_table[race].class_mult[j]);
+            snprintf(buf, sizeof(buf), "%3d0 ", pc_race_table[race].class_mult[j]);
             send_to_char(buf, ch);
         }
         send_to_char("\n\r", ch);
@@ -1059,28 +1059,28 @@ DEF_DO_FUN(do_showrace)
         return;
     }
     
-    sprintf(buf, "Race: %s      Remort: %d      Size: %s      Gender: %s\n\r",
+    snprintf(buf, sizeof(buf), "Race: %s      Remort: %d      Size: %s      Gender: %s\n\r",
         pc_race_table[race].name,
         pc_race_table[race].remorts,
         size_table[pc_race_table[race].size].name,
         sex_table[pc_race_table[race].gender].name);
     send_to_char(buf, ch);
     
-    sprintf(buf, "Vulnerabilities: %s\n\r", imm_bits_name(race_table[race].vuln));
+    snprintf(buf, sizeof(buf), "Vulnerabilities: %s\n\r", imm_bits_name(race_table[race].vuln));
     send_to_char(buf, ch);
     
-    sprintf(buf, "Resistances: %s\n\r", imm_bits_name(race_table[race].res));
+    snprintf(buf, sizeof(buf), "Resistances: %s\n\r", imm_bits_name(race_table[race].res));
     send_to_char(buf, ch);
     
     if ( !flag_is_empty(race_table[race].imm) )
     {
-        sprintf(buf, "Immunities: %s\n\r", imm_bits_name(race_table[race].imm));
+        snprintf(buf, sizeof(buf), "Immunities: %s\n\r", imm_bits_name(race_table[race].imm));
         send_to_char(buf, ch);
     }
     
     if ( !flag_is_empty(race_table[race].affect_field) )
     {
-        sprintf(buf, "Affected by: %s\n\r", affect_bits_name(race_table[race].affect_field));
+        snprintf(buf, sizeof(buf), "Affected by: %s\n\r", affect_bits_name(race_table[race].affect_field));
         send_to_char(buf, ch);
     }
     
@@ -1091,7 +1091,7 @@ DEF_DO_FUN(do_showrace)
 	    SET_BIT( combat_parts, part );
     if ( !flag_is_empty(combat_parts) )
     {
-        sprintf(buf, "Natural Weaponry: %s\n\r", flag_bits_name(part_flags, combat_parts) );
+        snprintf(buf, sizeof(buf), "Natural Weaponry: %s\n\r", flag_bits_name(part_flags, combat_parts) );
         send_to_char(buf, ch);
     }    
 
@@ -1118,7 +1118,7 @@ DEF_DO_FUN(do_showrace)
 
     if ( !flag_is_empty(special_forms) )
     {
-        sprintf(buf, "Specialty: %s\n\r",
+        snprintf(buf, sizeof(buf), "Specialty: %s\n\r",
 		flag_bits_name(form_flags, special_forms) );
         send_to_char(buf, ch);
     }    
@@ -1161,11 +1161,11 @@ void show_pc_race_ratings( CHAR_DATA *ch, int race )
     if (construct) {
         char min_color = min_sum > allowed_min ? 'r' : min_sum < allowed_min ? 'g' : 'x';
         char max_color = max_sum > allowed_max ? 'r' : max_sum < allowed_max ? 'g' : 'x';
-        sprintf( buf, "\n\rStat Rating: Min = {%c%d{x/%d, Max = {%c%d{x/%d{x\n\r", min_color, min_sum, allowed_min, max_color, max_sum, allowed_max );
+        snprintf( buf, sizeof(buf), "\n\rStat Rating: Min = {%c%d{x/%d, Max = {%c%d{x/%d{x\n\r", min_color, min_sum, allowed_min, max_color, max_sum, allowed_max );
     } else {
         int rating = min_sum + max_sum * trade_factor;
         char rating_color = rating > allowed_rating ? 'r' : rating < allowed_rating ? 'g' : 'x';
-        sprintf( buf, "\n\rStat Rating: {%c%d{x/%d\n\r", rating_color, rating, allowed_rating );
+        snprintf( buf, sizeof(buf), "\n\rStat Rating: {%c%d{x/%d\n\r", rating_color, rating, allowed_rating );
     }
     send_to_char( buf, ch );        
 }
@@ -1180,7 +1180,7 @@ DEF_DO_FUN(do_racelist)
         if (pc_race_table[i].remorts > tier)
         {
             tier = pc_race_table[i].remorts;
-            sprintf(buf, "%s              === Remort Tier #%d ===\n\r",
+            snprintf(buf, sizeof(buf), "%s              === Remort Tier #%d ===\n\r",
                 (tier>0) ? "\n\r\n\r" : "", tier);
             send_to_char(buf, ch);
             j=0;
@@ -1191,7 +1191,7 @@ DEF_DO_FUN(do_racelist)
             j=0;
         }
         
-        sprintf(buf, "%-12s ", pc_race_table[i].name);
+        snprintf(buf, sizeof(buf), "%-12s ", pc_race_table[i].name);
         send_to_char(buf, ch);
     }
     send_to_char("\n\r", ch);
@@ -1453,7 +1453,7 @@ bool parse_roll_stats (CHAR_DATA *ch, const char *argument)
                 break;
         if (i==15||die==-1)
         {
-            sprintf(buf, "You dont have any %d dice to assign.\n\r", die);
+            snprintf(buf, sizeof(buf), "You dont have any %d dice to assign.\n\r", die);
             send_to_char(buf,ch);
             return TRUE;
         }
@@ -1488,18 +1488,18 @@ void show_dice(CHAR_DATA *ch)
             if (ch->gen_data->assigned_die[i+10]==-1)
                 strcpy(buf3, " --");
             else
-                sprintf(buf3, "%3d", ch->gen_data->assigned_die[i+10]);
-            sprintf(buf2, "%10s %3s", stat_table[i+10].name, buf3);
+                snprintf(buf3, sizeof(buf3), "%3d", ch->gen_data->assigned_die[i+10]);
+            snprintf(buf2, sizeof(buf2), "%10s %3s", stat_table[i+10].name, buf3);
         }
         
         if (ch->gen_data->assigned_die[i]==-1)
             strcpy(buf3, " --");
         else
-            sprintf(buf3, "%3d", ch->gen_data->assigned_die[i]);
+            snprintf(buf3, sizeof(buf3), "%3d", ch->gen_data->assigned_die[i]);
         
         train = (values->rolled + values->max) / 2;
         
-        sprintf(buf, " %3s  %3d   %3d   %3s   %3d-%3d            %s\n\r",
+        snprintf(buf, sizeof(buf), " %3s  %3d   %3d   %3s   %3d-%3d            %s\n\r",
             stat_table[i].abbreviation, values->rolled, train, buf3, values->min, values->max, buf2);
         send_to_char(buf, ch);
     }
@@ -1509,7 +1509,7 @@ void show_dice(CHAR_DATA *ch)
     {
         if ((die=ch->gen_data->unused_die[i])==-1) break;
         if (i>0) strcat(buf, ", ");
-        sprintf(buf3, "%d", die);
+        snprintf(buf3, sizeof(buf3), "%d", die);
         strcat(buf, buf3);
     }
     strcat(buf, "\n\r");

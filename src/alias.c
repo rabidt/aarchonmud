@@ -64,9 +64,9 @@ void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
 	if ( ch->master->in_room == ch->in_room )
 	{
 	    char act_buf[MSL];
-	    sprintf( act_buf, "You tell $N that you want to '%s'.", argument );
+	    snprintf( act_buf, sizeof(act_buf), "You tell $N that you want to '%s'.", argument );
 	    act( act_buf, ch, NULL, ch->master, TO_CHAR );
-	    sprintf( act_buf, "$n looks like $e wants to '%s'.", argument );
+	    snprintf( act_buf, sizeof(act_buf), "$n looks like $e wants to '%s'.", argument );
 	    act( act_buf, ch, NULL, ch->master, TO_VICT );
 	    act( "$n looks at $N with adoring eyes.", ch, NULL, ch->master, TO_NOTVICT );
 	}
@@ -83,7 +83,7 @@ void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
             send_to_char("Line too long, prefix not processed.\n\r",ch);
         else
         {
-            sprintf(prefix,"%s %s",ch->prefix,argument);
+            snprintf(prefix, sizeof(prefix),"%s %s",ch->prefix,argument);
             argument = prefix;
         }
     }
@@ -169,11 +169,11 @@ DEF_DO_FUN(do_alias)
                 ||	rch->pcdata->alias_sub[pos] == NULL)
                 break;
             
-            sprintf(buf,"    %s:  %s\n\r",rch->pcdata->alias[pos],
+            snprintf(buf, sizeof(buf),"    %s:  %s\n\r",rch->pcdata->alias[pos],
                 rch->pcdata->alias_sub[pos]);
             send_to_char(buf,ch);
         }
-        sprintf(buf,"(%d/%d aliases used)\n\r",pos,MAX_ALIAS);
+        snprintf(buf, sizeof(buf),"(%d/%d aliases used)\n\r",pos,MAX_ALIAS);
             send_to_char(buf,ch);
         return;
     }
@@ -194,7 +194,7 @@ DEF_DO_FUN(do_alias)
             
             if (!str_cmp(arg,rch->pcdata->alias[pos]))
             {
-                sprintf(buf,"%s aliases to '%s'.\n\r",rch->pcdata->alias[pos],
+                snprintf(buf, sizeof(buf),"%s aliases to '%s'.\n\r",rch->pcdata->alias[pos],
                     rch->pcdata->alias_sub[pos]);
                 send_to_char(buf,ch);
                 return;
@@ -220,7 +220,7 @@ DEF_DO_FUN(do_alias)
         {
             free_string(rch->pcdata->alias_sub[pos]);
             rch->pcdata->alias_sub[pos] = str_dup(argument);
-            sprintf(buf,"%s is now realiased to '%s'.\n\r",arg,argument);
+            snprintf(buf, sizeof(buf),"%s is now realiased to '%s'.\n\r",arg,argument);
             send_to_char(buf,ch);
             return;
         }
@@ -235,7 +235,7 @@ DEF_DO_FUN(do_alias)
     /* make a new alias */
     rch->pcdata->alias[pos]		= str_dup(arg);
     rch->pcdata->alias_sub[pos]	= str_dup(argument);
-    sprintf(buf,"%s is now aliased to '%s'.\n\r",arg,argument);
+    snprintf(buf, sizeof(buf),"%s is now aliased to '%s'.\n\r",arg,argument);
     send_to_char(buf,ch);
 }
 

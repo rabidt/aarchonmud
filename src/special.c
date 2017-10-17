@@ -595,7 +595,7 @@ bool spec_cast_any( CHAR_DATA *ch )
     }
     
     char argument[255];
-    sprintf( argument, "'%s'", spell_list[spell_selected].spell );
+    snprintf( argument, sizeof(argument), "'%s'", spell_list[spell_selected].spell );
     do_cast( ch, argument );
     return TRUE;
 }
@@ -667,7 +667,7 @@ bool spec_executioner( CHAR_DATA *ch )
 	if ( victim == NULL )
 	    return FALSE;
 
-	sprintf( buf, "%s is a %s!  PROTECT THE INNOCENT!  MORE BLOOOOD!!!",
+	snprintf( buf, sizeof(buf), "%s is a %s!  PROTECT THE INNOCENT!  MORE BLOOOOD!!!",
 	victim->name, crime );
 	REMOVE_BIT(ch->penalty, PENALTY_NOSHOUT);
 	do_yell( ch, buf );
@@ -761,7 +761,7 @@ bool spec_guard( CHAR_DATA *ch )
 	
 	if ( victim != NULL )
 	    {
-		sprintf( buf, "%s is a %s!  PROTECT THE INNOCENT!!  BANZAI!!",
+		snprintf( buf, sizeof(buf), "%s is a %s!  PROTECT THE INNOCENT!!  BANZAI!!",
 			 victim->name, crime );
 		REMOVE_BIT(ch->penalty, PENALTY_NOSHOUT);
 		do_yell( ch, buf );
@@ -974,7 +974,7 @@ bool spec_bounty_hunter (CHAR_DATA *ch)
 	if ( victim == NULL )
 	return FALSE;
 
-	sprintf( buf, "%s, I'm here to collect on your bounty!", victim->name );
+	snprintf( buf, sizeof(buf), "%s, I'm here to collect on your bounty!", victim->name );
 	do_say( ch, buf );
 	do_backstab(ch, victim->name);
 	multi_hit( ch, victim, TYPE_UNDEFINED );
@@ -1081,7 +1081,7 @@ bool spec_temple_guard ( CHAR_DATA *ch )
     // is new target just a harmless non-believer?
     if ( get_religion(target) == NULL && !carries_relic(target) )
     {
-	sprintf( buf, "This is the temple of %s. Get out %s!",
+	snprintf( buf, sizeof(buf), "This is the temple of %s. Get out %s!",
 		 rel->god, target->name );
 	do_say( ch, buf );
 	send_to_char( "You are transfered by divine powers.\n\r", target );
@@ -1094,7 +1094,7 @@ bool spec_temple_guard ( CHAR_DATA *ch )
 
     // attack!
     do_religion_talk( ch, "We are under attack!" );
-    sprintf( buf, "Intruders have entered the temple! In the name of %s!",
+    snprintf( buf, sizeof(buf), "Intruders have entered the temple! In the name of %s!",
 	     rel->god );
     do_yell( ch, buf );
     set_fighting( ch, target );

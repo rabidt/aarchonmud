@@ -483,19 +483,19 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	else
 	    obj_value = obj->cost;
 	match = (obj_value >= gd->value);
-	sprintf( buf, "(%d gold)", obj_value / 100 );
+	snprintf( buf, sizeof(buf), "(%d gold)", obj_value / 100 );
 	strcat( info, buf );
 	break;
     case GREP_OBJ_WEIGHT:
         obj_value = obj->weight;
         match = (obj_value >= gd->value);
-        sprintf( buf, "(%d dlbs)", obj_value );
+        snprintf( buf, sizeof(buf), "(%d dlbs)", obj_value );
         strcat( info, buf );
         break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
-	sprintf( buf, "(%d ops)", obj_value );
+	snprintf( buf, sizeof(buf), "(%d ops)", obj_value );
 	strcat( info, buf );
 	break;
     case GREP_OBJ_LEVEL:
@@ -514,10 +514,10 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	match = has_spell(obj, gd->value);
 	break;
     case GREP_OBJ_AFF:
-	match = has_affect( obj, gd->value, msg );
+	match = has_affect( obj, gd->value, msg, sizeof(msg) );
 	if ( msg[0] != '\0' )
 	{
-	    sprintf( buf, "(%s)", msg );
+	    snprintf( buf, sizeof(buf), "(%s)", msg );
 	    strcat( info, buf );
 	}
 	break;
@@ -526,7 +526,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	    break;
 	match = (obj->value[3] >= gd->value
 		 || obj->value[4] >= gd->value);
-	sprintf( buf, "(heal=%d/%d)", obj->value[3], obj->value[4] );
+	snprintf( buf, sizeof(buf), "(heal=%d/%d)", obj->value[3], obj->value[4] );
 	strcat( info, buf );
 	break;
     case GREP_OBJ_ADDFLAG:
@@ -535,24 +535,24 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	    if ( aff->bitvector > 0 )
 	    {
 		match = TRUE;
-		sprintf( buf, "(%s)", to_bit_name(aff->where, aff->bitvector) );
+		snprintf( buf, sizeof(buf), "(%s)", to_bit_name(aff->where, aff->bitvector) );
 		strcat( info, buf );
 		break;
 	    }
 	break;
     case GREP_OBJ_SPEC:
-	match = !is_obj_in_spec( obj, msg );
+	match = !is_obj_in_spec( obj, msg, sizeof(msg) );
 	if ( msg[0] != '\0' )
 	{
-	    sprintf( buf, "(%s)", msg );
+	    snprintf( buf, sizeof(buf), "(%s)", msg );
 	    strcat( info, buf );
 	}
 	break;
     case GREP_OBJ_BELOW_SPEC:
-        match = is_obj_below_spec( obj, msg );
+        match = is_obj_below_spec( obj, msg, sizeof(msg) );
         if ( msg[0] != '\0' )
         {
-            sprintf( buf, "(%s)", msg );
+            snprintf( buf, sizeof(buf), "(%s)", msg );
             strcat( info, buf );
         }
         break;
@@ -563,7 +563,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
         match = (obj->combine_vnum > 0);
         if (match)
         {
-            sprintf( buf, "(combine=%d)", obj->combine_vnum );
+            snprintf( buf, sizeof(buf), "(combine=%d)", obj->combine_vnum );
             strcat( info, buf );
         }
         break;
@@ -624,10 +624,10 @@ void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 
 	/* now the message */
 	if ( info[0] != '\0' )
-	    sprintf( buf, "[%5d] %3d %s %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %3d %s %s\n\r", 
 		     vnum, obj->level, info, obj->short_descr );
 	else
-	    sprintf( buf, "[%5d] %3d %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %3d %s\n\r", 
 		     vnum, obj->level, obj->short_descr );
 
 	add_buf( buffer, buf );
@@ -910,9 +910,9 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
         wealth = mob_base_wealth(mob);
 	match = (wealth >= gd->value);
 	if ( mob->pShop == NULL )
-	    sprintf( buf, "(%ld gold)", wealth / 100 );
+	    snprintf( buf, sizeof(buf), "(%ld gold)", wealth / 100 );
 	else
-	    sprintf( buf, "(S %ld gold)", wealth / 100 );
+	    snprintf( buf, sizeof(buf), "(S %ld gold)", wealth / 100 );
 	strcat( info, buf );
 	break;
     case GREP_MOB_AFF:
@@ -937,10 +937,10 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	match = has_mprog( mob, gd->value );
 	break;
     case GREP_MOB_SPEC:
-	match = !is_mob_in_spec( mob, msg );
+	match = !is_mob_in_spec( mob, msg, sizeof(msg) );
 	if ( msg[0] != '\0' )
 	{
-	    sprintf( buf, "(%s)", msg );
+	    snprintf( buf, sizeof(buf), "(%s)", msg );
 	    strcat( info, buf );
 	}
 	break;
@@ -965,10 +965,10 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
     default: 
 	break;
     case GREP_MOB_SPECFUN:
-        match = has_special( mob, gd->str_value, msg );
+        match = has_special( mob, gd->str_value, msg, sizeof(msg) );
         if ( msg[0] != '\0' )
         {
-            sprintf( buf, "(%s)", msg );
+            snprintf( buf, sizeof(buf), "(%s)", msg );
             strcat( info, buf );
         }    
     }
@@ -1020,10 +1020,10 @@ void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 
 	/* now the message */
 	if ( info[0] != '\0' )
-	    sprintf( buf, "[%5d] %3d %s %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %3d %s %s\n\r", 
 		     vnum, mob->level, info, mob->short_descr );
 	else
-	    sprintf( buf, "[%5d] %3d %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %3d %s\n\r", 
 		     vnum, mob->level, mob->short_descr );
 
 	add_buf( buffer, buf );
@@ -1159,7 +1159,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
     case GREP_ROOM_HEAL:
 	match = (room->heal_rate >= gd->value
 		 || room->mana_rate >= gd->value);
-	sprintf( buf, "(heal=%d/%d)", room->heal_rate, room->mana_rate );
+	snprintf( buf, sizeof(buf), "(heal=%d/%d)", room->heal_rate, room->mana_rate );
 	strcat( info, buf );
 	break;
     case GREP_ROOM_INGAME:
@@ -1216,10 +1216,10 @@ void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum 
 
 	/* now the message */
 	if ( info[0] != '\0' )
-	    sprintf( buf, "[%5d] %s %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %s %s\n\r", 
 		     vnum, info, room->name );
 	else
-	    sprintf( buf, "[%5d] %s\n\r", 
+	    snprintf( buf, sizeof(buf), "[%5d] %s\n\r", 
 		     vnum, room->name );
 
 	add_buf( buffer, buf );
@@ -1257,7 +1257,7 @@ bool is_room_ingame( ROOM_INDEX_DATA *room )
     && is_area_ingame(room->area);
 }
 
-bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
+bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg, size_t n )
 {
     /* remort has no specs */
     if ( IS_SET(mob->area->area_flags, AREA_REMORT) )
@@ -1266,7 +1266,7 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
     /* check level */
     if ( mob->level < 1 || mob->level > 200 )
     {
-	sprintf( msg, "lvl=%d", mob->level );
+	snprintf( msg, n, "lvl=%d", mob->level );
 	return FALSE;
     }
 
@@ -1274,28 +1274,28 @@ bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg )
 
     if ( mob->wealth_percent > 200 )
     {
-        sprintf( msg, "wealth=%d%%", mob->wealth_percent );
+        snprintf( msg, n, "wealth=%d%%", mob->wealth_percent );
         return FALSE;
     }
 
     /* check hp */
     if ( mob->hitpoint_percent != 100 )
     {
-        sprintf( msg, "hp=%d%%", mob->hitpoint_percent );
+        snprintf( msg, n, "hp=%d%%", mob->hitpoint_percent );
         return FALSE;
     }
 
     /* check damage */
     if ( mob->damage_percent != 100 )
     {
-        sprintf( msg, "damage=%d%%", mob->damage_percent );
+        snprintf( msg, n, "damage=%d%%", mob->damage_percent );
         return FALSE;
     }
 
     /* check hitroll */
     if ( mob->hitroll_percent != 100 )
     {
-        sprintf( msg, "hitroll=%d%%", mob->hitroll_percent );
+        snprintf( msg, n, "hitroll=%d%%", mob->hitroll_percent );
         return FALSE;
     }
 
@@ -1678,7 +1678,7 @@ bool can_wear( OBJ_INDEX_DATA *obj )
     return FALSE;
 }
 
-bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
+bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg, size_t n )
 {
     int value, spec;
     AFFECT_DATA *aff;
@@ -1691,7 +1691,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     value = get_obj_index_ops( obj );
     if ( value > spec )
     {
-	sprintf( msg, "ops=%d/%d", value, spec );
+	snprintf( msg, n, "ops=%d/%d", value, spec );
 	return FALSE;
     }
 
@@ -1710,7 +1710,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
             value = aff->modifier + (is_basic_stat(aff->location) ? all_stats : 0);
             if ( value > spec )
             {
-                sprintf( msg, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );
+                snprintf( msg, n, "%s = %d/%d", name_lookup(aff->location, apply_flags), value, spec );
                 return FALSE;
             }
         }
@@ -1724,7 +1724,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
         {
             if ( aff->location == last_loc )
             {
-                sprintf( msg, "duplicates" );
+                snprintf( msg, n, "duplicates" );
                 return FALSE;
             }
             last_loc = aff->location;
@@ -1739,12 +1739,12 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	maxdam = 10 + obj->level + 5 * obj->diff_rating;
 	if ( obj->value[0] > maxnr )
 	{
-	    sprintf( msg, "nr=%d/%d", obj->value[0], maxnr );
+	    snprintf( msg, n, "nr=%d/%d", obj->value[0], maxnr );
 	    return FALSE;
 	}
 	if ( obj->value[1] > maxdam )
 	{
-	    sprintf( msg, "dam=%d/%d", obj->value[1], maxdam );
+	    snprintf( msg, n, "dam=%d/%d", obj->value[1], maxdam );
 	    return FALSE;
 	}
     }
@@ -1756,7 +1756,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
         value = average_weapon_index_dam(obj);
         if ( value > spec )
         {
-            sprintf( msg, "dam=%d/%d", value, spec );
+            snprintf( msg, n, "dam=%d/%d", value, spec );
             return FALSE;
         }
     }
@@ -1768,7 +1768,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
 	value = obj->value[0];
 	if ( value > spec )
 	{
-	    sprintf( msg, "ac=%d/%d", value, spec );
+	    snprintf( msg, n, "ac=%d/%d", value, spec );
 	    return FALSE;
 	}
     }
@@ -1776,7 +1776,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg )
     return TRUE;
 }
 
-bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
+bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg, size_t n )
 {
     int value, spec;
     AFFECT_DATA *aff;
@@ -1792,7 +1792,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
       && !IS_SET(obj->extra_flags, ITEM_RANDOM_PHYSICAL) 
       && !IS_SET(obj->extra_flags, ITEM_RANDOM_CASTER) )
     {
-        sprintf( msg, "ops=%d/%d", value, spec );
+        snprintf( msg, n, "ops=%d/%d", value, spec );
         return TRUE;
     }
     
@@ -1806,7 +1806,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
         // below negative spec
         if ( value*factor < -spec*factor )
         {
-            sprintf( msg, "%s=%d/%d", name_lookup(aff->location, apply_flags), value, spec );
+            snprintf( msg, n, "%s=%d/%d", name_lookup(aff->location, apply_flags), value, spec );
             return TRUE;
         }
     }
@@ -1818,7 +1818,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg )
         value = average_weapon_index_dam(obj);
         if ( value < spec )
         {
-            sprintf( msg, "dam=%d/%d", value, spec );
+            snprintf( msg, n, "dam=%d/%d", value, spec );
             return TRUE;
         }
     }
@@ -1846,7 +1846,7 @@ bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
     return FALSE;
 }
 
-bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
+bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg, size_t n )
 {
     const char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
@@ -1855,7 +1855,7 @@ bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg )
 
     if ( !strcmp(spec_name, "any") )
     {
-        sprintf( msg, "%s", mob_spec_name );
+        snprintf( msg, n, "%s", mob_spec_name );
         return TRUE;
     }
 
@@ -1882,14 +1882,14 @@ bool has_spell( OBJ_INDEX_DATA *obj, int ID )
 	return FALSE;
 }
 
-bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg )
+bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg, size_t n )
 {
     AFFECT_DATA *aff;
 
     for ( aff = obj->affected; aff != NULL; aff = aff->next )
 	if ( aff->location == loc )
 	{
-	    sprintf( msg, "%d %s", aff->modifier,
+	    snprintf( msg, n, "%d %s", aff->modifier,
 		     flag_bit_name(apply_flags, aff->location) );
 	    return TRUE;
 	}

@@ -174,12 +174,12 @@ char* print_tflag( const tflag f )
     char nr_buf[10];
     int i;
 
-    sprintf( buf, "<" );
+    snprintf( buf, sizeof(buf), "<" );
     /* ignore bit 0 */
     for ( i = 1; i < FLAG_MAX_BIT; i++ )
 	if ( flag_is_set( f, i ) )
 	{
-	    sprintf( nr_buf, "%d|", i );
+	    snprintf( nr_buf, sizeof(nr_buf), "%d|", i );
 	    strcat( buf, nr_buf );
 	}
     /* delete last pipe */
