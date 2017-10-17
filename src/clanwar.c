@@ -170,12 +170,12 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
       if (p)
       {
          switch (p->status) {
-         case CLANWAR_WAR:    sprintf(pstat, "{rWAR(%d){x", p->pkills);    break;
+         case CLANWAR_WAR:    snprintf(pstat, sizeof(pstat), "{rWAR(%d){x", p->pkills);    break;
          case CLANWAR_TRUCE:  
             if (p->truce_timer < 0)
-               sprintf(pstat, "{rWAR(%d)-Tr?{x", p->pkills);
+               snprintf(pstat, sizeof(pstat), "{rWAR(%d)-Tr?{x", p->pkills);
             else
-               sprintf(pstat, "{yTruce(%d){x", abs(p->truce_timer));  
+               snprintf(pstat, sizeof(pstat), "{yTruce(%d){x", abs(p->truce_timer));  
             break;
          case CLANWAR_TREATY: strcpy(pstat, "{gTreaty{x"); break;
          default: return; break;
@@ -189,12 +189,12 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
       if (q)
       {
          switch (q->status) {
-         case CLANWAR_WAR:    sprintf(qstat, "{rWAR(%d){x", q->pkills);    break;
+         case CLANWAR_WAR:    snprintf(qstat, sizeof(qstat), "{rWAR(%d){x", q->pkills);    break;
          case CLANWAR_TRUCE:  
             if (q->truce_timer < 0)
-               sprintf(qstat, "{rWAR(%d)-Tr?{x", q->pkills);
+               snprintf(qstat, sizeof(qstat), "{rWAR(%d)-Tr?{x", q->pkills);
             else
-               sprintf(qstat, "{yTruce(%d){x", abs(q->truce_timer));  
+               snprintf(qstat, sizeof(qstat), "{yTruce(%d){x", abs(q->truce_timer));  
             break;
          case CLANWAR_TREATY: strcpy(qstat, "{gTreaty{x"); break;
          default: return; break;
@@ -392,7 +392,7 @@ DEF_DO_FUN(do_clanwar)
                   p->status = CLANWAR_WAR;
                   p->truce_name = NULL;
                   p->truce_timer = 0;
-                  sprintf(log_buf, "Clan %s is no longer seeking a truce with clan %s!\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s is no longer seeking a truce with clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name), 
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -405,7 +405,7 @@ DEF_DO_FUN(do_clanwar)
                   q->status = CLANWAR_WAR;
                   q->truce_timer = 0;
                   q->truce_name = NULL;
-                  sprintf(log_buf, "Clan %s has ended the truce with clan %s!\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has ended the truce with clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name), 
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -426,7 +426,7 @@ DEF_DO_FUN(do_clanwar)
                case CLANWAR_WAR:
                   add_clanwar_node(ch, clan_number, CLANWAR_WAR);
                   
-                  sprintf(log_buf, "Clan %s has declared WAR on clan %s!", 
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has declared WAR on clan %s!", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -436,7 +436,7 @@ DEF_DO_FUN(do_clanwar)
                   add_clanwar_node(ch, clan_number, CLANWAR_WAR);
                   delete_clanwar_node(q);  /* Set other clan to PEACE */
                   
-                  sprintf(log_buf, "Clan %s has declared WAR on clan %s!", 
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has declared WAR on clan %s!", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -464,7 +464,7 @@ DEF_DO_FUN(do_clanwar)
                   
                   p->status = CLANWAR_WAR;
                   
-                  sprintf(log_buf, "Clan %s has declared WAR on clan %s!", 
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has declared WAR on clan %s!", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -482,7 +482,7 @@ DEF_DO_FUN(do_clanwar)
                   
                   delete_clanwar_node(q);
                   
-                  sprintf(log_buf, "Clan %s has violated their peace treaty and declared WAR on clan %s!", 
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has violated their peace treaty and declared WAR on clan %s!", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -521,7 +521,7 @@ DEF_DO_FUN(do_clanwar)
                   q->status = CLANWAR_WAR;
                case CLANWAR_WAR:
                   delete_clanwar_node(p);
-                  sprintf(log_buf, "Clan %s has withdrawn their declaration of war upon clan %s!\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has withdrawn their declaration of war upon clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -529,7 +529,7 @@ DEF_DO_FUN(do_clanwar)
                   break;
                case CLANWAR_PEACE:
                   delete_clanwar_node(p);
-                  sprintf(log_buf, "Clan %s is now at peace with clan %s!\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s is now at peace with clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -571,7 +571,7 @@ DEF_DO_FUN(do_clanwar)
                   delete_clanwar_node(p);
                   delete_clanwar_node(q);
 
-                  sprintf(log_buf, "Clan %s has ended their peace treaty with clan %s!\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s has ended their peace treaty with clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -588,7 +588,7 @@ DEF_DO_FUN(do_clanwar)
 
                   delete_clanwar_node(p);
 
-                  sprintf(log_buf, "Clan %s is no longer seeking a peace treaty with clan %s.\n\r",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s is no longer seeking a peace treaty with clan %s.\n\r",
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
                   info_message(ch, log_buf, TRUE);
@@ -645,7 +645,7 @@ DEF_DO_FUN(do_clanwar)
                   p->truce_name  = ch->name;
                   p->truce_timer = 0 - hours;
 
-                  sprintf(log_buf, "Clan %s is seeking a truce with clan %s for %d hours.",
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s is seeking a truce with clan %s for %d hours.",
                      capitalize(clan_table[ch->clan].name), 
                      capitalize(clan_table[clan_number].name),
                      hours);
@@ -660,7 +660,7 @@ DEF_DO_FUN(do_clanwar)
                   
                   q->truce_timer = p->truce_timer;
 
-                  sprintf(log_buf, "Clans %s and %s are now at truce for %d hours.",
+                  snprintf(log_buf, sizeof(log_buf), "Clans %s and %s are now at truce for %d hours.",
                      capitalize(clan_table[ch->clan].name), 
                      capitalize(clan_table[clan_number].name),
                      p->truce_timer);
@@ -741,7 +741,7 @@ DEF_DO_FUN(do_clanwar)
                case CLANWAR_PEACE:
                   add_clanwar_node(ch, clan_number, CLANWAR_TREATY);
                   
-                  sprintf(log_buf, "Clan %s is seeking a peace treaty with clan %s.\n\r", 
+                  snprintf(log_buf, sizeof(log_buf), "Clan %s is seeking a peace treaty with clan %s.\n\r", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
 
@@ -751,7 +751,7 @@ DEF_DO_FUN(do_clanwar)
                case CLANWAR_TREATY:
                   add_clanwar_node(ch, clan_number, CLANWAR_TREATY);
 
-                  sprintf(log_buf, "Clans %s and %s have signed a peace treaty!\n\r", 
+                  snprintf(log_buf, sizeof(log_buf), "Clans %s and %s have signed a peace treaty!\n\r", 
                      capitalize(clan_table[ch->clan].name),
                      capitalize(clan_table[clan_number].name));
 

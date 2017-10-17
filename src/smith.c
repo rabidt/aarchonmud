@@ -173,7 +173,7 @@ SM_SET_FUN( smith_set_description )
     }
 
     char buf[MIL];
-    sprintf( buf, "%s{x", argument);
+    snprintf( buf, sizeof(buf), "%s{x", argument);
     free_string(ch->pcdata->smith->new_obj->description);
     ch->pcdata->smith->new_obj->description = str_dup( buf );
 }
@@ -187,7 +187,7 @@ SM_SET_FUN( smith_set_short_descr )
     }
     
     char buf[MIL];
-    sprintf( buf, "%s{x", argument );
+    snprintf( buf, sizeof(buf), "%s{x", argument );
     free_string(ch->pcdata->smith->new_obj->short_descr);
     ch->pcdata->smith->new_obj->short_descr = str_dup( buf );
 }
@@ -328,7 +328,7 @@ SM_FUN( smith_finish )
     char buf[MSL];
     int gold,qp;
     calc_smith_cost( ch, &gold, &qp );
-    sprintf(buf, "%s paid %d gold and %d quest points to smith for %s (%d)",
+    snprintf(buf, sizeof(buf), "%s paid %d gold and %d quest points to smith for %s (%d)",
            ch->name, gold, qp, ch->pcdata->smith->new_obj->short_descr, 
            ch->pcdata->smith->new_obj->pIndexData->vnum);
     log_string(buf);
@@ -405,7 +405,7 @@ SM_FUN( smith_give )
 
 #ifdef SMITH_LOG
     char buf[MSL];
-    sprintf( buf, "%s gave %s (%d) to smith.", ch->name,
+    snprintf( buf, sizeof(buf), "%s gave %s (%d) to smith.", ch->name,
             obj->short_descr, obj->pIndexData->vnum);
     log_string(buf);
 #endif
@@ -457,7 +457,7 @@ void cancel_smith( CHAR_DATA *ch )
         obj_to_char( ch->pcdata->smith->old_obj, ch );
 #ifdef SMITH_LOG
     char buf[MSL];
-    sprintf(buf, "%s got %s (%d) back from smith.",
+    snprintf(buf, sizeof(buf), "%s got %s (%d) back from smith.",
            ch->name, ch->pcdata->smith->old_obj->short_descr,
            ch->pcdata->smith->old_obj->pIndexData->vnum);
     log_string(buf);

@@ -276,7 +276,7 @@ bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
                 REMOVE_BIT(victim->penalty, penalty_table[pen].bit);
                 
                 printf_to_char(ch, "%s is no longer %s.\n\r", PERS(victim, ch), penalty_table[pen].apply_string);
-                sprintf(buf,"%s: %s is no longer %s.", capitalize(ch->name), PERS(victim, ch), penalty_table[pen].apply_string);
+                snprintf(buf, sizeof(buf),"%s: %s is no longer %s.", capitalize(ch->name), PERS(victim, ch), penalty_table[pen].apply_string);
                 wiznet(buf,ch,NULL,WIZ_PENALTIES,WIZ_SECURE,0);
             }
             else
@@ -284,7 +284,7 @@ bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
                 SET_BIT(victim->penalty, penalty_table[pen].bit);
                 
                 printf_to_char(ch, "%s has been %s.\n\r", PERS(victim, ch), penalty_table[pen].apply_string);
-                sprintf(buf,"%s has %s %s.", capitalize(ch->name), penalty_table[pen].apply_string, PERS(victim, ch));
+                snprintf(buf, sizeof(buf),"%s has %s %s.", capitalize(ch->name), penalty_table[pen].apply_string, PERS(victim, ch));
                 wiznet(buf,ch,NULL,WIZ_PENALTIES,WIZ_SECURE,0);
             }                
             
@@ -942,10 +942,10 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
         p->jail_room      = 0;
 
         if (p->duration < 0)
-            sprintf(buf, "%s of %s for unlimited hours", capitalize(p->penalty_type), p->victim_name);                    
+            snprintf(buf, sizeof(buf), "%s of %s for unlimited hours", capitalize(p->penalty_type), p->victim_name);                    
         else
-            sprintf(buf, "%s of %s for %.1f hours", capitalize(p->penalty_type), p->victim_name, (float)p->duration / 3600.0);
-        sprintf( to_buf, "imm %s", p->victim_name );
+            snprintf(buf, sizeof(buf), "%s of %s for %.1f hours", capitalize(p->penalty_type), p->victim_name, (float)p->duration / 3600.0);
+        snprintf( to_buf, sizeof(to_buf), "imm %s", p->victim_name );
         make_note("Penalty", p->imm_name, to_buf, buf, 30, p->text);
 
         free_string(p->text);
@@ -1009,7 +1009,7 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
                 bugf("%s: buffer truncation", __func__);
             }
 
-            sprintf( to_buf, "imm %s", p->victim_name );
+            snprintf( to_buf, sizeof(to_buf), "imm %s", p->victim_name );
             make_note("Penalty", p->imm_name, to_buf, buf, 30, p->text);
 
             if ( delete )

@@ -80,7 +80,7 @@ DEF_DO_FUN(do_wiznet)
         {
             if (wiznet_table[flag].level <= get_trust(ch))
             {
-                sprintf( buf, "{V%-14s%d{x   %-6s   ", 
+                snprintf( buf, sizeof(buf), "{V%-14s%d{x   %-6s   ", 
                     capitalize(wiznet_table[flag].name),
                     wiznet_table[flag].level,
                     IS_SET(ch->wiznet,wiznet_table[flag].flag) ? "{YOn" : "{GOff" );
@@ -123,7 +123,7 @@ DEF_DO_FUN(do_wiznet)
     
     if (IS_SET(ch->wiznet,wiznet_table[flag].flag))
     {
-        sprintf(buf,"{VYou will no longer see %s on wiznet.{x\n\r",
+        snprintf(buf, sizeof(buf),"{VYou will no longer see %s on wiznet.{x\n\r",
             wiznet_table[flag].name);
         send_to_char(buf,ch);
         REMOVE_BIT(ch->wiznet,wiznet_table[flag].flag);
@@ -131,7 +131,7 @@ DEF_DO_FUN(do_wiznet)
     }
     else  
     {
-        sprintf(buf,"{VYou will now see %s on wiznet.{x\n\r",
+        snprintf(buf, sizeof(buf),"{VYou will now see %s on wiznet.{x\n\r",
             wiznet_table[flag].name);
         send_to_char(buf,ch);
         SET_BIT(ch->wiznet,wiznet_table[flag].flag);
@@ -362,7 +362,7 @@ DEF_DO_FUN(do_bamfin)
         
         if (argument[0] == '\0')
         {
-            sprintf(buf,"Your poofin is %s\n\r",ch->pcdata->bamfin);
+            snprintf(buf, sizeof(buf),"Your poofin is %s\n\r",ch->pcdata->bamfin);
             send_to_char(buf,ch);
             return;
         }
@@ -376,7 +376,7 @@ DEF_DO_FUN(do_bamfin)
         free_string( ch->pcdata->bamfin );
         ch->pcdata->bamfin = str_dup( argument );
         
-        sprintf(buf,"Your poofin is now %s\n\r",ch->pcdata->bamfin);
+        snprintf(buf, sizeof(buf),"Your poofin is now %s\n\r",ch->pcdata->bamfin);
         send_to_char(buf,ch);
     }
     return;
@@ -394,7 +394,7 @@ DEF_DO_FUN(do_bamfout)
         
         if (argument[0] == '\0')
         {
-            sprintf(buf,"Your poofout is %s\n\r",ch->pcdata->bamfout);
+            snprintf(buf, sizeof(buf),"Your poofout is %s\n\r",ch->pcdata->bamfout);
             send_to_char(buf,ch);
             return;
         }
@@ -408,7 +408,7 @@ DEF_DO_FUN(do_bamfout)
         free_string( ch->pcdata->bamfout );
         ch->pcdata->bamfout = str_dup( argument );
         
-        sprintf(buf,"Your poofout is now %s\n\r",ch->pcdata->bamfout);
+        snprintf(buf, sizeof(buf),"Your poofout is now %s\n\r",ch->pcdata->bamfout);
         send_to_char(buf,ch);
     }
     return;
@@ -549,7 +549,7 @@ DEF_DO_FUN(do_transfer)
                 &&   can_see( ch, d->character ) )
             {
                 char buf[MAX_STRING_LENGTH];
-                sprintf( buf, "%s %s", d->character->name, arg2 );
+                snprintf( buf, sizeof(buf), "%s %s", d->character->name, arg2 );
                 do_transfer( ch, buf );
             }
         }
@@ -758,7 +758,7 @@ DEF_DO_FUN(do_reboot)
 
     if (ch->invis_level < LEVEL_HERO)
     {
-        sprintf( buf, "Reboot by %s.", ch->name );
+        snprintf( buf, sizeof(buf), "Reboot by %s.", ch->name );
         do_echo( ch, buf );
     }
     
@@ -804,7 +804,7 @@ DEF_DO_FUN(do_shutdown)
     }
  
     if (ch->invis_level < LEVEL_HERO)
-        sprintf( buf, "Shutdown by %s.", ch->name );
+        snprintf( buf, sizeof(buf), "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );
     strcat( buf, "\n\r" );
     if (ch->invis_level < LEVEL_HERO)
@@ -894,11 +894,11 @@ DEF_DO_FUN(do_snoop)
     /*
     if (get_trust(ch) < MAX_LEVEL)
     {
-    sprintf(buf,"%s is watching you.\n\r", ch->name);
+    snprintf(buf, sizeof(buf),"%s is watching you.\n\r", ch->name);
     send_to_char(buf, victim);
     }
     */
-    sprintf(buf,"$N starts snooping on %s",
+    snprintf(buf, sizeof(buf),"$N starts snooping on %s",
         (IS_NPC(ch) ? victim->short_descr : victim->name));
     wiznet(buf,ch,NULL,WIZ_SNOOPS,WIZ_SECURE,get_trust(ch));
     send_to_char( "Ok.\n\r", ch );
@@ -966,7 +966,7 @@ DEF_DO_FUN(do_switch)
         return;
     }
     
-    sprintf(buf,"$N switches into %s",victim->short_descr);
+    snprintf(buf, sizeof(buf),"$N switches into %s",victim->short_descr);
     wiznet(buf,ch,NULL,WIZ_SWITCHES,WIZ_SECURE,get_trust(ch));
     
 	if (!IS_NPC(ch))
@@ -1010,7 +1010,7 @@ DEF_DO_FUN(do_return)
         send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
     
     
-    sprintf(buf,"$N returns from %s.",ch->short_descr);
+    snprintf(buf, sizeof(buf),"$N returns from %s.",ch->short_descr);
     wiznet(buf,ch->desc->original,0,WIZ_SWITCHES,WIZ_SECURE,get_trust(ch));
     ch->desc->character       = ch->desc->original;
     ch->desc->original        = NULL;
@@ -1163,7 +1163,7 @@ DEF_DO_FUN(do_clone)
         char_to_room(clone,ch->in_room);
         act("$n has created $N.",ch,NULL,clone,TO_ROOM);
         act("You clone $N.",ch,NULL,clone,TO_CHAR);
-        sprintf(buf,"$N clones %s.",clone->short_descr);
+        snprintf(buf, sizeof(buf),"$N clones %s.",clone->short_descr);
         wiznet(buf,ch,NULL,WIZ_LOAD,WIZ_SECURE,get_trust(ch));
         return;
     }
@@ -1249,7 +1249,7 @@ DEF_DO_FUN(do_mload)
 
     act( "You have created $N!", ch, NULL, victim, TO_CHAR );
     act( "$n has created $N!", ch, NULL, victim, TO_ROOM );
-    sprintf(buf,"$N loads %s.",victim->short_descr);
+    snprintf(buf, sizeof(buf),"$N loads %s.",victim->short_descr);
     wiznet(buf,ch,NULL,WIZ_LOAD,WIZ_SECURE,get_trust(ch));
     return;
 }
@@ -1353,7 +1353,7 @@ DEF_DO_FUN(do_purge)
         if (get_trust(ch) <= get_trust(victim))
         {
             act("Your trust is not high enough to purge $N.", ch, NULL, victim, TO_CHAR);
-            sprintf(buf,"%s tried to purge you!\n\r",ch->name);
+            snprintf(buf, sizeof(buf),"%s tried to purge you!\n\r",ch->name);
             send_to_char(buf,victim);
             return;
         }
@@ -1439,7 +1439,7 @@ DEF_DO_FUN(do_advance)
             
             for (i = IMPLEMENTOR; i > level && i >= LEVEL_IMMORTAL; i--)
             {
-                sprintf(buf, "%s %d", victim->name, i);
+                snprintf(buf, sizeof(buf), "%s %d", victim->name, i);
                 do_revoke(ch, buf);
             }
 
@@ -1480,7 +1480,7 @@ DEF_DO_FUN(do_advance)
             
             for (i = UMAX(victim->level + 1, LEVEL_IMMORTAL); i <= level; i++)
             {
-                sprintf(buf, "%s %d", victim->name, i);
+                snprintf(buf, sizeof(buf), "%s %d", victim->name, i);
                 do_grant(ch, buf);
             }
         }    
@@ -1492,7 +1492,7 @@ DEF_DO_FUN(do_advance)
         victim->level += 1;
         advance_level( victim,TRUE);
     }
-    sprintf(buf,"You are now level %d.\n\r",victim->level);
+    snprintf(buf, sizeof(buf),"You are now level %d.\n\r",victim->level);
     send_to_char(buf,victim);
     victim->exp = exp_per_level(victim) * UMAX(1, victim->level);
     victim->trust = 0;
@@ -1567,7 +1567,7 @@ DEF_DO_FUN(do_restore)
             act("$n has restored you.",ch,NULL,vch,TO_VICT);
         }
         
-        sprintf(buf,"$N restored room %d.",ch->in_room->vnum);
+        snprintf(buf, sizeof(buf),"$N restored room %d.",ch->in_room->vnum);
         wiznet(buf,ch,NULL,WIZ_RESTORE,WIZ_SECURE,get_trust(ch));
         
         send_to_char("Room restored.\n\r",ch);
@@ -1607,7 +1607,7 @@ DEF_DO_FUN(do_restore)
     
     restore_char( victim );
     act( "$n has restored you.", ch, NULL, victim, TO_VICT );
-    sprintf(buf,"$N restored %s",
+    snprintf(buf, sizeof(buf),"$N restored %s",
         IS_NPC(victim) ? victim->short_descr : victim->name);
     wiznet(buf,ch,NULL,WIZ_RESTORE,WIZ_SECURE,get_trust(ch));
     send_to_char( "Ok.\n\r", ch );
@@ -1970,7 +1970,7 @@ DEF_DO_FUN(do_string)
             }
             
             char desc_buf[MSL];
-            sprintf(desc_buf, "%s\n\r", argument);
+            snprintf(desc_buf, sizeof(desc_buf), "%s\n\r", argument);
             
             ed = new_extra_descr();
             
@@ -2018,7 +2018,7 @@ DEF_DO_FUN(do_force)
 	return;
     }
           
-    sprintf( buf, "$n forces you to '%s'.", argument );
+    snprintf( buf, sizeof(buf), "$n forces you to '%s'.", argument );
           
     if ( !str_cmp( arg, "all" ) )
     {
@@ -2276,12 +2276,12 @@ DEF_DO_FUN(do_prefix)
     
     if (ch->prefix[0] != '\0')
     {
-        sprintf(buf,"Prefix changed to %s.\r\n",argument);
+        snprintf(buf, sizeof(buf),"Prefix changed to %s.\r\n",argument);
         free_string(ch->prefix);
     }
     else
     {
-        sprintf(buf,"Prefix set to %s.\r\n",argument);
+        snprintf(buf, sizeof(buf),"Prefix set to %s.\r\n",argument);
     }
     
     ch->prefix = str_dup(argument);
@@ -2352,11 +2352,11 @@ DEF_DO_FUN(do_omni)
     buf[0]    = '\0';
     output    = new_buf();
     
-    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
+    snprintf( buf, sizeof(buf), "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
-    sprintf( buf, "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host            Client\n\r");
+    snprintf( buf, sizeof(buf), "Num  Name         Login   Idle  State    Pos    [Room ]  Qst? Host            Client\n\r");
     add_buf(output,buf);    
-    sprintf( buf, "----------------------------------------------------------------------------------------------\n\r");
+    snprintf( buf, sizeof(buf), "----------------------------------------------------------------------------------------------\n\r");
     add_buf(output,buf);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -2404,12 +2404,12 @@ DEF_DO_FUN(do_omni)
         strftime( login, 100, "%I:%M%p", localtime( &wch->logon ) );
         
         if ( wch->timer > 0 )
-            sprintf( idle, "%-4d", wch->timer );
+            snprintf( idle, sizeof(idle), "%-4d", wch->timer );
         else
-            sprintf( idle, "    " );
+            snprintf( idle, sizeof(idle), "    " );
         
         /* Added an extra  %s for the questing check below - Astark Oct 2012 */
-        sprintf( buf, "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s,%s\n\r",
+        snprintf( buf, sizeof(buf), "%-3d  	<send 'pgrep Owner %s'>%-12s	</send> %7s %5s %7.7s  %-5.5s  [%5d]   %s   	<send 'pgrep %s'>%-15s	</send> %s,%s\n\r",
             d->descriptor,                          /* ID */
             wch->name,                              /* Send name through pgrep */
             wch->name,                              /* Name */
@@ -2430,7 +2430,7 @@ DEF_DO_FUN(do_omni)
     /*
     * Tally the counts and send the whole list out.
     */
-    sprintf( buf2, "\n\rPlayers found: %d\n\r", players );
+    snprintf( buf2, sizeof(buf2), "\n\rPlayers found: %d\n\r", players );
     add_buf(output,buf2);
     page_to_char( buf_string(output), ch );
     free_buf(output);
@@ -2680,11 +2680,11 @@ DEF_DO_FUN(do_reserve)
         BUFFER *buffer = new_buf();
         char buf[MAX_STRING_LENGTH];
     
-        sprintf( buf, "\n\r-- Reserved Names --\n\r" );
+        snprintf( buf, sizeof(buf), "\n\r-- Reserved Names --\n\r" );
 	add_buf( buffer, buf );
         for (res = first_reserved; res; res = res->next)
         {
-            sprintf( buf, "%c%-17s ", (*res->name == '*' ? '*' : ' '),
+            snprintf( buf, sizeof(buf), "%c%-17s ", (*res->name == '*' ? '*' : ' '),
                 (*res->name == '*' ? res->name+1 : res->name));
 	    add_buf( buffer, buf );
             if (++wid % 4 == 0)
@@ -2830,7 +2830,7 @@ DEF_DO_FUN(do_qlist)
 	return;
     }
 
-    sprintf( buf, "Quests for %s:\n\r\n\r", victim->name );
+    snprintf( buf, sizeof(buf), "Quests for %s:\n\r\n\r", victim->name );
     send_to_char( buf, ch );
     show_quests( victim, ch );
 
@@ -2844,7 +2844,7 @@ void check_sn_multiplay( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     if ( ch == victim || !is_same_player(ch, victim) )
 	return;
 
-    sprintf(buf, "Multiplay: %s %s %s on %s",
+    snprintf(buf, sizeof(buf), "Multiplay: %s %s %s on %s",
 	    ch->name,
 	    IS_SPELL(sn) ? "casting" : "using",
 	    skill_table[sn].name,
@@ -2905,7 +2905,7 @@ DEF_DO_FUN(do_avatar)
 
   if (( level = atoi(arg1)) < 1 || level > MAX_LEVEL)
   {
-    sprintf(buf, "Level must be 1 to %d.\r\n", MAX_LEVEL );
+    snprintf(buf, sizeof(buf), "Level must be 1 to %d.\r\n", MAX_LEVEL );
     send_to_char( buf, ch );
     return;
   }
@@ -2913,7 +2913,7 @@ DEF_DO_FUN(do_avatar)
   if ( level > get_trust(ch))
   {
     send_to_char( "Limited to your trust level.\n\r", ch);
-    sprintf( buf, "Your Trust is %d.\r\n",ch->trust);
+    snprintf( buf, sizeof(buf), "Your Trust is %d.\r\n",ch->trust);
     send_to_char(buf, ch);
     return;
   }
@@ -2952,7 +2952,7 @@ DEF_DO_FUN(do_avatar)
     ch->level +=1;
     advance_level(ch,TRUE);
   }
-  sprintf(buf,"You are now level %d.\n\r",ch->level);
+  snprintf(buf, sizeof(buf),"You are now level %d.\n\r",ch->level);
   send_to_char(buf,ch);
   ch->exp = exp_per_level(ch) * UMAX(1, ch->level);
   
@@ -3076,7 +3076,7 @@ DEF_DO_FUN(do_mortlag)
     {
      /* send_to_char("{RSomeone doesn't like you!{x", victim); */
       victim->wait = victim->wait + x;
-      sprintf(buf, "{RYou add lag to {W%s{x", victim->name);
+      snprintf(buf, sizeof(buf), "{RYou add lag to {W%s{x", victim->name);
       send_to_char( buf, ch );
       return;
     }

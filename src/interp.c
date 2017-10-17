@@ -870,7 +870,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
 	      || fLogAll
 	      || cmd_table[cmd].log == LOG_ALWAYS )
     {
-        sprintf( log_buf, "Log %s: %s", ch->name, logline );
+        snprintf( log_buf, sizeof(log_buf), "Log %s: %s", ch->name, logline );
         wiznet(log_buf,ch,NULL,WIZ_SECURE,0,get_trust(ch));
         log_string( log_buf );
     }
@@ -910,7 +910,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
         
 	/* Record the command */
 	if ( !IS_NPC(ch) )
-	    sprintf (last_command, "[%5d] %s in [%5d]: %s",
+	    snprintf (last_command, sizeof(last_command), "[%5d] %s in [%5d]: %s",
 		     IS_NPC(ch) ? ch->pIndexData->vnum : 0,
 		     IS_NPC(ch) ? ch->short_descr : ch->name,
 		     ch->in_room ? ch->in_room->vnum : 0,
@@ -925,7 +925,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
 #if defined(MEMCHECK_ENABLE)
 	if (string_count < nAllocString)
 	{
-	    sprintf(buf,
+	    snprintf(buf, sizeof(buf),
 	    "Memcheck : Increase in strings :: %s : %s (from %d to %d)"
 	    , ch->name, cmd_copy, string_count, nAllocString) ;
 	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK,0,0) ;
@@ -933,7 +933,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
 
 	if (perm_count < nAllocPerm)
 	{
-	    sprintf(buf,
+	    snprintf(buf, sizeof(buf),
 	    "Increase in perms :: %s : %s (from %d to %d)"
 	    , ch->name, cmd_copy, perm_count, nAllocPerm) ;
 	    wiznet(buf, NULL, NULL, WIZ_MEMCHECK, 0,0) ;
@@ -950,7 +950,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
         /* if player quit, they're char is no longer valid so we
            need to just re-use info in last_command */
         strcpy(buf, last_command);
-        sprintf (last_command, "(Finished) %s", buf );
+        snprintf (last_command, sizeof(last_command), "(Finished) %s", buf );
     }
 	
     tail_chain( );
@@ -987,7 +987,7 @@ bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument,
 
     /* for debug, record social as last command */
     if ( !IS_NPC(ch) )
-        sprintf (last_command, "[%5d] %s in [%5d]: (social) %s %s",
+        snprintf (last_command, sizeof(last_command), "[%5d] %s in [%5d]: (social) %s %s",
              IS_NPC(ch) ? ch->pIndexData->vnum : 0,
              IS_NPC(ch) ? ch->short_descr : ch->name,
              ch->in_room ? ch->in_room->vnum : 0,
@@ -1317,7 +1317,7 @@ DEF_DO_FUN(do_commands)
             &&   cmd_table[cmd].show
             &&   (!cmd_table[cmd].olc || (!IS_NPC(ch)&&ch->pcdata->security>0)) )
         {
-            sprintf( buf, "%-12s", cmd_table[cmd].name );
+            snprintf( buf, sizeof(buf), "%-12s", cmd_table[cmd].name );
             send_to_char( buf, ch );
             if ( ++col % 6 == 0 )
                 send_to_char( "\n\r", ch );
@@ -1359,7 +1359,7 @@ DEF_DO_FUN(do_disable)
 
         for (p = disabled_first; p; p = p->next)
         {
-            sprintf (buf, "%-12s %5d   %-12s   %s\n\r",p->command_name, p->level, p->disabled_by, p->spell ? "(spell)" : "");
+            snprintf (buf, sizeof(buf), "%-12s %5d   %-12s   %s\n\r",p->command_name, p->level, p->disabled_by, p->spell ? "(spell)" : "");
             send_to_char (buf,ch);
         }
         return;
