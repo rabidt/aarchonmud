@@ -1963,6 +1963,7 @@ DEF_DO_FUN(do_examine)
 DEF_DO_FUN(do_exits)
 {
     char buf[MAX_STRING_LENGTH];
+    size_t buf_i = 0;
     EXIT_DATA *pexit;
     bool found;
     bool fAuto;
@@ -1974,11 +1975,20 @@ DEF_DO_FUN(do_exits)
         return;
     
     if (fAuto)
-        sprintf(buf,"{O[Exits:");
+    {
+        buf_i = snprintf(buf, sizeof(buf), "{O[Exits:");
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     else if (IS_IMMORTAL(ch))
-        sprintf(buf,"Obvious exits from room %d:\n\r",ch->in_room->vnum);
+    {
+        buf_i = snprintf(buf, sizeof(buf), "Obvious exits from room %d:\n\r",ch->in_room->vnum);
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     else
-        sprintf(buf,"Obvious exits:\n\r");
+    {
+        buf_i = snprintf(buf, sizeof(buf), "Obvious exits:\n\r");
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
     found = FALSE;
     for ( door = 0; door < MAX_DIR; door++ )
@@ -1996,42 +2006,64 @@ DEF_DO_FUN(do_exits)
             {
                 if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
-                    sprintf( buf, "%s <%s>", buf, dir_name[door] );
+                    buf_i = snprintf( buf + buf_i, sizeof(buf) - buf_i, " <%s>", dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
                 else if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
-                    sprintf( buf, "%s (%s%s)", buf, 
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " (%s%s)", 
                             IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
                             dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
                 else
                 {
-                    sprintf( buf, "%s %s", buf, dir_name[door] );
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " %s", dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
             }
             else
             {
-                sprintf( buf + strlen(buf), "%-5s - %s",
+                buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "%-5s - %s",
                     capitalize( dir_name[door] ),
                     room_is_dark( pexit->u1.to_room )
                     ?  "Too dark to tell"
                     : pexit->u1.to_room->name
                     );
+                buf_i = UMIN(buf_i, sizeof(buf));
+
                 if (IS_IMMORTAL(ch))
-                    sprintf(buf + strlen(buf), 
-                    " (room %d)\n\r",pexit->u1.to_room->vnum);
+                {
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, 
+                        " (room %d)\n\r", pexit->u1.to_room->vnum);
+                    buf_i = UMIN(buf_i, sizeof(buf));
+                }
                 else
-                    sprintf(buf + strlen(buf), "\n\r");
+                {
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, "\n\r");
+                    buf_i = UMIN(buf_i, sizeof(buf));
+                }
             }
         }
     }
     
     if ( !found )
-        strcat( buf, fAuto ? " none" : "None.\n\r" );
+    {
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, fAuto ? " none" : "None.\n\r" );
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
     if ( fAuto )
-        strcat( buf, "]\n\r" );
+    {
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "]\n\r" );
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
+    if (buf_i >= sizeof(buf))
+    {
+        bugf("%s: buffer overflow", __func__);
+    }
+
     send_to_char( buf, ch );
     send_to_char( "{x", ch);
     return;

@@ -6104,6 +6104,7 @@ void extract_sticky_to_char( CHAR_DATA *ch, OBJ_DATA *obj )
 void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 {
     char buf[MAX_STRING_LENGTH];
+    size_t buf_i = 0;
     OBJ_DATA *corpse;
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
@@ -6179,8 +6180,11 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
     
     corpse->level = victim->level;
     
-    sprintf( buf, corpse->name, name );
-    sprintf( buf, "%s fresh", buf);
+    buf_i = snprintf( buf, sizeof(buf), corpse->name, name );
+    if (buf_i < sizeof(buf))
+    {
+        snprintf( buf + buf_i, sizeof(buf) - buf_i, "%s fresh", buf);
+    }
     free_string( corpse->name );
     corpse->name = str_dup( buf );
 

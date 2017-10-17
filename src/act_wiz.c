@@ -2985,7 +2985,9 @@ DEF_DO_FUN(do_printlist)
     }
     else if (!strcmp(argument, "timers"))
     {
-        page_to_char( print_timer_list(), ch);
+        char buf[MAX_STRING_LENGTH * 4];
+        print_timer_list( buf, sizeof(buf) );
+        page_to_char( buf, ch);
         return;
     }
     else if (!strcmp(argument, "save"))
