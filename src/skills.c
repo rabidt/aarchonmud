@@ -1103,7 +1103,8 @@ void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
 {
     if ( ibl->info_count[level] == 0 )
     {
-        sprintf(ibl->info_list[level], "\n\rLevel %2d: %s", level, info);
+        snprintf(ibl->info_list[level], sizeof(ibl->info_list[level]), 
+            "\n\rLevel %2d: %s", level, info);
     }
     else
     {

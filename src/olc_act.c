@@ -5311,6 +5311,7 @@ MEDIT( medit_show )
 {
     MOB_INDEX_DATA *pMob;
     char buf[MAX_STRING_LENGTH];
+    size_t buf_i = 0;
     PROG_LIST *list;
     int sn;
     
@@ -5408,9 +5409,13 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     buf[0] = '\0';
+    buf_i = 0;
     for ( sn = 1; sn < MAX_SKILL; sn++ )
         if ( pMob->skills[sn] )
-            sprintf(buf + strlen(buf), " %s", skill_table[sn].name);
+        {
+            buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, " %s", skill_table[sn].name);
+            buf_i = UMIN(buf_i, sizeof(buf));
+        }
     if ( buf[0] != '\0' )
         ptc(ch, "Skills:      [%s]\n\r", buf + 1);
     
