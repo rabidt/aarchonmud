@@ -2542,7 +2542,7 @@ void logpf (const char * fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     log_string (buf);
@@ -2554,7 +2554,7 @@ void printf_to_char (CHAR_DATA *ch, const char *fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     send_to_char (buf, ch);
@@ -2567,7 +2567,7 @@ void bugf (const char * fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     bug_string(buf);
@@ -2579,7 +2579,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, i
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
@@ -2590,7 +2590,7 @@ bool add_buff(BUFFER *buffer, const char *fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
     
     return add_buf(buffer, buf);
@@ -2602,7 +2602,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
     int i;
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
     // pad
     for ( i = strlen_color(buf); i < pad_length; i++ )

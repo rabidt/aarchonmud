@@ -324,7 +324,7 @@ int rfprintf(FILE *f, const char *fmt, ...)
 }
 
 // sprintf with reformat
-int rsprintf(char *buf, const char *fmt, ...)
+int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...)
 {
     va_list va;
     
@@ -333,7 +333,7 @@ int rsprintf(char *buf, const char *fmt, ...)
     va_end (va);
 
     va_start (va, fmt);
-    int res = vsprintf (buf, new_fmt, va);
+    int res = vsnprintf (buf, bufsz, new_fmt, va);
     va_end (va);
     
     return res;
