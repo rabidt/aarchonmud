@@ -4507,6 +4507,29 @@ DEF_DO_FUN(do_survey)
 }
 
 
+static const int SC_LENGTH = 78; // Total # of characters per score line
+
+static void sc_printf(char *buf, size_t bufsz, const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+    
+    size_t i = vsnprintf(buf, bufsz, fmt, va);
+    i = UMIN(i, bufsz);
+
+    int len = strlen_color(buf);
+    int fill_count;
+    if ( len < (SC_LENGTH - 1) ) // -1 to account for closing |
+    {
+        fill_count = (SC_LENGTH - 1) - len;
+    }
+    else
+    {
+        fill_count = 0;
+    }
+    snprintf(buf + i, bufsz - i, "%*s{D|{x\n\r", fill_count, "");
+}
+
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
 DEF_DO_FUN(do_score)
 {
@@ -4524,7 +4547,6 @@ DEF_DO_FUN(do_score)
     int hunger;
     int thirst;
     int drunk;
-    int LENGTH = 76;
     int hp_cap, mana_cap, move_cap;
     bool hungry = FALSE;
     bool thirsty = FALSE;
@@ -4606,76 +4628,56 @@ DEF_DO_FUN(do_score)
     add_buf(output, "{D:============================================================================:{x\n\r");
 
     /* Show pflags, regular flags, name color, pre_title, name, title, etc. */
-    snprintf(buf, sizeof(buf), "{D|{x %s%s%s%s%s{x%s", 
+    sc_printf(buf, sizeof(buf), "{D|{x %s%s%s%s%s{x%s", 
         flagsbuf, 
         custombuf, 
         ch->pcdata->name_color, 
         ch->pcdata->pre_title, 
         ch->name, 
         ch->pcdata->title);
-
-    /* This line is used throughout to close each score line */
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    add_buf(output, buf );
 
     /* Level, Remorts/Trust, Clan Name, Clan Rank */
-    snprintf(buf, sizeof(buf), "{D|{x Level: %3d %-11s    Clan: %s%13s{x        Rank: %s%12s  {x", 
+    sc_printf(buf, sizeof(buf), "{D|{x Level: %3d %-11s    Clan: %s%13s{x        Rank: %s%12s  {x", 
         ch->level, 
         remortbuf,
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? clan_table[ch->clan].who_name : "None",
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Class, Race, Gender */
-    snprintf(buf, sizeof(buf), "{D|{x Class: %11s        Race: %13s        Gender: %10s", 
+    sc_printf(buf, sizeof(buf), "{D|{x Class: %11s        Race: %13s        Gender: %10s", 
         class_table[ch->clss].name, 
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
     /* Remort, Ascent, Subclass */
-    snprintf(buf, sizeof(buf), "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
+    sc_printf(buf, sizeof(buf), "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
         subclass_table[ch->pcdata->subclass].name,
         ch->pcdata->ascents,
         ch->pcdata->remorts);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
     
 
-    snprintf(buf, sizeof(buf), "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
+    sc_printf(buf, sizeof(buf), "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
         subclass_table[ch->pcdata->subclass2].name,
         get_age(ch),
         (ch->played + (int)(current_time - ch->logon))/3600);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf(output, buf );
 
 
     /* Holy Light, Wizinvis and Incog Levels */
     if( IS_IMMORTAL(ch) )
     {
-        snprintf( buf, sizeof(buf), "{D|{x Holylight:     {W%3s{x        Wizinvis:       {W%3d{x        Incognito:     {W%3d{x",
+        sc_printf( buf, sizeof(buf), "{D|{x Holylight:     {W%3s{x        Wizinvis:       {W%3d{x        Incognito:     {W%3d{x",
             IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
-
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4687,30 +4689,18 @@ DEF_DO_FUN(do_score)
     else
         temp[0] = '\0';
 
-    snprintf( buf, sizeof(buf), "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
-    
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    sc_printf( buf, sizeof(buf), "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
+    add_buf(output, buf );
 
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
-    snprintf( buf, sizeof(buf), "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
+    sc_printf( buf, sizeof(buf), "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
         mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    add_buf(output, buf );
 
     /* Call the alignbuf here to show alignment */
-    snprintf( buf, sizeof(buf), "{D|{x Alignment:   %s", alignbuf );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    sc_printf( buf, sizeof(buf), "{D|{x Alignment:   %s", alignbuf );
+    add_buf(output, buf );
 
     /* Cleaned up this section below but leaving commented out - Astark
     RELIGION_DATA *religion = NULL;
@@ -4743,35 +4733,26 @@ DEF_DO_FUN(do_score)
 
 
     /* Mob kills, mob deaths, beheads */
-    snprintf(buf, sizeof(buf), "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d        Behead Count: %4d",
+    sc_printf(buf, sizeof(buf), "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d        Behead Count: %4d",
         ch->pcdata->mob_kills, 
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Warfare grade, kills and points */
-    snprintf( buf, sizeof(buf), "{D|{x War Kills:  %6d        Warfare Grade:    %1s        Warfare Pts: %5d",
+    sc_printf( buf, sizeof(buf), "{D|{x War Kills:  %6d        Warfare Grade:    %1s        Warfare Pts: %5d",
         ch->pcdata->war_kills, 
         pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
         ch->pcdata->warpoints);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Pkills and Pkill Deaths */
-    snprintf( buf, sizeof(buf), "{D|{x PKills:     %6d        PKill Deaths: %5d",
+    sc_printf( buf, sizeof(buf), "{D|{x PKills:     %6d        PKill Deaths: %5d",
         ch->pcdata->pkill_count, 
         ch->pcdata->pkill_deaths);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4780,25 +4761,19 @@ DEF_DO_FUN(do_score)
     /* Display pflag, but only if it exists */
     if( custombuf[0] != '\0' )
     {
-        snprintf( buf, sizeof(buf), "{D|{x Your %sflag has %d hours remaining. ", 
+        sc_printf( buf, sizeof(buf), "{D|{x Your %sflag has %d hours remaining. ", 
             custombuf, 
             ch->pcdata->customduration );
-        
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Position and Stance */
-    snprintf(buf, sizeof(buf), "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
+    sc_printf(buf, sizeof(buf), "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
         positionbuf, 
         ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
         ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
     
     /* Clean this part up some more, but will only show when booleans are true */
@@ -4812,65 +4787,53 @@ DEF_DO_FUN(do_score)
 
     if( drunken || hungry || thirsty )
     {
-        snprintf(buf, sizeof(buf), "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
+        sc_printf(buf, sizeof(buf), "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
             hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "     yes" : "    None",
             thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Items carried, carry weight, encumbered */
-    snprintf( buf, sizeof(buf), "{D|{x Items:   %-4d/%4d        Weight: %-5d/%5d        Encumbered: %s",
+    sc_printf( buf, sizeof(buf), "{D|{x Items:   %-4d/%4d        Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         (int)get_carry_weight(ch)/10,
         (int)can_carry_w(ch)/10,
         encumberbuf);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Morph information for races that utilize it */
     if ( MULTI_MORPH(ch) )
     {
         if( ch->pcdata->morph_race > 0 )
-            snprintf( buf, sizeof(buf), "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
+            sc_printf( buf, sizeof(buf), "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
                 race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
         else
-            snprintf( buf, sizeof(buf), "{D|{x Morph:  {Gbasic form{x" );
-        
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:  {Gbasic form{x" );
+    
+        add_buf(output, buf );
     }
     else if( ch->race == race_naga )
     {
         if( ch->pcdata->morph_race == 0 )
-            snprintf( buf, sizeof(buf), "{D|{x Morph:     {Gserpent{x" );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:     {Gserpent{x" );
         else
-            snprintf( buf, sizeof(buf), "{D|{x Morph:    {Ghumanoid{x" );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:    {Ghumanoid{x" );
     
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Show command currently actioned */
     if ( ch->pcdata->combat_action == NULL )
-        snprintf( buf, sizeof(buf), "{D|{x Command Actioned:         {wNone{x");
+        sc_printf( buf, sizeof(buf), "{D|{x Command Actioned:         {wNone{x");
     else
-        snprintf( buf, sizeof(buf), "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
+        sc_printf( buf, sizeof(buf), "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4899,7 +4862,6 @@ DEF_DO_FUN(do_score)
 DEF_DO_FUN(do_worth)
 {
     char buf[MAX_STRING_LENGTH];
-    int LENGTH = 76;
 
     if( !strcmp(argument,"for_score") )
     ;
@@ -4907,10 +4869,8 @@ DEF_DO_FUN(do_worth)
 
     if ( !ch->pcdata )
     {
-        snprintf(buf, sizeof(buf), "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" );
+
+        sc_printf(buf, sizeof(buf), "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
         send_to_char( buf, ch );
         send_to_char("{D:============================================================================:{x\n\r", ch);
         return;
@@ -4918,48 +4878,33 @@ DEF_DO_FUN(do_worth)
   
 
     /* Gold, Silver, Bank */ 
-    snprintf(buf, sizeof(buf), "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
+    sc_printf(buf, sizeof(buf), "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
         (int)ch->gold,
         (int)ch->silver,
         (int)ch->pcdata->bank);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
     /* ETL, Field, EXP */
-    snprintf( buf, sizeof(buf), "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d        Total Exp: %7d",
+    sc_printf( buf, sizeof(buf), "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d        Total Exp: %7d",
         (int)((ch->level + 1) * exp_per_level(ch) - ch->exp),
         (int)ch->pcdata->field,
         (int)ch->exp);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    snprintf( buf, sizeof(buf), "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
+    sc_printf( buf, sizeof(buf), "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
         ch->pcdata->faith,
         ch->pcdata->storage_boxes);
-
-    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
 
     if ( ch->pcdata->bounty > 0 )
     {
-        snprintf( buf, sizeof(buf), "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" );
+        sc_printf( buf, sizeof(buf), "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
         send_to_char( buf, ch );
     }
 
@@ -4976,7 +4921,6 @@ DEF_DO_FUN(do_attributes)
 
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
-    int LENGTH = 76;
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on current hp/mana/mv */
 
     hp_col = (ch->hit == ch->max_hit)    ? 'W' :
@@ -5006,46 +4950,34 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitpoints (HP), Mana (MN), Move (MV) */
-    snprintf( buf, sizeof(buf), "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d        {CMoves:{x {%c%5d{x/%5d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d        {CMoves:{x {%c%5d{x/%5d",
         hp_col, ch->hit, ch->max_hit,
         mn_col, ch->mana, ch->max_mana, 
         mv_col, ch->move, ch->max_move );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    snprintf( buf, sizeof(buf), "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
         get_save(ch, TRUE),
         get_save(ch, FALSE));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    snprintf( buf, sizeof(buf), "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
     /* Wimpy, Calm */
-    snprintf( buf, sizeof(buf), "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
         ch->wimpy,
         ch->calm,
         get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
