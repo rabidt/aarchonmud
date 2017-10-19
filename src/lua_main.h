@@ -31,8 +31,8 @@ int GetLuaEnvironmentCount( void );
 
 extern lua_State *g_mud_LS;
 extern bool       g_LuaScriptInProgress;
-int               g_ScriptSecurity;
-int               g_LoopCheckCounter;
+extern int        g_ScriptSecurity;
+extern int        g_LoopCheckCounter;
 
 void new_ref( LUAREF *ref);
 void free_ref( LUAREF *ref );
