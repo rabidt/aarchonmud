@@ -15,10 +15,25 @@
             "variants":
             [
                 {
+                    "name": "lint",
+                    "shell_cmd": "make -C $project_path/src lint",
+                    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
+                },
+                {
                     "name": "clean",
                     "shell_cmd": "make -C $project_path/src clean"
                 }
             ]
         }
-    ]
+    ],
+    "SublimeLinter":
+    {
+        "linters":
+        {
+            "gcc": {
+                "c_extra_flags": "-Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op -Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers -Wshadow",
+                "c++_extra_flags": "-pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused-parameter -Weffc++",
+            }
+        }
+    }
 }
