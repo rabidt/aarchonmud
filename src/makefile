@@ -15,6 +15,10 @@ C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogica
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers \
 	-Wshadow
 
+ifeq ($(C_WERROR),1)
+	C_WARN += -Werror
+endif
+
 CPP_WARN = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
 	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
 	-Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
@@ -69,6 +73,34 @@ remort: aeaea
 osx: C_FLAGS_BASE = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
 osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
 osx: aeaea
+
+.PHONY: lint
+lint: lint_headers lint_src
+
+.PHONY: lint_src
+lint_src: $(addsuffix .lint,$(SRC_FILES_C))
+lint_src: $(addsuffix .lint,$(SRC_FILES_CPP))
+
+.PHONY: lint_headers
+lint_headers: $(addsuffix .lint,$(wildcard *.h))
+lint_headers: $(addsuffix .lint,$(wildcard *.hpp))
+
+.PHONY: %.c.lint
+%.c.lint: %.c
+	$(CC) -c -fsyntax-only -x c $(C_WARN) $<
+
+.PHONY: %.h.lint
+%.h.lint: %.h
+	$(CC) -c -fsyntax-only -x c $(C_WARN) $<
+
+.PHONY: %.cpp.lint
+%.cpp.lint: %.cpp
+	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
+
+.PHONY: %.hpp.lint
+%.hpp.lint: %.hpp
+	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
+
 
 # Compile live tests. The binary needs to be run rom area directory as with normal startup
 .PHONY: livetest
