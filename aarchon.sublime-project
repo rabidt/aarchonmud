@@ -15,13 +15,27 @@
             "variants":
             [
                 {
-                    "name": "lint",
-                    "shell_cmd": "make -C $project_path/src lint",
-                    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
-                },
-                {
                     "name": "clean",
                     "shell_cmd": "make -C $project_path/src clean"
+                },
+                {
+                    "name": "compile file",
+                    "shell_cmd": "make -C $project_path/src $file_name@compile",
+                    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$"
+                },
+                {
+                    "name": "clean file",
+                    "shell_cmd": "make -C $project_path/src $file_name@clean"
+                },
+                {
+                    "name": "lint",
+                    "shell_cmd": "make -C $project_path/src lint",
+                    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$"
+                },
+                {
+                    "name": "lint file",
+                    "shell_cmd": "make -C $project_path/src $file@lint",
+                    "file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$"
                 }
             ]
         }
