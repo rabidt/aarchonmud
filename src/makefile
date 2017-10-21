@@ -85,20 +85,20 @@ lint_src: $(addsuffix .lint,$(SRC_FILES_CPP))
 lint_headers: $(addsuffix .lint,$(wildcard *.h))
 lint_headers: $(addsuffix .lint,$(wildcard *.hpp))
 
-.PHONY: %.c.lint
-%.c.lint: %.c
+.PHONY: %.c@lint
+%.c@lint: %.c
 	$(CC) -c -fsyntax-only -x c $(C_WARN) $<
 
-.PHONY: %.h.lint
-%.h.lint: %.h
+.PHONY: %.h@lint
+%.h@lint: %.h
 	$(CC) -c -fsyntax-only -x c $(C_WARN) $<
 
-.PHONY: %.cpp.lint
-%.cpp.lint: %.cpp
+.PHONY: %.cpp@lint
+%.cpp@lint: %.cpp
 	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
 
-.PHONY: %.hpp.lint
-%.hpp.lint: %.hpp
+.PHONY: %.hpp@lint
+%.hpp@lint: %.hpp
 	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
 
 
@@ -140,6 +140,20 @@ _live_tests: $(OBJ_DIR)
 _unit_tests: $(OBJ_DIR)
 	./tests/make-unit-tests.sh > ./tests/UnitTests.c
 	$(CC) -c $(C_FLAGS_C) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
+
+.PHONY: %.c@compile
+%.c@compile: $(OBJ_DIR)/%.o ;
+
+.PHONY: %.c@clean
+%.c@clean:
+	rm -f $(patsubst %.c@clean,$(OBJ_DIR)/%.o,$@)
+
+.PHONY: %.cpp@compile
+%.cpp@compile: $(OBJ_DIR)/%.opp ;
+
+.PHONY: %.cpp@clean
+%.cpp@clean:
+	rm -f $(patsubst %.cpp@clean,$(OBJ_DIR)/%.opp,$@)
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
