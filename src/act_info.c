@@ -236,8 +236,8 @@ void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNo
     count = 0;
     for ( obj = list; obj != NULL; obj = obj->next_content )
         count++;
-    prgpstrShow = alloc_mem( count * sizeof(char *) );
-    prgnShow    = alloc_mem( count * sizeof(int)    );
+    prgpstrShow = alloc_mem( (size_t)count * sizeof(char *) );
+    prgnShow    = alloc_mem( (size_t)count * sizeof(int)    );
     nShow   = 0;
     
     /*
@@ -321,8 +321,8 @@ void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNo
     * Clean up.
     */
     free_buf(output);
-    free_mem( prgpstrShow, count * sizeof(char *) );
-    free_mem( prgnShow,    count * sizeof(int)    );
+    free_mem( prgpstrShow, (size_t)count * sizeof(char *) );
+    free_mem( prgnShow,    (size_t)count * sizeof(int)    );
     
     return;
 }
@@ -2662,7 +2662,7 @@ int who_compare( const void* a, const void* b )
 #define MAX_WHO 64
 int create_who_array( CHAR_DATA **who_array )
 {
-    int who_count = 0;
+    size_t who_count = 0;
     DESCRIPTOR_DATA *desc;
     
     // gather all characters we want to show
@@ -5960,7 +5960,7 @@ DEF_DO_FUN(do_eqhelp)
 
 bool can_take_subclass( int class, int subclass )
 {
-    return (subclass_table[subclass].base_classes & (1<<class)) != 0;
+    return (subclass_table[subclass].base_classes & (1ul<<class)) != 0;
 }
 
 bool ch_can_take_subclass( CHAR_DATA *ch, int subclass )
