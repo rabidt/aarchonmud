@@ -137,14 +137,14 @@ void __buffer_strcat (DBUFFER *buffer, const char *text, const char * file, unsi
 		
 		/* Copy the current buffer to the new buffer */
 		
-		memcpy (new_data, buffer->data, buffer->len);
+		memcpy (new_data, buffer->data, (size_t)(buffer->len));
 		free_mem (buffer->data, buffer->size);
 		buffer->data = new_data;
 		buffer->size = new_size;
 
 	} /* if */
 
-	memcpy (buffer->data + buffer->len, text, text_len);	/* Start copying */
+	memcpy (buffer->data + buffer->len, text, (size_t)text_len);	/* Start copying */
 	buffer->len += text_len;	/* Adjust length */
 	buffer->data[buffer->len] = NUL; /* Null-terminate at new end */
 	
