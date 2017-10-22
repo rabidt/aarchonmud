@@ -397,7 +397,7 @@ const char *parse_url( const char *argument )
     return argument;
     
     static char rtn[MSL*10];
-    int rtnIndex;
+    size_t rtnIndex;
 
     for ( rtnIndex=0 ; ; argument++)
     {
@@ -3280,7 +3280,7 @@ const char * makedrunk (const char *string, CHAR_DATA * ch)
                         randomnum = number_range(0, drunk[temp-'A'].number_of_rep);
                     }
                     strcpy (&buf[pos], drunk[temp - 'A'].replacement[randomnum]);
-                    pos += strlen (drunk[temp - 'A'].replacement[randomnum]);
+                    pos += (int)strlen (drunk[temp - 'A'].replacement[randomnum]);
                 }
                 else
                     buf[pos++] = *string;
