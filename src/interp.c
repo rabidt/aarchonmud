@@ -1162,7 +1162,7 @@ int split_argument( const char *argument, char *arg, char split_char )
         strcpy(arg, argument);
         return 1;
     }
-    int split_idx = psplit - argument;
+    size_t split_idx = (size_t)psplit - (size_t)argument;
     
     // valid number up till split_char?
     char buf[MIL];
