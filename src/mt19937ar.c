@@ -59,7 +59,7 @@ void init_genrand(unsigned long s)
   mt[0]= s & 0xffffffffUL;
   for (mti=1; mti<N; mti++) {
     mt[mti] = 
-      (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30)) + mti); 
+      (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30)) + (unsigned long)mti); 
     /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
     /* In the previous versions, MSBs of the seed affect   */
     /* only MSBs of the array mt[].                        */
@@ -81,7 +81,7 @@ void init_by_array(unsigned long init_key[], int key_length)
   k = (N>key_length ? N : key_length);
   for (; k; k--) {
     mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525UL))
-      + init_key[j] + j; /* non linear */
+      + init_key[j] + (unsigned long)j; /* non linear */
     mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
     i++; j++;
     if (i>=N) { mt[0] = mt[N-1]; i=1; }
@@ -89,7 +89,7 @@ void init_by_array(unsigned long init_key[], int key_length)
     }
   for (k=N-1; k; k--) {
     mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1566083941UL))
-      - i; /* non linear */
+      - (unsigned long)i; /* non linear */
     mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
     i++;
     if (i>=N) { mt[0] = mt[N-1]; i=1; }
@@ -183,8 +183,8 @@ double genrand(void)
   // I think the one above loses precision as it does the multiply 
   // then the add.
 
-  long long a = genrand_int32() >> 5, //27 bits
-            b = genrand_int32() >> 6; //26 bits
+  long long a = ((long long)genrand_int32()) >> 5, //27 bits
+            b = ((long long)genrand_int32()) >> 6; //26 bits
   
   long long c = (a | (b << 27));
   
