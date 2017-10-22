@@ -2390,7 +2390,7 @@ static int CH_olc (lua_State *LS)
     }
 
     if (!run_olc_argument( ud_ch, ud_ch->desc->editor, 
-                (char *)check_fstring( LS, 2, MIL)) )
+                check_fstring( LS, 2, MIL)) )
         luaL_error(LS, "Not currently in olc edit mode.");
 
     return 0;

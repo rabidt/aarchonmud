@@ -67,22 +67,22 @@ void mudconfig_init( void )
             {
                 case CFG_INT:
                 {
-                    *((int *)(en->value))=*((int *)(en->default_value));
+                    *((int *)(en->value))=*((const int *)(en->default_value));
                     break;
                 }
                 case CFG_FLOAT:
                 {
-                    *((float *)(en->value))=*((float *)(en->default_value));
+                    *((float *)(en->value))=*((const float *)(en->default_value));
                     break;
                 }
                 case CFG_BOOL:
                 {
-                    *((bool *)(en->value))=*((bool *)(en->default_value));
+                    *((bool *)(en->value))=*((const bool *)(en->default_value));
                     break;
                 }
                 case CFG_STRING:
                 {
-                    *((const char **)(en->value)) = str_dup((char *)en->default_value);
+                    *((const char **)(en->value)) = str_dup((const char *)en->default_value);
                     break;
                 }
             }

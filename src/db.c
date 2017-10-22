@@ -3648,7 +3648,7 @@ const char * get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
 {
     for ( ; ed != NULL; ed = ed->next )
     {
-        if ( is_name( (char *) name, ed->keyword ) )
+        if ( is_name( name, ed->keyword ) )
             return ed->description;
     }
     return NULL;
@@ -4538,8 +4538,8 @@ const char *trim_realloc( const char *str )
 
 int compare_area (const void *v1, const void *v2)
 {
-	AREA_DATA *a1 = *(AREA_DATA**)v1;
-	AREA_DATA *a2 = *(AREA_DATA**)v2;
+	const AREA_DATA *a1 = *(const AREA_DATA * const *)v1;
+	const AREA_DATA *a2 = *(const AREA_DATA * const *)v2;
 
 	if (a1->minlevel < a2->minlevel)
 		return -1; 
@@ -4551,8 +4551,8 @@ int compare_area (const void *v1, const void *v2)
 
 int compare_area_max (const void *v1, const void *v2)
 {
-	AREA_DATA *a1 = *(AREA_DATA**)v1;
-	AREA_DATA *a2 = *(AREA_DATA**)v2;
+	const AREA_DATA *a1 = *(AREA_DATA * const *)v1;
+	const AREA_DATA *a2 = *(AREA_DATA * const *)v2;
 
 	if (a1->maxlevel > a2->maxlevel )
 		return -1; 

@@ -44,7 +44,7 @@ bool is_being_edited( void *ptr )
     return FALSE;
 }
 
-bool run_olc_argument( CHAR_DATA *ch, int editor, char *argument)
+bool run_olc_argument( CHAR_DATA *ch, int editor, const char *argument)
 {
    switch (editor)
    {

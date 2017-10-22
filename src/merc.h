@@ -5224,7 +5224,7 @@ void init_by_array( unsigned long init_key[], int key_length );
 void mudconfig_init( void );
 
 /* olc.c */
-bool    run_olc_argument  args( ( CHAR_DATA *ch, int editor, char *argument) );
+bool    run_olc_argument  args( ( CHAR_DATA *ch, int editor, const char *argument) );
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
 char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
 char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
