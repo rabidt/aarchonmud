@@ -13,7 +13,7 @@ MODE_FLAGS =
 
 C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op \
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers \
-	-Wshadow
+	-Wshadow -Wsign-conversion
 
 ifeq ($(C_WERROR),1)
 	C_WARN += -Werror
@@ -78,12 +78,12 @@ osx: aeaea
 lint: lint_headers lint_src
 
 .PHONY: lint_src
-lint_src: $(addsuffix .lint,$(SRC_FILES_C))
-lint_src: $(addsuffix .lint,$(SRC_FILES_CPP))
+lint_src: $(addsuffix @lint,$(SRC_FILES_C))
+lint_src: $(addsuffix @lint,$(SRC_FILES_CPP))
 
 .PHONY: lint_headers
-lint_headers: $(addsuffix .lint,$(wildcard *.h))
-lint_headers: $(addsuffix .lint,$(wildcard *.hpp))
+lint_headers: $(addsuffix @lint,$(wildcard *.h))
+lint_headers: $(addsuffix @lint,$(wildcard *.hpp))
 
 .PHONY: %.c@lint
 %.c@lint: %.c
