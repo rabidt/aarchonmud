@@ -3275,7 +3275,7 @@ int dice_argument (const char *argument, char *arg)
 DEF_DO_FUN(do_rolldice)
 {
     char arg[MIL], buf[MSL];
-    unsigned int result = 0;
+    int result = 0;
     sh_int num = 0, size = 0;
  
     if (argument[0] == '\0')

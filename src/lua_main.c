@@ -616,7 +616,7 @@ static int RegisterLuaRoutines (lua_State *LS)
     time_t timer;
     time (&timer);
 
-    init_genrand (timer);
+    init_genrand ((unsigned long)timer);
     arclib_type_init( LS );
 
     register_globals ( LS );
