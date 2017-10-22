@@ -159,16 +159,16 @@ static void vm_push_column(lua_State *L, sqlite3_stmt *vm, int idx) {
         case SQLITE_INTEGER:
             PUSH_INT64(L, sqlite3_column_int64(vm, idx)
                      , lua_pushlstring(L, (const char*)sqlite3_column_text(vm, idx)
-                                        , sqlite3_column_bytes(vm, idx)));
+                                        , (size_t)sqlite3_column_bytes(vm, idx)));
             break;
         case SQLITE_FLOAT:
             lua_pushnumber(L, sqlite3_column_double(vm, idx));
             break;
         case SQLITE_TEXT:
-            lua_pushlstring(L, (const char*)sqlite3_column_text(vm, idx), sqlite3_column_bytes(vm, idx));
+            lua_pushlstring(L, (const char*)sqlite3_column_text(vm, idx), (size_t)sqlite3_column_bytes(vm, idx));
             break;
         case SQLITE_BLOB:
-            lua_pushlstring(L, sqlite3_column_blob(vm, idx), sqlite3_column_bytes(vm, idx));
+            lua_pushlstring(L, sqlite3_column_blob(vm, idx), (size_t)sqlite3_column_bytes(vm, idx));
             break;
         case SQLITE_NULL:
             lua_pushnil(L);
@@ -932,13 +932,13 @@ static int db_interrupt(lua_State *L) {
 static void db_push_value(lua_State *L, sqlite3_value *value) {
     switch (sqlite3_value_type(value)) {
         case SQLITE_TEXT:
-            lua_pushlstring(L, (const char*)sqlite3_value_text(value), sqlite3_value_bytes(value));
+            lua_pushlstring(L, (const char*)sqlite3_value_text(value), (size_t)sqlite3_value_bytes(value));
             break;
 
         case SQLITE_INTEGER:
             PUSH_INT64(L, sqlite3_value_int64(value)
                         , lua_pushlstring(L, (const char*)sqlite3_value_text(value)
-                                            , sqlite3_value_bytes(value)));
+                                            , (size_t)sqlite3_value_bytes(value)));
             break;
 
         case SQLITE_FLOAT:
@@ -946,7 +946,7 @@ static void db_push_value(lua_State *L, sqlite3_value *value) {
             break;
 
         case SQLITE_BLOB:
-            lua_pushlstring(L, sqlite3_value_blob(value), sqlite3_value_bytes(value));
+            lua_pushlstring(L, sqlite3_value_blob(value), (size_t)sqlite3_value_bytes(value));
             break;
 
         case SQLITE_NULL:
@@ -1164,8 +1164,8 @@ static int collwrapper(scc *co,int l1,const void *p1,
     int res=0;
     lua_State *L=co->L;
     lua_rawgeti(L,LUA_REGISTRYINDEX,co->ref);
-    lua_pushlstring(L,p1,l1);
-    lua_pushlstring(L,p2,l2);
+    lua_pushlstring(L,p1,(size_t)l1);
+    lua_pushlstring(L,p2,(size_t)l2);
     if (lua_pcall(L,2,1,0)==0) res=(int)lua_tonumber(L,-1);
     lua_pop(L,1);
     return res;
