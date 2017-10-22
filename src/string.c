@@ -173,7 +173,7 @@ const char * string_replace_ext( const char * orig, const char * old, const char
         i = strlen( orig ) - strlen( strstr( orig, old ) );
         xbuf[i] = '\0';
         strcat( xbuf, new );
-        strcat( xbuf, &orig[i+strlen( old )] );
+        strcat( xbuf, &orig[i + (int)strlen( old )] );
         free_string( orig );
     }
 
@@ -717,7 +717,7 @@ const char *string_lineadd( const char *string, const char *newstr, int line )
       {
          strcat( buf, newstr );
          strcat( buf, "\n\r" );
-         tmp += strlen(newstr) + 2;
+         tmp += (int)strlen(newstr) + 2;
          cnt++;
          done = TRUE;
       }
@@ -979,14 +979,14 @@ const char * center( const char *argument, int width, char fill )
         return argument;
     
     lead_chrs = (int)((width / 2) - (length / 2) + .5);
-    memset( buf2, fill, lead_chrs );
+    memset( buf2, fill, (size_t)lead_chrs );
 
     strcat( buf2, argument);
 
     trail_chrs = width - lead_chrs - length;
     if( trail_chrs > 0 )
     {
-        memset( buf, fill, trail_chrs );
+        memset( buf, fill, (size_t)trail_chrs );
         strcat( buf2, buf );
     }
     
@@ -1014,7 +1014,7 @@ const char *lpad( const char *argument, int width, char fill )
         return argument;
     
     lead_chrs = width - length;
-    memset( buf2, fill, lead_chrs );
+    memset( buf2, fill, (size_t)lead_chrs );
 
     strcat( buf2, argument);
 
@@ -1049,7 +1049,7 @@ const char *rpad( const char *argument, int width, char fill )
 
     if( trail_chrs > 0 )
     {
-        memset( buf, fill, trail_chrs );
+        memset( buf, fill, (size_t)trail_chrs );
         strcat( buf2, buf );
     }
     
@@ -1142,7 +1142,7 @@ char prompt_color_code( const char *prompt, char var )
 // in that case, also splits s and returns parts in prefix and suffix
 bool split_string( const char *s, char split_char, char *prefix, char *suffix )
 {
-    int split_pos;
+    size_t split_pos;
 
     for ( split_pos = 0; s[split_pos] != '\0'; split_pos++ )
         if ( s[split_pos] == split_char )
