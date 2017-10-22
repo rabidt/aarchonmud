@@ -1950,7 +1950,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 					pExp->next = ch->pcdata->explored->buckets;
 					ch->pcdata->explored->buckets = pExp;
 					pExp->mask = mask;
-					pExp->bits = bits;
+					pExp->bits = (unsigned)bits;
 				}
 				int bit;
 				for ( bit=0 ; bit <32 ; bit++ )
@@ -1985,7 +1985,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 					pExp->next = ch->pcdata->explored->buckets;
 					ch->pcdata->explored->buckets = pExp;
 					pExp->mask = mask;
-					pExp->bits = bits;
+					pExp->bits = (unsigned)bits;
 				}
 			}
 			fMatch = TRUE;
