@@ -1311,7 +1311,7 @@ void MSDPSendPair( descriptor_t *apDescriptor, const char *apVariable, const cha
 
       if ( RequiredBuffer >= MAX_VARIABLE_LENGTH )
       {
-         if ( RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH )
+         if ( (size_t)RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH )
          {
             sprintf( MSDPBuffer, 
                "MSDPSendPair: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n", 
@@ -1358,7 +1358,7 @@ void MSDPSendList( descriptor_t *apDescriptor, const char *apVariable, const cha
 
       if ( RequiredBuffer >= MAX_VARIABLE_LENGTH )
       {
-         if ( RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH )
+         if ( (size_t)RequiredBuffer - strlen(apValue) < MAX_VARIABLE_LENGTH )
          {
             sprintf( MSDPBuffer, 
                "MSDPSendList: %s %d bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n", 
@@ -2029,7 +2029,7 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
          {
             /* Store the client name. */
             const int MaxClientLength = 64;
-            char *pClientName = alloca(MaxClientLength+1);
+            char *pClientName = alloca((size_t)MaxClientLength+1);
             int i = 0, j = 1;
             bool_t bStopCyclicTTYPE = false;
 
@@ -2532,7 +2532,7 @@ static void ExecuteMSDPPair( descriptor_t *apDescriptor, const char *apVariable,
                         !strcmp(apDescriptor->pProtocol->pVariables[i]->pValueString, "Unknown") )
                      {
                         /* Store the new value if it's valid */
-                        char *pBuffer = alloca(VariableNameTable[i].Max+1);
+                        char *pBuffer = alloca((size_t)(VariableNameTable[i].Max)+1);
                         int j; /* Loop counter */
 
                         for ( j = 0; j < VariableNameTable[i].Max && *apValue != '\0'; ++apValue )
@@ -2959,7 +2959,7 @@ static char *AllocString( const char *apString )
    if ( apString != NULL )
    {
       int Size = strlen(apString);
-      pResult = malloc(Size+1);
+      pResult = malloc((size_t)Size+1);
       if ( pResult != NULL )
          strcpy( pResult, apString );
    }
