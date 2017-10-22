@@ -79,7 +79,7 @@ void load_social_table ( void )
 
 	/* IMPORTANT to use malloc so we can realloc later on */
 		
-	social_table = malloc (sizeof(struct social_type) * (maxSocial+1));
+	social_table = malloc (sizeof(struct social_type) * (unsigned)(maxSocial+1));
 	
 	for (i = 0; i < maxSocial; i++)
 		load_social (fp,&social_table[i]);
@@ -190,7 +190,7 @@ DEF_DO_FUN(do_sedit)
 	if (!str_cmp(cmd, "delete")) /* Remove a social */
 	{
 		int i,j;
-		struct social_type *new_table = malloc (sizeof(struct social_type) * maxSocial);
+		struct social_type *new_table = malloc (sizeof(struct social_type) * (unsigned)maxSocial);
 		
 		if (!new_table)
 		{
@@ -229,7 +229,7 @@ DEF_DO_FUN(do_sedit)
 		/* Note that the table contains maxSocial socials PLUS one empty spot! */
 		
 		maxSocial++;
-		new_table = realloc (social_table, sizeof(struct social_type) * (maxSocial + 1));
+		new_table = realloc (social_table, sizeof(struct social_type) * (unsigned)(maxSocial + 1));
 		
 		if (!new_table) /* realloc failed */
 		{
