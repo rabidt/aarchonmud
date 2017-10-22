@@ -295,7 +295,7 @@ DBUFFER* load_file_to_buffer( FILE *fp )
   }
   
   // read the file in
-  nr_read = fread(buf->data, sizeof(char), size, fp);
+  nr_read = (long)fread(buf->data, sizeof(char), (size_t)size, fp);
   if (nr_read != size)
   {
     bug("load_file_to_buffer: only %d chars read", nr_read);
@@ -323,7 +323,7 @@ bool write_buffer_to_file( DBUFFER *buf, FILE *fp )
     bug("write_buffer_to_file: NULL pointer given", 0);
     return FALSE;
   }
-  nr_written = fwrite(buf->data, sizeof(char), buf->len, fp);
+  nr_written = fwrite(buf->data, sizeof(char), (size_t)(buf->len), fp);
   if (nr_written != buf->len)
   {
     sprintf( bug_str, "write_buffer_to_file: only %d/%d chars could be written", 
