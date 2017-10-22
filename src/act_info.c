@@ -2633,8 +2633,8 @@ DEF_DO_FUN(do_whois)
 // for sorting the who_array
 int who_compare( const void* a, const void* b )
 {
-    CHAR_DATA *ch1 = *((CHAR_DATA**) a);
-    CHAR_DATA *ch2 = *((CHAR_DATA**) b);
+    const CHAR_DATA *ch1 = *((const CHAR_DATA * const *) a);
+    const CHAR_DATA *ch2 = *((const CHAR_DATA * const *) b);
     
     // high-level characters go first
     if ( ch1->level > ch2->level )
@@ -6283,11 +6283,10 @@ static void print_race_table (CHAR_DATA *ch, const void *ptr)
 
 static void print_title_table (CHAR_DATA *ch, const void *ptr)
 {
-    const title_table_type *tbl = (const title_table_type *) ptr;
     BUFFER *buffer = new_buf();
 
-    const size_t class_cnt = sizeof(*tbl) / sizeof(*tbl[0]);
-    const size_t title_cnt = sizeof(*tbl[0]) / sizeof(*tbl[0][0]);
+    const size_t class_cnt = sizeof(title_table) / sizeof(title_table[0]);
+    const size_t title_cnt = sizeof(title_table[0]) / sizeof(title_table[0][0]);
 
 
     size_t i, j;
