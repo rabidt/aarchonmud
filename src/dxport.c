@@ -34,7 +34,7 @@ eDXPORT_rc write_msg_buf( void )
     //struct timeval t1, t2;
     //double elapsedTime;    
     //gettimeofday(&t1, NULL);
-    int len = strlen(msg_buf);
+    size_t len = strlen(msg_buf);
     int written = write(sockfd, msg_buf, len);
     //gettimeofday(&t2, NULL);
     //elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;
@@ -42,7 +42,7 @@ eDXPORT_rc write_msg_buf( void )
     //printf("Elapsed: %d\n", elapsedTime);
 
 
-    if (len != written)
+    if (written < 0 || len != (size_t)written)
     {
         int rtn = close(sockfd);
         if (rtn != 0)

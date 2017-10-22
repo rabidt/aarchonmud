@@ -3504,7 +3504,7 @@ void explore_vnum(CHAR_DATA *ch, int vnum )
 		ch->pcdata->explored->buckets = pExp;       //the list
 	}
 	
-	pExp->bits = pExp->bits | ( 1 << bit) ;
+	pExp->bits = pExp->bits | ( 1u << bit) ;
 	ch->pcdata->explored->set++; //Tell how many rooms we've explored
 	update_lboard( LBOARD_EXPL, ch, ch->pcdata->explored->set, 1);
 #ifdef EXPLORE_DEBUG
