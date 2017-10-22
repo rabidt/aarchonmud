@@ -58,7 +58,7 @@ struct hash_header
 };
 
 #define WORLD_SIZE  30000
-#define HASH_KEY(ht,key)((((unsigned int)(key))*17)%(ht)->table_size)
+#define HASH_KEY(ht,key) ( (((unsigned int)(key)) * 17) % (unsigned int)((ht)->table_size))
 
 
 
@@ -102,12 +102,12 @@ void bzero(register char *sp,int len)
 
 
 
-void init_hash_table(struct hash_header *ht,int rec_size,int table_size)
+void init_hash_table(struct hash_header *ht,int rec_size,size_t table_size)
 {
     ht->rec_size  = rec_size;
     ht->table_size= table_size;
     ht->buckets   = (void*)calloc(sizeof(struct hash_link**),table_size);
-    ht->keylist   = (void*)malloc(sizeof(ht->keylist)*(ht->klistsize=128));
+    ht->keylist   = (void*)malloc(sizeof(ht->keylist) * (size_t)(ht->klistsize=128));
     ht->klistlen  = 0;
 }
 
@@ -142,7 +142,7 @@ void _hash_enter(struct hash_header *ht,int key,void *data)
     if(ht->klistlen>=ht->klistsize)
     {
         ht->keylist = (void*)realloc(ht->keylist,sizeof(*ht->keylist)*
-            (ht->klistsize*=2));
+            (unsigned)(ht->klistsize*=2));
     }
     for(i=ht->klistlen;i>=0;i--)
     {
@@ -204,7 +204,7 @@ void *hash_remove(struct hash_header *ht,int key)
 
         if(i<ht->klistlen)
         {
-            bcopy((char *)ht->keylist+i+1,(char *)ht->keylist+i,(ht->klistlen-i)
+            bcopy((char *)ht->keylist+i+1,(char *)ht->keylist+i,(size_t)(ht->klistlen-i)
                     *sizeof(*ht->keylist));
             ht->klistlen--;
         }
