@@ -4290,7 +4290,7 @@ void *alloc_mem( int sMem )
         pMem              = rgFreeList[iList];
         rgFreeList[iList] = * ((void **) rgFreeList[iList]);
         // clear memory before usage - alloc_perm does it too, so the two can be used (more or less) interchangeably
-        memset(pMem, 0, sMem);
+        memset(pMem, 0, (size_t)sMem);
     }
     
 #ifdef MAGIC_CHECKING
@@ -4362,7 +4362,7 @@ void *alloc_perm( int sMem )
     static int iMemPerm;
     void *pMem;
     
-    while ( sMem % sizeof(long) != 0 )
+    while ( (size_t)sMem % sizeof(long) != 0 )
         sMem++;
     if ( sMem > MAX_PERM_BLOCK )
     {
@@ -4575,8 +4575,8 @@ void do_areas( CHAR_DATA *ch )
     AREA_DATA *pArea1;
     AREA_DATA *sorted_areas[MAX_AREAS];
     BUFFER *output;
-    int count=0;
-    int i;
+    size_t count=0;
+    size_t i;
      
     output = new_buf();
 
@@ -4825,7 +4825,7 @@ void init_mm( void )
     }
 #else
     //srandom(time(NULL)^getpid());
-    init_genrand(time(NULL)^getpid());
+    init_genrand((unsigned long)time(NULL) ^ (unsigned long)getpid());
 #endif
     return;
 }
