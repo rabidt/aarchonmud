@@ -2257,9 +2257,9 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
                               i = " <@@@> ";                                break;
                               /* Thx alex for 't' idea */
                     case 't': if ( arg1 == NULL ) { i = " <@@@> ";}
-                                  else { i = (char *) arg1; arg1_type=ACT_ARG_TEXT;}
+                                  else { i = (const char *) arg1; arg1_type=ACT_ARG_TEXT;}
                                   break;
-                    case 'T': i = (char *) arg2; arg2_type=ACT_ARG_TEXT;    break;
+                    case 'T': i = (const char *) arg2; arg2_type=ACT_ARG_TEXT;    break;
                               //		case 'n': i = PERS( ch,  to  );                         break;
                               //		case 'N': i = PERS( vch, to  );                         break;
                     case 'n': i = get_mimic_PERS( ch,  to );                         break;
@@ -2286,13 +2286,13 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
                               break;
 
                     case 'd':
-                              if ( arg2 == NULL || ((char *) arg2)[0] == '\0' )
+                              if ( arg2 == NULL || ((const char *) arg2)[0] == '\0' )
                               {
                                   i = "door";
                               }
                               else
                               {
-                                  one_argument( (char *) arg2, fname );
+                                  one_argument( arg2, fname );
                                   i = fname;
                                   arg2_type=ACT_ARG_TEXT;
                               }

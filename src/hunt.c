@@ -895,7 +895,7 @@ void hunt_victim( CHAR_DATA *ch )
         
     if( IS_SET( ch->in_room->exit[dir]->exit_info, EX_CLOSED ) )
     {
-	do_open( ch, (char *) dir_name[dir] );
+	do_open( ch, dir_name[dir] );
 	return;
     }
         
