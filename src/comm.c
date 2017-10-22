@@ -770,7 +770,7 @@ else
      */
     int addr;
 
-    addr = ntohl( sock.sin_addr.s_addr );
+    addr = (int)ntohl( sock.sin_addr.s_addr );
     sprintf( buf, "%d.%d.%d.%d",
             ( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
             ( addr >>  8 ) & 0xFF, ( addr       ) & 0xFF
@@ -940,7 +940,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
 
     /* Check for overflow. */
     lenInbuf = strlen(d->inbuf);
-    maxRead = sizeof(d->inbuf) - (lenInbuf + 1);
+    maxRead = sizeof(d->inbuf) - (size_t)(lenInbuf + 1);
     
     if ( maxRead <= 0 )
     {
@@ -960,7 +960,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
                 break;
 
 
-        nRead = read( d->descriptor, read_buf + iStart, maxRead - iStart );
+        nRead = read( d->descriptor, read_buf + iStart, (size_t)(maxRead - iStart) );
 
         if ( nRead > 0 )
         {
@@ -1709,7 +1709,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
             return;
         }
         outbuf      = alloc_mem( 2 * d->outsize );
-        strncpy( outbuf, d->outbuf, d->outtop );
+        strncpy( outbuf, d->outbuf, (size_t)(d->outtop) );
         free_mem( d->outbuf, d->outsize );
         d->outbuf   = outbuf;
         d->outsize *= 2;
@@ -1720,7 +1720,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
      * (Added 1/10/98 by Rimbol, suggested bug fix
      *  by Alexander A. Isavnin <isavnin@redline.ru>)
      */
-    strncpy( d->outbuf + d->outtop, txt , length);
+    strncpy( d->outbuf + d->outtop, txt , (size_t)length);
     d->outtop += length;
     d->outbuf[d->outtop]='\0';
 
@@ -1765,10 +1765,10 @@ int write_to_descriptor( int desc, char *txt, int length, bool SGA)
 
     if (!SGA)
     {
-        memcpy(outbuf, txt, length);
+        memcpy(outbuf, txt, (size_t)length);
         memcpy(outbuf + length, IAC_GA, sizeof(IAC_GA));
         write_src = outbuf;
-        write_src_cnt = length + sizeof(IAC_GA);
+        write_src_cnt = length + (int)sizeof(IAC_GA);
     }
     else
     {
@@ -1779,7 +1779,7 @@ int write_to_descriptor( int desc, char *txt, int length, bool SGA)
     for ( iStart = 0; iStart < write_src_cnt; iStart += nWrite )
     {
         int nBlock = UMIN( write_src_cnt - iStart, MAX_BLOCK_SIZE );
-        if ( ( nWrite = write( desc, write_src + iStart, nBlock ) ) < 0 )
+        if ( ( nWrite = write( desc, write_src + iStart, (size_t)nBlock ) ) < 0 )
         {
             log_error( "Write_to_descriptor" );
             return 0;
@@ -1788,7 +1788,7 @@ int write_to_descriptor( int desc, char *txt, int length, bool SGA)
     } 
     
     if (!SGA)
-        nWritten -= sizeof(IAC_GA);
+        nWritten -= (int)sizeof(IAC_GA);
 
     return nWritten;
 }
