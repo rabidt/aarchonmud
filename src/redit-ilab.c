@@ -509,7 +509,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
         const char *sdesc = truncate_color_string(mob->short_descr, 35);
                 sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%zus  {x[%%s]",
-                    35 + ( mob ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                    35 + ( mob ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
                 sprintf( buf, buf2,
                     number, 
                     pReset->arg1, 
@@ -525,7 +525,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
 
                 sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%zus {x(%%s)",
-                    28 + ( obj ? strlen(sdesc)  - strlen_color(sdesc) : 0));
+                    28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
 
                 sprintf( buf, buf2,
                     number, 
@@ -544,7 +544,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%zus {x(%%s)",
-                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                    28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number,                                      /* reset number */
                     pReset->arg1,                                /* obj vnum */
@@ -560,7 +560,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
                 sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%zus {x(%%s)",
-                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                    28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number, 
                     pReset->arg1, 
@@ -576,7 +576,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%zus {x(%%s)",
-                    28 + ( obj ? strlen(sdesc) - strlen_color(sdesc) : 0));
+                    28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
                 sprintf (buf, buf2,
                     number,
                     pReset->arg1, 
