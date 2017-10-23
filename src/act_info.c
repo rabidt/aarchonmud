@@ -1963,7 +1963,7 @@ DEF_DO_FUN(do_examine)
 DEF_DO_FUN(do_exits)
 {
     char buf[MAX_STRING_LENGTH];
-    size_t buf_i = 0;
+    int buf_i = 0;
     EXIT_DATA *pexit;
     bool found;
     bool fAuto;
@@ -1977,17 +1977,17 @@ DEF_DO_FUN(do_exits)
     if (fAuto)
     {
         buf_i = snprintf(buf, sizeof(buf), "{O[Exits:");
-        buf_i = UMIN(buf_i, sizeof(buf));
+        buf_i = URANGE(0, buf_i, (int)sizeof(buf));
     }
     else if (IS_IMMORTAL(ch))
     {
         buf_i = snprintf(buf, sizeof(buf), "Obvious exits from room %d:\n\r",ch->in_room->vnum);
-        buf_i = UMIN(buf_i, sizeof(buf));
+        buf_i = URANGE(0, buf_i, (int)sizeof(buf));
     }
     else
     {
         buf_i = snprintf(buf, sizeof(buf), "Obvious exits:\n\r");
-        buf_i = UMIN(buf_i, sizeof(buf));
+        buf_i = URANGE(0, buf_i, (int)sizeof(buf));
     }
     
     found = FALSE;
@@ -2006,42 +2006,42 @@ DEF_DO_FUN(do_exits)
             {
                 if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
-                    buf_i = snprintf( buf + buf_i, sizeof(buf) - buf_i, " <%s>", dir_name[door] );
-                    buf_i = UMIN(buf_i, sizeof(buf));
+                    buf_i = snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, " <%s>", dir_name[door] );
+                    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
                 }
                 else if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
-                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " (%s%s)", 
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, " (%s%s)", 
                             IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
                             dir_name[door] );
-                    buf_i = UMIN(buf_i, sizeof(buf));
+                    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
                 }
                 else
                 {
-                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " %s", dir_name[door] );
-                    buf_i = UMIN(buf_i, sizeof(buf));
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, " %s", dir_name[door] );
+                    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
                 }
             }
             else
             {
-                buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "%-5s - %s",
+                buf_i += snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, "%-5s - %s",
                     capitalize( dir_name[door] ),
                     room_is_dark( pexit->u1.to_room )
                     ?  "Too dark to tell"
                     : pexit->u1.to_room->name
                     );
-                buf_i = UMIN(buf_i, sizeof(buf));
+                buf_i = URANGE(0, buf_i, (int)sizeof(buf));
 
                 if (IS_IMMORTAL(ch))
                 {
-                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, 
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - (size_t)buf_i, 
                         " (room %d)\n\r", pexit->u1.to_room->vnum);
-                    buf_i = UMIN(buf_i, sizeof(buf));
+                    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
                 }
                 else
                 {
-                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, "\n\r");
-                    buf_i = UMIN(buf_i, sizeof(buf));
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - (size_t)buf_i, "\n\r");
+                    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
                 }
             }
         }
@@ -2049,17 +2049,17 @@ DEF_DO_FUN(do_exits)
     
     if ( !found )
     {
-        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, fAuto ? " none" : "None.\n\r" );
-        buf_i = UMIN(buf_i, sizeof(buf));
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, fAuto ? " none" : "None.\n\r" );
+        buf_i = URANGE(0, buf_i, (int)sizeof(buf));
     }
     
     if ( fAuto )
     {
-        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "]\n\r" );
-        buf_i = UMIN(buf_i, sizeof(buf));
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - (size_t)buf_i, "]\n\r" );
+        buf_i = URANGE(0, buf_i, (int)sizeof(buf));
     }
     
-    if (buf_i >= sizeof(buf))
+    if (buf_i >= (int)sizeof(buf))
     {
         bugf("%s: buffer overflow", __func__);
     }
@@ -4514,8 +4514,8 @@ static void sc_printf(char *buf, size_t bufsz, const char *fmt, ...)
     va_list va;
     va_start (va, fmt);
     
-    size_t i = vsnprintf(buf, bufsz, fmt, va);
-    i = UMIN(i, bufsz);
+    int i = vsnprintf(buf, bufsz, fmt, va);
+    i = URANGE(0, i, (int)bufsz);
 
     int len = strlen_color(buf);
     int fill_count;
@@ -4527,7 +4527,7 @@ static void sc_printf(char *buf, size_t bufsz, const char *fmt, ...)
     {
         fill_count = 0;
     }
-    snprintf(buf + i, bufsz - i, "%*s{D|{x\n\r", fill_count, "");
+    snprintf(buf + i, bufsz - (size_t)i, "%*s{D|{x\n\r", fill_count, "");
 }
 
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
