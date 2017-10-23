@@ -11,7 +11,7 @@ PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
 MODE_FLAGS =
 
-C_WARN = -Wall -Wextra -Wcast-align -Wdisabled-optimization -Winit-self -Wlogical-op \
+C_WARN = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Winit-self -Wlogical-op \
 	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers \
 	-Wshadow -Wsign-conversion
 
