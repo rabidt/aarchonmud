@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/time.h>
 #include <string.h>
 #include <lualib.h>
@@ -8228,7 +8229,7 @@ bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud )
         bugf( "Invalid %s in arclib_push", type->C_type_name );
         return FALSE;
     }
-    struct arclib_metadata *meta = ud + type->C_struct_size;
+    struct arclib_metadata *meta = (struct arclib_metadata *)((uintptr_t)ud + type->C_struct_size);
     int ref=meta->ref;
     if (ref==REF_FREED)
         return FALSE;
@@ -8241,7 +8242,7 @@ bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud )
 void * arclib_alloc( LUA_OBJ_TYPE *type )
 {
     void *ud_mem=lua_newuserdata( g_mud_LS, type->C_struct_size + sizeof(struct arclib_metadata) );
-    struct arclib_metadata *meta = ud_mem + type->C_struct_size;
+    struct arclib_metadata *meta = (struct arclib_metadata *)((uintptr_t)ud_mem + type->C_struct_size);
     luaL_getmetatable( g_mud_LS, type->type_name );
     lua_setmetatable( g_mud_LS, -2 );
     meta->ref=luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );
@@ -8263,7 +8264,7 @@ void arclib_free( LUA_OBJ_TYPE *type, void *ud )
         bugf( "Invalid %s in arclib_free", type->C_type_name );
         return;
     }
-    struct arclib_metadata *meta = ud + type->C_struct_size;
+    struct arclib_metadata *meta = (struct arclib_metadata *)((uintptr_t)ud + type->C_struct_size);
     int ref=meta->ref;
     if ( ref == REF_FREED )
     {

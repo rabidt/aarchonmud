@@ -12,10 +12,13 @@ PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 MODE_FLAGS =
 
 BASE_WARN = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Winit-self -Wlogical-op \
-	-Wno-unused-parameter -Wshadow -Wsign-conversion
+	-Wundef -Wno-unused-parameter -Wshadow -Wsign-conversion -Waggregate-return \
+	-Wpointer-arith -Wuninitialized 
+
 
 C_WARN = $(BASE_WARN) \
-	-Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers
+	-Wstrict-prototypes -Wold-style-definition -Wold-style-declaration \
+	-Wno-missing-field-initializers 
 	
 ifeq ($(C_WERROR),1)
 	C_WARN += -Werror
@@ -24,7 +27,7 @@ endif
 CPP_WARN = $(BASE_WARN) \
 	-pedantic -Wctor-dtor-privacy -Wformat=2 -Wmissing-declarations -Wold-style-cast \
 	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
-	-Wswitch-default -Wundef -Weffc++ -Werror
+	-Wswitch-default -Weffc++ -Werror
 
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
