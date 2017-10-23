@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <time.h>
 #include <math.h>
@@ -4479,7 +4480,9 @@ void free_string( const char *pstr )
     
     // pstr is no shared, so we deallocate it, ignoring const
     forget_str_dup( pstr );
-    free_mem( (char*)pstr, strlen(pstr) + 1 );
+
+    /* Have to "force" cast using uintptr_t to avoid warning for dicarding const */
+    free_mem( (void *)(uintptr_t)pstr, strlen(pstr) + 1 );
     return;
 }
 
