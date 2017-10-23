@@ -229,7 +229,7 @@ int main( int argc, char **argv )
     boot_db();
     DXPORT_init();
 
-    sprintf( log_buf, "ROM is ready to rock on port %d.", s_port );
+    snprintf( log_buf, sizeof(log_buf), "ROM is ready to rock on port %d.", s_port );
     log_string( log_buf );
 
     if (fCopyOver)
@@ -771,11 +771,11 @@ else
     int addr;
 
     addr = (int)ntohl( sock.sin_addr.s_addr );
-    sprintf( buf, "%d.%d.%d.%d",
+    snprintf( buf, sizeof(buf), "%d.%d.%d.%d",
             ( addr >> 24 ) & 0xFF, ( addr >> 16 ) & 0xFF,
             ( addr >>  8 ) & 0xFF, ( addr       ) & 0xFF
            );
-    sprintf( log_buf, "Sock.sinaddr:  %s", buf );
+    snprintf( log_buf, sizeof(log_buf), "Sock.sinaddr:  %s", buf );
     log_string( log_buf );
 
     /* Disabled to kill the lag beast... temporarily. -Rim 9/8/98
@@ -851,7 +851,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
 
     if ( ( ch = dclose->character ) != NULL )
     {
-        sprintf( log_buf, "Closing link to %s.", ch->name );
+        snprintf( log_buf, sizeof(log_buf), "Closing link to %s.", ch->name );
         log_string( log_buf );
 
         /* Suggested bug fix by Ivan Toledo, added 1/10/98 by Rimbol */
@@ -944,7 +944,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     
     if ( maxRead <= 0 )
     {
-        sprintf( log_buf, "%s input overflow!", d->host );
+        snprintf( log_buf, sizeof(log_buf), "%s input overflow!", d->host );
         log_string( log_buf );
         write_to_descriptor( d->descriptor, "\n\r*** PUT A LID ON IT!!! ***\n\r", 0, d->pProtocol->bSGA );
         return FALSE;
@@ -1102,7 +1102,7 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
             if (++d->repeat >= 25 && d->character
                     &&  d->connected == CON_PLAYING)
             {
-                sprintf( log_buf, "%s input spamming!", d->host );
+                snprintf( log_buf, sizeof(log_buf), "%s input spamming!", d->host );
                 log_string( log_buf );
                 wiznet("Spam spam spam $N spam spam spam spam spam!",
                         d->character,NULL,WIZ_SPAM,0,get_trust(d->character));
@@ -1180,7 +1180,7 @@ void battle_prompt( DESCRIPTOR_DATA *d )
         int i, bars;
 
         if (percent<0)
-            sprintf(buf, "{W[              {RKILL{x               {W]{x\n\r");
+            snprintf(buf, sizeof(buf), "{W[              {RKILL{x               {W]{x\n\r");
         else
         {
             if (percent==100)
@@ -1198,7 +1198,7 @@ void battle_prompt( DESCRIPTOR_DATA *d )
             else
                 color = 'r';
 
-            sprintf(buf,
+            snprintf(buf, sizeof(buf),
                     "{W[{%c                                {W] %s {W({%c%d%%{W){x\n\r",
                     color, IS_NPC(victim) ? victim->short_descr : victim->name, color, percent);
 
@@ -1209,23 +1209,23 @@ void battle_prompt( DESCRIPTOR_DATA *d )
     } else {
 
         if (percent >= 100)
-            sprintf(wound,"is in excellent condition.");
+            snprintf(wound, sizeof(wound),"is in excellent condition.");
         else if (percent >= 90)
-            sprintf(wound,"has a few scratches.");
+            snprintf(wound, sizeof(wound),"has a few scratches.");
         else if (percent >= 75)
-            sprintf(wound,"has some small wounds and bruises.");
+            snprintf(wound, sizeof(wound),"has some small wounds and bruises.");
         else if (percent >= 50)
-            sprintf(wound,"has quite a few wounds.");
+            snprintf(wound, sizeof(wound),"has quite a few wounds.");
         else if (percent >= 30)
-            sprintf(wound,"has some big nasty wounds and scratches.");
+            snprintf(wound, sizeof(wound),"has some big nasty wounds and scratches.");
         else if (percent >= 15)
-            sprintf(wound,"looks pretty hurt.");
+            snprintf(wound, sizeof(wound),"looks pretty hurt.");
         else if (percent >= 0)
-            sprintf(wound,"is in awful condition.");
+            snprintf(wound, sizeof(wound),"is in awful condition.");
         else
-            sprintf(wound,"is bleeding to death.");
+            snprintf(wound, sizeof(wound),"is bleeding to death.");
 
-        sprintf(buf,"%s %s \n\r", 
+        snprintf(buf, sizeof(buf),"%s %s \n\r", 
                 IS_NPC(victim) ? victim->short_descr : victim->name,wound);
         buf[0]  = UPPER( buf[0] );
     }
@@ -1351,7 +1351,7 @@ void bust_a_prompt( CHAR_DATA *ch )
     str = ch->prompt;
     if( !str || str[0] == '\0')
     {
-        sprintf( buf, "{g<{r%d{g/%dhp {c%d{g/%dm {y%d{getl>{x %s",     
+        snprintf( buf, sizeof(buf), "{g<{r%d{g/%dhp {c%d{g/%dm {y%d{getl>{x %s",     
                 ch->hit,ch->max_hit,ch->mana,ch->max_mana, IS_NPC(ch) ? 0 :
                 (ch->level + 1) * exp_per_level(ch) - ch->exp,
                 ch->prefix);
@@ -1383,7 +1383,7 @@ void bust_a_prompt( CHAR_DATA *ch )
             default :
                 i = " "; break;
             case 'b':
-                sprintf( buf3, "%s%s%s%s%s%s%s%s" ,
+                snprintf( buf3, sizeof(buf3), "%s%s%s%s%s%s%s%s" ,
                 NPC_OFF(ch, OFF_RESCUE) || PLR_ACT(ch, PLR_AUTORESCUE) ? "{WR{x" : " ",
                 is_affected(ch, gsn_bless) || is_affected(ch, gsn_prayer) ? "{WB{x" : get_skill(ch, gsn_bless) > 1 ? "{Rb{x" : " ",
                 IS_AFFECTED(ch, AFF_FLYING) ? "{WF{x" : get_skill(ch, gsn_fly) > 1 ? "{Rf{x" : " ",
@@ -1392,7 +1392,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                 IS_AFFECTED(ch, AFF_SANCTUARY) ? "{WS{x" : get_skill(ch, gsn_sanctuary) > 1 ? "{Rs{x" : " ",
                 is_affected(ch, gsn_war_cry) ? "{WW{x" : get_skill(ch, gsn_war_cry) > 1 ? "{Rw{x" : " ",
                 IS_AFFECTED(ch, AFF_BERSERK) ? "{WZ{x" : get_skill(ch, gsn_frenzy) > 1 ? "{Rz{x" : " ");
-                sprintf( buf2, "%s", buf3 );
+                snprintf( buf2, sizeof(buf2), "%s", buf3 );
                 i = buf2; break;
             case 'e':
                 found = FALSE;
@@ -1413,54 +1413,54 @@ void bust_a_prompt( CHAR_DATA *ch )
                 }
                 if (!found)
                     strcat(buf,"none");
-                sprintf(buf2,"%s",doors);
+                snprintf(buf2, sizeof(buf2),"%s",doors);
                 i = buf2; break;
                 /* Players can track new rooms that they've visited - Astark Nov 2012 */
             case 'E' :
                 /* Oops! forgot the NPC check here. Was causing a crash. Astark 1-17-13 */
                 if (!IS_NPC(ch))
                 {
-                    sprintf(buf2,"%d", ch->pcdata->explored->set );
+                    snprintf(buf2, sizeof(buf2),"%d", ch->pcdata->explored->set );
                     i = buf2; break;
                 }
             case 'c' :
-                sprintf(buf2,"%s","\n\r");
+                snprintf(buf2, sizeof(buf2),"%s","\n\r");
                 i = buf2; break;
             case 'h' :
                 if (insane)
-                    sprintf( buf2, "%d", number_range(1, ch->max_hit));
+                    snprintf( buf2, sizeof(buf2), "%d", number_range(1, ch->max_hit));
                 else
-                    sprintf( buf2, "%d", ch->hit );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->hit );
                 i = buf2; break;
             case 'H' :
                 if ( ch->hit_cap_delta )
-                    sprintf( buf2, "%d[%d]", hit_cap(ch), ch->max_hit );
+                    snprintf( buf2, sizeof(buf2), "%d[%d]", hit_cap(ch), ch->max_hit );
                 else
-                    sprintf( buf2, "%d", ch->max_hit );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->max_hit );
                 i = buf2; break;
             case 'm' :
                 if (insane)
-                    sprintf( buf2, "%d", number_range(1, ch->max_mana));
+                    snprintf( buf2, sizeof(buf2), "%d", number_range(1, ch->max_mana));
                 else
-                    sprintf( buf2, "%d", ch->mana );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->mana );
                 i = buf2; break;
             case 'M' :
                 if ( ch->mana_cap_delta )
-                    sprintf( buf2, "%d[%d]", mana_cap(ch), ch->max_mana );
+                    snprintf( buf2, sizeof(buf2), "%d[%d]", mana_cap(ch), ch->max_mana );
                 else
-                    sprintf( buf2, "%d", ch->max_mana );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->max_mana );
                 i = buf2; break;
             case 'v' :
                 if (insane)
-                    sprintf( buf2, "%d", number_range(1, ch->max_move) );
+                    snprintf( buf2, sizeof(buf2), "%d", number_range(1, ch->max_move) );
                 else
-                    sprintf( buf2, "%d", ch->move );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->move );
                 i = buf2; break;
             case 'V' :
                 if ( ch->move_cap_delta )
-                    sprintf( buf2, "%d[%d]", move_cap(ch), ch->max_move );
+                    snprintf( buf2, sizeof(buf2), "%d[%d]", move_cap(ch), ch->max_move );
                 else
-                    sprintf( buf2, "%d", ch->max_move );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->max_move );
                 i = buf2; break;
 
                 /* Battle prompts by Brian Castle. Idea from NB's snippet. */
@@ -1468,14 +1468,14 @@ void bust_a_prompt( CHAR_DATA *ch )
                 if (!IS_NPC(ch))
                 {
                     pct = ch->max_hit > 0 ? (ch->hit * 100) / ch->max_hit : -1;
-                    if ( pct >= 100 ) sprintf( buf2, "Excl" );
-                    else if ( pct >=  90 ) sprintf( buf2, "Scrt" );
-                    else if ( pct >=  75 ) sprintf( buf2, "Smal" );
-                    else if ( pct >=  50 ) sprintf( buf2, "QFew" );
-                    else if ( pct >=  30 ) sprintf( buf2, "BigN" );
-                    else if ( pct >=  15 ) sprintf( buf2, "Hurt" );
-                    else if ( pct >=  0  ) sprintf( buf2, "Awfl" );
-                    else                   sprintf( buf2, "Dyng" );
+                    if ( pct >= 100 ) snprintf( buf2, sizeof(buf2), "Excl" );
+                    else if ( pct >=  90 ) snprintf( buf2, sizeof(buf2), "Scrt" );
+                    else if ( pct >=  75 ) snprintf( buf2, sizeof(buf2), "Smal" );
+                    else if ( pct >=  50 ) snprintf( buf2, sizeof(buf2), "QFew" );
+                    else if ( pct >=  30 ) snprintf( buf2, sizeof(buf2), "BigN" );
+                    else if ( pct >=  15 ) snprintf( buf2, sizeof(buf2), "Hurt" );
+                    else if ( pct >=  0  ) snprintf( buf2, sizeof(buf2), "Awfl" );
+                    else                   snprintf( buf2, sizeof(buf2), "Dyng" );
                     i = buf2;
                 }
                 else
@@ -1486,14 +1486,14 @@ void bust_a_prompt( CHAR_DATA *ch )
                 {
                     pct = ch->fighting->max_hit > 0 ? (ch->fighting->hit * 100)
                         / ch->fighting->max_hit : -1;
-                    if ( pct >= 100 ) sprintf( buf2, "Excl" );
-                    else if ( pct >=  90 ) sprintf( buf2, "Scrt" );
-                    else if ( pct >=  75 ) sprintf( buf2, "Smal" );
-                    else if ( pct >=  50 ) sprintf( buf2, "QFew" );
-                    else if ( pct >=  30 ) sprintf( buf2, "BigN" );
-                    else if ( pct >=  15 ) sprintf( buf2, "Hurt" );
-                    else if ( pct >=  0  ) sprintf( buf2, "Awfl" );
-                    else                   sprintf( buf2, "Dyng" );
+                    if ( pct >= 100 ) snprintf( buf2, sizeof(buf2), "Excl" );
+                    else if ( pct >=  90 ) snprintf( buf2, sizeof(buf2), "Scrt" );
+                    else if ( pct >=  75 ) snprintf( buf2, sizeof(buf2), "Smal" );
+                    else if ( pct >=  50 ) snprintf( buf2, sizeof(buf2), "QFew" );
+                    else if ( pct >=  30 ) snprintf( buf2, sizeof(buf2), "BigN" );
+                    else if ( pct >=  15 ) snprintf( buf2, sizeof(buf2), "Hurt" );
+                    else if ( pct >=  0  ) snprintf( buf2, sizeof(buf2), "Awfl" );
+                    else                   snprintf( buf2, sizeof(buf2), "Dyng" );
                     i = buf2;
                 }
                 else
@@ -1508,8 +1508,8 @@ void bust_a_prompt( CHAR_DATA *ch )
                     if (ch->fighting->fighting && ch->fighting->fighting != ch)
                     {
                         pct = ch->fighting->fighting->max_hit > 0 ? (ch->fighting->fighting->hit * 100) / ch->fighting->fighting->max_hit : -1;
-                        if ( pct <= 25 ) sprintf( buf2, "{R%d(%d%%){x", ch->fighting->fighting->hit, pct);
-                        else sprintf( buf2, "%d(%d%%)", ch->fighting->fighting->hit, pct);
+                        if ( pct <= 25 ) snprintf( buf2, sizeof(buf2), "{R%d(%d%%){x", ch->fighting->fighting->hit, pct);
+                        else snprintf( buf2, sizeof(buf2), "%d(%d%%)", ch->fighting->fighting->hit, pct);
                         i = buf2;
                     }
                     else
@@ -1525,87 +1525,87 @@ void bust_a_prompt( CHAR_DATA *ch )
                 }
                 break;
             case 'T' : /* current mud time */
-                sprintf( buf2, "%d%s",
+                snprintf( buf2, sizeof(buf2), "%d%s",
                         (time_info.hour % 12 == 0) ? 12 : time_info.hour % 12,
                         time_info.hour >= 12 ? "pm" : "am" );
                 i = buf2; break;
             case 'x' :
-                sprintf( buf2, "%d", ch->exp );
+                snprintf( buf2, sizeof(buf2), "%d", ch->exp );
                 i = buf2; break;
             case 'X' :
-                sprintf(buf2, "%d", IS_NPC(ch) ? 0 :
+                snprintf(buf2, sizeof(buf2), "%d", IS_NPC(ch) ? 0 :
                         (ch->level + 1) * exp_per_level(ch) - ch->exp);
                 i = buf2; break;
             case 'F' :
-                sprintf(buf2, "%ld", IS_NPC(ch) ? 0 : ch->pcdata->field );
+                snprintf(buf2, sizeof(buf2), "%ld", IS_NPC(ch) ? 0 : ch->pcdata->field );
                 i = buf2; break;
             case 'g' :
-                sprintf( buf2, "%ld", ch->gold);
+                snprintf( buf2, sizeof(buf2), "%ld", ch->gold);
                 i = buf2; break;
             case 's' :
-                sprintf( buf2, "%ld", ch->silver);
+                snprintf( buf2, sizeof(buf2), "%ld", ch->silver);
                 i = buf2; break;
             case 'q' :
-                sprintf( buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->questpoints);
+                snprintf( buf2, sizeof(buf2), "%d", IS_NPC(ch) ? 0 : ch->pcdata->questpoints);
                 i = buf2; break;
             case 'a' :
                 if( ch->level > 9 )
-                    sprintf( buf2, "%d", ch->alignment );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->alignment );
                 else
-                    sprintf( buf2, "%s", IS_GOOD(ch) ? "good" : IS_EVIL(ch) ?
+                    snprintf( buf2, sizeof(buf2), "%s", IS_GOOD(ch) ? "good" : IS_EVIL(ch) ?
                             "evil" : "neutral" );
                 i = buf2; break;
             case 'l' :
-                sprintf( buf2, "%d", ch->level);
+                snprintf( buf2, sizeof(buf2), "%d", ch->level);
                 i = buf2; break;
             case 'r' :
                 if( ch->in_room != NULL )
-                    sprintf( buf2, "%s", 
+                    snprintf( buf2, sizeof(buf2), "%s", 
                             ((!IS_NPC(ch) && IS_SET(ch->act,PLR_HOLYLIGHT)) ||
                              (!IS_AFFECTED(ch,AFF_BLIND) && !room_is_dark( ch->in_room )))
                             ? ch->in_room->name : "darkness");
                 else
-                    sprintf( buf2, " " );
+                    snprintf( buf2, sizeof(buf2), " " );
                 i = buf2; break;
             case 'R' :
                 if( IS_IMMORTAL( ch ) && ch->in_room != NULL )
-                    sprintf( buf2, "%d", ch->in_room->vnum );
+                    snprintf( buf2, sizeof(buf2), "%d", ch->in_room->vnum );
                 else
-                    sprintf( buf2, " " );
+                    snprintf( buf2, sizeof(buf2), " " );
                 i = buf2; break;
             case 'z' :
                 /* Allowing morts to use this, 12/22/97 -BC */
                 if( ch->in_room != NULL )
-                    sprintf( buf2, "%s", ch->in_room->area->name );
+                    snprintf( buf2, sizeof(buf2), "%s", ch->in_room->area->name );
                 else
-                    sprintf( buf2, " " );
+                    snprintf( buf2, sizeof(buf2), " " );
                 i = buf2; break;
             case 'Z' :
                 if ( ch->in_room != NULL )
-                    sprintf( buf2, "%s", flag_bit_name(sector_flags, ch->in_room->sector_type));
+                    snprintf( buf2, sizeof(buf2), "%s", flag_bit_name(sector_flags, ch->in_room->sector_type));
                 else
-                    sprintf( buf2, " " );
+                    snprintf( buf2, sizeof(buf2), " " );
                 i = buf2; break;
             case '%' :
-                sprintf( buf2, "%%" );
+                snprintf( buf2, sizeof(buf2), "%%" );
                 i = buf2; break;
             case 'o' :
-                sprintf( buf2, "%s", olc_ed_name(ch) );
+                snprintf( buf2, sizeof(buf2), "%s", olc_ed_name(ch) );
                 i = buf2; break;
             case 'O' :
-                sprintf( buf2, "%s", olc_ed_vnum(ch) );
+                snprintf( buf2, sizeof(buf2), "%s", olc_ed_vnum(ch) );
                 i = buf2; break;
             case 'Q' :
-                sprintf( buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->nextquest );
+                snprintf( buf2, sizeof(buf2), "%d", IS_NPC(ch) ? 0 : ch->pcdata->nextquest );
                 i = buf2; break;
             case 'C' :
-                sprintf( buf2, "%d", IS_NPC(ch) ? 0 : ch->pcdata->countdown );
+                snprintf( buf2, sizeof(buf2), "%d", IS_NPC(ch) ? 0 : ch->pcdata->countdown );
                 i = buf2; break;
             case 'S' :
-                sprintf( buf2, "%s", stances[ch->stance].name );
+                snprintf( buf2, sizeof(buf2), "%s", stances[ch->stance].name );
                 i = buf2; break;
             case 'd' :
-                sprintf( buf2, "%s%s%s",
+                snprintf( buf2, sizeof(buf2), "%s%s%s",
                         IS_AFFECTED(ch, AFF_DETECT_INVIS) ? "i" : "",
                         IS_AFFECTED(ch, AFF_DETECT_HIDDEN) ? "h" : "",
                         IS_AFFECTED(ch, AFF_DETECT_ASTRAL) ? "a" : "" );
@@ -1615,16 +1615,16 @@ void bust_a_prompt( CHAR_DATA *ch )
                 if( !IS_NPC(ch) && MULTI_MORPH(ch) )
                 {
                     if( ch->pcdata->morph_race > 0 )
-                        sprintf( buf2, "%s", race_table[ch->pcdata->morph_race].name );
+                        snprintf( buf2, sizeof(buf2), "%s", race_table[ch->pcdata->morph_race].name );
                     else
-                        sprintf( buf2, "unmorphed" );
+                        snprintf( buf2, sizeof(buf2), "unmorphed" );
                 }
                 else if( !IS_NPC(ch) && ch->race == race_naga )
                 {
                     if( ch->pcdata->morph_race == 0 )
-                        sprintf( buf2, "serpent" );
+                        snprintf( buf2, sizeof(buf2), "serpent" );
                     else
-                        sprintf( buf2, "humanoid" );
+                        snprintf( buf2, sizeof(buf2), "humanoid" );
                 }
                 else strcpy(buf2, "");
                 i = buf2; break;
@@ -1633,14 +1633,14 @@ void bust_a_prompt( CHAR_DATA *ch )
                 if( !IS_NPC(ch) && MULTI_MORPH(ch) )
                 {
                     if( ch->pcdata->morph_race > 0 )
-                        sprintf( buf2, "%d", ch->pcdata->morph_time );
+                        snprintf( buf2, sizeof(buf2), "%d", ch->pcdata->morph_time );
                     else
-                        sprintf( buf2, "..." );
+                        snprintf( buf2, sizeof(buf2), "..." );
                 }
                 else strcpy(buf2, "");
                 i = buf2; break;
             case 'n' :
-                sprintf( buf2, "%s", songs[ch->song].name );
+                snprintf( buf2, sizeof(buf2), "%s", songs[ch->song].name );
                 i = buf2; break;
         }
         ++str;
@@ -2335,7 +2335,7 @@ void recho( const char *msg, ROOM_INDEX_DATA *room )
     if ( !room || !room->people )
         return;
 
-    sprintf(buf, "%s\n\r", msg);
+    snprintf(buf, sizeof(buf), "%s\n\r", msg);
     for ( ch = room->people; ch; ch = ch->next_in_room )
         send_to_char(buf, ch);
 }
@@ -2363,11 +2363,11 @@ int colour( char type, CHAR_DATA *ch, char *string )
     case chr: \
         if ( col->field[1] == COLOUR_NONE ) \
         { \
-            sprintf( code, "%s%s", CLEAR, col->field[2] ? "\a" : ""); \
+            snprintf( code, sizeof(code), "%s%s", CLEAR, col->field[2] ? "\a" : ""); \
         } \
         else \
         { \
-            sprintf( code, "[%d;3%dm%s", \
+            snprintf( code, sizeof(code), "[%d;3%dm%s", \
                     col->field[0], \
                     col->field[1], \
                     col->field[2] ? "\a" : ""); \
@@ -2465,15 +2465,15 @@ int colour( char type, CHAR_DATA *ch, char *string )
             strcpy( code, C_D_GREY );
             break;
         case '*':
-            sprintf( code, "%c", 007 );
+            snprintf( code, sizeof(code), "%c", 007 );
             break;
             /* removed Sept 98 by Q, due to abuse by mortals
                case '/':
-               sprintf( code, "%c", 012 );
+               snprintf( code, sizeof(code), "%c", 012 );
                break;
              */
         case '{':
-            sprintf( code, "%c", '{' );
+            snprintf( code, sizeof(code), "%c", '{' );
             break;
         case '+':
             strcpy( code, BOLD );
@@ -2563,7 +2563,7 @@ void logpf (const char * fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     log_string (buf);
@@ -2575,7 +2575,7 @@ void printf_to_char (CHAR_DATA *ch, const char *fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     send_to_char (buf, ch);
@@ -2588,7 +2588,7 @@ void bugf (const char * fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     bug_string(buf);
@@ -2600,7 +2600,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, i
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
 
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
@@ -2611,7 +2611,7 @@ bool add_buff(BUFFER *buffer, const char *fmt, ...)
     char buf [2*MSL];
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
     
     return add_buf(buffer, buf);
@@ -2623,7 +2623,7 @@ bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
     int i;
     va_list args;
     va_start (args, fmt);
-    vsprintf (buf, fmt, args);
+    vsnprintf (buf, sizeof(buf), fmt, args);
     va_end (args);
     // pad
     for ( i = strlen_color(buf); i < pad_length; i++ )
@@ -2666,7 +2666,7 @@ static void copyover_mud( const char *argument )
     //do_asave (NULL, ""); /* autosave changed areas */
 
     if ( argument[0] != '\0' )
-        sprintf( buf, "\n\r%s", argument );
+        snprintf( buf, sizeof(buf), "\n\r%s", argument );
     else
         strcpy( buf, "" );
 
@@ -2718,10 +2718,10 @@ static void copyover_mud( const char *argument )
 
     /* exec - descriptors are inherited */
 
-    sprintf (arg0, "%s", "aeaea");
-    sprintf (arg1, "%d", s_port);
-    sprintf (arg2, "%s", "copyover");
-    sprintf (arg3, "%d", s_control);
+    snprintf (arg0, sizeof(arg0), "%s", "aeaea");
+    snprintf (arg1, sizeof(arg1), "%d", s_port);
+    snprintf (arg2, sizeof(arg2), "%s", "copyover");
+    snprintf (arg3, sizeof(arg3), "%d", s_control);
     logpf( "copyover_mud: executing '%s %s %s %s'", arg0, arg1, arg2, arg3 );
     execl (EXE_FILE, arg0, arg1, arg2, arg3, (char *) NULL);
 

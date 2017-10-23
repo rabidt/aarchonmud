@@ -1565,7 +1565,7 @@ DEF_DO_FUN(do_pgrep)
         return;
     }
     
-    sprintf(buf, "grep \"%s\" ../player/* ../box/*", argument);
+    snprintf(buf, sizeof(buf), "grep \"%s\" ../player/* ../box/*", argument);
 
 
     /* http://stackoverflow.com/questions/1735781/non-blocking-pipe-using-popen */

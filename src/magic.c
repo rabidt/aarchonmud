@@ -331,8 +331,8 @@ void say_spell( CHAR_DATA *ch, int sn )
             length = 1;
     }
 
-    sprintf( buf2, "$n utters the words, '%s'.", buf );
-    sprintf( buf,  "$n utters the words, '%s'.", skill_table[sn].name );
+    snprintf( buf2, sizeof(buf2), "$n utters the words, '%s'.", buf );
+    snprintf( buf, sizeof(buf),  "$n utters the words, '%s'.", skill_table[sn].name );
 
     for ( rch = ch->in_room->people; rch; rch = rch->next_in_room )
     {
@@ -491,7 +491,7 @@ static bool saves_magic( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_ty
         if ( cfg_show_rolls )
         {
             char buf[MSL];
-            sprintf(buf, "Saving throw vs spell: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+            snprintf(buf, sizeof(buf), "Saving throw vs spell: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
                     ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
                     ch_name(victim), save_rolled, save_roll,
                     success ? "success" : "failure");
@@ -573,7 +573,7 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         if ( cfg_show_rolls )
         {
             char buf[MSL];
-            sprintf(buf, "Saving throw vs physical: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
+            snprintf(buf, sizeof(buf), "Saving throw vs physical: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
                     ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
                     ch_name(victim), save_rolled, save_roll,
                     success ? "success" : "failure");
@@ -607,7 +607,7 @@ void dispel_sn( CHAR_DATA *victim, int sn )
     {
         send_to_char( skill_table[sn].msg_off, victim );
         send_to_char( "\n\r", victim );
-        sprintf(buf, "The %s %s on $n vanishes.", skill_table[sn].name, IS_SPELL(sn) ? "spell" : "affect");
+        snprintf(buf, sizeof(buf), "The %s %s on $n vanishes.", skill_table[sn].name, IS_SPELL(sn) ? "spell" : "affect");
         act(buf,victim,NULL,NULL,TO_ROOM);
     }
 }
@@ -1968,10 +1968,10 @@ void show_wishes( CHAR_DATA *ch, bool all )
         int skill = wish_skill(ch, sn);
         int mana = mana_cost(ch, sn, skill);
         mana = wish_cast_adjust_cost(ch, mana, sn, FALSE);
-        sprintf(buf, "  %-20s %3dm %3d%%", skill_table[sn].name, mana, skill);
+        snprintf(buf, sizeof(buf), "  %-20s %3dm %3d%%", skill_table[sn].name, mana, skill);
 
         if ( spell_list[level][0] == '\0' )
-            sprintf(spell_list[level], "\n\rLevel %2d:%s", level, buf);
+            snprintf(spell_list[level], sizeof(spell_list[level]), "\n\rLevel %2d:%s", level, buf);
         else /* append */
         {
             if ( ++spell_columns[level] % 2 == 0 )
@@ -3178,7 +3178,7 @@ DEF_SPELL_FUN(spell_create_water)
         {
             char buf[MAX_STRING_LENGTH];
 
-            sprintf( buf, "%s water", obj->name );
+            snprintf( buf, sizeof(buf), "%s water", obj->name );
             free_string( obj->name );
             obj->name = str_dup( buf );
         }
@@ -3711,7 +3711,7 @@ DEF_SPELL_FUN(spell_dispel_evil)
     /* Good victims are not affected either, and are protected by their god if they have one. */
     if ( IS_GOOD(victim) )
     {
-        sprintf(log_buf, "%s protects $N.", get_god_name(victim));
+        snprintf(log_buf, sizeof(log_buf), "%s protects $N.", get_god_name(victim));
         act( log_buf, ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
@@ -3742,7 +3742,7 @@ DEF_SPELL_FUN(spell_dispel_good)
     /* Evil victims are not affected either, and are protected by their god if they have one. */
     if ( IS_EVIL(victim) )
     {
-        sprintf(log_buf, "%s protects $N.", get_god_name(victim));
+        snprintf(log_buf, sizeof(log_buf), "%s protects $N.", get_god_name(victim));
         act( log_buf, ch, NULL, victim, TO_CHAR );
         return SR_IMMUNE;
     }
@@ -4764,14 +4764,14 @@ DEF_SPELL_FUN(spell_identify)
 
     if ( (ch->level+10) < obj->level)
     {
-        sprintf( buf, "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
+        snprintf( buf, sizeof(buf), "You must be at least level %d to identify %s{x.\n\r" , obj->level - 10, obj->short_descr);
         send_to_char(buf, ch);
         return SR_UNABLE;
     }
 
     SPELL_CHECK_RETURN
     
-    sprintf( buf,
+    snprintf( buf, sizeof(buf),
             "Object %s is type %s, extra flags %s.\n\rWeight is %d, level is %d.\n\r",
             obj->short_descr,
             item_name( obj->item_type ),        
@@ -4796,7 +4796,7 @@ DEF_SPELL_FUN(spell_identify)
         case ITEM_SCROLL: 
         case ITEM_POTION:
         case ITEM_PILL:
-            sprintf( buf, "Level %d spells of:", obj->value[0] );
+            snprintf( buf, sizeof(buf), "Level %d spells of:", obj->value[0] );
             send_to_char( buf, ch );
 
             if ( obj->value[1] >= 0 && obj->value[1] < MAX_SKILL )
@@ -4832,7 +4832,7 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "Has %d/%d charges of level %d",
+            snprintf( buf, sizeof(buf), "Has %d/%d charges of level %d",
                     obj->value[2], obj->value[1], obj->value[0] );
             send_to_char( buf, ch );
 
@@ -4847,19 +4847,19 @@ DEF_SPELL_FUN(spell_identify)
             break;
 
         case ITEM_DRINK_CON:
-            sprintf(buf,"It holds %s-colored %s.\n\r",
+            snprintf(buf, sizeof(buf),"It holds %s-colored %s.\n\r",
                     liq_table[obj->value[2]].liq_color,
                     liq_table[obj->value[2]].liq_name);
             send_to_char(buf,ch);
             break;
 
         case ITEM_CONTAINER:
-            sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s\n\r",
+            snprintf(buf, sizeof(buf),"Capacity: %d#  Maximum weight: %d#  flags: %s\n\r",
                     obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
             send_to_char(buf,ch);
             if (obj->value[4] != 100)
             {
-                sprintf(buf,"Weight multiplier: %d%%\n\r",
+                snprintf(buf, sizeof(buf),"Weight multiplier: %d%%\n\r",
                         obj->value[4]);
                 send_to_char(buf,ch);
             }
@@ -4882,14 +4882,14 @@ DEF_SPELL_FUN(spell_identify)
                 case(WEAPON_BOW): send_to_char("bow.\n\r",ch);  break; 
                 default     : send_to_char("unknown.\n\r",ch);  break;
             }
-            sprintf(buf,"It does %s damage of %dd%d (average %d).\n\r",
+            snprintf(buf, sizeof(buf),"It does %s damage of %dd%d (average %d).\n\r",
                     attack_table[obj->value[3]].noun,
                     obj->value[1],obj->value[2],
                     (1 + obj->value[2]) * obj->value[1] / 2);
             send_to_char( buf, ch );
             if (obj->value[4])  /* weapon flags */
             {
-                sprintf(buf,"Weapons flags: %s\n\r",weapon_bits_name(obj->value[4]));
+                snprintf(buf, sizeof(buf),"Weapons flags: %s\n\r",weapon_bits_name(obj->value[4]));
                 send_to_char(buf,ch);
             }
             break;
@@ -4909,18 +4909,18 @@ DEF_SPELL_FUN(spell_identify)
 
         case ITEM_LIGHT:
             if ( obj->value[2] >= 0 )
-                sprintf( buf, "It has %d hours of light remaining.\n\r", obj->value[2] );
+                snprintf( buf, sizeof(buf), "It has %d hours of light remaining.\n\r", obj->value[2] );
             else
-                sprintf( buf, "It is an infinite light source.\n\r" );
+                snprintf( buf, sizeof(buf), "It is an infinite light source.\n\r" );
             send_to_char( buf, ch );
             break;
 
         case ITEM_ARROWS:
-            sprintf( buf, "It contains %d arrows.\n\r", obj->value[0] );
+            snprintf( buf, sizeof(buf), "It contains %d arrows.\n\r", obj->value[0] );
             send_to_char( buf, ch );
             if ( obj->value[1] > 0 )
             {
-                sprintf( buf, "Each arrow deals %d extra %s damage.\n\r",
+                snprintf( buf, sizeof(buf), "Each arrow deals %d extra %s damage.\n\r",
                         obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
                 send_to_char( buf, ch );
             }
@@ -5182,16 +5182,16 @@ DEF_SPELL_FUN(spell_locate_object)
 
         if ( in_obj->carried_by != NULL && can_see(ch, in_obj->carried_by))
         {
-            sprintf( buf, "one is carried by %s\n\r",
+            snprintf( buf, sizeof(buf), "one is carried by %s\n\r",
                     PERS(in_obj->carried_by, ch) );
         }
         else
         {
             if (IS_IMMORTAL(ch) && in_obj->in_room != NULL)
-                sprintf( buf, "one is in %s [Room %d]\n\r",
+                snprintf( buf, sizeof(buf), "one is in %s [Room %d]\n\r",
                         in_obj->in_room->name, in_obj->in_room->vnum);
             else 
-                sprintf( buf, "one is in %s\n\r",
+                snprintf( buf, sizeof(buf), "one is in %s\n\r",
                         in_obj->in_room == NULL
                         ? "somewhere" : in_obj->in_room->name );
         }
@@ -5720,7 +5720,7 @@ DEF_SPELL_FUN(spell_remove_curse)
             }
 
             act("You failed to remove the curse on $p.",ch,obj,NULL,TO_CHAR);
-            sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
+            snprintf(buf, sizeof(buf),"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
         }
@@ -5777,7 +5777,7 @@ DEF_SPELL_FUN(spell_remove_curse)
                 return TRUE;
             }
 
-            sprintf(buf,"Spell failed to uncurse %s.\n\r",obj->short_descr);
+            snprintf(buf, sizeof(buf),"Spell failed to uncurse %s.\n\r",obj->short_descr);
             send_to_char(buf,ch);
             return TRUE;
         }
@@ -6103,7 +6103,7 @@ DEF_SPELL_FUN(spell_summon)
     if ( is_aggro_room(ch->in_room, victim) && is_always_safe(ch, victim) )
     {
         char buf[MSL];
-        sprintf( buf, "Indirect Pkill: %s summoning %s to aggro room %d",
+        snprintf( buf, sizeof(buf), "Indirect Pkill: %s summoning %s to aggro room %d",
                 ch->name, victim->name, ch->in_room->vnum );
         log_string( buf );
         cheat_log( buf );
@@ -6559,7 +6559,7 @@ DEF_DO_FUN(do_scribe)
 
     if ( cost > ch->mana )
     {
-        sprintf( buf, "You need %d mana to scribe that spell.\n\r", cost );
+        snprintf( buf, sizeof(buf), "You need %d mana to scribe that spell.\n\r", cost );
         send_to_char( buf, ch );
         return;
     }
@@ -6576,9 +6576,9 @@ DEF_DO_FUN(do_scribe)
         }
 
         /* name scroll */
-        sprintf( buf, "scroll %s", skill_table[sn].name );
-        sprintf( buf2, "scroll of %s", skill_table[sn].name );
-        sprintf( buf3, "A scroll of %s lies here.", skill_table[sn].name );
+        snprintf( buf, sizeof(buf), "scroll %s", skill_table[sn].name );
+        snprintf( buf2, sizeof(buf2), "scroll of %s", skill_table[sn].name );
+        snprintf( buf3, sizeof(buf3), "A scroll of %s lies here.", skill_table[sn].name );
         rename_obj( scroll, buf, buf2, buf3 );
         scroll->cost = cost;
 

@@ -520,7 +520,7 @@ MPEDIT( mpedit_if )
     add_buf( buffer, "==================== Valid if-checks ====================\n\r" );
     for( i = 0; fn_keyword[i][0][0] != '\n'; i++ )
     {
-	sprintf( buf, "%-14s: %s\n\r", fn_keyword[i][0], fn_keyword[i][1] );
+	snprintf( buf, sizeof(buf), "%-14s: %s\n\r", fn_keyword[i][0], fn_keyword[i][1] );
 	add_buf( buffer, buf );
     }
     
@@ -541,7 +541,7 @@ MPEDIT( mpedit_mob )
     add_buf( buffer, "==================== Valid mob-commands =================\n\r" );
     for( i = 0; mob_cmd_table[i].name[0] != '\0'; i++ )
     {
-	sprintf( buf, "mob %s %s\n\r", mob_cmd_table[i].name, mob_cmd_table[i].help );
+	snprintf( buf, sizeof(buf), "mob %s %s\n\r", mob_cmd_table[i].name, mob_cmd_table[i].help );
 	add_buf( buffer, buf );
     }
     

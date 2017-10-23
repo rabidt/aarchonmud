@@ -172,7 +172,7 @@ static void archive_note (BOARD_DATA *board, NOTE_DATA *pnote)
     FILE *fp_archive;
     char archive_name[200];
     
-    sprintf (archive_name, "%s%s.old", NOTE_DIR, board->short_name);
+    snprintf (archive_name, sizeof(archive_name), "%s%s.old", NOTE_DIR, board->short_name);
     fp_archive = fopen (archive_name, "a");
 
     if (!fp_archive)
@@ -235,12 +235,12 @@ static void save_board (BOARD_DATA *board)
    char buf[200];
    NOTE_DATA *note;
    
-   sprintf (filename, "%s%s", NOTE_DIR, board->short_name);
+   snprintf (filename, sizeof(filename), "%s%s", NOTE_DIR, board->short_name);
    
    fp = fopen (filename, "w");
    if (!fp)
    {
-      sprintf (buf, "Error writing to: %s", filename);
+      snprintf (buf, sizeof(buf), "Error writing to: %s", filename);
       bug (buf, 0);
    }
    else
@@ -291,7 +291,7 @@ void finish_note (BOARD_DATA *board, NOTE_DATA *note)
       board->note_first = note;
 
    /* append note to note file */		
-   sprintf (filename, "%s%s", NOTE_DIR, board->short_name);
+   snprintf (filename, sizeof(filename), "%s%s", NOTE_DIR, board->short_name);
    
    fp = fopen (filename, "a");
    if (!fp)
@@ -314,7 +314,7 @@ static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num)
    output = new_buf();
    
    /* Ugly colors ? */	
-   sprintf (buf,
+   snprintf (buf, sizeof(buf),
       "[{+%4d{x] {Y%s{x: {g%s{x\n\r"
       "{YDate{x:  %s\n\r"
       "{YTo{x:    %s\n\r"
@@ -349,7 +349,7 @@ static void load_board (BOARD_DATA *board)
    NOTE_DATA *last_note;
    char filename[200];
    
-   sprintf (filename, "%s%s", NOTE_DIR, board->short_name);
+   snprintf (filename, sizeof(filename), "%s%s", NOTE_DIR, board->short_name);
    
    fp = fopen (filename, "r");
    
@@ -587,12 +587,12 @@ static void do_nwrite (CHAR_DATA *ch, const char *argument)
    act ("{G$n starts writing a note.{x", ch, NULL, NULL, TO_ROOM);
    
    /* Begin writing the note ! */
-   sprintf (buf, "You are now %s a note on the {+%s{x board.\n\r",
+   snprintf (buf, sizeof(buf), "You are now %s a note on the {+%s{x board.\n\r",
       ch->pcdata->in_progress->text ? "continuing" : "posting",
       ch->pcdata->board->short_name);
    send_to_char (buf,ch);
    
-   sprintf (buf, "{YFrom{x:    %s\n\r\n\r", ch->name);
+   snprintf (buf, sizeof(buf), "{YFrom{x:    %s\n\r\n\r", ch->name);
    send_to_char (buf,ch);
    
    if (!ch->pcdata->in_progress->text) /* Are we continuing an old note or not? */
@@ -600,16 +600,16 @@ static void do_nwrite (CHAR_DATA *ch, const char *argument)
       switch (ch->pcdata->board->force_type)
       {
       case DEF_NORMAL:
-         sprintf (buf, "If you press Return, default recipient \"{+%s{x\" will be chosen.\n\r",
+         snprintf (buf, sizeof(buf), "If you press Return, default recipient \"{+%s{x\" will be chosen.\n\r",
             ch->pcdata->board->names);
          break;
       case DEF_INCLUDE:
-         sprintf (buf, "The recipient list MUST include \"{+%s{x\". If not, it will be added automatically.\n\r",
+         snprintf (buf, sizeof(buf), "The recipient list MUST include \"{+%s{x\". If not, it will be added automatically.\n\r",
             ch->pcdata->board->names);
          break;
          
       case DEF_EXCLUDE:
-         sprintf (buf, "The recipient of this note must NOT include: \"{+%s{x\".",
+         snprintf (buf, sizeof(buf), "The recipient of this note must NOT include: \"{+%s{x\".",
             ch->pcdata->board->names);
          
          break;
@@ -682,11 +682,11 @@ static void do_nread (CHAR_DATA *ch, const char *argument)
         send_to_char ("No new notes on this board.\n\r",ch);
 
         if (ch->pcdata->in_progress)
-            sprintf (buf, "You have a note in progress on this board.\n\r" );
+            snprintf (buf, sizeof(buf), "You have a note in progress on this board.\n\r" );
         else if (next_board (ch))
-            sprintf (buf, "Changed to next board, %s.\n\r", ch->pcdata->board->short_name );
+            snprintf (buf, sizeof(buf), "Changed to next board, %s.\n\r", ch->pcdata->board->short_name );
         else
-            sprintf (buf, "There are no more boards.\n\r");
+            snprintf (buf, sizeof(buf), "There are no more boards.\n\r");
 
         send_to_char (buf,ch);
     }
@@ -761,7 +761,7 @@ static void do_nlist (CHAR_DATA *ch, const char *argument)
          {
           /* The next line here is used to display the date properly - Vodur 1-7-13 */
 	    strftime(ts_buf,sizeof(ts_buf),"%x", localtime(&(p->date_stamp)));
-            sprintf (buf, "{+%3d{x>{B%c{Y%-13s{x{y%-12s %s{x \n\r",
+            snprintf (buf, sizeof(buf), "{+%3d{x>{B%c{Y%-13s{x{y%-12s %s{x \n\r",
                num, 
                (last_note < p->date_stamp && !is_exact_name(ch->name, p->sender)) ? '*' : ' ',
                p->sender, 
@@ -929,7 +929,7 @@ DEF_DO_FUN(do_board)
          
       } /* for each board */
       
-      sprintf (buf, "\n\rYour current board is {+%s{x.\n\r", ch->pcdata->board->short_name);
+      snprintf (buf, sizeof(buf), "\n\rYour current board is {+%s{x.\n\r", ch->pcdata->board->short_name);
       send_to_char (buf,ch);
       
       /* Inform of rights */		
@@ -962,7 +962,7 @@ DEF_DO_FUN(do_board)
        if (count == number) /* found the board.. change to it */
        {
            ch->pcdata->board = &boards[i];
-           sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
+           snprintf (buf, sizeof(buf), "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
                    (get_trust(ch) < boards[i].write_level) 
                    ? "You can only read here" 
                    : "You can both read and write here");
@@ -995,7 +995,7 @@ DEF_DO_FUN(do_board)
    }
 
    ch->pcdata->board = &boards[i];
-   sprintf (buf, "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
+   snprintf (buf, sizeof(buf), "Current board changed to {+%s{x. %s.\n\r",boards[i].short_name,
            (get_trust(ch) < boards[i].write_level) 
            ? "You can only read here"  
            : "You can both read and write here");
@@ -1531,7 +1531,7 @@ void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
    CHAR_DATA *recip;
    char buf[MAX_STRING_LENGTH];
 
-   sprintf(buf, "{1[INFO]{2: Mail time! %s has sent you a new note on the %s board.{x", ch->name, capitalize(board->short_name));
+   snprintf(buf, sizeof(buf), "{1[INFO]{2: Mail time! %s has sent you a new note on the %s board.{x", ch->name, capitalize(board->short_name));
    for ( d = descriptor_list; d != NULL; d = d->next )
    {
       recip = d->original ? d->original : d->character;

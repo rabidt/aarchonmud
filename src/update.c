@@ -142,7 +142,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
 
     if (! IS_SET(ch->act, PLR_TITLE))
     {
-        sprintf( buf, "the %s",
+        snprintf( buf, sizeof(buf), "the %s",
                 title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5]);
         set_title( ch, buf );
     }
@@ -183,7 +183,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
 
     if (!hide)
     {
-        sprintf(buf, "You gain %d practice%s.\n\r", add_prac, add_prac == 1 ? "" : "s");
+        snprintf(buf, sizeof(buf), "You gain %d practice%s.\n\r", add_prac, add_prac == 1 ? "" : "s");
         send_to_char( buf, ch );
     }
     
@@ -250,11 +250,11 @@ void update_pc_level( CHAR_DATA *ch )
         ch->level += 1;
         update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 
-        sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
+        snprintf(buf, sizeof(buf),"%s has made it to level %d!",ch->name,ch->level);
         log_string(buf);
         info_message(ch, buf, FALSE);
 
-        sprintf(buf,"$N has attained level %d!",ch->level);
+        snprintf(buf, sizeof(buf),"$N has attained level %d!",ch->level);
         wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
 
         advance_level(ch,FALSE);
@@ -298,11 +298,11 @@ void update_field( CHAR_DATA *ch)
         ch->level += 1;
         update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
 
-        sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
+        snprintf(buf, sizeof(buf),"%s has made it to level %d!",ch->name,ch->level);
         log_string(buf);
         info_message(ch, buf, FALSE);
 
-        sprintf(buf,"$N has attained level %d!",ch->level);
+        snprintf(buf, sizeof(buf),"$N has attained level %d!",ch->level);
         wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
 
         advance_level(ch,FALSE);
@@ -596,7 +596,7 @@ void mobile_special_update( void )
     CHAR_DATA *ch_next;
 
     /* only one last_mprog message for better performance */
-    sprintf( last_mprog, "mobile_special_update" );
+    snprintf( last_mprog, sizeof(last_mprog), "mobile_special_update" );
 
     /* go through mob list */
     for ( ch = char_list; ch != NULL; ch = ch_next )
@@ -614,7 +614,7 @@ void mobile_special_update( void )
             ch->wait++;
         }
     }
-    sprintf( last_mprog, "(Finished) mobile_special_update" );
+    snprintf( last_mprog, sizeof(last_mprog), "(Finished) mobile_special_update" );
 
     PERF_PROF_EXIT( pr_ );
 }
@@ -681,7 +681,7 @@ void mobile_update( void )
             else if ( ch->spec_fun != NULL && !is_wait_based(ch->spec_fun) )
             {
                 /* update the last_mprog log */
-                sprintf( last_mprog, "mob %d at %d %s",
+                snprintf( last_mprog, sizeof(last_mprog), "mob %d at %d %s",
                         ch->pIndexData->vnum,
                         ch->in_room ? ch->in_room->vnum : 0,
                         spec_name_lookup(ch->spec_fun) );
@@ -689,7 +689,7 @@ void mobile_update( void )
                 success = (*ch->spec_fun)( ch );
 
                 /* update the last_mprog log */
-                sprintf( last_mprog, "(Finished) mob %d at %d %s",
+                snprintf( last_mprog, sizeof(last_mprog), "(Finished) mob %d at %d %s",
                         ch->pIndexData->vnum,
                         ch->in_room ? ch->in_room->vnum : 0,
                         spec_name_lookup(ch->spec_fun) );
@@ -2444,7 +2444,7 @@ void explode(OBJ_DATA *obj)
     // need to have an owner to damage anyone
     if ( (owner = get_player(obj->owner)) == NULL )
     {
-        sprintf(buf, "%s explodes harmlessly.", obj->short_descr);
+        snprintf(buf, sizeof(buf), "%s explodes harmlessly.", obj->short_descr);
         recho(buf, room);
         return;
     }
@@ -2479,9 +2479,9 @@ void explode(OBJ_DATA *obj)
     else
     {
         if ( contained )
-            sprintf(buf, "%s explodes inside %s!  Some of the blast is absorbed.", original_obj->short_descr, obj->short_descr);
+            snprintf(buf, sizeof(buf), "%s explodes inside %s!  Some of the blast is absorbed.", original_obj->short_descr, obj->short_descr);
         else
-            sprintf(buf, "%s explodes violently!", original_obj->short_descr);
+            snprintf(buf, sizeof(buf), "%s explodes violently!", original_obj->short_descr);
         
         recho(buf, room);
         dam *= 0.5 * AREA_SPELL_FACTOR;
@@ -2673,7 +2673,7 @@ void change_align (CHAR_DATA *ch, int change_by)
 
         if (exp_loss > 4)
         {
-            sprintf(buf, "You lose %d experience.\n\r", exp_loss);
+            snprintf(buf, sizeof(buf), "You lose %d experience.\n\r", exp_loss);
             send_to_char(buf,ch);
         }       
     }
@@ -2703,7 +2703,7 @@ void check_clan_align( CHAR_DATA *gch )
                || gch->alignment > clan_table[gch->clan].max_align))
     {
         send_to_char("Your alignment has made you unwelcome in your clan!\n\r", gch);
-        sprintf(log_buf, "%s has become too %s for clan %s!",
+        snprintf(log_buf, sizeof(log_buf), "%s has become too %s for clan %s!",
                 gch->name, 
                 gch->alignment < clan_table[gch->clan].min_align ? "{rEvil{x" : "{wGood{x", 
                 capitalize(clan_table[gch->clan].name));
@@ -2787,7 +2787,7 @@ void check_beast_mastery( CHAR_DATA *ch )
     mlevel = URANGE(1, mlevel, ch->level) + hero_bonus;
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"This wild animal follows %s.\n\r", ch->name);
+    snprintf(buf, sizeof(buf),"This wild animal follows %s.\n\r", ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
 
@@ -2855,7 +2855,7 @@ void check_shadow_companion( CHAR_DATA *ch )
     mlevel = URANGE(1, mlevel, ch->level);
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    snprintf(buf, sizeof(buf),"This shadow follows %s.\n\r", ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
 
@@ -3010,7 +3010,7 @@ void msdp_update( void )
             for ( paf = d->character->affected; paf; paf = paf->next )
             {
                 char skill_buf[MAX_STRING_LENGTH];
-                sprintf( skill_buf, "%c%s%c%d",
+                snprintf( skill_buf, sizeof(skill_buf), "%c%s%c%d",
                     (char)MSDP_VAR, skill_table[paf->type].name, 
                     (char)MSDP_VAL, paf->duration );
                 strcat( buf, skill_buf );

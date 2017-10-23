@@ -68,9 +68,9 @@ DBUFFER * __buffer_new (int min_size, const char * file, unsigned line)
 	if (size == EMEM_SIZE)
 	{
 #ifdef BUFFER_DEBUG
-		sprintf (buf, "Buffer size too big: %d bytes (%s:%u).", min_size, file, line);
+		snprintf (buf, sizeof(buf), "Buffer size too big: %d bytes (%s:%u).", min_size, file, line);
 #else
-		sprintf (buf, "Buffer size too big: %d bytes.", min_size);
+		snprintf (buf, sizeof(buf), "Buffer size too big: %d bytes.", min_size);
 #endif
 
 		bug (buf,0);
@@ -122,9 +122,9 @@ void __buffer_strcat (DBUFFER *buffer, const char *text, const char * file, unsi
 		if (new_size == EMEM_SIZE) /* New size too big ? */
 		{
 #ifdef BUFFER_DEBUG
-			sprintf (buf, "Buffer overflow, wanted %d bytes (%s:%u).", text_len+buffer->len, file, line);
+			snprintf (buf, sizeof(buf), "Buffer overflow, wanted %d bytes (%s:%u).", text_len+buffer->len, file, line);
 #else
-			sprintf (buf, "Buffer overflow, wanted %d bytes.",text_len+buffer->len);
+			snprintf (buf, sizeof(buf), "Buffer overflow, wanted %d bytes.",text_len+buffer->len);
 #endif				
 			bug (buf, 0);
 			buffer->overflowed = TRUE;
@@ -324,7 +324,7 @@ int rfprintf(FILE *f, const char *fmt, ...)
 }
 
 // sprintf with reformat
-int rsprintf(char *buf, const char *fmt, ...)
+int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...)
 {
     va_list va;
     
@@ -333,7 +333,7 @@ int rsprintf(char *buf, const char *fmt, ...)
     va_end (va);
 
     va_start (va, fmt);
-    int res = vsprintf (buf, new_fmt, va);
+    int res = vsnprintf (buf, bufsz, new_fmt, va);
     va_end (va);
     
     return res;

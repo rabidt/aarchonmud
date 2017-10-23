@@ -411,7 +411,7 @@ static bool show_dependants (CHAR_DATA *ch, const RESET_DATA *p, bool fInside, b
 			/* Resets on the mob ? */
 			if (fInside && ((q->command == 'G') || (q->command == 'E')))
 			{
-				sprintf (buf,"Warning: Reset %c %d %d %d is keyed to this mob.\n\r",
+				snprintf (buf, sizeof(buf),"Warning: Reset %c %d %d %d is keyed to this mob.\n\r",
 				             q->command, q->arg1, q->arg2, q->arg3);
 				send_to_char (buf,ch);
 				found = TRUE;				             
@@ -420,7 +420,7 @@ static bool show_dependants (CHAR_DATA *ch, const RESET_DATA *p, bool fInside, b
 			/* Check if level MIGHT change */			
 			if (fLevelChange && ((q->command == 'O') || (q->command == 'P')))
 			{
-				sprintf (buf,"Warning: Reset %c %d %d %d might change its level.\n\r",
+				snprintf (buf, sizeof(buf),"Warning: Reset %c %d %d %d might change its level.\n\r",
 				             q->command, q->arg1, q->arg2, q->arg3);
 				send_to_char (buf,ch);
 				found = TRUE;				             
@@ -433,7 +433,7 @@ static bool show_dependants (CHAR_DATA *ch, const RESET_DATA *p, bool fInside, b
 			
 			if (fInside && (q->command == 'P') && (q->arg1 == p->arg1))
 			{
-				sprintf (buf,"Warning: Reset %c %d %d %d resets an item inside this container.\n\r",
+				snprintf (buf, sizeof(buf),"Warning: Reset %c %d %d %d resets an item inside this container.\n\r",
 				             q->command, q->arg1, q->arg2, q->arg3);
 				send_to_char (buf,ch);
 				found = TRUE;				             
@@ -486,12 +486,12 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 		strcpy (reboot, "reboot");
 	else
 	if (pReset->command == 'M')
-		sprintf (reboot, "%2d  - %2d ", pReset->arg2, pReset->arg4);
+		snprintf (reboot, sizeof(reboot), "%2d  - %2d ", pReset->arg2, pReset->arg4);
 	else /* non-zero limit for objects means chance of loading */
 		if (pReset->arg2 < 2)
-			sprintf (reboot, "always");
+			snprintf (reboot, sizeof(reboot), "always");
 		else
-			sprintf (reboot, "1/%d times", pReset->arg2);
+			snprintf (reboot, sizeof(reboot), "1/%d times", pReset->arg2);
 
 	/* check for silly programmer mistake */		
 	if ((nesting > 5) || (nesting < 0))
@@ -508,9 +508,9 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		MOB_INDEX_DATA *mob = get_mob_index (pReset->arg1);
         const char *sdesc = truncate_color_string(mob->short_descr, 35);
-                sprintf( buf2, "%%2d> [%%5d] %%4s   %%-%zus  {x[%%s]",
+                snprintf( buf2, sizeof(buf2), "%%2d> [%%5d] %%4s   %%-%zus  {x[%%s]",
                     35 + ( mob ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
-                sprintf( buf, buf2,
+                snprintf( buf, sizeof(buf), buf2,
                     number, 
                     pReset->arg1, 
                     (mob && mob->pShop) ? "Y " : "",
@@ -524,10 +524,10 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
         OBJ_INDEX_DATA* obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
 
-                sprintf (buf2, "%%2d> [%%5d]    <in room>           Lv%%3d %%-%zus {x(%%s)",
+                snprintf (buf2, sizeof(buf2), "%%2d> [%%5d]    <in room>           Lv%%3d %%-%zus {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
 
-                sprintf( buf, buf2,
+                snprintf( buf, sizeof(buf), buf2,
                     number, 
                     pReset->arg1, 
                     obj ? obj->level : last_level,
@@ -543,9 +543,9 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
 		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
-                sprintf (buf2, "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%zus {x(%%s)",
+                snprintf (buf2, sizeof(buf2), "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%zus {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
-                sprintf (buf, buf2,
+                snprintf (buf, sizeof(buf), buf2,
                     number,                                      /* reset number */
                     pReset->arg1,                                /* obj vnum */
                     pReset->arg3,                                /* container vnum */
@@ -559,9 +559,9 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
-                sprintf (buf2, "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%zus {x(%%s)",
+                snprintf (buf2, sizeof(buf2), "%%2d>  ^[%%5d]  <inventory>         Lv%%3d %%-%zus {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
-                sprintf (buf, buf2,
+                snprintf (buf, sizeof(buf), buf2,
                     number, 
                     pReset->arg1, 
                     obj ? obj->level : last_level,
@@ -575,9 +575,9 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
-		sprintf (buf2, "%%2d>  ^[%%5d]  %%sLv%%3d %%-%zus {x(%%s)",
+		snprintf (buf2, sizeof(buf2), "%%2d>  ^[%%5d]  %%sLv%%3d %%-%zus {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));
-                sprintf (buf, buf2,
+                snprintf (buf, sizeof(buf), buf2,
                     number,
                     pReset->arg1, 
                     ((pReset->arg3 < 0) || (pReset->arg3 >= MAX_WEAR))
@@ -592,7 +592,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	
 	case 'D': /* Door */
 	{
-		sprintf (buf,"%2d> Door leading %s is %s.",
+		snprintf (buf, sizeof(buf),"%2d> Door leading %s is %s.",
 					   number,
 					   ( (pReset->arg2 < 0) || (pReset->arg2 > DIR_DOWN) )
 					   ? "(invalid direction)" : dir_name[pReset->arg2],
@@ -605,11 +605,11 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		/* arg2 is COUNT of doors randomized, not last # of door */
 		if ((pReset->arg2 < 1) || (pReset->arg2 > 6))
-			sprintf (buf, "%2d> Exits are randomized: (invalid door count)",number);
+			snprintf (buf, sizeof(buf), "%2d> Exits are randomized: (invalid door count)",number);
 		else
 		{
 			int i;
-			sprintf (buf, "%2d> Exits: ", number);
+			snprintf (buf, sizeof(buf), "%2d> Exits: ", number);
 			for (i = 0; i < pReset->arg2; i++)
 			{
 				strcat (buf, dir_name[i]);
@@ -621,7 +621,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	}
 	
 	default:
-		sprintf (buf, "Invalid reset: %c %d %d %d", 
+		snprintf (buf, sizeof(buf), "Invalid reset: %c %d %d %d", 
 		          pReset->command, pReset->arg1, pReset->arg2, pReset->arg3);
 
 	} /* switch */
@@ -646,10 +646,10 @@ DEF_DO_FUN(do_rlook)
 	RESET_DATA *p, *q;
 	bool last_mob_here = FALSE;
 	
-	sprintf (buf, "  Room #: [%5d]  Room Name: [%s]\n\r", 
+	snprintf (buf, sizeof(buf), "  Room #: [%5d]  Room Name: [%s]\n\r", 
 	              ch->in_room->vnum, ch->in_room->name);
 	send_to_char (buf,ch);
-        sprintf (buf, "     Vnum   Shop?  Short Desc                       Max:Area - Room\n\r");
+        snprintf (buf, sizeof(buf), "     Vnum   Shop?  Short Desc                       Max:Area - Room\n\r");
         send_to_char (buf,ch);
         send_to_char ("------------------------------------------------------------------------------\n\r",ch);
 	              
@@ -779,7 +779,7 @@ DEF_DO_FUN(do_rmob)
 	
 	redit_add_reset (ch->in_room,pReset); /* add reset */
 	
-	sprintf (buf, "Added reset: M %d %d %d\n\r", pReset->arg1, pReset->arg2, pReset->arg3);
+	snprintf (buf, sizeof(buf), "Added reset: M %d %d %d\n\r", pReset->arg1, pReset->arg2, pReset->arg3);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 	
 	send_to_char (buf,ch);
@@ -879,7 +879,7 @@ DEF_DO_FUN(do_rgive)
 	p->next = mob_reset->next;
 	mob_reset->next = p;
 	
-	sprintf (buf, "Added reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+	snprintf (buf, sizeof(buf), "Added reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 	send_to_char (buf,ch);
 
@@ -1059,12 +1059,12 @@ DEF_DO_FUN(do_rwear)
 	mob_reset->next = p;
 	
 		
-	sprintf (buf, "%s [%5d] %s\n\r", where_name[p->arg3],
+	snprintf (buf, sizeof(buf), "%s [%5d] %s\n\r", where_name[p->arg3],
 	              obj->vnum, obj->short_descr);
 	send_to_char (buf,ch);	              
 
 		
-	sprintf (buf, "Added reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+	snprintf (buf, sizeof(buf), "Added reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 	send_to_char (buf,ch);
 }
@@ -1231,7 +1231,7 @@ DEF_DO_FUN(do_rdrop)
 		p->next = pReset;
 	}
 	
-	sprintf (buf, "Added reset: O %d %d %d\n\rObject will reset at level %d.\n\r", 
+	snprintf (buf, sizeof(buf), "Added reset: O %d %d %d\n\rObject will reset at level %d.\n\r", 
 					pReset->arg1, pReset->arg2, pReset->arg3,
 					mob ? mob->level : 0); /* if mob = NULL, reset at beginning */
 	send_to_char (buf,ch);	
@@ -1305,7 +1305,7 @@ DEF_DO_FUN(do_rrandom)
 		send_to_char ("OK, new reset added: ",ch);
 	}
 	
-	sprintf (buf, "%c %d %d\n\r", pReset->command, pReset->arg1, pReset->arg2);
+	snprintf (buf, sizeof(buf), "%c %d %d\n\r", pReset->command, pReset->arg1, pReset->arg2);
 	send_to_char (buf,ch);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 }
@@ -1351,7 +1351,7 @@ DEF_DO_FUN(do_rwhere)
     			mob = get_mob_index (p->arg1);
     			if (mob && room && (vnum == mob->vnum || is_name (argument,mob->player_name)))
     			{
-    				sprintf (buf, "%3d> [%4d] %s resets in [%4d] %s\n\r",
+    				snprintf (buf, sizeof(buf), "%3d> [%4d] %s resets in [%4d] %s\n\r",
     						      number, mob->vnum, mob->short_descr,
     						      room->vnum, room->name);
     				send_to_char (buf,ch);						   
@@ -1386,7 +1386,7 @@ DEF_DO_FUN(do_rwhere)
     			
     			if (obj && room && (vnum == obj->vnum || is_name (argument,obj->name)))
     			{
-    				sprintf (buf, "%3d> [%4d] L%d %s resets in [%4d] %s\n\r",
+    				snprintf (buf, sizeof(buf), "%3d> [%4d] L%d %s resets in [%4d] %s\n\r",
     						      number, obj->vnum, 
     						      mob ? mob->level -2 : 0,
     						      obj->short_descr,
@@ -1404,7 +1404,7 @@ DEF_DO_FUN(do_rwhere)
 		    
 		    if (obj && container && is_name (argument,obj->name))
     		    {
-			sprintf (buf, "%3d> [%4d] L%d %s resets inside [%4d] %s at [%d]\n\r",
+			snprintf (buf, sizeof(buf), "%3d> [%4d] L%d %s resets inside [%4d] %s at [%d]\n\r",
 				 number, obj->vnum, 
 				 mob ? mob->level-2 :0,
 				 obj->short_descr,
@@ -1423,7 +1423,7 @@ DEF_DO_FUN(do_rwhere)
     			
     			if (obj && is_name (argument,obj->name))
     			{
-    				sprintf (buf, "%3d> [%4d] L%d %s on [%4d] %s at [%d]\n\r",
+    				snprintf (buf, sizeof(buf), "%3d> [%4d] L%d %s on [%4d] %s at [%d]\n\r",
     						      number, obj->vnum, 
     						      obj ? obj->level : 0,
     						      obj->short_descr,
@@ -1444,7 +1444,7 @@ DEF_DO_FUN(do_rwhere)
     			
     			if (obj && is_name (argument,obj->name))
     			{
-    				sprintf (buf, "%3d> [%4d] L%d %s worn by [%4d] %s at [%d]\n\r",
+    				snprintf (buf, sizeof(buf), "%3d> [%4d] L%d %s worn by [%4d] %s at [%d]\n\r",
     						      number, obj->vnum, 
     						      mob ? mob->level - 2 : 0,
     						      obj->short_descr,
@@ -1581,7 +1581,7 @@ DEF_DO_FUN(do_rkill)
 		}
 		
 		/* Remove reset */
-		sprintf (buf, "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+		snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 		send_to_char (buf,ch);
 		remove_reset (ch->in_room,p);
 	   SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1592,7 +1592,7 @@ DEF_DO_FUN(do_rkill)
 	if (fConfirm && !fAll)
 	{
 		show_dependants (ch,p, TRUE, TRUE);
-		sprintf (buf, "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+		snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 		send_to_char (buf,ch);
 		remove_reset (ch->in_room,p);
 	   SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1627,7 +1627,7 @@ DEF_DO_FUN(do_rkill)
 		
 		if ((q->command == 'E') || (q->command == 'G'))
 		{
-			sprintf (buf, "Removing reset: %c %d %d %d\n\r",q->command,q->arg1,q->arg2,q->arg3);
+			snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",q->command,q->arg1,q->arg2,q->arg3);
 			send_to_char (buf,ch);
 			remove_reset (ch->in_room,q);
 	      SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1635,7 +1635,7 @@ DEF_DO_FUN(do_rkill)
 	}
 
 	/* Remove the head reset */
-	sprintf (buf, "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+	snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 	send_to_char (buf,ch);
 	remove_reset (ch->in_room,p); /* remove, update linked list */
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1666,7 +1666,7 @@ DEF_DO_FUN(do_rkill)
 		
 		if ((q->command == 'P') && (q->arg3 == p->arg1))
 		{
-			sprintf (buf, "Removing reset: %c %d %d %d\n\r",q->command,q->arg1,q->arg2,q->arg3);
+			snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",q->command,q->arg1,q->arg2,q->arg3);
 			send_to_char (buf,ch);
 			remove_reset (ch->in_room,q);
          SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1674,7 +1674,7 @@ DEF_DO_FUN(do_rkill)
 	}
 
 	/* Remove the head reset */
-	sprintf (buf, "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
+	snprintf (buf, sizeof(buf), "Removing reset: %c %d %d %d\n\r",p->command,p->arg1,p->arg2,p->arg3);
 	send_to_char (buf,ch);
 	remove_reset (ch->in_room,p); /* remove, update linked list */
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
@@ -1835,7 +1835,7 @@ DEF_DO_FUN(do_rput)
 	/*	Update linked list */
 	container_reset->next = pReset; 
 	
- 	sprintf (buf, "Item will reset at level %d.\n\rAdded reset: %c %d %d %d\n\r",
+ 	snprintf (buf, sizeof(buf), "Item will reset at level %d.\n\rAdded reset: %c %d %d %d\n\r",
 				reset_level(ch->in_room,pReset),pReset->command,pReset->arg1,pReset->arg2,pReset->arg3);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 	send_to_char (buf,ch);
@@ -1940,7 +1940,7 @@ DEF_DO_FUN(do_rdoor)
 		send_to_char ("Current reset changed to: ",ch);
 	}
 	
-	sprintf (buf, "%c %d %d %d\n\r", p->command, p->arg1, p->arg2, p->arg3);
+	snprintf (buf, sizeof(buf), "%c %d %d %d\n\r", p->command, p->arg1, p->arg2, p->arg3);
 	SET_BIT(ch->in_room->area->area_flags, AREA_CHANGED);
 	send_to_char (buf,ch);
 	
@@ -1997,7 +1997,7 @@ DEF_DO_FUN(do_findlock)
 			for (j = 0; j < 6; j++) /* each exit */
 				if (room->exit[j] && room->exit[j]->key == obj->vnum)
 				{
-					sprintf (buf, "Door leading %s in [%5d] %s\n\r",
+					snprintf (buf, sizeof(buf), "Door leading %s in [%5d] %s\n\r",
 								   capitalize(dir_name[j]), room->vnum, room->name);
 					send_to_char (buf,ch);								   
 				}
@@ -2010,7 +2010,7 @@ DEF_DO_FUN(do_findlock)
 			if (container->item_type == ITEM_CONTAINER &&
 			    container->value[2] == obj->vnum)
 			{
-				sprintf (buf, "[%5d] %s\n\r",
+				snprintf (buf, sizeof(buf), "[%5d] %s\n\r",
 							   container->vnum, container->short_descr);
 				send_to_char (buf, ch);
 			}
