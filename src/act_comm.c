@@ -149,17 +149,17 @@ void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 {
     const CHANNEL *chan = &(public_channel_table[sn]);
     char buf[MSL];
-    size_t buf_i;
+    int buf_i;
 
     buf_i = snprintf(buf, sizeof(buf), "{%c%s{%c",
         chan->prime_color,
         chan->name,
         chan->second_color);
-    buf_i = UMIN(buf_i, sizeof(buf));
+    buf_i = URANGE(0, buf_i, (int)sizeof(buf));
 
     int len = strlen_color(buf);
 
-    snprintf(buf + buf_i, sizeof(buf) - buf_i, 
+    snprintf(buf + buf_i, sizeof(buf) - (size_t)buf_i, 
         "%*s%s\n\r", 15 - len, "", IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
 
     send_to_char(buf, ch);

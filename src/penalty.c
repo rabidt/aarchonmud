@@ -922,7 +922,7 @@ void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument )
 void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
 {
     char buf[MSL], to_buf[MSL];
-    size_t buf_i = 0;
+    int buf_i = 0;
 
     CHAR_DATA *ch = d->character;
     CHAR_DATA *victim = NULL;
@@ -994,17 +994,17 @@ void penalty_finish( DESCRIPTOR_DATA *d, const char *argument )
                     capitalize(q->penalty_type),
                     q->victim_name,
                     p->status == PENALTY_STATUS_PAROLE_PENDING ? "paroled" : "pardoned");
-            buf_i = UMIN(buf_i, sizeof(buf));
+            buf_i = URANGE(0, buf_i, (int)sizeof(buf));
 
 
             if (q->duration > 0) /* Also recall p->duration has victim->playing in it at this point. */
             {
-                snprintf(buf + buf_i, sizeof(buf) - buf_i, ", %.1f hrs remaining", 
+                snprintf(buf + buf_i, sizeof(buf) - (size_t)buf_i, ", %.1f hrs remaining", 
                     (float)(q->start_time + q->duration - p->duration) / 3600.0);
-                buf_i = UMIN(buf_i, sizeof(buf));
+                buf_i = URANGE(0, buf_i, (int)sizeof(buf));
             }
 
-            if (buf_i >= sizeof(buf))
+            if (buf_i >= (int)sizeof(buf))
             {
                 bugf("%s: buffer truncation", __func__);
             }

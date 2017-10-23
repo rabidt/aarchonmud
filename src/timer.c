@@ -430,7 +430,7 @@ void timer_update( void )
 
 void print_timer_list( char * const buf, const size_t n )
 {
-    size_t buf_i = 0;
+    int buf_i = 0;
     TIMER_NODE *tmr;
 
     int i = 1;
@@ -448,7 +448,7 @@ void print_timer_list( char * const buf, const size_t n )
             continue;
         }
 
-        buf_i += snprintf(buf + buf_i, n - buf_i, "\n\r%d %s %d %s", i,
+        buf_i += snprintf(buf + buf_i, n - (size_t)buf_i, "\n\r%d %s %d %s", i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->tm_type == TM_CFUNC ? "cfunc" :
             tmr->go_type == GO_TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
@@ -459,7 +459,7 @@ void print_timer_list( char * const buf, const size_t n )
             tmr->current,
             tmr->tag ? tmr->tag : "none");
 
-        if (buf_i >= n)
+        if (buf_i >= (int)n)
         {
             bugf("%s: buffer overflow", __func__);
             return;
@@ -468,10 +468,10 @@ void print_timer_list( char * const buf, const size_t n )
         i++;
     }
     
-    buf_i += snprintf(buf + buf_i, n - buf_i, 
+    buf_i += snprintf(buf + buf_i, n - (size_t)buf_i, 
         "\n\r\n\rUnregistered timers (pending removal): %d\n\r", unregcnt);
 
-    if (buf_i >= n)
+    if (buf_i >= (int)n)
     {
         bugf("%s: buffer overflow", __FUNCTION__);
         return;
