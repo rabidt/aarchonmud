@@ -800,7 +800,7 @@ static int glob_log (lua_State *LS)
     }
 
     char buf[MSL];
-    sprintf(buf, "LUA::%s:%s", chan ? chan : "",  msg);
+    snprintf(buf, sizeof(buf), "LUA::%s:%s", chan ? chan : "",  msg);
     log_string(buf);
 
     if (wiznet_chan != -1)
@@ -823,7 +823,7 @@ static int glob_gettime (lua_State *LS)
     struct timeval t;
     gettimeofday( &t, NULL);
 
-    sprintf(buf, "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
+    snprintf(buf, sizeof(buf), "%ld.%ld", (long)t.tv_sec, (long)t.tv_usec);
     lua_pushstring( LS, buf);
    
     lua_pushnumber( LS, lua_tonumber( LS, -1 ) );
@@ -2873,7 +2873,7 @@ static int CH_tell (lua_State *LS)
     if (lua_isstring(LS, 2))
     {
         char buf[MIL];
-        sprintf( buf,
+        snprintf( buf, sizeof(buf),
                 "'%s' %s",
                 check_string(LS, 2, 25),
                 check_fstring(LS, 3, MIL-30) );
@@ -4528,7 +4528,7 @@ static int CH_set_description (lua_State *LS)
             luaL_error( LS, "Description must be %d characters or less.", MSL-3);
 
         char buf[MSL];
-        sprintf(buf, "%s\n\r",new);
+        snprintf(buf, sizeof(buf), "%s\n\r",new);
         new=buf;
     }
     free_string( ud_ch->description );
@@ -6984,7 +6984,7 @@ static int RESET_get_command(lua_State *LS)
 {
     RESET_DATA *rd = check_RESET(LS, 1);
     static char buf[2];
-    sprintf(buf, "%c", rd->command);
+    snprintf(buf, sizeof(buf), "%c", rd->command);
     lua_pushstring(LS, buf);
     return 1;
 }

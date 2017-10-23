@@ -289,7 +289,7 @@ void string_add( CHAR_DATA *ch, const char *argument )
          
          *ch->desc->pString =
             string_replace( *ch->desc->pString, arg2, arg3 );
-         sprintf( buf, "'%s' replaced with '%s'.\n\r", arg2, arg3 );
+         snprintf( buf, sizeof(buf), "'%s' replaced with '%s'.\n\r", arg2, arg3 );
          send_to_char( buf, ch );
          return;
       }
@@ -783,7 +783,7 @@ const char* numlineas( const char *string )
    while ( *string )
    {
       string = get_line( string, tmpb );
-      sprintf( buf2, "%2d. %s\n\r", cnt++, tmpb );
+      snprintf( buf2, sizeof(buf2), "%2d. %s\n\r", cnt++, tmpb );
       strcat( buf, buf2 );
    }
    
@@ -966,7 +966,7 @@ const char * center( const char *argument, int width, char fill )
     
     if ( !argument )
     {
-        sprintf( log_buf, "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
+        snprintf( log_buf, sizeof(log_buf), "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
         return log_buf;
     }
     
@@ -1002,7 +1002,7 @@ const char *lpad( const char *argument, int width, char fill )
     
     if ( !argument )
     {
-        sprintf( log_buf, "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
+        snprintf( log_buf, sizeof(log_buf), "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
         return log_buf;
     }
     
@@ -1031,7 +1031,7 @@ const char *rpad( const char *argument, int width, char fill )
     
     if ( !argument )
     {
-        sprintf( log_buf, "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
+        snprintf( log_buf, sizeof(log_buf), "ERROR! Please note an imm if you see this message.\n\rPlease include EXACTLY what you did before you got this message.\n\r");
         return log_buf;
     }
     

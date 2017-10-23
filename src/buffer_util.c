@@ -326,7 +326,7 @@ bool write_buffer_to_file( DBUFFER *buf, FILE *fp )
   nr_written = fwrite(buf->data, sizeof(char), (size_t)(buf->len), fp);
   if (nr_written != buf->len)
   {
-    sprintf( bug_str, "write_buffer_to_file: only %d/%d chars could be written", 
+    snprintf( bug_str, sizeof(bug_str), "write_buffer_to_file: only %d/%d chars could be written", 
 	     nr_written, buf->len );
     bug( bug_str, 0 );
     return FALSE;
@@ -355,10 +355,10 @@ bool save_to_dir( MEMFILE *mf, char *dir )
     return FALSE;
   }
 
-  sprintf(strsave, "%s%s", dir, mf->filename);
+  snprintf(strsave, sizeof(strsave), "%s%s", dir, mf->filename);
   if ( ( fp = fopen( strsave, "w" ) ) == NULL )
   {
-    sprintf(bug_buf1, "save_to_dir: couldn't open %s", strsave);
+    snprintf(bug_buf1, sizeof(bug_buf1), "save_to_dir: couldn't open %s", strsave);
     bug(bug_buf1, 0);
     return FALSE;
   }
@@ -368,7 +368,7 @@ bool save_to_dir( MEMFILE *mf, char *dir )
 
   if (!success)
   {
-    sprintf(bug_buf1, "save_to_dir: error saving %s", strsave);
+    snprintf(bug_buf1, sizeof(bug_buf1), "save_to_dir: error saving %s", strsave);
     bug (bug_buf1, 0);
   }
 #if defined(SIM_DEBUG)

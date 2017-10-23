@@ -156,7 +156,7 @@ void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
     if (p != NULL) 
         p->next=gran->next;
 
-    sprintf(buf,"You have lost access to the %s command.\n\r",gran->name);
+    snprintf(buf, sizeof(buf),"You have lost access to the %s command.\n\r",gran->name);
 
     if (mshow) 
         send_to_char(buf,ch);
@@ -192,7 +192,7 @@ void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
 
     gran->duration = DURATION_REVOKED;
 
-    sprintf(buf,"Your access to the %s command has been revoked.\n\r",gran->name);
+    snprintf(buf, sizeof(buf),"Your access to the %s command has been revoked.\n\r",gran->name);
 
     if (mshow)
     { 
@@ -253,7 +253,7 @@ void login_grant( CHAR_DATA *ch )
         {
             if (cmd_table[cmd].level == lvl && !is_granted(ch, cmd_table[cmd].do_fun) && !is_revoked(ch, cmd_table[cmd].do_fun))
             {
-                sprintf(buf,"Granting you the %s command.\n\r", cmd_table[cmd].name);
+                snprintf(buf, sizeof(buf),"Granting you the %s command.\n\r", cmd_table[cmd].name);
                 send_to_char(buf, ch);
                 grant_add(ch, cmd_table[cmd].name, cmd_table[cmd].do_fun, DURATION_PERMANENT, lvl);
             }
@@ -418,14 +418,14 @@ DEF_DO_FUN(do_grant)
             if (!str_cmp(arg2,pair_table[x].first)
                     && !is_granted_name(victim,pair_table[x].second))
             {
-                sprintf(buf,"%s %s %s",rvictim->name, pair_table[x].second, arg3);
+                snprintf(buf, sizeof(buf),"%s %s %s",rvictim->name, pair_table[x].second, arg3);
                 do_grant(ch,buf);
             }
             else if (!str_cmp(arg2,pair_table[x].second)
                     && pair_table[x].one_way != TRUE
                     && !is_granted_name(victim,pair_table[x].first))
             {
-                sprintf(buf,"%s %s %s",rvictim->name,pair_table[x].first, arg3);
+                snprintf(buf, sizeof(buf),"%s %s %s",rvictim->name,pair_table[x].first, arg3);
                 do_grant(ch,buf);
             }
 
@@ -547,14 +547,14 @@ DEF_DO_FUN(do_revoke)
             if (!str_cmp(arg2,pair_table[x].first)
                     && is_granted_name(victim,pair_table[x].second))
             {
-                sprintf(buf,"%s %s",rvictim->name,pair_table[x].second);
+                snprintf(buf, sizeof(buf),"%s %s",rvictim->name,pair_table[x].second);
                 do_revoke(ch,buf);
             }
             else if (!str_cmp(arg2,pair_table[x].second)
                     && pair_table[x].one_way != TRUE
                     && is_granted_name(victim,pair_table[x].first))
             {
-                sprintf(buf,"%s %s",rvictim->name,pair_table[x].first);
+                snprintf(buf, sizeof(buf),"%s %s",rvictim->name,pair_table[x].first);
                 do_revoke(ch,buf);
             }
 
@@ -605,7 +605,7 @@ DEF_DO_FUN(do_gstat)
     
     buffer = new_buf();
     
-    sprintf(buf,"Grant status for %s:\n\r\n\r",victim->name );
+    snprintf(buf, sizeof(buf),"Grant status for %s:\n\r\n\r",victim->name );
     
     add_buf(buffer,buf);
     
@@ -616,7 +616,7 @@ DEF_DO_FUN(do_gstat)
         char s2[25];
         int x, sl;
         
-        sprintf(ds, "%d", grant->duration);
+        snprintf(ds, sizeof(ds), "%d", grant->duration);
         str[0] = '\0';
         sl = (int)((6 - strlen(ds)) / 2);
         
@@ -629,9 +629,9 @@ DEF_DO_FUN(do_gstat)
             strcat(s2," ");
         
         if (grant->duration == -1)
-            sprintf(buf,"[ perm ] %-11s",grant->name);
+            snprintf(buf, sizeof(buf),"[ perm ] %-11s",grant->name);
         else
-            sprintf(buf,"[%s%d%s] %-11s",str, grant->duration, s2, grant->name);
+            snprintf(buf, sizeof(buf),"[%s%d%s] %-11s",str, grant->duration, s2, grant->name);
         
         add_buf(buffer,buf);
         

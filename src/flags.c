@@ -256,7 +256,7 @@ DEF_DO_FUN(do_flag)
                     SET_BIT( new, bit );
                 else
                     REMOVE_BIT( new, bit );
-                sprintf( buf, "The %s flag isn't settable.\n\r", flag_table[pos].name );
+                snprintf( buf, sizeof(buf), "The %s flag isn't settable.\n\r", flag_table[pos].name );
                 send_to_char( buf, ch );
             }
 
@@ -276,13 +276,13 @@ void print_pkill_grades( CHAR_DATA *ch )
 
     for( i=1; pkgrade_table[i].pkpoints > 0; i++ )
     {
-        sprintf( buf, "  %s    %5d    %5d     %5d  %5d\n\r",
+        snprintf( buf, sizeof(buf), "  %s    %5d    %5d     %5d  %5d\n\r",
                 pkgrade_table[i].grade, pkgrade_table[i].pkpoints,
                 pkgrade_table[i].earned, pkgrade_table[i].lost,
                 pkgrade_table[i].lost_in_warfare );
         send_to_char( buf, ch );
     }
-    sprintf( buf, "  %s    %5d    %5d     %5d  %5d\n\r",
+    snprintf( buf, sizeof(buf), "  %s    %5d    %5d     %5d  %5d\n\r",
             pkgrade_table[i].grade, pkgrade_table[i].pkpoints,
             pkgrade_table[i].earned, pkgrade_table[i].lost,
             pkgrade_table[i].lost_in_warfare );
@@ -327,7 +327,7 @@ void pkill_confirm(CHAR_DATA *ch, const char *arg)
         {
             SET_BIT(ch->act, PLR_PERM_PKILL);
             reset_pkill_expire(ch);
-            sprintf(log_buf, "%s has declared %sself to be a pkiller!",
+            snprintf(log_buf, sizeof(log_buf), "%s has declared %sself to be a pkiller!",
                     ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
             info_message(ch, log_buf, TRUE);
             log_string( log_buf );
@@ -337,7 +337,7 @@ void pkill_confirm(CHAR_DATA *ch, const char *arg)
         {
             SET_BIT(ch->act, PLR_HARDCORE);
             reset_pkill_expire(ch);
-            sprintf(log_buf, "%s has declared %sself to be a hardcore pkiller!",
+            snprintf(log_buf, sizeof(log_buf), "%s has declared %sself to be a hardcore pkiller!",
                     ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
             info_message(ch, log_buf, TRUE);
             log_string( log_buf );
@@ -553,7 +553,7 @@ DEF_DO_FUN(do_roleplay)
     }
 
     SET_BIT( ch->act, PLR_RP );
-    sprintf(log_buf, "%s has declared %sself to be a permanent roleplayer!",
+    snprintf(log_buf, sizeof(log_buf), "%s has declared %sself to be a permanent roleplayer!",
             ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
     info_message(ch, log_buf, TRUE);
     wiznet("$N has turned on $S roleplay flag.", ch, NULL, WIZ_FLAGS, 0, 0);

@@ -130,18 +130,18 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
         if ( obj->carried_by && obj->carried_by != ch )
                 lvlBuf[0] = '\0';
         else if ( obj->wear_loc != WEAR_NONE )
-            sprintf(lvlBuf, "(lvl %d) ", obj->level);
+            snprintf(lvlBuf, sizeof(lvlBuf), "(lvl %d) ", obj->level);
         else switch ( obj->wear_type )
         {
             case ITEM_NO_CARRY:
                 lvlBuf[0] = '\0';
                 break;
             case ITEM_CARRY:
-                sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
+                snprintf(lvlBuf, sizeof(lvlBuf), "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
                 break;
             case ITEM_WIELD:
                 // weapon
-                sprintf(lvlBuf, "(lvl %d %s%s) ",
+                snprintf(lvlBuf, sizeof(lvlBuf), "(lvl %d %s%s) ",
                     obj->level,
                     IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) ? "2h-" : "",
                     flag_bit_name(weapon_class, obj->value[0]) );
@@ -152,11 +152,11 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
                     && obj->item_type != ITEM_TREASURE )
                 {
                     // same as ITEM_CARRY
-                    sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
+                    snprintf(lvlBuf, sizeof(lvlBuf), "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
                     break;
                 }
             default:
-                sprintf(lvlBuf, "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
+                snprintf(lvlBuf, sizeof(lvlBuf), "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
                 break;
         }
         strcat(buf, lvlBuf);
@@ -295,7 +295,7 @@ void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNo
         {
             if ( prgnShow[iShow] != 1 )
             {
-                sprintf( buf, "(%2d) ", prgnShow[iShow] );
+                snprintf( buf, sizeof(buf), "(%2d) ", prgnShow[iShow] );
                 add_buf(output,buf);
             }
             else
@@ -415,19 +415,19 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         {
             if (I_IS_SET(victim->on->value[2],SLEEP_AT))
             {
-                sprintf(message," is sleeping at %s.",
+                snprintf(message, sizeof(message)," is sleeping at %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else if (I_IS_SET(victim->on->value[2],SLEEP_ON))
             {
-                sprintf(message," is sleeping on %s.",
+                snprintf(message, sizeof(message)," is sleeping on %s.",
                     victim->on->short_descr); 
                 strcat(buf,message);
             }
             else
             {
-                sprintf(message, " is sleeping in %s.",
+                snprintf(message, sizeof(message), " is sleeping in %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
@@ -440,19 +440,19 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         {
             if (I_IS_SET(victim->on->value[2],REST_AT))
             {
-                sprintf(message," is resting at %s.",
+                snprintf(message, sizeof(message)," is resting at %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else if (I_IS_SET(victim->on->value[2],REST_ON))
             {
-                sprintf(message," is resting on %s.",
+                snprintf(message, sizeof(message)," is resting on %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else 
             {
-                sprintf(message, " is resting in %s.",
+                snprintf(message, sizeof(message), " is resting in %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
@@ -465,19 +465,19 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         {
             if (I_IS_SET(victim->on->value[2],SIT_AT))
             {
-                sprintf(message," is sitting at %s.",
+                snprintf(message, sizeof(message)," is sitting at %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else if (I_IS_SET(victim->on->value[2],SIT_ON))
             {
-                sprintf(message," is sitting on %s.",
+                snprintf(message, sizeof(message)," is sitting on %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else
             {
-                sprintf(message, " is sitting in %s.",
+                snprintf(message, sizeof(message), " is sitting in %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
@@ -490,19 +490,19 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
         {
             if (I_IS_SET(victim->on->value[2],STAND_AT))
             {
-                sprintf(message," is standing at %s.",
+                snprintf(message, sizeof(message)," is standing at %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else if (I_IS_SET(victim->on->value[2],STAND_ON))
             {
-                sprintf(message," is standing on %s.",
+                snprintf(message, sizeof(message)," is standing on %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
             else
             {
-                sprintf(message," is standing in %s.",
+                snprintf(message, sizeof(message)," is standing in %s.",
                     victim->on->short_descr);
                 strcat(buf,message);
             }
@@ -592,7 +592,7 @@ char* char_look_info( CHAR_DATA *ch )
 	return get_disguise_name( ch );
     */
 
-    sprintf( buf, "a %s %s %s %s%s%s%s%s",
+    snprintf( buf, sizeof(buf), "a %s %s %s %s%s%s%s%s",
 	     size == SIZE_MEDIUM ? "medium-sized" : size_table[size].name,
 	     appear_str[appearance],
 	     sex == 0 ? "sexless" : sex_table[sex].name,
@@ -657,7 +657,7 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 
     if ( !victim_is_obj )
     {
-        sprintf( buf, "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
+        snprintf( buf, sizeof(buf), "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
         send_to_char( buf, ch );
     }
 
@@ -833,7 +833,7 @@ DEF_DO_FUN(do_peek)
 
     check_improve(ch,gsn_peek,TRUE,3);
     /* money */
-    sprintf( buf, "$N's wallet contains %ld gold and %ld silver coins.", victim->gold, victim->silver );
+    snprintf( buf, sizeof(buf), "$N's wallet contains %ld gold and %ld silver coins.", victim->gold, victim->silver );
     act( buf, ch, NULL, victim, TO_CHAR );
     /* inventory */
     act_see( "$n peeks at your inventory.", ch, NULL, victim, TO_VICT );
@@ -856,7 +856,7 @@ DEF_DO_FUN(do_scroll)
             send_to_char("You do not page long messages.\n\r",ch);
         else
         {
-            sprintf(buf,"You currently display %d lines per page.\n\r",
+            snprintf(buf, sizeof(buf),"You currently display %d lines per page.\n\r",
                 ch->lines + 2);
             send_to_char(buf,ch);
         }
@@ -884,7 +884,7 @@ DEF_DO_FUN(do_scroll)
         return;
     }
     
-    sprintf(buf,"Scroll set to %d lines.\n\r",lines);
+    snprintf(buf, sizeof(buf),"Scroll set to %d lines.\n\r",lines);
     send_to_char(buf,ch);
     ch->lines = lines - 2;
 }
@@ -922,7 +922,7 @@ int col;
  
   for (iSocial = 0; social_table[iSocial].name[0] != '\0'; iSocial++)
   {
-  sprintf(buf,"%-12s",social_table[iSocial].name);
+  snprintf(buf, sizeof(buf),"%-12s",social_table[iSocial].name);
   send_to_char(buf,ch);
   if (++col % 6 == 0)
   send_to_char("\n\r",ch);
@@ -946,7 +946,7 @@ DEF_DO_FUN(do_socials)
     
     for (iSocial = 0; social_table[iSocial].name[0] != '\0'; iSocial++)
     {
-        sprintf(buf,"%-12s",social_table[iSocial].name);
+        snprintf(buf, sizeof(buf),"%-12s",social_table[iSocial].name);
         add_buf(output,buf);
         if (++col % 6 == 0)
             add_buf(output, "\n\r");
@@ -1437,7 +1437,7 @@ DEF_DO_FUN(do_prompt)
     
     free_string( ch->prompt );
     ch->prompt = str_dup( buf );
-    sprintf(buf,"Prompt set to %s\n\r",ch->prompt );
+    snprintf(buf, sizeof(buf),"Prompt set to %s\n\r",ch->prompt );
     send_to_char(buf,ch);
     return;
 }
@@ -1662,12 +1662,12 @@ DEF_DO_FUN(do_look)
 	}
 
         /* 'look' or 'look auto' */
-        sprintf( buf, "{o%s", ch->in_room->name );
+        snprintf( buf, sizeof(buf), "{o%s", ch->in_room->name );
         send_to_char( buf,ch);
         
         if ( IS_IMMORTAL(ch) || IS_BUILDER(ch, ch->in_room->area) )
         {
-            sprintf( buf," [Room %d %s]", ch->in_room->vnum,
+            snprintf( buf, sizeof(buf)," [Room %d %s]", ch->in_room->vnum,
 		     flag_bit_name(sector_flags, ch->in_room->sector_type) );
             send_to_char(buf,ch);
         }
@@ -1749,9 +1749,9 @@ DEF_DO_FUN(do_look)
     if (count > 0 && count != number)
     {
         if (count == 1)
-            sprintf(buf,"You only see one %s here.\n\r",arg3);
+            snprintf(buf, sizeof(buf),"You only see one %s here.\n\r",arg3);
         else
-            sprintf(buf,"You only see %d of those here.\n\r",count);
+            snprintf(buf, sizeof(buf),"You only see %d of those here.\n\r",count);
         
         send_to_char(buf,ch);
         return;
@@ -1831,14 +1831,14 @@ DEF_DO_FUN(do_examine)
 
     if (obj->owner != NULL)
     {
-        sprintf( buf, "A marking says it is owned by %s.\n\r", obj->owner);
+        snprintf( buf, sizeof(buf), "A marking says it is owned by %s.\n\r", obj->owner);
         send_to_char( buf, ch );
     }
 
     switch ( obj->item_type )
     {
     default:
-        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+        snprintf(buf, sizeof(buf), "It has a level requirement of %d.\n\r", obj->level);
         send_to_char( buf, ch );
 	break;
     case ITEM_ARROWS:
@@ -1850,23 +1850,23 @@ DEF_DO_FUN(do_examine)
 	if (obj->value[0] == 0)
         {
 	    if (obj->value[1] == 0)
-		sprintf(buf,"Odd...there's no coins in the pile.\n\r");
+		snprintf(buf, sizeof(buf),"Odd...there's no coins in the pile.\n\r");
 	    else if (obj->value[1] == 1)
-		sprintf(buf,"Wow. One gold coin.\n\r");
+		snprintf(buf, sizeof(buf),"Wow. One gold coin.\n\r");
 	    else
-		sprintf(buf,"There are %d gold coins in the pile.\n\r",
+		snprintf(buf, sizeof(buf),"There are %d gold coins in the pile.\n\r",
 			obj->value[1]);
 	}
 	else if (obj->value[1] == 0)
         {
 	    if (obj->value[0] == 1)
-		sprintf(buf,"Wow. One silver coin.\n\r");
+		snprintf(buf, sizeof(buf),"Wow. One silver coin.\n\r");
 	    else
-		sprintf(buf,"There are %d silver coins in the pile.\n\r",
+		snprintf(buf, sizeof(buf),"There are %d silver coins in the pile.\n\r",
 			obj->value[0]);
 	}
 	else
-	    sprintf(buf,
+	    snprintf(buf, sizeof(buf),
 		    "There are %d gold and %d silver coins in the pile.\n\r",
 		    obj->value[1],obj->value[0]);
 	send_to_char(buf,ch);
@@ -1907,7 +1907,7 @@ DEF_DO_FUN(do_examine)
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
            strcat(buf, "It requires two hands to wield.\n\r");
 	send_to_char(buf,ch);
-        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+        snprintf(buf, sizeof(buf), "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
 
@@ -1949,7 +1949,7 @@ DEF_DO_FUN(do_examine)
 	else
 	    strcat(buf, "used as armor, but you can't figure out how.\n\r");
 	send_to_char(buf,ch);
-        sprintf(buf, "It has a level requirement of %d.\n\r", obj->level);
+        snprintf(buf, sizeof(buf), "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
 	break;
     }
@@ -1963,6 +1963,7 @@ DEF_DO_FUN(do_examine)
 DEF_DO_FUN(do_exits)
 {
     char buf[MAX_STRING_LENGTH];
+    size_t buf_i = 0;
     EXIT_DATA *pexit;
     bool found;
     bool fAuto;
@@ -1974,11 +1975,20 @@ DEF_DO_FUN(do_exits)
         return;
     
     if (fAuto)
-        sprintf(buf,"{O[Exits:");
+    {
+        buf_i = snprintf(buf, sizeof(buf), "{O[Exits:");
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     else if (IS_IMMORTAL(ch))
-        sprintf(buf,"Obvious exits from room %d:\n\r",ch->in_room->vnum);
+    {
+        buf_i = snprintf(buf, sizeof(buf), "Obvious exits from room %d:\n\r",ch->in_room->vnum);
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     else
-        sprintf(buf,"Obvious exits:\n\r");
+    {
+        buf_i = snprintf(buf, sizeof(buf), "Obvious exits:\n\r");
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
     found = FALSE;
     for ( door = 0; door < MAX_DIR; door++ )
@@ -1996,42 +2006,64 @@ DEF_DO_FUN(do_exits)
             {
                 if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
-                    sprintf( buf, "%s <%s>", buf, dir_name[door] );
+                    buf_i = snprintf( buf + buf_i, sizeof(buf) - buf_i, " <%s>", dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
                 else if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
-                    sprintf( buf, "%s (%s%s)", buf, 
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " (%s%s)", 
                             IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
                             dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
                 else
                 {
-                    sprintf( buf, "%s %s", buf, dir_name[door] );
+                    buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, " %s", dir_name[door] );
+                    buf_i = UMIN(buf_i, sizeof(buf));
                 }
             }
             else
             {
-                sprintf( buf + strlen(buf), "%-5s - %s",
+                buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "%-5s - %s",
                     capitalize( dir_name[door] ),
                     room_is_dark( pexit->u1.to_room )
                     ?  "Too dark to tell"
                     : pexit->u1.to_room->name
                     );
+                buf_i = UMIN(buf_i, sizeof(buf));
+
                 if (IS_IMMORTAL(ch))
-                    sprintf(buf + strlen(buf), 
-                    " (room %d)\n\r",pexit->u1.to_room->vnum);
+                {
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, 
+                        " (room %d)\n\r", pexit->u1.to_room->vnum);
+                    buf_i = UMIN(buf_i, sizeof(buf));
+                }
                 else
-                    sprintf(buf + strlen(buf), "\n\r");
+                {
+                    buf_i += snprintf(buf + buf_i, sizeof(buf) - buf_i, "\n\r");
+                    buf_i = UMIN(buf_i, sizeof(buf));
+                }
             }
         }
     }
     
     if ( !found )
-        strcat( buf, fAuto ? " none" : "None.\n\r" );
+    {
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, fAuto ? " none" : "None.\n\r" );
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
     if ( fAuto )
-        strcat( buf, "]\n\r" );
+    {
+        buf_i += snprintf( buf + buf_i, sizeof(buf) - buf_i, "]\n\r" );
+        buf_i = UMIN(buf_i, sizeof(buf));
+    }
     
+    if (buf_i >= sizeof(buf))
+    {
+        bugf("%s: buffer overflow", __func__);
+    }
+
     send_to_char( buf, ch );
     send_to_char( "{x", ch);
     return;
@@ -2258,7 +2290,7 @@ DEF_DO_FUN(do_time)
        else if ( day % 10 ==  3       ) suf = "rd";
        else                             suf = "th";
        
-       sprintf( buf,
+       snprintf( buf, sizeof(buf),
            "It is %d o'clock %s, Day of %s, %d%s the Month of %s.\n\r",
            (time_info.hour % 12 == 0) ? 12 : time_info.hour %12,
            time_info.hour >= 12 ? "pm" : "am",
@@ -2266,7 +2298,7 @@ DEF_DO_FUN(do_time)
            day, suf,
            month_name[time_info.month]);
        send_to_char(buf,ch);
-       sprintf(buf,"Aarchon started up at %s\n\rThe system time is %s\n\r",
+       snprintf(buf, sizeof(buf),"Aarchon started up at %s\n\rThe system time is %s\n\r",
            str_boot_time,
            (char *) ctime( &current_time )
            );
@@ -2295,7 +2327,7 @@ DEF_DO_FUN(do_weather)
         return;
     }
     
-    sprintf( buf, "The sky is %s and %s.\n\r",
+    snprintf( buf, sizeof(buf), "The sky is %s and %s.\n\r",
         sky_look[weather_info.sky],
         weather_info.change >= 0
         ? "a warm southerly breeze blows"
@@ -2899,21 +2931,21 @@ void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 
     switch(wch->level)
     {
-    case MAX_LEVEL - 0 : sprintf(levelbuf, "IMP"); break;
-    case MAX_LEVEL - 1 : sprintf(levelbuf, "ARC"); break;
-    case MAX_LEVEL - 2 : sprintf(levelbuf, "ARC"); break;
-    case MAX_LEVEL - 3 : sprintf(levelbuf, "VAR"); break;
-    case MAX_LEVEL - 4 : sprintf(levelbuf, "VAR"); break;
-    case MAX_LEVEL - 5 : sprintf(levelbuf, "GOD"); break;
-    case MAX_LEVEL - 6 : sprintf(levelbuf, "GOD"); break;
-    case MAX_LEVEL - 7 : sprintf(levelbuf, "DEM"); break;
-    case MAX_LEVEL - 8 : sprintf(levelbuf, "DEM"); break;
-    case MAX_LEVEL - 9 : sprintf(levelbuf, "SAV"); break;
-    default : sprintf(levelbuf, "%3d", wch->level); break;
+    case MAX_LEVEL - 0 : snprintf(levelbuf, sizeof(levelbuf), "IMP"); break;
+    case MAX_LEVEL - 1 : snprintf(levelbuf, sizeof(levelbuf), "ARC"); break;
+    case MAX_LEVEL - 2 : snprintf(levelbuf, sizeof(levelbuf), "ARC"); break;
+    case MAX_LEVEL - 3 : snprintf(levelbuf, sizeof(levelbuf), "VAR"); break;
+    case MAX_LEVEL - 4 : snprintf(levelbuf, sizeof(levelbuf), "VAR"); break;
+    case MAX_LEVEL - 5 : snprintf(levelbuf, sizeof(levelbuf), "GOD"); break;
+    case MAX_LEVEL - 6 : snprintf(levelbuf, sizeof(levelbuf), "GOD"); break;
+    case MAX_LEVEL - 7 : snprintf(levelbuf, sizeof(levelbuf), "DEM"); break;
+    case MAX_LEVEL - 8 : snprintf(levelbuf, sizeof(levelbuf), "DEM"); break;
+    case MAX_LEVEL - 9 : snprintf(levelbuf, sizeof(levelbuf), "SAV"); break;
+    default : snprintf(levelbuf, sizeof(levelbuf), "%3d", wch->level); break;
     }
     
     if (clan_table[wch->clan].active)
-	sprintf(clanbuf, "[%s%s-%s{x] ", 
+	snprintf(clanbuf, sizeof(clanbuf), "[%s%s-%s{x] ", 
 		clan_table[wch->clan].who_color,
 		clan_table[wch->clan].who_name,
 		clan_table[wch->clan].rank_list[wch->pcdata->clan_rank].who_name);
@@ -2921,7 +2953,7 @@ void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 	clanbuf[0] = '\0';
     
     if (wch->pcdata->customflag[0]!='\0')
-	sprintf(custombuf, "(%s) ", wch->pcdata->customflag);
+	snprintf(custombuf, sizeof(custombuf), "(%s) ", wch->pcdata->customflag);
     else
 	custombuf[0] = '\0';
     
@@ -2937,7 +2969,7 @@ void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 	racestr = pc_race_table[wch->race].who_name;
 
     /* a little formatting */
-    sprintf(buf, "[%s %6s %s %c] %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s{x%s\n\r",
+    snprintf(buf, sizeof(buf), "[%s %6s %s %c] %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s{x%s\n\r",
             levelbuf, racestr,
             class_table[wch->clss].who_name,
             get_pkflag(ch, wch),
@@ -2978,10 +3010,10 @@ DEF_DO_FUN(do_count)
         max_on = UMAX(count,max_on);
         
         if (max_on == count)
-            sprintf(buf,"There are %d characters on, the most so far today.\n\r",
+            snprintf(buf, sizeof(buf),"There are %d characters on, the most so far today.\n\r",
             count);
         else
-            sprintf(buf,"There are %d characters on, the most on today was %d.\n\r",
+            snprintf(buf, sizeof(buf),"There are %d characters on, the most on today was %d.\n\r",
             count,max_on);
         
         send_to_char(buf,ch);
@@ -2992,7 +3024,7 @@ DEF_DO_FUN(do_inventory)
 {
     char buf[MSL];
 
-    sprintf( buf, "You are carrying %d / %d items:\n\r", 
+    snprintf( buf, sizeof(buf), "You are carrying %d / %d items:\n\r", 
         ch->carry_number, can_carry_n(ch));
     send_to_char(buf,ch);
 
@@ -3170,7 +3202,7 @@ DEF_DO_FUN(do_where)
 		 &&   can_locate( ch, victim ) )
             {
                 found = TRUE;
-                sprintf( buf, "%-28s %s\n\r",
+                snprintf( buf, sizeof(buf), "%-28s %s\n\r",
                     victim->name, victim->in_room->name );
                 send_to_char( buf, ch );
             }
@@ -3190,7 +3222,7 @@ DEF_DO_FUN(do_where)
                 &&   is_name( arg, victim->name ) )
             {
                 found = TRUE;
-                sprintf( buf, "%-28s %s\n\r",
+                snprintf( buf, sizeof(buf), "%-28s %s\n\r",
                     PERS(victim, ch), victim->in_room->name );
                 send_to_char( buf, ch );
                 break;
@@ -3308,7 +3340,7 @@ DEF_DO_FUN(do_title)
     
     if ( argument[0] == '\0' )
     {
-        sprintf( buf, "the %s",
+        snprintf( buf, sizeof(buf), "the %s",
             title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5] );
         set_title( ch, buf );
         REMOVE_BIT(ch->act, PLR_TITLE);
@@ -3457,7 +3489,7 @@ DEF_DO_FUN(do_report)
 {
     char buf[MAX_INPUT_LENGTH];
     
-    sprintf( buf,
+    snprintf( buf, sizeof(buf),
         "You say 'I have %d/%d hp %d/%d mana %d/%d mv %d xp.'\n\r",
         ch->hit,  ch->max_hit,
         ch->mana, ch->max_mana,
@@ -3466,7 +3498,7 @@ DEF_DO_FUN(do_report)
     
     send_to_char( buf, ch );
     
-    sprintf( buf, "$n says 'I have %d/%d hp %d/%d mana %d/%d mv %d xp.'",
+    snprintf( buf, sizeof(buf), "$n says 'I have %d/%d hp %d/%d mana %d/%d mv %d xp.'",
         ch->hit,  ch->max_hit,
         ch->mana, ch->max_mana,
         ch->move, ch->max_move,
@@ -3616,7 +3648,7 @@ const char* wear_location_info( int pos )
         case ITEM_NO_CARRY:
             return NULL;
         default:
-            sprintf( buf, "It can be worn on the %s.", wear_bit_name(pos) );
+            snprintf( buf, sizeof(buf), "It can be worn on the %s.", wear_bit_name(pos) );
             return buf;
     }
 }
@@ -3642,19 +3674,19 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     int c;
     int ac = 0;
 
-    sprintf( buf, "%s is %s %s with properties %s.", obj->short_descr,
+    snprintf( buf, sizeof(buf), "%s is %s %s with properties %s.", obj->short_descr,
             aan(item_name(obj->item_type)), item_name(obj->item_type), extra_bits_name(obj->extra_flags) );
     do_say(ch, buf);
 
     /*
        if (obj->owner != NULL)
        {
-       sprintf( buf, "It is owned by %s.", obj->owner);
+       snprintf( buf, sizeof(buf), "It is owned by %s.", obj->owner);
        do_say(ch, buf);
        }
        */
 
-    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
+    snprintf( buf, sizeof(buf), "It weighs %d pounds, and its level of power is %d.",
             obj->weight / 10,
             obj->level );
     do_say(ch, buf);
@@ -3663,7 +3695,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     {
         int lore_level = get_lore_level(ch, obj->level);
         int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
-        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        snprintf(buf, sizeof(buf), "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
 
@@ -3671,17 +3703,17 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
     {
         case ITEM_LIGHT:
             if ( obj->value[2] >= 0 )
-                sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
+                snprintf( buf, sizeof(buf), "It has %d hours of light remaining.", obj->value[2] );
             else
-                sprintf( buf, "It is an infinite light source." );
+                snprintf( buf, sizeof(buf), "It is an infinite light source." );
             do_say( ch, buf );
             break;
         case ITEM_ARROWS:
-            sprintf( buf, "It contains %d arrows.", obj->value[0] );
+            snprintf( buf, sizeof(buf), "It contains %d arrows.", obj->value[0] );
             do_say( ch, buf );
             if ( obj->value[1] > 0 )
             {
-                sprintf( buf, "Each arrow deals %d extra %s damage.",
+                snprintf( buf, sizeof(buf), "Each arrow deals %d extra %s damage.",
                         obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
                 do_say( ch, buf );
             }
@@ -3689,7 +3721,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
         case ITEM_SCROLL: 
         case ITEM_POTION:
         case ITEM_PILL:
-            sprintf( buf, "It has level %d spells of:", obj->value[0] );
+            snprintf( buf, sizeof(buf), "It has level %d spells of:", obj->value[0] );
 
             for ( c=1; c<5; c++)
                 if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
@@ -3706,7 +3738,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "It can hold %d charges of level %d",
+            snprintf( buf, sizeof(buf), "It can hold %d charges of level %d",
                     obj->value[1], obj->value[0] );
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
@@ -3723,7 +3755,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 
         case ITEM_DRINK_CON:
             /*
-               sprintf(buf,"It holds %s-colored %s.",
+               snprintf(buf, sizeof(buf),"It holds %s-colored %s.",
                liq_table[obj->value[2]].liq_color,
                liq_table[obj->value[2]].liq_name);
                do_say(ch, buf);
@@ -3731,13 +3763,13 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             break;
 
         case ITEM_CONTAINER:
-            sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
+            snprintf(buf, sizeof(buf),"Capacity: %d#  Maximum weight: %d#  flags: %s",
                     obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
             do_say(ch, buf);
 
             if (obj->value[4] != 100)
             {
-                sprintf(buf,"Weight multiplier: %d%%",
+                snprintf(buf, sizeof(buf),"Weight multiplier: %d%%",
                         obj->value[4]);
                 do_say(ch, buf);
 
@@ -3763,7 +3795,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             }
             do_say(ch, buf);
 
-            sprintf(buf,"It does %s damage of %dd%d (average %d).",
+            snprintf(buf, sizeof(buf),"It does %s damage of %dd%d (average %d).",
                     attack_table[obj->value[3]].noun,
                     obj->value[1],obj->value[2],
                     (1 + obj->value[2]) * obj->value[1] / 2);
@@ -3772,7 +3804,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 
             if (obj->value[4])  /* weapon flags */
             {
-                sprintf(buf, "Weapons flags: %s",
+                snprintf(buf, sizeof(buf), "Weapons flags: %s",
                         weapon_bits_name(obj->value[4]));
                 do_say(ch, buf);
 
@@ -3790,7 +3822,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 
                 if ( ac > 0 )
                 {
-                    sprintf( buf, "It provides an armor class of %d.", ac );
+                    snprintf( buf, sizeof(buf), "It provides an armor class of %d.", ac );
                     do_say(ch, buf);
                 }
                 break;
@@ -3805,7 +3837,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     int c;
     int ac = 0;
 
-    sprintf( buf, "The %s is %s.",
+    snprintf( buf, sizeof(buf), "The %s is %s.",
             item_name(obj->item_type),
             extra_bits_name(obj->extra_flags) );
     do_say(ch, buf);
@@ -3813,12 +3845,12 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     /*
        if (obj->owner != NULL)
        {
-       sprintf( buf, "It is owned by %s.", obj->owner);
+       snprintf( buf, sizeof(buf), "It is owned by %s.", obj->owner);
        do_say(ch, buf);
        }
        */
 
-    sprintf( buf, "It weighs %d pounds, and its level of power is %d.",
+    snprintf( buf, sizeof(buf), "It weighs %d pounds, and its level of power is %d.",
             obj->weight / 10,
             obj->level );
     do_say(ch, buf);
@@ -3827,7 +3859,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     {
         int lore_level = get_lore_level(ch, obj->level);
         int tattoo_percent = (int)(tattoo_bonus_factor(get_obj_tattoo_level(obj->level, lore_level)) * 100);
-        sprintf(buf, "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
+        snprintf(buf, sizeof(buf), "It's translucent, allowing tattoos to shine through (%d%% bonus).", tattoo_percent);
         do_say(ch, buf);
     }
 
@@ -3835,17 +3867,17 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
     {
         case ITEM_LIGHT:
             if ( obj->value[2] >= 0 )
-                sprintf( buf, "It has %d hours of light remaining.", obj->value[2] );
+                snprintf( buf, sizeof(buf), "It has %d hours of light remaining.", obj->value[2] );
             else
-                sprintf( buf, "It is an infinite light source." );
+                snprintf( buf, sizeof(buf), "It is an infinite light source." );
             do_say( ch, buf );
             break;
         case ITEM_ARROWS:
-            sprintf( buf, "It contains %d arrows.", obj->value[0] );
+            snprintf( buf, sizeof(buf), "It contains %d arrows.", obj->value[0] );
             do_say( ch, buf );
             if ( obj->value[1] > 0 )
             {
-                sprintf( buf, "Each arrow deals %d extra %s damage.",
+                snprintf( buf, sizeof(buf), "Each arrow deals %d extra %s damage.",
                         obj->value[1], flag_bit_name(damage_type, obj->value[2]) );
                 do_say( ch, buf );
             }
@@ -3853,7 +3885,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
         case ITEM_SCROLL: 
         case ITEM_POTION:
         case ITEM_PILL:
-            sprintf( buf, "It has level %d spells of:", obj->value[0] );
+            snprintf( buf, sizeof(buf), "It has level %d spells of:", obj->value[0] );
 
             for ( c=1; c<5; c++)
                 if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
@@ -3870,7 +3902,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
         case ITEM_WAND: 
         case ITEM_STAFF: 
-            sprintf( buf, "It can hold %d charges of level %d",
+            snprintf( buf, sizeof(buf), "It can hold %d charges of level %d",
                     obj->value[1], obj->value[0] );
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
@@ -3887,7 +3919,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
         case ITEM_DRINK_CON:
             /*
-               sprintf(buf,"It holds %s-colored %s.",
+               snprintf(buf, sizeof(buf),"It holds %s-colored %s.",
                liq_table[obj->value[2]].liq_color,
                liq_table[obj->value[2]].liq_name);
                do_say(ch, buf);
@@ -3895,13 +3927,13 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             break;
 
         case ITEM_CONTAINER:
-            sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s",
+            snprintf(buf, sizeof(buf),"Capacity: %d#  Maximum weight: %d#  flags: %s",
                     obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
             do_say(ch, buf);
 
             if (obj->value[4] != 100)
             {
-                sprintf(buf,"Weight multiplier: %d%%",
+                snprintf(buf, sizeof(buf),"Weight multiplier: %d%%",
                         obj->value[4]);
                 do_say(ch, buf);
 
@@ -3927,7 +3959,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             }
             do_say(ch, buf);
 
-            sprintf(buf,"It does %s damage of %dd%d (average %d).",
+            snprintf(buf, sizeof(buf),"It does %s damage of %dd%d (average %d).",
                     attack_table[obj->value[3]].noun ,
                     obj->value[1],obj->value[2],
                     (1 + obj->value[2]) * obj->value[1] / 2);
@@ -3936,7 +3968,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
             if (obj->value[4])  /* weapon flags */
             {
-                sprintf(buf, "Weapons flags: %s",
+                snprintf(buf, sizeof(buf), "Weapons flags: %s",
                         weapon_bits_name(obj->value[4]));
                 do_say(ch, buf);
 
@@ -3953,7 +3985,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
                 }
                 if ( ac > 0 )
                 {
-                    sprintf( buf, "It provides an armor class of %d.", ac );
+                    snprintf( buf, sizeof(buf), "It provides an armor class of %d.", ac );
                     do_say(ch, buf);
                 }
                 break;
@@ -4104,10 +4136,10 @@ void show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it )
   if ( paf->location != APPLY_NONE && paf->modifier != 0 )
     {
       if ( paf->duration > -1)
-	sprintf( buf, "Affects %s by %d for %d hours.", 
+	snprintf( buf, sizeof(buf), "Affects %s by %d for %d hours.", 
 		 affect_loc_name( paf->location ), paf->modifier, paf->duration );
       else
-	sprintf( buf, "Affects %s by %d.",
+	snprintf( buf, sizeof(buf), "Affects %s by %d.",
 		 affect_loc_name( paf->location ), paf->modifier );
       if (say_it)
 	do_say(ch, buf);
@@ -4123,25 +4155,25 @@ void show_affect( CHAR_DATA *ch, AFFECT_DATA *paf, bool say_it )
       switch(paf->where)
 	{
 	case TO_AFFECTS:
-	  sprintf(buf,"It adds %s affect.", affect_bit_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It adds %s affect.", affect_bit_name(paf->bitvector));
 	  break;
 	case TO_OBJECT:
-	  sprintf(buf,"It adds %s object flag.", extra_bit_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It adds %s object flag.", extra_bit_name(paf->bitvector));
 	  break;
 	case TO_WEAPON:
-	  sprintf(buf,"It adds %s weapon flags.", weapon_bits_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It adds %s weapon flags.", weapon_bits_name(paf->bitvector));
 	  break;
 	case TO_IMMUNE:
-	  sprintf(buf,"It grants immunity to %s.", imm_bit_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It grants immunity to %s.", imm_bit_name(paf->bitvector));
 	  break;
 	case TO_RESIST:
-	  sprintf(buf,"It bestows resistance to %s.", imm_bit_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It bestows resistance to %s.", imm_bit_name(paf->bitvector));
 	  break;
 	case TO_VULN:
-	  sprintf(buf,"It inflicts vulnerability to %s.", imm_bit_name(paf->bitvector));
+	  snprintf(buf, sizeof(buf),"It inflicts vulnerability to %s.", imm_bit_name(paf->bitvector));
 	  break;
 	default:
-	  sprintf(buf,"Unknown bit %d: %d\n\r", paf->where, paf->bitvector);
+	  snprintf(buf, sizeof(buf),"Unknown bit %d: %d\n\r", paf->where, paf->bitvector);
 	  break;
 	}
       if (say_it)
@@ -4187,7 +4219,7 @@ DEF_DO_FUN(do_appraise)
     range = value * (100 - chance)/100;
     value = number_range(value-range, value+range);
     
-    sprintf( buf,"You appraise %s to be worth about %d silver.\n\r",
+    snprintf( buf, sizeof(buf),"You appraise %s to be worth about %d silver.\n\r",
 	     obj->short_descr, value );
     send_to_char( buf, ch );
     
@@ -4340,9 +4372,9 @@ DEF_DO_FUN(do_disguise)
 	return;
     }
 
-    sprintf( buf, "You disguise yourself as %s.\n\r", mob->short_descr );
+    snprintf( buf, sizeof(buf), "You disguise yourself as %s.\n\r", mob->short_descr );
     send_to_char( buf, ch );
-    sprintf( buf, "$n disguises $mself as %s.", mob->short_descr );
+    snprintf( buf, sizeof(buf), "$n disguises $mself as %s.", mob->short_descr );
     act( buf, ch, NULL, NULL, TO_ROOM );
 
     af.type      = gsn_disguise;
@@ -4371,7 +4403,7 @@ DEF_DO_FUN(do_song_list)
         if ( skill == 0 )
             continue;
 
-        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmn   %-5s   %s\n\r",
+        snprintf( buf, sizeof(buf), "%-18s %3d%%(%3d%%) %5dmn   %-5s   %s\n\r",
             songs[i].name,
             get_skill_prac(ch, sn), skill,
             song_cost(ch, i),
@@ -4396,7 +4428,7 @@ DEF_DO_FUN(do_stance_list)
         if ( skill == 0 )
             continue;
 
-        sprintf( buf, "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
+        snprintf( buf, sizeof(buf), "%-18s %3d%%(%3d%%) %5dmv     %s %s   %s\n\r",
                 stances[i].name,
                 get_skill_prac(ch, sn), skill,
                 stance_cost(ch, i),
@@ -4425,10 +4457,10 @@ DEF_DO_FUN(do_survey)
 	buf2 = "well-lit";
 
    /* A little feature for blind players */
-    sprintf( buf, "The area you are in is : %s{x\n\r", ch->in_room->area->name);
+    snprintf( buf, sizeof(buf), "The area you are in is : %s{x\n\r", ch->in_room->area->name);
         send_to_char(buf, ch);
 
-    sprintf( buf, "Your immediate surrounding is %s and %s.\n\r", 
+    snprintf( buf, sizeof(buf), "Your immediate surrounding is %s and %s.\n\r", 
 	     flag_bit_name(sector_flags, room->sector_type), buf2 );
     send_to_char( buf, ch );
     if ( IS_SET(room->room_flags, ROOM_INDOORS) )
@@ -4475,6 +4507,29 @@ DEF_DO_FUN(do_survey)
 }
 
 
+static const int SC_LENGTH = 78; // Total # of characters per score line
+
+static void sc_printf(char *buf, size_t bufsz, const char *fmt, ...)
+{
+    va_list va;
+    va_start (va, fmt);
+    
+    size_t i = vsnprintf(buf, bufsz, fmt, va);
+    i = UMIN(i, bufsz);
+
+    int len = strlen_color(buf);
+    int fill_count;
+    if ( len < (SC_LENGTH - 1) ) // -1 to account for closing |
+    {
+        fill_count = (SC_LENGTH - 1) - len;
+    }
+    else
+    {
+        fill_count = 0;
+    }
+    snprintf(buf + i, bufsz - i, "%*s{D|{x\n\r", fill_count, "");
+}
+
 /*  NEW do_score, do_attributes, and do_worth by Quirky in May 03 */
 DEF_DO_FUN(do_score)
 {
@@ -4492,7 +4547,6 @@ DEF_DO_FUN(do_score)
     int hunger;
     int thirst;
     int drunk;
-    int LENGTH = 76;
     int hp_cap, mana_cap, move_cap;
     bool hungry = FALSE;
     bool thirsty = FALSE;
@@ -4508,12 +4562,12 @@ DEF_DO_FUN(do_score)
 
     /* custombuf - specifically a 'pflag' set by an imm */
     if ( ch->pcdata != NULL && ch->pcdata->customflag[0] != '\0' )
-        sprintf( custombuf, "(%s) ", ch->pcdata->customflag );
+        snprintf( custombuf, sizeof(custombuf), "(%s) ", ch->pcdata->customflag );
     else
         custombuf[0] = '\0';
 
     /* flagsbuf - AFK, helper, rp, killer, thief, etc. */
-    sprintf( flagsbuf, "%s%s%s%s%s",
+    snprintf( flagsbuf, sizeof(flagsbuf), "%s%s%s%s%s",
         IS_SET(ch->comm, COMM_AFK) ? "[AFK] " : "",
         IS_SET(ch->act,PLR_HELPER) ? 
             (!IS_SET(ch->act, PLR_INACTIVE_HELPER) ? "({GH{CE{cL{GP{CE{cR{G!{x) " : "{G*{x ") : "",
@@ -4524,47 +4578,47 @@ DEF_DO_FUN(do_score)
 
     /* remortbuf - display either remort or trust value*/
     if( !IS_IMMORTAL(ch) )
-        sprintf( remortbuf, "(Remort %d)", ch->pcdata->remorts );
+        snprintf( remortbuf, sizeof(remortbuf), "(Remort %d)", ch->pcdata->remorts );
     else if ( get_trust(ch) != ch->level || IS_IMMORTAL(ch))
-        sprintf( remortbuf, "(Trust %d)", get_trust(ch) );
+        snprintf( remortbuf, sizeof(remortbuf), "(Trust %d)", get_trust(ch) );
 
 
     /* alignbuf */
     align = ch->alignment;
-    if( align > 900 )       sprintf( alignbuf, "{W%5d        (angelic){x ", align );
-    else if( align >  700 ) sprintf( alignbuf, "{c%5d        (saintly){x ", align );
-    else if( align >  350 ) sprintf( alignbuf, "{c%5d        (good){x    ", align );
-    else if( align >  100 ) sprintf( alignbuf, "{m%5d        (kind){x    ", align );
-    else if( align > -100 ) sprintf( alignbuf, "{m%5d        (neutral){x ", align );
-    else if( align > -350 ) sprintf( alignbuf, "{m%5d        (mean){x    ", align );
-    else if( align > -700 ) sprintf( alignbuf, "{r%5d        (evil){x    ", align );
-    else if( align > -900 ) sprintf( alignbuf, "{r%5d        (demonic){x ", align );
-    else                    sprintf( alignbuf, "{D%5d        (satanic){x ", align );
+    if( align > 900 )       snprintf( alignbuf, sizeof(alignbuf), "{W%5d        (angelic){x ", align );
+    else if( align >  700 ) snprintf( alignbuf, sizeof(alignbuf), "{c%5d        (saintly){x ", align );
+    else if( align >  350 ) snprintf( alignbuf, sizeof(alignbuf), "{c%5d        (good){x    ", align );
+    else if( align >  100 ) snprintf( alignbuf, sizeof(alignbuf), "{m%5d        (kind){x    ", align );
+    else if( align > -100 ) snprintf( alignbuf, sizeof(alignbuf), "{m%5d        (neutral){x ", align );
+    else if( align > -350 ) snprintf( alignbuf, sizeof(alignbuf), "{m%5d        (mean){x    ", align );
+    else if( align > -700 ) snprintf( alignbuf, sizeof(alignbuf), "{r%5d        (evil){x    ", align );
+    else if( align > -900 ) snprintf( alignbuf, sizeof(alignbuf), "{r%5d        (demonic){x ", align );
+    else                    snprintf( alignbuf, sizeof(alignbuf), "{D%5d        (satanic){x ", align );
 
     /* positionbuf */
     switch( ch->position )
     {
-    case POS_DEAD:	sprintf( positionbuf, "DEAD" );  break;
-    case POS_MORTAL:	sprintf( positionbuf, "mortally wounded" );  break;
-    case POS_INCAP:	sprintf( positionbuf, "incapacitated" );  break;
-    case POS_STUNNED:	sprintf( positionbuf, "stunned" );  break;
-    case POS_SLEEPING:	sprintf( positionbuf, "sleeping" );  break;
-    case POS_RESTING:	sprintf( positionbuf, "resting" );  break;
-    case POS_SITTING:	sprintf( positionbuf, "sitting" );  break;
-    case POS_STANDING:	sprintf( positionbuf, "standing" );  break;
-    case POS_FIGHTING:	sprintf( positionbuf, "fighting" );  break;
+    case POS_DEAD:	snprintf( positionbuf, sizeof(positionbuf), "DEAD" );  break;
+    case POS_MORTAL:	snprintf( positionbuf, sizeof(positionbuf), "mortally wounded" );  break;
+    case POS_INCAP:	snprintf( positionbuf, sizeof(positionbuf), "incapacitated" );  break;
+    case POS_STUNNED:	snprintf( positionbuf, sizeof(positionbuf), "stunned" );  break;
+    case POS_SLEEPING:	snprintf( positionbuf, sizeof(positionbuf), "sleeping" );  break;
+    case POS_RESTING:	snprintf( positionbuf, sizeof(positionbuf), "resting" );  break;
+    case POS_SITTING:	snprintf( positionbuf, sizeof(positionbuf), "sitting" );  break;
+    case POS_STANDING:	snprintf( positionbuf, sizeof(positionbuf), "standing" );  break;
+    case POS_FIGHTING:	snprintf( positionbuf, sizeof(positionbuf), "fighting" );  break;
     }
 
     /* encumberbuf - how encumbered is the character */
     if( (encumber = get_encumberance(ch)) > 0 )
     {
-        if( encumber <= 25 )      sprintf( encumberbuf, "  {mmild{x" );
-        else if( encumber <= 50 ) sprintf( encumberbuf, "  {wfair{x" );
-        else if( encumber <= 75 ) sprintf( encumberbuf, "  {rhigh{x" );
-        else sprintf( encumberbuf, "{Rsevere{x" );
+        if( encumber <= 25 )      snprintf( encumberbuf, sizeof(encumberbuf), "  {mmild{x" );
+        else if( encumber <= 50 ) snprintf( encumberbuf, sizeof(encumberbuf), "  {wfair{x" );
+        else if( encumber <= 75 ) snprintf( encumberbuf, sizeof(encumberbuf), "  {rhigh{x" );
+        else snprintf( encumberbuf, sizeof(encumberbuf), "{Rsevere{x" );
     }
     else
-        sprintf(encumberbuf, "  none");
+        snprintf(encumberbuf, sizeof(encumberbuf), "  none");
 
     output = new_buf();
 
@@ -4574,76 +4628,56 @@ DEF_DO_FUN(do_score)
     add_buf(output, "{D:============================================================================:{x\n\r");
 
     /* Show pflags, regular flags, name color, pre_title, name, title, etc. */
-    sprintf(buf, "{D|{x %s%s%s%s%s{x%s", 
+    sc_printf(buf, sizeof(buf), "{D|{x %s%s%s%s%s{x%s", 
         flagsbuf, 
         custombuf, 
         ch->pcdata->name_color, 
         ch->pcdata->pre_title, 
         ch->name, 
         ch->pcdata->title);
-
-    /* This line is used throughout to close each score line */
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    add_buf(output, buf );
 
     /* Level, Remorts/Trust, Clan Name, Clan Rank */
-    sprintf(buf, "{D|{x Level: %3d %-11s    Clan: %s%13s{x        Rank: %s%12s  {x", 
+    sc_printf(buf, sizeof(buf), "{D|{x Level: %3d %-11s    Clan: %s%13s{x        Rank: %s%12s  {x", 
         ch->level, 
         remortbuf,
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? clan_table[ch->clan].who_name : "None",
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Class, Race, Gender */
-    sprintf(buf, "{D|{x Class: %11s        Race: %13s        Gender: %10s", 
+    sc_printf(buf, sizeof(buf), "{D|{x Class: %11s        Race: %13s        Gender: %10s", 
         class_table[ch->clss].name, 
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
     /* Remort, Ascent, Subclass */
-    sprintf(buf, "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
+    sc_printf(buf, sizeof(buf), "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
         subclass_table[ch->pcdata->subclass].name,
         ch->pcdata->ascents,
         ch->pcdata->remorts);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
     
 
-    sprintf(buf, "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
+    sc_printf(buf, sizeof(buf), "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
         subclass_table[ch->pcdata->subclass2].name,
         get_age(ch),
         (ch->played + (int)(current_time - ch->logon))/3600);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf(output, buf );
 
 
     /* Holy Light, Wizinvis and Incog Levels */
     if( IS_IMMORTAL(ch) )
     {
-        sprintf( buf, "{D|{x Holylight:     {W%3s{x        Wizinvis:       {W%3d{x        Incognito:     {W%3d{x",
+        sc_printf( buf, sizeof(buf), "{D|{x Holylight:     {W%3s{x        Wizinvis:       {W%3d{x        Incognito:     {W%3d{x",
             IS_SET(ch->act, PLR_HOLYLIGHT) ? "ON" : "OFF", 
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
-
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4651,41 +4685,29 @@ DEF_DO_FUN(do_score)
 
     /* Practices, Trains */
     if( !IS_HERO(ch) && ch->pcdata->highest_level <= ch->level )
-        sprintf( temp, "   {cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
+        snprintf( temp, sizeof(temp), "   {cExpect to gain about{x %.2f {cnext level.", ch_prac_gains(ch, ch->level + 1)/100.0 );
     else
         temp[0] = '\0';
 
-    sprintf( buf, "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
-    
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    sc_printf( buf, sizeof(buf), "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
+    add_buf(output, buf );
 
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
-    sprintf( buf, "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
+    sc_printf( buf, sizeof(buf), "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
         mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    add_buf(output, buf );
 
     /* Call the alignbuf here to show alignment */
-    sprintf( buf, "{D|{x Alignment:   %s", alignbuf );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
-
+    sc_printf( buf, sizeof(buf), "{D|{x Alignment:   %s", alignbuf );
+    add_buf(output, buf );
 
     /* Cleaned up this section below but leaving commented out - Astark
     RELIGION_DATA *religion = NULL;
 
     if( ch->pcdata != NULL && (religion = get_religion(ch)) != NULL )
     {
-        sprintf( temp, "Your religion allows %d to %d.", religion->min_align, religion->max_align );
+        snprintf( temp, sizeof(temp), "Your religion allows %d to %d.", religion->min_align, religion->max_align );
 
         if( IS_IMMORTAL(ch) )
         {
@@ -4693,14 +4715,14 @@ DEF_DO_FUN(do_score)
             if( get_religion_of_altar( get_obj_room(religion->relic_obj) ) == religion )
                 rel_at_altar = TRUE;
 
-            sprintf( buf, "{D|{x Faith Pool: {B%d{x", religion->god_power );
-            sprintf( temp, "Relic: %s", !rel_at_altar ? "{Rmissing{x" : "safe" );
+            snprintf( buf, sizeof(buf), "{D|{x Faith Pool: {B%d{x", religion->god_power );
+            snprintf( temp, sizeof(temp), "Relic: %s", !rel_at_altar ? "{Rmissing{x" : "safe" );
         }
         else
         {
             char *rank = get_ch_rank_name(ch);
 
-            sprintf( buf, "{D|{x Faith in %s: {B%5d{x (%s%s of %s) ",
+            snprintf( buf, sizeof(buf), "{D|{x Faith in %s: {B%5d{x (%s%s of %s) ",
                 religion->god, get_faith(ch), rank,
                 is_priest(ch) ? (is_high_priest(ch) ? " & High Priest" : " & Priest") : "",
                 religion->name );
@@ -4711,35 +4733,26 @@ DEF_DO_FUN(do_score)
 
 
     /* Mob kills, mob deaths, beheads */
-    sprintf(buf, "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d        Behead Count: %4d",
+    sc_printf(buf, sizeof(buf), "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d        Behead Count: %4d",
         ch->pcdata->mob_kills, 
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Warfare grade, kills and points */
-    sprintf( buf, "{D|{x War Kills:  %6d        Warfare Grade:    %1s        Warfare Pts: %5d",
+    sc_printf( buf, sizeof(buf), "{D|{x War Kills:  %6d        Warfare Grade:    %1s        Warfare Pts: %5d",
         ch->pcdata->war_kills, 
         pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
         ch->pcdata->warpoints);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Pkills and Pkill Deaths */
-    sprintf( buf, "{D|{x PKills:     %6d        PKill Deaths: %5d",
+    sc_printf( buf, sizeof(buf), "{D|{x PKills:     %6d        PKill Deaths: %5d",
         ch->pcdata->pkill_count, 
         ch->pcdata->pkill_deaths);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4748,25 +4761,19 @@ DEF_DO_FUN(do_score)
     /* Display pflag, but only if it exists */
     if( custombuf[0] != '\0' )
     {
-        sprintf( buf, "{D|{x Your %sflag has %d hours remaining. ", 
+        sc_printf( buf, sizeof(buf), "{D|{x Your %sflag has %d hours remaining. ", 
             custombuf, 
             ch->pcdata->customduration );
-        
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Position and Stance */
-    sprintf(buf, "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
+    sc_printf(buf, sizeof(buf), "{D|{x Position: %8s        Stance: {G%11s{x        Song: {G%11s{x",
         positionbuf, 
         ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
         ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
     
     /* Clean this part up some more, but will only show when booleans are true */
@@ -4780,65 +4787,53 @@ DEF_DO_FUN(do_score)
 
     if( drunken || hungry || thirsty )
     {
-        sprintf(buf, "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
+        sc_printf(buf, sizeof(buf), "{D|{x Hungry:   %s        Thirsty: %s        Drunk: %s",
             hunger == 0 ? "{Rstarving{x" : hunger > 0 && hunger < 20 ? "     yes" : "    None",
             thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Items carried, carry weight, encumbered */
-    sprintf( buf, "{D|{x Items:   %-4d/%4d        Weight: %-5d/%5d        Encumbered: %s",
+    sc_printf( buf, sizeof(buf), "{D|{x Items:   %-4d/%4d        Weight: %-5d/%5d        Encumbered: %s",
         ch->carry_number, 
         can_carry_n(ch), 
         (int)get_carry_weight(ch)/10,
         (int)can_carry_w(ch)/10,
         encumberbuf);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     /* Morph information for races that utilize it */
     if ( MULTI_MORPH(ch) )
     {
         if( ch->pcdata->morph_race > 0 )
-            sprintf( buf, "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
+            sc_printf( buf, sizeof(buf), "{D|{x Morph: {G%11s{x        Hours:  {G%d{x remaining",
                 race_table[ch->pcdata->morph_race].name,  ch->pcdata->morph_time );
         else
-            sprintf( buf, "{D|{x Morph:  {Gbasic form{x" );
-        
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:  {Gbasic form{x" );
+    
+        add_buf(output, buf );
     }
     else if( ch->race == race_naga )
     {
         if( ch->pcdata->morph_race == 0 )
-            sprintf( buf, "{D|{x Morph:     {Gserpent{x" );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:     {Gserpent{x" );
         else
-            sprintf( buf, "{D|{x Morph:    {Ghumanoid{x" );
+            sc_printf( buf, sizeof(buf), "{D|{x Morph:    {Ghumanoid{x" );
     
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        add_buf(output, buf );
     }
 
 
     /* Show command currently actioned */
     if ( ch->pcdata->combat_action == NULL )
-        sprintf( buf, "{D|{x Command Actioned:         {wNone{x");
+        sc_printf( buf, sizeof(buf), "{D|{x Command Actioned:         {wNone{x");
     else
-        sprintf( buf, "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
+        sc_printf( buf, sizeof(buf), "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4867,7 +4862,6 @@ DEF_DO_FUN(do_score)
 DEF_DO_FUN(do_worth)
 {
     char buf[MAX_STRING_LENGTH];
-    int LENGTH = 76;
 
     if( !strcmp(argument,"for_score") )
     ;
@@ -4875,10 +4869,8 @@ DEF_DO_FUN(do_worth)
 
     if ( !ch->pcdata )
     {
-        sprintf(buf, "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" );
+
+        sc_printf(buf, sizeof(buf), "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
         send_to_char( buf, ch );
         send_to_char("{D:============================================================================:{x\n\r", ch);
         return;
@@ -4886,48 +4878,33 @@ DEF_DO_FUN(do_worth)
   
 
     /* Gold, Silver, Bank */ 
-    sprintf(buf, "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
+    sc_printf(buf, sizeof(buf), "{D|{x Gold:    {Y%9d{x        Silver: {w%11d{x        In Bank: {Y%9d{x",
         (int)ch->gold,
         (int)ch->silver,
         (int)ch->pcdata->bank);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
     /* ETL, Field, EXP */
-    sprintf( buf, "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d        Total Exp: %7d",
+    sc_printf( buf, sizeof(buf), "{D|{x EXP to Lvl:   %4d        Field EXP:   %6d        Total Exp: %7d",
         (int)((ch->level + 1) * exp_per_level(ch) - ch->exp),
         (int)ch->pcdata->field,
         (int)ch->exp);
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
     /* Quest Points, Achievement Points, Storage Boxes */
-    sprintf( buf, "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
+    sc_printf( buf, sizeof(buf), "{D|{x Quest Pts:   {B%5d{x        Faith:       {c%6d{x        Storage Boxes:   %-2d",
         ch->pcdata->questpoints,
         ch->pcdata->faith,
         ch->pcdata->storage_boxes);
-
-    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" );
     send_to_char( buf, ch );
 
 
 
     if ( ch->pcdata->bounty > 0 )
     {
-        sprintf( buf, "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-            ; 
-        strcat( buf, "{D|{x\n\r" );
+        sc_printf( buf, sizeof(buf), "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
         send_to_char( buf, ch );
     }
 
@@ -4944,7 +4921,6 @@ DEF_DO_FUN(do_attributes)
 
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
-    int LENGTH = 76;
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on current hp/mana/mv */
 
     hp_col = (ch->hit == ch->max_hit)    ? 'W' :
@@ -4974,53 +4950,41 @@ DEF_DO_FUN(do_attributes)
 
 
     /* Hitpoints (HP), Mana (MN), Move (MV) */
-    sprintf( buf, "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d        {CMoves:{x {%c%5d{x/%5d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CHP:{x    {%c%5d{x/%5d        {CMana:{x   {%c%5d{x/%5d        {CMoves:{x {%c%5d{x/%5d",
         hp_col, ch->hit, ch->max_hit,
         mn_col, ch->mana, ch->max_mana, 
         mv_col, ch->move, ch->max_move );
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
  
     /* Armor Class, Saves Magic, Saves Physical */
-    sprintf( buf, "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CArmor {CClass{x: %5d        {CSaves Phys{x:    %4d        {CSaves Magic{x:  %4d",
         GET_AC(ch),
         get_save(ch, TRUE),
         get_save(ch, FALSE));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
-    sprintf( buf, "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CHitroll:{x      %4d        {CDamroll:{x       %4d        {CSpell Pierce{x: %4d",
         GET_HITROLL(ch),
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
     /* Wimpy, Calm */
-    sprintf( buf, "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
+    sc_printf( buf, sizeof(buf), "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
         ch->wimpy,
         ch->calm,
         get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
-
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
-        ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))
         print_stat_bars( ch, output );
     else
     {
-        sprintf( buf, "{D|{x {cStr:{x %3d(%3d)  {cCon:{x %3d(%3d)  {cVit:{x %3d(%3d)  {cAgi:{x %3d(%3d)  {cDex:{x %3d(%3d)  {D|{x\n\r",
+        snprintf( buf, sizeof(buf), "{D|{x {cStr:{x %3d(%3d)  {cCon:{x %3d(%3d)  {cVit:{x %3d(%3d)  {cAgi:{x %3d(%3d)  {cDex:{x %3d(%3d)  {D|{x\n\r",
             ch->perm_stat[STAT_STR], get_curr_stat(ch,STAT_STR),
             ch->perm_stat[STAT_CON], get_curr_stat(ch,STAT_CON),
             ch->perm_stat[STAT_VIT], get_curr_stat(ch,STAT_VIT),
@@ -5028,7 +4992,7 @@ DEF_DO_FUN(do_attributes)
             ch->perm_stat[STAT_DEX], get_curr_stat(ch,STAT_DEX)  );
         add_buf( output, buf );
 
-        sprintf( buf, "{D|{x {cInt:{x %3d(%3d)  {cWis:{x %3d(%3d)  {cDis:{x %3d(%3d)  {cCha:{x %3d(%3d)  {cLuc:{x %3d(%3d)  {D|{x\n\r",
+        snprintf( buf, sizeof(buf), "{D|{x {cInt:{x %3d(%3d)  {cWis:{x %3d(%3d)  {cDis:{x %3d(%3d)  {cCha:{x %3d(%3d)  {cLuc:{x %3d(%3d)  {D|{x\n\r",
             ch->perm_stat[STAT_INT], get_curr_stat(ch,STAT_INT),
             ch->perm_stat[STAT_WIS], get_curr_stat(ch,STAT_WIS),
             ch->perm_stat[STAT_DIS], get_curr_stat(ch,STAT_DIS),
@@ -5082,7 +5046,7 @@ void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
         // terminate string
         bar_buf[bar_next++] = 0;
         // now send it to output
-        sprintf( buf, "{D|{x {c%s: {x%3d %s %3d => %3d   [{g%s{x]  {D|{x\n\r"
+        snprintf( buf, sizeof(buf), "{D|{x {c%s: {x%3d %s %3d => %3d   [{g%s{x]  {D|{x\n\r"
             , stat_table[si].abbreviation
             , ch->perm_stat[stat->stat]
             , ch->mod_stat[stat->stat] < 0 ? "-" : "+"
@@ -5313,7 +5277,7 @@ DEF_DO_FUN(do_combo)
 
     if ( ch->combo_points > 0 )
     {
-        sprintf( buf, "You have %d combo point(s).\n\r", ch->combo_points );
+        snprintf( buf, sizeof(buf), "You have %d combo point(s).\n\r", ch->combo_points );
         send_to_char( buf, ch );
     }
     else
@@ -5438,14 +5402,14 @@ DEF_DO_FUN(do_achievements)
     }
     else
     {
-        sprintf(buf, "\n\r");
+        snprintf(buf, sizeof(buf), "\n\r");
         add_buf(output,buf);
-        sprintf(buf, "{WAchievements for %s\n\r", victim->name);
+        snprintf(buf, sizeof(buf), "{WAchievements for %s\n\r", victim->name);
         add_buf(output,buf);
         add_buf(output,"{w----------------------------\n\r");
         for (i = 0; achievement_table[i].bit_vector != 0; i++)
         {
-            sprintf(buf, "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
+            snprintf(buf, sizeof(buf), "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
             add_buf(output, buf);
             totalach += 1;
 
@@ -5469,7 +5433,7 @@ DEF_DO_FUN(do_achievements)
         if ( col % 3 != 0 )
             add_buf(output, "\n\r");
 
-        sprintf( buf, "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
+        snprintf( buf, sizeof(buf), "{w\n\rTotal Achievements: %d, Total Unlocked: %d, Total Locked: %d{x\n\r", totalach, utotal, ltotal);
         add_buf(output,buf);
         add_buf(output, "(Use 'achievement rewards' to see rewards table.)\n\r");
         add_buf(output, "(Use 'achievement boss' to see boss achievements.)\n\r");
@@ -5495,7 +5459,7 @@ void print_ach_rewards(CHAR_DATA *ch)
 	
 	output = new_buf();
 	int type=-1;
-	sprintf(header, "\n\r{w%-10s %6s:{x {W%6s{x|{W%6s{x|{W%6s{x|{W%6s{x\n\r", "Type", "Limit", "QP", "Exp", "Gold", "AchP");
+	snprintf(header, sizeof(header), "\n\r{w%-10s %6s:{x {W%6s{x|{W%6s{x|{W%6s{x|{W%6s{x\n\r", "Type", "Limit", "QP", "Exp", "Gold", "AchP");
 
 	for (i = 0; achievement_table[i].bit_vector != 0; i++)
 	{
@@ -5507,7 +5471,7 @@ void print_ach_rewards(CHAR_DATA *ch)
 			add_buf(output, header);
 		}
 		
-		sprintf(buf, "{w%-10s %6d{x: {y%6d{x|{c%6d{x|{y%6d{x|{c%6d{x\n\r", achievement_display[entry->type], entry->limit, entry->quest_reward, entry->exp_reward, entry->gold_reward, entry->ach_reward);
+		snprintf(buf, sizeof(buf), "{w%-10s %6d{x: {y%6d{x|{c%6d{x|{y%6d{x|{c%6d{x\n\r", achievement_display[entry->type], entry->limit, entry->quest_reward, entry->exp_reward, entry->gold_reward, entry->ach_reward);
 		add_buf(output,buf);
 	}
 	page_to_char( buf_string(output), ch );
@@ -5902,7 +5866,7 @@ DEF_DO_FUN(do_eqhelp)
 
     /* This is a test function to confirm our information 
     int diff = sugg_eq - curr_eq;
-    sprintf(buf,"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, 
+    snprintf(buf, sizeof(buf),"I_value=%d, Table_value=%d, curr_eq=%d, sugg_eq=%d, 
         difference=%d (%d%% of suggested, or %d%% weaker than suggested)\n\r\n\r", 
             i, eq_data[i].lvl, curr_eq, sugg_eq, diff, diff_percent, diff_percent2);
     send_to_char(buf,ch); */
@@ -5989,9 +5953,9 @@ static void show_subclass_skills( CHAR_DATA *ch, int sc, int percent )
     char skill_header[100];
 
     if ( percent == 100 )
-        sprintf(skill_header, "Skill");
+        snprintf(skill_header, sizeof(skill_header), "Skill");
     else
-        sprintf(skill_header, "Skill (%.12s)", subclass_table[sc].name);
+        snprintf(skill_header, sizeof(skill_header), "Skill (%.12s)", subclass_table[sc].name);
     ptc(ch, "\n\r%-20s  Level  Percent\n\r", skill_header);
 
     for ( i = 0; i < MAX_SUBCLASS_SKILL; i++ )
@@ -6135,12 +6099,12 @@ static void print_flag_table(CHAR_DATA *ch, const void *ptr)
     BUFFER *buffer=new_buf();
 
     int i;
-    sprintf(buf, "%-20s %s\n\r", "Name", "Settable");
+    snprintf(buf, sizeof(buf), "%-20s %s\n\r", "Name", "Settable");
     add_buf( buffer, buf );
     add_buf( buffer, "----------------------------------------\n\r");
     for ( i=0; tbl[i].name ; i++ )
     {
-        sprintf( buf, "%-20s %s\n\r", tbl[i].name, tbl[i].settable ? "TRUE" : "FALSE" );
+        snprintf( buf, sizeof(buf), "%-20s %s\n\r", tbl[i].name, tbl[i].settable ? "TRUE" : "FALSE" );
         if (!add_buf( buffer, buf ))
         {
             bugf("Bad stuff happened");
@@ -6261,13 +6225,13 @@ static void print_race_table (CHAR_DATA *ch, const void *ptr)
     BUFFER *buffer = new_buf();
 
     int i;
-    sprintf(buf, "%-20s %s\n\r", "Name", "PC");
+    snprintf(buf, sizeof(buf), "%-20s %s\n\r", "Name", "PC");
     add_buf(buffer, buf);
     add_buf(buffer, "----------------------------------------\n\r");
 
     for (i=0; tbl[i].name; i++)
     {
-        sprintf(buf, "%-20s %s\n\r", tbl[i].name, (tbl[i].pc_race) ? "TRUE" : "FALSE");
+        snprintf(buf, sizeof(buf), "%-20s %s\n\r", tbl[i].name, (tbl[i].pc_race) ? "TRUE" : "FALSE");
         if (!add_buf(buffer, buf))
         {
             bugf("BUFFER OVERFLOW???");

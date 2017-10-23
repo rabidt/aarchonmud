@@ -419,7 +419,7 @@ int move_char( CHAR_DATA *ch, int door, bool follow )
             act( "$n leaves $T.", ch, NULL, dir_name[door], TO_ROOM );
         else
         {
-            sprintf( buf, "$n leaves %s.", dir_name[door] );
+            snprintf( buf, sizeof(buf), "$n leaves %s.", dir_name[door] );
             for ( fch = in_room->people; fch != NULL; fch = fch_next )
             {
                 fch_next = fch->next_in_room;
@@ -1431,12 +1431,12 @@ DEF_DO_FUN(do_estimate)
     int ch_level = ch->level + mastery_bonus(ch, gsn_estimate, 40, 60);
     if ( (ch_level + chance) < victim->level )
     {
-	sprintf( buf, "%s is too powerful for you to identify.\n\r" , victim->short_descr);
+	snprintf( buf, sizeof(buf), "%s is too powerful for you to identify.\n\r" , victim->short_descr);
 	send_to_char(buf, ch);
 	return;
     }
 
-    sprintf( buf, "You size up %s.\n\r", victim->short_descr );
+    snprintf( buf, sizeof(buf), "You size up %s.\n\r", victim->short_descr );
     send_to_char( buf, ch );
     int wait = skill_table[gsn_estimate].beats * (200 - get_skill_overflow(ch, gsn_estimate)) / 200;
     WAIT_STATE(ch, wait);
@@ -1445,7 +1445,7 @@ DEF_DO_FUN(do_estimate)
     check_improve(ch, gsn_estimate, TRUE, 3);
 	
     /* some simple info */
-    sprintf( buf, "%s is %s.\n\r", victim->short_descr, char_look_info(victim) );
+    snprintf( buf, sizeof(buf), "%s is %s.\n\r", victim->short_descr, char_look_info(victim) );
     send_to_char( buf, ch );
 
     /* high level races are harder to judge */
@@ -2793,7 +2793,7 @@ DEF_DO_FUN(do_recall)
     */
 
     god_name = get_god_name(ch);
-    sprintf(buf, "$n prays to %s for transportation!", god_name);
+    snprintf(buf, sizeof(buf), "$n prays to %s for transportation!", god_name);
     act( buf, ch, 0, 0, TO_ROOM );
     
     // go to clan-hall unless specified that bastion is the target
@@ -2871,7 +2871,7 @@ DEF_DO_FUN(do_recall)
         if (number_percent() > skill/3)
         {
             WAIT_STATE( ch, 6 );
-            sprintf( buf, "%s doesn't answer your prayer.\n\r", god_name);
+            snprintf( buf, sizeof(buf), "%s doesn't answer your prayer.\n\r", god_name);
             send_to_char( buf, ch );
             return;
         }
@@ -2896,7 +2896,7 @@ DEF_DO_FUN(do_recall)
         {
             int lose = (ch->desc != NULL) ? 25 : 50;
             gain_exp( ch, 0 - lose, FALSE );
-            sprintf( buf, "You recall from combat!  You lose %d exps.\n\r", lose );
+            snprintf( buf, sizeof(buf), "You recall from combat!  You lose %d exps.\n\r", lose );
             send_to_char( buf, ch );
         }
         else
@@ -3016,7 +3016,7 @@ DEF_DO_FUN(do_morph)
 
 		if ( !race_table[race].pc_race || pc_race_table[race].remorts > morph_power(ch) )
 		{
-			sprintf(buf, "You can't morph into a %s.\n\r",
+			snprintf(buf, sizeof(buf), "You can't morph into a %s.\n\r",
 				race_table[race].name);
 			send_to_char(buf, ch);
 			return;
@@ -3028,7 +3028,7 @@ DEF_DO_FUN(do_morph)
         
         if ( ch->mana < mana_cost || ch->move < move_cost )
 		{
-			sprintf(buf,"You need %d mana and %d move to morph into a %s.\n\r",
+			snprintf(buf, sizeof(buf),"You need %d mana and %d move to morph into a %s.\n\r",
                 mana_cost, move_cost, race_table[race].name);
 			send_to_char(buf, ch);
 			return;
@@ -3036,7 +3036,7 @@ DEF_DO_FUN(do_morph)
 		else
 		{
 			WAIT_STATE(ch, 2 * PULSE_VIOLENCE);
-			sprintf(buf, "You morph into a %s.\n\r", race_table[race].name);
+			snprintf(buf, sizeof(buf), "You morph into a %s.\n\r", race_table[race].name);
 			send_to_char(buf, ch);
             ch->mana -= mana_cost;
             ch->move -= move_cost;
@@ -3436,7 +3436,7 @@ void check_bleed( CHAR_DATA *ch, int dir )
         return;
 
     /* add direction hint */
-    sprintf( buf, "{rA trail of blood leads %s.{x", dir_name[dir] );
+    snprintf( buf, sizeof(buf), "{rA trail of blood leads %s.{x", dir_name[dir] );
     free_string( blood->description );
     blood->description = str_dup( buf );
     /* shouldn't lie around for all time */
@@ -3532,14 +3532,14 @@ void check_explore( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
 
 DEF_DO_FUN(do_explored)
 {	char buf[MAX_STRING_LENGTH];
-	sprintf(buf, "You have explored %d room%s!{x\r\n", ch->pcdata->explored->set, (ch->pcdata->explored->set == 1 ? "" : "s") );
+	snprintf(buf, sizeof(buf), "You have explored %d room%s!{x\r\n", ch->pcdata->explored->set, (ch->pcdata->explored->set == 1 ? "" : "s") );
 	send_to_char(buf,ch);
 
 //This shows all the rooms they've explored. Probably don't need mortals seeing this, and for immortals... it'd get really spammy. Mostly an example.
 /*	for(pExp = ch->pcdata->explored->bits ; pExp ; pExp = pExp->next )
 	{	for(bit = 1 ; bit <= 32 ; ++bit )
 		{	if(IS_SET(pExp->bits, (1 << bit) ) )
-			{	sprintf(buf, "[%-5d]", (pExp->mask * 32 + bit) );
+			{	snprintf(buf, sizeof(buf), "[%-5d]", (pExp->mask * 32 + bit) );
 				send_to_char(buf,ch);
 			}
 		}
