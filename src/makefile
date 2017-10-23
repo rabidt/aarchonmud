@@ -11,19 +11,20 @@ PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
 MODE_FLAGS =
 
-C_WARN = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Winit-self -Wlogical-op \
-	-Wstrict-prototypes -Wold-style-definition -Wno-unused-parameter -Wno-missing-field-initializers \
-	-Wshadow -Wsign-conversion
+BASE_WARN = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Winit-self -Wlogical-op \
+	-Wno-unused-parameter -Wshadow -Wsign-conversion
 
+C_WARN = $(BASE_WARN) \
+	-Wstrict-prototypes -Wold-style-definition -Wno-missing-field-initializers
+	
 ifeq ($(C_WERROR),1)
 	C_WARN += -Werror
 endif
 
-CPP_WARN = -pedantic -Wall -Wextra -Wcast-align -Wcast-qual -Wctor-dtor-privacy \
-	-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations \
-	-Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow \
-	-Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
-	-Wswitch-default -Wundef -Wno-unused-parameter -Weffc++ -Werror
+CPP_WARN = $(BASE_WARN) \
+	-pedantic -Wctor-dtor-privacy -Wformat=2 -Wmissing-declarations -Wold-style-cast \
+	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
+	-Wswitch-default -Wundef -Weffc++ -Werror
 
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
