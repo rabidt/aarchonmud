@@ -2150,9 +2150,13 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     sh_int arg2_type=ACT_ARG_UNDEFINED;
 
     CHAR_DATA      *to;
-    CHAR_DATA      *vch = ( CHAR_DATA * ) arg2;
-    OBJ_DATA       *obj1 = ( OBJ_DATA  * ) arg1;
-    OBJ_DATA       *obj2 = ( OBJ_DATA  * ) arg2;
+    
+    /* These 3 are "force" casted using uintptr_t to avoid warnings for discarding const qualifier.
+       TODO: Fix this to be unneccessary */
+    CHAR_DATA      *vch = ( CHAR_DATA * )(uintptr_t) arg2;
+    OBJ_DATA       *obj1 = ( OBJ_DATA  * )(uintptr_t) arg1;
+    OBJ_DATA       *obj2 = ( OBJ_DATA  * )(uintptr_t) arg2;
+
     const  char    *str;
     const char     *i = NULL;
     char       *point;

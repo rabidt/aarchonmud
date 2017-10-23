@@ -4,8 +4,8 @@
 
 void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *source,
         CHAR_DATA *mob, CHAR_DATA *ch,
-        const void *arg1, sh_int arg1type,
-        const void *arg2, sh_int arg2type,
+        void *arg1, sh_int arg1type,
+        void *arg2, sh_int arg2type,
         int trig_type,
         int security );
 

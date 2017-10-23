@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 #include <sys/types.h>
@@ -583,9 +584,13 @@ int cmd_eval( int vnum, const char *line, int check,
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
     CHAR_DATA *lval_char = mob;
-    CHAR_DATA *vch = (CHAR_DATA *) arg2;
-    OBJ_DATA *obj1 = (OBJ_DATA  *) arg1;
-    OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
+
+    /* These 3 are "force" casted using uintptr_t to avoid warnings for discarding const qualifier.
+       TODO: Fix this to be unneccessary */
+    CHAR_DATA *vch = (CHAR_DATA *)(uintptr_t) arg2;
+    OBJ_DATA *obj1 = (OBJ_DATA  *)(uintptr_t) arg1;
+    OBJ_DATA *obj2 = (OBJ_DATA  *)(uintptr_t) arg2;
+
     OBJ_DATA  *lval_obj = NULL;
 
     const char *original = line;
@@ -1028,9 +1033,12 @@ void expand_arg( char *buf,
     const char *someones = "someone's";
  
     char fname[MAX_INPUT_LENGTH];
-    CHAR_DATA *vch = (CHAR_DATA *) arg2;
-    OBJ_DATA *obj1 = (OBJ_DATA  *) arg1;
-    OBJ_DATA *obj2 = (OBJ_DATA  *) arg2;
+
+    /* These 3 are "force" casted using uintptr_t to avoid warnings for discarding const qualifier.
+       TODO: Fix this to be unneccessary */
+    CHAR_DATA *vch = (CHAR_DATA *)(uintptr_t) arg2;
+    OBJ_DATA *obj1 = (OBJ_DATA  *)(uintptr_t) arg1;
+    OBJ_DATA *obj2 = (OBJ_DATA  *)(uintptr_t) arg2;
     const char *str;
     const char *i;
     char *point;
@@ -1263,7 +1271,11 @@ void program_flow(
     
     if ( is_lua )
     {
-        lua_mob_program(g_mud_LS, text, pvnum, source, mob, ch, arg1, arg1type, arg2, arg2type, trig_type, security);
+        /* Arguments are "force" casted using uintptr_t to avoid warnings for discarding const qualifier.
+           TODO: Fix this to be unneccessary */
+        lua_mob_program(g_mud_LS, text, pvnum, source, mob, ch, 
+            (void *)(uintptr_t)arg1, arg1type, 
+            (void *)(uintptr_t)arg2, arg2type, trig_type, security);
         MPROG_RETURN;
     }
 
