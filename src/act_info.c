@@ -986,7 +986,54 @@ DEF_DO_FUN(do_story)
 
 DEF_DO_FUN(do_dirs)
 {
-    do_help(ch,"dirs");
+    if (IS_NPC(ch))
+        return;
+
+    /* no args, just do "help dirs" */
+    if (argument[0] == '\0')
+    {
+        do_help(ch, "dirs");
+        return;
+    }
+
+    /* arg means search for match */
+    BUFFER *output = new_buf();
+    HELP_DATA *help_dirs = find_help_data(ch, "dirs", output);
+
+    if (!help_dirs)
+    {
+        add_buf(output, "Couldn't find result for 'help dirs'; please contact an immortal.");
+    }
+    else
+    {
+        char *text = strdup(help_dirs->text); 
+        const char *line = strtok(text, "\r");
+        bool found = FALSE;
+
+        while (line != NULL)
+        {
+            bool match = !str_infix(argument, line);
+
+            if (match)
+            {
+                found = TRUE;
+                add_buf(output, line);
+                add_buf(output, "\r");
+            }
+
+            line = strtok(NULL, "\r");
+        }
+
+        free(text);
+
+        if (!found)
+        {
+            add_buff(output, "No dirs found for '%s'\n\r", argument);
+        }
+    }
+
+    page_to_char(buf_string(output), ch);
+    free_buf(output);
 }
 
 /*
