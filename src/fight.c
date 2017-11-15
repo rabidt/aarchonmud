@@ -2597,9 +2597,16 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
         if ( arrow_used )
             handle_arrow_shot( ch, victim, dt, FALSE );
         after_attack(ch, victim, dt, FALSE, secondary);
-        tail_chain( );
+        #ifdef FSTAT
+        if ( normal_hit )
+            ch->attacks_misses += 1;
+        #endif
         return FALSE;
     }
+    #ifdef FSTAT
+    if ( normal_hit )
+        ch->attacks_success += 1;
+    #endif
     
     if (sn != -1)
     {
@@ -4006,16 +4013,10 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     
     if (dam == 0)
     {
-        #ifdef FSTAT
-        if ( normal_hit )
-            ch->attacks_misses += 1;
-        #endif
-        return FALSE;
+        // damage may be 0, but hasn't been prevented due to "invalid target" error
+        // in particular this allows smite dispel to work
+        return TRUE;
     }
-    #ifdef FSTAT
-    if ( normal_hit )
-        ch->attacks_success += 1;
-    #endif
     
     if ( is_affected(victim, gsn_disguise)
 	 && chance( 100 * dam / victim->level )
@@ -4158,8 +4159,6 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
     #ifdef FSTAT 
     victim->damage_taken += total_dam;
     ch->damage_dealt += total_dam;
-    if ( total_dam < 1 )
-	ch->attacks_misses +=1;
     #endif
     remember_attack(victim, ch, total_dam);
     
