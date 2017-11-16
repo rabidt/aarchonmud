@@ -2972,10 +2972,16 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
     CHAR_DATA *rch;
     int number = 0;
     int count = 0;
+    bool group = FALSE;
     
     if ( argument == NULL || argument[0] == '\0' || ch->in_room == NULL )
-	return NULL;
-
+        return NULL;
+    
+    if ( !str_prefix("g.", argument) )
+    {
+        group = true;
+        argument += 2;
+    }
     number = number_argument( argument, arg );
     
     if ( !str_cmp( arg, "self" ) )
@@ -2991,6 +2997,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
     {
         if ( (visible && !check_see_target(ch, rch))
             || (as_victim && is_same_group(ch, rch))
+            || (group && !is_same_group(ch, rch))
             || !is_ch_name(arg, rch, exact, ch) )
             continue;
 
