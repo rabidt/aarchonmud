@@ -8915,7 +8915,7 @@ const struct mastery_group_type mastery_group_table[] =
         { "acid blast", "burning hands", "call lightning", "chain lightning", "chill touch",
         "colour spray", "fireball", "hailstorm", "lightning bolt", "magic missile",
         "meteor swarm", "monsoon", "shocking grasp", "solar flare", "unearth",
-        "earthquake", "flamestrike", "wind war",
+        "earthquake", "flamestrike", "wind war", "rimbols invocation",
         "acid breath", "fire breath", "frost breath", "gas breath", "lightning breath",
         "cone of exhaustion", "forboding ooze", "tomb stench", "zombie breath", "zone of damnation" }
     },
