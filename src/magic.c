@@ -1580,7 +1580,7 @@ int mastery_adjust_cost( int cost, int mastery )
 {
     if ( mastery > 0 )
     {
-        int rebate = UMAX(mastery, cost * (1 + mastery) / 10);
+        int rebate = (1 + mastery) * UMAX(10, cost) / 10;
         return UMAX(0, cost - rebate);
     }
     return cost;
