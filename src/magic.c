@@ -1579,7 +1579,10 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 int mastery_adjust_cost( int cost, int mastery )
 {
     if ( mastery > 0 )
-        return cost - cost * (1 + mastery) / 10;
+    {
+        int rebate = UMAX(mastery, cost * (1 + mastery) / 10);
+        return UMAX(0, cost - rebate);
+    }
     return cost;
 }
 
