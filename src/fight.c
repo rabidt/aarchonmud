@@ -7900,7 +7900,7 @@ int stance_cost( CHAR_DATA *ch, int stance )
     int skill = get_skill(ch, sn);
     int cost = stances[stance].cost * (140-skill)/40;
 
-    cost -= cost * mastery_bonus(ch, sn, 20, 30) / 100;
+    cost = mastery_adjust_cost(cost, get_mastery(ch, sn));
     
     if ( stance == STANCE_SHADOWWALK && has_subclass(ch, subclass_shadowblade) )
         cost /= 2;

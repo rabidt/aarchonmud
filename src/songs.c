@@ -571,7 +571,7 @@ int song_cost( CHAR_DATA *ch, int song )
     int instrument_skill = get_instrument_skill(ch);
     int cost = skill_table[sn].min_mana * (140-skill)/40;
 
-    cost -= cost * mastery_bonus(ch, sn, 20, 30) / 100;
+    cost = mastery_adjust_cost(cost, get_mastery(ch, sn));
 
     if ( has_instrument(ch) && instrument_skill > 0 )
     {   
