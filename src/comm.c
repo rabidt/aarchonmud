@@ -2606,32 +2606,6 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, i
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
 }
 
-bool add_buff(BUFFER *buffer, const char *fmt, ...)
-{
-    char buf [2*MSL];
-    va_list args;
-    va_start (args, fmt);
-    vsprintf (buf, fmt, args);
-    va_end (args);
-    
-    return add_buf(buffer, buf);
-}
-
-bool add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...)
-{
-    char buf [2*MSL];
-    int i;
-    va_list args;
-    va_start (args, fmt);
-    vsprintf (buf, fmt, args);
-    va_end (args);
-    // pad
-    for ( i = strlen_color(buf); i < pad_length; i++ )
-        strcat( buf, " " );
-    
-    return add_buf(buffer, buf);
-}
-
 #define CH(descriptor)  ((descriptor)->original ? (descriptor)->original : (descriptor)->character)
 
 /* This file holds the copyover data */

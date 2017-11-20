@@ -131,7 +131,7 @@ void ban_site(CHAR_DATA *ch, const char *argument, bool fPerm)
     char buf[MAX_STRING_LENGTH],buf2[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     char *name;
-    BUFFER *buffer;
+    
     BAN_DATA *pban, *prev;
     bool prefix = FALSE,suffix = FALSE;
     int type;
@@ -146,7 +146,7 @@ void ban_site(CHAR_DATA *ch, const char *argument, bool fPerm)
 	    send_to_char("No sites banned at this time.\n\r",ch);
 	    return;
   	}
-	buffer = new_buf();
+        BUFFER *buffer = new_buf();
 
         add_buf(buffer,"Banned sites  level  type     status\n\r");
         for (pban = ban_list;pban != NULL;pban = pban->next)

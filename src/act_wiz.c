@@ -2980,7 +2980,14 @@ DEF_DO_FUN(do_printlist)
 {
     if (argument[0]=='\0')
     {
-        ptc(ch, "Arguments: timers, save\n\r");
+        ptc(ch, "Arguments: str_buf, timers, save\n\r");
+        return;
+    }
+    else if (!strcmp(argument, "str_buf"))
+    {
+        char buf[MSL];
+        print_buf_debug(buf, sizeof(buf));
+        page_to_char(buf, ch);
         return;
     }
     else if (!strcmp(argument, "timers"))

@@ -1028,7 +1028,7 @@ DEF_DO_FUN(do_dirs)
 
         if (!found)
         {
-            add_buff(output, "No dirs found for '%s'\n\r", argument);
+            addf_buf(output, "No dirs found for '%s'\n\r", argument);
         }
     }
 
@@ -2669,12 +2669,12 @@ DEF_DO_FUN(do_whois)
     if (!found)
     {
         send_to_char("No one of that name is playing.\n\r",ch);
-        return;
     }
-    
-    page_to_char(buf_string(output),ch);
+    else
+    {
+        page_to_char(buf_string(output),ch);
+    }
     free_buf(output);
-    
 }
 
 // for sorting the who_array
@@ -2929,7 +2929,7 @@ DEF_DO_FUN(do_who)
         who_show_char( ch, wch, output );
     }
     
-    add_buff(output, "\n\rPlayers found: %d\n\r", nMatch );
+    addf_buf(output, "\n\rPlayers found: %d\n\r", nMatch );
     page_to_char( buf_string(output), ch );
     free_buf(output);
     return;
@@ -5152,7 +5152,7 @@ DEF_DO_FUN(do_percentages)
         add_buf(output, "{D:============================================================================:{x\n\r");
 
     // secondary and two-handed weapons
-    add_buff_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%   {cTwohand Penalty:{x %3d%%        {cFocus Bonus:{x  %3d%%",
+    addf_buf_pad(output, LENGTH, "{D|{x {cOffhand Attacks:{x %3d%%   {cTwohand Penalty:{x %3d%%        {cFocus Bonus:{x  %3d%%",
         offhand_attack_chance(ch, FALSE),
         get_twohand_penalty(ch, FALSE),
         get_focus_bonus(ch)
@@ -5160,7 +5160,7 @@ DEF_DO_FUN(do_percentages)
     add_buf(output, "{D|{x\n\r");
 
     // dodge, parry, block
-    add_buff_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%             {cParry:{x %3d%%              {cBlock:{x  %3d%%",
+    addf_buf_pad(output, LENGTH, "{D|{x           {cDodge:{x %3d%%             {cParry:{x %3d%%              {cBlock:{x  %3d%%",
         dodge_chance(ch, ch->fighting, FALSE),
         parry_chance(ch, ch->fighting, FALSE),
         shield_block_chance(ch, FALSE)
@@ -5171,7 +5171,7 @@ DEF_DO_FUN(do_percentages)
     int heavy_bonus = get_heavy_armor_bonus(ch);
     if ( crit || heavy_bonus )
     {
-        add_buff_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%     {cHeavy Armor:{x %3d%%      {cHeavy Penalty:{x  %3d%%",
+        addf_buf_pad(output, LENGTH, "{D|{x        {cCritical:{x %5.2f%%     {cHeavy Armor:{x %3d%%      {cHeavy Penalty:{x  %3d%%",
             crit / 20.0,
             heavy_bonus,
             get_heavy_armor_penalty(ch)
@@ -5184,9 +5184,9 @@ DEF_DO_FUN(do_percentages)
     if ( fade )
     {
         if ( misfade )
-            add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%/%d%%", fade, misfade);
+            addf_buf_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%/%d%%", fade, misfade);
         else
-            add_buff_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
+            addf_buf_pad(output, LENGTH, "{D|{x            {cFade:{x %3d%%", fade);
         add_buf(output, "{D|{x\n\r");
     }
     
@@ -5410,7 +5410,6 @@ DEF_DO_FUN(do_achievements)
     int i;
     CHAR_DATA *victim;
     DESCRIPTOR_DATA *d=NULL;
-    BUFFER *output;
     int col;
     int totalach = 0;
     int ltotal = 0;
@@ -5419,8 +5418,6 @@ DEF_DO_FUN(do_achievements)
     bool boss=FALSE;
 
     col = 0;
-
-    output = new_buf();
 
     if (argument[0] == '\0' )
     {
@@ -5485,6 +5482,8 @@ DEF_DO_FUN(do_achievements)
     }
     else
     {
+        BUFFER *output = new_buf();
+        
         sprintf(buf, "\n\r");
         add_buf(output,buf);
         sprintf(buf, "{WAchievements for %s\n\r", victim->name);
