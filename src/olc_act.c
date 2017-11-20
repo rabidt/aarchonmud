@@ -416,13 +416,15 @@ REDIT( redit_rlist )
     if ( !found )
     {
         send_to_char( "Room(s) not found in this area.\n\r", ch);
-        return FALSE;
     }
-    
-    if ( col % 3 != 0 )
-        add_buf( buf1, "\n\r" );
-    
-    page_to_char_bw( buf_string(buf1), ch );
+    else
+    {
+        if ( col % 3 != 0 )
+            add_buf( buf1, "\n\r" );
+        
+        page_to_char_bw( buf_string(buf1), ch );
+    }
+
     free_buf(buf1);
     return FALSE;
 }
@@ -470,13 +472,14 @@ REDIT( redit_mlist )
     if ( !found )
     {
         send_to_char( "Mobile(s) not found in this area.\n\r", ch);
-        return FALSE;
     }
-    
-    if ( col % 3 != 0 )
-        add_buf( buf1, "\n\r" );
-    
-    page_to_char_bw( buf_string(buf1), ch );
+    else
+    {
+        if ( col % 3 != 0 )
+            add_buf( buf1, "\n\r" );
+        
+        page_to_char_bw( buf_string(buf1), ch );
+    }
     free_buf(buf1);
     return FALSE;
 }
@@ -527,13 +530,14 @@ REDIT( redit_olist )
     if ( !found )
     {
         send_to_char( "Object(s) not found in this area.\n\r", ch);
-        return FALSE;
     }
-    
-    if ( col % 3 != 0 )
-        add_buf( buf1, "\n\r" );
-    
-    page_to_char_bw( buf_string(buf1), ch );
+    else
+    {
+        if ( col % 3 != 0 )
+            add_buf( buf1, "\n\r" );
+        
+        page_to_char_bw( buf_string(buf1), ch );
+    }
     free_buf(buf1);
     return FALSE;
 }

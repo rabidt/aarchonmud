@@ -5160,7 +5160,6 @@ DEF_SPELL_FUN(spell_locate_object)
         return;
         }
      */
-    buffer = new_buf();
 
     if ( target_name[0] == '\0' )
     {
@@ -5169,6 +5168,8 @@ DEF_SPELL_FUN(spell_locate_object)
     }
 
     SPELL_CHECK_RETURN
+    
+    buffer = new_buf();
     
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {

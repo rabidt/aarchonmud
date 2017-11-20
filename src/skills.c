@@ -764,7 +764,7 @@ static void show_master_list( CHAR_DATA *ch )
         if ( (lvl = ch->pcdata->mastered[sn]) > 0 )
         {
             int *groups = get_mastery_groups(sn);
-            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+            addf_buf(buf, "  %-20s %-20s %-15s %2d\n\r",
                 skill_table[sn].name,
                 *groups ? mastery_group_table[*groups].name : "",
                 mastery_title(lvl),
@@ -772,20 +772,20 @@ static void show_master_list( CHAR_DATA *ch )
             );
             // may belong to more than one school
             while ( *groups && *(++groups) )
-                add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+                addf_buf(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
         }
 
     add_buf(buf, "\n\r{gYou have mastered the following schools:{x\n\r");
     for ( gn = 1; mastery_group_table[gn].name; gn++ )
         if ( (lvl = get_group_mastery(ch, gn)) > 0 )
-            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+            addf_buf(buf, "  %-20s %-20s %-15s %2d\n\r",
                 "",
                 mastery_group_table[gn].name,
                 mastery_title(lvl),
                 mastery_group_table[gn].rating * lvl
             );
 
-    add_buff(buf, "\n\r{gTrains spent on skill/school mastery:{x %24d / %d\n\r",
+    addf_buf(buf, "\n\r{gTrains spent on skill/school mastery:{x %24d / %d\n\r",
         mastery_points(ch), max_mastery_points(ch));
 
     add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
@@ -793,7 +793,7 @@ static void show_master_list( CHAR_DATA *ch )
         if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
         {
             int *groups = get_mastery_groups(sn);
-            add_buff(buf, "  %-20s %-20s %-15s %2d\n\r",
+            addf_buf(buf, "  %-20s %-20s %-15s %2d\n\r",
                 skill_table[sn].name,
                 *groups ? mastery_group_table[*groups].name : "",
                 mastery_title(lvl+1),
@@ -801,7 +801,7 @@ static void show_master_list( CHAR_DATA *ch )
             );
             // may belong to more than one school
             while ( *groups && *(++groups) )
-                add_buff(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+                addf_buf(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
         }
 
     page_to_char(buf_string(buf), ch);
@@ -1365,7 +1365,7 @@ void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
             else
                 add_buf(buffer, "    ");
         }
-        add_buff(buffer, "%-20s %3d%%(%3d%%)", skill_table[sn].name, base_skill, skill);
+        addf_buf(buffer, "%-20s %3d%%(%3d%%)", skill_table[sn].name, base_skill, skill);
     }
     add_buf(buffer, "\n\r");
     page_to_char(buf_string(buffer), viewer);
@@ -3095,12 +3095,12 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
 
     if ((skill = skill_lookup(argument)) == -1)        
     { 
-        add_buff(buffer,"Skill not found.\n\r");
+        addf_buf(buffer,"Skill not found.\n\r");
         return; 
     }
     
     is_spell = IS_SPELL(skill);
-    add_buff(buffer, "{cSettings for %s:  {Y%s{x\n\r", (is_spell ? "spell" : "skill"), capitalize(skill_table[skill].name));
+    addf_buf(buffer, "{cSettings for %s:  {Y%s{x\n\r", (is_spell ? "spell" : "skill"), capitalize(skill_table[skill].name));
 
     stance = get_stance_index(skill);
 
@@ -3108,48 +3108,48 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
     {
         if ( skill_table[skill].mana_boost > 0 )
         {
-            add_buff( buffer, "Base Mana: %d + %.1f%%  Lag: %d  Duration: %s\n\r",
+            addf_buf( buffer, "Base Mana: %d + %.1f%%  Lag: %d  Duration: %s\n\r",
                 skill_table[skill].min_mana, 0.1 * skill_table[skill].mana_boost, skill_table[skill].beats,
                 spell_duration_names[skill_table[skill].duration]);
         }
         else
         {
-            add_buff( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
+            addf_buf( buffer, "Base Mana: %d  Lag: %d  Duration: %s\n\r",
                 skill_table[skill].min_mana, skill_table[skill].beats,
                 spell_duration_names[skill_table[skill].duration]);
         }
-        add_buff( buffer, "Target: %s  Combat: %s\n\r",
+        addf_buf( buffer, "Target: %s  Combat: %s\n\r",
             spell_target_names[skill_table[skill].target],
             skill_table[skill].minimum_position <= POS_FIGHTING ? "yes" : "no" );
     }
     else if ( stance >= 0 && stances[stance].cost != 0 )
-        add_buff(buffer, "Base Move: %d\n\r", 
+        addf_buf(buffer, "Base Move: %d\n\r", 
             stances[stance].cost);
     else
     {
         bool found = FALSE;
         if (skill_table[skill].min_mana != 0)
         {
-            add_buff(buffer, "Base Mana: %d", skill_table[skill].min_mana);
+            addf_buf(buffer, "Base Mana: %d", skill_table[skill].min_mana);
             if ( skill_table[skill].mana_boost > 0 )
-                add_buff(buffer, " + %.1f%%", 0.1 * skill_table[skill].mana_boost);
+                addf_buf(buffer, " + %.1f%%", 0.1 * skill_table[skill].mana_boost);
             found = TRUE;
         }
         if (skill_table[skill].beats != 0)
         {
-            add_buff(buffer, "%sLag: %d", (found ? "  " : ""), skill_table[skill].beats);
+            addf_buf(buffer, "%sLag: %d", (found ? "  " : ""), skill_table[skill].beats);
             found = TRUE;
         }
         if (skill_table[skill].duration != DUR_NONE)
         {
-            add_buff(buffer, "%sDuration: %s", (found ? "  " : ""), spell_duration_names[skill_table[skill].duration]);
+            addf_buf(buffer, "%sDuration: %s", (found ? "  " : ""), spell_duration_names[skill_table[skill].duration]);
             found = TRUE;
         }
         if (found)
-            add_buff(buffer, "\n\r");
+            addf_buf(buffer, "\n\r");
     }
     
-    add_buff(buffer, "Prime Stat: %s   Second Stat: %s   Third Stat: %s\n\r",
+    addf_buf(buffer, "Prime Stat: %s   Second Stat: %s   Third Stat: %s\n\r",
         (skill_table[skill].stat_prime>=STAT_NONE) ? "none" :
         stat_table[skill_table[skill].stat_prime].name,
         (skill_table[skill].stat_second>=STAT_NONE) ? "none" :
@@ -3160,8 +3160,8 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
     //if (IS_IMMORTAL(ch))
     //    add_buff(buffer, "Skill Number: %d\n\r", skill_lookup(argument));
     
-    add_buff(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
-    add_buff(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");
+    addf_buf(buffer, "\n\r{wClass          Level Points  Max  Mastery{x\n\r");
+    addf_buf(buffer,     "{w------------   ----- ------ ----- -------{x\n\r");
     
     for ( cls = 0; cls < MAX_CLASS; cls++ )
     {
@@ -3186,7 +3186,7 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
             );
         }
         
-        add_buff(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
+        addf_buf(buffer, "{w%-12s{x %-5s", capitalize(class_table[cls].name), log_buf);
     }
 }
 
@@ -3197,8 +3197,8 @@ void show_skill_all(BUFFER *buffer)
     if (buffer == NULL)
         return;
 
-    add_buff(buffer, "Skill/Spell         Cost    Lag     Duration    Combat  Target\n\r");
-    add_buff(buffer, "==============================================================\n\r");
+    addf_buf(buffer, "Skill/Spell         Cost    Lag     Duration    Combat  Target\n\r");
+    addf_buf(buffer, "==============================================================\n\r");
     
     for ( skill = 1; skill_table[skill].name != NULL; skill++ )
     {
@@ -3214,7 +3214,7 @@ void show_skill_all(BUFFER *buffer)
                     break;
                 }
         }
-        add_buff( buffer, "%-20.20s %3d %6d     %-11.11s %-7.7s %s\n\r",
+        addf_buf( buffer, "%-20.20s %3d %6d     %-11.11s %-7.7s %s\n\r",
             skill_table[skill].name,
             cost,
             skill_table[skill].beats,
@@ -3232,8 +3232,8 @@ void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
     if (buffer == NULL)
         return;
 
-    add_buff(buffer, "Skill/Spell          Type         Min     Max\n\r");
-    add_buff(buffer, "=============================================\n\r");
+    addf_buf(buffer, "Skill/Spell          Type         Min     Max\n\r");
+    addf_buf(buffer, "=============================================\n\r");
     
     for ( skill = 1; skill_table[skill].name != NULL; skill++ )
     {
@@ -3252,7 +3252,7 @@ void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
         // skip skill with high percentages
         if ( max_per == 100 && min_per >= threshold && !(active && min_per < active_threshold) )
             continue;
-        add_buff( buffer, "%-20.20s %-8.8s    %3d%%    %3d%%\n\r",
+        addf_buf( buffer, "%-20.20s %-8.8s    %3d%%    %3d%%\n\r",
             skill_table[skill].name,
             active ? "active" : "passive",
             min_per, max_per
@@ -3267,20 +3267,20 @@ void show_skill_points(BUFFER *buffer)
     if (buffer == NULL)
         return;
 
-    add_buff(buffer, "Skill/Spell         ");
+    addf_buf(buffer, "Skill/Spell         ");
     for ( class = 0; class < MAX_CLASS; class++ )
-        add_buff(buffer, "%c%c ", class_table[class].who_name[0], class_table[class].who_name[1]);
-    add_buff(buffer, "\n\r===================================================================\n\r");
+        addf_buf(buffer, "%c%c ", class_table[class].who_name[0], class_table[class].who_name[1]);
+    addf_buf(buffer, "\n\r===================================================================\n\r");
     
     for ( skill = 1; skill_table[skill].name != NULL; skill++ )
     {
-        add_buff( buffer, "%-20.20s", skill_table[skill].name );
+        addf_buf( buffer, "%-20.20s", skill_table[skill].name );
         for ( class = 0; class < MAX_CLASS; class++ )
             if ( is_class_skill(class, skill) )
-                add_buff(buffer, "%2d ", skill_table[skill].rating[class]);
+                addf_buf(buffer, "%2d ", skill_table[skill].rating[class]);
             else
-                add_buff(buffer, " - ");
-        add_buff(buffer, "\n\r");
+                addf_buf(buffer, " - ");
+        addf_buf(buffer, "\n\r");
     }            
 }
 
