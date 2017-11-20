@@ -4662,6 +4662,7 @@ DEF_DO_FUN(do_memory)
         nAllocPerm, sAllocPerm );
     ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
     ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
+    ptc( ch, "BUFFER count            %d\n\r", get_buf_count());
     ptc( ch, "\n\r");
     ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
     ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());

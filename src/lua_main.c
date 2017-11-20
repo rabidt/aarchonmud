@@ -1327,66 +1327,6 @@ bool is_set_ref( LUAREF ref )
 
 /* end LUAREF section */
 
-/* string buffer section */
-
-BUFFER *new_buf( void )
-{
-    BUFFER *buffer=alloc_mem(sizeof(BUFFER));
-    new_ref( &buffer->table ); 
-    new_ref( &buffer->string );
-
-    lua_newtable( g_mud_LS );
-    save_ref( g_mud_LS, -1, &buffer->table );    
-    lua_pop( g_mud_LS, 1 );
-    return buffer;
-}
-
-void free_buf(BUFFER *buffer)
-{
-    free_ref( &buffer->table );
-    free_ref( &buffer->string );
-    free_mem( buffer, sizeof(BUFFER) );
-}
-
-bool add_buf(BUFFER *buffer, const char *string)
-{
-    if (!is_set_ref( buffer->table ))
-    {
-        bugf("add_buf called with no ref");
-        return FALSE;
-    }
-
-    push_ref( g_mud_LS, REF_TABLE_INSERT );
-    push_ref( g_mud_LS, buffer->table );
-    lua_pushstring( g_mud_LS, string ); 
-    lua_call( g_mud_LS, 2, 0 );
-
-    return TRUE;
-}
-
-void clear_buf(BUFFER *buffer)
-{
-    release_ref( g_mud_LS, &buffer->table );
-    lua_newtable( g_mud_LS );
-    save_ref( g_mud_LS, -1, &buffer->table );
-    lua_pop( g_mud_LS, 1 );
-}
-
-const char *buf_string(BUFFER *buffer)
-{
-    push_ref( g_mud_LS, REF_TABLE_CONCAT );
-    push_ref( g_mud_LS, buffer->table );
-    lua_call( g_mud_LS, 1, 1 );
-
-    /* save the ref to guarantee the string is valid as
-       long as the BUFFER is alive */
-    save_ref( g_mud_LS, -1, &buffer->string ); 
-    const char *rtn=luaL_checkstring( g_mud_LS, -1 );
-    lua_pop( g_mud_LS, 1 );
-    return rtn;
-}
-/* end string buffer section*/
-
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument )
 {
     lua_getglobal( g_mud_LS, "lua_con_handler" );

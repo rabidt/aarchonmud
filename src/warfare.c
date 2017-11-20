@@ -514,6 +514,7 @@ DEF_DO_FUN(do_warstatus)
     sprintf( buf, "\n\r{R----------------------------------------------------------------{x\n\r\n\r" );
     add_buf( output, buf );
     page_to_char( buf_string( output ), ch );
+    free_buf(output);
     return;
 }
 
@@ -829,6 +830,7 @@ DEF_DO_FUN(do_warsit)
         add_buf( output, buf );
     }
     page_to_char( buf_string(output), ch );
+    free_buf(output);
     return;
 }
 

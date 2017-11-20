@@ -71,7 +71,7 @@ typedef short   int         sh_int;
 typedef struct  affect_data      AFFECT_DATA;
 typedef struct  area_data        AREA_DATA;
 typedef struct  ban_data         BAN_DATA;
-typedef struct  buf_type         BUFFER;
+typedef struct  str_buf_type     BUFFER;
 typedef struct  string_ring_buf  SR_BUF;
 typedef struct  char_data        CHAR_DATA;
 typedef struct  descriptor_data  DESCRIPTOR_DATA;
@@ -432,14 +432,6 @@ struct	wiz_data
     bool	valid;
     sh_int	level;
     const char* name;
-};
-
-
-
-struct buf_type
-{
-    LUAREF table;
-    LUAREF string;
 };
 
 /* Erwin's dynamic buffer system. */
@@ -4629,8 +4621,6 @@ void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void 
 void    act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
 char*   remove_color( const char *txt );
 bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
-bool    add_buff(BUFFER *buffer, const char *fmt, ...);
-bool    add_buff_pad(BUFFER *buffer, int pad_length, const char *fmt, ...);
 CHAR_DATA* original_char( CHAR_DATA *ch );
 bool is_command_pending( DESCRIPTOR_DATA *d );
 void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... );
@@ -5090,11 +5080,6 @@ void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
 void load_changelog( void );
-BUFFER *new_buf( void );
-void free_buf(BUFFER *buffer);
-bool add_buf(BUFFER *buffer, const char *string );
-void clear_buf(BUFFER *buffer);
-const char *buf_string(BUFFER *buffer);
 void confirm_yes_no( DESCRIPTOR_DATA *d,
         DO_FUN yes_callback,
         const char *yes_argument,
@@ -5437,6 +5422,18 @@ char prompt_color_code( const char *prompt, char var );
 bool is_empty_string( const char *s );
 bool is_alpha_string( const char *s );
 bool split_string( const char *s, char split_char, char *prefix, char *suffix );
+
+/* str_buf.cpp */
+int get_buf_count( void );
+void print_buf_debug( char *out, size_t sz );
+#define new_buf( ) new_buf_trace(__FILE__, __func__, __LINE__)
+BUFFER *new_buf_trace( const char *file, const char *func, int line );
+void free_buf(BUFFER *buffer);
+bool add_buf(BUFFER *buffer, const char *string );
+void clear_buf(BUFFER *buffer);
+const char *buf_string(BUFFER *buffer);
+bool addf_buf(BUFFER *buffer, const char *fmt, ...);
+bool addf_buf_pad(BUFFER *buffer, int pad_length, const char *fmt, ...);
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

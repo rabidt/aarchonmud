@@ -452,7 +452,6 @@ PC_DATA *new_pcdata(void)
         pcdata->history_stats[i] = 0;
     }
     
-//    pcdata->buffer = new_buf();
     pcdata->boss_achievements         = NULL;
     pcdata->pkill_count = 0;
     pcdata->pkill_deaths = 0;

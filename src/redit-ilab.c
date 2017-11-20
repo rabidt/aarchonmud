@@ -51,10 +51,7 @@ extern char * const where_name [];
 
 /* ROM 2.4 support - BC */
 RESET_DATA *new_reset_data( void);
-BUFFER *new_buf_size( int size );
 void free_reset_data ( RESET_DATA *pReset );
-void free_buf( BUFFER *buffer );
-
 
 /*
  * Tables
