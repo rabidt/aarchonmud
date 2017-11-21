@@ -4629,6 +4629,11 @@ void    logpf( const char *fmt, ... );
 void    bugf( const char *fmt, ... );
 void    final_save_all( void );
 
+/* const.c */
+void sorted_table_init( void );
+bool name_sorted_group_table( size_t seq, int *ind );
+bool name_sorted_skill_table( size_t seq, int *ind );
+
 
 /*
  * Colour stuff by Lope of Loping Through The MUD
@@ -5073,8 +5078,6 @@ const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
 const char* save_ptitles( CHAR_DATA *ch );
 void load_ptitles( CHAR_DATA *ch, const char *text );
-int name_sorted_group_table( int sequence );
-int name_sorted_skill_table( int sequence );
 void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );

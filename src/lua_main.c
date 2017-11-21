@@ -15,7 +15,6 @@
 #include "mudconfig.h"
 #include "perfmon.h"
 
-void sorted_ctable_init( lua_State *LS );
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 bool       g_LuaScriptInProgress=FALSE;
@@ -620,7 +619,6 @@ static int RegisterLuaRoutines (lua_State *LS)
     arclib_type_init( LS );
 
     register_globals ( LS );
-    sorted_ctable_init( LS );
     register_LUAREFS( LS );
 
     return 0;
@@ -1126,151 +1124,6 @@ void load_changelog( void )
     }
 }
 
-/* sorted ctable section */
-void make_skill_table( lua_State *LS )
-{
-    int sn;
-    int tindex=1;
-    lua_newtable( LS );
-    for ( sn = 0 ; skill_table[sn].name ; sn++ )
-    {
-        lua_newtable( LS );
-        lua_pushstring( LS, skill_table[sn].name );
-        lua_setfield( LS, -2, "name" );
-
-        lua_pushinteger( LS, sn );
-        lua_setfield( LS, -2, "index" );
-
-        lua_rawseti( LS, -2, tindex++ );
-    }
-}
-
-void make_group_table( lua_State *LS )
-{
-    int sn;
-    int tindex=1;
-    lua_newtable( LS );
-    for ( sn = 0 ; sn < MAX_GROUP ; sn++ )
-    {
-        lua_newtable( LS );
-        lua_pushstring( LS, group_table[sn].name );
-        lua_setfield( LS, -2, "name" );
-
-        lua_pushinteger( LS, sn );
-        lua_setfield( LS, -2, "index" );
-
-        lua_rawseti( LS, -2, tindex++ );
-    }    
-
-}
-
-struct sorted_ctable 
-{
-    struct sorted_ctable **ptr;
-    const void *regkey;
-    void (*tablefun)( lua_State *LS);
-    const char *sortfun;
-};
-
-struct sorted_ctable *sorted_skill_table;
-struct sorted_ctable *sorted_group_table;
-
-struct sorted_ctable sorted_ctable_table [] =
-{
-    { 
-        &sorted_skill_table,
-        NULL,
-        make_skill_table,
-        "return function(a,b) return a.name<b.name end" 
-    },
-    {
-        &sorted_group_table,
-        NULL,
-        make_group_table,
-        "return function(a,b) return a.name<b.name end"
-    },
-    { NULL, NULL, NULL, NULL }
-};
-
-void sorted_ctable_init( lua_State *LS )
-{
-    int i;
-    for ( i=0 ; sorted_ctable_table[i].tablefun ; i++ )
-    {
-        struct sorted_ctable *tbl = &sorted_ctable_table[i];
-        *(tbl->ptr) = tbl;
-    
-        /* make and sort the table */
-        tbl->tablefun( LS );
-
-        /* new table should be at -1 */
-        lua_getglobal( LS, "table" );
-        lua_getfield( LS, -1, "sort" );
-        lua_remove( LS, -2 ); /* remove "table" */
-        lua_pushvalue(LS, -2 ); /* push the actual table */
-        if ( luaL_dostring(LS, tbl->sortfun) )
-            luaL_error(LS, "sorted_ctable_init: sortfun error");
-        lua_call( LS, 2, 0 );
-
-        /* sorted table should be at -1 */
-        /* save the thing for later */
-        lua_pushlightuserdata( LS, &(tbl->regkey) );
-        lua_pushvalue( LS, -2 ); /* push the table */
-        lua_settable( LS, LUA_REGISTRYINDEX );
-
-        /* sorted table should be at -1 again*/
-        lua_pop( LS, 1 );
-    }
-}
-/* create and keep a sorted list for skill table in order of skill name
-   argument represents the sorted index, return value will be the
-   corresponding index in actual skill_table.
-   In other words, argument 0 will give first alphabetized skill and
-   argument MAX_KILL will give last alphabetized skill */
-/* return -1 if not a valid sequence index */
-
-static int sorted_table_seq_lookup( struct sorted_ctable *tbl, int sequence )
-{
-    sequence++; /* offset by +1 because lua indices start at 1 */
-    
-    lua_pushlightuserdata( g_mud_LS, &(tbl->regkey) );
-    lua_gettable( g_mud_LS, LUA_REGISTRYINDEX );
-
-    if ( lua_isnil( g_mud_LS, -1 ) )
-    {
-        bugf("Didn't find sorted table in registry.");
-        return -1;
-    }
-
-    int result;
-
-    lua_rawgeti( g_mud_LS, -1, sequence );
-    if ( lua_isnil( g_mud_LS, -1 ) )
-    {
-        result=-1;
-        lua_pop( g_mud_LS, 2 );
-    }
-    else
-    {
-        lua_getfield( g_mud_LS, -1, "index" );
-        result=luaL_checkinteger( g_mud_LS, -1 );
-        lua_pop( g_mud_LS, 3 );
-    }
-
-    return result;
-}
-
-int name_sorted_skill_table( int sequence )
-{
-    return sorted_table_seq_lookup( sorted_skill_table, sequence );
-}
-
-int name_sorted_group_table( int sequence )
-{
-    return sorted_table_seq_lookup( sorted_group_table, sequence );
-}
-
-/* end sorted ctable section */
 
 /* LUAREF section */
 
