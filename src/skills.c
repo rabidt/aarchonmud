@@ -303,7 +303,7 @@ DEF_DO_FUN(do_gain)
     char arg[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
     CHAR_DATA *trainer;
     int gn = 0, sn = 0;
-    int seq;
+    size_t seq;
     bool introspect = TRUE;
     
     if (IS_NPC(ch))
@@ -355,9 +355,7 @@ DEF_DO_FUN(do_gain)
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
 
-            for ( seq=0
-                    ; (gn=name_sorted_group_table(seq)) != -1
-                    ; seq++ )
+            for ( seq = 0 ; name_sorted_group_table(seq, &gn) ; seq++ )
             {
                 if (group_table[gn].name == NULL)
                     break;
@@ -380,9 +378,7 @@ DEF_DO_FUN(do_gain)
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
             
-            for ( seq=0
-                    ; (sn=name_sorted_skill_table(seq)) != -1
-                    ; seq++ )
+            for ( seq = 0 ; name_sorted_skill_table(seq, &sn) ; seq++ )
             {
                 if (skill_table[sn].name == NULL)
                     break;
@@ -412,9 +408,7 @@ DEF_DO_FUN(do_gain)
             sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
             send_to_char(buf,ch);
     
-            for ( seq=0
-                ; (sn=name_sorted_skill_table(seq)) != -1
-                ; seq++ )
+            for ( seq = 0 ; name_sorted_skill_table(seq, &sn) ; seq++ )
             {
                 if (skill_table[sn].name == NULL)
                     break;
@@ -1456,7 +1450,8 @@ void show_class_skills( CHAR_DATA *ch, const char *argument )
 void list_group_costs(CHAR_DATA *ch)
 {
     char buf[MSL];
-    int gn,sn,col,seq;
+    int gn,sn,col;
+    size_t seq;
     
     if (IS_NPC(ch))
         return;
@@ -1468,9 +1463,7 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
-    for ( seq=0
-            ; (gn=name_sorted_group_table(seq)) != -1
-            ; seq++ )
+    for ( seq = 0 ; name_sorted_group_table(seq, &gn) ; seq++ )
     {
         if (group_table[gn].name == NULL)
             break;
@@ -1497,9 +1490,7 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
-    for ( seq=0
-            ; (sn=name_sorted_skill_table(seq)) != -1
-            ; seq++ )
+    for ( seq = 0 ; name_sorted_skill_table(seq, &sn) ; seq++ )
     {
         if (skill_table[sn].name == NULL)
             break;
@@ -1529,9 +1520,7 @@ void list_group_costs(CHAR_DATA *ch)
     sprintf(buf,"{w------------------------   ------------------------   ------------------------{x\n\r");
     send_to_char(buf,ch);
     
-    for ( seq=0
-            ; (sn=name_sorted_skill_table(seq)) != -1
-            ; seq++ )
+    for ( seq = 0 ; name_sorted_skill_table(seq, &sn) ; seq++ )
     {
         if (skill_table[sn].name == NULL)
             break;
@@ -2604,7 +2593,7 @@ DEF_DO_FUN(do_practice)
 	BUFFER *buffer;
    char buf[MAX_STRING_LENGTH];
    int sn;
-   int seq;
+   size_t seq;
    int skill;
    int prac_curr, prac_gain;
 
@@ -2617,9 +2606,7 @@ DEF_DO_FUN(do_practice)
 	
 	  buffer = new_buf();
 	  col    = 0;
-      for ( seq=0
-              ; (sn=name_sorted_skill_table(seq)) != -1
-              ; seq++ )
+      for ( seq = 0 ; name_sorted_skill_table(seq, &sn) ; seq++ )
 	  {
 		 if ( skill_table[sn].name == NULL )
 			break;

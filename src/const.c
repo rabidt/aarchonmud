@@ -28,6 +28,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
 #include "merc.h"
 #include "magic.h"
 #include "interp.h"
@@ -8983,3 +8985,95 @@ const struct mastery_group_type mastery_group_table[] =
 
     { NULL }
 };
+
+
+#define SKILL_TABLE_SIZE (sizeof(skill_table) / sizeof(skill_table[0]))
+#define GROUP_TABLE_SIZE (sizeof(group_table) / sizeof(group_table[0]))
+
+static size_t sorted_skill_table_seq[SKILL_TABLE_SIZE];
+static size_t sorted_group_table_seq[GROUP_TABLE_SIZE];
+
+bool name_sorted_group_table(size_t seq, int *ind)
+{
+    if (seq >= GROUP_TABLE_SIZE)
+    {
+        return FALSE;
+    }
+
+    size_t i = sorted_group_table_seq[seq];
+
+    *ind = i;
+    return TRUE;
+}
+
+bool name_sorted_skill_table(size_t seq, int *ind)
+{
+    if (seq >= SKILL_TABLE_SIZE)
+    {
+        return FALSE;
+    }
+
+    size_t i = sorted_skill_table_seq[seq];
+
+    if (!skill_table[i].name)
+    {
+        return FALSE;
+    }
+
+    *ind = i;
+    return TRUE;
+}
+
+static int skill_name_cmp(const void *a, const void *b)
+{
+    size_t ai = *(const size_t *)a;
+    size_t bi = *(const size_t *)b;
+
+    if (!skill_table[ai].name)
+    {
+        return 1;
+    }
+    else if (!skill_table[bi].name)
+    {
+        return -1;
+    }
+    else
+    {
+        return strcmp(skill_table[ai].name, skill_table[bi].name);
+    }
+}
+
+static int group_name_cmp(const void *a, const void *b)
+{
+    size_t ai = *(const size_t *)a;
+    size_t bi = *(const size_t *)b;
+
+    return strcmp(group_table[ai].name, group_table[bi].name);
+}
+
+void sorted_table_init( void )
+{
+    size_t i;
+
+    for (i = 0 ; i < SKILL_TABLE_SIZE ; ++i )
+    {
+        sorted_skill_table_seq[i] = i;
+    }
+
+    qsort(
+        sorted_skill_table_seq, 
+        SKILL_TABLE_SIZE, 
+        sizeof(sorted_skill_table_seq[0]), 
+        skill_name_cmp);
+
+    for (i = 0 ; i < GROUP_TABLE_SIZE ; ++i )
+    {
+        sorted_group_table_seq[i] = i;
+    }
+
+    qsort(
+        sorted_group_table_seq, 
+        GROUP_TABLE_SIZE, 
+        sizeof(sorted_group_table_seq[0]), 
+        group_name_cmp);
+}
