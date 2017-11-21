@@ -811,6 +811,8 @@ void boot_db( void )
     update_group_costs();
     verify_skills();
 
+    sorted_table_init();
+
     log_string( "Counting stats" );
     count_stats();
 
