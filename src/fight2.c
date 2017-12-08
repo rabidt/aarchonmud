@@ -268,6 +268,8 @@ void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 
     /* deal damage */
     int dam = martial_damage(ch, victim, sn) * power / 2;
+    if ( sn == gsn_charge ) // charge scales with level to compensate for "kill" scaling
+        dam = dam * (100 + ch->level) / 100;
     if ( sn == gsn_bash && IS_SET(ch->parts, PART_TUSKS) )
         full_dam(ch, victim, dam * 3/2, sn, DAM_PIERCE, TRUE);
     else
