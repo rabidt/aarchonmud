@@ -355,6 +355,7 @@ sh_int  gsn_finesse;
 sh_int  gsn_rage;
 sh_int  gsn_retribution;
 sh_int  gsn_serpent;
+sh_int  gsn_polar_bear;
 sh_int  gsn_blade_dance;
 sh_int  gsn_shadowclaw;
 sh_int  gsn_shadowessence;

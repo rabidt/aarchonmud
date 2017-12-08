@@ -241,7 +241,7 @@ bool is_nosac( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         498
+#define MAX_SKILL         499
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -3590,6 +3590,7 @@ extern sh_int gsn_finesse;
 extern sh_int gsn_rage;
 extern sh_int gsn_retribution;
 extern sh_int gsn_serpent;
+extern sh_int gsn_polar_bear;
 extern sh_int gsn_blade_dance;
 extern sh_int gsn_shadowclaw;
 extern sh_int gsn_shadowessence;
@@ -4213,6 +4214,7 @@ struct stance_type
 #define STANCE_BLADE_BARRIER 47
 #define STANCE_BULLET_RAIN 48
 #define STANCE_DECEPTION 49
+#define STANCE_POLAR_BEAR 50
 
 struct song_type
 {

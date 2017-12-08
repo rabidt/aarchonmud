@@ -1338,6 +1338,8 @@ const struct stance_type stances [] =
             &gsn_bullet_rain,       FALSE, TRUE,          25 },
         { "deception",        STANCE_DECEPTION,           0,             "",
             &gsn_deception,         FALSE, TRUE,          12 },
+        { "polar bear",       STANCE_POLAR_BEAR,          DAM_COLD,      "icy claw",
+          &gsn_polar_bear,          TRUE, FALSE,          12 },
 	{ NULL,               0,                          0,             "", 
 		NULL,                      FALSE, FALSE,  0  }
 };
