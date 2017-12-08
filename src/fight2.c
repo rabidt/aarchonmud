@@ -3829,7 +3829,8 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         return;
     } 
         
-    dam = martial_damage(ch, victim, gsn_quivering_palm) * 2;
+    // damage factor scales with level to keep it competative with "kill"
+    dam = martial_damage(ch, victim, gsn_quivering_palm) * (100 + ch->level) / 33;
 
     if ( !saves_physical(victim, ch, ch->level * 3/2, DAM_BASH) )
     {
