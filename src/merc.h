@@ -5055,6 +5055,10 @@ const char *  i_flag_bits_name( const struct flag_type flag_table[], long flag )
 void  default_colour  args( ( CHAR_DATA *ch ) );
 void  all_colour      args( ( CHAR_DATA *ch, const char *argument ) );
 
+/* help.cpp */
+void help_search(CHAR_DATA *ch, const char *argument);
+void build_help_index( void );
+
 /* interp.c */
 void    interpret   args( ( CHAR_DATA *ch, const char *argument ) );
 bool    is_number   args( ( const char *arg ) );
