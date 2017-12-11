@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -353,16 +354,95 @@ public:
 
     PERF_prof_sect *NewSection(const char *id);
     void ResetAll();
-    size_t ReprPulse( char *out_buf, size_t n ) { return ReprBase( out_buf, n, false ); }
-    size_t ReprTotal( char *out_buf, size_t n ) { return ReprBase( out_buf, n, true  ); }
+    size_t ReprPulse( char *out_buf, size_t n ) { return ReprBase( out_buf, n, false, nullptr ); }
+    size_t ReprTotal( char *out_buf, size_t n ) { return ReprBase( out_buf, n, true,  nullptr ); }
+    size_t ReprSect( char *out_buf, size_t n, const char *id );
 
 private:
-    size_t ReprBase( char *out_buf, size_t n, bool isTotal );
-    std::vector<PERF_prof_sect *> mSections;
+    size_t ReprBase( char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect );
+    void SectOutput( std::ostream &os, PERF_prof_sect *sect, bool isTotal);
+
+    std::map<std::string, PERF_prof_sect *> mSections;
 };
 
 size_t
-PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal)
+PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id)
+{
+    if (!out_buf)
+    {
+        return 0;
+    }
+    if (n < 1)
+    {
+        out_buf[0] = '\0';
+        return 0;
+    }
+
+    auto it = mSections.find(id);
+    if (it == mSections.end())
+    {
+        std::ostringstream os;
+        os << "No such section '" << id << "'\n\r";
+        std::string str = os.str();
+        size_t copied = str.copy( out_buf, n - 1 );
+        out_buf[copied] = '\0';
+
+        return copied;
+    }
+
+    size_t copied = ReprBase(out_buf, n, false, it->second);
+    copied += ReprBase(out_buf + copied, n - copied, true, it->second);
+    return copied;
+}
+
+void
+PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal)
+{
+    unsigned long int enterCount;
+    long int usecTotal;
+    long int usecMax;
+
+    if (isTotal)
+    {
+        enterCount = sect->GetTotalEnterCount();
+        usecTotal = USEC_TOTAL( &(sect->GetTotal()) );
+        usecMax = USEC_TOTAL( &(sect->GetMax()) );
+    }
+    else
+    {
+        enterCount = sect->GetPulseEnterCount();
+        usecTotal = USEC_TOTAL( &(sect->GetPulseTotal()) );
+        usecMax = USEC_TOTAL( &(sect->GetPulseMax()) );
+    }
+
+    /* Only bother to print sections that were active this pulse */
+    if ( enterCount < 1 )
+    {
+        return;
+    }
+
+    os << std::left 
+       << std::setw(20) << sect->GetId() << "|" 
+       << std::right 
+       << std::setw(12) << enterCount << "|"
+       << std::setw(12) << usecTotal << "|";
+
+    if (isTotal)
+    {
+        time_t total_secs = time(NULL) - init_time;
+        double sect_secs = static_cast<double>(usecTotal) / 1000000;
+
+        os << std::setw(12-1) << ( 100 * sect_secs / total_secs) << "%|";
+    }
+    else
+    {
+        os << std::setw(12-1) << ( 100 * static_cast<double>(usecTotal) / USEC_PER_PULSE ) << "%|";
+    }
+    os << std::setw(20-1) << ( 100 * static_cast<double>(usecMax) / USEC_PER_PULSE ) << "%\n\r";
+}
+
+size_t
+PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect)
 {
     if (!out_buf)
     {
@@ -405,51 +485,16 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal)
        
     os << std::setfill('-') << std::setw(80) << " " << std::setfill(' ') << "\n\r" ;
 
-    for ( std::vector<PERF_prof_sect *>::iterator itr = mSections.begin() ;
-          itr != mSections.end();
-          ++itr )
+    if (sect)
     {
-        unsigned long int enterCount;
-        long int usecTotal;
-        long int usecMax;
-
-        if (isTotal)
+        SectOutput(os, sect, isTotal);
+    }
+    else
+    {
+        for ( auto entry : this->mSections )
         {
-            enterCount = (*itr)->GetTotalEnterCount();
-            usecTotal = USEC_TOTAL( &((*itr)->GetTotal()) );
-            usecMax = USEC_TOTAL( &((*itr)->GetMax()) );
+            SectOutput(os, entry.second, isTotal);
         }
-        else
-        {
-            enterCount = (*itr)->GetPulseEnterCount();
-            usecTotal = USEC_TOTAL( &((*itr)->GetPulseTotal()) );
-            usecMax = USEC_TOTAL( &((*itr)->GetPulseMax()) );
-        }
-
-        /* Only bother to print sections that were active this pulse */
-        if ( enterCount < 1 )
-        {
-            continue;
-        }
-
-        os << std::left 
-           << std::setw(20) << (*itr)->GetId() << "|" 
-           << std::right 
-           << std::setw(12) << enterCount << "|"
-           << std::setw(12) << usecTotal << "|";
-
-        if (isTotal)
-        {
-            time_t total_secs = time(NULL) - init_time;
-            double sect_secs = static_cast<double>(usecTotal) / 1000000;
-
-            os << std::setw(12-1) << ( 100 * sect_secs / total_secs) << "%|";
-        }
-        else
-        {
-            os << std::setw(12-1) << ( 100 * static_cast<double>(usecTotal) / USEC_PER_PULSE ) << "%|";
-        }
-        os << std::setw(20-1) << ( 100 * static_cast<double>(usecMax) / USEC_PER_PULSE ) << "%\n\r";
     }
 
     std::string str = os.str();
@@ -463,18 +508,17 @@ PERF_prof_sect *
 PerfProfMgr::NewSection(const char *id)
 {
     PERF_prof_sect *ptr = new PERF_prof_sect( id );
-    mSections.push_back( ptr );
+    mSections[id] = ptr;
+    // mSections.push_back( ptr );
     return ptr;
 }
 
 void
 PerfProfMgr::ResetAll()
 {
-    for ( std::vector<PERF_prof_sect *>::iterator itr = mSections.begin() ;
-          itr != mSections.end() ;
-          ++itr )
+    for ( auto &entry : this->mSections )
     {
-        (*itr)->PulseReset();
+        entry.second->PulseReset();
     }
 }
 
@@ -553,3 +597,7 @@ size_t PERF_prof_repr_total( char *out_buf, size_t n )
     return sProfMgr.ReprTotal(out_buf, n);
 }
 
+size_t PERF_prof_repr_sect( char *out_buf, size_t n, const char *id)
+{
+    return sProfMgr.ReprSect(out_buf, n, id);
+}
