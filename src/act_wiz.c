@@ -3281,9 +3281,10 @@ DEF_DO_FUN(do_perfmon)
     if (arg1[0] == '\0')
     {
         send_to_char( 
-            "perfmon all  - Print all perfmon info.\n\r"
-            "perfmon summ - Print summary,\n\r"
-            "perfmon prof - Print profiling info.\n\r",
+            "perfmon all             - Print all perfmon info.\n\r"
+            "perfmon summ            - Print summary,\n\r"
+            "perfmon prof            - Print profiling info.\n\r"
+            "perfmon sect <section>  - Print profiling info for section.\n\r",
             ch );
         return;
     }
@@ -3312,6 +3313,15 @@ DEF_DO_FUN(do_perfmon)
         char buf[MSL * 12];
 
         PERF_prof_repr_total( buf, sizeof(buf) );
+        page_to_char( buf, ch );
+
+        return;
+    }
+    else if (!str_cmp( arg1, "sect"))
+    {
+        char buf[MSL * 12];
+
+        PERF_prof_repr_sect( buf, sizeof(buf), argument );
         page_to_char( buf, ch );
 
         return;
