@@ -1500,5 +1500,7 @@ void save_other_helps( void )
             fclose( fp );
         }
 
+
+    build_help_index();
     return;
 }

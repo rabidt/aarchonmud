@@ -939,6 +939,8 @@ void boot_db( void )
         rand_test(1000);
     }
 
+    build_help_index();
+
     fBootDb = FALSE;
 
     // start checking for memory leaks now that we're ready
