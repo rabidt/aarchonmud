@@ -12,6 +12,7 @@ void PERF_prof_sect_exit(struct PERF_prof_sect *ptr);
 void PERF_prof_reset( void );
 size_t PERF_prof_repr_pulse( char *out_buf, size_t n );
 size_t PERF_prof_repr_total( char *out_buf, size_t n );
+size_t PERF_prof_repr_sect( char *out_buf, size_t n, const char *id );
 
 #define PERF_PROF_ENTER( sect, sect_descr ) \
     static struct PERF_prof_sect * sect = NULL; \
