@@ -12,13 +12,13 @@ PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 MODE_FLAGS =
 
 BASE_WARN = -Wall -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Winit-self -Wlogical-op \
-	-Wundef -Wno-unused-parameter -Wshadow -Wsign-conversion -Waggregate-return \
+	-Wundef -Wno-unused-parameter -Wshadow -Wsign-conversion \
 	-Wpointer-arith -Wuninitialized 
 
 
 C_WARN = $(BASE_WARN) \
 	-Wstrict-prototypes -Wold-style-definition -Wold-style-declaration \
-	-Wno-missing-field-initializers 
+	-Wno-missing-field-initializers -Waggregate-return
 	
 ifeq ($(C_WERROR),1)
 	C_WARN += -Werror

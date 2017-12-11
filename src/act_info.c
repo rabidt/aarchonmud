@@ -2550,7 +2550,21 @@ DEF_DO_FUN(do_help)
 	return;
 
     if ( argument[0] == '\0' )
+    {
         argument = "summary";
+    }
+    
+    // check for 'help search ...'
+    {
+        char arg1[MIL];
+        const char *search_arg = one_argument(argument, arg1);
+
+        if (!strcmp(arg1, "search"))
+        {
+            help_search(ch, search_arg);
+            return;
+        }
+    }
     
     output = new_buf();
 
