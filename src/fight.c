@@ -231,7 +231,12 @@ static void gangbang( CHAR_DATA *victim )
         {
             if ( stop_attack(ch, victim) )
                 return;
+            act_gag("You gang up on $N.", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
+            act_gag("$n gangs up on you.", ch, NULL, victim, TO_VICT, GAG_ABILITY);
+            act_gag("$n gangs up on $N.", ch, NULL, victim, TO_NOTVICT, GAG_ABILITY);
             one_hit(ch, victim, TYPE_UNDEFINED, FALSE);
+            if ( per_chance(offhand_attack_chance(ch, TRUE) / 2) )
+                one_hit(ch, victim, TYPE_UNDEFINED, TRUE);
         }
     }
 }
@@ -2401,7 +2406,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
-            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
+            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
         }
@@ -2760,8 +2765,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             af.modifier = ch->level;
             af.bitvector = 0;
             affect_join(victim, &af);
-            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
-            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_WFLAG);
+            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_ABILITY);
+            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_ABILITY);
         }
     }
 
@@ -2837,7 +2842,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
-        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
+        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
         one_hit(ch, victim, dt, secondary);
     }
 
@@ -7193,7 +7198,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             || sn == gsn_phantasmal_image )
         gag_type = GAG_AURA;
         if ( sn == gsn_dark_reaping )
-            gag_type = GAG_WFLAG;
+            gag_type = GAG_ABILITY;
     }
 
     if (ch == victim)
