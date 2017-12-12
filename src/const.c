@@ -7262,6 +7262,17 @@ struct  skill_type
     },
 
     {
+    "polar bear",
+    { 102, 102, 102, 102, 102, 102, 102, 102, 102,  80, 102, 102, 102, 102, 102, 102 },
+    {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
+    { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
+    STAT_STR, STAT_CON, STAT_VIT,
+        spell_null,             TAR_IGNORE,             POS_FIGHTING,
+    &gsn_polar_bear, 0, 0, 0, DUR_NONE,
+        "",     "",   ""
+    },
+
+    {
     "porcupine",  
     { 102, 102, 102, 102, 102, 102, 102, 102, 84, 77, 102, 102, 102, 102, 102, 102 },
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 4, 1,
@@ -8821,7 +8832,7 @@ struct group_type group_table[MAX_GROUP] =
 
 	{
 	"three seas", { -1, -1, -1, -1, -1, 10, -1, -1, 8, 8, -1, -1, -1, -1, -1 },
-	{ "eel", "toad", "tortoise", "serpent"  }
+	{ "eel", "toad", "tortoise", "serpent", "polar bear" }
 	},
 
 	{
@@ -8963,7 +8974,7 @@ const struct mastery_group_type mastery_group_table[] =
     { "stances", 2,
         { "finesse", "rage", "retribution", "blade dance",
         "dragon", "phoenix", "unicorn", "dimensional blade", "elemental blade",
-        "eel", "toad", "tortoise", "serpent",
+        "eel", "toad", "tortoise", "serpent", "polar bear",
         "boa", "porcupine", "scorpion",
         "shadowclaw", "shadowessence", "shadowsoul", "shadowwalk",
         "bear", "eagle", "lion", "rhino", "tiger",

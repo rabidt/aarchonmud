@@ -1563,6 +1563,7 @@ void multi_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
     if  (  (!IS_AFFECTED(ch,AFF_GUARD) || number_range(0,1))
          && (ch->stance!=STANCE_FIREWITCHS_SEANCE || number_range(0,1))
          && ch->stance!=STANCE_TORTOISE 
+         && ch->stance!=STANCE_POLAR_BEAR
          && ch->stance!=STANCE_AVERSION )
         one_hit( ch, victim, dt, FALSE);
     else
@@ -3893,7 +3894,8 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
                 dam += dam / 4;
             else if ( stance == STANCE_AVERSION )
                 dam = dam * 3/4;
-            else if ( stance == STANCE_BLOODBATH )
+            else if ( stance == STANCE_BLOODBATH
+                    || stance == STANCE_POLAR_BEAR )
                 dam += (20 + dam) / 2;
             else if ( stance == STANCE_KAMIKAZE )
                 dam += (18 + dam) / 3;
