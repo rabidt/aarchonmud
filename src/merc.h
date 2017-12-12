@@ -2328,6 +2328,7 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_SUNBURN    (H)
 #define GAG_DAMAGE     (I)
 #define GAG_EFFECT     (J)
+#define GAG_ABILITY    (K)
 
 /* channel definitions for log_chan/playback */
 extern sh_int sn_gossip;
