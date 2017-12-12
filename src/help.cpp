@@ -111,7 +111,14 @@ public:
     HelpIndex operator=(const HelpIndex &) = delete;
 
     void BuildIndex();
-    void SearchWord(const char * word, std::vector<HelpIndexData> &result);
+
+    /* word is the word to search for.
+       result is the actual result.
+       maxResult limits size of result.
+
+       return value is the total number of results found (may be larger than result.size())
+    */
+    size_t SearchWord(const char * word, std::vector<HelpIndexData> &result, size_t maxResult);
 
 private:
 
@@ -199,7 +206,7 @@ void HelpIndex::BuildIndex()
 }
 
 
-static void checkNode(std::ifstream &f, long maxOff, const char *chars, std::vector<HelpIndexData> &result)
+static size_t checkNode(std::ifstream &f, long maxOff, const char *chars, std::vector<HelpIndexData> &result, size_t maxResult)
 {
     // node is current node (root node for first call)
     // chars is the remaining search string, full string for first call
@@ -211,14 +218,14 @@ static void checkNode(std::ifstream &f, long maxOff, const char *chars, std::vec
         f.seekg( sizeof(DiskIndexNode), std::ios_base::cur );
 
         size_t datasCnt;
-
         f.read(reinterpret_cast<char *>(&datasCnt), sizeof(size_t));
 
-        std::vector<DiskIndexData> datas(datasCnt);
+        size_t resultCnt = UMIN(datasCnt, maxResult);
+        std::vector<DiskIndexData> datas(resultCnt);
 
         f.read(
             reinterpret_cast<char *>(&(datas[0])),
-            static_cast<long>(datasCnt * sizeof(datas[0])));
+            static_cast<long>(resultCnt * sizeof(datas[0])));
 
         result.clear();
 
@@ -235,14 +242,13 @@ static void checkNode(std::ifstream &f, long maxOff, const char *chars, std::vec
 
             result.emplace_back(kwBuf, lineBuf);
         }
-        return; 
+        return datasCnt; 
     }
 
     if (c < 'A' || c > 'z' || (c > 'Z' && c < 'a'))
     {
         // skip non alpha chars in search string
-        checkNode(f, maxOff, chars + 1, result);
-        return;
+        return checkNode(f, maxOff, chars + 1, result, maxResult);
     }
 
     c = LOWER(c);
@@ -257,17 +263,16 @@ static void checkNode(std::ifstream &f, long maxOff, const char *chars, std::vec
     if (nextOff == 0)
     {
         // no match
-        return;
+        return 0;
     }
     else
     {
         f.seekg(nextOff);
-        checkNode(f, maxOff, chars + 1, result);
-        return;
+        return checkNode(f, maxOff, chars + 1, result, maxResult);
     }
 }
 
-void HelpIndex::SearchWord(const char *word, std::vector<HelpIndexData> &result)
+size_t HelpIndex::SearchWord(const char *word, std::vector<HelpIndexData> &result, size_t maxResult)
 {
     std::ifstream indexFile;
     indexFile.open("HelpIndex.bin", std::ios::binary | std::ios::ate);
@@ -278,7 +283,8 @@ void HelpIndex::SearchWord(const char *word, std::vector<HelpIndexData> &result)
     indexFile.read(reinterpret_cast<char *>(&meta), sizeof(meta));
 
     indexFile.seekg(meta.offFirstNode);
-    checkNode(indexFile, maxOff, word, result);
+    
+    return checkNode(indexFile, maxOff, word, result, maxResult);
 }
 
 static HelpIndex sIndex;
@@ -294,19 +300,35 @@ void help_search(CHAR_DATA *ch, const char *argument)
 {
     if (argument[0] == '\0')
     {
-        ptc(ch, "Must provide a search argument.\n\r");
+        ptc(ch, "Must provide a word to search for.\n\r");
         return;
     }
-    std::vector<HelpIndexData> result;
-    sIndex.SearchWord(argument, result);
 
-    if (result.size() == 0)
+    char word[MIL];
+    argument = one_argument(argument, word);
+
+    if (argument[0] != '\0')
+    {
+        ptc(ch, "You can only search for a single word.\n\r");
+        return;
+    }
+
+    std::vector<HelpIndexData> result;
+    size_t resultCnt = sIndex.SearchWord(word, result, 100);
+
+    if (resultCnt == 0)
     {
         send_to_char("No results found.\n\r", ch);
     }
     else
     {
-        ptc(ch, "%d results found.\n\r", result.size());
+        ptc(ch, "%d results found. ", resultCnt);
+        if (resultCnt > result.size())
+        {
+            ptc(ch, "Showing first %d.", result.size());
+        }
+        send_to_char("\n\r", ch);
+
         for (auto data : result)
         {
             ptc(ch, "%-20s - %s{x\n\r", data.keyword.c_str(), data.lineResult.c_str());
