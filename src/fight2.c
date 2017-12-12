@@ -268,6 +268,8 @@ void bash_effect( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 
     /* deal damage */
     int dam = martial_damage(ch, victim, sn) * power / 2;
+    if ( sn == gsn_charge ) // charge scales with level to compensate for "kill" scaling
+        dam = dam * (100 + ch->level) / 100;
     if ( sn == gsn_bash && IS_SET(ch->parts, PART_TUSKS) )
         full_dam(ch, victim, dam * 3/2, sn, DAM_PIERCE, TRUE);
     else
@@ -3829,7 +3831,8 @@ void do_quivering_palm( CHAR_DATA *ch, char *argument, void *vo)
         return;
     } 
         
-    dam = martial_damage(ch, victim, gsn_quivering_palm) * 2;
+    // damage factor scales with level to keep it competative with "kill"
+    dam = martial_damage(ch, victim, gsn_quivering_palm) * (100 + ch->level) / 33;
 
     if ( !saves_physical(victim, ch, ch->level * 3/2, DAM_BASH) )
     {
