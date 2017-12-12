@@ -44,6 +44,9 @@
 
 extern WAR_DATA war;
 
+// track whether last attack made was parried
+bool last_attack_parried = FALSE;
+
 void reverse_char_list( void );
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
@@ -2364,10 +2367,12 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     
     if ( dt != gsn_snipe && !is_retribute && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-        // riposte - 25% chance regardless of hit or miss
-        // blade barrier stance doubles that
-        int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-        if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50))
+        // riposte - 25% chance regardless of hit or miss, tripple on parry
+        int riposte = get_skill(victim, gsn_riposte) * (last_attack_parried ? 3 : 1);
+        // blade barrier stance grants 25% flat bonus
+        if ( victim->stance == STANCE_BLADE_BARRIER )
+            riposte += 100;
+        if ( riposte > 0 && number_range(1,400) <= riposte )
         {
             is_retribute = TRUE;
             one_hit(victim, ch, gsn_riposte, FALSE);
@@ -2450,6 +2455,9 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
 
+    // reset per-attack globals
+    last_attack_parried = FALSE;
+    
     if ( !can_attack(ch) )
         return FALSE;
     
@@ -5473,6 +5481,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N parries your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N parries $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+    last_attack_parried = TRUE;
 
     /* whips can disarm or get disarmed on successfull parry */
     if ( ch_weapon == gsn_whip && number_bits(5) == 0 )
