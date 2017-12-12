@@ -2594,6 +2594,9 @@ DEF_DO_FUN(do_sneak)
 int get_hips_skill( CHAR_DATA *ch )
 {
     int skill = get_skill(ch, gsn_hips);
+    // scales gradually to allow for dual subclassing
+    if ( skill > 0 )
+        skill = 50 + skill / 2;
     if ( room_is_dim(ch->in_room) || IS_AFFECTED(ch, AFF_DARKNESS) )
         return skill;
     // still possible, but with penalty
