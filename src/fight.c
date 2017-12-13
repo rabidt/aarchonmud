@@ -2332,7 +2332,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     
     if ( hit && has_subclass(ch, subclass_berserker) )
         gain_move(ch, dice(1, 4));
-    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(9) == 69 )
+    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(8) == 69 )
     {
         AFFECT_DATA af;
         af.where     = TO_VULN;
@@ -2343,9 +2343,9 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         af.modifier  = 0;
         af.bitvector = VULN_PIERCE;
         affect_join(victim, &af);
-        act_gag("{RYou pierce a hole into the armor of $N!{x", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
-        act_gag("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT, GAG_EFFECT);
-        act_gag("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
+        act("{RYou pierce a hole into the armor of $N!{x", ch, NULL, victim, TO_CHAR);
+        act("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT);
+        act("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT);
     }
     if ( has_subclass(ch, subclass_terminator) && wield && wield->value[0] == WEAPON_GUN )
     {
