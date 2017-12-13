@@ -2568,7 +2568,7 @@ DEF_DO_FUN(do_god)
 
             if ( victim == NULL
                 || IS_NPC(victim)
-                || IS_IMMORTAL(victim)
+                || (IS_IMMORTAL(victim) && victim != ch)
                 || is_in_remort(victim)
                 || (IS_SET(victim->act,PLR_WAR) && !in_religion_war(victim)) )
                 continue;
@@ -3656,6 +3656,14 @@ DEF_DO_FUN( do_channel )
         send_to_char("You have no divine energy to channel.\n\r", ch);
         return;
     }
+
+    int power = -paf->modifier;
+    // minimum to limit "just-in-time" usage (e.g. just for quest completion)
+    if ( power < 20 )
+    {
+        send_to_char("You have insufficient divine energy to channel.\n\r", ch);
+        return;
+    }
     
     if ( is_affected(ch, gsn_god_bless) )
     {
@@ -3682,14 +3690,9 @@ DEF_DO_FUN( do_channel )
         return;
     }
     
-    int chance = -paf->modifier;
     WAIT_STATE(ch, PULSE_VIOLENCE);
     affect_strip(ch, gsn_divine_channel);
     
     const char *god_name = get_god_name(ch);
-    
-    if ( per_chance(chance) )
-        (*god_table[i].fun)(NULL, ch, god_name, GOD_FUNC_DEFAULT_DURATION);
-    else
-        ptc(ch, "%s doesn't answer your call.\n\r", god_name);
+    (*god_table[i].fun)(NULL, ch, god_name, power);
 }
