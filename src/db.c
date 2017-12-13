@@ -4417,12 +4417,14 @@ void remember_str_dup(const char *str)
         str_dup_hash[key] = str;
     STR_DUP_STRINGS += 1;
     // auto-dump recently duplicated strings when memory leak is suspected
+    /*
     if (HIGHEST_STR_DUP_STRINGS < STR_DUP_STRINGS)
     {
         HIGHEST_STR_DUP_STRINGS = STR_DUP_STRINGS;
         if (HIGHEST_STR_DUP_STRINGS % 1000 == 0 && str_dup_ready)
             dump_str_dup();
     }
+    */
     return;
 }
 
