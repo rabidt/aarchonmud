@@ -1149,7 +1149,8 @@ bool check_concentration( CHAR_DATA *ch )
     if ( !ch->in_room )
         return FALSE;
     
-    if ( check_skill(ch, gsn_combat_casting) )
+    int cc_skill = get_skill(ch, gsn_combat_casting);
+    if ( cc_skill && (per_chance(cc_skill) || per_chance(50)) )
         return TRUE;
     
     ch_roll = number_range(0, concentration_power(ch));

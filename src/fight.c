@@ -44,6 +44,9 @@
 
 extern WAR_DATA war;
 
+// track whether last attack made was parried
+bool last_attack_parried = FALSE;
+
 void reverse_char_list( void );
 void check_rescue( CHAR_DATA *ch );
 void check_jump_up( CHAR_DATA *ch );
@@ -228,7 +231,12 @@ static void gangbang( CHAR_DATA *victim )
         {
             if ( stop_attack(ch, victim) )
                 return;
+            act_gag("You gang up on $N.", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
+            act_gag("$n gangs up on you.", ch, NULL, victim, TO_VICT, GAG_ABILITY);
+            act_gag("$n gangs up on $N.", ch, NULL, victim, TO_NOTVICT, GAG_ABILITY);
             one_hit(ch, victim, TYPE_UNDEFINED, FALSE);
+            if ( per_chance(offhand_attack_chance(ch, TRUE) / 2) )
+                one_hit(ch, victim, TYPE_UNDEFINED, TRUE);
         }
     }
 }
@@ -2324,7 +2332,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     
     if ( hit && has_subclass(ch, subclass_berserker) )
         gain_move(ch, dice(1, 4));
-    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(9) == 69 )
+    if ( hit && has_subclass(ch, subclass_slayer) && number_bits(8) == 69 )
     {
         AFFECT_DATA af;
         af.where     = TO_VULN;
@@ -2335,9 +2343,9 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         af.modifier  = 0;
         af.bitvector = VULN_PIERCE;
         affect_join(victim, &af);
-        act_gag("{RYou pierce a hole into the armor of $N!{x", ch, NULL, victim, TO_CHAR, GAG_EFFECT);
-        act_gag("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT, GAG_EFFECT);
-        act_gag("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT, GAG_EFFECT);
+        act("{RYou pierce a hole into the armor of $N!{x", ch, NULL, victim, TO_CHAR);
+        act("{R$n pierces a hole into your armor!{x", ch, NULL, victim, TO_VICT);
+        act("{R$n pierces a hole into the armor of $N!{x", ch, NULL, victim, TO_NOTVICT);
     }
     if ( has_subclass(ch, subclass_terminator) && wield && wield->value[0] == WEAPON_GUN )
     {
@@ -2364,10 +2372,12 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
     
     if ( dt != gsn_snipe && !is_retribute && !IS_AFFECTED(victim, AFF_FLEE) )
     {
-        // riposte - 25% chance regardless of hit or miss
-        // blade barrier stance doubles that
-        int riposte = get_skill(victim, gsn_riposte) + (victim->stance == STANCE_BLADE_BARRIER ? 100 : 0);
-        if ( riposte > 0 && per_chance(riposte / 2) && per_chance(50))
+        // riposte - 25% chance regardless of hit or miss, tripple on parry
+        int riposte = get_skill(victim, gsn_riposte) * (last_attack_parried ? 3 : 1);
+        // blade barrier stance grants 25% flat bonus
+        if ( victim->stance == STANCE_BLADE_BARRIER )
+            riposte += 100;
+        if ( riposte > 0 && number_range(1,400) <= riposte )
         {
             is_retribute = TRUE;
             one_hit(victim, ch, gsn_riposte, FALSE);
@@ -2396,7 +2406,7 @@ void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool seco
         bool bullet_rain = ch->stance == STANCE_BULLET_RAIN;
         if ( (rapid_fire && number_bits(3) == 0) || (bullet_rain && per_chance(33)) )
         {
-            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
+            act_gag("You rapidly fire another shot at $N!", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
             one_hit(ch, victim, dt, secondary);
             CHECK_RETURN( ch, victim );
         }
@@ -2450,6 +2460,9 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     int dam, dam_type, sn, skill, offence_cost = 0;
     bool result, arrow_used = FALSE, offence = FALSE;
 
+    // reset per-attack globals
+    last_attack_parried = FALSE;
+    
     if ( !can_attack(ch) )
         return FALSE;
     
@@ -2752,8 +2765,8 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             af.modifier = ch->level;
             af.bitvector = 0;
             affect_join(victim, &af);
-            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_WFLAG);
-            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_WFLAG);
+            act_gag("$n's armor is pierced by $p.", victim, wield, NULL, TO_ROOM, GAG_ABILITY);
+            act_gag("Your armor is pierced by $p.", victim, wield, NULL, TO_CHAR, GAG_ABILITY);
         }
     }
 
@@ -2829,7 +2842,7 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
     /* kung fu mastery */
     if ( !wield && is_normal_hit(dt) && per_chance(mastery_bonus(ch, gsn_kung_fu, 12, 20)) )
     {
-        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_WFLAG);
+        act_gag("You follow up with a flurry of blows!", ch, NULL, victim, TO_CHAR, GAG_ABILITY);
         one_hit(ch, victim, dt, secondary);
     }
 
@@ -5473,6 +5486,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
     act_gag( "You parry $n's attack.",  ch, NULL, victim, TO_VICT, GAG_MISS );
     act_gag( "$N parries your attack.", ch, NULL, victim, TO_CHAR, GAG_MISS );
     act_gag( "$N parries $n's attack.", ch, NULL, victim, TO_NOTVICT, GAG_MISS );
+    last_attack_parried = TRUE;
 
     /* whips can disarm or get disarmed on successfull parry */
     if ( ch_weapon == gsn_whip && number_bits(5) == 0 )
@@ -7184,7 +7198,7 @@ void dam_message( CHAR_DATA *ch, CHAR_DATA *victim,int dam,int dt,bool immune )
             || sn == gsn_phantasmal_image )
         gag_type = GAG_AURA;
         if ( sn == gsn_dark_reaping )
-            gag_type = GAG_WFLAG;
+            gag_type = GAG_ABILITY;
     }
 
     if (ch == victim)

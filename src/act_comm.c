@@ -3361,6 +3361,7 @@ DEF_DO_FUN(do_gag)
         print_gag("sunburn", GAG_SUNBURN, ch);
         print_gag(" damage", GAG_DAMAGE, ch);
         print_gag(" effect", GAG_EFFECT, ch);
+        print_gag("ability", GAG_ABILITY, ch);
         return;
     }
     
@@ -3384,9 +3385,11 @@ DEF_DO_FUN(do_gag)
         return;
     if (check_gag_arg(argument, "effect", GAG_EFFECT, ch))
         return;
+    if (check_gag_arg(argument, "ability", GAG_ABILITY, ch))
+        return;
     
     send_to_char("Syntax: gag\n\r", ch);
-    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn|damage|effect]\n\r", ch);
+    send_to_char("Syntax: gag [miss|wflag|fade|bleed|immune|equip|sunburn|damage|effect|ability]\n\r", ch);
 }
 
 DEF_DO_FUN(do_try)
