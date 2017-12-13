@@ -2291,7 +2291,7 @@ const struct subclass_type subclass_table[] =
         { "estimate", "exploit weakness", "dagger" },
         { 10, 30, 105 },
         { 100, 100, 75 },
-        "lethal - 0.2% chance to inflict pierce vulnerability on hit"
+        "lethal - 0.4% chance to inflict pierce vulnerability on hit"
     },
     {
         "shaolin", NINJA|MONK,
