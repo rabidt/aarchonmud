@@ -1166,18 +1166,18 @@ void char_update( void )
 
         /* divine channel */
         int channel_cap = get_subclass_skill(ch, gsn_divine_channel);
-        if ( channel_cap && !is_affected(ch, gsn_god_bless) && check_skill(ch, gsn_divine_channel) )
+        if ( channel_cap && !is_affected(ch, gsn_god_bless) )
         {
-            bool double_increase = has_subclass(ch, gsn_divine_channel)
-                && is_affected(ch, gsn_prayer)
-                && per_chance(mercy_chance(ch));
+            int gain = get_skill(ch, gsn_divine_channel);
+            if ( has_subclass(ch, subclass_chosen) && is_affected(ch, gsn_prayer) )
+                gain += gain * mercy_chance(ch) / 100;
             AFFECT_DATA af;
             af.where    = TO_AFFECTS;
             af.type     = gsn_divine_channel;
             af.level    = ch->level;
             af.location = APPLY_SAVES;
             af.duration = -1;
-            af.modifier = double_increase ? -2 : -1;
+            af.modifier = -rand_div(gain, 100);
             af.bitvector = 0;
             affect_join_capped(ch, &af, -channel_cap);
         }
