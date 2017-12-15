@@ -2540,6 +2540,81 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
     return firstHelp;
 }
 
+static void output_help(BUFFER *output, const char *text)
+{
+    char char_out[2] = {'\0', '\0'};
+    const char *tag_cont_start = NULL;
+
+    char tag_out[MSL];
+
+    bool in_tag = false;
+
+    const char *c = text;
+
+    while (TRUE)
+    {
+        if (in_tag)
+        {
+            if (*c == '<' && *(c+1) == '/' && *(c+2) == 'h' && *(c+3) == '>')
+            {
+                if (!tag_cont_start)
+                {
+                    bugf("tag_cont_start NULL");
+                    break;
+                }
+                
+                int cont_length = c - tag_cont_start;
+                snprintf(tag_out, sizeof(tag_out),
+                    "\t<send href=\"help %.*s\">%.*s\t</send>",
+                    cont_length,
+                    tag_cont_start,
+                    cont_length,
+                    tag_cont_start);
+                add_buf(output, tag_out);
+
+                in_tag = FALSE;
+                c += 4;
+                tag_cont_start = NULL;
+            }
+            else if (*c == '\0' || *c == '\n')
+            {
+                // Something's wrong...just send it all out
+                snprintf(tag_out, sizeof(tag_out),
+                    "%.*s", (int)(c - tag_cont_start), tag_cont_start);
+                add_buf(output, tag_out);
+
+                in_tag = FALSE;
+                // no pointer increment
+                tag_cont_start = NULL;
+            }
+            else
+            {
+                c += 1;
+            }
+        }
+        else
+        {
+            if (*c == '\0')
+            {
+                break;
+            }
+            if (*c == '<' && *(c+1) == 'h' && *(c+2) == '>')
+            {
+                in_tag = TRUE;
+                c += 3;
+                tag_cont_start = c;
+            }
+            else
+            {
+                char_out[0] = *c;
+                add_buf(output, char_out);
+                c += 1;
+            }
+        }
+    }
+}
+
+
 DEF_DO_FUN(do_help)
 {
     HELP_DATA *firstHelp;
@@ -2582,9 +2657,9 @@ DEF_DO_FUN(do_help)
 	 * Strip leading '.' to allow initial blanks.
 	 */
 	if ( firstHelp->text[0] == '.' )
-	    add_buf(output,firstHelp->text+1);
+	    output_help(output,firstHelp->text+1);
 	else
-	    add_buf(output,firstHelp->text);
+	    output_help(output,firstHelp->text);
     }
 
     page_to_char(buf_string(output),ch);
