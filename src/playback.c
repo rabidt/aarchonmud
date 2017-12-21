@@ -211,7 +211,7 @@ DEF_DO_FUN(do_playback)
     
     if ( arg[0] == '\0')
     {
-	send_to_char("playback [public|tell|gtell|clan", ch);
+	send_to_char("playback [public|tell|gtell|clan|info", ch);
 	if ( immortal )
 		send_to_char("|imm",ch);
 	if ( savant )
@@ -240,7 +240,11 @@ DEF_DO_FUN(do_playback)
 	{
 		phistory=ch->pcdata->clan_history;
 	}
-	else if ( immortal  && arg[0] == 'i' )
+    else if ( arg[0] == 'i' && arg[1] == 'n' )
+    {
+        phistory=ch->pcdata->info_history;
+    }
+	else if ( immortal && arg[0] == 'i' )
 	{
 		history=&immtalk_history;
 	}
@@ -545,4 +549,3 @@ void load_comm_histories( void )
         return;
     }
 }
-
