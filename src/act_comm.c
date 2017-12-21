@@ -645,6 +645,11 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
                 act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
                 close_chat_tag( victim );
             }
+
+            char to_buf[ MAX_STRING_LENGTH*2 ];
+            act_new_gag( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING, 0, FALSE, 
+                to_buf, sizeof(to_buf));
+            log_pers(victim->pcdata->info_history, buf);
         }
     }
 }

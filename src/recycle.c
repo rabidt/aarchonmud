@@ -480,9 +480,10 @@ PC_DATA *new_pcdata(void)
     pcdata->gender_kills            = 0;
     pcdata->gender_lost             = 0;
     pcdata->gender_won              = 0;
-    pcdata->gtell_history	    = pers_history_new();
-    pcdata->tell_history	    = pers_history_new();
-    pcdata->clan_history	    = pers_history_new();
+    pcdata->gtell_history           = pers_history_new();
+    pcdata->tell_history            = pers_history_new();
+    pcdata->clan_history            = pers_history_new();
+    pcdata->info_history            = pers_history_new();
     pcdata->explored = (EXPLORE_DATA *)calloc(1, sizeof(*(pcdata->explored) ) ); //Allocate explored data
     
     pcdata->god_name = &str_empty[0];
@@ -564,6 +565,7 @@ void free_pcdata(PC_DATA *pcdata)
     pers_history_free(pcdata->gtell_history);
     pers_history_free(pcdata->tell_history);
     pers_history_free(pcdata->clan_history);
+    pers_history_free(pcdata->info_history);
 
     CRIME_DATA *crime, *crime_next;
     for ( crime=pcdata->crimes; crime ; crime=crime_next )

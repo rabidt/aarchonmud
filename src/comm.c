@@ -2121,18 +2121,18 @@ void act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2,
 void act_new( const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, int min_pos )
 {
-    act_new_gag(format, ch, arg1, arg2, type, min_pos, 0, FALSE);
+    act_new_gag(format, ch, arg1, arg2, type, min_pos, 0, FALSE, NULL, 0);
 }
 
 void act_gag(const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, long gag_type)
 {
-    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE);
+    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE, NULL, 0);
 }
 
 void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
-    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE);
+    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE, NULL, 0);
 }
 
 
@@ -2140,7 +2140,7 @@ void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *a
  */
 void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, int min_pos, long gag_type,
-        bool see_only )
+        bool see_only, char *to_buf, size_t to_buf_sz )
 {
     static char * const he_she  [] = { "it",  "he",  "she" };
     static char * const him_her [] = { "it",  "him", "her" };
@@ -2160,7 +2160,6 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
     const  char    *str;
     const char     *i = NULL;
     char       *point;
-    char       *pbuff;
     char       buffer[ MAX_STRING_LENGTH*2 ];
     char       buf[ MAX_STRING_LENGTH   ];
     char       fname[ MAX_INPUT_LENGTH  ];
@@ -2313,8 +2312,15 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         *point++ = '\r';
         *point   = '\0';  
         buf[0]   = UPPER(buf[0]);
-        pbuff    = buffer;
-        colourconv( pbuff, buf, to );
+
+        if (to_buf)
+        {
+            // TODO: fix colourconv to honor to_buf_sz
+            colourconv( to_buf, buf, to );
+            return;
+        }
+
+        colourconv( buffer, buf, to );
         if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
             write_to_buffer( to->desc, buffer, 0 );
