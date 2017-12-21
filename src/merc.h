@@ -2648,10 +2648,11 @@ struct  pc_data
 
     BOSSREC *boss_achievements;
 
-	PERS_HISTORY *gtell_history;
-	PERS_HISTORY *tell_history;
-	PERS_HISTORY *clan_history;
-	
+    PERS_HISTORY *gtell_history;
+    PERS_HISTORY *tell_history;
+    PERS_HISTORY *clan_history;
+    PERS_HISTORY *info_history;
+
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
     sh_int	    storage_boxes; /*Number of storage boxes the player has*/
@@ -4617,7 +4618,8 @@ void    act_gag     args( ( const char *format, CHAR_DATA *ch,
 				long gag_type) );
 void    act_new_gag args( ( const char *format, CHAR_DATA *ch, 
 				const void *arg1, const void *arg2, int type,
-				int min_pos, long gag_type, bool see_only) );
+				int min_pos, long gag_type, bool see_only,
+        char *to_buf, size_t to_buf_sz ) );
 void    recho( const char *msg, ROOM_INDEX_DATA *room );
 int     write_to_descriptor args( ( int desc, char *txt, int length, bool SGA ) );
 void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
