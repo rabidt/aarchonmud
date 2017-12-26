@@ -2756,8 +2756,8 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             if( !is_safe_spell(ch,vch,TRUE) && vch != ch )
                 count++;
 
-        // -15% each arc means 385% damage total => good for 2 or 3 targets
-        per -= 15;
+        // -10% each arc means 550% damage total => good for 2-5 targets
+        per -= 10;
 
         if ( saves_spell(victim, ch, level, dam_type) )
             curr_dam /= 2;
@@ -2773,7 +2773,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             send_to_char("The chain of magical energy arcs back to you!\n\r",ch);
             act("$n's spell arcs back to $mself!",ch,NULL,NULL,TO_ROOM);
             curr_dam = dam * per/100;
-            per -= 15;
+            per -= 10;
             if ( saves_spell(ch, ch, level, dam_type) )
                 curr_dam /= 2;
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
