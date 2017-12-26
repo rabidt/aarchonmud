@@ -6068,15 +6068,33 @@ DEF_DO_FUN(do_eqhelp)
         printf_to_char(ch,"{yYou are wearing a shield without the shield block skill.{x\n\r");
 
     
-    /* Or focus ... */
-
-    if (get_skill(ch,gsn_focus) < 1 && get_eq_char(ch,WEAR_HOLD) != NULL)
-        printf_to_char(ch,"{yYou are using a held item without the focus skill.{x\n\r");
-
-    /* Held item provides no focus if shield is worn
-    if ( get_eq_char(ch,WEAR_SHIELD) != NULL && get_eq_char(ch,WEAR_HOLD) != NULL )
-        printf_to_char(ch, "{yYou are holding an item while wearing a shield.{x\n\r");
-    */
+    /* Held items ... */
+    if  ( (obj = get_eq_char(ch, WEAR_HOLD)) )
+    {
+        switch ( obj->item_type )
+        {
+            case ITEM_ARROWS:
+                if ( get_weapon_sn(ch) != gsn_bow )
+                    ptc(ch, "You are holding arrows without a bow.\n\r");
+                break;
+            case ITEM_INSTRUMENT:
+                if ( !get_skill(ch, gsn_instrument) )
+                    ptc(ch, "You are holding an instrument without the instrument skill.\n\r");
+                break;
+            case ITEM_WAND:
+                if ( !get_skill(ch, gsn_wands) && !get_skill(ch, gsn_focus) )
+                    ptc(ch, "You are holding a wand without the wands skill.\n\r");
+                break;
+            case ITEM_STAFF:
+                if ( !get_skill(ch, gsn_staves) && !get_skill(ch, gsn_focus) )
+                    ptc(ch, "You are holding a staff without the staves skill.\n\r");
+                break;
+            default:
+                if ( !get_skill(ch, gsn_focus) )
+                    ptc(ch, "You are using a held item without the focus skill.\n\r");
+                break;
+        }
+    }
     
     /* Wrist shield too ... */
 
