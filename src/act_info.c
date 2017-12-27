@@ -6077,10 +6077,6 @@ DEF_DO_FUN(do_eqhelp)
                 if ( get_weapon_sn(ch) != gsn_bow )
                     ptc(ch, "You are holding arrows without a bow.\n\r");
                 break;
-            case ITEM_INSTRUMENT:
-                if ( !get_skill(ch, gsn_instrument) )
-                    ptc(ch, "You are holding an instrument without the instrument skill.\n\r");
-                break;
             case ITEM_WAND:
                 if ( !get_skill(ch, gsn_wands) && !get_skill(ch, gsn_focus) )
                     ptc(ch, "You are holding a wand without the wands skill.\n\r");
@@ -6090,7 +6086,12 @@ DEF_DO_FUN(do_eqhelp)
                     ptc(ch, "You are holding a staff without the staves skill.\n\r");
                 break;
             default:
-                if ( !get_skill(ch, gsn_focus) )
+                if ( IS_OBJ_STAT(obj, ITEM_INSTRUMENT) )
+                {
+                    if ( !get_skill(ch, gsn_instrument) )
+                        ptc(ch, "You are holding an instrument without the instrument skill.\n\r");
+                }
+                else if ( !get_skill(ch, gsn_focus) )
                     ptc(ch, "You are using a held item without the focus skill.\n\r");
                 break;
         }
