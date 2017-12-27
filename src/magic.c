@@ -1796,6 +1796,26 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     {
         reduce_mana(ch, mana);
 
+        // held wand/staff with matching spell
+        OBJ_DATA *staff = get_eq_char(ch, WEAR_HOLD);
+        if ( !was_wish_cast && staff )
+        {
+            int staff_sn = staff->item_type == ITEM_STAFF ? gsn_staves : staff->item_type == ITEM_WAND ? gsn_wands : 0;
+            if ( staff_sn && staff->value[3] == sn && staff->value[2] > 0 )
+            {
+                if ( check_skill(ch, staff_sn) )
+                {
+                    staff->value[2]--;
+                    int bonus = 5 + staff->value[0] / 4;
+                    level = URANGE(1, level + bonus, level_cap);
+                    act("You draw on $p to empower your spell.", ch, staff, NULL, TO_CHAR);
+                    check_improve(ch, staff_sn, TRUE, 4);
+                    if ( staff->value[2] == 0 )
+                        act("$p has been drained of its last remaining charge!", ch, staff, NULL, TO_CHAR);
+                }
+            }
+        }
+
         if ( target == TARGET_OBJ )
         {
             if (!op_act_trigger( (OBJ_DATA *) vo, ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
