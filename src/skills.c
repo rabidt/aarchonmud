@@ -747,7 +747,7 @@ static void show_master_syntax( CHAR_DATA *ch )
     send_to_char("        master list\n\r", ch);
 }
 
-static void show_master_list( CHAR_DATA *ch )
+static void show_master_list( CHAR_DATA *ch, bool all )
 {
     BUFFER *buf = new_buf();
     int sn, gn, lvl;
@@ -782,21 +782,24 @@ static void show_master_list( CHAR_DATA *ch )
     addf_buf(buf, "\n\r{gTrains spent on skill/school mastery:{x %24d / %d\n\r",
         mastery_points(ch), max_mastery_points(ch));
 
-    add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
-    for ( sn = 1; sn < MAX_SKILL; sn++ )
-        if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) )
-        {
-            int *groups = get_mastery_groups(sn);
-            addf_buf(buf, "  %-20s %-20s %-15s %2d\n\r",
-                skill_table[sn].name,
-                *groups ? mastery_group_table[*groups].name : "",
-                mastery_title(lvl+1),
-                skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
-            );
-            // may belong to more than one school
-            while ( *groups && *(++groups) )
-                addf_buf(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
-        }
+    if ( all )
+    {
+        add_buf(buf, "\n\r{gYou may advance in the following skills:{x\n\r");
+        for ( sn = 1; sn < MAX_SKILL; sn++ )
+            if ( (lvl = ch->pcdata->mastered[sn]) < max_mastery_level(ch, sn) && get_skill(ch, sn) )
+            {
+                int *groups = get_mastery_groups(sn);
+                addf_buf(buf, "  %-20s %-20s %-15s %2d\n\r",
+                    skill_table[sn].name,
+                    *groups ? mastery_group_table[*groups].name : "",
+                    mastery_title(lvl+1),
+                    skill_table[sn].mastery_rating + get_mastery_group_cost(ch, sn)
+                );
+                // may belong to more than one school
+                while ( *groups && *(++groups) )
+                    addf_buf(buf, "  %-20s %-20s\n\r", "", mastery_group_table[*groups].name);
+            }
+    }
 
     page_to_char(buf_string(buf), ch);
     free_buf(buf);
@@ -815,7 +818,7 @@ DEF_DO_FUN(do_master)
 
     if ( !strcmp(arg, "list") || !strcmp(arg, "") )
     {
-        show_master_list(ch);
+        show_master_list(ch, !strcmp(arg, "list"));
         return;
     }
     else if ( ch->position < POS_STANDING )
