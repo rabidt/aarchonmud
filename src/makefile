@@ -29,10 +29,11 @@ CPP_WARN = $(BASE_WARN) \
 	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
 	-Wswitch-default -Weffc++ -Werror
 
+I_FLAGS_CPP = -I../3rdparty/rapidjson/include
 
 C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN) $(MODE_FLAGS)
-C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(MODE_FLAGS) -std=c++11
+C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(I_FLAGS_CPP) $(MODE_FLAGS) -std=c++11
 
 L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
 
