@@ -521,24 +521,3 @@ function do_changelog( ch, argument )
     changelog_usage(ch)
 
 end
-
-function load_changelog()
-    changelog_table={}
-    local f=loadfile("changelog_table.lua")
-
-    if f==nil then return end
-
-    local tmp=f()
-    if tmp then changelog_table=tmp end
-end
-
-
-function save_changelog()
-    if disable_save then return end
-
-    local f=io.open("changelog_table.lua", "w")
-    out,saved=serialize.save("changelog_table", changelog_table)
-    f:write(out)
-
-    f:close()
-end

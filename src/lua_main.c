@@ -14,6 +14,7 @@
 #include "interp.h"
 #include "mudconfig.h"
 #include "perfmon.h"
+#include "changelog.h"
 
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
@@ -621,6 +622,9 @@ static int RegisterLuaRoutines (lua_State *LS)
     register_globals ( LS );
     register_LUAREFS( LS );
 
+    lua_pushcfunction(LS, L_save_changelog);
+    lua_setglobal(LS, "save_changelog");
+
     return 0;
 
 }  /* end of RegisterLuaRoutines */
@@ -1115,7 +1119,7 @@ DEF_DO_FUN(do_changelog)
 
 void load_changelog( void )
 {
-    lua_getglobal( g_mud_LS, "load_changelog");
+    lua_pushcfunction( g_mud_LS, L_load_changelog );
     if (CallLuaWithTraceBack( g_mud_LS, 0, 0) )
     {
         bugf ( "Error with load_changelog:\n %s",
