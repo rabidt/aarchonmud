@@ -2388,8 +2388,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         break;
         
     case 'V':
-        KEY( "Version",     ch->version,        bread_number ( buf ) );
-        KEY( "Vers",    ch->version,        bread_number ( buf ) );
+        GOBBLE( "Vers", bread_number(buf) );
+        GOBBLE( "Version", bread_number(buf) );
         if ( !str_cmp( word, "Vnum" ) )
         {
             ch->pIndexData = get_mob_index( bread_number( buf ) );

@@ -3295,7 +3295,6 @@ void clone_mobile(CHAR_DATA *parent, CHAR_DATA *clone)
     
     /* start fixing values */ 
     clone->name     = str_dup(parent->name);
-    clone->version  = parent->version;
     clone->short_descr  = str_dup(parent->short_descr);
     clone->long_descr   = str_dup(parent->long_descr);
     clone->description  = str_dup(parent->description);

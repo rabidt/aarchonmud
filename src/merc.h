@@ -2516,7 +2516,6 @@ struct  char_data
 	bool        valid;
     const char * name;
 	long        id;
-	sh_int      version;
     const char* short_descr;
     const char* long_descr;
     const char* description;
