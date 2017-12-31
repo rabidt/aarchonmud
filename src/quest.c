@@ -59,6 +59,7 @@ DECLARE_DO_FUN( do_startwar );
 #define QUEST_ITEM28 4712 //Maedhros Leggings
 #define QUEST_ITEM29 4726 //Quantum Shield
 #define QUEST_ITEM30 4900 //Astark Light
+#define QUEST_ITEM31 4906 //Aethyn Instrument
 
 /* Quest timer defines - Maedhros, Feb 8, 2007 */ 
  
@@ -91,6 +92,7 @@ const QUEST_ITEM quest_item_table[] =
     { QUEST_ITEM21,   525, "parademias glove plague slain" },
     { QUEST_ITEM20,  525, "drexls skin malice" },
     { QUEST_ITEM28,  525, "maedhros leggings discord"},
+    { QUEST_ITEM31,  425, "aethyns war drums" },
     { QUEST_ITEM19,  425, "eris chastity belt" },
     { QUEST_ITEM18,   425, "firewitches ring fire" },
     { QUEST_ITEM17,  350, "liliths web lies" },
