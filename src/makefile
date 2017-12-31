@@ -26,7 +26,7 @@ endif
 
 CPP_WARN = $(BASE_WARN) \
 	-pedantic -Wctor-dtor-privacy -Wformat=2 -Wmissing-declarations -Wold-style-cast \
-	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
+	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=1 \
 	-Wswitch-default -Weffc++ -Werror
 
 I_FLAGS_CPP = -I../3rdparty/rapidjson/include
