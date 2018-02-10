@@ -1326,6 +1326,9 @@ void do_skills_or_spells( CHAR_DATA *ch, const char *argument, bool show_spells 
     int penalty = get_injury_penalty(ch) + get_sickness_penalty(ch);
     if ( penalty > 0 )
         printf_to_char(ch, "{rNote: Your %s are reduced by up to %d%% due to injury and/or sickness.{x\n\r", show_spells ? "spells" : "skills", penalty);
+    // exotic weapons skill
+    if (!show_spells)
+        printf_to_char( ch, "\n\r          %-21s     (%3d%%)", "exotic", get_weapon_skill(ch, -2));
 
     buffer = new_buf();
     print_info_by_level(buffer, &skill_info);
