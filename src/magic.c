@@ -1730,7 +1730,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     level = mastery_adjust_level(level, get_mastery(ch, sn));
     // multiplicative adjustments
     if ( IS_SET(meta_magic, META_MAGIC_EMPOWER) )
-        level += UMAX(1, level/8);
+        level += UMAX(1, level/8) * (200 + get_skill_overflow(ch, gsn_empower_spell)) / 200;
     if ( IS_AFFECTED(ch, AFF_ARCANE_ANTHEM))
         level += UMAX(1, level/16);
     level = URANGE(1, level, level_cap);
