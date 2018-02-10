@@ -2759,6 +2759,7 @@ CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
 
 void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int dam_type )
 {
+    ROOM_INDEX_DATA *room = ch->in_room;
     CHAR_DATA *next_vict;
     int curr_dam, dam;
     int per = 100;
@@ -2772,7 +2773,7 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
         curr_dam = dam * per/100;
 
         /* count the targets.. having only a few targets makes it difficult to chain */
-        for( vch = ch->in_room->people;  vch != NULL;  vch = vch->next_in_room )
+        for( vch = room->people;  vch != NULL;  vch = vch->next_in_room )
             if( !is_safe_spell(ch,vch,TRUE) && vch != ch )
                 count++;
 
@@ -2799,10 +2800,12 @@ void deal_chain_damage( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, int
             full_dam(ch,ch,curr_dam,sn,dam_type,TRUE);
         }
 
+        if ( ch->in_room != room )
+            return;
         /* find new victim */
         next_vict = get_next_victim( ch, next_vict );
         if ( next_vict == NULL )
-            next_vict = get_next_victim( ch, ch->in_room->people );
+            next_vict = get_next_victim( ch, room->people );
         if ( next_vict == NULL ) // removed this to let the chain continue viciously!  || next_vict == victim )
             return;
         else
