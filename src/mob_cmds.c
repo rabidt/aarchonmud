@@ -71,7 +71,7 @@ const	struct	mob_cmd_type	mob_cmd_table	[] =
   { "gforce",     do_mpgforce,     "[victim] [command] : victim's group executes command"   },
   { "vforce",     do_mpvforce,     "[vnum] [command] : all mobs of vnum execute command"    },
   { "cast",	  do_mpcast,       "[spell] (target) : cast spell without failure and cost" },
-  { "damage",     do_mpdamage,     "[victim|'all'] [min] [max] (kill) : deal (lethal) damage"     },
+  { "damage",     do_mpdamage,     "[victim|'all'] [min] [max] (kill) (damtype): deal (lethal) damage" },
   { "remember",   do_mpremember,   "[victim] : remember victim, later referred to with $q"  },
   { "forget",     do_mpforget,     ": forget victim previously remembered"                  },
   { "delay",      do_mpdelay,      "[pulses] : delay mob for delay triggers (pulse=4sec)"   },
@@ -1516,16 +1516,15 @@ DEF_DO_FUN(do_mpcast)
  * Lets mob cause unconditional damage to someone. Nasty, use with caution.
  * Also, this is silent, you must show your own damage message...
  *
- * Syntax: mob damage [victim|'all'] [min] [max] {kill}
+ * Syntax: mob damage [victim|'all'] [min] [max] {kill} [damtype]
  */
 DEF_DO_FUN(do_mpdamage)
 {
     CHAR_DATA *victim = NULL, *victim_next;
-    char target[ MAX_INPUT_LENGTH ],
-	 min[ MAX_INPUT_LENGTH ],
-	 max[ MAX_INPUT_LENGTH ];
+    char target[MIL], min[MIL], max[MIL], arg[MIL];
     int low, high, dam;
     bool fAll = FALSE, fKill = FALSE;
+    int damtype = DAM_NONE;
 
     if ( ch->in_room == NULL )
         return;
@@ -1533,7 +1532,8 @@ DEF_DO_FUN(do_mpdamage)
     argument = one_argument( argument, target );
     argument = one_argument( argument, min );
     argument = one_argument( argument, max );
-
+    argument = one_argument( argument, arg );
+    
     if ( target[0] == '\0' )
     {
 	bug( "MpDamage - Bad syntax from vnum %d.", 
@@ -1563,12 +1563,23 @@ DEF_DO_FUN(do_mpdamage)
     }
 
     /*
-     * If kill parameter is omitted, this command is "safe" and will not
-     * kill the victim.
+     * If kill parameter is omitted, this command is "safe" and will not kill the victim.
+     * Damtype is optional and comes after "kill"
      */
-    one_argument( argument, target );
-    if ( target[0] != '\0' )
-	fKill = TRUE;
+    if ( !strcmp(arg, "kill") || !strcmp(arg, "lethal") )
+    {
+        fKill = TRUE;
+        one_argument( argument, arg );
+    }
+    if ( arg[0] != '\0' )
+    {
+        damtype = flag_lookup(arg, damage_type);
+        if ( damtype == NO_FLAG )
+        {
+            bugf("MpDamage - Invalid damage type '%s', vnum %d.", arg, IS_NPC(ch) ? ch->pIndexData->vnum : 0);
+            damtype = DAM_NONE;
+        }
+    }
 
     dam = number_range(low, high);
     
@@ -1578,11 +1589,11 @@ DEF_DO_FUN(do_mpdamage)
         {
 	        victim_next = victim->next_in_room;
 	        if ( victim != ch )
-                deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
+                deal_damage(victim, victim, dam, TYPE_UNDEFINED, damtype, FALSE, fKill);
         }
     }
     else
-        deal_damage(victim, victim, dam, TYPE_UNDEFINED, DAM_NONE, FALSE, fKill);
+        deal_damage(victim, victim, dam, TYPE_UNDEFINED, damtype, FALSE, fKill);
     return;
 }
 
