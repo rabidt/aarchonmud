@@ -506,6 +506,7 @@ sh_int  gsn_enchant_armor;
 sh_int  gsn_enchant_weapon;
 sh_int  gsn_enchant_arrow;
 sh_int  gsn_solar_flare;
+sh_int  gsn_pacify;
 
 sh_int  gsn_extend_spell;
 sh_int  gsn_empower_spell;

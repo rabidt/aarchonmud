@@ -965,7 +965,7 @@ void check_assist(CHAR_DATA *ch)
     {
         rch_next = rch->next_in_room;
         
-        if ( can_attack(rch) && rch->fighting == NULL )
+        if ( can_attack(rch) && rch->fighting == NULL && !IS_AFFECTED(rch, AFF_CALM) )
         {
             
             /* quick check for ASSIST_PLAYER */

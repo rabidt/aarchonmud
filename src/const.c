@@ -4279,9 +4279,9 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_pacify,       TAR_VIS_CHAR_OFF, POS_FIGHTING,
-    NULL, 50, 0, 12, DUR_NONE,
-    "spell",        "You feel aggressive.", ""
+    spell_pacify, TAR_VIS_CHAR_OFF, POS_STANDING,
+    &gsn_pacify, 50, 0, 12, DUR_SPECIAL,
+    "", "You feel your aggression returning.", ""
     },
 
     {

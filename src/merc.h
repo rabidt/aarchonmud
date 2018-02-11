@@ -3445,6 +3445,7 @@ extern sh_int  gsn_cure_disease;
 extern sh_int  gsn_cure_mental;
 extern sh_int  gsn_cure_poison;
 extern sh_int  gsn_remove_curse;
+extern sh_int  gsn_pacify;
 
 /* new gsns */
 extern sh_int  gsn_axe;

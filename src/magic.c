@@ -1524,6 +1524,9 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
                 check_improve(ch, gsn_coercion, FALSE, 4);
                 set_fighting(victim, ch);
             }
+        } else if ( sn == gsn_pacify && IS_AFFECTED(victim, AFF_CALM) )
+        {
+            // do nothing - successfull pacify shouldn't start combat
         } else {
             set_fighting(victim, ch);
         }
