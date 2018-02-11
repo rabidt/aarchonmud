@@ -425,25 +425,44 @@ DEF_SPELL_FUN(spell_detect_astral)
 
 DEF_SPELL_FUN(spell_pacify)
 {
-    SPELL_CHECK_RETURN
-    
-    CHAR_DATA *rch;
-    
-    for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
+    CHAR_DATA *victim = (CHAR_DATA *) vo;
+    AFFECT_DATA af;
+
+    if ( victim->fighting )
     {
-        if ( saves_afflict(rch, ch, level, DAM_MENTAL) )
-        {
-            send_to_char("You failed to pacify!\n\r",ch);     
-            return TRUE;
-        }
-        else
-        {
-            if (IS_NPC(rch) && IS_SET(rch->act,ACT_AGGRESSIVE))
-                REMOVE_BIT(rch->act,ACT_AGGRESSIVE);
-            send_to_char( "Your opponent is no longer aggressive.\n\r", ch );
-            act("$n seems to have lost $s fighting edge",rch,NULL,NULL,TO_ROOM);
-            return TRUE;
-        }
+        act("$N cannot be pacified while fighting.", ch, NULL, victim, TO_CHAR);
+        return SR_UNABLE;
+    }
+
+    SPELL_CHECK_RETURN
+
+    if ( is_affected(victim, sn) )
+    {
+        act("$N is already a pacifist.", ch, NULL, victim, TO_CHAR);
+        return TRUE;
+    }
+
+    if ( saves_afflict(victim, ch, level, DAM_MENTAL) )
+    {
+        act("You failed to pacify $N!", ch, NULL, victim, TO_CHAR);
+        act("$n tried to pacify your mind by force!", ch, NULL, victim, TO_VICT);
+    }
+    else
+    {
+        affect_strip_flag(victim, AFF_BERSERK);
+        act("$n seems to have lost $s fighting edge.", victim, NULL, NULL, TO_ROOM);
+        act("$n pacifies you!", ch, NULL, victim, TO_VICT);
+
+        af.where = TO_AFFECTS;
+        af.type = sn;
+        af.level = level;
+        af.duration = -1; // unlike calm, this is permanent
+        af.location = APPLY_HITROLL;
+        af.modifier = -10;
+        af.bitvector = AFF_CALM;
+        affect_to_char(victim, &af);
+        af.location = APPLY_DAMROLL;
+        affect_to_char(victim, &af);
     }
     return TRUE;
 }
