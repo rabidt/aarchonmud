@@ -1628,18 +1628,19 @@ msl_string achievement_display [] =
 
 const CHANNEL public_channel_table[] =
 {
-	/*sn		name		1st pers	3rd pers	color	color2	offbit			minlvl	extra check*/
-	{&sn_gossip,	"Gossip",	"gossip",	"gossips",	'p',	'P',	COMM_NOGOSSIP,		3,	NULL},
-	{&sn_auction,	"Auction",	"auction",	"auctions", 	'a',	'A',	COMM_NOAUCTION,		3,	NULL},
-	{&sn_music,	"Music",	"MUSIC:",	"MUSIC:",	'e',	'E',	COMM_NOMUSIC,		3,	NULL},
-	{&sn_question,	"Q/{jA",	"question",	"questions",	'q',	'Q',	COMM_NOQUESTION,	3,	NULL},
-	{&sn_answer,	"Q/{jA",	"answer",	"answers",	'j',	'J',	COMM_NOQUESTION,	3,	NULL},
-	{&sn_quote,	"Quote",	"quote",	"quotes",	'h',	'H',	COMM_NOQUOTE,		3,	NULL},
-	{&sn_gratz,	"Gratz",	"gratz",	"gratzes",	'z',	'Z',	COMM_NOGRATZ,		3,	NULL},
-	{&sn_gametalk,	"Gametalk",	"gametalk",	"gametalks",	'k',	'K',	COMM_NOGAME,		3,	NULL},
-	{&sn_bitch,	"Bitch",	"bitch",	"bitches",	'f',	'F',	COMM_NOBITCH,		3,	NULL},
-	{&sn_newbie,	"Newbie",	"[Newbie]:",	"[Newbie]:",	'n',	'N',	COMM_NONEWBIE,		0,	NULL},
-	{&sn_immtalk,	"Immtalk",	"immtalk",	"immtalks",	'i',	'I',	COMM_NOWIZ,		0,	check_immtalk},
-	{&sn_savantalk,	"Savantalk",	"savant",	"savants",	'7',	'8',	COMM_NOSAVANT,		0,	check_savant},
+    /*channel nr    name        1st pers    3rd pers    color   color2  offbit          minlvl  extra check*/
+    {&cn_info,      "Info",     "[Info]:",  "[Info]:",  'w',    'W',    COMM_NOINFO,        3,  NULL},
+    {&cn_gossip,    "Gossip",   "gossip",   "gossips",  'p',    'P',    COMM_NOGOSSIP,      3,  NULL},
+    {&cn_auction,   "Auction",  "auction",  "auctions", 'a',    'A',    COMM_NOAUCTION,     3,  NULL},
+    {&cn_music,     "Music",    "MUSIC:",   "MUSIC:",   'e',    'E',    COMM_NOMUSIC,       3,  NULL},
+    {&cn_question,  "Q/A",      "question", "questions",'q',    'Q',    COMM_NOQUESTION,    3,  NULL},
+    {&cn_answer,    "Q/A",      "answer",   "answers",  'j',    'J',    COMM_NOQUESTION,    3,  NULL},
+    {&cn_quote,     "Quote",    "quote",    "quotes",   'h',    'H',    COMM_NOQUOTE,       3,  NULL},
+    {&cn_gratz,     "Gratz",    "gratz",    "gratzes",  'z',    'Z',    COMM_NOGRATZ,       3,  NULL},
+    {&cn_gametalk,  "Gametalk", "gametalk", "gametalks",'k',    'K',    COMM_NOGAME,        3,  NULL},
+    {&cn_bitch,     "Bitch",    "bitch",    "bitches",  'f',    'F',    COMM_NOBITCH,       3,  NULL},
+    {&cn_newbie,    "Newbie",   "[Newbie]:","[Newbie]:",'n',    'N',    COMM_NONEWBIE,      0,  NULL},
+    {&cn_immtalk,   "Immtalk",  "immtalk",  "immtalks", 'i',    'I',    COMM_NOWIZ,         0,  check_immtalk},
+    {&cn_savantalk, "Savantalk","savant",   "savants",  '7',    '8',    COMM_NOSAVANT,      0,  check_savant},
     {NULL}
 };

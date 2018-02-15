@@ -164,140 +164,78 @@ void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 
 /* RT code to display channel status */
 
+// for printing non-public "channels"
+static void print_channel_status(CHAR_DATA *ch, const char *color, const char *name, int off_flag)
+{
+    ptc(ch, "%s%-15s%s{x\n\r", color, name, IS_SET(ch->comm, off_flag) ? "OFF" : "ON");
+}
+
 DEF_DO_FUN(do_channels)
-{   
-    char buf[MAX_STRING_LENGTH];
+{
+    int cn;
 
     /* lists all channels and their status */
     send_to_char("   channel     status\n\r",ch);
     send_to_char("---------------------\n\r",ch);
-    
-    if (NOT_AUTHED(ch))
+
+    for ( cn = 0; public_channel_table[cn].pcn != NULL; cn++ )
     {
-        send_to_char("{1INFO messages{x  ",ch);
-        if (!IS_SET(ch->comm,COMM_NOINFO))
-            send_to_char("{2ON{x\n\r",ch);
-        else
-            send_to_char("{2OFF{x\n\r",ch);
+        if ( cn > 0 && public_channel_table[cn].offbit == public_channel_table[cn-1].offbit )
+            continue;
+
+        if ( !public_channel_table[cn].check || public_channel_table[cn].check(ch) )
+            print_pub_chan(cn, ch);
     }
-    else
-    {
-        send_to_char("{1INFO messages{x  ",ch);
-        if (!IS_SET(ch->comm,COMM_NOINFO))
-            send_to_char("{2ON{x\n\r",ch);
-        else
-            send_to_char("{2OFF{x\n\r",ch);
-        
-    print_pub_chan(sn_gossip, ch);
-    print_pub_chan(sn_auction, ch);
-    print_pub_chan(sn_music, ch);
-    print_pub_chan(sn_question, ch);
-    print_pub_chan(sn_quote, ch);
-    print_pub_chan(sn_gratz, ch);
-    print_pub_chan(sn_gametalk, ch);
-    print_pub_chan(sn_bitch, ch);
-    print_pub_chan(sn_newbie, ch);
  
-        if( ch->clan > 0 )
-	{
-          send_to_char("{lClan{x           ",ch);
-          if (!IS_SET(ch->comm,COMM_NOCLAN))
-            send_to_char("{LON{x\n\r",ch);
-          else
-            send_to_char("{LOFF{x\n\r",ch);
-	}
+    if ( ch->clan > 0 )
+        print_channel_status(ch, "{l", "Clan", COMM_NOCLAN);
 
-	/*
-	if( get_religion(ch) != NULL )
-	{
-          send_to_char("{9Proclaim{x       ",ch);
-          if (!IS_SET(ch->comm,COMM_NOREL))
-            send_to_char("{0ON{x\n\r",ch);
-          else
-            send_to_char("{0OFF{x\n\r",ch);
-	}
-	*/
+    /*
+    if ( get_religion(ch) != NULL )
+        print_channel_status(ch, "{9", "Proclaim", COMM_NOREL);
+    */
 
-        send_to_char("{5War{x            ",ch);
-        if (!IS_SET(ch->comm,COMM_NOWAR))
-            send_to_char("{6ON{x\n\r", ch);
-        else
-            send_to_char("{6OFF{x\n\r", ch);
-        
-        if (is_granted_name(ch,"immtalk") || is_granted_name(ch,":"))
-        {
-	    print_pub_chan(sn_immtalk, ch);
-        }
-        
-        if (is_granted_name(ch,"savantalk"))
-        {
-	    print_pub_chan(sn_savantalk, ch);
-        }
-        
-	if (IS_SET(ch->penalty,PENALTY_NOSHOUT))
-	    send_to_char("{uYou cannot {Ushout{u.{x\n\r",ch);
-	else
-	{
-            send_to_char("{uShouts{x         ",ch);
-            if (!IS_SET(ch->comm,COMM_SHOUTSOFF))
-                send_to_char("{UON{x\n\r",ch);
-            else
-                send_to_char("{UOFF{x\n\r",ch);
-	}
-    }
-    
-    if (IS_SET(ch->penalty,PENALTY_NOTELL))
-        send_to_char("{tYou cannot use {Ttells{t.{x\n\r",ch);
+    print_channel_status(ch, "{5", "War", COMM_NOWAR);
+
+    if ( IS_SET(ch->penalty, PENALTY_NOSHOUT) )
+        send_to_char("{uYou cannot shout.{x\n\r", ch);
     else
-    {
-        send_to_char("{tDeaf to tells{x  ",ch);
-        if (!IS_SET(ch->comm,COMM_DEAF))
-            send_to_char("{TOFF{x\n\r",ch);
-        else
-            send_to_char("{TON{x\n\r",ch);
-    }
+        print_channel_status(ch, "{u", "Shouts", COMM_SHOUTSOFF);
 
-    send_to_char("Quiet mode     ",ch);
-    if (IS_SET(ch->comm,COMM_QUIET))
-        send_to_char("ON\n\r",ch);
+    if ( IS_SET(ch->penalty,PENALTY_NOTELL) )
+        send_to_char("{tYou cannot use tells.{x\n\r", ch);
     else
-        send_to_char("OFF\n\r",ch);
-    
-    if (IS_SET(ch->comm,COMM_AFK))
-        send_to_char("You are AFK.\n\r",ch);
+        print_channel_status(ch, "{t", "Tells", COMM_DEAF);
 
-    if (IS_SET(ch->comm,COMM_BUSY))
+    print_channel_status(ch, "", "Quiet mode", COMM_QUIET);
+
+    if ( IS_SET(ch->comm, COMM_AFK) )
+        send_to_char("You are AFK.\n\r", ch);
+
+    if ( IS_SET(ch->comm, COMM_BUSY) )
         send_to_char("You claim to be too busy to receive tells.\n\r",ch);
-    
-    if (ch->lines != PAGELEN)
+
+    if ( ch->lines != PAGELEN )
     {
-        if (ch->lines)
-        {
-            sprintf(buf,"You display %d lines of scroll.\n\r",ch->lines+2);
-            send_to_char(buf,ch);
-        }
+        if ( ch->lines )
+            ptc(ch, "You display %d lines of scroll.\n\r", ch->lines + 2);
         else
-            send_to_char("Scroll buffering is off.\n\r",ch);
+            send_to_char("Scroll buffering is off.\n\r", ch);
     }
 
-    ptc( ch, "Your chat window is turned %s.\n\r",
-            ( USE_CHAT_WIN(ch) ) ? "ON" : "OFF" );
-    
-    if (ch->prompt != NULL)
-    {
-        sprintf(buf,"Your current prompt is: %s\n\r",ch->prompt);
-        send_to_char(buf,ch);
-    }
-    
-    if (IS_SET(ch->penalty,PENALTY_NOCHANNEL))
+    ptc(ch, "Your chat window is turned %s.\n\r", USE_CHAT_WIN(ch) ? "ON" : "OFF");
+
+    if ( ch->prompt != NULL )
+        ptc(ch, "Your current prompt is: %s\n\r", ch->prompt);
+
+    if ( IS_SET(ch->penalty, PENALTY_NOCHANNEL) )
         send_to_char("You cannot use ANY channels.\n\r",ch);
-    
-    if (IS_SET(ch->penalty,PENALTY_NOEMOTE))
-        send_to_char("You cannot show emotions.\n\r",ch);
-    
-    if (IS_SET(ch->penalty,PENALTY_NONOTE))
-        send_to_char("You cannot write notes.\n\r",ch);
-    
+
+    if ( IS_SET(ch->penalty, PENALTY_NOEMOTE) )
+        send_to_char("You cannot show emotions.\n\r", ch);
+
+    if ( IS_SET(ch->penalty, PENALTY_NONOTE) )
+        send_to_char("You cannot write notes.\n\r", ch);
 }
 
 /* RT deaf blocks out all shouts */
@@ -517,7 +455,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
         argument = makedrunk(argument,ch);
 
         sprintf(buf,"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
-        log_chan(ch, buf, *(chan->psn));
+        log_chan(ch, buf, *(chan->pcn));
 
         // public channels show character name
         sprintf(buf,"{%c%s{%c %s {%c'$t{%c'{x", chan->prime_color, IS_NPC(ch) ? ch->short_descr : ch->name,
@@ -568,75 +506,70 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
 
 DEF_DO_FUN(do_gossip)
 {
-	public_channel( &public_channel_table[sn_gossip], ch, argument );
+	public_channel( &public_channel_table[cn_gossip], ch, argument );
 }
 
 
 DEF_DO_FUN(do_newbie)
 {
-	public_channel( &public_channel_table[sn_newbie], ch, argument );
+	public_channel( &public_channel_table[cn_newbie], ch, argument );
 }
-
-
 
 DEF_DO_FUN(do_bitch)
 {
-	public_channel( &public_channel_table[sn_bitch], ch, argument );
+	public_channel( &public_channel_table[cn_bitch], ch, argument );
 }
 
 DEF_DO_FUN(do_gametalk)
 {
-	public_channel( &public_channel_table[sn_gametalk], ch, argument );
+	public_channel( &public_channel_table[cn_gametalk], ch, argument );
 }
 /* Function info_message is called in a fashion similar to wiznet to
 announce various events to players. -- Rimbol */
 void info_message( CHAR_DATA *ch, const char *argument, bool show_to_char )
 {
-    info_message_new( ch, argument, show_to_char, FALSE );
+    info_message_new( ch, argument, show_to_char, TRUE );
 }
 
-/* extended version that can show message only to players who see
- * the character - needed for login info */
-void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible )
+/* extended version that can toggle whether messages are logged in playback */
+void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool playback )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
     CHAR_DATA *victim;
-    
+
     if (ch && IS_IMMORTAL(ch) && ch->invis_level > LEVEL_HERO)
         return;
-    
+
+    sprintf(buf, "{1[INFO]{2: %s{x", argument);
+    if ( playback )
+        log_chan(NULL, buf, cn_info);
+
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         victim = d->original ? d->original : d->character;
-        
-        if (!victim)
-            continue;
-        
-        if (!show_to_char && victim == ch) /* If ch == NULL, this will be false */
+        if ( !victim )
             continue;
 
-	if ( check_visible && !check_see( victim, ch ) )
-	    continue;
-        
+        if ( !show_to_char && victim == ch ) /* If ch == NULL, this will be false */
+            continue;
+
         /* Don't send automatic info messages to unauthed players. */
-        if (!ch && NOT_AUTHED(victim))
+        if ( !ch && NOT_AUTHED(victim) )
             continue;
-        
-            /* If message was generated by an unauthed player, show only to other
-        unauthed players and imms. */
-        if (ch && NOT_AUTHED(ch) && !IS_IMMORTAL(victim) && !NOT_AUTHED(victim))
+
+        /* If message was generated by an unauthed player, show only to other unauthed players and imms. */
+        if ( ch && NOT_AUTHED(ch) && !IS_IMMORTAL(victim) && !NOT_AUTHED(victim) )
             continue;
-        
+
         /* If message was generated by an authed player, do not show to unauthed players. */
-        if (ch && !NOT_AUTHED(ch) && NOT_AUTHED(victim))
+        if ( ch && !NOT_AUTHED(ch) && NOT_AUTHED(victim) )
             continue;
-        
+
         if ( (IS_PLAYING(d->connected)) &&
-            !IS_SET(victim->comm,COMM_NOINFO) &&
-            !IS_SET(victim->comm,COMM_QUIET) )
+            !IS_SET(victim->comm, COMM_NOINFO) &&
+            !IS_SET(victim->comm, COMM_QUIET) )
         {
-            sprintf(buf, "{1[INFO]{2: %s\n{x", argument);
             act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
 
             if ( USE_CHAT_WIN(victim) )
@@ -647,39 +580,37 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
             }
 
             char to_buf[ MAX_STRING_LENGTH*2 ];
-            act_new_gag( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING, 0, FALSE, 
-                to_buf, sizeof(to_buf));
-            log_pers(victim->pcdata->info_history, buf);
+            act_new_gag( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING, 0, FALSE, to_buf, sizeof(to_buf));
         }
     }
 }
 
 DEF_DO_FUN(do_gratz)
 {
-	public_channel( &public_channel_table[sn_gratz], ch, argument );
+	public_channel( &public_channel_table[cn_gratz], ch, argument );
 }
 
 DEF_DO_FUN(do_quote)
 {
-	public_channel( &public_channel_table[sn_quote], ch, argument );
+	public_channel( &public_channel_table[cn_quote], ch, argument );
 }
 
 /* RT question channel */
 DEF_DO_FUN(do_question)
 {
-	public_channel( &public_channel_table[sn_question], ch, argument );
+	public_channel( &public_channel_table[cn_question], ch, argument );
 }
 
 /* RT answer channel - uses same line as questions */
 DEF_DO_FUN(do_answer)
 {
-	public_channel( &public_channel_table[sn_answer], ch, argument );
+	public_channel( &public_channel_table[cn_answer], ch, argument );
 }
 
 /* RT music channel */
 DEF_DO_FUN(do_music)
 {
-	public_channel( &public_channel_table[sn_music], ch, argument );
+	public_channel( &public_channel_table[cn_music], ch, argument );
 }
 
 /* clan channels */
@@ -885,7 +816,7 @@ DEF_DO_FUN(do_religion_talk)
 
 DEF_DO_FUN(do_immtalk)
 {
-	public_channel( &public_channel_table[sn_immtalk], ch, argument );
+	public_channel( &public_channel_table[cn_immtalk], ch, argument );
 }
 
 bool check_immtalk( CHAR_DATA *ch )
@@ -899,10 +830,6 @@ channels, if COMM_NOINFO or COMM_QUIET is set, INFO messages
 will not be sent to that player.  -- Rimbol */
 DEF_DO_FUN(do_info)
 {
-    char buf[MAX_STRING_LENGTH];
-    DESCRIPTOR_DATA *d;
-    CHAR_DATA *victim;
-    
     if (argument[0] == '\0' )
     {
         if (IS_SET(ch->comm,COMM_NOINFO))
@@ -917,30 +844,12 @@ DEF_DO_FUN(do_info)
         }
     }
     else
+    {
         if ( get_trust(ch) >= VICEARCHON )
-        {
-            for ( d = descriptor_list; d != NULL; d = d->next )
-            {
-                victim = d->original ? d->original : d->character;
-                
-                if ((IS_PLAYING(d->connected)) &&
-                    !IS_SET(victim->comm,COMM_NOINFO) &&
-                    !IS_SET(victim->comm,COMM_QUIET) )
-                {
-                    sprintf(buf, "{1[INFO]{2: %s\n{x", parse_url(argument));
-                    act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
-                    
-                    if ( USE_CHAT_WIN(victim) )
-                    {
-                        open_chat_tag( victim );
-                        act_new( buf, victim, NULL, NULL, TO_CHAR, POS_SLEEPING );
-                        close_chat_tag( victim );
-                    }
-                }
-            }
-        }
+            info_message(ch, argument, TRUE );
         else
             do_groups(ch, argument);
+    }
 }
 
 
@@ -3311,13 +3220,13 @@ const char * makedrunk (const char *string, CHAR_DATA * ch)
 /* RT auction rewritten in ROM style */
 DEF_DO_FUN(do_auction)
 {
-	public_channel( &public_channel_table[sn_auction], ch, argument );
+	public_channel( &public_channel_table[cn_auction], ch, argument );
 }
 
 /* Sardonic 10/99 */
 DEF_DO_FUN(do_savantalk)
 {
-   public_channel( &public_channel_table[sn_savantalk], ch, argument );
+   public_channel( &public_channel_table[cn_savantalk], ch, argument );
 }
 bool check_savant( CHAR_DATA *ch )
 {
