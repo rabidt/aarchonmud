@@ -550,18 +550,19 @@ sh_int race_dragonborn;
 
 
 /* channel slot numbers */
-sh_int sn_gossip;
-sh_int sn_auction;
-sh_int sn_music;
-sh_int sn_question;
-sh_int sn_answer;
-sh_int sn_quote;
-sh_int sn_gratz;
-sh_int sn_gametalk;
-sh_int sn_bitch;
-sh_int sn_immtalk;
-sh_int sn_savantalk;
-sh_int sn_newbie;
+sh_int cn_info;
+sh_int cn_gossip;
+sh_int cn_auction;
+sh_int cn_music;
+sh_int cn_question;
+sh_int cn_answer;
+sh_int cn_quote;
+sh_int cn_gratz;
+sh_int cn_gametalk;
+sh_int cn_bitch;
+sh_int cn_immtalk;
+sh_int cn_savantalk;
+sh_int cn_newbie;
 
 /*
 * Locals.
@@ -954,12 +955,10 @@ void boot_db( void )
 
 void channel_init( void )
 {
-    int sn;
-    for ( sn=0 ; ; sn++ )
+    int cn;
+    for ( cn = 0; public_channel_table[cn].pcn != NULL; cn++ )
     {
-        if ( public_channel_table[sn].psn == NULL )
-            break;
-        *public_channel_table[sn].psn = sn;
+        *public_channel_table[cn].pcn = cn;
     }
 }
 
