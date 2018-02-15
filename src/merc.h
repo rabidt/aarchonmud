@@ -194,7 +194,7 @@ struct comm_history_type
 typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
 typedef struct channel_type
 {
-	sh_int *psn;
+	sh_int *pcn;
 	const char *name;
 	const char *first_pers;
 	const char *third_pers;
@@ -2331,18 +2331,19 @@ typedef int tattoo_list[MAX_WEAR];
 #define GAG_ABILITY    (K)
 
 /* channel definitions for log_chan/playback */
-extern sh_int sn_gossip;
-extern sh_int sn_auction;
-extern sh_int sn_music;
-extern sh_int sn_question;
-extern sh_int sn_answer;
-extern sh_int sn_quote;
-extern sh_int sn_gratz;
-extern sh_int sn_gametalk;
-extern sh_int sn_bitch;
-extern sh_int sn_immtalk;
-extern sh_int sn_savantalk;
-extern sh_int sn_newbie;
+extern sh_int cn_info;
+extern sh_int cn_gossip;
+extern sh_int cn_auction;
+extern sh_int cn_music;
+extern sh_int cn_question;
+extern sh_int cn_answer;
+extern sh_int cn_quote;
+extern sh_int cn_gratz;
+extern sh_int cn_gametalk;
+extern sh_int cn_bitch;
+extern sh_int cn_immtalk;
+extern sh_int cn_savantalk;
+extern sh_int cn_newbie;
 
 /* Why not replace all the ones below with just this?
    We might want to have daily/weekly/monthly/overall boards differ
@@ -2650,7 +2651,6 @@ struct  pc_data
     PERS_HISTORY *gtell_history;
     PERS_HISTORY *tell_history;
     PERS_HISTORY *clan_history;
-    PERS_HISTORY *info_history;
 
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
@@ -4445,7 +4445,7 @@ void    die_follower    args( ( CHAR_DATA *ch, bool preservePets ) );
 bool    is_same_group   args( ( CHAR_DATA *ach, CHAR_DATA *bch ) );
 bool    is_allied( CHAR_DATA *ach, CHAR_DATA *bch );
 void    info_message( CHAR_DATA *ch, const char *argument, bool show_to_char );
-void    info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool check_visible );
+void    info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, bool playback );
 const char *makedrunk args( (const char *string, CHAR_DATA *ch) );
 void    mail_notify   args( ( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board ) );
 void    tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );

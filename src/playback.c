@@ -169,14 +169,12 @@ void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
     entry->channel = channel;
     entry->timestamp = trim_realloc(str_dup(ctime(&current_time)));
 
-    if (!IS_NPC(ch))
-    {
-        entry->name = str_dup(ch->name);
-    }
-    else
-    {
+    if ( ch == NULL )
+        entry->name = "";
+    else if ( IS_NPC(ch) )
         entry->name = str_dup(ch->short_descr);
-    }
+    else
+        entry->name = str_dup(ch->name);
 
     /* Assign the correct history based on which channel.
     All public channels using public_history, immtalk uses
@@ -184,9 +182,9 @@ void log_chan( CHAR_DATA * ch, const char *text , sh_int channel )
     	
     COMM_HISTORY * history;    
     
-    if (channel == sn_immtalk)
+    if (channel == cn_immtalk)
 	history=&immtalk_history;
-    else if ( channel == sn_savantalk )
+    else if ( channel == cn_savantalk )
 	history=&savant_history;
     else
 	history=&public_history;
@@ -240,10 +238,6 @@ DEF_DO_FUN(do_playback)
 	{
 		phistory=ch->pcdata->clan_history;
 	}
-    else if ( arg[0] == 'i' && arg[1] == 'n' )
-    {
-        phistory=ch->pcdata->info_history;
-    }
 	else if ( immortal && arg[0] == 'i' )
 	{
 		history=&immtalk_history;
