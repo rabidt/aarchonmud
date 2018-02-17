@@ -252,7 +252,7 @@ void update_pc_level( CHAR_DATA *ch )
 
         sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
         log_string(buf);
-        info_message(ch, buf, FALSE);
+        info_message_new(ch, buf, FALSE, FALSE);
 
         sprintf(buf,"$N has attained level %d!",ch->level);
         wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
