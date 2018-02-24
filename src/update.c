@@ -265,7 +265,6 @@ void update_pc_level( CHAR_DATA *ch )
 
 void update_field( CHAR_DATA *ch)
 {
-    char buf[MAX_STRING_LENGTH];
     int gain,pos;
 
     if ( IS_NPC(ch) || ch->desc == NULL || IS_SET(ch->act, PLR_NOEXP) )
@@ -283,30 +282,7 @@ void update_field( CHAR_DATA *ch)
     ch->pcdata->field -= gain;
 
     ch->exp = UMAX(exp_per_level(ch), ch->exp + gain );
-
-    if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
-            && ch->level >= LEVEL_UNAUTHED )
-    {
-        send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-        ch->exp = (exp_per_level(ch) * (ch->level+1));
-        return;
-    }
-
-    while ( !IS_HERO(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1) )
-    {
-        send_to_char( "You raise a level!!  ", ch );
-        ch->level += 1;
-        update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
-
-        sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
-        log_string(buf);
-        info_message(ch, buf, FALSE);
-
-        sprintf(buf,"$N has attained level %d!",ch->level);
-        wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
-
-        advance_level(ch,FALSE);
-    }
+    update_pc_level(ch);
 }
 
 int gain_mod(int x)

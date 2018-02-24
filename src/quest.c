@@ -489,7 +489,7 @@ DEF_DO_FUN(do_quest)
         strcat(buf, "  250qp.................50 practices\n\r");
 	strcat(buf, "  200qp.................Change name 'color'.\n\r");
 	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
-        strcat(buf, "  100qp.................Experience (1/4 exp per level)\n\r");
+        strcat(buf, "  100qp.................Experience (1 level)\n\r");
 	strcat(buf, "   50qp.................Warfare\n\r");
     strcat(buf, "   10qp.................Duel\n\r");
         strcat(buf, "\n\r");
@@ -563,49 +563,28 @@ DEF_DO_FUN(do_quest)
         }*/
         else if (is_name(arg2, "experience xp"))
         {
-          if ( IS_SET(ch->act,PLR_NOEXP))
-          {
-              send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
-              return;
-          }
+            if ( IS_SET(ch->act,PLR_NOEXP))
+            {
+                send_to_char("Toggle 'noexp' to allow you to gain experience before purchasing this.\n\r",ch);
+                return;
+            }
+            if ( NOT_AUTHED(ch) )
+            {
+                send_to_char("You need to be authed first.\n\r", ch);
+                return;
+            }
             if (ch->pcdata->questpoints >= 100)
             {
                 ch->pcdata->questpoints -= 100;
-               // section of gain_exp reproduced here in order to bypass field exp -Vodur
-               int gain = 1+exp_per_level(ch)/4;/* 1+ so whiners don't lose a couple of exp points per level  from rounding :)  -Vodur*/
-               ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
-               sprintf(buf, "You earn %d applied experience.\n\r", gain);
-               send_to_char(buf,ch);
-               logpf("%s bought %d experience for 100 qp", ch->name, gain);
-
-               if ( NOT_AUTHED(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1)
-               && ch->level >= LEVEL_UNAUTHED )
-               {
-                           send_to_char("{RYou can not ascend to a higher level until you are authorized.{x\n\r", ch);
-                           ch->exp = (exp_per_level(ch) * (ch->level+1));
-                           return;
-               }
-
-               while ( !IS_HERO(ch) && ch->exp >= exp_per_level(ch) * (ch->level+1) )
-               {
-                   send_to_char( "You raise a level!!  ", ch );
-                   ch->level += 1;
-		   update_lboard( LBOARD_LEVEL, ch, ch->level, 1);
-
-                   sprintf(buf,"%s has made it to level %d!",ch->name,ch->level);
-                   log_string(buf);
-                   info_message(ch, buf, FALSE);
-
-                   sprintf(buf,"$N has attained level %d!",ch->level);
-                   wiznet(buf,ch,NULL,WIZ_LEVELS,0,0);
-
-                   advance_level(ch,FALSE);
-               /*end of modified secion from gain_exp*/
-               }
-
-		
+                // section of gain_exp reproduced here in order to bypass field exp -Vodur
+                int gain = exp_per_level(ch);
+                ch->exp = UMAX( exp_per_level(ch), ch->exp + gain );
+                logpf("%s bought %d experience for 100 qp", ch->name, gain);
+                sprintf(buf, "You earn %d applied experience.\n\r", gain);
+                send_to_char(buf,ch);
                 act( "$N grants experience to $n.", ch, NULL, questman, TO_ROOM );
                 act( "$N grants you experience.",   ch, NULL, questman, TO_CHAR );
+                update_pc_level(ch);
             }
             else
             {
