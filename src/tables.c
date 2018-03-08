@@ -1584,6 +1584,13 @@ const ACHIEVEMENT achievement_table [] =
     { ACHV_ASCENSION,   1, 250,   25, 25000,   100,       0, ACHIEVE_ASCENSION_1},
     { ACHV_ASCENSION,   2, 500,   25, 50000,   200,       0, ACHIEVE_ASCENSION_2},
     { ACHV_ASCENSION,   3, 750,   25, 75000,   300,       0, ACHIEVE_ASCENSION_3},
+	{ ACHV_ASCENSION,   4,1000,   25,100000,   400,       0, ACHIEVE_ASCENSION_4},
+	{ ACHV_ASCENSION,   5,1250,   25,125000,   500,       0, ACHIEVE_ASCENSION_5},
+	{ ACHV_ASCENSION,   6,1500,   25,150000,   600,       0, ACHIEVE_ASCENSION_6},
+	{ ACHV_ASCENSION,   7,1750,   25,175000,   700,       0, ACHIEVE_ASCENSION_7},
+	{ ACHV_ASCENSION,   8,2000,   25,200000,   800,       0, ACHIEVE_ASCENSION_8},
+	{ ACHV_ASCENSION,   9,2250,   25,225000,   900,       0, ACHIEVE_ASCENSION_9},
+	{ ACHV_ASCENSION,  10,2500,   25,250000,  1000,       0, ACHIEVE_ASCENSION_10},
     { 0,                0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */
