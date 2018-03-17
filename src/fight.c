@@ -4992,6 +4992,22 @@ bool is_opponent( CHAR_DATA *ch, CHAR_DATA *victim )
 	|| is_same_group(ch, victim->fighting);
 }
 
+int opponent_count( CHAR_DATA *ch )
+{
+    if ( !ch || !ch->in_room || !ch->fighting )
+        return 0;
+
+    CHAR_DATA *rch;
+    int count = 0;
+
+    for ( rch = ch->in_room->people; rch != NULL; rch = rch->next_in_room )
+    {
+        if ( rch != ch && is_opponent(ch, rch) )
+            count++;
+    }
+    return count;
+}
+
 /* get the ultimate master of a charmed char */
 CHAR_DATA* get_final_master( CHAR_DATA *ch )
 {
