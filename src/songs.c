@@ -179,8 +179,16 @@ DEF_DO_FUN(do_wail)
         affect_strip(ch, gsn_riff);
     }
     
+    // lonesome melody can act as either devastating anthem or deadly dance
+    if ( song == SONG_LONESOME_MELODY )
+    {
+        if ( opponent_count(ch) > 1 )
+            song = SONG_DEADLY_DANCE;
+        else
+            song = SONG_DEVASTATING_ANTHEM;
+    }
     // song-based bonus
-    if ( song == SONG_DEVASTATING_ANTHEM || song == SONG_LONESOME_MELODY )
+    if ( song == SONG_DEVASTATING_ANTHEM )
         dam *= 1.5;
     else if ( song == SONG_ARCANE_ANTHEM )
         // higher level means harder to resist

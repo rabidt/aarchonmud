@@ -4781,6 +4781,7 @@ void    update_pos  args( ( CHAR_DATA *victim ) );
 void    set_fighting( CHAR_DATA *ch, CHAR_DATA *victim );
 void    set_fighting_new( CHAR_DATA *ch, CHAR_DATA *victim, bool kill_trigger );
 bool    is_opponent( CHAR_DATA *ch, CHAR_DATA *victim );
+int     opponent_count( CHAR_DATA *ch );
 bool    in_pkill_battle( CHAR_DATA *ch );
 bool    stop_attack( CHAR_DATA *ch, CHAR_DATA *victim );
 bool    stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
