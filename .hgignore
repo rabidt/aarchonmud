@@ -1,0 +1,22 @@
+syntax: regexp
+
+bin/
+obj/
+# we do track some files in data/user, but not all, so we can ignore until added
+data/
+
+# generated files
+src/tests/LiveTests.c
+src/tests/UnitTests.c
+
+# ctags tags file
+src/tags
+
+# cscope database files
+cscope\.in\.out
+cscope\.out
+cscope\.po\.out
+
+.*\.orig
+
+.*\.sublime-workspace
