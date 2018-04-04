@@ -1,22 +1,22 @@
 syntax: regexp
 
-bin/
-obj/
+^bin/
+^obj/
 # we do track some files in data/user, but not all, so we can ignore until added
-data/
+^data/
 
 # generated files
-src/tests/LiveTests.c
-src/tests/UnitTests.c
+^src/tests/LiveTests.c$
+^src/tests/UnitTests.c$
 
 # ctags tags file
-src/tags
+^src/tags
 
 # cscope database files
-cscope\.in\.out
-cscope\.out
-cscope\.po\.out
+cscope\.in\.out$
+cscope\.out$
+cscope\.po\.out$
 
-.*\.orig
+.*\.orig$
 
-.*\.sublime-workspace
+.*\.sublime-workspace$
