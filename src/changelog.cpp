@@ -4,10 +4,12 @@
 #include <cstdio>
 
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
+#pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 
 extern "C" {
