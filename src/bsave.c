@@ -1996,6 +1996,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'F':
         KEY( "Faith",   ch->pcdata->faith,  bread_number(buf));
         KEY( "Field",   ch->pcdata->field,  bread_number(buf));
+        break;
         
     case 'G':
         KEYF( "Gag",     ch->gag );
@@ -2125,8 +2126,8 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         {
             LUA_EXTRA_VAL *luaval;
             int type=bread_number( buf );
-            const const char *name= bread_string( buf );
-            const const char *val = bread_string( buf );
+            const char *name = bread_string( buf );
+            const char *val = bread_string( buf );
             luaval=new_luaval( type, name, val, TRUE );
 
             luaval->next=ch->luavals;
@@ -2140,15 +2141,15 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'M':
         KEY( "MobKills",ch->pcdata->mob_kills,  bread_number( buf ) );
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
-	if ( !str_cmp(word, "Morph") )
-	{
-        const char *temp=bread_string(buf);
-	    ch->pcdata->morph_race = race_lookup( temp );
-        free_string(temp);
-	    ch->pcdata->morph_time = bread_number( buf );
-	    fMatch = TRUE;
-	    break;
-	}
+        if ( !str_cmp(word, "Morph") )
+        {
+            const char *temp=bread_string(buf);
+            ch->pcdata->morph_race = race_lookup( temp );
+            free_string(temp);
+            ch->pcdata->morph_time = bread_number( buf );
+            fMatch = TRUE;
+            break;
+        }
 
         if ( !str_cmp(word, "Mastery") || !str_cmp(word,"Ma") )
         {
@@ -2163,6 +2164,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             fMatch = TRUE;
             break;
         }
+        break;
 
     case 'N':
         KEYS( "Name",   ch->name,       bread_string( buf ) );
@@ -3194,7 +3196,7 @@ DEF_DO_FUN(do_finger)
     BUFFER *output;
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
-    char levelbuf[16];
+    char levelbuf[32];
     char clanbuf[MAX_STRING_LENGTH];
     char custombuf[MAX_STRING_LENGTH];
     char immbuf[16];
