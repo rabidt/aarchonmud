@@ -2116,8 +2116,6 @@ bool check_can_wear( CHAR_DATA *ch, OBJ_DATA *obj, bool show, bool improve )
  */
 void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 {
-    OBJ_DATA *weapon=NULL;
-
     // trying to equip disarmed item causes lag and attacks of opportunity
     if ( IS_OBJ_STAT(obj, ITEM_DISARMED) )
     {
@@ -2328,17 +2326,12 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
 
     if ( CAN_WEAR( obj, ITEM_HOLD ) )
     {
+        const OBJ_DATA *weapon = get_eq_char(ch, WEAR_WIELD);
+        if ( weapon && IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS) && !remove_obj(ch, WEAR_WIELD, fReplace) )
+            return;
         if ( !remove_obj(ch, WEAR_SECONDARY, fReplace) )
             return;
-
-        if (((weapon = get_eq_char(ch,WEAR_WIELD)) != NULL) &&
-                IS_WEAPON_STAT(weapon, WEAPON_TWO_HANDS))
-        {
-            send_to_char( "You cannot hold an item while using a two-handed weapon.\n\r", ch );
-            return;
-        }
-
-        if ( !remove_obj( ch, WEAR_HOLD, fReplace ) )
+        if ( !remove_obj(ch, WEAR_HOLD, fReplace) )
             return;
         act_gag( "$n holds $p in $s hands.",   ch, obj, NULL, TO_ROOM, GAG_EQUIP );
         act( "You hold $p in your hands.", ch, obj, NULL, TO_CHAR );
@@ -2350,20 +2343,14 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
     {
         int sn,skill;
 
-        if ( !remove_obj( ch, WEAR_WIELD, fReplace ) )
-            return;
-
-        if (get_eq_char(ch, WEAR_WIELD)!= NULL)
-        {
-            if ( !remove_obj( ch, WEAR_WIELD, fReplace ) )
-                return;
-        }
-
         if ( !IS_NPC(ch) && get_obj_weight(obj) > ch_str_wield(ch) )
         {
             send_to_char( "It is too heavy for you to wield.\n\r", ch );
             return;
         }
+
+        if ( !remove_obj(ch, WEAR_WIELD, fReplace) )
+            return;
 
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && !remove_obj(ch, WEAR_HOLD, fReplace) )
             return;
