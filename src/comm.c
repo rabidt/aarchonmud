@@ -1417,12 +1417,14 @@ void bust_a_prompt( CHAR_DATA *ch )
                 i = buf2; break;
                 /* Players can track new rooms that they've visited - Astark Nov 2012 */
             case 'E' :
-                /* Oops! forgot the NPC check here. Was causing a crash. Astark 1-17-13 */
-                if (!IS_NPC(ch))
+                if ( IS_NPC(ch) )
+                    i = "?";
+                else
                 {
-                    sprintf(buf2,"%d", ch->pcdata->explored->set );
-                    i = buf2; break;
+                    sprintf(buf2, "%d", ch->pcdata->explored->set);
+                    i = buf2;
                 }
+                break;
             case 'c' :
                 sprintf(buf2,"%s","\n\r");
                 i = buf2; break;
@@ -1749,7 +1751,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 #define MAX_BLOCK_SIZE 32768 
 int write_to_descriptor( int desc, char *txt, int length, bool SGA)
 {
-    const char const IAC_GA[] = { IAC, GA };
+    const char IAC_GA[] = { IAC, GA };
     static char outbuf[MAX_BLOCK_SIZE + sizeof(IAC_GA)];
 
     int iStart;
