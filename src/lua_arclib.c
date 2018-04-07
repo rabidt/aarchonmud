@@ -4707,6 +4707,35 @@ static int CH_get_descriptor( lua_State *LS )
         return 0;
 }
 
+static int CH_get_etl( lua_State *LS )
+{
+    CHAR_DATA *ud_ch = check_CH(LS, 1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'etl' for NPC.");
+    }
+
+    lua_pushinteger(LS,
+            (ud_ch->level + 1) * exp_per_level(ud_ch) - ud_ch->exp);
+
+    return 1;
+}
+
+static int CH_get_maxetl( lua_State *LS )
+{
+    CHAR_DATA *ud_ch = check_CH(LS, 1);
+
+    if (IS_NPC(ud_ch))
+    {
+        return luaL_error(LS, "Can't get 'maxetl' for NPC.");
+    }
+
+    lua_pushinteger(LS, exp_per_level(ud_ch));
+
+    return 1;
+}
+
 static int CH_get_godname( lua_State *LS )
 {
     CHAR_DATA *ud_ch=check_CH(LS,1);
@@ -4921,6 +4950,8 @@ static const LUA_PROP_TYPE CH_get_table [] =
     { "scroll", CH_get_scroll, 0, STS_ACTIVE },
     { "id", CH_get_id, 0, STS_ACTIVE },
     /* PC only */
+    { "etl", CH_get_etl, 0, STS_ACTIVE },
+    { "maxetl", CH_get_maxetl, 0, STS_ACTIVE },
     { "godname", CH_get_godname, 0, STS_ACTIVE },
     { "faith", CH_get_faith, 0, STS_ACTIVE },
     { "religionrank", CH_get_religionrank, 0, STS_ACTIVE },
