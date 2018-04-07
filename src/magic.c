@@ -778,17 +778,17 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             break;
 
         case TAR_VIS_CHAR_OFF:
-            if (( arg[0] == '\0' )
-                    && (ch->fighting != NULL)
-                    && !can_see_combat(ch, ch->fighting) )
-            {
-                send_to_char( "You can't see your target.\n\r", ch );
-                return FALSE;
-            }
-            *target = TAR_CHAR_OFFENSIVE;
-            /* no break at the end...carry through to next case check */
-
         case TAR_CHAR_OFFENSIVE:
+            // workaround to avoid fallthrough warning
+            if ( *target == TAR_VIS_CHAR_OFF )
+            {
+                if ( arg[0] == '\0' && ch->fighting != NULL && !can_see_combat(ch, ch->fighting) )
+                {
+                    send_to_char( "You can't see your target.\n\r", ch );
+                    return FALSE;
+                }
+                *target = TAR_CHAR_OFFENSIVE;
+            }
             if ( arg[0] == '\0' )
             {
                 if ( ( victim = ch->fighting ) == NULL )

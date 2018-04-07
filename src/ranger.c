@@ -109,7 +109,9 @@ void do_torch(CHAR_DATA *ch)
 		  skill -= 20;       /* Tough */
 		  break;
 	   case(SECT_FOREST):    /* Forest has more branches, a little easier */
-		  skill += 10;       /* Falls thru to next send_to_char() */
+		  skill += 10;
+          send_to_char("You pick the most suitable branch from the trees nearby.\n\r", ch);
+          break;
 	   case(SECT_FIELD):
 	   case(SECT_HILLS):
 	   case(SECT_MOUNTAIN):
@@ -858,7 +860,7 @@ DEF_DO_FUN(do_taxidermy)
 	int skill;
 
 	/* find out what */
-	if (argument == '\0')
+	if (argument[0] == '\0')
 	{
 	send_to_char("What do you want to preserve?\n\r",ch);
 	return;

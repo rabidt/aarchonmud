@@ -1203,6 +1203,7 @@ void new_load_area( FILE *fp )
             KEY("Minlevel", pArea->minlevel, fread_number( fp ));
             KEY("Maxlevel", pArea->maxlevel, fread_number( fp ));
             KEY("Miniquests", pArea->miniquests, fread_number( fp ));
+            break;
         case 'N':
             SKEY( "Name", pArea->name );
             if ( !str_cmp(word, "NoQuest"))
@@ -1236,6 +1237,7 @@ void new_load_area( FILE *fp )
             break;
         case 'T':
             KEY("Time", pArea->reset_time, fread_number( fp ));
+            break;
         case 'V':
             if ( !str_cmp( word, "VNUMs" ) )
             {
