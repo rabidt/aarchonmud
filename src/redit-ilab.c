@@ -362,11 +362,9 @@ static RESET_DATA *find_obj_here (ROOM_INDEX_DATA *room, char* argument)
 				
 			case 'G':
 			case 'E':
-				if (!last_here)
-					continue;
-			/* NOTE: No break! */					
-
-			case 'O':					
+			case 'O':
+                if ( p->command == 'E' && !last_here )
+                    continue;
 				obj = get_obj_index (p->arg1);
 				if (!obj)
 					continue;

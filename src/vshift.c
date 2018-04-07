@@ -186,7 +186,8 @@ void shift_reset_list( RESET_DATA *reset )
 	case 'O':
 	case 'P':
 	    SHIFT( reset->arg3 ); 
-	    /* no break here! */
+        SHIFT( reset->arg1 ); 
+        break;
 	case 'E':
 	case 'G':
 	    SHIFT( reset->arg1 ); 
