@@ -852,7 +852,7 @@ DEF_NANNY_FUN(get_new_race)
     	argument = one_argument(argument,arg);
     	if (argument[0] == '\0')
     	{
-			char r[6];
+			char r[10];
 			sprintf( r, "< r%d", ch->pcdata->remorts );
 			do_stats(ch, r);
 		}
@@ -877,7 +877,7 @@ DEF_NANNY_FUN(get_new_race)
     	argument = one_argument(argument,arg);
     	if (argument[0] == '\0')
     	{
-			char r[6];
+			char r[10];
 			sprintf( r, "< r%d", ch->pcdata->remorts );
 			do_etls(ch, r);
 		}
@@ -1124,7 +1124,7 @@ DEF_NANNY_FUN(get_new_class)
 	{
 		if (argument[0] == '\0')
 		{
-			char r[6];
+			char r[10];
 			sprintf( r, "< r%d", ch->pcdata->remorts );
 			do_stats(ch,r);
 		}
@@ -1146,7 +1146,7 @@ DEF_NANNY_FUN(get_new_class)
 	{
 		if (argument[0] == '\0')
 		{
-			char r[6];
+			char r[10];
 			sprintf( r, "< r%d", ch->pcdata->remorts );
 			do_etls(ch,r);
 		}
