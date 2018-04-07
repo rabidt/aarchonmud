@@ -147,14 +147,18 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
                     flag_bit_name(weapon_class, obj->value[0]) );
                 break;
             case ITEM_HOLD:
-                if ( obj->item_type != ITEM_ARMOR
-                    && obj->item_type != ITEM_JEWELRY
-                    && obj->item_type != ITEM_TREASURE )
+                switch ( obj->item_type )
                 {
-                    // same as ITEM_CARRY
-                    sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
-                    break;
+                    case ITEM_ARMOR:
+                    case ITEM_JEWELRY:
+                    case ITEM_TREASURE:
+                        sprintf(lvlBuf, "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
+                        break;
+                    default:
+                        sprintf(lvlBuf, "(lvl %d %s) ", obj->level, flag_bit_name(type_flags, obj->item_type));
+                        break;
                 }
+                break;
             default:
                 sprintf(lvlBuf, "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
                 break;
@@ -1919,13 +1923,16 @@ DEF_DO_FUN(do_examine)
 	send_to_char(buf,ch);
 	break;
 	
-        case ITEM_DRINK_CON:
-            ptc(ch, "It has a level requirement of %d.\n\r", obj->level);
-        case ITEM_CONTAINER:
-        case ITEM_CORPSE_NPC:
-        case ITEM_CORPSE_PC:
-            show_content(ch, obj);
-	    break;
+    case ITEM_DRINK_CON:
+        ptc(ch, "It has a level requirement of %d.\n\r", obj->level);
+        show_content(ch, obj);
+        break;
+
+    case ITEM_CONTAINER:
+    case ITEM_CORPSE_NPC:
+    case ITEM_CORPSE_PC:
+        show_content(ch, obj);
+        break;
 
 	case ITEM_WEAPON:
         strcpy(buf, "It is ");

@@ -514,12 +514,16 @@ DEF_DO_FUN(do_clanwar)
          case CLANWAR_WAR:
             {
                switch (qstatus) {
-               case CLANWAR_TRUCE:  /* Set Q to WAR, flow thru to below */
-                  free_string(q->truce_name);
-                  q->truce_name = NULL;
-                  q->truce_timer = 0;
-                  q->status = CLANWAR_WAR;
+               case CLANWAR_TRUCE:
                case CLANWAR_WAR:
+                  // work-around to avoid fall-through warning without code duplication
+                  if ( qstatus == CLANWAR_TRUCE )
+                  {
+                    free_string(q->truce_name);
+                    q->truce_name = NULL;
+                    q->truce_timer = 0;
+                    q->status = CLANWAR_WAR;
+                  }
                   delete_clanwar_node(p);
                   sprintf(log_buf, "Clan %s has withdrawn their declaration of war upon clan %s!\n\r",
                      capitalize(clan_table[ch->clan].name),
