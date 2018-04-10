@@ -63,7 +63,7 @@ char last_delete_name[MIL] = "";
 
 void add_auto_auth( const char *name )
 {
-    sprintf( last_delete_name, "%s", name );
+    snprintf( last_delete_name, sizeof(last_delete_name), "%s", name );
 }
 
 bool check_auto_auth( const char *name )
@@ -95,7 +95,7 @@ bool exists_player( const char *name )
           return TRUE;
    }
 
-   sprintf( buf, "%s%s", PLAYER_DIR, capitalize(name));
+   snprintf( buf, sizeof(buf), "%s%s", PLAYER_DIR, capitalize(name));
    
 #if defined (WIN32)    
    if( _stat(buf, &fst) != -1 )
@@ -243,7 +243,7 @@ void fread_auth( FILE *fp )
         }
         if ( !fMatch )
         {
-            sprintf( buf, "Fread_auth: no match: %s", word );
+            snprintf( buf, sizeof(buf), "Fread_auth: no match: %s", word );
             bug( buf, 0 );
         }
     }
@@ -460,19 +460,19 @@ void check_auth_state( CHAR_DATA *ch )
 
         remove_from_auth( ch->name );
 
-        sprintf( buf, "%s add", ch->name );
+        snprintf( buf, sizeof(buf), "%s add", ch->name );
         do_reserve(ch, buf);
 
-	sprintf( filename, "%s", capitalize(ch->name) );
+	snprintf( filename, sizeof(filename), "%s", capitalize(ch->name) );
 
         stop_fighting(ch,TRUE);
         do_quit( ch, "" );
 
-        /*sprintf( buf, "%s%s", PLAYER_DIR, capitalize( ch->name ) );*/
+        /*snprintf( buf, sizeof(buf), "%s%s", PLAYER_DIR, capitalize( ch->name ) );*/
 
         if ( !unlink_pfile(filename) )
         {
-            sprintf(buf, "Pre-Auth %s denied. Player file destroyed.\n\r", filename );
+            snprintf( buf, sizeof(buf), "Pre-Auth %s denied. Player file destroyed.\n\r", filename );
             wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
         }
     }
@@ -609,16 +609,16 @@ DEF_DO_FUN(do_authorize)
                     switch( auth->state )
                     {
                     default:
-                        sprintf( buf, "Unknown?" );
+                        snprintf( buf, sizeof(buf), "Unknown?" );
                         break;
                     case AUTH_LINK_DEAD:
-                        sprintf( buf, "Link Dead" );
+                        snprintf( buf, sizeof(buf), "Link Dead" );
                         break;
                     case AUTH_ONLINE:
-                        sprintf( buf, "Online" );
+                        snprintf( buf, sizeof(buf), "Online" );
                         break;
                     case AUTH_OFFLINE:
-                        sprintf( buf, "Offline" );
+                        snprintf( buf, sizeof(buf), "Offline" );
                         break;
                     }
                     
@@ -644,7 +644,7 @@ DEF_DO_FUN(do_authorize)
             {
                 if ( auth->state == AUTH_AUTHED )
 		{
-		    sprintf( buf, "Name: %s\t\t Approved by: %s\n\r", 
+		    snprintf( buf, sizeof(buf), "Name: %s\t\t Approved by: %s\n\r", 
 			     auth->name, auth->authed_by );
 		    add_buf( output, buf );
 		}
@@ -658,7 +658,7 @@ DEF_DO_FUN(do_authorize)
             {
                 if ( auth->state == AUTH_CHANGE_NAME )
 		{
-                    sprintf( buf, "Name: %s\t\t Change requested by: %s\n\r", 
+                    snprintf( buf, sizeof(buf), "Name: %s\t\t Change requested by: %s\n\r", 
 			     auth->name, auth->change_by );
  		    add_buf( output, buf );
 		}
@@ -672,7 +672,7 @@ DEF_DO_FUN(do_authorize)
             {
                 if ( auth->state == AUTH_DENIED )
 		{
-                    sprintf( buf, "Name: %s\t\t Denied by: %s\n\r", 
+                    snprintf( buf, sizeof(buf), "Name: %s\t\t Denied by: %s\n\r", 
 			     auth->name, auth->denied_by );
 		    add_buf( output, buf );
 		}
@@ -736,7 +736,7 @@ DEF_DO_FUN(do_authorize)
                 auth->state = AUTH_AUTHED;
                 auth->authed_by = str_dup( ch->name );
                 save_auth_list();
-                sprintf( buf, "%s: authorized", auth->name);
+                snprintf( buf, sizeof(buf), "%s: authorized", auth->name);
                 wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 printf_to_char( ch, "You have authorized %s.\n\r", auth->name );
                 return;
@@ -754,11 +754,11 @@ DEF_DO_FUN(do_authorize)
                 auth->state = AUTH_DENIED;
                 auth->denied_by = str_dup( ch->name );
                 save_auth_list();
-                sprintf( buf, "%s: denied authorization", auth->name );
+                snprintf( buf, sizeof(buf), "%s: denied authorization", auth->name );
                 wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 printf_to_char( ch, "You have denied %s.\n\r", auth->name );
 
-                sprintf( buf, "%s add", auth->name );
+                snprintf( buf, sizeof(buf), "%s add", auth->name );
                 do_reserve( ch, buf );
                 return;
             }
@@ -767,11 +767,11 @@ DEF_DO_FUN(do_authorize)
                 auth->state = AUTH_CHANGE_NAME;
                 auth->change_by = str_dup( ch->name );
                 save_auth_list();
-                sprintf( buf, "%s: name denied", auth->name );
+                snprintf( buf, sizeof(buf), "%s: name denied", auth->name );
                 wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 printf_to_char( ch, "You have requested %s to change names.\n\r", auth->name );
 
-                sprintf( buf, "%s add", auth->name );
+                snprintf( buf, sizeof(buf), "%s add", auth->name );
                 do_reserve(ch, buf);
                 return;
             }
@@ -799,7 +799,7 @@ DEF_DO_FUN(do_authorize)
                 if ( victim->pcdata->authed_by )
                     free_string( victim->pcdata->authed_by );
                 victim->pcdata->authed_by = str_dup( ch->name );
-                sprintf( buf, "%s: authorized", victim->name );
+                snprintf( buf, sizeof(buf), "%s: authorized", victim->name );
                 wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 
                 printf_to_char( ch, "You have authorized %s.\n\r", victim->name );
@@ -825,12 +825,12 @@ DEF_DO_FUN(do_authorize)
 		char filename[MIL];
 
                 send_to_char( "{RYou have been denied access.{x\n\r", victim );
-                sprintf( buf, "%s: denied authorization", victim->name );
+                snprintf( buf, sizeof(buf), "%s: denied authorization", victim->name );
                 wiznet(buf, ch, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 printf_to_char( ch, "You have denied %s.\n\r", victim->name );
                 remove_from_auth( victim->name );
 
-                sprintf( buf, "%s add", victim->name );
+                snprintf( buf, sizeof(buf), "%s add", victim->name );
                 do_reserve(ch, buf);
 
                 /* Sardonic 10/99
@@ -839,17 +839,17 @@ DEF_DO_FUN(do_authorize)
                 do_quit( victim, "" );
                 */
 
-		sprintf( filename, "%s", capitalize(victim->name) );
+		snprintf( filename, sizeof(filename), "%s", capitalize(victim->name) );
 
                 extract_char(victim, TRUE);
                 if (victim->desc != NULL)
                     close_socket(victim->desc);
                 
-                /*sprintf( buf, "%s%s", PLAYER_DIR, capitalize( victim->name ) );*/
+                /*snprintf( buf, sizeof(buf), "%s%s", PLAYER_DIR, capitalize( victim->name ) );*/
                 
                 if ( !unlink_pfile(filename) )
                 {
-                    sprintf(buf, "Pre-Auth %s denied. Player file destroyed.\n\r", filename );
+                    snprintf( buf, sizeof(buf), "Pre-Auth %s denied. Player file destroyed.\n\r", filename );
                     wiznet(buf, victim, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
                 }
             }	
@@ -863,7 +863,7 @@ DEF_DO_FUN(do_authorize)
                 auth->state = AUTH_CHANGE_NAME;
                 auth->change_by = str_dup( ch->name );
                 save_auth_list();
-                sprintf( buf, "%s: name denied", victim->name );
+                snprintf( buf, sizeof(buf), "%s: name denied", victim->name );
                 wiznet(buf, victim, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);
 
                 printf_to_char(victim,
@@ -874,7 +874,7 @@ DEF_DO_FUN(do_authorize)
 
                 printf_to_char( ch, "You have requested that %s change names.\n\r", victim->name);
 
-                sprintf( buf, "%s add", victim->name );
+                snprintf( buf, sizeof(buf), "%s add", victim->name );
                 do_reserve(ch, buf);
                 return;
             }
@@ -939,7 +939,7 @@ DEF_DO_FUN(do_name)
         return;
     }
     
-    sprintf( fname, "%s%s", PLAYER_DIR, argument );
+    snprintf( fname, sizeof(fname), "%s%s", PLAYER_DIR, argument );
 
 #if defined (WIN32)
     if ( _stat( fname, &fst ) != -1 )
@@ -950,7 +950,7 @@ DEF_DO_FUN(do_name)
         send_to_char("That name is already taken.  Please choose another.\n\r", ch);
         return;
     }
-    /* sprintf( fname, "%s%s", PLAYER_DIR, capitalize(ch->name) ); */
+    /* snprintf( fname, sizeof(fname), "%s%s", PLAYER_DIR, capitalize(ch->name) ); */
 
     unlink_pfile( capitalize_buf(ch->name, name_buf) );
     
@@ -989,7 +989,7 @@ void auth_update( void )
         if ( auth != NULL && auth->state < AUTH_CHANGE_NAME )
         {
             found_hit = TRUE;
-            sprintf( buf, "Name: %s      Status: %s\n\r", auth->name, ( auth->state == AUTH_ONLINE ) ? "Online" : "Offline" ); 
+            snprintf( buf, sizeof(buf), "Name: %s      Status: %s\n\r", auth->name, ( auth->state == AUTH_ONLINE ) ? "Online" : "Offline" ); 
             strcat( log_buf1, buf );
         }
     }

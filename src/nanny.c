@@ -398,7 +398,7 @@ bool check_parse_name( const char *name, bool newchar )
    /*
     * Prevent players from naming themselves after mobs.
     */
-    sprintf(strsave, "%s%s", GOD_DIR, capitalize ( name) );
+    snprintf( strsave, sizeof(strsave), "%s%s", GOD_DIR, capitalize ( name) );
 
     if (access(strsave, 0))
     {
@@ -486,7 +486,7 @@ DEF_NANNY_FUN(get_name)
    
     if (IS_SET(d->character->act, PLR_DENY))
     {
-        sprintf( buf, "Denying access to %s@%s.", argument, d->host );
+        snprintf( buf, sizeof(buf), "Denying access to %s@%s.", argument, d->host );
         log_string( buf );
         write_to_buffer( d, "You are denied access.\n\r", 0 );
         close_socket( d );
@@ -554,7 +554,7 @@ DEF_NANNY_FUN(get_old_password)
 	if (con_state(d) != CON_GET_OLD_PASSWORD)
 	{
 		set_con_state(d, CON_GET_OLD_PASSWORD);
-		sprintf( buf, "Welcome back, %s.  What is your password? ", ch->name );
+		snprintf( buf, sizeof(buf), "Welcome back, %s.  What is your password? ", ch->name );
 		write_to_buffer( d, buf, 0 );
         ProtocolNoEcho( d, true );
 
@@ -578,7 +578,7 @@ DEF_NANNY_FUN(get_old_password)
 		if ( check_reconnect( d, ch->name, TRUE ) )
 			return FALSE;
 
-		sprintf( buf, "%s@%s has connected.", ch->name, d->host );
+		snprintf( buf, sizeof(buf), "%s@%s has connected.", ch->name, d->host );
 		log_string( buf );
 		wiznet(buf,NULL,NULL,WIZ_SITES,0,get_trust(ch));
         DXPORT_player_connect(ch->name, d->host, current_time);
@@ -597,7 +597,7 @@ DEF_NANNY_FUN(confirm_new_name)
 
 	if (con_state(d)!=CON_CONFIRM_NEW_NAME)
 	{
-		sprintf( buf, "Did I get that right, %s (Y/N)? ", argument );
+		snprintf( buf, sizeof(buf), "Did I get that right, %s (Y/N)? ", argument );
 		write_to_buffer( d, buf, 0 );
 		set_con_state(d, CON_CONFIRM_NEW_NAME);
 		return FALSE;
@@ -634,7 +634,7 @@ DEF_NANNY_FUN(get_new_password)
 	if (con_state(d) != CON_GET_NEW_PASSWORD)
 	{
         ProtocolNoEcho( d, true );
-		sprintf( buf, "Ah, a new soul.  Welcome to your new home, %s.\n\rPlease enter a password for your new character: ",
+		snprintf( buf, sizeof(buf), "Ah, a new soul.  Welcome to your new home, %s.\n\rPlease enter a password for your new character: ",
 		d->character->name );
 		write_to_buffer( d, buf, 0 );
 		set_con_state(d, CON_GET_NEW_PASSWORD);
@@ -746,7 +746,7 @@ DEF_NANNY_FUN(get_creation_mode)
 	{
 		write_to_buffer(d,"\n\r",0);
 		do_help(d->character,"header creation");
-		sprintf( msg, "{CWhich creation option do you choose(normal, expert)?{x " );
+		snprintf( msg, sizeof(msg), "{CWhich creation option do you choose(normal, expert)?{x " );
 
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
@@ -777,7 +777,7 @@ DEF_NANNY_FUN(get_creation_mode)
 
 	write_to_buffer(d,"That isn't a valid choice.\n\r",0);
 
-        sprintf( msg, "{CWhich creation option do you choose(normal, expert)?{x " );
+        snprintf( msg, sizeof(msg), "{CWhich creation option do you choose(normal, expert)?{x " );
         pbuff = buffer;
         colourconv( pbuff, msg, d->character ); 
         write_to_buffer(d, buffer ,0);
@@ -817,7 +817,7 @@ DEF_NANNY_FUN(get_new_race)
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
+	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
@@ -839,7 +839,7 @@ DEF_NANNY_FUN(get_new_race)
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
+	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
@@ -853,7 +853,7 @@ DEF_NANNY_FUN(get_new_race)
     	if (argument[0] == '\0')
     	{
 			char r[10];
-			sprintf( r, "< r%d", ch->pcdata->remorts );
+			snprintf( r, sizeof(r), "< r%d", ch->pcdata->remorts );
 			do_stats(ch, r);
 		}
 		else
@@ -864,7 +864,7 @@ DEF_NANNY_FUN(get_new_race)
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
+	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
@@ -878,7 +878,7 @@ DEF_NANNY_FUN(get_new_race)
     	if (argument[0] == '\0')
     	{
 			char r[10];
-			sprintf( r, "< r%d", ch->pcdata->remorts );
+			snprintf( r, sizeof(r), "< r%d", ch->pcdata->remorts );
 			do_etls(ch, r);
 		}
 		else
@@ -889,7 +889,7 @@ DEF_NANNY_FUN(get_new_race)
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
+	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
@@ -927,7 +927,7 @@ DEF_NANNY_FUN(get_new_race)
 	if (ch->pcdata->remorts>0)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
-	sprintf( msg, "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
+	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
@@ -964,7 +964,7 @@ DEF_NANNY_FUN(get_new_race)
     ch->pcdata->points =0;
     ch->size = pc_race_table[race].size;
     
-    sprintf( msg, "\n\r     {cFor your first incarnation, you have chosen to be %s %s.{x\n\r\n\r",
+    snprintf( msg, sizeof(msg), "\n\r     {cFor your first incarnation, you have chosen to be %s %s.{x\n\r\n\r",
         aan(pc_race_table[race].name), pc_race_table[race].name );
     pbuff = buffer;
     colourconv( pbuff, msg, d->character );
@@ -982,7 +982,7 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 	char buffer[MAX_STRING_LENGTH*2];
 	char *pbuff;	/* pointer to buff */
 
-	sprintf( msg, "[ " );
+	snprintf( msg, sizeof(msg), "[ " );
 	for ( race = 1; race_table[race].name != NULL; race++ )
 	{
 	    if (!race_table[race].pc_race)
@@ -1004,8 +1004,8 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 		case 10: colour = 'B'; break;
 		default: colour = 'D';
 	    }
-	    //sprintf( msg, "%s{%c%s ", msg,colour, race_table[race].name );
-            sprintf( tmp, "{%c%s ", colour, race_table[race].name );
+	    //snprintf( msg, sizeof(msg), "%s{%c%s ", msg,colour, race_table[race].name );
+            snprintf( tmp, sizeof(tmp), "{%c%s ", colour, race_table[race].name );
             strcat( msg, tmp );
 
 	}
@@ -1026,7 +1026,7 @@ DEF_NANNY_FUN(get_new_sex)
 
 	if (con_state(d)!=CON_GET_NEW_SEX)
 	{
-		sprintf( msg, "\n\r{CWhat is your sex (M/F)?{x " );
+		snprintf( msg, sizeof(msg), "\n\r{CWhat is your sex (M/F)?{x " );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1044,7 +1044,7 @@ DEF_NANNY_FUN(get_new_sex)
 				ch->pcdata->true_sex = SEX_FEMALE;
 				return TRUE;
 	default:
-		sprintf( msg, "That's not a sex.\n\r{CWhat is your sex (M/F)?{x " );
+		snprintf( msg, sizeof(msg), "That's not a sex.\n\r{CWhat is your sex (M/F)?{x " );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1111,8 +1111,8 @@ DEF_NANNY_FUN(get_new_class)
 			}	
 		}
 
-//		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
-		sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
+//		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
+		snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
 		pbuff = buffer;
 		colourconv( pbuff, buf, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1125,7 +1125,7 @@ DEF_NANNY_FUN(get_new_class)
 		if (argument[0] == '\0')
 		{
 			char r[10];
-			sprintf( r, "< r%d", ch->pcdata->remorts );
+			snprintf( r, sizeof(r), "< r%d", ch->pcdata->remorts );
 			do_stats(ch,r);
 		}
 		else
@@ -1133,8 +1133,8 @@ DEF_NANNY_FUN(get_new_class)
 			do_stats(ch,argument);
 		}
 
-//		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
-                sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
+//		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
+                snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
 		pbuff = buffer;
 		colourconv( pbuff, buf, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1147,7 +1147,7 @@ DEF_NANNY_FUN(get_new_class)
 		if (argument[0] == '\0')
 		{
 			char r[10];
-			sprintf( r, "< r%d", ch->pcdata->remorts );
+			snprintf( r, sizeof(r), "< r%d", ch->pcdata->remorts );
 			do_etls(ch,r);
 		}
 		else
@@ -1155,8 +1155,8 @@ DEF_NANNY_FUN(get_new_class)
 			do_etls(ch,argument);
 		}
 
-//		sprintf( buf, "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
-                sprintf( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
+//		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
+                snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
 		pbuff = buffer;
 		colourconv( pbuff, buf, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1203,7 +1203,7 @@ DEF_NANNY_FUN(get_new_class)
 
 	ch->clss = i;
 
-    sprintf( buf, "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
+    snprintf( buf, sizeof(buf), "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
     pbuff = buffer;
     colourconv( pbuff, buf, d->character );
     write_to_buffer(d, buffer, 0);
@@ -1337,7 +1337,7 @@ DEF_NANNY_FUN(get_alignment)
 	if (con_state(d)!= CON_GET_ALIGNMENT)
 	{
 		write_to_buffer( d, "You may be angelic, saintly, good, kind, neutral, mean, evil, demonic, or satanic.\n\r",0);
-		sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
+		snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1357,7 +1357,7 @@ DEF_NANNY_FUN(get_alignment)
 	    do_help(ch,argument);
 
 	pbuff = buffer;
-    sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
+    snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer(d,buffer,0);
 	return FALSE;
@@ -1365,53 +1365,53 @@ DEF_NANNY_FUN(get_alignment)
     else if (!strcmp(arg,"angelic"))
     {
         ch->alignment = 1000;
-	sprintf( msg, "\n\r     {cYou have chosen to start with angelic alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with angelic alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"saintly"))
     {
 	ch->alignment = 750;
-	sprintf( msg, "\n\r     {cYou have chosen to start with saintly alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with saintly alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"good"))
     {
 	ch->alignment = 500;
-	sprintf( msg, "\n\r     {cYou have chosen to start with good alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with good alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"kind"))
     {
 	ch->alignment = 250;
-	sprintf( msg, "\n\r     {cYou have chosen to start with kind alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with kind alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"neutral"))
     {
 	ch->alignment = 0;
-	sprintf( msg, "\n\r     {cYou have chosen to start with neutral alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with neutral alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"mean"))
     {
 	ch->alignment = -250;
-	sprintf( msg, "\n\r     {cYou have chosen to start with mean alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with mean alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"evil"))
     {
 	ch->alignment = -500;
-	sprintf( msg, "\n\r     {cYou have chosen to start with evil alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with evil alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"demonic"))
     {
 	ch->alignment = -750;
-	sprintf( msg, "\n\r     {cYou have chosen to start with demonic alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with demonic alignment.{x\n\r" );
     }
     else if (!strcmp(arg,"satanic"))
     {
 	ch->alignment = -1000;
-	sprintf( msg, "\n\r     {cYou have chosen to start with satanic alignment.{x\n\r" );
+	snprintf( msg, sizeof(msg), "\n\r     {cYou have chosen to start with satanic alignment.{x\n\r" );
     }
     else
     {
 	write_to_buffer(d,"That's not a valid alignment.\n\r",0);
 	write_to_buffer( d, "You may be angelic, saintly, good, kind, neutral, mean, evil, demonic, or satanic.\n\r",0);
-	sprintf( msg, "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
+	snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
 	write_to_buffer( d, buffer, 0 );
@@ -1459,7 +1459,7 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 
 	if (d->character->clss == class_lookup("monk"))
 	{
-		sprintf( msg, "     {cYou have chosen to begin fighting barehanded.{x\n\r\n\r" );
+		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin fighting barehanded.{x\n\r\n\r" );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer(d,buffer,0);
@@ -1467,7 +1467,7 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 	}
 	else
 	{
-		sprintf( msg, "     {cYou have chosen to begin with a %s in hand.{x\n\r\n\r", weapon_table[i].name );
+		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin with a %s in hand.{x\n\r\n\r", weapon_table[i].name );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer(d,buffer,0);
@@ -1490,7 +1490,7 @@ void newbie_alert(DESCRIPTOR_DATA *d)
             save_penalties();
         }
 
-    sprintf( buf, "%s@%s new player.", d->character->name, d->host );
+    snprintf( buf, sizeof(buf), "%s@%s new player.", d->character->name, d->host );
     log_string( buf );
     wiznet("Newbie alert!  $N sighted.",d->character,NULL,WIZ_NEWBIE,0,0);
     wiznet(buf,NULL,NULL,WIZ_SITES,0,0);
@@ -1506,7 +1506,7 @@ DEF_NANNY_FUN(default_choice)
 
 	if (con_state(d) != CON_DEFAULT_CHOICE)
 	{
-		sprintf(msg, "Do you wish to customize this character?\n\r"
+		snprintf( msg, sizeof(msg), "Do you wish to customize this character?\n\r"
 			"Customization takes time, but allows a wider range of skills and abilities.\n\r"
 			"{CCustomize (Y/N)?{x " );
 		pbuff = buffer;
@@ -1526,7 +1526,7 @@ DEF_NANNY_FUN(default_choice)
 		take_class_defaults(d); 
 		return TRUE;
 	default:
-		sprintf(msg, "{CPlease answer yes/no (Y/N)?{x ");
+		snprintf( msg, sizeof(msg), "{CPlease answer yes/no (Y/N)?{x ");
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character ); 
 		write_to_buffer(d, buffer ,0);
@@ -1561,7 +1561,7 @@ DEF_NANNY_FUN(gen_groups)
 	send_to_char("\n\r",ch);
 	if (!str_cmp(argument,"done"))
 	{
-		sprintf(buf,"     {cYou have used %d creation points,{x\n\r",ch->pcdata->points);
+		snprintf( buf, sizeof(buf),"     {cYou have used %d creation points,{x\n\r",ch->pcdata->points);
 		send_to_char(buf,ch);
 		free_gen_data(ch->gen_data);
 		ch->gen_data = NULL;
@@ -1593,7 +1593,7 @@ DEF_NANNY_FUN(pick_weapon)
 		write_to_buffer(d,
 		"Please pick a weapon from the following choices:\n\r",0);
 
-	        sprintf( msg, "[{W" );
+	        snprintf( msg, sizeof(msg), "[{W" );
 
 		for ( w = 0; weapon_table[w].name != NULL; w++)
 		{
@@ -1613,7 +1613,7 @@ DEF_NANNY_FUN(pick_weapon)
 	        colourconv( pbuff, msg, d->character );
         	write_to_buffer(d,buffer,0);
 
-		sprintf(msg,"{CYour choice of weapon (Press enter to take your class default)?{x ");
+		snprintf( msg, sizeof(msg),"{CYour choice of weapon (Press enter to take your class default)?{x ");
         	pbuff = buffer;
 	        colourconv( pbuff, msg, d->character );
 		write_to_buffer(d,buffer,0);
@@ -1637,7 +1637,7 @@ DEF_NANNY_FUN(pick_weapon)
 		{
 			write_to_buffer(d, "That's not a valid selection. Choices are:\n\r",0);
 
-		        sprintf( msg, "[ {W" );
+		        snprintf( msg, sizeof(msg), "[ {W" );
 			for ( w = 0; weapon_table[w].name != NULL; w++)
 			{
 				if (ch->pcdata->learned[*weapon_table[w].gsn] > 0 
@@ -1664,7 +1664,7 @@ DEF_NANNY_FUN(pick_weapon)
 
 	if (weapon==-1)
 	{
-		sprintf( msg, "     {cYou have chosen to begin fighting barehanded.{x\n\r" );
+		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin fighting barehanded.{x\n\r" );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer(d,buffer,0);
@@ -1672,7 +1672,7 @@ DEF_NANNY_FUN(pick_weapon)
 	}
 	else
 	{
-		sprintf( msg, "     {cYou have chosen to begin with a %s in hand.{x\n\r", weapon_table[weapon].name );
+		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin with a %s in hand.{x\n\r", weapon_table[weapon].name );
 		pbuff = buffer;
 		colourconv( pbuff, msg, d->character );
 		write_to_buffer(d,buffer,0);
@@ -1859,7 +1859,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
                     send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
                 act( "$n has reconnected.", ch, NULL, NULL, TO_ROOM );
 
-                sprintf( buf, "%s@%s reconnected.", ch->name, d->host );
+                snprintf( buf, sizeof(buf), "%s@%s reconnected.", ch->name, d->host );
                 log_string( buf );
                 wiznet("$N groks the fullness of $S link.",
                     ch,NULL,WIZ_LINKS,0,0);
@@ -1969,7 +1969,7 @@ void do_loginquote( CHAR_DATA *ch )
 
     number = number_range( 1, MAX_QUOTES);
 
-    sprintf ( buf, "\n\r%s\n\r", quote_table[number].text);
+    snprintf( buf, sizeof(buf), "\n\r%s\n\r", quote_table[number].text);
     send_to_char ( buf, ch );
     return;
 }
@@ -2050,7 +2050,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
         ch->wimpy = 20;
         ch->calm = 20;
 
-	    sprintf( buf, "the %s",
+	    snprintf( buf, sizeof(buf), "the %s",
 		     title_table [ch->clss] [(ch->level+4-(ch->level+4)%5)/5]);
 	    set_title( ch, buf );
 
@@ -2125,7 +2125,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 
 	if ( !IS_IMMORTAL(ch) )
 	{
-	    sprintf(buf, "%s has decided to join us.", ch->name);
+	    snprintf( buf, sizeof(buf), "%s has decided to join us.", ch->name);
 	    info_message_new(ch, buf, FALSE, FALSE);
 	}
     MXPSendTag( d, "<VERSION>" );
@@ -2148,7 +2148,7 @@ void enter_game ( DESCRIPTOR_DATA *d )
 		     && (desc->connected == CON_PLAYING
 			 || IS_WRITING_NOTE(desc->connected)) )
 		{
-		    sprintf( buf, "Multiplay: %s and %s have same host",
+		    snprintf( buf, sizeof(buf), "Multiplay: %s and %s have same host",
 			     ch->name, desc->character->name );
 		    wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
 		}

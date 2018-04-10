@@ -130,7 +130,7 @@ DEF_DO_FUN(do_supplies)
 	case 3: rarity = "very difficult to extract"; break;
 	default: rarity = "extremely difficult to extract"; break;
 	}
-	sprintf( buf, "%29s is %s.\n\r", materials->short_descr, rarity);
+	snprintf( buf, sizeof(buf), "%29s is %s.\n\r", materials->short_descr, rarity);
 	send_to_char( buf, ch );
     }
 }
@@ -163,7 +163,7 @@ DEF_DO_FUN(do_craft)
 	    if ( (materials = get_obj_index(crafting_table[i].materials_vnum[0])) == NULL )
 		continue;
 
-	    sprintf( buf, "lvl %2d %20s:  %s", crafting_table[i].level,
+	    snprintf( buf, sizeof(buf), "lvl %2d %20s:  %s", crafting_table[i].level,
 		     crafting_table[i].name, materials->short_descr );
 	    send_to_char( buf, ch );
 
@@ -173,7 +173,7 @@ DEF_DO_FUN(do_craft)
 		{
 		    if ( (materials = get_obj_index(crafting_table[i].materials_vnum[j])) == NULL )
 			continue;
-		    sprintf( buf, " + %s", materials->short_descr );
+		    snprintf( buf, sizeof(buf), " + %s", materials->short_descr );
 		    send_to_char( buf, ch );
 		}
 
@@ -490,7 +490,7 @@ DEF_DO_FUN(do_extract)
     if ( chance(skill-5) )
     {
         extracted = create_object_vnum(material);
-        sprintf(buf, "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
+        snprintf( buf, sizeof(buf), "%s vanishes as you extract %s from it.\n\r", obj->short_descr, extracted->short_descr);
         send_to_char(buf,ch);
         act( "$n extracts $p from $P.", ch, extracted, obj, TO_ROOM );
         obj_to_char(extracted, ch);
