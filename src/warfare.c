@@ -136,14 +136,14 @@ void auto_war(void)
     war.owner = 0;
 
     if ( war.type == ARMAGEDDON_WAR )
-        sprintf( buf, "An {cArmageddon{6 has been declared for levels %d to %d!\n\r",
+        snprintf( buf, sizeof(buf), "An {cArmageddon{6 has been declared for levels %d to %d!\n\r",
                 war.min_level, war.max_level);
     else
-        sprintf( buf, "A %s war has been declared for levels %d to %d!\n\r",
+        snprintf( buf, sizeof(buf), "A %s war has been declared for levels %d to %d!\n\r",
                 war_list[war.type], war.min_level, war.max_level);
 
     warfare_to_all( buf );
-    sprintf( buf, "Type 'combat' to join or read 'help warfare' for info.\n\r" );
+    snprintf( buf, sizeof(buf), "Type 'combat' to join or read 'help warfare' for info.\n\r" );
     warfare_to_all( buf );
     return;
 
@@ -189,10 +189,10 @@ void proc_startduel( CHAR_DATA *ch, const char *argument)
     war.cost = 10;
     ch->pcdata->questpoints -= 10;
 
-    sprintf( buf, "%s has challenged %s to a {DDuel{6!\n\r", ch->name, vic->name);
+    snprintf( buf, sizeof(buf), "%s has challenged %s to a {DDuel{6!\n\r", ch->name, vic->name);
 
     warfare_to_all( buf );
-    sprintf( buf, "Type 'combat' to join or read 'help warfare' for info.\n\r" );
+    snprintf( buf, sizeof(buf), "Type 'combat' to join or read 'help warfare' for info.\n\r" );
     warfare_to_char( vic, buf );
     warfare_to_char( ch, buf );
     return;
@@ -282,7 +282,7 @@ void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
 
     if (war.min_level + 50 < war.max_level)
     {
-        sprintf(buf, "Dont you think a %d spread is a little excessive?\n\r",
+        snprintf( buf, sizeof(buf), "Dont you think a %d spread is a little excessive?\n\r",
                 war.max_level - war.min_level);
         send_to_char(buf, ch);
         return;
@@ -309,23 +309,23 @@ void proc_startwar( CHAR_DATA *ch, const char *argument, bool pay )
     if (IS_IMMORTAL(ch) && ch->invis_level)
     {
         if ( war.type == ARMAGEDDON_WAR )
-            sprintf( buf, "An {cArmageddon{6 has been declared for levels %d to %d!\n\r",
+            snprintf( buf, sizeof(buf), "An {cArmageddon{6 has been declared for levels %d to %d!\n\r",
                     war.min_level, war.max_level);
         else
-            sprintf( buf, "A %s war has been declared for levels %d to %d!\n\r",
+            snprintf( buf, sizeof(buf), "A %s war has been declared for levels %d to %d!\n\r",
                     war_list[war.type], war.min_level, war.max_level);
     }
     else
     {
         if ( war.type == ARMAGEDDON_WAR )
-            sprintf( buf, "An {cArmageddon{6 for levels %d to %d has been instigated by %s!\n\r",
+            snprintf( buf, sizeof(buf), "An {cArmageddon{6 for levels %d to %d has been instigated by %s!\n\r",
                     war.min_level, war.max_level, ch->name);
         else
-            sprintf( buf, "A %s war has been declared for levels %d to %d by %s!\n\r",
+            snprintf( buf, sizeof(buf), "A %s war has been declared for levels %d to %d by %s!\n\r",
                     war_list[war.type], war.min_level, war.max_level, ch->name);
     }
     warfare_to_all( buf );
-    sprintf( buf, "Type 'combat' to join or read 'help warfare' for info.\n\r" );
+    snprintf( buf, sizeof(buf), "Type 'combat' to join or read 'help warfare' for info.\n\r" );
     warfare_to_all( buf );
     return;
 }
@@ -421,7 +421,7 @@ DEF_DO_FUN(do_combat)
         SET_BIT( ch->act, PLR_WAR );
     if ( war.combatants == 0 )
         war.first_combatant = ch;
-    sprintf( buf, "%s (Level %d %s %s %s) has gone to war!\n\r", ch->name, ch->level,
+    snprintf( buf, sizeof(buf), "%s (Level %d %s %s %s) has gone to war!\n\r", ch->name, ch->level,
             get_base_sex(ch) == 2 ? "female" : get_base_sex(ch) == 1 ? "male" : "sexless",
             race_table[ch->race].name, class_table[ch->clss].name );
     warfare_to_all( buf );
@@ -468,7 +468,7 @@ DEF_DO_FUN(do_warstatus)
         send_to_char( "There is no war going on currently.\n\r", ch );
         if( last_war_time > 0 )
         {
-            sprintf( buf, "The last war started %ld minutes ago.\n\r", (current_time - last_war_time)/60 );
+            snprintf( buf, sizeof(buf), "The last war started %ld minutes ago.\n\r", (current_time - last_war_time)/60 );
             send_to_char( buf, ch );
         }
         return;
@@ -476,42 +476,42 @@ DEF_DO_FUN(do_warstatus)
 
     output = new_buf();
 
-    sprintf( buf, "{R----------------------------------------------------------------{x\n\r\n\r" );
+    snprintf( buf, sizeof(buf), "{R----------------------------------------------------------------{x\n\r\n\r" );
     add_buf( output, buf );
 
-    sprintf( buf, "{RThere is a level {Y%d{R to {Y%d %s{R war going on.{x",
+    snprintf( buf, sizeof(buf), "{RThere is a level {Y%d{R to {Y%d %s{R war going on.{x",
             war.min_level, war.max_level, war_list[war.type] );
     add_buf( output, center(buf,65,' ') );
     add_buf( output, "\n\r" );
 
 
-    sprintf( buf, "{RThere %s %d combatant%s in the war at this time.{x",
+    snprintf( buf, sizeof(buf), "{RThere %s %d combatant%s in the war at this time.{x",
             war.combatants == 1 ? "is" : "are", war.combatants, war.combatants == 1 ? "" : "s" );
     add_buf( output, center(buf,65,' ') );
     add_buf( output, "\n\r" );
 
     if( war.started == TRUE  )
     {
-        sprintf( buf, "{RType 'warsit' to see the status of the players in the war.{x" );
+        snprintf( buf, sizeof(buf), "{RType 'warsit' to see the status of the players in the war.{x" );
         add_buf( output, center(buf,65,' ') );
         add_buf( output, "\n\r" );
 
         if( last_war_time > 0 )
         {
-            sprintf( buf, "{RThe war began %ld minutes ago.{x", (current_time - last_war_time)/60 );
+            snprintf( buf, sizeof(buf), "{RThe war began %ld minutes ago.{x", (current_time - last_war_time)/60 );
             add_buf( output, center(buf,65,' ') );
             add_buf( output, "\n\r" );
         }
     }
     else
     {
-        sprintf( buf, "{RThere %s %d tick%s left to join in the war.",
+        snprintf( buf, sizeof(buf), "{RThere %s %d tick%s left to join in the war.",
                 war.war_time_left == 1 ? "is" : "are", war.war_time_left, war.war_time_left == 1 ? "" : "s" );
         add_buf( output, center(buf,65,' ') );
         add_buf( output, "\n\r" );
     }
 
-    sprintf( buf, "\n\r{R----------------------------------------------------------------{x\n\r\n\r" );
+    snprintf( buf, sizeof(buf), "\n\r{R----------------------------------------------------------------{x\n\r\n\r" );
     add_buf( output, buf );
     page_to_char( buf_string( output ), ch );
     free_buf(output);
@@ -545,9 +545,9 @@ void war_update( void )
                         (  d->character->id == war.owner
                         || d->character->id == war.duel_target ) )
                 {
-                    sprintf( buf, "You are challenged to a {DDuel{6.\n\r");
+                    snprintf( buf, sizeof(buf), "You are challenged to a {DDuel{6.\n\r");
                     warfare_to_char( d->character, buf );
-                    sprintf( buf, "There %s %d tick%s left to join in the war.\n\r",
+                    snprintf( buf, sizeof(buf), "There %s %d tick%s left to join in the war.\n\r",
                             war.war_time_left == 1 ? "is" : "are", 
                             war.war_time_left, 
                             war.war_time_left == 1 ? "" : "s" );
@@ -557,13 +557,13 @@ void war_update( void )
         }
         else
         {
-            sprintf( buf, "There is a level %d to %d %s war going on.\n\r",
+            snprintf( buf, sizeof(buf), "There is a level %d to %d %s war going on.\n\r",
                     war.min_level, war.max_level, war_list[war.type] );
             warfare_to_all( buf );
-            sprintf( buf, "There %s %d tick%s left to join in the war.\n\r",
+            snprintf( buf, sizeof(buf), "There %s %d tick%s left to join in the war.\n\r",
                     war.war_time_left == 1 ? "is" : "are", war.war_time_left, war.war_time_left == 1 ? "" : "s" );
             warfare_to_all( buf );
-            sprintf( buf, "There %s %d combatant%s in the war at this time.\n\r",
+            snprintf( buf, sizeof(buf), "There %s %d combatant%s in the war at this time.\n\r",
                     war.combatants == 1 ? "is" : "are", war.combatants, war.combatants == 1 ? "" : "s" );
             warfare_to_all( buf );
         }
@@ -576,7 +576,7 @@ void war_update( void )
 
         if ( war.combatants == 0 || war.combatants == 1 )
         {
-            sprintf( buf, "Not enough combatants in the war; war cancelled.\n\r" );
+            snprintf( buf, sizeof(buf), "Not enough combatants in the war; war cancelled.\n\r" );
             warfare_to_all( buf );
             war.started = FALSE;
             war_end( FALSE );
@@ -610,7 +610,7 @@ void war_update( void )
 
         last_war_time = current_time;
 
-        sprintf( buf, "The battle begins with %d combatants in the war!\n\r", war.combatants );
+        snprintf( buf, sizeof(buf), "The battle begins with %d combatants in the war!\n\r", war.combatants );
         warfare_to_all( buf );
         war.started = TRUE;
         for ( ch = char_list; ch; ch = ch->next )
@@ -696,7 +696,7 @@ void war_end( bool success )
     else if ( war.type != DUEL_WAR )
     {
         points = get_warfare_reward(success);
-        sprintf(buf, "You are awarded %d quest points.\n\r", points);
+        snprintf( buf, sizeof(buf), "You are awarded %d quest points.\n\r", points);
     }
 
     for ( ch = char_list; ch; ch = ch->next )
@@ -801,7 +801,7 @@ DEF_DO_FUN(do_warsit)
     }
 
     output = new_buf();
-    sprintf( buf, "{c%-10s %-8s %-4s %-4s %-4s %-3s %-6s %-3s %-8s %-10s %-10s{x\n\r",
+    snprintf( buf, sizeof(buf), "{c%-10s %-8s %-4s %-4s %-4s %-3s %-6s %-3s %-8s %-10s %-10s{x\n\r",
             "Name", "Gender", "hp", "mana", "move", "Lvl", "Race", "Cls", "God", "Clan", "Fighting");
     add_buf( output, buf );
     
@@ -815,7 +815,7 @@ DEF_DO_FUN(do_warsit)
         hp_percent = (wch->hit*100) / wch->max_hit;
         mana_percent = (wch->mana*100) / wch->max_mana;
         move_percent = (wch->move*100) / wch->max_move;
-        sprintf( buf, "%-10s %-8s %3d%% %3d%% %3d%% %3d %-6s %-3s %-8s %-10s %-10s\n\r",
+        snprintf( buf, sizeof(buf), "%-10s %-8s %3d%% %3d%% %3d%% %3d %-6s %-3s %-8s %-10s %-10s\n\r",
                 wch->name,
                 get_base_sex(wch) == 2 ? "female" : get_base_sex(wch) == 1 ? "male" : "sexless",
                 hp_percent,
@@ -888,7 +888,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
 
     if ( !killed )
     {
-        sprintf( buf, "%s has been kicked out of the war!\n\r", ch->name );
+        snprintf( buf, sizeof(buf), "%s has been kicked out of the war!\n\r", ch->name );
         warfare_to_all( buf );
     }
     else if ( war.type != DUEL_WAR )
@@ -939,7 +939,7 @@ void check_war_win( void )
     if ( (war.type == ARMAGEDDON_WAR || war.type == DUEL_WAR)
             && war.combatants == 1 )
     {
-        sprintf( buf, "%s emerges from the battlefields victorious!\n\r", ch->name );
+        snprintf( buf, sizeof(buf), "%s emerges from the battlefields victorious!\n\r", ch->name );
         warfare_to_all( buf );
         war_end( TRUE );
     }
@@ -957,22 +957,22 @@ void check_war_win( void )
         if ( count == war.combatants - 1 )
         {
             if ( war.type == CLAN_WAR )
-                sprintf( buf, "The %s clan has won the war!\n\r", clan_table[ch->clan].name );
+                snprintf( buf, sizeof(buf), "The %s clan has won the war!\n\r", clan_table[ch->clan].name );
             else if ( war.type == CLASS_WAR )
-                sprintf( buf, "The %ss have won the war!\n\r", class_table[ch->clss].name );
+                snprintf( buf, sizeof(buf), "The %ss have won the war!\n\r", class_table[ch->clss].name );
             else if ( war.type == RACE_WAR )
-                sprintf( buf, "The %ss have won the war!\n\r", race_table[ch->race].name );
+                snprintf( buf, sizeof(buf), "The %ss have won the war!\n\r", race_table[ch->race].name );
             else if ( war.type == GENDER_WAR )
-                sprintf( buf, "The %s have won the war!\n\r", get_base_sex(ch) == 2 ? "females" : get_base_sex(ch) == 1 ? "males" : "sexless" );
+                snprintf( buf, sizeof(buf), "The %s have won the war!\n\r", get_base_sex(ch) == 2 ? "females" : get_base_sex(ch) == 1 ? "males" : "sexless" );
             else if ( war.type == RELIGION_WAR )
             {
                 if ( has_god(ch) )
-                    sprintf( buf, "The followers of %s have won the war!\n\r", get_god_name(ch) );
+                    snprintf( buf, sizeof(buf), "The followers of %s have won the war!\n\r", get_god_name(ch) );
                 else
-                    sprintf( buf, "The atheists have won the war!\n\r" );
+                    snprintf( buf, sizeof(buf), "The atheists have won the war!\n\r" );
             }
             else /* paranoid */
-                sprintf( buf, "The war has been won!\n\r" );
+                snprintf( buf, sizeof(buf), "The war has been won!\n\r" );
             buf[4] = UPPER(buf[4]);
             warfare_to_all( buf );
             war_end( TRUE );

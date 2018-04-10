@@ -1835,7 +1835,7 @@ DEF_DO_FUN(do_religion)
 	}
 	// join
 	religion_add_follower( rel, ch );
-	sprintf( buf, "You join %s.\n\r", rel->name ); 
+	snprintf( buf, sizeof(buf), "You join %s.\n\r", rel->name ); 
 	send_to_char( buf, ch );
     }
     else if ( !strcmp(arg1, "reject") )
@@ -1974,17 +1974,17 @@ DEF_DO_FUN(do_religion)
 	    if( (rel = get_religion(ch)) != NULL )
 	    {
 	        if( ch->pcdata->ch_rel->favour >= 5 )
-	            sprintf( buf, "%s thinks very highly of you.\n\r", rel->god );
+	            snprintf( buf, sizeof(buf), "%s thinks very highly of you.\n\r", rel->god );
 		else if( ch->pcdata->ch_rel->favour >= 1 )
-		    sprintf( buf, "%s thinks highly of you.\n\r", rel->god );
+		    snprintf( buf, sizeof(buf), "%s thinks highly of you.\n\r", rel->god );
 		else if( ch->pcdata->ch_rel->favour == 0 )
-		    sprintf( buf, "You have not displeased %s...yet.\n\r", rel->god );
+		    snprintf( buf, sizeof(buf), "You have not displeased %s...yet.\n\r", rel->god );
 		else if( ch->pcdata->ch_rel->favour >= -10 )
-		    sprintf( buf, "%s frowns upon you.\n\r", rel->god );
+		    snprintf( buf, sizeof(buf), "%s frowns upon you.\n\r", rel->god );
 	        else if( ch->pcdata->ch_rel->favour >= -50 )
-		    sprintf( buf, "You have fallen out of favour with %s.\n\r", rel->god );
+		    snprintf( buf, sizeof(buf), "You have fallen out of favour with %s.\n\r", rel->god );
 		else
-		    sprintf( buf, "You have gravely displeased %s.\n\r", rel->god );
+		    snprintf( buf, sizeof(buf), "You have gravely displeased %s.\n\r", rel->god );
 		send_to_char( buf, ch );
 	    } else
 		send_to_char( "You have not chosen a god to follow.\n\r", ch );
@@ -2016,7 +2016,7 @@ DEF_DO_FUN(do_religion)
 
 	fav = atoi( arg1 );
 	victim->pcdata->ch_rel->favour = fav;
-	sprintf( buf, "%s's favour is now set to %d.\n\r", victim->name, fav );
+	snprintf( buf, sizeof(buf), "%s's favour is now set to %d.\n\r", victim->name, fav );
 	send_to_char( buf, ch );
 	return;
     }
@@ -2070,7 +2070,7 @@ void list_religions( CHAR_DATA *ch )
     send_to_char( "The following religions exist:\n\r", ch );
     for ( rel = religion_list; rel != NULL; rel = rel->next )
     {
-	sprintf( buf, "%-20s: %s\n\r", rel->god, rel->name );
+	snprintf( buf, sizeof(buf), "%-20s: %s\n\r", rel->god, rel->name );
 	send_to_char( buf, ch );
     }
 
@@ -2095,28 +2095,28 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 
     buffer = new_buf();
 
-    sprintf( buf, "Religion %s:\n\r\n\r", rel->name );
+    snprintf( buf, sizeof(buf), "Religion %s:\n\r\n\r", rel->name );
     add_buf( buffer, buf );
-    sprintf( buf, "God: %s\n\r", rel->god );
+    snprintf( buf, sizeof(buf), "God: %s\n\r", rel->god );
     add_buf( buffer, buf );
-    sprintf( buf, "Alignment: %d to %d\n\r", rel->min_align, rel->max_align );
+    snprintf( buf, sizeof(buf), "Alignment: %d to %d\n\r", rel->min_align, rel->max_align );
     add_buf( buffer, buf );
     if ( (relic = get_obj_index(rel->relic_vnum)) != NULL )
     {
-	sprintf( buf, "Relic: %s\n\r", relic->short_descr );
+	snprintf( buf, sizeof(buf), "Relic: %s\n\r", relic->short_descr );
 	add_buf( buffer, buf );
     }
     if ( IS_IMMORTAL(ch) )
     {
-	sprintf( buf, "Relic Vnum: %d\n\r", rel->relic_vnum );
+	snprintf( buf, sizeof(buf), "Relic Vnum: %d\n\r", rel->relic_vnum );
 	add_buf( buffer, buf );
-	sprintf( buf, "Relic Bonus: %d%%\n\r", rel->relic_bonus );
+	snprintf( buf, sizeof(buf), "Relic Bonus: %d%%\n\r", rel->relic_bonus );
 	add_buf( buffer, buf );
-	sprintf( buf, "Power: %d\n\r", rel->god_power );
+	snprintf( buf, sizeof(buf), "Power: %d\n\r", rel->god_power );
 	add_buf( buffer, buf );
-	sprintf( buf, "Altar Room: %d\n\r", rel->altar_room_vnum );
+	snprintf( buf, sizeof(buf), "Altar Room: %d\n\r", rel->altar_room_vnum );
 	add_buf( buffer, buf );
-	sprintf( buf, "Temple Guard Vnum: %d\n\r", rel->guard_vnum );
+	snprintf( buf, sizeof(buf), "Temple Guard Vnum: %d\n\r", rel->guard_vnum );
 	add_buf( buffer, buf );
     }
     else
@@ -2137,21 +2137,21 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 	}
 
 	if( own )
-	    sprintf( stars, "{Y*{R" );
+	    snprintf( stars, sizeof(stars), "{Y*{R" );
 	else
-	    sprintf( stars, "{R" );
+	    snprintf( stars, sizeof(stars), "{R" );
 
 	for( i=0; i<relics; i++ )
 	    strcat( stars, "*" );
 	strcat( stars, "{x" );
 
-	sprintf( buf, "Relic Power: %s\n\r", stars );
+	snprintf( buf, sizeof(buf), "Relic Power: %s\n\r", stars );
 	add_buf( buffer, buf );
     }
 
     if ( rel->priest[0] != NULL )
     {
-	sprintf( buf, "High Priest: %s\n\r", rel->priest[0] );
+	snprintf( buf, sizeof(buf), "High Priest: %s\n\r", rel->priest[0] );
 	add_buf( buffer, buf );
     }
 
@@ -2160,7 +2160,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 	if ( rel->priest[i] != NULL )
 	{
 	    priest_found = TRUE;
-	    sprintf( buf, " %s", rel->priest[i] );
+	    snprintf( buf, sizeof(buf), " %s", rel->priest[i] );
 	    add_buf( buffer, buf );
 	}
     if ( !priest_found )
@@ -2169,7 +2169,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
     // show the followers, sorted by rank
     for ( rank = RELIGION_MAX_RANK; rank >= 0; rank-- )
     {
-	sprintf( buf, "\n\r========== %-10s ==========",
+	snprintf( buf, sizeof(buf), "\n\r========== %-10s ==========",
 		 get_religion_rank_name(rank) );
 	add_buf( buffer, buf );
 	i = 0;
@@ -2178,7 +2178,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 	    {
 		if ( i++ % 5 == 0 )
 		    add_buf( buffer, "\n\r" );
-		sprintf( buf, "%-15s", fol->name );
+		snprintf( buf, sizeof(buf), "%-15s", fol->name );
 		add_buf( buffer, buf );
 	    }
     }
@@ -2245,7 +2245,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 // 	    return;
 // 	}
 // 
-// 	sprintf( buf, "War status for %s:\tVersus %s:\n\r", rel->name, rel->name );
+// 	snprintf( buf, sizeof(buf), "War status for %s:\tVersus %s:\n\r", rel->name, rel->name );
 // 	send_to_char( buf, ch );
 // 	for ( opp = religion_list; opp != NULL; opp = opp->next )
 // 	{
@@ -2253,7 +2253,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 // 		continue;
 // 	    status = religion_get_war_status( rel, opp );
 // 	    other = religion_get_war_status( opp, rel );
-// 	    sprintf( buf, "%22s:    %s\t\t%s\n\r", opp->name, war_status_name(status), war_status_name(other) );
+// 	    snprintf( buf, sizeof(buf), "%22s:    %s\t\t%s\n\r", opp->name, war_status_name(status), war_status_name(other) );
 // 	    send_to_char( buf, ch );
 // 	}
 //     }
@@ -2292,7 +2292,7 @@ void show_religion_info( RELIGION_DATA *rel, CHAR_DATA *ch )
 // 	/* change the status */
 // 	religion_set_war_status( rel, opp, status );
 // 	send_to_char( "Ok.\n\r", ch );
-// 	sprintf( buf, "%s are now at %s with %s.", rel->name, arg1, opp->name );
+// 	snprintf( buf, sizeof(buf), "%s are now at %s with %s.", rel->name, arg1, opp->name );
 // 	info_message( ch, buf, TRUE );
 //     }
 //     else
@@ -2436,7 +2436,7 @@ DEF_DO_FUN(do_religion_set)
 	}
 	value1 = atoi(arg2);
 	rel->conserve_at = value1;
-	sprintf( arg3, "Prayers will not be granted if your faith pool has less than %d points.\n\r", value1 );
+	snprintf( arg3, sizeof(arg3), "Prayers will not be granted if your faith pool has less than %d points.\n\r", value1 );
 	send_to_char( arg3, ch );
     }
     else
@@ -2515,7 +2515,7 @@ void show_pray_syntax( CHAR_DATA *ch )
 
     for ( i = 0; god_table[i].name != NULL; i++ )
     {
-	sprintf( buf, "%-10s (%s): %s\n\r",
+	snprintf( buf, sizeof(buf), "%-10s (%s): %s\n\r",
 		 god_table[i].name, god_table[i].mean ? "curse" : "bless", god_table[i].desc );
 	send_to_char( buf, ch );
     }
@@ -2632,7 +2632,7 @@ DEF_GOD_FUN( god_bless )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s blesses you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s blesses you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2673,7 +2673,7 @@ DEF_GOD_FUN( god_curse )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s curses you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s curses you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2710,7 +2710,7 @@ DEF_GOD_FUN( god_heal )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s begins to heal you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s begins to heal you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2753,7 +2753,7 @@ DEF_GOD_FUN( god_speed )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s speeds you up.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s speeds you up.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2797,7 +2797,7 @@ DEF_GOD_FUN( god_slow )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s slows and weakens you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s slows and weakens you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2828,7 +2828,7 @@ DEF_GOD_FUN( god_cleanse )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s cleanses you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s cleanses you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2859,7 +2859,7 @@ DEF_GOD_FUN( god_defy )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s defies your blessings.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s defies your blessings.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2897,7 +2897,7 @@ DEF_GOD_FUN( god_enlighten )
     {
 	    if( god_name[0] == '\0' )
 	        god_name = "Rimbol";
-            sprintf( buf, "%s enlightens you.\n\r", god_name );
+            snprintf( buf, sizeof(buf), "%s enlightens you.\n\r", god_name );
 	    send_to_char( buf, victim );
     }
 
@@ -2941,7 +2941,7 @@ DEF_GOD_FUN( god_protect )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s protects you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s protects you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -2982,7 +2982,7 @@ DEF_GOD_FUN( god_fortune )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s grants you good fortune.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s grants you good fortune.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -3020,7 +3020,7 @@ DEF_GOD_FUN( god_haunt )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s sends ghosts after you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s sends ghosts after you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -3058,7 +3058,7 @@ DEF_GOD_FUN( god_plague )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s brings the plague down on you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s brings the plague down on you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -3096,7 +3096,7 @@ DEF_GOD_FUN( god_confuse )
     {
 	if( god_name[0] == '\0' )
 	    god_name = "Rimbol";
-        sprintf( buf, "%s confuses you.\n\r", god_name );
+        snprintf( buf, sizeof(buf), "%s confuses you.\n\r", god_name );
 	send_to_char( buf, victim );
     }
 
@@ -3152,7 +3152,7 @@ DEF_DO_FUN(do_prayer)
 	    send_to_char( "Options for god-action:\n\r", ch );
 	    for ( i = 0; god_table[i].name != NULL; i++ )
 	    {
-	        sprintf( buf, "%-10s (%s): %s\n\r",
+	        snprintf( buf, sizeof(buf), "%-10s (%s): %s\n\r",
 	             god_table[i].name, god_table[i].mean ? "mean" : "kind", god_table[i].desc );
 	        send_to_char( buf, ch );
 	    }
@@ -3187,7 +3187,7 @@ DEF_DO_FUN(do_prayer)
 	argument = one_argument( argument, buf );
 	if( !str_cmp(buf, "deny") )
 	{
-	    sprintf( buf, "{0$N's prayer (%s %s) denied.{x", god_table[prayer->prayer_num].name, prayer->victim->name );
+	    snprintf( buf, sizeof(buf), "{0$N's prayer (%s %s) denied.{x", god_table[prayer->prayer_num].name, prayer->victim->name );
 	    wiznet( buf, victim, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
 	    free_mem( victim->pcdata->prayer_request, sizeof(PRAYER_DATA) );
@@ -3221,7 +3221,7 @@ DEF_DO_FUN(do_prayer)
 	send_to_char( "Options for god-action:\n\r", ch );
 	for ( i = 0; god_table[i].name != NULL; i++ )
 	{
-	    sprintf( buf, "%-10s (%s): %s\n\r",
+	    snprintf( buf, sizeof(buf), "%-10s (%s): %s\n\r",
 	         god_table[i].name, god_table[i].mean ? "mean" : "kind", god_table[i].desc );
 	    send_to_char( buf, ch );
 	}
@@ -3246,11 +3246,11 @@ DEF_DO_FUN(do_prayer)
     if( !str_cmp( arg1, "for" ) )
     {
 	// Echo to self:
-	sprintf( buf, "{9You pray for {0%s.{x{x\n\r", argument );
+	snprintf( buf, sizeof(buf), "{9You pray for {0%s.{x{x\n\r", argument );
 	send_to_char( buf, ch );
 
 	// Imms get the message:
-	sprintf( buf, "{9$N is praying for {0%s{x{x", argument );
+	snprintf( buf, sizeof(buf), "{9$N is praying for {0%s{x{x", argument );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
 	// Reassign arg1 so that it contains the blessing/curse name.
@@ -3259,11 +3259,11 @@ DEF_DO_FUN(do_prayer)
     else
     {
 	// Echo to self:
-	sprintf( buf, "{9You pray: {0%s %s{x{x\n\r", arg1, argument );
+	snprintf( buf, sizeof(buf), "{9You pray: {0%s %s{x{x\n\r", arg1, argument );
 	send_to_char( buf, ch );
 
 	// Imms get the message:
-	sprintf( buf, "{9$N is praying: {0%s %s{x{x", arg1, argument );
+	snprintf( buf, sizeof(buf), "{9$N is praying: {0%s %s{x{x", arg1, argument );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
     }
 
@@ -3274,13 +3274,13 @@ DEF_DO_FUN(do_prayer)
 
     if( rel == NULL )
     {
-	sprintf( buf, "{0...but $N is not in a religion.{x" );
+	snprintf( buf, sizeof(buf), "{0...but $N is not in a religion.{x" );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
     }
     else if ( !IS_BETWEEN(rel->min_align, ch->alignment, rel->max_align) )
     {
-	sprintf( buf, "{0...but $N is not in the alignment range for %s.{x", rel->name );
+	snprintf( buf, sizeof(buf), "{0...but $N is not in the alignment range for %s.{x", rel->name );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
     }
@@ -3304,7 +3304,7 @@ DEF_DO_FUN(do_prayer)
     // Prayer type not found
     if( god_table[i].name == NULL )
     {
-	sprintf( buf, "{0...but there is no such blessing or curse.{x" );
+	snprintf( buf, sizeof(buf), "{0...but there is no such blessing or curse.{x" );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
     }
@@ -3312,7 +3312,7 @@ DEF_DO_FUN(do_prayer)
     // Conserve faith when god_power is lower than an imm-settable religion_data variable:
     if( rel->god_power - god_table[i].cost < rel->conserve_at )
     {
-	sprintf( buf, "{0...but the religion is conserving faith.{x" );
+	snprintf( buf, sizeof(buf), "{0...but the religion is conserving faith.{x" );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
     }
@@ -3321,7 +3321,7 @@ DEF_DO_FUN(do_prayer)
     if( get_faith(ch) < god_table[i].cost )
     {
 	send_to_char( "Be patient little Neophyte, your prayers will be answered once you have more faith.\n\r", ch );
-	sprintf( buf, "{0...but $E has not yet earned enough faith to ask for this %s.",
+	snprintf( buf, sizeof(buf), "{0...but $E has not yet earned enough faith to ask for this %s.",
 		god_table[i].mean ? "curse" : "blessing" );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
@@ -3340,9 +3340,9 @@ DEF_DO_FUN(do_prayer)
 	argument = one_argument( argument, arg2 );
 	if( arg2[0] == '\0' )
 	{
-	    sprintf( buf, "{0Pray for %s on whom?{x\n\r", god_table[i].name );
+	    snprintf( buf, sizeof(buf), "{0Pray for %s on whom?{x\n\r", god_table[i].name );
 	    send_to_char( buf, ch );
-	    sprintf( buf, "{0...but $E failed to specify a target.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but $E failed to specify a target.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3357,7 +3357,7 @@ DEF_DO_FUN(do_prayer)
 	// Players should welcome blessings, not beg for their removal!
 	if( !strcmp(god_table[i].name, "defy") )
 	{
-	    sprintf( buf, "{0...but mortals should welcome blessings, not beg for their removal!{x" );
+	    snprintf( buf, sizeof(buf), "{0...but mortals should welcome blessings, not beg for their removal!{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3366,7 +3366,7 @@ DEF_DO_FUN(do_prayer)
 	// Just deny them all.  Any imm who sees their message may manually place it, if they choose.
 	if( god_table[i].mean )
 	{
-	    sprintf( buf, "{0...but what a pointless waste of faith!  Grant this request manually, if you choose.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but what a pointless waste of faith!  Grant this request manually, if you choose.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3374,7 +3374,7 @@ DEF_DO_FUN(do_prayer)
 	if( !strcmp(god_table[i].name, "cleanse") && !is_affected(ch, gsn_god_curse) )
 	{
 	    send_to_char( "{0...but you are not cursed.{x\n\r", ch );
-	    sprintf( buf, "{0...but $N is not cursed.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but $N is not cursed.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3382,7 +3382,7 @@ DEF_DO_FUN(do_prayer)
 	if( is_affected(ch, gsn_god_bless) )
 	{
 	    send_to_char( "{0...but you are already blessed.{x\n\r", ch );
-	    sprintf( buf, "{0...but $N is already blessed.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but $N is already blessed.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3391,7 +3391,7 @@ DEF_DO_FUN(do_prayer)
 	// in his/her temple, there is a 10% chance of auto-denying the prayer.
 	if( !enlighten && !in_temple && number_range(0,9)==0 )
 	{
-	    sprintf( buf, "{0...but $E got unlucky, and the prayer was lost in the wind.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but $E got unlucky, and the prayer was lost in the wind.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3406,7 +3406,7 @@ DEF_DO_FUN(do_prayer)
 	    || IS_NPC(victim) || victim->pcdata == NULL )
 	{
 	    send_to_char( "{0...but no target by that name was found.{x\n\r", ch );
-	    sprintf( buf, "{0...but no target by that name was found.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but no target by that name was found.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3414,7 +3414,7 @@ DEF_DO_FUN(do_prayer)
 	if( IS_IMMORTAL(victim) && !can_see(ch,victim) )
 	{
 	    send_to_char( "{0...but no target by that name was found.{x\n\r", ch );
-	    sprintf( buf, "{0...but only mortals can be targetted by prayers.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but only mortals can be targetted by prayers.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3422,7 +3422,7 @@ DEF_DO_FUN(do_prayer)
 	if( IS_IMMORTAL(victim) && can_see(ch,victim) )
 	{
 	    send_to_char( "{0...but you may only target mortals in your prayers.{x\n\r", ch );
-	    sprintf( buf, "{0...but only mortals can be targetted by prayers.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but only mortals can be targetted by prayers.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
             return;
 	}
@@ -3430,7 +3430,7 @@ DEF_DO_FUN(do_prayer)
 	if( !str_cmp(god_table[i].name, "defy") && !is_affected(victim, gsn_god_bless) )
 	{
             send_to_char( "{0...but that person is not affected by a divine blessing.{x\n\r", ch );
-            sprintf( buf, "{0...but the target is not divinely blessed.{x" );
+            snprintf( buf, sizeof(buf), "{0...but the target is not divinely blessed.{x" );
             wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
             return;
         }
@@ -3438,7 +3438,7 @@ DEF_DO_FUN(do_prayer)
    	if( !str_cmp(god_table[i].name, "cleanse") && !is_affected(victim, gsn_god_curse) )
         {
             send_to_char( "{0...but that person is not affected by a divine curse.{x\n\r", ch );
-            sprintf( buf, "{0...but the target is not divinely cursed.{x" );
+            snprintf( buf, sizeof(buf), "{0...but the target is not divinely cursed.{x" );
             wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
             return;
         }
@@ -3455,9 +3455,9 @@ DEF_DO_FUN(do_prayer)
 	// Can't curse people in your own religion (gods may choose to grant nonetheless)
 	if( rel == vrel )
 	{
-	    sprintf( buf, "{0...but %s probably wouldn't like that.{x\n\r", rel->god );
+	    snprintf( buf, sizeof(buf), "{0...but %s probably wouldn't like that.{x\n\r", rel->god );
 	    send_to_char( buf, ch );
-	    sprintf( buf, "{0...but $E should treat the people of $S religion with respect.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but $E should treat the people of $S religion with respect.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3465,7 +3465,7 @@ DEF_DO_FUN(do_prayer)
 	// Neophytes cannot pray for curses on people.
 	if( follower_get_rank(ch->pcdata->ch_rel) == RELIGION_RANK_NEO )
 	{
-	    sprintf( buf, "{0...but Neophytes are not considered educated enough to choose curses appropriately.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but Neophytes are not considered educated enough to choose curses appropriately.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3473,7 +3473,7 @@ DEF_DO_FUN(do_prayer)
 	// Curses cannot be requested on people who are too much lower in level than oneself.
 	if( ch->level - victim->level > 10 )
 	{
-	    sprintf( buf, "{0...but the target is too much lower in level than $N.{x" );
+	    snprintf( buf, sizeof(buf), "{0...but the target is too much lower in level than $N.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	    return;
 	}
@@ -3540,13 +3540,13 @@ DEF_DO_FUN(do_prayer)
     //this value can raise or lower your chances by up to 25.
     chance += get_favour(ch);
 
-	    sprintf( buf, "{0...chance is equal to %d.{x", chance );
+	    snprintf( buf, sizeof(buf), "{0...chance is equal to %d.{x", chance );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
     // "Roll the dice!!!", see if the odds are in the person's favour!
     if( chance < number_percent() )
     {
-	sprintf( buf, "{0...but $E was unlucky, and $S prayer got lost in the wind.{x" );
+	snprintf( buf, sizeof(buf), "{0...but $E was unlucky, and $S prayer got lost in the wind.{x" );
 	wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 	return;
     }
@@ -3560,11 +3560,11 @@ DEF_DO_FUN(do_prayer)
     else
 	ticks = 2;
 
-    sprintf( buf, "{0This prayer will be granted automatically after %d full tick%s, drawing from %s's faith pool.{x",
+    snprintf( buf, sizeof(buf), "{0This prayer will be granted automatically after %d full tick%s, drawing from %s's faith pool.{x",
 								ticks,	(ticks>1)?"s":"", rel->god );
     wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
-    sprintf( buf, "{0%s may choose to grant it sooner, or deny it, using 'prayer <char> grant/deny'.{x", rel->god );
+    snprintf( buf, sizeof(buf), "{0%s may choose to grant it sooner, or deny it, using 'prayer <char> grant/deny'.{x", rel->god );
     wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
     ch->pcdata->prayer_request = alloc_mem( sizeof(PRAYER_DATA) );
@@ -3604,7 +3604,7 @@ void grant_prayer( CHAR_DATA *ch )
 	{
 	    send_to_char( "Your prayer has been granted.\n\r", ch );
 
-	    sprintf( buf, "{0$N's prayer (%s %s) has been granted.{x", god_table[prayer->prayer_num].name, prayer->victim->name );
+	    snprintf( buf, sizeof(buf), "{0$N's prayer (%s %s) has been granted.{x", god_table[prayer->prayer_num].name, prayer->victim->name );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
 	    rel->god_power -= god_table[prayer->prayer_num].cost;
@@ -3613,7 +3613,7 @@ void grant_prayer( CHAR_DATA *ch )
 	}
 	else
 	{
-	    sprintf( buf, "{0$N's prayer has not been granted.{x" );
+	    snprintf( buf, sizeof(buf), "{0$N's prayer has not been granted.{x" );
 	    wiznet( buf, ch, NULL, WIZ_RELIGION, 0, LEVEL_IMMORTAL );
 
 	    send_to_char( "Your prayer could not be granted.\n\r", ch );

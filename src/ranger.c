@@ -357,7 +357,7 @@ DEF_DO_FUN(do_firstaid)
 			 ch, NULL, target, TO_NOTVICT);
 	   }
            if (IS_IMMORTAL(ch) || IS_AFFECTED(ch, AFF_BATTLE_METER)) {
-               sprintf(buf, "Healed %dhp.\n\r", heal);
+               snprintf( buf, sizeof(buf), "Healed %dhp.\n\r", heal);
                send_to_char(buf, ch);
            }
 
@@ -925,7 +925,7 @@ DEF_DO_FUN(do_taxidermy)
             if (obj->item_type != ITEM_CORPSE_NPC && obj->item_type != ITEM_CORPSE_PC)
             {
                 // add preserved keyword
-                sprintf(buf, "%s preserved", obj->name);
+                snprintf( buf, sizeof(buf), "%s preserved", obj->name);
                 free_string(obj->name);
                 obj->name = str_dup(buf);
             }
@@ -1034,7 +1034,7 @@ DEF_DO_FUN(do_treat_weapon)
 	    if ( IS_WEAPON_STAT(obj, flag_bit) )
 	    {
 		char buf[MSL];
-		sprintf( buf, "$p already has the %s effect.",
+		snprintf( buf, sizeof(buf), "$p already has the %s effect.",
 			 weapon_bit_name(flag_bit) );
 		act( buf, ch, obj, NULL, TO_CHAR );
 		return;

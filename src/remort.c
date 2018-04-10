@@ -91,9 +91,17 @@ const struct remort_chamber chambers[] =
 REMORT_TABLE *chamber_list[MAX_CHAMBER];
 REMORT_TABLE *wait_list;
 
-char *time_format(time_t t, char *b)
+const char *time_format(time_t t, char *b, size_t bsz)
 {
-    sprintf(b, "%s", (char *) ctime( &t ));
+    static const char * const error_rtn = "[[ERROR]]";
+
+    if ( bsz < 25 )
+    {
+        bugf("%s: expecting buffer size 25 or higher", __func__);
+        return error_rtn;
+    }
+
+    snprintf(b, bsz, "%s", (char *) ctime( &t ));
     b[24]='\0';
     return b;
 }
@@ -223,14 +231,14 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
 
     if (found==0)
     {
-        sprintf(buf, "You are too powerful for that, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You are too powerful for that, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
 
     if (ch->level < 90 + ch->pcdata->remorts)
     {
-        sprintf(buf, "You arent ready to leave this body behind, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You arent ready to leave this body behind, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
@@ -239,7 +247,7 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
     {
         if (!str_cmp(ch->name, i->name))
         {
-            sprintf(buf, "You are already on the list, %s.", ch->name);
+            snprintf( buf, sizeof(buf), "You are already on the list, %s.", ch->name);
             do_say(adept, buf);
             return;
         }
@@ -250,19 +258,19 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
 
     if (ch->pcdata->questpoints < qpcost)
     {
-        sprintf(buf, "You need %d quest points to get into remort, %s.", qpcost, ch->name);
+        snprintf( buf, sizeof(buf), "You need %d quest points to get into remort, %s.", qpcost, ch->name);
         do_say(adept, buf);
         return;
     }
 
     if (ch->gold<goldcost)
     {
-        sprintf(buf, "There is a %d gold remort tax, %s.", goldcost, ch->name);
+        snprintf( buf, sizeof(buf), "There is a %d gold remort tax, %s.", goldcost, ch->name);
         do_say(adept, buf);
         return;
     }
 
-    sprintf(buf, "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
+    snprintf( buf, sizeof(buf), "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
     do_say(adept, buf);
 
     ch->pcdata->questpoints -= qpcost;
@@ -315,12 +323,12 @@ void remort_cancel(CHAR_DATA *ch, CHAR_DATA *adept)
     
     if (!found)
     {
-        sprintf(buf, "You aren't on the list, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You aren't on the list, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
     
-    sprintf(buf, "You may have your %d gold, and %d qps back, %s.",
+    snprintf( buf, sizeof(buf), "You may have your %d gold, and %d qps back, %s.",
         goldcost, qpcost, ch->name);
     do_say(adept, buf);
     
@@ -359,13 +367,13 @@ void remort_status(CHAR_DATA *ch, CHAR_DATA *adept)
         
         if (chamber_list[j] != NULL)
         {
-            sprintf(buf2, "%15s  %s", chamber_list[j]->name,
-                time_format(chamber_list[j]->limit, tbuf));
+            snprintf( buf2, sizeof(buf2), "%15s  %s", chamber_list[j]->name,
+                time_format(chamber_list[j]->limit, tbuf, sizeof(tbuf)));
         }
         else
-            sprintf(buf2, "          Nobody");
+            snprintf( buf2, sizeof(buf2), "          Nobody");
         
-        sprintf(buf, "%s %s", chambers[j].name, buf2);
+        snprintf( buf, sizeof(buf), "%s %s", chambers[j].name, buf2);
 
         do_say(adept, buf);
     }
@@ -376,13 +384,13 @@ void remort_status(CHAR_DATA *ch, CHAR_DATA *adept)
     {
         if (i->limit != 0)
         {
-            sprintf(buf, "%15s %d  *%s", i->name, i->remorts,
-                time_format(i->limit, tbuf));
+            snprintf( buf, sizeof(buf), "%15s %d  *%s", i->name, i->remorts,
+                time_format(i->limit, tbuf, sizeof(tbuf)));
         }
         else
         {
-            sprintf(buf, "%15s %d    %s", i->name, i->remorts,
-                time_format(i->signup, tbuf));
+            snprintf( buf, sizeof(buf), "%15s %d    %s", i->name, i->remorts,
+                time_format(i->signup, tbuf, sizeof(tbuf)));
         }
         
         do_say(adept, buf);
@@ -425,21 +433,21 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
     
     if (!found)
     {
-        sprintf(buf, "You aren't on the list, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You aren't on the list, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
     
     if (i->limit == 0)
     {
-        sprintf(buf, "I'm sorry, there are no chambers available for you, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "I'm sorry, there are no chambers available for you, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
     
     if ( carries_obj_recursive(ch, &is_questeq) )
     {
-        sprintf(buf, "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
@@ -514,14 +522,14 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     
     if (!found)
     {
-        sprintf(buf, "You aren't on the list, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You aren't on the list, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
     
     if ( carries_obj_recursive(ch, &is_questeq) )
     {
-        sprintf(buf, "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You'll want to leave your quest equipment somewhere safe, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
@@ -540,7 +548,7 @@ void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
     
     if (chambers[j].name == NULL)
     {
-        sprintf(buf, "There are no speed chambers ready, %s.  Keep your pants on.", ch->name);
+        snprintf( buf, sizeof(buf), "There are no speed chambers ready, %s.  Keep your pants on.", ch->name);
         do_say(adept, buf);
         WAIT_STATE( ch, PULSE_VIOLENCE );
         return;
@@ -601,7 +609,7 @@ void remort_update( void )
         {
             char log_buf1[MSL];
 
-            sprintf( log_buf1, "%s has run out of time for remort", chamber_list[j]->name );
+            snprintf( log_buf1, sizeof(log_buf1), "%s has run out of time for remort", chamber_list[j]->name );
             log_string( log_buf1 );
 
             for ( d = descriptor_list; d != NULL; d = d->next )
@@ -708,7 +716,7 @@ void remort_remove(CHAR_DATA *ch, bool success)
         if (chamber_list[j] != NULL)
             if (!str_cmp(ch->name, chamber_list[j]->name))
             {
-		sprintf( log_buf1, "%s removed from remort after %s",
+		snprintf( log_buf1, sizeof(log_buf1), "%s removed from remort after %s",
 			 ch->name, success ? "completion" : "failure" );
 		log_string( log_buf1 );
 
@@ -1020,7 +1028,7 @@ void remort_complete(CHAR_DATA *ch)
     
     if (! IS_SET(ch->act, PLR_TITLE))
     {
-        sprintf( buf, "the %s", title_table [ch->clss] [1]);
+        snprintf( buf, sizeof(buf), "the %s", title_table [ch->clss] [1]);
         set_title( ch, buf );
     }
     
@@ -1034,7 +1042,7 @@ void remort_complete(CHAR_DATA *ch)
     die_follower(ch, false);
     send_to_char("\n\r",ch);
     
-    sprintf(buf, "After much struggle, %s has made it to level 1!", ch->name);
+    snprintf( buf, sizeof(buf), "After much struggle, %s has made it to level 1!", ch->name);
     info_message(ch, buf, FALSE);
 
     force_full_save();
@@ -1075,26 +1083,26 @@ void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 
     if ( ch->pcdata->questpoints < qpcost )
     {
-        sprintf(buf, "You need %d quest points to repeat remort, %s.", qpcost, ch->name);
+        snprintf( buf, sizeof(buf), "You need %d quest points to repeat remort, %s.", qpcost, ch->name);
         do_say(adept, buf);
         return;
     }
     
     if ( ch->gold < goldcost )
     {
-        sprintf(buf, "There is a %d gold remort repetition tax, %s.", goldcost, ch->name);
+        snprintf( buf, sizeof(buf), "There is a %d gold remort repetition tax, %s.", goldcost, ch->name);
         do_say(adept, buf);
         return;
     }
     
     if ( ch->carrying != NULL )
     {
-        sprintf(buf, "You must leave all posessions behind, %s.", ch->name);
+        snprintf( buf, sizeof(buf), "You must leave all posessions behind, %s.", ch->name);
         do_say(adept, buf);
         return;
     }
 
-    sprintf(buf, "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
+    snprintf( buf, sizeof(buf), "That'll be %d gold, and %d qps, %s.", goldcost, qpcost, ch->name);
     do_say(adept, buf);
 
     ch->pcdata->questpoints -= qpcost;
