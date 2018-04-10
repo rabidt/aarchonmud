@@ -10,7 +10,7 @@ struct obj_data;
 struct area_data;
 struct room_index_data;
 
-char* print_timer_list( void );
+void print_timer_list( char * const buf, const size_t n );
 TIMER_NODE * register_c_timer( int value, TIMER_CFUN func );
 TIMER_NODE * register_lua_timer( int value, const char *tag);
 bool unregister_lua_timer( TIMER_NODE *tmr, const char *tag);

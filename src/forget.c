@@ -43,7 +43,7 @@ DEF_DO_FUN(do_forget)
             if (rch->pcdata->forget[pos] == NULL)
                 break;
             
-            sprintf(buf,"    %s\n\r",rch->pcdata->forget[pos]);
+            snprintf( buf, sizeof(buf),"    %s\n\r",rch->pcdata->forget[pos]);
             send_to_char(buf,ch);
         }
         return;
@@ -143,7 +143,7 @@ DEF_DO_FUN(do_remember)
             if (rch->pcdata->forget[pos] == NULL)
                 break;
             
-            sprintf(buf,"    %s\n\r",rch->pcdata->forget[pos]);
+            snprintf( buf, sizeof(buf),"    %s\n\r",rch->pcdata->forget[pos]);
             send_to_char(buf,ch);
         }
         return;

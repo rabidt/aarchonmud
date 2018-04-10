@@ -147,13 +147,13 @@ void update_herb_reset( void )
     int i, nr;
     char buf[MSL], outbuf[MSL];
 
-    sprintf( outbuf, "herbs reset/rotten: " );
+    snprintf( outbuf, sizeof(outbuf), "herbs reset/rotten: " );
     for ( i = 0; herb_table[i].vnum != 0; i++ )
     {
 	nr = rot_herbs( herb_table[i].vnum );
 
 	/* print to log */
-	sprintf( buf, " %2d/%2d", herb_table[i].reset_nr, nr );
+	snprintf( buf, sizeof(buf), " %2d/%2d", herb_table[i].reset_nr, nr );
 	strcat( outbuf, buf );
 
 	herb_table[i].reset_nr = 0;
@@ -184,7 +184,7 @@ DEF_DO_FUN(do_herbs)
 	case 4: rarity = "rare"; break;
 	default: rarity = "very rare"; break;
 	}
-	sprintf( buf, "%s is %s and has %s as habitat.\n\r",
+	snprintf( buf, sizeof(buf), "%s is %s and has %s as habitat.\n\r",
 		 herb->short_descr, rarity,
 		 flag_bit_name(sector_flags, herb_table[i].sector) );
 	send_to_char( buf, ch );
@@ -269,7 +269,7 @@ DEF_DO_FUN(do_brew)
 	    if ( (herb = get_obj_index(recipe_table[i].herb_vnum[0])) == NULL )
 		continue;
 
-	    sprintf( buf, "lvl %2d %10s: %s", recipe_table[i].level,
+	    snprintf( buf, sizeof(buf), "lvl %2d %10s: %s", recipe_table[i].level,
 		     recipe_table[i].name, herb->short_descr );
 	    send_to_char( buf, ch );
 
@@ -278,7 +278,7 @@ DEF_DO_FUN(do_brew)
 		{
 		    if ( (herb = get_obj_index(recipe_table[i].herb_vnum[j])) == NULL )
 			continue;
-		    sprintf( buf, " + %s", herb->short_descr );
+		    snprintf( buf, sizeof(buf), " + %s", herb->short_descr );
 		    send_to_char( buf, ch );
 		}
 

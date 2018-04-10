@@ -435,7 +435,7 @@ DEF_DO_FUN(do_portal)
 	for ( portal = portal_list; portal != NULL; portal = portal->next )
 	{
 	    room = get_room_index( portal->vnum );
-	    sprintf( buf, "[%5d %-20s] %s\n\r", portal->vnum,
+	    snprintf( buf, sizeof(buf), "[%5d %-20s] %s\n\r", portal->vnum,
 		     room == NULL ? "!!! no room !!!" : room->area->name,
 		     portal->name );
 	    add_buf( output, buf );
@@ -560,7 +560,7 @@ void show_portal_names( CHAR_DATA *ch )
     for ( portal = portal_list; portal != NULL; portal = portal->next )
     {
         room = get_room_index( portal->vnum );
-        sprintf( buf, "[%-27s] %s\n\r", 
+        snprintf( buf, sizeof(buf), "[%-27s] %s\n\r", 
             remove_color(room == NULL ? "!!! no room !!!" : room->area->name),
 	    portal->name );
 	    add_buf( output, buf );
