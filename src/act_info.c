@@ -2016,11 +2016,12 @@ DEF_DO_FUN(do_examine)
 */
 DEF_DO_FUN(do_exits)
 {
-    char buf[MAX_STRING_LENGTH];
     EXIT_DATA *pexit;
     bool found;
     bool fAuto;
     int door;
+
+    BUFFER *outbuf = new_buf();
     
     fAuto  = !str_cmp( argument, "auto" );
     
@@ -2028,11 +2029,17 @@ DEF_DO_FUN(do_exits)
         return;
     
     if (fAuto)
-        sprintf(buf,"{O[Exits:");
+    {
+        add_buf(outbuf, "{O[Exits:");
+    }
     else if (IS_IMMORTAL(ch))
-        sprintf(buf,"Obvious exits from room %d:\n\r",ch->in_room->vnum);
+    {
+        addf_buf(outbuf, "Obvious exits from room %d:\n\r", ch->in_room->vnum);
+    }
     else
-        sprintf(buf,"Obvious exits:\n\r");
+    {
+        add_buf(outbuf, "Obvious exits:\n\r");
+    }
     
     found = FALSE;
     for ( door = 0; door < MAX_DIR; door++ )
@@ -2050,44 +2057,55 @@ DEF_DO_FUN(do_exits)
             {
                 if (IS_SET(pexit->exit_info, EX_DORMANT))
                 {
-                    sprintf( buf, "%s <%s>", buf, dir_name[door] );
+                    addf_buf(outbuf, " <%s>", dir_name[door] );
                 }
                 else if (IS_SET(pexit->exit_info, EX_CLOSED))
                 {
-                    sprintf( buf, "%s (%s%s)", buf, 
+
+                    addf_buf(outbuf, " (%s%s)", 
                             IS_SET(pexit->exit_info, EX_HIDDEN) ? "*" : "",
                             dir_name[door] );
                 }
                 else
                 {
-                    sprintf( buf, "%s %s", buf, dir_name[door] );
+                    addf_buf(outbuf, " %s", dir_name[door] );
                 }
             }
             else
             {
-                sprintf( buf + strlen(buf), "%-5s - %s",
+                addf_buf(outbuf, "%-5s - %s",
                     capitalize( dir_name[door] ),
                     room_is_dark( pexit->u1.to_room )
                     ?  "Too dark to tell"
                     : pexit->u1.to_room->name
                     );
+
                 if (IS_IMMORTAL(ch))
-                    sprintf(buf + strlen(buf), 
-                    " (room %d)\n\r",pexit->u1.to_room->vnum);
+                {
+                    addf_buf(outbuf, " (room %d)\n\r", pexit->u1.to_room->vnum);
+                }
                 else
-                    sprintf(buf + strlen(buf), "\n\r");
+                {
+                    add_buf(outbuf, "\n\r");
+                }
             }
         }
     }
     
     if ( !found )
-        strcat( buf, fAuto ? " none" : "None.\n\r" );
+    {
+        add_buf(outbuf, fAuto ? " none" : "None.\n\r" );
+    }
     
     if ( fAuto )
-        strcat( buf, "]\n\r" );
+    {
+        add_buf(outbuf, "]\n\r" );
+    }
     
-    send_to_char( buf, ch );
-    send_to_char( "{x", ch);
+    add_buf(outbuf, "{x");
+
+    send_to_char( buf_string(outbuf), ch );
+    free_buf(outbuf);
     return;
 }
 
