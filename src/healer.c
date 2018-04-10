@@ -260,7 +260,7 @@ DEF_DO_FUN(do_heal)
     }
    
     static char tname_buf[MIL];
-    sprintf( tname_buf, "%s %s",
+    snprintf( tname_buf, sizeof(tname_buf), "%s %s",
           ch->name,
           argument);
     target_name=tname_buf;
@@ -323,7 +323,7 @@ DEF_DO_FUN(do_spellup)
         act("$N says 'I offer the following spells:'",ch,NULL,mob,TO_CHAR);
 	for ( spell = 0; arcane_cost[spell].name != NULL; spell++ )
 	{
-	    sprintf( buf, "  %-18s: %5d gold\n\r",
+	    snprintf( buf, sizeof(buf), "  %-18s: %5d gold\n\r",
 		     arcane_cost[spell].name, arcane_cost[spell].cost );
 	    send_to_char( buf, ch );
 	}

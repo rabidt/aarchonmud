@@ -103,10 +103,10 @@ PROG_CODE *    oprog_list;
 PROG_CODE *    aprog_list;
 PROG_CODE *    rprog_list;
 
-char            bug_buf     [2*MAX_INPUT_LENGTH];
+char            bug_buf     [];
 CHAR_DATA *     char_list;
 const char *    help_greeting;
-char            log_buf     [2*MAX_INPUT_LENGTH];
+char            log_buf     [];
 KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
 TIME_INFO_DATA  time_info;
@@ -2559,7 +2559,7 @@ void area_update( bool all )
         }
         // reset
         reset_area(pArea);
-        sprintf(buf, "%s has just been reset.", pArea->name);
+        snprintf( buf, sizeof(buf), "%s has just been reset.", pArea->name);
         wiznet(buf, NULL, NULL, WIZ_RESETS, 0, 0);
         pArea->age = number_range(0, 3);
         if ( pArea->nplayer == 0 )
@@ -3136,7 +3136,7 @@ void purge_room( ROOM_INDEX_DATA *pRoom )
         if ( !IS_OBJ_STAT(obj,ITEM_NOPURGE) )
         {
             char buf[MSL];
-            sprintf(buf, "%s vanishes.", obj->short_descr);
+            snprintf( buf, sizeof(buf), "%s vanishes.", obj->short_descr);
             recho(buf, pRoom);
             extract_obj( obj );
         }
@@ -4621,7 +4621,7 @@ void do_areas( CHAR_DATA *ch )
 
     for (i=0; i != count; i++)
     {
-        sprintf (buf,"%-26s  {w%-4d{x-  {c%-4d      {m%-4d{x   %-14s \n\r",
+        snprintf( buf, sizeof(buf),"%-26s  {w%-4d{x-  {c%-4d      {m%-4d{x   %-14s \n\r",
             remove_color(sorted_areas[i]->name), /* Uses area_name without color */
             sorted_areas[i]->minlevel,   /* The new min-level field */
             sorted_areas[i]->maxlevel,   /* The new max-level field */
@@ -5203,7 +5203,7 @@ void append_file( CHAR_DATA *ch, const char *file, const char *str )
 void bug( const char *fmt, int param )
 {
     char buf[MAX_STRING_LENGTH];
-    sprintf(buf, fmt, param);
+    snprintf( buf, sizeof(buf), fmt, param);
     bug_string(buf);
 }
 
@@ -5237,14 +5237,14 @@ void bug_string( const char *str )
             fseek( fpArea, iChar, 0 );
         }
         
-        sprintf( buf, "[*****] FILE: %s LINE: %d", strArea, iLine );
+        snprintf( buf, sizeof(buf), "[*****] FILE: %s LINE: %d", strArea, iLine );
         log_string( buf );
 
         if ( !recurse )
             wiznet( buf, NULL, NULL, WIZ_BUGS, 0, 0 );
     }
     
-    sprintf(buf, "[*****] BUG: %s", str );
+    snprintf( buf, sizeof(buf), "[*****] BUG: %s", str );
     if (!recurse)
     {
         strcat( buf, "\n\rLast command: " );
@@ -5324,8 +5324,8 @@ void log_trace( void )
     free(trace_msg);
     
     // second, we feed the addresses into addr2line to get readable information
-    //sprintf(cmd, "addr2line -pfs -e ../../bin/aeaea %s", address_buf);
-    sprintf(cmd, "addr2line -fs -e ../../bin/aeaea %s", address_buf);
+    //snprintf( cmd, sizeof(cmd), "addr2line -pfs -e ../../bin/aeaea %s", address_buf);
+    snprintf( cmd, sizeof(cmd), "addr2line -fs -e ../../bin/aeaea %s", address_buf);
     log_string(cmd);
     if ( system(cmd) == -1 )
     {
@@ -5359,7 +5359,7 @@ void log_error( const char *str )
 
     strtime                    = ctime( &current_time );
     strtime[strlen(strtime)-1] = '\0';
-    sprintf( buf, "%s :: %s", strtime, str );
+    snprintf( buf, sizeof(buf), "%s :: %s", strtime, str );
     perror( buf );
     return;
 }

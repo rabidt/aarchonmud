@@ -112,7 +112,7 @@ DEF_DO_FUN(do_marry)
     printf_to_char(victim, "%s has married you to %s!\n\r", ch->name, victim2->name);
     printf_to_char(victim2, "%s has married you to %s!\n\r", ch->name, victim->name);
     
-    sprintf(log_buf, "%s has pronounced %s and %s married!\n\r", ch->name, victim->name, victim2->name);
+    snprintf( log_buf, sizeof(log_buf), "%s has pronounced %s and %s married!\n\r", ch->name, victim->name, victim2->name);
     info_message(ch, log_buf, TRUE);
     
     victim->pcdata->spouse = str_dup(victim2->name);
@@ -185,7 +185,7 @@ DEF_DO_FUN(do_divorce)
     printf_to_char(victim, "%s has granted you a divorce from %s.\n\r", ch->name, victim2->name);
     printf_to_char(victim2, "%s has granted you a divorce from %s.\n\r", ch->name, victim->name);
     
-    sprintf(log_buf, "%s has granted a divorce to %s and %s.\n\r", ch->name, victim->name, victim2->name);
+    snprintf( log_buf, sizeof(log_buf), "%s has granted a divorce to %s and %s.\n\r", ch->name, victim->name, victim2->name);
     info_message(ch, log_buf, TRUE);
 
     free_string(victim->pcdata->spouse);

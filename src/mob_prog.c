@@ -657,7 +657,7 @@ int cmd_eval( int vnum, const char *line, int check,
     {
 	if ( (oper = keyword_lookup( fn_evals, buf )) < 0 )
 	{
-	    sprintf( buf, "Cmd_eval: prog %d syntax error(2) '%s'",
+	    snprintf( buf, sizeof(buf), "Cmd_eval: prog %d syntax error(2) '%s'",
 		vnum, original );
 	    bug( buf, 0 );
 	    return FALSE;
@@ -684,7 +684,7 @@ int cmd_eval( int vnum, const char *line, int check,
 	}
 	else
 	{
-	    sprintf( buf, "Cmd_eval: prog %d: 2nd argument NaN '%s'",
+	    snprintf( buf, sizeof(buf), "Cmd_eval: prog %d: 2nd argument NaN '%s'",
 		     vnum, original );
 	    bug( buf, 0 );
 	    return FALSE;
@@ -698,7 +698,7 @@ int cmd_eval( int vnum, const char *line, int check,
 	}
 	else
 	{
-	    sprintf( buf, "CHK_QTIMER - Cmd_eval: prog %d: 2nd argument NaN '%s'",
+	    snprintf( buf, sizeof(buf), "CHK_QTIMER - Cmd_eval: prog %d: 2nd argument NaN '%s'",
 		     vnum, original );
 	    bug( buf, 0 );
 	    return FALSE;
@@ -712,7 +712,7 @@ int cmd_eval( int vnum, const char *line, int check,
      */
     if ( buf[0] == '\0' || (buf[0] == '$' && buf[1] == '\0') )
     {
-	sprintf( buf, "Cmd_eval: prog %d syntax error(3) '%s'",
+	snprintf( buf, sizeof(buf), "Cmd_eval: prog %d syntax error(3) '%s'",
 		vnum, original );
 	bug( buf, 0 );
         return FALSE;
@@ -749,7 +749,7 @@ int cmd_eval( int vnum, const char *line, int check,
       case 'q':
 	lval_char = mob->mprog_target; break;
       default:
-	sprintf( buf, "Cmd_eval: prog %d syntax error(4) '%s'",
+	snprintf( buf, sizeof(buf), "Cmd_eval: prog %d syntax error(4) '%s'",
 		 vnum, original );
 	bug( buf, 0 );
 	return FALSE;
@@ -893,7 +893,7 @@ int cmd_eval( int vnum, const char *line, int check,
      */
     if ( (oper = keyword_lookup( fn_evals, buf )) < 0 )
     {
-	sprintf( buf, "Cmd_eval: prog %d syntax error(5): '%s'",
+	snprintf( buf, sizeof(buf), "Cmd_eval: prog %d syntax error(5): '%s'",
 		vnum, original );
 	bug( buf, 0 );
 	return FALSE;
@@ -1294,7 +1294,7 @@ void program_flow(
 #endif
 
     /* update the last_mprog log */
-    sprintf( last_mprog, "mob %d at %d mprog %d",
+    snprintf( last_mprog, sizeof(last_mprog), "mob %d at %d mprog %d",
 	     mvnum,
 	     mob->in_room ? mob->in_room->vnum : 0,
 	     pvnum );
@@ -1491,7 +1491,7 @@ void program_flow(
     }
 
     /* update the last_mprog log */
-    sprintf( last_mprog, "(Finished) mob %d at %d mprog %d",
+    snprintf( last_mprog, sizeof(last_mprog), "(Finished) mob %d at %d mprog %d",
 	     mvnum, 
 	     mob->in_room ? mob->in_room->vnum : 0,
 	     pvnum );
@@ -1570,7 +1570,7 @@ void mp_bribe_trigger( CHAR_DATA *mob, CHAR_DATA *ch, int amount )
 	&&   amount >= atoi( prg->trig_phrase ) )
 	{
         char buf[MSL];
-        sprintf( buf, "%d", amount);
+        snprintf( buf, sizeof(buf), "%d", amount);
 	    program_flow( buf, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL,0, NULL,0, TRIG_BRIBE, prg->script->security );
 	    break;
 	}
@@ -1703,7 +1703,7 @@ void mp_hprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	&& ( (100 * mob->hit / mob->max_hit) < atoi( prg->trig_phrase ) ) )
 	{
         char buf[MSL];
-        sprintf( buf, "%d", (100 * mob->hit / mob->max_hit) );
+        snprintf( buf, sizeof(buf), "%d", (100 * mob->hit / mob->max_hit) );
         program_flow( buf, prg->script->is_lua, prg->vnum, prg->script->code, mob, ch, NULL, 0, NULL, 0, TRIG_HPCNT, prg->script->security );
 	    break;
 	}
@@ -1718,7 +1718,7 @@ void mp_mprct_trigger( CHAR_DATA *mob, CHAR_DATA *ch )
 	&& ( (100 * mob->mana / mob->max_mana) < atoi( prg->trig_phrase ) ) )
 	{
         char buf[MSL];
-        sprintf(buf, "%d", (100 * mob->mana / mob->max_mana) );
+        snprintf( buf, sizeof(buf), "%d", (100 * mob->mana / mob->max_mana) );
         program_flow( buf, prg->script->is_lua, 
                 prg->vnum, prg->script->code, 
                 mob, ch, NULL, 0, NULL, 0, TRIG_MPCNT, 

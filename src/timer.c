@@ -428,26 +428,28 @@ void timer_update( void )
     PERF_PROF_EXIT( pr_ );
 }
 
-char * print_timer_list( void )
+void print_timer_list( char * const buf, const size_t bufsz )
 {
-    static char buf[MSL*4];
-    TIMER_NODE *tmr;
-    strcpy(buf, "");
-    int i=1;
-    int unregcnt=0;
-    for ( tmr=first_timer; tmr; tmr=tmr->next )
+    int rc;
+    size_t buf_i = 0;
+    const TIMER_NODE *tmr;
+
+    int i = 1;
+    int unregcnt = 0;
+    for ( tmr = first_timer; tmr; tmr = tmr->next )
     {
         if ( tmr->unregistered )
         {
             unregcnt++;
             continue;
         }
-        else if ( tmr->tm_type==TM_PROG && !arclib_valid( tmr->game_obj ) )
+        else if ( tmr->tm_type == TM_PROG && !arclib_valid( tmr->game_obj ) )
         {
             bugf("Invalid game_obj in print_timer_list.");
             continue;
-        } 
-        sprintf(buf, "%s\n\r%d %s %d %s", buf, i,
+        }
+
+        rc = snprintf(buf + buf_i, bufsz - buf_i, "\n\r%d %s %d %s", i,
             tmr->tm_type == TM_LUAFUNC ? "luafunc" :
             tmr->tm_type == TM_CFUNC ? "cfunc" :
             tmr->go_type == GO_TYPE_CH ? ((CHAR_DATA *)(tmr->game_obj))->name :
@@ -457,10 +459,38 @@ char * print_timer_list( void )
             "unknown",
             tmr->current,
             tmr->tag ? tmr->tag : "none");
+
+        if (rc < 0)
+        {
+            bugf("%s: snprintf failed", __func__);
+            return;
+        }
+
+        buf_i += (size_t)rc;
+
+        if (buf_i >= bufsz)
+        {
+            bugf("%s: buffer overflow", __func__);
+            return;
+        }
+        
         i++;
     }
-    strcat( buf, "\n\r");
-    sprintf(buf, "%s\n\rUnregistered timers (pending removal): %d\n\r", buf, unregcnt);
-    return buf;
+    
+    rc = snprintf(buf + buf_i, bufsz - buf_i, 
+        "\n\r\n\rUnregistered timers (pending removal): %d\n\r", unregcnt);
 
+    if (rc < 0)
+    {
+        bugf("%s: snprintf failed", __func__);
+        return;
+    }
+
+    buf_i += (size_t)rc;
+
+    if (buf_i >= bufsz)
+    {
+        bugf("%s: buffer overflow", __FUNCTION__);
+        return;
+    }
 }

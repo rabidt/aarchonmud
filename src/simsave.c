@@ -48,7 +48,7 @@ void handle_player_save( void )
   char command[MSL];
   char buf[MSL];
 #if defined(SIM_DEBUG)
-  sprintf(command, "handle_player_save: start, state = %d", player_save_state);
+  snprintf( command, sizeof(command), "handle_player_save: start, state = %d", player_save_state);
   log_string(command);
 #endif
 
@@ -65,7 +65,7 @@ void handle_player_save( void )
       /* clear temp directory */
       if (!bootup_temp_clean_done)
       {
-        sprintf(command, "rm -f %s*", PLAYER_TEMP_DIR);
+        snprintf( command, sizeof(command), "rm -f %s*", PLAYER_TEMP_DIR);
         
         if ( system(command) == -1 )
         {
@@ -73,7 +73,7 @@ void handle_player_save( void )
             exit(1);
         }
 
-        sprintf(command, "rm -f %s*", BOX_TEMP_DIR);
+        snprintf( command, sizeof(command), "rm -f %s*", BOX_TEMP_DIR);
         if ( system(command) == -1 )
         {
             bugf("handle_player_save: failed to execute command '%s'", command);
@@ -100,7 +100,7 @@ void handle_player_save( void )
 	}
        
        /* See if corresponding box in box_mf_list */
-       sprintf(buf, "%s_box", mf->filename);
+       snprintf( buf, sizeof(buf), "%s_box", mf->filename);
        if ( (box_mf = memfile_from_list(buf,box_mf_list)) )
        {
 	   boxtemp = TRUE;
@@ -122,7 +122,7 @@ void handle_player_save( void )
     break;
 
   case SAVE_STATE_TEMPCOPY:
-    sprintf(command, "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
+    snprintf( command, sizeof(command), "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
 
     if ( system(command) == -1 )
     {
@@ -131,7 +131,7 @@ void handle_player_save( void )
     }
     if (boxtemp)
     {
-      sprintf(command, "mv %s* %s", BOX_TEMP_DIR, BOX_DIR);
+      snprintf( command, sizeof(command), "mv %s* %s", BOX_TEMP_DIR, BOX_DIR);
       if ( system(command) == -1 )
       {
           bugf("handle_player_save: failed to execute command '%s'", command);
@@ -299,7 +299,7 @@ bool pfile_exists( const char *name )
     if ( name == NULL )
 	return FALSE;
 
-    sprintf( filename, "%s%s", PLAYER_DIR, capitalize(name) );
+    snprintf( filename, sizeof(filename), "%s%s", PLAYER_DIR, capitalize(name) );
     fp = fopen( filename, "r" );
     if ( fp )
 	fclose( fp );
@@ -358,14 +358,14 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
 #if defined(SIM_DEBUG)
    log_string("load_char_obj: search temp player dir");
 #endif
-    sprintf( strsave, "%s%s", PLAYER_TEMP_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", PLAYER_TEMP_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
       if (buf == NULL)
       {
-	sprintf( bug_buf11, "load_char_obj: error loading %s", strsave );
+	snprintf( bug_buf11, sizeof(bug_buf11), "load_char_obj: error loading %s", strsave );
 	bug( bug_buf11, 0 );
 	return FALSE;
       }
@@ -379,14 +379,14 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
 #if defined(SIM_DEBUG)
    log_string("load_char_obj: search player dir");
 #endif
-    sprintf( strsave, "%s%s", PLAYER_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", PLAYER_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
       if (buf == NULL)
       {
-	sprintf( bug_buf11, "load_char_obj: error loading %s", strsave );
+	snprintf( bug_buf11, sizeof(bug_buf11), "load_char_obj: error loading %s", strsave );
 	bug( bug_buf11, 0 );
 	return FALSE;
       }
@@ -444,7 +444,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("load_storage_box: start");
 #endif
-  sprintf(filename, "%s_box", capitalize(ch->name));
+  snprintf( filename, sizeof(filename), "%s_box", capitalize(ch->name));
 
   mf=memfile_from_list(filename, box_mf_list);
 
@@ -456,14 +456,14 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("load_storager_box: search temp player dir");
 #endif
-    sprintf( strsave, "%s%s", BOX_TEMP_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", BOX_TEMP_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
       if (buf == NULL)
       {
-        sprintf( bug_buf1, "load_storage_box: error loading %s", strsave );
+        snprintf( bug_buf1, sizeof(bug_buf1), "load_storage_box: error loading %s", strsave );
 		        bug( bug_buf1, 0 );
         return FALSE;
       }
@@ -477,14 +477,14 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("load_storage_box: search player dir");
 #endif
-    sprintf( strsave, "%s%s", BOX_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", BOX_DIR, filename );
     if ( ( fp = fopen( strsave, "r" ) ) != NULL )
     {
       buf = load_file_to_buffer( fp );
       fclose( fp );
       if (buf == NULL)
       {
-        sprintf( bug_buf1, "load_storage_box: error loading %s", strsave );
+        snprintf( bug_buf1, sizeof(bug_buf1), "load_storage_box: error loading %s", strsave );
         bug( bug_buf1, 0 );
         return FALSE;
       }
@@ -559,7 +559,7 @@ bool remove_from_list( const char *name, MEMFILE **list )
   char filename[MAX_INPUT_LENGTH];
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
-  sprintf(log_buf, "remove_from_list: start (%s)", name);
+  snprintf( log_buf, sizeof(log_buf), "remove_from_list: start (%s)", name);
   log_string(log_buf);
 #endif
 
@@ -606,7 +606,7 @@ bool remove_from_box_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
-  sprintf(log_buf, "remove_from_box_list: start (%s)", name);
+  snprintf( log_buf, sizeof(log_buf), "remove_from_box_list: start (%s)", name);
   log_string(log_buf);
 #endif
   return remove_from_list( name, &box_mf_list );
@@ -621,7 +621,7 @@ bool remove_from_quit_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
-  sprintf(log_buf, "remove_from_quit_list: start (%s)", name);
+  snprintf( log_buf, sizeof(log_buf), "remove_from_quit_list: start (%s)", name);
   log_string(log_buf);
 #endif
   return remove_from_list( name, &player_quit_list );
@@ -635,7 +635,7 @@ bool remove_from_save_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
-  sprintf(log_buf, "remove_from_save_list: start (%s)", name);
+  snprintf( log_buf, sizeof(log_buf), "remove_from_save_list: start (%s)", name);
   log_string(log_buf);
 #endif
   return remove_from_list( name, &player_save_list );
@@ -769,16 +769,16 @@ int unlink_pfile( const char *filename )
 #endif
     remove_from_quit_list( filename );
     remove_from_save_list( filename );
-    sprintf( buf, "%s_box", filename);
+    snprintf( buf, sizeof(buf), "%s_box", filename);
     remove_from_box_list( buf);
-    sprintf( strsave, "%s%s", PLAYER_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", PLAYER_DIR, filename );
     result = unlink(strsave);
-    sprintf( strsave, "%s%s", PLAYER_TEMP_DIR, filename );
+    snprintf( strsave, sizeof(strsave), "%s%s", PLAYER_TEMP_DIR, filename );
     unlink(strsave);
     /*Kill boxes when deleting too*/
-    sprintf( strsave, "%s%s", BOX_DIR, buf );
+    snprintf( strsave, sizeof(strsave), "%s%s", BOX_DIR, buf );
     unlink(strsave);
-    sprintf( strsave, "%s%s", BOX_TEMP_DIR, buf );
+    snprintf( strsave, sizeof(strsave), "%s%s", BOX_TEMP_DIR, buf );
     unlink(strsave);
 #if defined(SIM_DEBUG)
    log_string("unlink_pfile: end");

@@ -309,7 +309,7 @@ bool op_merge_trigger( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2)
 bool op_prehit_trigger( OBJ_DATA *obj, CHAR_DATA *ch, CHAR_DATA *vic, int damage)
 {
     char damstr[MSL];
-    sprintf( damstr, "%d", damage);
+    snprintf( damstr, sizeof(damstr), "%d", damage);
     return op_percent_trigger(damstr, obj, NULL, ch, vic, OTRIG_PREHIT);
 }
 

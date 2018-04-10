@@ -430,7 +430,7 @@ DEF_DO_FUN(do_ashift)
          return;
     }
 
-    sprintf( buf, "Shifting area %s from %d - %d to %d - %d.\n\r",
+    snprintf( buf, sizeof(buf), "Shifting area %s from %d - %d to %d - %d.\n\r",
 	     area->name, area->min_vnum, area->max_vnum,
 	     area->min_vnum + shift, area->max_vnum + shift );
     log_string( buf );
@@ -478,7 +478,7 @@ char* rel_string( const char *str, int min_vnum, int max_vnum )
 		    last_word[lw_index] = '\0';
 		    value = atoi( last_word );
 		    if ( IS_BETWEEN(min_vnum, value, max_vnum) )
-			sprintf( last_word, "r%d", value - min_vnum );
+			snprintf( last_word, sizeof(last_word), "r%d", value - min_vnum );
 		    for ( i = 0; last_word[i] != '\0'; i++ )
 			rel_str[rel_index++] = last_word[i];
 		    lw_index = 0;
@@ -615,7 +615,7 @@ DEF_DO_FUN(do_rvnum)
          return;
     }
 
-    sprintf( buf, "Making vnums in progs & triggers in area %s relative.\n\r",
+    snprintf( buf, sizeof(buf), "Making vnums in progs & triggers in area %s relative.\n\r",
 	     area->name );
     log_string( buf );
     send_to_char( buf, ch );

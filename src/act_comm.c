@@ -118,7 +118,7 @@ DEF_DO_FUN(do_delete)
 	    //remove_from_all_lboards( ch->name);
             rank_available(ch->clan, ch->pcdata->clan_rank, 0);
 	    //religion_remove_follower( ch );
-            sprintf( filename, "%s", capitalize( ch->name ) );
+            snprintf( filename, sizeof(filename), "%s", capitalize( ch->name ) );
 	    quit_char( ch );
 	    unlink_pfile( filename );
             return;
@@ -148,18 +148,17 @@ DEF_DO_FUN(do_delete)
 void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 {
     const CHANNEL *chan = &(public_channel_table[sn]);
-    char buf[MSL];
-    sprintf(buf, "{%c%s{%c",
+    BUFFER *outbuf = new_buf();
+    addf_buf(outbuf, "{%c%s{%c",
 		chan->prime_color,
 		chan->name,
 		chan->second_color);
-    while (strlen_color(buf) < 15)
-	strcat(buf, " ");
 
-    strcat(buf, IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
-    strcat(buf, "\n\r");
+    int len = strlen_color(buf_string(outbuf));
 
-    send_to_char(buf, ch);
+    addf_buf(outbuf, "%*s%s\n\r", 15 - len, "", IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
+    send_to_char(buf_string(outbuf), ch);
+    free_buf(outbuf);
 }
 
 /* RT code to display channel status */
@@ -443,7 +442,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
         smash_beep_n_blink(arg_buf);
         argument=parse_url(arg_buf);
         
-        sprintf( buf, "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
+        snprintf( buf, sizeof(buf), "{%cYou %s {%c'%s{%c'{x\n\r", chan->prime_color, chan->first_pers, chan->second_color, argument , chan->second_color);
         send_to_char( buf, ch );
         if (USE_CHAT_WIN(ch))
         {
@@ -454,11 +453,11 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
 
         argument = makedrunk(argument,ch);
 
-        sprintf(buf,"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
+        snprintf( buf, sizeof(buf),"{%c %s {%c'%s{%c'", chan->prime_color, chan->third_pers, chan->second_color, argument, chan->second_color);
         log_chan(ch, buf, *(chan->pcn));
 
         // public channels show character name
-        sprintf(buf,"{%c%s{%c %s {%c'$t{%c'{x", chan->prime_color, IS_NPC(ch) ? ch->short_descr : ch->name,
+        snprintf( buf, sizeof(buf),"{%c%s{%c %s {%c'$t{%c'{x", chan->prime_color, IS_NPC(ch) ? ch->short_descr : ch->name,
             chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
         
         for ( d = descriptor_list; d != NULL; d = d->next )
@@ -486,7 +485,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                 }
                 if (!found)
                 {
-                    //sprintf(buf,"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
+                    //snprintf( buf, sizeof(buf),"{%c$n{%c %s {%c'$t{%c'{x", chan->prime_color, chan->prime_color, chan->third_pers, chan->second_color, chan->second_color);
                     act_new( buf,
                         ch, argument, d->character, TO_VICT, POS_DEAD);
 
@@ -541,7 +540,7 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
     if (ch && IS_IMMORTAL(ch) && ch->invis_level > LEVEL_HERO)
         return;
 
-    sprintf(buf, "{1[INFO]{2: %s{x", argument);
+    snprintf( buf, sizeof(buf), "{1[INFO]{2: %s{x", argument);
     if ( playback )
         log_chan(NULL, buf, cn_info);
 
@@ -664,7 +663,7 @@ DEF_DO_FUN(do_clantalk)
 
     argument = parse_url(argument);
     
-    sprintf( buf, "{lYou clan {L'%s{L'\n\r{x", argument );
+    snprintf( buf, sizeof(buf), "{lYou clan {L'%s{L'\n\r{x", argument );
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers(ch->pcdata->clan_history, buf);
@@ -678,7 +677,7 @@ DEF_DO_FUN(do_clantalk)
     argument = makedrunk(argument,ch);
     /* ACT is just unneccessary overhead here! Memnoch 03/98 */
     
-    sprintf(buf,"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
+    snprintf( buf, sizeof(buf),"{l%s {lclans {L'%s{L'{x\n\r",ch->name,argument);
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
         if ( (IS_PLAYING(d->connected)) &&
@@ -773,14 +772,14 @@ DEF_DO_FUN(do_religion_talk)
     
     REMOVE_BIT(ch->comm, COMM_NOREL);
     
-    sprintf( buf, "{9You proclaim {0'%s{0'\n\r{x", argument );
+    snprintf( buf, sizeof(buf), "{9You proclaim {0'%s{0'\n\r{x", argument );
     send_to_char( buf, ch );
     argument = makedrunk(argument,ch);
     
     if ( IS_NPC(ch) )
-	sprintf(buf,"{9%s proclaims {0'%s{0'{x\n\r",ch->short_descr,argument);
+	snprintf( buf, sizeof(buf),"{9%s proclaims {0'%s{0'{x\n\r",ch->short_descr,argument);
     else
-	sprintf(buf,"{9%s proclaims {0'%s{0'{x\n\r",ch->name,argument);
+	snprintf( buf, sizeof(buf),"{9%s proclaims {0'%s{0'{x\n\r",ch->name,argument);
 
 
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -921,11 +920,11 @@ DEF_DO_FUN(do_say)
         send_to_char( "You come out of hiding.\n\r", ch );
     }
     
-    sprintf(buf, "{sYou %s {S'$T{S'{x", mid1);
+    snprintf( buf, sizeof(buf), "{sYou %s {S'$T{S'{x", mid1);
     
     nt_act( buf, ch, NULL, parse_url(argument), TO_CHAR );
     argument = makedrunk(argument,ch);
-    sprintf(buf, "{s$n {s%s {S'$T{S'{x", mid2);
+    snprintf( buf, sizeof(buf), "{s$n {s%s {S'$T{S'{x", mid2);
     if (NOT_AUTHED(ch))
         nt_act( buf, ch, NULL, parse_url(argument), TO_ROOM_UNAUTHED );
     else
@@ -1043,7 +1042,7 @@ void act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 {
     char buf[MAX_STRING_LENGTH];
 
-    sprintf( buf, "{t$n {ttells you {T'%s{T'{x", argument );
+    snprintf( buf, sizeof(buf), "{t$n {ttells you {T'%s{T'{x", argument );
 	nt_act( buf, ch, NULL, victim, TO_VICT );
 }
 
@@ -1081,7 +1080,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 
     argument = parse_url(argument);
 	
-	sprintf( buf, "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
+	snprintf( buf, sizeof(buf), "{tYou tell %s {T'%s{T'{x\n\r", ( IS_NPC(victim) ? victim->short_descr : victim->name ), argument );
 	send_to_char( buf, ch );
 
     if ( USE_CHAT_WIN(ch) )
@@ -1097,7 +1096,7 @@ void tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument )
 	
 	
         /* send as regular */
-        sprintf(buf,"{t%s {ttells you {T'%s{T'{x\n\r", ( IS_NPC(ch) ? ch->short_descr : ch->name ), argument);
+        snprintf( buf, sizeof(buf),"{t%s {ttells you {T'%s{T'{x\n\r", ( IS_NPC(ch) ? ch->short_descr : ch->name ), argument);
 
         /* we'll add to history whether they're available or not */
         if (!IS_NPC(victim) )
@@ -1830,11 +1829,11 @@ void quit_char( CHAR_DATA *ch )
     }
     
     send_to_char("Have a good journey.\n\r",ch);
-    sprintf( log_buf, "%s has quit.", ch->name );
+    snprintf( log_buf, sizeof(log_buf), "%s has quit.", ch->name );
     log_string( log_buf );
     wiznet("$N rejoins the real world.",ch,NULL,WIZ_LOGINS,0,get_trust(ch));
     
-    sprintf(log_buf, "%s has left the game.", ch->name);
+    snprintf( log_buf, sizeof(log_buf), "%s has left the game.", ch->name);
     info_message_new(ch, log_buf, FALSE, FALSE);
 
     strcat(log_buf, "\n");
@@ -2124,7 +2123,7 @@ DEF_DO_FUN(do_order)
             found = TRUE;
 	    if ( can_order(arg2, och) )
 	    {
-		sprintf( buf, "$n orders you to '%s'.", argument );
+		snprintf( buf, sizeof(buf), "$n orders you to '%s'.", argument );
 		act( buf, ch, NULL, och, TO_VICT );
 		interpret( och, argument );
 	    }
@@ -2177,7 +2176,7 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
     bool can_bless = get_skill(ch, gsn_bless) > 1 || (ch == gch && get_skill(ch, gsn_prayer) > 1);
     bool can_frenzy = get_skill(ch, gsn_frenzy) > 1 || (ch == gch && (get_skill(ch, gsn_berserk) > 1 || get_skill(ch, gsn_drunken_fury) > 1));
     
-    sprintf( buf,
+    snprintf( buf, sizeof(buf),
         "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
         !IS_NPC(gch) ? class_table[gch->clss].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
@@ -2216,7 +2215,7 @@ DEF_DO_FUN(do_group)
         CHAR_DATA *leader;
         
         leader = (ch->leader != NULL) ? ch->leader : ch;
-        sprintf( buf, "%s's group:\n\r", leader->name );
+        snprintf( buf, sizeof(buf), "%s's group:\n\r", leader->name );
         send_to_char( buf, ch );
 
         // show group members in room first to ensure same targeting order as for other commands
@@ -2322,7 +2321,7 @@ DEF_DO_FUN(do_group)
 
     if ( ch != victim && is_same_player(ch, victim) )
     {
-        sprintf( buf, "Multiplay: %s joins %s's group", victim->name, ch->name );
+        snprintf( buf, sizeof(buf), "Multiplay: %s joins %s's group", victim->name, ch->name );
         wiznet(buf, ch, NULL, WIZ_CHEAT, 0, LEVEL_IMMORTAL);
     }
     return;
@@ -2462,7 +2461,7 @@ DEF_DO_FUN(do_split)
     
     if (share_silver > 0)
     {
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
             "You split %d silver coins. Your share is %d silver.\n\r",
             amount_silver,share_silver + extra_silver);
         send_to_char(buf,ch);
@@ -2470,7 +2469,7 @@ DEF_DO_FUN(do_split)
     
     if (share_gold > 0)
     {
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
             "You split %d gold coins. Your share is %d gold.\n\r",
             amount_gold,share_gold + extra_gold);
         send_to_char(buf,ch);
@@ -2478,17 +2477,17 @@ DEF_DO_FUN(do_split)
     
     if (share_gold == 0)
     {
-        sprintf(buf,"$n splits %d silver coins. Your share is %d silver.",
+        snprintf( buf, sizeof(buf),"$n splits %d silver coins. Your share is %d silver.",
             amount_silver,share_silver);
     }
     else if (share_silver == 0)
     {
-        sprintf(buf,"$n splits %d gold coins. Your share is %d gold.",
+        snprintf( buf, sizeof(buf),"$n splits %d gold coins. Your share is %d gold.",
             amount_gold,share_gold);
     }
     else
     {
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
             "$n splits %d silver and %d gold coins, giving you %d silver and %d gold.\n\r",
             amount_silver,amount_gold,share_silver,share_gold);
     }
@@ -2522,7 +2521,7 @@ DEF_DO_FUN(do_gtell)
         send_to_char( "Your message didn't get through!\n\r", ch );
         return;
     }
-    sprintf( buf, "{3You tell the group, {4'%s'{x\n\r", parse_url(argument) );
+    snprintf( buf, sizeof(buf), "{3You tell the group, {4'%s'{x\n\r", parse_url(argument) );
     send_to_char( buf, ch );
 	if ( !IS_NPC(ch) )
 		log_pers( ch->pcdata->gtell_history, buf);
@@ -2539,8 +2538,8 @@ DEF_DO_FUN(do_gtell)
         if ( is_same_group( gch, ch ) )
 		{
             //nt_act_new( "{3$n{3 tells the group {4'$t'{x", ch, argument, gch, TO_VICT, POS_SLEEPING );
-			//sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", get_mimic_PERS_new( ch, gch, 0), argument );
-			sprintf(buf, "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), parse_url(argument) );
+			//snprintf( buf, sizeof(buf), "{3%s{3 tells the group {4'%s'{x\n\r", get_mimic_PERS_new( ch, gch, 0), argument );
+			snprintf( buf, sizeof(buf), "{3%s{3 tells the group {4'%s'{x\n\r", (IS_NPC(ch)?ch->short_descr:ch->name), parse_url(argument) );
 			if (gch != ch)
 			{
 				send_to_char(buf, gch);
@@ -2938,7 +2937,7 @@ DEF_DO_FUN(do_bounty)
 		return;
 	    }
 
-            sprintf(buf, "%s has a bounty of %d gold.\n\r",
+            snprintf( buf, sizeof(buf), "%s has a bounty of %d gold.\n\r",
 		    entry->owner->name, entry->owner->pcdata->bounty);
             send_to_char(buf, ch);
 
@@ -3002,7 +3001,7 @@ DEF_DO_FUN(do_bounty)
 
         ch->gold -= victim->pcdata->bounty;
         victim->pcdata->bounty = 0;
-        sprintf(buf, "%s's bounty was paid off.", victim->name);
+        snprintf( buf, sizeof(buf), "%s's bounty was paid off.", victim->name);
         update_bounty( victim );
         info_message(ch, buf, TRUE);
         return;
@@ -3052,18 +3051,18 @@ DEF_DO_FUN(do_bounty)
         old_bounty = victim->pcdata->bounty;
         victim->pcdata->bounty += amount;
 
-        sprintf( buf, "You have placed a %d gold bounty on %s.\n\r",
+        snprintf( buf, sizeof(buf), "You have placed a %d gold bounty on %s.\n\r",
             amount, victim->name);
         send_to_char(buf,ch);
         
-        sprintf(buf, "%s now has a bounty of %d gold.", victim->name,victim->pcdata->bounty );
+        snprintf( buf, sizeof(buf), "%s now has a bounty of %d gold.", victim->name,victim->pcdata->bounty );
         do_say(hunter, buf);
         
         if (old_bounty == 0)
-            sprintf(buf, "%s has put a %d gold bounty on %s's head.", ch->name, amount, 
+            snprintf( buf, sizeof(buf), "%s has put a %d gold bounty on %s's head.", ch->name, amount, 
                victim->name);
         else
-            sprintf(buf, "%s has increased the bounty on %s's head from %d to %d gold.",
+            snprintf( buf, sizeof(buf), "%s has increased the bounty on %s's head from %d to %d gold.",
                ch->name, victim->name, old_bounty, old_bounty+amount);
         
         info_message(ch, buf, FALSE);
@@ -3238,9 +3237,9 @@ void print_gag(char* info_str, long value, CHAR_DATA *ch)
 {
     char buf[MAX_STRING_LENGTH];
     if (IS_SET(ch->gag, value))
-        sprintf(buf, "%s: ON\n\r", info_str);
+        snprintf( buf, sizeof(buf), "%s: ON\n\r", info_str);
     else
-        sprintf(buf, "%s: OFF\n\r", info_str);
+        snprintf( buf, sizeof(buf), "%s: OFF\n\r", info_str);
     send_to_char(buf, ch);
 }
 
@@ -3365,9 +3364,9 @@ DEF_DO_FUN(do_turn_in)
 
     act( "$N takes a look at your criminal record.", ch, NULL, judge, TO_CHAR );
     act( "$N takes a look at $n's criminal record.", ch, NULL, judge, TO_NOTVICT );
-    sprintf( buf, "It seems you have broken the law %s!", ch->name );
+    snprintf( buf, sizeof(buf), "It seems you have broken the law %s!", ch->name );
     do_say( judge, buf );
-    sprintf( buf, "I hereby sentence you to %d gold and %d hours of social work!",
+    snprintf( buf, sizeof(buf), "I hereby sentence you to %d gold and %d hours of social work!",
 	     gold, qp );
     do_say( judge, buf );
 
@@ -3406,7 +3405,7 @@ DEF_DO_FUN(do_action)
 	    send_to_char( "You don't have any combat action set.\n\r", ch );
 	else
 	{
-	    sprintf( buf, "Your current setting is '%s'.\n\r", ch->pcdata->combat_action );
+	    snprintf( buf, sizeof(buf), "Your current setting is '%s'.\n\r", ch->pcdata->combat_action );
 	    send_to_char( buf, ch );
 	}
 
@@ -3445,7 +3444,7 @@ DEF_DO_FUN(do_noreply)
 	    send_to_char( "That person is already not replying to you.\n\r", ch );
 	    return;
 	}
-	sprintf( buf, "%s's replies are now diverted.\n\r", found_ch->name );
+	snprintf( buf, sizeof(buf), "%s's replies are now diverted.\n\r", found_ch->name );
 	send_to_char( buf, ch );
 	found_ch->reply = NULL;
 	return;
