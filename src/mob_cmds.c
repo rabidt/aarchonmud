@@ -123,7 +123,7 @@ void mob_interpret( CHAR_DATA *ch, const char *argument )
 	{
 	    /* Record the command */
 	    /*
-	    sprintf (last_command, "[%5d] %s in [%5d]: mob %s",
+	    snprintf( last_command, sizeof(last_command), "[%5d] %s in [%5d]: mob %s",
 		     IS_NPC(ch) ? ch->pIndexData->vnum : 0,
 		     IS_NPC(ch) ? ch->short_descr : ch->name,
 		     ch->in_room ? ch->in_room->vnum : 0,
@@ -134,7 +134,7 @@ void mob_interpret( CHAR_DATA *ch, const char *argument )
 
 	    /* Record that the command was the last done, but it is finished */
 	    /*
-	    sprintf (last_command, "(Finished) [%5d] %s in [%5d]: mob %s",
+	    snprintf( last_command, sizeof(last_command), "(Finished) [%5d] %s in [%5d]: mob %s",
 		     IS_NPC(ch) ? ch->pIndexData->vnum : 0,
 		     IS_NPC(ch) ? ch->short_descr : ch->name,
 		     ch->in_room ? ch->in_room->vnum : 0,
@@ -145,7 +145,7 @@ void mob_interpret( CHAR_DATA *ch, const char *argument )
 	    return;
 	}
     }
-    sprintf( buf, "Mob_interpret: invalid cmd from mob %d: '%s'",
+    snprintf( buf, sizeof(buf), "Mob_interpret: invalid cmd from mob %d: '%s'",
 	IS_NPC(ch) ? ch->pIndexData->vnum : 0, command );
     bug( buf, 0 );
 }
@@ -387,11 +387,11 @@ DEF_DO_FUN(do_mpstat)
 	return;
     }
 
-    sprintf( arg, "Mobile #%-6d [%s]\n\r",
+    snprintf( arg, sizeof(arg), "Mobile #%-6d [%s]\n\r",
 	victim->pIndexData->vnum, victim->short_descr );
     send_to_char( arg, ch );
 
-    sprintf( arg, "Delay   %-6d [%s]\n\r",
+    snprintf( arg, sizeof(arg), "Delay   %-6d [%s]\n\r",
 	victim->mprog_delay,
 	victim->mprog_target == NULL 
 		? "No target" : victim->mprog_target->name );
@@ -407,7 +407,7 @@ DEF_DO_FUN(do_mpstat)
 	 mprg = mprg->next )
 
     {
-	sprintf( arg, "[%2d] Trigger [%-8s] Program [%4d] Phrase [%s]\n\r",
+	snprintf( arg, sizeof(arg), "[%2d] Trigger [%-8s] Program [%4d] Phrase [%s]\n\r",
 	      ++i,
 	      mprog_type_to_name( mprg->trig_type ),
 	      mprg->vnum,
@@ -854,7 +854,7 @@ CHAR_DATA * mpmload( CHAR_DATA *ch, const char *argument )
     vnum = r_atoi( ch,arg);
     if ( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
     {
-	sprintf( arg, "Mpmload: bad mob index (%d) from mob %d",
+	snprintf( arg, sizeof(arg), "Mpmload: bad mob index (%d) from mob %d",
 	    vnum, IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	bug( arg, 0 );
 	return NULL;
@@ -1017,7 +1017,7 @@ DEF_DO_FUN(do_mppurge)
 	{
 /*	    bug( "Mppurge - Bad argument from vnum %d.",
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-            sprintf( buf, "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
+            snprintf( buf, sizeof(buf), "Mppurge - Bad argument from mob: %d, room: %d, argument: %s",
                 IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
                 ch->in_room != NULL ? ch->in_room->vnum : 0, 
                 arg != NULL ? arg : "null");
@@ -1062,7 +1062,7 @@ DEF_DO_FUN(do_mpgoto)
     {
 /*	bug( "Mpgoto - No such location from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "Mpgoto - No such location. mob: %d, target room: %s",
+        snprintf( buf, sizeof(buf), "Mpgoto - No such location. mob: %d, target room: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
@@ -1098,38 +1098,38 @@ DEF_DO_FUN(do_mpat)
     if ( ch == NULL )
 	return;
 
-    sprintf( last_debug, "mpat: start" );
+    snprintf( last_debug, sizeof(last_debug), "mpat: start" );
     if ( arg[0] == '\0' || argument[0] == '\0' )
     {
 /*	bug( "Mpat - Bad argument from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 );*/
-        sprintf( buf, "Mpat - Bad argument from mob: %d, argument: %s",
+        snprintf( buf, sizeof(buf), "Mpat - Bad argument from mob: %d, argument: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
 	return;
     }
 
-    sprintf( last_debug, "mpat: find_mp_location" );
+    snprintf( last_debug, sizeof(last_debug), "mpat: find_mp_location" );
     if ( ( location = find_mp_location( ch, arg ) ) == NULL )
     {
 /*	bug( "Mpat - No such location from vnum %d.",
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "Mpat - Bad location from mob: %d, target room: %s",
+        snprintf( buf, sizeof(buf), "Mpat - Bad location from mob: %d, target room: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
 	return;
     }
 
-    sprintf( last_debug, "mpat: transfer to room" );
+    snprintf( last_debug, sizeof(last_debug), "mpat: transfer to room" );
     original = ch->in_room;
     on = ch->on;
     char_from_room( ch );
     char_to_room( ch, location );
-    sprintf( last_debug, "mpat: interpret" );
+    snprintf( last_debug, sizeof(last_debug), "mpat: interpret" );
     interpret( ch, argument );
-    sprintf( last_debug, "mpat: back to old room" );
+    snprintf( last_debug, sizeof(last_debug), "mpat: back to old room" );
 
     /*
      * See if 'ch' still exists before continuing!
@@ -1336,7 +1336,7 @@ DEF_DO_FUN(do_mpforce)
     {
 /*	bug( "Mpforce - Bad syntax from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "Mpforce - Bad syntax from mob: %d, target room: %s",
+        snprintf( buf, sizeof(buf), "Mpforce - Bad syntax from mob: %d, target room: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
@@ -1396,7 +1396,7 @@ DEF_DO_FUN(do_mpgforce)
     {
 /*	bug( "MpGforce - Bad syntax from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "MpGforce - Bad syntax from mob: %d, target room: %s",
+        snprintf( buf, sizeof(buf), "MpGforce - Bad syntax from mob: %d, target room: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
@@ -1439,7 +1439,7 @@ DEF_DO_FUN(do_mpvforce)
     {
 /*	bug( "MpVforce - Bad syntax from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "MpVforce - Bad syntax from mob: %d, target room: %s",
+        snprintf( buf, sizeof(buf), "MpVforce - Bad syntax from mob: %d, target room: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             arg != NULL ? arg : "null");
         bug( buf, 0 );
@@ -1486,7 +1486,7 @@ DEF_DO_FUN(do_mpcast)
     {
 /*	bug( "MpCast - Bad syntax from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+        snprintf( buf, sizeof(buf), "MpCast - Bad syntax from mob: %d, spell name: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             spell != NULL ? spell : "null");
         bug( buf, 0 );
@@ -1497,7 +1497,7 @@ DEF_DO_FUN(do_mpcast)
     {
 /*	bug( "MpCast - No such spell from vnum %d.", 
 		IS_NPC(ch) ? ch->pIndexData->vnum : 0 ); */
-        sprintf( buf, "MpCast - Bad syntax from mob: %d, spell name: %s",
+        snprintf( buf, sizeof(buf), "MpCast - Bad syntax from mob: %d, spell name: %s",
             IS_NPC(ch) ? ch->pIndexData->vnum : 0, 
             spell != NULL ? spell : "null");
         bug( buf, 0 );
@@ -1894,7 +1894,7 @@ DEF_DO_FUN(do_mpapply)
     if( victim->pcdata->auth_state >= 1 )
         return;
     
-    sprintf( log_buf, "%s@%s new %s %s applying...", 
+    snprintf( log_buf, sizeof(log_buf), "%s@%s new %s %s applying...", 
         victim->name, victim->desc->host, 
         race_table[victim->race].name, 
         class_table[victim->clss].who_name);
@@ -1949,13 +1949,13 @@ DEF_DO_FUN(do_mpapplyb)
 
     if ( NOT_AUTHED( victim ) )
     {
-        sprintf( log_buf, "[%s@%s] New player entering the game.\n\r", 
+        snprintf( log_buf, sizeof(log_buf), "[%s@%s] New player entering the game.\n\r", 
                 victim->name,
                 victim->desc->host );
         
         wiznet(log_buf, victim, NULL, WIZ_AUTH, 0, LEVEL_IMMORTAL);        
 
-        sprintf( buf, "\n\rYou are now entering the game...\n\r"
+        snprintf( buf, sizeof(buf), "\n\rYou are now entering the game...\n\r"
             "However, your character has not been authorized yet and can not\n\r"
             "advance past level 5 until approved. Your character will be saved,\n\r"
             "but not yet allowed to fully indulge in the MUD.\n\r" );
@@ -2122,7 +2122,7 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
     }
 
     /* log the action */
-    sprintf( buf, "%s was rewarded %d %s by %s (mob %d).",
+    snprintf( buf, sizeof(buf), "%s was rewarded %d %s by %s (mob %d).",
          victim->name, amount, arg2, 
          IS_NPC(ch) ? ch->pIndexData->short_descr : "self",
          IS_NPC(ch) ? ch->pIndexData->vnum : 0);
@@ -2136,7 +2136,7 @@ void mpreward( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg2, int amount )
         gain_exp( victim, amount, TRUE );
         break;
     case REWARD_QP:
-        sprintf( buf, "You are rewarded %d quest point%s!\n\r",
+        snprintf( buf, sizeof(buf), "You are rewarded %d quest point%s!\n\r",
                         amount, amount == 1 ? "" : "s" );
         send_to_char( buf, victim );
         victim->pcdata->questpoints += amount;

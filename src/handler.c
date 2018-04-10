@@ -803,7 +803,7 @@ const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker)
                 /* static since we're returning it*/
                 static char buf[MAX_STRING_LENGTH];
 
-                sprintf( buf, "(%s) %s", ch->name, mimic->short_descr );
+                snprintf( buf, sizeof(buf), "(%s) %s", ch->name, mimic->short_descr );
                 return buf;
             }
             else
@@ -813,7 +813,7 @@ const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker)
     /* static since we're returning it*/
     static char buf[MAX_STRING_LENGTH];
 
-    sprintf (buf, "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
+    snprintf( buf, sizeof(buf), "%s%s%s{x", ch->pcdata->name_color, ch->pcdata->pre_title, ch->name);
     return buf;
 }
 
@@ -3651,7 +3651,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     {
         if (ch->pcdata->bank < 0)
         {
-            sprintf(buf,"Deduct costs: bank %ld < 0, player: %s, room %d",
+            snprintf( buf, sizeof(buf),"Deduct costs: bank %ld < 0, player: %s, room %d",
                 ch->pcdata->bank,
                 ch->name != NULL ? ch->name : "Null",
                 ch->in_room != NULL ? ch->in_room->vnum : 0);
@@ -3661,7 +3661,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     }
     if (ch->gold < 0)
     {
-        sprintf(buf,"Deduct costs: gold %ld < 0, player: %s, room %d",
+        snprintf( buf, sizeof(buf),"Deduct costs: gold %ld < 0, player: %s, room %d",
             ch->gold,
             ch->name != NULL ? ch->name : "Null",
             ch->in_room != NULL ? ch->in_room->vnum : 0);
@@ -3670,7 +3670,7 @@ void deduct_cost(CHAR_DATA *ch, int cost)
     }
     if (ch->silver < 0)
     {
-        sprintf(buf,"Deduct costs: silver %ld < 0, player: %s, room %d",
+        snprintf( buf, sizeof(buf),"Deduct costs: silver %ld < 0, player: %s, room %d",
             ch->silver,
             ch->name != NULL ? ch->name : "Null",
             ch->in_room != NULL ? ch->in_room->vnum : 0);
@@ -3718,7 +3718,7 @@ OBJ_DATA *create_money( int gold, int silver )
     else if (silver == 0)
     {
         obj = create_object_vnum(OBJ_VNUM_GOLD_SOME);
-        sprintf( buf, obj->short_descr, gold );
+        snprintf( buf, sizeof(buf), obj->short_descr, gold );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
         obj->value[1]           = gold;
@@ -3728,7 +3728,7 @@ OBJ_DATA *create_money( int gold, int silver )
     else if (gold == 0)
     {
         obj = create_object_vnum(OBJ_VNUM_SILVER_SOME);
-        sprintf( buf, obj->short_descr, silver );
+        snprintf( buf, sizeof(buf), obj->short_descr, silver );
         free_string( obj->short_descr );
         obj->short_descr        = str_dup( buf );
         obj->value[0]           = silver;
@@ -3739,7 +3739,7 @@ OBJ_DATA *create_money( int gold, int silver )
     else
     {
         obj = create_object_vnum(OBJ_VNUM_COINS);
-        sprintf( buf, obj->short_descr, silver, gold );
+        snprintf( buf, sizeof(buf), obj->short_descr, silver, gold );
         free_string( obj->short_descr );
         obj->short_descr    = str_dup( buf );
         obj->value[0]       = silver;
@@ -4332,7 +4332,7 @@ const char* flag_bit_name( const struct flag_type flag_table[], int flag )
     for ( i = 0; flag_table[i].name != NULL; i++ )
 	if ( flag_table[i].bit == flag )
 	    return flag_table[i].name;
-    sprintf( buf, "none(%d)", flag );
+    snprintf( buf, sizeof(buf), "none(%d)", flag );
     return buf;
 }
 
@@ -4514,16 +4514,16 @@ const char* to_bit_name( int where, int flag )
     switch( where )
     {
     case TO_AFFECTS:
-	sprintf( buf, "%s", affect_bit_name(flag) );
+	snprintf( buf, sizeof(buf), "%s", affect_bit_name(flag) );
 	return buf;
     case TO_IMMUNE:
-	sprintf( buf, "%s immunity", imm_bit_name(flag) );
+	snprintf( buf, sizeof(buf), "%s immunity", imm_bit_name(flag) );
 	return buf;
     case TO_RESIST:
-	sprintf( buf, "%s resistance", imm_bit_name(flag) );
+	snprintf( buf, sizeof(buf), "%s resistance", imm_bit_name(flag) );
 	return buf;
     case TO_VULN:
-	sprintf( buf, "%s vulnerability", imm_bit_name(flag) );
+	snprintf( buf, sizeof(buf), "%s vulnerability", imm_bit_name(flag) );
 	return buf;
     default:
 	return "none";
@@ -4738,97 +4738,97 @@ void all_colour( CHAR_DATA *ch, const char *argument )
     {
         colour = ( RED );
         bright = NORMAL;
-        sprintf( buf2, "Red" );
+        snprintf( buf2, sizeof(buf2), "Red" );
     }
     else if (!str_prefix( argument, "hi-red" ) )
     {
         colour = ( RED );
         bright = BRIGHT;
-        sprintf( buf2, "Red" );
+        snprintf( buf2, sizeof(buf2), "Red" );
     }
     else if (!str_prefix( argument, "green" ) )
     {
         colour = ( GREEN );
         bright = NORMAL;
-        sprintf( buf2, "Green" );
+        snprintf( buf2, sizeof(buf2), "Green" );
     }
     else if (!str_prefix( argument, "hi-green" ) )
     {
         colour = ( GREEN );
         bright = BRIGHT;
-        sprintf( buf2, "Green" );
+        snprintf( buf2, sizeof(buf2), "Green" );
     }
     else if (!str_prefix( argument, "yellow" ) )
     {
         colour = ( YELLOW );
         bright = NORMAL;
-        sprintf( buf2, "Yellow" );
+        snprintf( buf2, sizeof(buf2), "Yellow" );
     }
     else if (!str_prefix( argument, "hi-yellow" ) )
     {
         colour = ( YELLOW );
         bright = BRIGHT;
-        sprintf( buf2, "Yellow" );
+        snprintf( buf2, sizeof(buf2), "Yellow" );
     }
     else if (!str_prefix( argument, "blue" ) )
     {
         colour = ( BLUE );
         bright = NORMAL;
-        sprintf( buf2, "Blue" );
+        snprintf( buf2, sizeof(buf2), "Blue" );
     }
     else if (!str_prefix( argument, "hi-blue" ) )
     {
         colour = ( BLUE );
         bright = BRIGHT;
-        sprintf( buf2, "Blue" );
+        snprintf( buf2, sizeof(buf2), "Blue" );
     }
     else if (!str_prefix( argument, "magenta" ) )
     {
         colour = ( MAGENTA );
         bright = NORMAL;
-        sprintf( buf2, "Magenta" );
+        snprintf( buf2, sizeof(buf2), "Magenta" );
     }
     else if (!str_prefix( argument, "hi-magenta" ) )
     {
         colour = ( MAGENTA );
         bright = BRIGHT;
-        sprintf( buf2, "Magenta" );
+        snprintf( buf2, sizeof(buf2), "Magenta" );
     }
     else if (!str_prefix( argument, "cyan" ) )
     {
         colour = ( CYAN );
         bright = NORMAL;
-        sprintf( buf2, "Cyan" );
+        snprintf( buf2, sizeof(buf2), "Cyan" );
     }
     else if (!str_prefix( argument, "hi-cyan" ) )
     {
         colour = ( CYAN );
         bright = BRIGHT;
-        sprintf( buf2, "Cyan" );
+        snprintf( buf2, sizeof(buf2), "Cyan" );
     }
     else if (!str_prefix( argument, "white" ) )
     {
         colour = ( WHITE );
         bright = NORMAL;
-        sprintf( buf2, "White" );
+        snprintf( buf2, sizeof(buf2), "White" );
     }
     else if (!str_prefix( argument, "hi-white" ) )
     {
         colour = ( WHITE );
         bright = BRIGHT;
-        sprintf( buf2, "White" );
+        snprintf( buf2, sizeof(buf2), "White" );
     }
     else if (!str_prefix( argument, "grey" ) || !str_prefix( argument, "black" ) )
     {
         colour = ( BLACK );
         bright = NORMAL;
-        sprintf( buf2, "Grey" );
+        snprintf( buf2, sizeof(buf2), "Grey" );
     }
     else if (!str_prefix( argument, "clear" ) )
     {
         colour = ( COLOUR_NONE );
         bright = NORMAL;
-        sprintf( buf2, "Clear" );
+        snprintf( buf2, sizeof(buf2), "Clear" );
     }
     else
     {
@@ -4924,7 +4924,7 @@ void all_colour( CHAR_DATA *ch, const char *argument )
     ch->pcdata->proclaim[0] = bright;
     ch->pcdata->proclaim_text[0] = bright;
     
-    sprintf( buf, "All Colour settings set to %s.\n\r", buf2 );
+    snprintf( buf, sizeof(buf), "All Colour settings set to %s.\n\r", buf2 );
     send_to_char_bw( buf, ch );
     
     return;

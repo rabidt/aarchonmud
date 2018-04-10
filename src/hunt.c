@@ -582,7 +582,7 @@ DEF_DO_FUN(do_hunt)
    /*
     * Display the results of the search.
     */
-    sprintf( buf, "$N is %s from here.", dir_name[direction] );
+    snprintf( buf, sizeof(buf), "$N is %s from here.", dir_name[direction] );
     check_improve( ch, gsn_hunt, TRUE, 3 );
     act( buf, ch, NULL, victim, TO_CHAR );
     
@@ -650,7 +650,7 @@ void do_hunt_relic( CHAR_DATA *ch )
     }
     
     // Display the results of the search.
-    sprintf( buf, "$p is %s from here.", dir_name[direction] );
+    snprintf( buf, sizeof(buf), "$p is %s from here.", dir_name[direction] );
     act( buf, ch, rel->relic_obj, NULL, TO_CHAR );
 }
 */
@@ -736,7 +736,7 @@ DEF_DO_FUN(do_scout)
     
     if( direction == -1 )
     {
-	sprintf( buf, "You couldn't find a path to %s from here.\n\r",
+	snprintf( buf, sizeof(buf), "You couldn't find a path to %s from here.\n\r",
 		 target->name );
 	send_to_char( buf, ch );
         return;
@@ -770,7 +770,7 @@ DEF_DO_FUN(do_scout)
    /*
     * Display the results of the search.
     */
-    sprintf( buf, "%s is %s from here.\n\r", target->name, dir_name[direction] );
+    snprintf( buf, sizeof(buf), "%s is %s from here.\n\r", target->name, dir_name[direction] );
     send_to_char( buf, ch );
     check_improve( ch, sn, TRUE, 3 );
     
