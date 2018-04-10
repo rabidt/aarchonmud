@@ -103,10 +103,10 @@ PROG_CODE *    oprog_list;
 PROG_CODE *    aprog_list;
 PROG_CODE *    rprog_list;
 
-char            bug_buf     [2*MAX_INPUT_LENGTH];
+char            bug_buf     [];
 CHAR_DATA *     char_list;
 const char *    help_greeting;
-char            log_buf     [2*MAX_INPUT_LENGTH];
+char            log_buf     [];
 KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
 TIME_INFO_DATA  time_info;

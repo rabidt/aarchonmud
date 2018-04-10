@@ -1998,7 +1998,7 @@ void show_wishes( CHAR_DATA *ch, bool all )
         snprintf( buf, sizeof(buf), "  %-20s %3dm %3d%%", skill_table[sn].name, mana, skill);
 
         if ( spell_list[level][0] == '\0' )
-            sprintf(spell_list[level], "\n\rLevel %2d:%s", level, buf);
+            snprintf(spell_list[level], sizeof(spell_list[level]), "\n\rLevel %2d:%s", level, buf);
         else /* append */
         {
             if ( ++spell_columns[level] % 2 == 0 )
