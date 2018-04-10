@@ -148,18 +148,17 @@ DEF_DO_FUN(do_delete)
 void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 {
     const CHANNEL *chan = &(public_channel_table[sn]);
-    char buf[MSL];
-    snprintf( buf, sizeof(buf), "{%c%s{%c",
+    BUFFER *outbuf = new_buf();
+    addf_buf(outbuf, "{%c%s{%c",
 		chan->prime_color,
 		chan->name,
 		chan->second_color);
-    while (strlen_color(buf) < 15)
-	strcat(buf, " ");
 
-    strcat(buf, IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
-    strcat(buf, "\n\r");
+    int len = strlen_color(buf_string(outbuf));
 
-    send_to_char(buf, ch);
+    addf_buf(outbuf, "%*s%s\n\r", 15 - len, "", IS_SET( ch->comm, chan->offbit) ? "OFF" : "ON");
+    send_to_char(buf_string(outbuf), ch);
+    free_buf(outbuf);
 }
 
 /* RT code to display channel status */
