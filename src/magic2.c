@@ -261,7 +261,7 @@ DEF_SPELL_FUN(spell_call_sidekick)
     set_mob_level( mob, mlevel );
     arm_npc( mob );
 
-    sprintf(buf,"%s\n\rThis sidekick faithfully follows %s.\n\r\n\r",
+    snprintf( buf, sizeof(buf),"%s\n\rThis sidekick faithfully follows %s.\n\r\n\r",
         mob->description,ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
@@ -868,7 +868,7 @@ DEF_SPELL_FUN(spell_animate_dead)
     
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"%sThis zombie was reincarnated by the might of %s.\n\r\n\r",
+    snprintf( buf, sizeof(buf),"%sThis zombie was reincarnated by the might of %s.\n\r\n\r",
         mob->description,ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
@@ -961,7 +961,7 @@ DEF_SPELL_FUN(spell_ghost_chant)
     
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"%sThis spirit was bound by the might of %s.\n\r\n\r", mob->description, ch->name);
+    snprintf( buf, sizeof(buf),"%sThis spirit was bound by the might of %s.\n\r\n\r", mob->description, ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
     
@@ -1270,15 +1270,15 @@ DEF_SPELL_FUN(spell_hand_of_siva)
     
     weapon = create_object_vnum(OBJ_VNUM_SIVA_WEAPON);
         
-    sprintf( buf, weapon->name, weapon_class[i].name );
+    snprintf( buf, sizeof(buf), weapon->name, weapon_class[i].name );
     free_string( weapon->name );
     weapon->name = str_dup( buf );
 
-    sprintf( buf, weapon->short_descr, weapon_class[i].name );
+    snprintf( buf, sizeof(buf), weapon->short_descr, weapon_class[i].name );
     free_string( weapon->short_descr );
     weapon->short_descr = str_dup( buf );
     
-    sprintf( buf, weapon->description, weapon_class[i].name );
+    snprintf( buf, sizeof(buf), weapon->description, weapon_class[i].name );
     free_string( weapon->description );
     weapon->description = str_dup( buf );
     
@@ -1981,7 +1981,7 @@ DEF_SPELL_FUN(spell_tree_golem)
     if ( per_chance(beast_skill) )
        REMOVE_AFFECT(mob, AFF_SLOW);
 
-    sprintf(buf,"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
+    snprintf( buf, sizeof(buf),"%s\n\rA tree springs to life and follows %s.\n\r\n\r",
         mob->description,ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
@@ -2016,7 +2016,7 @@ DEF_SPELL_FUN(spell_water_elemental)
     int beast_skill = get_skill_total(ch, gsn_beast_mastery, 0.5);
     
     mlevel = (6*level + beast_skill) / 8;
-    sprintf(liquid_name, "water");
+    snprintf( liquid_name, sizeof(liquid_name), "water");
 
     if ( sector != SECT_WATER_SHALLOW
         && sector != SECT_WATER_DEEP
@@ -2028,7 +2028,7 @@ DEF_SPELL_FUN(spell_water_elemental)
         {
             mlevel = (5*level + beast_skill) / 8;
             int liquid = UMAX(0, fountain->value[2]);
-            sprintf(liquid_name, "%s", liq_table[liquid].liq_name);
+            snprintf( liquid_name, sizeof(liquid_name), "%s", liq_table[liquid].liq_name);
         }
         else
         {
@@ -2064,13 +2064,13 @@ DEF_SPELL_FUN(spell_water_elemental)
 
     // set name, description etc. to match liquid
 #define rename(VAR) free_string(mob->VAR);mob->VAR=str_dup(buf)
-    sprintf(buf, "%s elemental", liquid_name);
+    snprintf( buf, sizeof(buf), "%s elemental", liquid_name);
     rename(name);
-    sprintf(buf, "A %s elemental", liquid_name);
+    snprintf( buf, sizeof(buf), "A %s elemental", liquid_name);
     rename(short_descr);
-    sprintf(buf, "A %s elemental flows along.", liquid_name);
+    snprintf( buf, sizeof(buf), "A %s elemental flows along.", liquid_name);
     rename(long_descr);
-    sprintf(buf, "%s has imbued this blob of %s with an elemental spirit.\n\r", ch->name, liquid_name);
+    snprintf( buf, sizeof(buf), "%s has imbued this blob of %s with an elemental spirit.\n\r", ch->name, liquid_name);
     rename(description);
 #undef rename
     
@@ -2210,7 +2210,7 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
             SET_BIT(mob->off_flags, OFF_FAST);
         }
 
-        sprintf(buf,"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
+        snprintf( buf, sizeof(buf),"%s\n\rA snake that was once a stick is following %s.\n\r\n\r", mob->description,ch->name);   
         free_string(mob->description);
         mob->description = str_dup(buf);
         
@@ -2234,7 +2234,7 @@ DEF_SPELL_FUN(spell_sticks_to_snakes)
         send_to_char("You wave your hand and a stick becomes a snake!\n\r", ch);
     else	    
     {
-        sprintf(buf, "You wave your hand and %d sticks become enlivened and turn to snakes!\n\r", snake_count);
+        snprintf( buf, sizeof(buf), "You wave your hand and %d sticks become enlivened and turn to snakes!\n\r", snake_count);
         send_to_char(buf, ch);
     }
     act( "$n's magic changes sticks to snakes!", ch, NULL, NULL, TO_ROOM);
@@ -4030,7 +4030,7 @@ DEF_SPELL_FUN(spell_basic_apparition)
     mlevel = URANGE(1, level * 3/4, ch->level);
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"%s\n\rThis apparition belongs to %s.\n\r\n\r",
+    snprintf( buf, sizeof(buf),"%s\n\rThis apparition belongs to %s.\n\r\n\r",
         mob->description,ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
@@ -4098,7 +4098,7 @@ DEF_SPELL_FUN(spell_holy_apparition)
     mlevel = URANGE(1, level * 4/5, ch->level);
     set_mob_level( mob, mlevel );
 
-    sprintf(buf,"%s\n\rThis apparition belongs to %s.\n\r\n\r",
+    snprintf( buf, sizeof(buf),"%s\n\rThis apparition belongs to %s.\n\r\n\r",
         mob->description,ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
@@ -4354,7 +4354,7 @@ DEF_SPELL_FUN(spell_shadow_companion)
     mlevel = URANGE(1, level, ch->level);
     set_mob_level(mob, mlevel);
 
-    sprintf(buf,"This shadow follows %s.\n\r", ch->name);
+    snprintf( buf, sizeof(buf),"This shadow follows %s.\n\r", ch->name);
     free_string(mob->description);
     mob->description = str_dup(buf);
 

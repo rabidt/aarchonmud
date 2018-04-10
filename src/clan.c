@@ -116,7 +116,7 @@ void load_clan_file(const char *filename)
     int clannum = -1;
     int ranknum = -1;
     
-    sprintf(path, "%s%s", CLAN_DIR, filename);
+    snprintf( path, sizeof(path), "%s%s", CLAN_DIR, filename);
     
     if ( (fp = fopen( path, "r" ) ) == NULL )
     {
@@ -561,18 +561,18 @@ DEF_DO_FUN(do_rank)
             return;
         }
 
-        sprintf(log_buf, "%s: %s has been raised to the rank of %s within clan %s!",
+        snprintf( log_buf, sizeof(log_buf), "%s: %s has been raised to the rank of %s within clan %s!",
             ch->name, victim->name, capitalize(clan_table[victim->clan].rank_list[rank].name), 
             capitalize(clan_table[victim->clan].name));
     }
     else if (rank == 0)  /* Trying to boot */
     {
-        sprintf(log_buf, "%s has booted %s out of clan %s!",
+        snprintf( log_buf, sizeof(log_buf), "%s has booted %s out of clan %s!",
         ch->name, victim->name, capitalize(clan_table[victim->clan].name));
     }
     else  /* Trying to demote */
     {
-        sprintf(log_buf, "%s: %s has been demoted to the rank of %s within clan %s!",
+        snprintf( log_buf, sizeof(log_buf), "%s: %s has been demoted to the rank of %s within clan %s!",
         ch->name, victim->name, capitalize(clan_table[victim->clan].rank_list[rank].name),
         capitalize(clan_table[victim->clan].name));
     }
@@ -687,12 +687,12 @@ DEF_DO_FUN(do_recruit)
 
     
     if (clan_table[clan].invitation_only)
-        sprintf(log_buf, "By invitation of %s, %s has become a recruit of clan %s!", 
+        snprintf( log_buf, sizeof(log_buf), "By invitation of %s, %s has become a recruit of clan %s!", 
         ch->pcdata->invitation[clan], 
         ch->name, 
         capitalize(clan_table[clan].name));
     else
-        sprintf(log_buf, "%s has become a recruit of clan %s!", ch->name, capitalize(clan_table[clan].name));
+        snprintf( log_buf, sizeof(log_buf), "%s has become a recruit of clan %s!", ch->name, capitalize(clan_table[clan].name));
     
     info_message(ch, log_buf, TRUE);
     log_string(log_buf);
@@ -760,7 +760,7 @@ DEF_DO_FUN(do_reject)
     ch->clan = 0;
     ch->pcdata->clan_rank = 0;
     
-    sprintf(log_buf, "%s has rejected clan %s!", ch->name, capitalize(clan_table[clan].name));
+    snprintf( log_buf, sizeof(log_buf), "%s has rejected clan %s!", ch->name, capitalize(clan_table[clan].name));
     
     info_message(ch, log_buf, TRUE);
     log_string(log_buf);
@@ -814,48 +814,48 @@ DEF_DO_FUN(do_clanreport)
     
     buffer = new_buf();
     
-    sprintf(buf, "{+Report for clan %s%s{x:\n\r\n\r", 
+    snprintf( buf, sizeof(buf), "{+Report for clan %s%s{x:\n\r\n\r", 
         clan_table[clan].who_color, 
         capitalize(clan_table[clan].name));
     add_buf(buffer, buf);
     
-    sprintf(buf, "{+           Currently Active{x: {c%s{x\n\r", clan_table[clan].active ? "{gYes{x" : "{rNo{x");
+    snprintf( buf, sizeof(buf), "{+           Currently Active{x: {c%s{x\n\r", clan_table[clan].active ? "{gYes{x" : "{rNo{x");
     add_buf(buffer, buf);
-    sprintf(buf, "{+                    Created{x: {c%s{x\n\r", timebuf);
+    snprintf( buf, sizeof(buf), "{+                    Created{x: {c%s{x\n\r", timebuf);
     add_buf(buffer, buf);
-    sprintf(buf, "{+                     Patron{x: {c%s{x\n\r", clan_table[clan].patron);
+    snprintf( buf, sizeof(buf), "{+                     Patron{x: {c%s{x\n\r", clan_table[clan].patron);
     add_buf(buffer, buf);
-    sprintf(buf, "{+Currently allowing recruits{x: {c%s{x\n\r", clan_table[clan].allow_recruits ? "{gYes{x" : "{rNo{x");
+    snprintf( buf, sizeof(buf), "{+Currently allowing recruits{x: {c%s{x\n\r", clan_table[clan].allow_recruits ? "{gYes{x" : "{rNo{x");
     add_buf(buffer, buf);
-    sprintf(buf, "{+Recruits by invitation only{x: {c%s{x\n\r", clan_table[clan].invitation_only ? "{gYes{x" : "{rNo{x");
+    snprintf( buf, sizeof(buf), "{+Recruits by invitation only{x: {c%s{x\n\r", clan_table[clan].invitation_only ? "{gYes{x" : "{rNo{x");
     add_buf(buffer, buf);
-    sprintf(buf, "{+          Minimum alignment{x: {c%d{x\n\r", clan_table[clan].min_align);
+    snprintf( buf, sizeof(buf), "{+          Minimum alignment{x: {c%d{x\n\r", clan_table[clan].min_align);
     add_buf(buffer, buf);
-    sprintf(buf, "{+          Maximum alignment{x: {c%d{x\n\r", clan_table[clan].max_align);
+    snprintf( buf, sizeof(buf), "{+          Maximum alignment{x: {c%d{x\n\r", clan_table[clan].max_align);
     add_buf(buffer, buf);
-    sprintf(buf, "{+             Deaths by mobs{x: {c%ld{x\n\r", clan_table[clan].mobdeaths);
+    snprintf( buf, sizeof(buf), "{+             Deaths by mobs{x: {c%ld{x\n\r", clan_table[clan].mobdeaths);
     add_buf(buffer, buf);
-    sprintf(buf, "{+                Mobs killed{x: {c%ld{x\n\r", clan_table[clan].mobkills);
+    snprintf( buf, sizeof(buf), "{+                Mobs killed{x: {c%ld{x\n\r", clan_table[clan].mobkills);
     add_buf(buffer, buf);
-    sprintf(buf, "{+          Deaths by players{x: {c%ld{x\n\r", clan_table[clan].pdeaths);
+    snprintf( buf, sizeof(buf), "{+          Deaths by players{x: {c%ld{x\n\r", clan_table[clan].pdeaths);
     add_buf(buffer, buf);
-    sprintf(buf, "{+             Players killed{x: {c%ld{x\n\r", clan_table[clan].pkills);
+    snprintf( buf, sizeof(buf), "{+             Players killed{x: {c%ld{x\n\r", clan_table[clan].pkills);
     add_buf(buffer, buf);
     
     if (showall)
     {
-        sprintf(buf, "{+              Donation vnum{x: {c%d{x\n\r", clan_table[clan].donation);
+        snprintf( buf, sizeof(buf), "{+              Donation vnum{x: {c%d{x\n\r", clan_table[clan].donation);
         add_buf(buffer, buf);
-        sprintf(buf, "{+                Recall vnum{x: {c%d{x\n\r", clan_table[clan].hall);
+        snprintf( buf, sizeof(buf), "{+                Recall vnum{x: {c%d{x\n\r", clan_table[clan].hall);
         add_buf(buffer, buf);
     }        
     
-    sprintf(buf, "{+            Number of ranks{x: {c%d{x\n\r", clan_table[clan].rank_count);
+    snprintf( buf, sizeof(buf), "{+            Number of ranks{x: {c%d{x\n\r", clan_table[clan].rank_count);
     add_buf(buffer, buf);
     
     if (!showranks)
     {
-        sprintf(buf, "Type 'clanreport <clan_name> rank' to display details about the clan's ranks.\n\r");
+        snprintf( buf, sizeof(buf), "Type 'clanreport <clan_name> rank' to display details about the clan's ranks.\n\r");
         add_buf(buffer, buf);
         page_to_char(buf_string(buffer), ch);
         free_buf(buffer);
@@ -866,7 +866,7 @@ DEF_DO_FUN(do_clanreport)
 
     for (j = 1; j <= clan_table[clan].rank_count; j++)
     {
-        sprintf(buf, "\n\rDetail for rank {c%d{x - %s%s{x [%s%s-%s{x]:\n\r\n\r",
+        snprintf( buf, sizeof(buf), "\n\rDetail for rank {c%d{x - %s%s{x [%s%s-%s{x]:\n\r\n\r",
             j,
             clan_table[clan].who_color,
             capitalize(clan_table[clan].rank_list[j].name),
@@ -877,50 +877,50 @@ DEF_DO_FUN(do_clanreport)
         
         if (clan_table[clan].rank_list[j].available_slots >= 0)
         {
-            sprintf(buf, "{+        Open positions{x: {c%d{x\n\r", clan_table[clan].rank_list[j].available_slots);
+            snprintf( buf, sizeof(buf), "{+        Open positions{x: {c%d{x\n\r", clan_table[clan].rank_list[j].available_slots);
             add_buf(buffer, buf);
         }
         else
         {
-            sprintf(buf, "{+        Open positions{x: {cUnlimited{x\n\r");
+            snprintf( buf, sizeof(buf), "{+        Open positions{x: {cUnlimited{x\n\r");
             add_buf(buffer, buf);
         }
         
-        sprintf(buf, "{+         Minimum level{x: {c%d{x\n\r", clan_table[clan].rank_list[j].min_level);
+        snprintf( buf, sizeof(buf), "{+         Minimum level{x: {c%d{x\n\r", clan_table[clan].rank_list[j].min_level);
         add_buf(buffer, buf);
         
         if (clan_table[clan].rank_list[j].max_promote_rank > 0)
         {
-            sprintf(buf, "{+     May promote up to{x: %s%s{x\n\r", 
+            snprintf( buf, sizeof(buf), "{+     May promote up to{x: %s%s{x\n\r", 
                 clan_table[clan].who_color,
                 capitalize(clan_table[clan].rank_list[clan_table[clan].rank_list[j].max_promote_rank].name));
             add_buf(buffer, buf);
         }
         else
         {
-            sprintf(buf, "{+     May promote up to{x: {c(None){x\n\r");
+            snprintf( buf, sizeof(buf), "{+     May promote up to{x: {c(None){x\n\r");
             add_buf(buffer, buf);
         }
         
-        sprintf(buf, "{+          Use clantalk{x: %7s \t\t", clan_table[clan].rank_list[j].can_use_clantalk ? "{gYes{x" : "{rNo{x" );
+        snprintf( buf, sizeof(buf), "{+          Use clantalk{x: %7s \t\t", clan_table[clan].rank_list[j].can_use_clantalk ? "{gYes{x" : "{rNo{x" );
         add_buf(buffer, buf);
-        sprintf(buf, "{+       Read clan notes{x: %3s\n\r", clan_table[clan].rank_list[j].can_note ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+       Read clan notes{x: %3s\n\r", clan_table[clan].rank_list[j].can_note ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+    Marry clan members{x: %7s \t\t", clan_table[clan].rank_list[j].can_marry ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+    Marry clan members{x: %7s \t\t", clan_table[clan].rank_list[j].can_marry ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+Join Warfare clan wars{x: %3s\n\r", clan_table[clan].rank_list[j].can_warfare ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+Join Warfare clan wars{x: %3s\n\r", clan_table[clan].rank_list[j].can_warfare ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+         Invite others{x: %7s \t\t", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+         Invite others{x: %7s \t\t", clan_table[clan].rank_list[j].can_invite ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-	sprintf(buf, "{+              Set MOTD{x: %3s\n\r", clan_table[clan].rank_list[j].can_set_motd ? "{gYes{x" : "{rNo{x");
+	snprintf( buf, sizeof(buf), "{+              Set MOTD{x: %3s\n\r", clan_table[clan].rank_list[j].can_set_motd ? "{gYes{x" : "{rNo{x");
 	add_buf(buffer, buf);
-        sprintf(buf, "{+         Clanwar pkill{x: %7s \t\t", clan_table[clan].rank_list[j].clanwar_pkill ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+         Clanwar pkill{x: %7s \t\t", clan_table[clan].rank_list[j].clanwar_pkill ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+       Declare Clanwar{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_war ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+       Declare Clanwar{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_war ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+ Declare Clanwar Truce{x: %7s \t\t", clan_table[clan].rank_list[j].can_declare_truce ? "{gYes{x" : "{rNo{x");
+        snprintf( buf, sizeof(buf), "{+ Declare Clanwar Truce{x: %7s \t\t", clan_table[clan].rank_list[j].can_declare_truce ? "{gYes{x" : "{rNo{x");
         add_buf(buffer, buf);
-        sprintf(buf, "{+Declare Clanwar Treaty{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_treaty ? "{gYes{x" : "{rNo{x");        
+        snprintf( buf, sizeof(buf), "{+Declare Clanwar Treaty{x: %3s\n\r", clan_table[clan].rank_list[j].can_declare_treaty ? "{gYes{x" : "{rNo{x");        
         add_buf(buffer, buf);
         
     }
@@ -973,7 +973,7 @@ DEF_DO_FUN(do_invite)
                 &&   victim->pcdata->invitation[ch->clan] != NULL)
             {
                 found = TRUE;
-                sprintf(log_buf, "{y%s{x, invited by %s%s{x.\n\r",
+                snprintf( log_buf, sizeof(log_buf), "{y%s{x, invited by %s%s{x.\n\r",
                     victim->name,
                     clan_table[ch->clan].who_color,
                     victim->pcdata->invitation[ch->clan]);
@@ -1033,7 +1033,7 @@ DEF_DO_FUN(do_invite)
 
     if (victim->pcdata->invitation[clannum] != NULL)
     {
-        sprintf(log_buf, "That player has already been invited by %s.\n\r",
+        snprintf( log_buf, sizeof(log_buf), "That player has already been invited by %s.\n\r",
             victim->pcdata->invitation[clannum]);
         send_to_char(log_buf, ch);
         return;
@@ -1077,7 +1077,7 @@ MEMFILE* mem_save_clan_file( int clannum )
 
     clan = &(clan_table[clannum]);  /* for readability */
     
-    sprintf(path, "%s%s", CLAN_DIR, clan_table[clannum].filename);
+    snprintf( path, sizeof(path), "%s%s", CLAN_DIR, clan_table[clannum].filename);
     
     mf = memfile_new( path, 1024 );
     if (mf == NULL)
@@ -1163,7 +1163,7 @@ void save_clan_file(int clannum)
 
     clan = &(clan_table[clannum]);  // for readability
     
-    sprintf(path, "%s%s", CLAN_DIR, clan_table[clannum].filename);
+    snprintf( path, sizeof(path), "%s%s", CLAN_DIR, clan_table[clannum].filename);
     
     fclose(fpReserve);
     if ( (fp = fopen( path, "w" ) ) == NULL )
@@ -1606,7 +1606,7 @@ DEF_DO_FUN(do_cset)
         clan->who_color = str_dup(arg3);
         clan->changed = TRUE;
 
-        sprintf(log_buf, "Color string set to: '%s'.\n\r", clan->who_color);
+        snprintf( log_buf, sizeof(log_buf), "Color string set to: '%s'.\n\r", clan->who_color);
         send_to_char_bw(log_buf, ch);
         return;
     }

@@ -52,7 +52,6 @@ extern  int     _filbuf         args( (FILE *) );
 int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
 void mem_save_storage_box( CHAR_DATA *ch );
-char *time_format args((time_t, char *));
 void save_quest( CHAR_DATA *ch, DBUFFER *buf );
 
 char *print_flags(int flag)
@@ -149,7 +148,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
     {
         FILE *fp;
-        sprintf(strsave, "%s%s",GOD_DIR, capitalize(ch->name));
+        snprintf( strsave, sizeof(strsave), "%s%s",GOD_DIR, capitalize(ch->name));
         if ((fp = fopen(strsave,"w")) == NULL)
         {
             bug("mem_save_char_obj: fopen",0);
@@ -172,7 +171,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     if (mf == NULL)
     {
       char msg[MSL];
-      sprintf(msg, "mem_save_char_obj: couldn't open memory file for %s", strsave);
+      snprintf( msg, sizeof(msg), "mem_save_char_obj: couldn't open memory file for %s", strsave);
       bug(msg, 0);
       return NULL;
     }
@@ -241,14 +240,14 @@ void mem_save_storage_box( CHAR_DATA *ch )
            return;
     }
     /* alloc memory file */
-    sprintf(strsave,"%s_box", capitalize(ch->name));
+    snprintf( strsave, sizeof(strsave),"%s_box", capitalize(ch->name));
     /* 16k should do for most players;
        if not, the buffer will expand automatically */
     mf = memfile_new(strsave, 16*1024);
     if (mf == NULL)
     {
       char msg[MSL];
-      sprintf(msg, "mem_save_storage_box: couldn't open memory file for %s", strsave);
+      snprintf( msg, sizeof(msg), "mem_save_storage_box: couldn't open memory file for %s", strsave);
       bug(msg, 0);
       return;
     }
@@ -1461,7 +1460,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 #if defined(SIM_DEBUG)
    log_string("bread_char: start");
 #endif
-    sprintf(str_buf,"Loading %s.",ch->name);
+    snprintf( str_buf, sizeof(str_buf),"Loading %s.",ch->name);
     log_string(str_buf);
     
     for ( ; ; )
@@ -1700,7 +1699,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
                 
                 if (i == BOARD_NOTFOUND) /* Does board still exist ? */
                 {
-                    sprintf (str_buf, "bread_char: %s had unknown board name: %s. Skipped.", ch->name, boardname);                 
+                    snprintf( str_buf, sizeof(str_buf), "bread_char: %s had unknown board name: %s. Skipped.", ch->name, boardname);                 
                     log_string (str_buf);
                     bread_number (buf); /* read last_note and skip info */
                 }
@@ -2083,7 +2082,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 
             if (gran->do_fun == NULL)
             {
-                sprintf(str_buf,"Grant: Command %s not found in pfile for %s",
+                snprintf( str_buf, sizeof(str_buf),"Grant: Command %s not found in pfile for %s",
                         gran->name,ch->name);
                 log_string(str_buf);
                 /* drop the grant */
@@ -3186,7 +3185,7 @@ const char * subclass_string(const CHAR_DATA * ch)
     if ( !ch->pcdata->subclass2 )
         return subclass_table[ch->pcdata->subclass].name;
     // dual subclassing
-    sprintf(buf, "%s/%s", subclass_table[ch->pcdata->subclass].name, subclass_table[ch->pcdata->subclass2].name);
+    snprintf( buf, sizeof(buf), "%s/%s", subclass_table[ch->pcdata->subclass].name, subclass_table[ch->pcdata->subclass2].name);
     return buf;
 }
 
@@ -3231,30 +3230,30 @@ DEF_DO_FUN(do_finger)
     output = new_buf();
     
     if (wch->pcdata->customflag[0]!='\0')
-        sprintf(custombuf, "(%s) ", wch->pcdata->customflag);
+        snprintf( custombuf, sizeof(custombuf), "(%s) ", wch->pcdata->customflag);
     else
         custombuf[0] = '\0';
     
     if ( wch->level >= LEVEL_IMMORTAL )
         switch(wch->level)
     {
-      case MAX_LEVEL - 0 : sprintf(immbuf, "IMPLEMENTOR"); break;
-      case MAX_LEVEL - 1 : sprintf(immbuf, "ARCHON"); break;
-      case MAX_LEVEL - 2 : sprintf(immbuf, "ARCHON"); break;
-      case MAX_LEVEL - 3 : sprintf(immbuf, "VICE-ARCHON"); break;
-      case MAX_LEVEL - 4 : sprintf(immbuf, "VICE-ARCHON"); break;
-      case MAX_LEVEL - 5 : sprintf(immbuf, "GOD"); break;
-      case MAX_LEVEL - 6 : sprintf(immbuf, "GOD"); break;
-      case MAX_LEVEL - 7 : sprintf(immbuf, "DEMIGOD"); break;
-      case MAX_LEVEL - 8 : sprintf(immbuf, "DEMIGOD"); break;
-      case MAX_LEVEL - 9 : sprintf(immbuf, "SAVANT"); break;
-      default : sprintf(immbuf, " "); break;
+      case MAX_LEVEL - 0 : snprintf( immbuf, sizeof(immbuf), "IMPLEMENTOR"); break;
+      case MAX_LEVEL - 1 : snprintf( immbuf, sizeof(immbuf), "ARCHON"); break;
+      case MAX_LEVEL - 2 : snprintf( immbuf, sizeof(immbuf), "ARCHON"); break;
+      case MAX_LEVEL - 3 : snprintf( immbuf, sizeof(immbuf), "VICE-ARCHON"); break;
+      case MAX_LEVEL - 4 : snprintf( immbuf, sizeof(immbuf), "VICE-ARCHON"); break;
+      case MAX_LEVEL - 5 : snprintf( immbuf, sizeof(immbuf), "GOD"); break;
+      case MAX_LEVEL - 6 : snprintf( immbuf, sizeof(immbuf), "GOD"); break;
+      case MAX_LEVEL - 7 : snprintf( immbuf, sizeof(immbuf), "DEMIGOD"); break;
+      case MAX_LEVEL - 8 : snprintf( immbuf, sizeof(immbuf), "DEMIGOD"); break;
+      case MAX_LEVEL - 9 : snprintf( immbuf, sizeof(immbuf), "SAVANT"); break;
+      default : snprintf( immbuf, sizeof(immbuf), " "); break;
     }
     
-    sprintf(levelbuf, "Level {c%d{x", wch->level);
+    snprintf( levelbuf, sizeof(levelbuf), "Level {c%d{x", wch->level);
     
     if (clan_table[wch->clan].active)
-        sprintf(clanbuf, " [%s%s-%s{x] ", 
+        snprintf( clanbuf, sizeof(clanbuf), " [%s%s-%s{x] ", 
         clan_table[wch->clan].who_color,
         clan_table[wch->clan].who_name,
         clan_table[wch->clan].rank_list[wch->pcdata->clan_rank].who_name);
@@ -3263,18 +3262,18 @@ DEF_DO_FUN(do_finger)
     
                
     if ( IS_SET(wch->act, PLR_PERM_PKILL) )
-        sprintf( pkstring, "[%c]", get_pkflag(ch, wch) );
+        snprintf( pkstring, sizeof(pkstring), "[%c]", get_pkflag(ch, wch) );
     else
-        sprintf( pkstring, " " );
+        snprintf( pkstring, sizeof(pkstring), " " );
     
     
     /* AND NOW the formatting! */
     
-    sprintf(buf,"{D\n\r:===================================================================:{x\n\r" );
+    snprintf( buf, sizeof(buf),"{D\n\r:===================================================================:{x\n\r" );
     add_buf( output, buf );
     
     /* **  RP, Helper, Killer, Thief, pflag, name, title ** */
-    sprintf(buf, "  %s%s%s%s%s%s%s%s{x%s\n\r",
+    snprintf( buf, sizeof(buf), "  %s%s%s%s%s%s%s%s{x%s\n\r",
             IS_SET(wch->act,PLR_RP) ? "(RP) " : "",
             IS_SET(wch->act,PLR_HELPER) ? "({GH{CE{cL{GP{CE{cR{x) " : "",
             IS_SET(wch->act,PLR_KILLER) ? "(KILLER) " : "",
@@ -3285,11 +3284,11 @@ DEF_DO_FUN(do_finger)
             wch->name, IS_NPC(wch) ? "" : wch->pcdata->title);
     add_buf( output, buf );
     
-    sprintf(buf,"{D:===================================================================:{x\n\r" );
+    snprintf( buf, sizeof(buf),"{D:===================================================================:{x\n\r" );
     add_buf( output, buf );
     
     /* ** Incog, Wizi, AFK, Levelbuf, Sex, Race, Class, pkill ** */
-    sprintf(buf, "{D|{x %s%s%s%s %s %s %s.            %s%s",
+    snprintf( buf, sizeof(buf), "{D|{x %s%s%s%s %s %s %s.            %s%s",
         get_trust(ch) >= wch->incog_level &&
         wch->incog_level >= LEVEL_HERO ? "(Incog) ": "",
         get_trust(ch) >= wch->invis_level &&
@@ -3306,14 +3305,14 @@ DEF_DO_FUN(do_finger)
     add_buf( output, buf );
 
     /* revised religion */
-    sprintf( buf, "{D|{x God:     %-11s Rank: %-15s",
+    snprintf( buf, sizeof(buf), "{D|{x God:     %-11s Rank: %-15s",
              has_god(wch) ? get_god_name(wch) : "None",
              get_ch_rank_name(wch) );
     
     if( wch->pcdata && wch->pcdata->spouse )
-        sprintf( buf2, "Spouse: %-12s", wch->pcdata->spouse );
+        snprintf( buf2, sizeof(buf2), "Spouse: %-12s", wch->pcdata->spouse );
     else
-        sprintf( buf2, "Spouse: None" );
+        snprintf( buf2, sizeof(buf2), "Spouse: None" );
         
     strcat( buf, buf2 );
     
@@ -3322,28 +3321,28 @@ DEF_DO_FUN(do_finger)
     add_buf( output, buf );
     
     /* Remorts, Age, Hours, Bounty */
-    sprintf(buf, "{D|{x ");
+    snprintf( buf, sizeof(buf), "{D|{x ");
     if ( wch->level <= LEVEL_HERO )
     {
-        sprintf(buf2, "Remorts: {c%-2d{x          Age: %-3d",
+        snprintf( buf2, sizeof(buf2), "Remorts: {c%-2d{x          Age: %-3d",
             wch->pcdata->remorts,
             get_age(wch));
         strcat( buf, buf2 );
     }
     else
     {
-        sprintf( buf2, " *** %s ***      ", immbuf );
+        snprintf( buf2, sizeof(buf2), " *** %s ***      ", immbuf );
         strcat( buf, buf2 );
     }
     
     if ( get_trust(ch) > LEVEL_IMMORTAL )
     {
-        sprintf( buf2, "             Hours: {c%d{x   ", ((int)wch->played)/3600);
+        snprintf( buf2, sizeof(buf2), "             Hours: {c%d{x   ", ((int)wch->played)/3600);
         strcat( buf, buf2 );
     }
     if ( wch->pcdata->bounty )
     {
-        sprintf( buf2, "     Bounty: %d", wch->pcdata->bounty );
+        snprintf( buf2, sizeof(buf2), "     Bounty: %d", wch->pcdata->bounty );
         strcat( buf, buf2 );
     }
     for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
@@ -3353,8 +3352,8 @@ DEF_DO_FUN(do_finger)
     /* ascent and subclass */
     if ( wch->level <= LEVEL_HERO && wch->pcdata->ascents > 0 )
     {
-        sprintf(buf, "{D|{x ");
-        sprintf(buf2, "Ascents: {c%-2d{x     Subclass: %s",
+        snprintf( buf, sizeof(buf), "{D|{x ");
+        snprintf( buf2, sizeof(buf2), "Ascents: {c%-2d{x     Subclass: %s",
             wch->pcdata->ascents,
             subclass_string(wch));
         strcat( buf, buf2 );
@@ -3370,8 +3369,8 @@ DEF_DO_FUN(do_finger)
             ;  /* Do nothing. */
         else
         {
-        sprintf(buf, "{D|{x Date Last On: %s    ",
-            time_format(fingertime, custombuf));
+        snprintf( buf, sizeof(buf), "{D|{x Date Last On: %s    ",
+            time_format(fingertime, custombuf, sizeof(custombuf)));
         for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
         strcat( buf, "{D|{x\n\r" );
         add_buf( output, buf );
@@ -3379,8 +3378,8 @@ DEF_DO_FUN(do_finger)
     }
 	
     /* Date Created */
-    sprintf(buf, "{D|{x Date Created: %s   ",
-	    time_format(wch->id, custombuf));
+    snprintf( buf, sizeof(buf), "{D|{x Date Created: %s   ",
+	    time_format(wch->id, custombuf, sizeof(custombuf)));
     for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
     strcat( buf, "{D|{x\n\r" );
     add_buf( output, buf );
@@ -3393,7 +3392,7 @@ DEF_DO_FUN(do_finger)
         }
         else
         {
-            sprintf(buf, "{D|{x Last host: 	<send 'pgrep %15s'>%s	</send>", wch->pcdata->last_host, wch->pcdata->last_host);
+            snprintf( buf, sizeof(buf), "{D|{x Last host: 	<send 'pgrep %15s'>%s	</send>", wch->pcdata->last_host, wch->pcdata->last_host);
             for ( ; strlen_color(buf) <= 106; strcat( buf, " " ));
             strcat( buf, "{D|{x\n\r" );
             add_buf( output, buf );
@@ -3432,55 +3431,55 @@ DEF_DO_FUN(do_finger)
 	else
 	    war = get_pkgrade_level(wch->pcdata->warpoints);
 
-        sprintf(buf,"{D:===================================================================:{x\n\r" );
+        snprintf( buf, sizeof(buf),"{D:===================================================================:{x\n\r" );
         add_buf( output, buf );
      
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x                         {D|{x Warfare Grade: {W<<%s{W>>{x  Total Wars: %5d{x {D|{x\n\r",
 			pkgrade_table[war].grade, wars_won + wars_lost );
         add_buf( output, buf ); 
          
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x          Pkills:  {C%5d{x {D|{x                   {D|=={xWON{D=|={xLOST{D=|={xKILLS{D=|{x\n\r",
 			wch->pcdata->pkill_count );
         add_buf( output, buf );
 
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x     Mobs Killed: {R%6d{x {D|{x      {rA{Drmageddons:{x {D|{x {r%4d{x {D|{x {r%4d{x {D|{x {r%5d{x {D|{x\n\r",
              wch->pcdata->mob_kills, wch->pcdata->armageddon_won, wch->pcdata->armageddon_lost, wch->pcdata->armageddon_kills );
         add_buf( output, buf ); 
 
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x         Beheads:  {R%5d{D |{x        {yC{Dlan {yW{Dars:{x {D|{x {y%4d{x {D|{x {y%4d{x {D|{x {y%5d{x {D|{x\n\r",
             wch->pcdata->behead_cnt, wch->pcdata->clan_won, wch->pcdata->clan_lost, wch->pcdata->clan_kills );
         add_buf( output, buf );
             
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|=========================|{x       {gC{Dlass {gW{Dars:{x {D|{x {g%4d{x {D|{x {g%4d{x {D|{x {g%5d{x {D|{x\n\r",
 	    wch->pcdata->class_won, wch->pcdata->class_lost, wch->pcdata->class_kills );
         add_buf( output, buf );
             
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x Quests Complete: %6d {D|{x        {cR{Dace {cW{Dars:{x {D|{x {c%4d{x {D|{x {c%4d{x {D|{x {c%5d{x {D|{x\n\r", 
 	    wch->pcdata->quest_success, wch->pcdata->race_won, wch->pcdata->race_lost, wch->pcdata->race_kills );
         add_buf( output, buf );
             
-        sprintf(buf,
+        snprintf( buf, sizeof(buf),
 	    "{D|{x Hard Qst Complt: %6d {D|{x      {bR{Delign {bW{Dars:{x {D|{x {b%4d{x {D|{x {b%4d{x {D|{x {b%5d{x {D|{x\n\r",
 	    wch->pcdata->quest_hard_success, wch->pcdata->religion_won, wch->pcdata->religion_lost, wch->pcdata->religion_kills );
 	add_buf( output, buf );
 
-	sprintf(buf,
+	snprintf( buf, sizeof(buf),
 	    "{D|{x   Quests Failed:  %5d {D|{x      {mG{Dender {mW{Dars:{x {D|{x {m%4d{x {D|{x {m%4d{x {D|{x {m%5d{x {D|{x\n\r",
 		wch->pcdata->quest_failed, wch->pcdata->gender_won, wch->pcdata->gender_lost, wch->pcdata->gender_kills );
 	add_buf( output, buf );
 
-    sprintf( buf,
+    snprintf( buf, sizeof(buf),
         "{D|{x                         {D|{x        {DDuel Wars: | %4d | %4d | %5d |{x\n\r",
         wch->pcdata->duel_won, wch->pcdata->duel_lost, wch->pcdata->duel_kills);
     add_buf( output, buf );
 
-	sprintf(buf,
+	snprintf( buf, sizeof(buf),
 	    "{D|{x Percent Success: %5.1f%% {D|{x           TOTALS:{x {D|{x%5d{x {D|{x%5d{x {D|{x%6d{x {D|{x\n\r",
             wch->pcdata->quest_success == 0 ? 0 : (float)wch->pcdata->quest_success * 100 /
             (float)(wch->pcdata->quest_failed + wch->pcdata->quest_success),
@@ -3490,7 +3489,7 @@ DEF_DO_FUN(do_finger)
         
     }
     
-    sprintf(buf,"{D:===================================================================:{x\n\r" );
+    snprintf( buf, sizeof(buf),"{D:===================================================================:{x\n\r" );
     add_buf( output, buf );
     
     page_to_char(buf_string(output),ch);

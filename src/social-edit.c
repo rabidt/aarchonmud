@@ -256,7 +256,7 @@ DEF_DO_FUN(do_sedit)
 	
 	else if (!str_cmp(cmd, "show")) /* Show a certain social */
 	{
-		sprintf (buf, "Social: %s\n\r"
+		snprintf( buf, sizeof(buf), "Social: %s\n\r"
 		              "(cnoarg) No argument given, character sees:\n\r"
 		              "%s\n\r\n\r"
 		              "(onoarg) No argument given, others see:\n\r"

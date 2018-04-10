@@ -963,7 +963,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
                         if ( !pLastMob )
                         {
-                            sprintf( buf, "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
+                            snprintf( buf, sizeof(buf), "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
                             bug( buf, 0 );
                         }
                         break;
@@ -977,7 +977,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pLastMob ? pLastMob->short_descr : "!NO_MOB!" );
                         if ( !pLastMob )
                         {
-                            sprintf( buf, "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
+                            snprintf( buf, sizeof(buf), "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
                             bug( buf, 0 );
                         }
                         break;
@@ -1027,7 +1027,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                         fprintf( fp, "G 0 %d 0\n", pReset->arg1 );
                         if ( !pLastMob )
                         {
-                            sprintf( buf,
+                            snprintf( buf, sizeof(buf),
                                 "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
                             bug( buf, 0 );
                         }
@@ -1039,7 +1039,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
                             pReset->arg3 );
                         if ( !pLastMob )
                         {
-                            sprintf( buf,
+                            snprintf( buf, sizeof(buf),
                                 "Save_resets: !NO_MOB! in [%s]", pArea->file_name );
                             bug( buf, 0 );
                         }
@@ -1156,7 +1156,7 @@ void save_area( AREA_DATA *pArea )
 
     if ( stat(pArea->file_name, &st) == 0 )
     {
-        sprintf( buf, AREA_BACKUP_DIR "%s", pArea->file_name );
+        snprintf( buf, sizeof(buf), AREA_BACKUP_DIR "%s", pArea->file_name );
         int result=rename( pArea->file_name, buf );
         if ( result != 0 )
         {
@@ -1270,7 +1270,7 @@ DEF_DO_FUN(do_asave)
         return;
     }
     
-    sprintf(log_buf, "asave %s> %s", ch->name, arg1);
+    snprintf( log_buf, sizeof(log_buf), "asave %s> %s", ch->name, arg1);
     wiznet(log_buf, ch, NULL, WIZ_ASAVE, 0, get_trust(ch)); 
     
     /* Snarf the value (which need not be numeric). */
@@ -1339,7 +1339,7 @@ DEF_DO_FUN(do_asave)
         else
             log_string( "Saved zones:" );
         
-        sprintf( buf, "None.\n\r" );
+        snprintf( buf, sizeof(buf), "None.\n\r" );
         
         for( pArea = area_first; pArea; pArea = pArea->next )
         {
@@ -1354,7 +1354,7 @@ DEF_DO_FUN(do_asave)
             if ( IS_SET(pArea->area_flags, AREA_CHANGED) )
             {
                 save_area( pArea );
-                sprintf( buf, "%24s - '%s'", pArea->name, pArea->file_name );
+                snprintf( buf, sizeof(buf), "%24s - '%s'", pArea->name, pArea->file_name );
                 if ( ch )
                 {
                     send_to_char( buf, ch );

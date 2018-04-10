@@ -97,7 +97,7 @@ void log_pers( PERS_HISTORY *history, const char *text )
 	
 	strcpy(time, ctime( &current_time ) );
 	time[strlen(time)-1] = '\0';
-	sprintf(buf, "%s::%s", time, text );
+	snprintf( buf, sizeof(buf), "%s::%s", time, text );
 	entry->text=str_dup(buf);
 	
 	/* add it to the history */
@@ -360,7 +360,7 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 			
         if (! IS_CHAN_OFF(ch, (entry->channel)) )
         {
-            sprintf(buf,"%s::{%c%s%s", 
+            snprintf( buf, sizeof(buf),"%s::{%c%s%s", 
                     entry->timestamp,
                     public_channel_table[entry->channel].prime_color,
                     entry->name,

@@ -57,7 +57,7 @@ DEF_DO_FUN(do_red)
     }
     
     
-    sprintf(buf,"{R[RED] %s{x: %s\n\r",ch->name,argument);
+    snprintf( buf, sizeof(buf),"{R[RED] %s{x: %s\n\r",ch->name,argument);
     wiznet(buf, ch, NULL, WIZ_FTAG, 0, 0);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -93,7 +93,7 @@ DEF_DO_FUN(do_blue)
         return;
     }
     
-    sprintf(buf,"{B[BLUE] %s{x: %s\n\r",ch->name,argument);
+    snprintf( buf, sizeof(buf),"{B[BLUE] %s{x: %s\n\r",ch->name,argument);
     wiznet(buf, ch, NULL, WIZ_FTAG, 0, 0);
     
     for ( d = descriptor_list; d != NULL; d = d->next )
@@ -163,7 +163,7 @@ void check_team_frozen ( CHAR_DATA *ch )
     
     going=FALSE;
     
-    sprintf(buf, "The %s team has won Freeze Tag!", 
+    snprintf( buf, sizeof(buf), "The %s team has won Freeze Tag!", 
         (ch_team == TAG_BLUE) ? "{BBlue{x" : "{RRed{x");
     info_message(ch, buf, TRUE);
     show_ftag_status(ch, TRUE);
@@ -200,7 +200,7 @@ void ftag_reset_player(CHAR_DATA *ch, char *argument)
         REMOVE_BIT(victim->pcdata->tag_flags,TAG_PLAYING);
         if (!IS_NPC(victim))
         {
-            sprintf(buf, "%s %d", victim->name, ROOM_VNUM_TEMPLE);
+            snprintf( buf, sizeof(buf), "%s %d", victim->name, ROOM_VNUM_TEMPLE);
             do_transfer(ch,buf);
         }
     }
@@ -253,7 +253,7 @@ DEF_DO_FUN(do_ftag)
         send_to_char("Chamber 3: Another medium sized chamber.\n\r",ch);
         send_to_char("Chamber 4: {DShadow Arena{x A huge chamber for big games.\n\r",ch);
         
-        sprintf(buf, "Current freezetag chamber set to %d.\n\r", ftag_next+1);
+        snprintf( buf, sizeof(buf), "Current freezetag chamber set to %d.\n\r", ftag_next+1);
         send_to_char(buf,ch);
         return;
     }
@@ -267,7 +267,7 @@ DEF_DO_FUN(do_ftag)
         ftag_chamber=ftag_next;
         going=TRUE;
         
-        sprintf(buf, "%s has started a game of Freeze Tag!", capitalize(ch->name));
+        snprintf( buf, sizeof(buf), "%s has started a game of Freeze Tag!", capitalize(ch->name));
         info_message(ch, buf, TRUE);
         
         for ( d = descriptor_list; d != NULL; d = d->next )
@@ -277,7 +277,7 @@ DEF_DO_FUN(do_ftag)
             
             if ( IS_TAG(d->character) )
             {
-                sprintf(buf,"%s %d",d->character->name,
+                snprintf( buf, sizeof(buf),"%s %d",d->character->name,
                     number_range(ftag_table[ftag_chamber][0],ftag_table[ftag_chamber][1]));
                 REMOVE_BIT(d->character->pcdata->tag_flags,TAG_FROZEN);
                 do_transfer(ch,buf);
@@ -296,11 +296,11 @@ DEF_DO_FUN(do_ftag)
             
             if ((fRed = !fRed))
             {
-                sprintf(buf,"red %s",victim->name);
+                snprintf( buf, sizeof(buf),"red %s",victim->name);
             }
             else
             {
-                sprintf(buf,"blue %s",victim->name);
+                snprintf( buf, sizeof(buf),"blue %s",victim->name);
             }
             
             do_ftag(ch,buf);
@@ -381,15 +381,15 @@ DEF_DO_FUN(do_ftag)
             return;
         }
         
-        sprintf(buf,"%s %d",victim->name,
+        snprintf( buf, sizeof(buf),"%s %d",victim->name,
             number_range(ftag_table[ftag_chamber][0],ftag_table[ftag_chamber][1]));
         REMOVE_BIT(victim->pcdata->tag_flags,TAG_FROZEN);
         do_transfer(ch,buf);
         
         if (IS_SET(victim->pcdata->tag_flags, TAG_BLUE))
-            sprintf(buf, "%s has been admitted to the {BBlue{x team!\n\r", victim->name);
+            snprintf( buf, sizeof(buf), "%s has been admitted to the {BBlue{x team!\n\r", victim->name);
         else
-            sprintf(buf, "%s has been admitted to the {RRed{x team!\n\r", victim->name);
+            snprintf( buf, sizeof(buf), "%s has been admitted to the {RRed{x team!\n\r", victim->name);
         do_blue(ch, buf);
         do_red(ch, buf);
         
@@ -464,9 +464,9 @@ void show_ftag_status( CHAR_DATA *ch, bool final )
     
     if (final)
     {
-        sprintf(buf, " {RRed Team{x Score:  {+%d Playing, %d Frozen{x", rPlay, rFrozen);
+        snprintf( buf, sizeof(buf), " {RRed Team{x Score:  {+%d Playing, %d Frozen{x", rPlay, rFrozen);
         info_message(ch, buf, TRUE);
-        sprintf(buf, "{BBlue Team{x Score:  {+%d Playing, %d Frozen{x", bPlay, bFrozen);
+        snprintf( buf, sizeof(buf), "{BBlue Team{x Score:  {+%d Playing, %d Frozen{x", bPlay, bFrozen);
         info_message(ch, buf, TRUE);
     }
     else
@@ -556,7 +556,7 @@ DEF_DO_FUN(do_tag)
         act( "You are no longer frozen!", ch, NULL, victim, TO_VICT );
         act( "$N is no longer frozen!",   ch, NULL, victim, TO_NOTVICT );
         act( "$N is no longer frozen!",   ch, NULL, victim, TO_CHAR );
-        sprintf(buf,"Wiznet:{%c%s{x was un-frozen by {%c%s{x.", 
+        snprintf( buf, sizeof(buf),"Wiznet:{%c%s{x was un-frozen by {%c%s{x.", 
             IS_SET(victim->pcdata->tag_flags, TAG_BLUE) ?  'B' : 'R', 
             capitalize(victim->name),
             IS_SET(ch->pcdata->tag_flags, TAG_BLUE) ? 'B' : 'R', 
@@ -570,7 +570,7 @@ DEF_DO_FUN(do_tag)
         act( "You are frozen!", ch, NULL, victim, TO_VICT );
         act( "$N is frozen!",   ch, NULL, victim, TO_NOTVICT );
         act( "$N is frozen!",   ch, NULL, victim, TO_CHAR );
-        sprintf(buf,"Wiznet: {%c%s{x was tagged by {%c%s{x.", 
+        snprintf( buf, sizeof(buf),"Wiznet: {%c%s{x was tagged by {%c%s{x.", 
             IS_SET(victim->pcdata->tag_flags, TAG_BLUE) ?  'B' : 'R', 
             capitalize(victim->name),
             IS_SET(ch->pcdata->tag_flags, TAG_BLUE) ?  'B' : 'R', 

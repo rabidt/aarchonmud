@@ -65,7 +65,7 @@ DEF_DO_FUN(do_fvlist)
     j=1;
     if (!str_cmp(arg,"obj") || !str_cmp(arg, "object"))
     {
-        sprintf(buf,"{W Free {Cobject {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
+        snprintf( buf, sizeof(buf),"{W Free {Cobject {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
         add_buf(buffer, buf);
         add_buf(buffer,"{Y========================================================{C\n\r");
 
@@ -73,7 +73,7 @@ DEF_DO_FUN(do_fvlist)
         {
             if (get_obj_index(i) == NULL) 
             {
-                sprintf(buf,"%8d ",i);
+                snprintf( buf, sizeof(buf),"%8d ",i);
                 add_buf(buffer, buf);
                 if (j == 6) 
                 {
@@ -88,7 +88,7 @@ DEF_DO_FUN(do_fvlist)
     }
     else if (!str_cmp(arg,"mob"))
     { 
-        sprintf(buf,"{W Free {Cmob {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
+        snprintf( buf, sizeof(buf),"{W Free {Cmob {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
         add_buf(buffer, buf);
         add_buf(buffer,"{Y========================================================{C\n\r");
 
@@ -97,7 +97,7 @@ DEF_DO_FUN(do_fvlist)
         {
             if (get_mob_index(i) == NULL) 
             {
-                sprintf(buf,"%8d ",i);
+                snprintf( buf, sizeof(buf),"%8d ",i);
                 add_buf(buffer, buf);
                 if (j == 6) 
                 {
@@ -112,7 +112,7 @@ DEF_DO_FUN(do_fvlist)
     }
     else if (!str_cmp(arg,"room"))
     { 
-        sprintf(buf,"{W Free {Croom {Wvnum listing for area {C%s{x\n\r", 
+        snprintf( buf, sizeof(buf),"{W Free {Croom {Wvnum listing for area {C%s{x\n\r", 
 		ch->in_room->area->name);
         add_buf(buffer, buf);
         add_buf(buffer,"{Y========================================================{C\n\r");
@@ -121,7 +121,7 @@ DEF_DO_FUN(do_fvlist)
         {
             if (get_room_index(i) == NULL) 
             {
-                sprintf(buf,"%8d ",i);
+                snprintf( buf, sizeof(buf),"%8d ",i);
                 add_buf(buffer, buf);
                 if (j == 6) 
                 {
@@ -136,7 +136,7 @@ DEF_DO_FUN(do_fvlist)
     }
     else if (!str_cmp(arg,"mprog"))
     { 
-        sprintf(buf,"{W Free {Cmprog {Wvnum listing for area {C%s{x\n\r", 
+        snprintf( buf, sizeof(buf),"{W Free {Cmprog {Wvnum listing for area {C%s{x\n\r", 
 		ch->in_room->area->name);
         add_buf(buffer, buf);
         add_buf(buffer,"{Y========================================================{C\n\r");
@@ -145,7 +145,7 @@ DEF_DO_FUN(do_fvlist)
         {
             if (get_mprog_index(i) == NULL) 
             {
-                sprintf(buf,"%8d ",i);
+                snprintf( buf, sizeof(buf),"%8d ",i);
                 add_buf(buffer, buf);
                 if (j == 6) 
                 {
@@ -206,14 +206,14 @@ DEF_DO_FUN(do_vlist)
 
     if (!str_cmp(arg,"obj") || !str_cmp(arg, "object"))
     {
-        sprintf(buf, "{W Used {Cobject {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
+        snprintf( buf, sizeof(buf), "{W Used {Cobject {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
 		add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
 
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((obj = get_obj_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                snprintf( buf, sizeof(buf),"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(obj->short_descr, 30 ),
                         format_color_string(( obj->comments ), 30 ) );
@@ -224,14 +224,14 @@ DEF_DO_FUN(do_vlist)
     }
     else if (!str_cmp(arg,"mob"))
     { 
-        sprintf(buf,"{W Used {Cmob {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
+        snprintf( buf, sizeof(buf),"{W Used {Cmob {Wvnum listing for area {C%s{x\n\r", ch->in_room->area->name);
 		add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
 
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((mob = get_mob_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                snprintf( buf, sizeof(buf),"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(mob->short_descr, 30 ),
                         format_color_string(first_line( mob->comments ), 30 ) );
@@ -242,7 +242,7 @@ DEF_DO_FUN(do_vlist)
     }
     else if (!str_cmp(arg,"room"))
     { 
-        sprintf(buf,"{W Used {Croom {Wvnum listing for area {C%s{x\n\r", 
+        snprintf( buf, sizeof(buf),"{W Used {Croom {Wvnum listing for area {C%s{x\n\r", 
 		ch->in_room->area->name);
 		add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
@@ -250,7 +250,7 @@ DEF_DO_FUN(do_vlist)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((room = get_room_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s {x| %s{x\n\r", 
+                snprintf( buf, sizeof(buf),"{C%8d{x %s {x| %s{x\n\r", 
                         i, 
                         format_color_string(room->name, 30 ),
                         format_color_string(first_line( room->comments ), 30 ) );
@@ -261,7 +261,7 @@ DEF_DO_FUN(do_vlist)
     }
     else if (!str_cmp(arg,"mprog"))
     { 
-        sprintf(buf,"{W Used {Cmprog {Wvnum listing for area {C%s{x\n\r", 
+        snprintf( buf, sizeof(buf),"{W Used {Cmprog {Wvnum listing for area {C%s{x\n\r", 
 		ch->in_room->area->name);
 		add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
@@ -269,7 +269,7 @@ DEF_DO_FUN(do_vlist)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++) 
             if ((mprog = get_mprog_index(i)) != NULL) 
             {
-                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(mprog->code));
+                snprintf( buf, sizeof(buf),"{C%8d{x %s\n\r", i, first_line(mprog->code));
                 add_buf(buffer,buf);
             }
 
@@ -277,7 +277,7 @@ DEF_DO_FUN(do_vlist)
     }
     else if (!str_cmp(arg,"oprog"))
     {
-        sprintf(buf,"{W Used {Coprog {Wvnum listing for area {C%s{x\n\r",
+        snprintf( buf, sizeof(buf),"{W Used {Coprog {Wvnum listing for area {C%s{x\n\r",
         ch->in_room->area->name);
         add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
@@ -285,7 +285,7 @@ DEF_DO_FUN(do_vlist)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
             if ((oprog = get_oprog_index(i)) != NULL)
             {
-                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(oprog->code));
+                snprintf( buf, sizeof(buf),"{C%8d{x %s\n\r", i, first_line(oprog->code));
                 add_buf(buffer,buf);
             }
 
@@ -294,7 +294,7 @@ DEF_DO_FUN(do_vlist)
 
     else if (!str_cmp(arg,"aprog"))
     {
-        sprintf(buf,"{W Used {Caprog {Wvnum listing for area {C%s{x\n\r",
+        snprintf( buf, sizeof(buf),"{W Used {Caprog {Wvnum listing for area {C%s{x\n\r",
         ch->in_room->area->name);
         add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
@@ -302,7 +302,7 @@ DEF_DO_FUN(do_vlist)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
             if ((aprog = get_aprog_index(i)) != NULL)
             {
-                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(aprog->code));
+                snprintf( buf, sizeof(buf),"{C%8d{x %s\n\r", i, first_line(aprog->code));
                 add_buf(buffer,buf);
             }
 
@@ -311,7 +311,7 @@ DEF_DO_FUN(do_vlist)
 
     else if (!str_cmp(arg,"rprog"))
     {
-        sprintf(buf,"{W Used {Crprog {Wvnum listing for area {C%s{x\n\r",
+        snprintf( buf, sizeof(buf),"{W Used {Crprog {Wvnum listing for area {C%s{x\n\r",
         ch->in_room->area->name);
         add_buf(buffer,buf);
         add_buf(buffer,"{Y========================================================{x\n\r");
@@ -319,7 +319,7 @@ DEF_DO_FUN(do_vlist)
         for (i = ch->in_room->area->min_vnum; i <= ch->in_room->area->max_vnum; i++)
             if ((rprog = get_rprog_index(i)) != NULL)
             {
-                sprintf(buf,"{C%8d{x %s\n\r", i, first_line(rprog->code));
+                snprintf( buf, sizeof(buf),"{C%8d{x %s\n\r", i, first_line(rprog->code));
                 add_buf(buffer,buf);
             }
 
@@ -394,7 +394,7 @@ DEF_DO_FUN(do_openvlist)
 
         if (lowvnum > 0 && havehighvnum)  /* Have low and high vnum now    */
         {
-            sprintf(buf, "[%d] %d thru %d (count: %d)\n\r"
+            snprintf( buf, sizeof(buf), "[%d] %d thru %d (count: %d)\n\r"
                     ,loop, lowvnum, x - 1, x - lowvnum);
             add_buf(buffer,buf);
             lowvnum = 0;                  /* Reset low vnum                */
@@ -521,12 +521,12 @@ DEF_DO_FUN(do_rstat)
 	return;
 	}
 
-	sprintf( buf, "Name: '%s'\n\rArea: '%s'\n\r",
+	snprintf( buf, sizeof(buf), "Name: '%s'\n\rArea: '%s'\n\r",
 	location->name,
 	location->area->name );
 	send_to_char( buf, ch );
 
-	sprintf( buf,
+	snprintf( buf, sizeof(buf),
 	"Vnum: %d  Sector: %d  Light: %d  Healing: %d  Mana: %d\n\r",
 	location->vnum,
 	location->sector_type,
@@ -535,7 +535,7 @@ DEF_DO_FUN(do_rstat)
 	location->mana_rate );
 	send_to_char( buf, ch );
 
-	sprintf( buf,
+	snprintf( buf, sizeof(buf),
         "Room flags: %s.\n\rDescription:\n\r%s",
         flag_bits_name(room_flags, location->room_flags),
 	location->description );
@@ -582,7 +582,7 @@ DEF_DO_FUN(do_rstat)
 
 	if ( ( pexit = location->exit[door] ) != NULL )
 	{
-		sprintf( buf,
+		snprintf( buf, sizeof(buf),
             "Door: %d.  To: %d.  Key: %d.  Exit flags: %s.\n\rKeyword: '%s'.  Description: %s",
 		door,
 		(pexit->u1.to_room == NULL ? -1 : pexit->u1.to_room->vnum),
@@ -621,34 +621,34 @@ DEF_DO_FUN(do_ostat)
 	return;
 	}
 
-	sprintf( buf, "Name(s): %s   Owner: %s\n\r",	obj->name, 
+	snprintf( buf, sizeof(buf), "Name(s): %s   Owner: %s\n\r",	obj->name, 
       obj->owner ? obj->owner : "(unrestricted)");
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Vnum: %d  Type: %s  Resets: %d\n\r",
+	snprintf( buf, sizeof(buf), "Vnum: %d  Type: %s  Resets: %d\n\r",
             obj->pIndexData->vnum,
 	        item_name(obj->item_type), obj->pIndexData->reset_num );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Short description: %s\n\rLong description: %s\n\r",
+	snprintf( buf, sizeof(buf), "Short description: %s\n\rLong description: %s\n\r",
 	obj->short_descr, obj->description );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Wear type: %s\n\rExtra bits: %s\n\r",
+	snprintf( buf, sizeof(buf), "Wear type: %s\n\rExtra bits: %s\n\r",
     wear_bit_name(obj->wear_type), extra_bits_name( obj->extra_flags ) );
 
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Number: %d/%d  Weight: %d/%d/%d (10th pounds)\n\r",
+	snprintf( buf, sizeof(buf), "Number: %d/%d  Weight: %d/%d/%d (10th pounds)\n\r",
 	1,           get_obj_number( obj ),
 	obj->weight, get_obj_weight( obj ),get_true_weight(obj) );
 	send_to_char( buf, ch );
 
-	sprintf( buf, "Level: %d  Cost: %d  Timer: %d\n\r",
+	snprintf( buf, sizeof(buf), "Level: %d  Cost: %d  Timer: %d\n\r",
 	obj->level, obj->cost, obj->timer );
 	send_to_char( buf, ch );
 
-	sprintf( buf,
+	snprintf( buf, sizeof(buf),
 	"In room: %d  In object: %s  Carried by: %s  Wear_loc: %d [%s]\n\r",
 	obj->in_room    == NULL    ?        0 : obj->in_room->vnum,
 	obj->in_obj     == NULL    ? "(none)" : obj->in_obj->short_descr,
@@ -659,7 +659,7 @@ DEF_DO_FUN(do_ostat)
     flag_bit_name(wear_loc_flags, obj->wear_loc) );
 	send_to_char( buf, ch );
 
-    sprintf( buf, "Clan: %s ClanRank: %d\n\r", 
+    snprintf( buf, sizeof(buf), "Clan: %s ClanRank: %d\n\r", 
             clan_table[obj->clan].name,
             obj->rank);
     send_to_char( buf, ch );
@@ -667,7 +667,7 @@ DEF_DO_FUN(do_ostat)
     printf_to_char( ch, "Material: %s\n\r", obj->material);
 
 	
-	sprintf( buf, "Values: %d %d %d %d %d\n\r",
+	snprintf( buf, sizeof(buf), "Values: %d %d %d %d %d\n\r",
 	obj->value[0], obj->value[1], obj->value[2], obj->value[3],
 	obj->value[4] );
 	send_to_char( buf, ch );
@@ -679,7 +679,7 @@ DEF_DO_FUN(do_ostat)
 		case ITEM_SCROLL: 
 		case ITEM_POTION:
 		case ITEM_PILL:
-		sprintf( buf, "Level %d spells of:", obj->value[0] );
+		snprintf( buf, sizeof(buf), "Level %d spells of:", obj->value[0] );
 		send_to_char( buf, ch );
 
 		if ( obj->value[1] >= 0 && obj->value[1] < MAX_SKILL )
@@ -715,7 +715,7 @@ DEF_DO_FUN(do_ostat)
 
 		case ITEM_WAND: 
 		case ITEM_STAFF: 
-		sprintf( buf, "Has %d(%d) charges of level %d",
+		snprintf( buf, sizeof(buf), "Has %d(%d) charges of level %d",
 			obj->value[1], obj->value[2], obj->value[0] );
 		send_to_char( buf, ch );
 	  
@@ -730,7 +730,7 @@ DEF_DO_FUN(do_ostat)
 	break;
 
 	case ITEM_DRINK_CON:
-		sprintf(buf,"It holds %s-colored %s.\n\r",
+		snprintf( buf, sizeof(buf),"It holds %s-colored %s.\n\r",
 		liq_table[obj->value[2]].liq_color,
 		liq_table[obj->value[2]].liq_name);
 		send_to_char(buf,ch);
@@ -778,38 +778,38 @@ DEF_DO_FUN(do_ostat)
 			send_to_char("unknown\n\r",ch);
 			break;
 		}
-		sprintf(buf,"Damage is %dd%d (average %d)\n\r",
+		snprintf( buf, sizeof(buf),"Damage is %dd%d (average %d)\n\r",
 			obj->value[1],obj->value[2],
 			(1 + obj->value[2]) * obj->value[1] / 2);
 		send_to_char( buf, ch );
 
-		sprintf(buf,"Damage noun is %s.\n\r",
+		snprintf( buf, sizeof(buf),"Damage noun is %s.\n\r",
 		(obj->value[3] > 0 && obj->value[3] < MAX_DAMAGE_MESSAGE) ?
 			attack_table[obj->value[3]].noun : "undefined");
 		send_to_char(buf,ch);
 		
 		if (obj->value[4])  /* weapon flags */
 		{
-			sprintf(buf,"Weapons flags: %s\n\r",
+			snprintf( buf, sizeof(buf),"Weapons flags: %s\n\r",
 			weapon_bits_name(obj->value[4]));
 			send_to_char(buf,ch);
 		}
 	break;
 
 		case ITEM_ARMOR:
-		sprintf( buf, 
+		snprintf( buf, sizeof(buf), 
 		"Armor class is %d.\n\r",
 			obj->value[0] );
 		send_to_char( buf, ch );
 	break;
 
 		case ITEM_CONTAINER:
-			sprintf(buf,"Capacity: %d#  Maximum weight: %d#  flags: %s\n\r",
+			snprintf( buf, sizeof(buf),"Capacity: %d#  Maximum weight: %d#  flags: %s\n\r",
 				obj->value[0], obj->value[3], cont_bits_name(obj->value[1]));
 			send_to_char(buf,ch);
 			if (obj->value[4] != 100)
 			{
-				sprintf(buf,"Weight multiplier: %d%%\n\r",
+				snprintf( buf, sizeof(buf),"Weight multiplier: %d%%\n\r",
 			obj->value[4]);
 				send_to_char(buf,ch);
 			}
@@ -842,47 +842,47 @@ DEF_DO_FUN(do_ostat)
 
 	for ( paf = obj->affected; paf != NULL; paf = paf->next )
 	{
-	sprintf( buf, "Affects %s by %d, level %d",
+	snprintf( buf, sizeof(buf), "Affects %s by %d, level %d",
 		affect_loc_name( paf->location ), paf->modifier,paf->level );
 	send_to_char(buf,ch);
 	if ( paf->duration > -1)
-		sprintf(buf,", %d hours.\n\r",paf->duration);
+		snprintf( buf, sizeof(buf),", %d hours.\n\r",paf->duration);
 	else
-		sprintf(buf,".\n\r");
+		snprintf( buf, sizeof(buf),".\n\r");
 	send_to_char( buf, ch );
 	if (paf->bitvector)
 	{
 		switch(paf->where)
 		{
 		case TO_AFFECTS:
-			sprintf(buf,"Adds %s affect.\n",
+			snprintf( buf, sizeof(buf),"Adds %s affect.\n",
 			affect_bit_name(paf->bitvector));
 			break;
 		case TO_WEAPON:
-		    sprintf(buf,"Adds %s weapon flags.\n",
+		    snprintf( buf, sizeof(buf),"Adds %s weapon flags.\n",
 			    weapon_bits_name(paf->bitvector));
 			break;
 		case TO_OBJECT:
-			sprintf(buf,"Adds %s object flag.\n",
+			snprintf( buf, sizeof(buf),"Adds %s object flag.\n",
 			extra_bit_name(paf->bitvector));
 			break;
 		case TO_IMMUNE:
-			sprintf(buf,"Adds immunity to %s.\n",
+			snprintf( buf, sizeof(buf),"Adds immunity to %s.\n",
 			imm_bit_name(paf->bitvector));
 			break;
 		case TO_RESIST:
-			sprintf(buf,"Adds resistance to %s.\n\r",
+			snprintf( buf, sizeof(buf),"Adds resistance to %s.\n\r",
 			imm_bit_name(paf->bitvector));
 			break;
 		case TO_VULN:
-			sprintf(buf,"Adds vulnerability to %s.\n\r",
+			snprintf( buf, sizeof(buf),"Adds vulnerability to %s.\n\r",
 			imm_bit_name(paf->bitvector));
 			break;
 		case TO_SPECIAL:
-		    sprintf( buf, "Stores special %d.\n\r", paf->bitvector );
+		    snprintf( buf, sizeof(buf), "Stores special %d.\n\r", paf->bitvector );
 		    break;
 		default:
-			sprintf(buf,"Unknown bit %d: %d\n\r",
+			snprintf( buf, sizeof(buf),"Unknown bit %d: %d\n\r",
 			paf->where,paf->bitvector);
 			break;
 		}
@@ -892,7 +892,7 @@ DEF_DO_FUN(do_ostat)
 
 	for ( paf = obj->pIndexData->affected; paf != NULL; paf = paf->next )
 	{
-	sprintf( buf, "Affects %s by %d, level %d.\n\r",
+	snprintf( buf, sizeof(buf), "Affects %s by %d, level %d.\n\r",
 		affect_loc_name( paf->location ), paf->modifier,paf->level );
 	send_to_char( buf, ch );
 		if (paf->bitvector)
@@ -900,30 +900,30 @@ DEF_DO_FUN(do_ostat)
 			switch(paf->where)
 			{
 			case TO_AFFECTS:
-			    sprintf(buf,"Adds %s affect.\n",
+			    snprintf( buf, sizeof(buf),"Adds %s affect.\n",
 				    affect_bit_name(paf->bitvector));
 			    break;
 			case TO_OBJECT:
-			    sprintf(buf,"Adds %s object flag.\n",
+			    snprintf( buf, sizeof(buf),"Adds %s object flag.\n",
 				    extra_bit_name(paf->bitvector));
 			    break;
 			case TO_IMMUNE:
-			    sprintf(buf,"Adds immunity to %s.\n",
+			    snprintf( buf, sizeof(buf),"Adds immunity to %s.\n",
 				    imm_bit_name(paf->bitvector));
 			    break;
 			case TO_RESIST:
-			    sprintf(buf,"Adds resistance to %s.\n\r",
+			    snprintf( buf, sizeof(buf),"Adds resistance to %s.\n\r",
 				    imm_bit_name(paf->bitvector));
 			    break;
 			case TO_VULN:
-			    sprintf(buf,"Adds vulnerability to %s.\n\r",
+			    snprintf( buf, sizeof(buf),"Adds vulnerability to %s.\n\r",
 				    imm_bit_name(paf->bitvector));
 			    break;
 			case TO_SPECIAL:
-			    sprintf( buf, "Stores special %d.\n\r", paf->bitvector );
+			    snprintf( buf, sizeof(buf), "Stores special %d.\n\r", paf->bitvector );
 			    break;
 			default:
-			    sprintf(buf,"Unknown bit %d: %d\n\r",
+			    snprintf( buf, sizeof(buf),"Unknown bit %d: %d\n\r",
 				    paf->where,paf->bitvector);
 			    break;
 			}
@@ -957,11 +957,11 @@ DEF_DO_FUN(do_mstat)
 	return;
 	}
 
-	sprintf( buf, "Name: %s\n\r",
+	snprintf( buf, sizeof(buf), "Name: %s\n\r",
 	victim->name);
 	send_to_char( buf, ch );
 
-	sprintf( buf, 
+	snprintf( buf, sizeof(buf), 
 	"Vnum: %d  Race: %s  Group: %d  Sex: %s  Room: %d\n\r",
 	IS_NPC(victim) ? victim->pIndexData->vnum : 0,
 	race_table[victim->race].name,
@@ -972,14 +972,14 @@ DEF_DO_FUN(do_mstat)
 
 	if (IS_NPC(victim))
 	{
-	sprintf(buf,"Count: %d  Killed: %d\n\r",
+	snprintf( buf, sizeof(buf),"Count: %d  Killed: %d\n\r",
 		victim->pIndexData->count,victim->pIndexData->killed);
 	send_to_char(buf,ch);
 	}
 
    if (!IS_NPC(victim) && victim->clan>0)
    {
-      sprintf(buf, "Clan: %s  Rank: %s\n\r",
+      snprintf( buf, sizeof(buf), "Clan: %s  Rank: %s\n\r",
          clan_table[victim->clan].name, 
          clan_table[victim->clan].rank_list[victim->pcdata->clan_rank].name);
       send_to_char(buf,ch);
@@ -995,7 +995,7 @@ DEF_DO_FUN(do_mstat)
 
       if( (rel = get_religion(victim)) != NULL )
       {
-	   sprintf(buf, "Religion: %s  Rank: %s  Faith: %d  Last Prayer%s: %s",
+	   snprintf( buf, sizeof(buf), "Religion: %s  Rank: %s  Faith: %d  Last Prayer%s: %s",
 		rel->name, get_ch_rank_name(victim), get_faith(victim),
 		victim->pcdata->prayer_request ? " (pending)" : "",
 		ctime(&victim->pcdata->prayed_at) );
@@ -1004,7 +1004,7 @@ DEF_DO_FUN(do_mstat)
      */
    }
 
-   sprintf( buf,
+   snprintf( buf, sizeof(buf),
       "Str: %d(%d)  Con: %d(%d)  Vit: %d(%d)  Agi: %d(%d)  Dex: %d(%d)\n\r",
       victim->perm_stat[STAT_STR],
       get_curr_stat(victim,STAT_STR),
@@ -1018,7 +1018,7 @@ DEF_DO_FUN(do_mstat)
       get_curr_stat(victim,STAT_DEX) );
    send_to_char( buf, ch );
    
-   sprintf( buf,
+   snprintf( buf, sizeof(buf),
       "Int: %d(%d)  Wis: %d(%d)  Dis: %d(%d)  Cha: %d(%d)  Luc: %d(%d)\n\r",
       victim->perm_stat[STAT_INT],
       get_curr_stat(victim,STAT_INT),
@@ -1034,7 +1034,7 @@ DEF_DO_FUN(do_mstat)
 
     if (!IS_NPC(victim))
 	{
-   sprintf( buf,
+   snprintf( buf, sizeof(buf),
       "Str:%d Con:%d Vit:%d Agi:%d Dex:%d Int:%d Wis:%d Dis:%d Cha:%d Luc:%d\n\r",
       victim->pcdata->original_stats[STAT_STR],
       victim->pcdata->original_stats[STAT_CON],
@@ -1049,7 +1049,7 @@ DEF_DO_FUN(do_mstat)
 	send_to_char(buf, ch);
 	}
 
-	sprintf( buf, "Hp: %d/%d  Mana: %d/%d  Move: %d/%d  Practices: %d  Trains: %d\n\r",
+	snprintf( buf, sizeof(buf), "Hp: %d/%d  Mana: %d/%d  Move: %d/%d  Practices: %d  Trains: %d\n\r",
 	victim->hit,         victim->max_hit,
 	victim->mana,        victim->max_mana,
 	victim->move,        victim->max_move,
@@ -1059,7 +1059,7 @@ DEF_DO_FUN(do_mstat)
 
 	if ( victim->pcdata != NULL )
 	{
-	    sprintf( buf, "Trains spent:  Hp: %d  Mana: %d  Move: %d\n\r",
+	    snprintf( buf, sizeof(buf), "Trains spent:  Hp: %d  Mana: %d  Move: %d\n\r",
 		     victim->pcdata->trained_hit,
 		     victim->pcdata->trained_mana,
 		     victim->pcdata->trained_move );
@@ -1077,23 +1077,23 @@ DEF_DO_FUN(do_mstat)
 
     ptc(ch, "Armor: %d  Heavy Armor: %d\n\r", GET_AC(victim), victim->heavy_armor);
 
-	sprintf( buf, 
+	snprintf( buf, sizeof(buf), 
 	"Hit: %d  Dam: %d  Saves: %d  Physical: %d  Size: %s  Position: %s\n\r",
 	GET_HITROLL(victim), GET_DAMROLL(victim), get_save(victim, FALSE), get_save(victim, TRUE),
 	size_table[victim->size].name, position_table[victim->position].name);
 	send_to_char( buf, ch );
 
-    sprintf( buf, "Wimpy: %d  Calm: %d\n\r", victim->wimpy, victim->calm );
+    snprintf( buf, sizeof(buf), "Wimpy: %d  Calm: %d\n\r", victim->wimpy, victim->calm );
     send_to_char( buf, ch );
 
 	if (IS_NPC(victim))
 	{
-	sprintf(buf, "Damage: %dd%d  Message:  %s\n\r",
+	snprintf( buf, sizeof(buf), "Damage: %dd%d  Message:  %s\n\r",
 		victim->damage[DICE_NUMBER],victim->damage[DICE_TYPE],
 		attack_table[victim->dam_type].noun);
 	send_to_char(buf,ch);
 	}
-    sprintf( buf, "Fighting: %s  Wait: %d  Daze: %d  Stop: %d\n\r",
+    snprintf( buf, sizeof(buf), "Fighting: %s  Wait: %d  Daze: %d  Stop: %d\n\r",
         victim->fighting ? victim->fighting->name : "(none)",
         victim->wait, victim->daze, victim->stop
     );
@@ -1104,7 +1104,7 @@ DEF_DO_FUN(do_mstat)
 
     if ( !IS_NPC(victim) )
     {
-        sprintf( buf,
+        snprintf( buf, sizeof(buf),
                 "Thirst: %d  Hunger: %d  Full: %d  Drunk: %d  Deep Sleep: %d  Bounty: %d\n\r",
                 victim->pcdata->condition[COND_THIRST],
                 victim->pcdata->condition[COND_HUNGER],
@@ -1115,14 +1115,14 @@ DEF_DO_FUN(do_mstat)
         send_to_char( buf, ch );
     }
 
-	sprintf( buf, "Carry number: %d  Carry weight: %ld\n\r",
+	snprintf( buf, sizeof(buf), "Carry number: %d  Carry weight: %ld\n\r",
 	victim->carry_number, get_carry_weight(victim) / 10 );
 	send_to_char( buf, ch );
 
 
 	if (!IS_NPC(victim))
 	{
-	    sprintf( buf, 
+	    snprintf( buf, sizeof(buf), 
 		     "Age: %d  Played: %d  Last Level: %d  QPoints: %d  Timer: %d  Highest Level: %d\n\r",
 		get_age(victim), 
 		(int) (victim->played + current_time - victim->logon) / 3600, 
@@ -1137,56 +1137,56 @@ DEF_DO_FUN(do_mstat)
             victim->pcdata->spouse ? victim->pcdata->spouse : "(none)");
 	}
 
-	sprintf(buf, "Act: %s\n\r",act_bits_name(victim->act));
+	snprintf( buf, sizeof(buf), "Act: %s\n\r",act_bits_name(victim->act));
 	send_to_char(buf,ch);
 	
 	if (victim->comm)
 	{
-		sprintf(buf,"Comm: %s\n\r",comm_bits_name(victim->comm));
+		snprintf( buf, sizeof(buf),"Comm: %s\n\r",comm_bits_name(victim->comm));
 		send_to_char(buf,ch);
 	}
 
 	if (victim->penalty)
 	{
-		sprintf(buf,"Penalty: %s\n\r",penalty_bits_name(victim->penalty));
+		snprintf( buf, sizeof(buf),"Penalty: %s\n\r",penalty_bits_name(victim->penalty));
 		send_to_char(buf,ch);
 	}
 
 	if (IS_NPC(victim) && victim->off_flags)
 	{
-		sprintf(buf, "Offense: %s\n\r",off_bits_name(victim->off_flags));
+		snprintf( buf, sizeof(buf), "Offense: %s\n\r",off_bits_name(victim->off_flags));
 	send_to_char(buf,ch);
 	}
 
 	if (victim->imm_flags)
 	{
-	sprintf(buf, "Immune: %s\n\r",imm_bits_name(victim->imm_flags));
+	snprintf( buf, sizeof(buf), "Immune: %s\n\r",imm_bits_name(victim->imm_flags));
 	send_to_char(buf,ch);
 	}
  
 	if (victim->res_flags)
 	{
-	sprintf(buf, "Resist: %s\n\r", imm_bits_name(victim->res_flags));
+	snprintf( buf, sizeof(buf), "Resist: %s\n\r", imm_bits_name(victim->res_flags));
 	send_to_char(buf,ch);
 	}
 
 	if (victim->vuln_flags)
 	{
-	sprintf(buf, "Vulnerable: %s\n\r", imm_bits_name(victim->vuln_flags));
+	snprintf( buf, sizeof(buf), "Vulnerable: %s\n\r", imm_bits_name(victim->vuln_flags));
 	send_to_char(buf,ch);
 	}
 
-	sprintf(buf, "Form: %s\n\rParts: %s\n\r", 
+	snprintf( buf, sizeof(buf), "Form: %s\n\rParts: %s\n\r", 
 	form_bits_name(victim->form), part_bits_name(victim->parts));
 	send_to_char(buf,ch);
 
 	if ( !flag_is_empty(victim->affect_field) )
 	{
-	    sprintf( buf, "Affected by: %s\n\r", affect_bits_name( victim->affect_field ));
+	    snprintf( buf, sizeof(buf), "Affected by: %s\n\r", affect_bits_name( victim->affect_field ));
 	    send_to_char(buf,ch);
 	}
 
-	sprintf( buf, "Master: %s  Leader: %s  Pet: %s\n\r",
+	snprintf( buf, sizeof(buf), "Master: %s  Leader: %s  Pet: %s\n\r",
 	victim->master      ? victim->master->name   : "(none)",
 	victim->leader      ? victim->leader->name   : "(none)",
 	victim->pet         ? victim->pet->name      : "(none)");
@@ -1194,13 +1194,13 @@ DEF_DO_FUN(do_mstat)
 
      if (!IS_NPC(victim))
      {
-        sprintf( buf, "Security: %d.\n\r", victim->pcdata->security ); /* OLC */
+        snprintf( buf, sizeof(buf), "Security: %d.\n\r", victim->pcdata->security ); /* OLC */
         send_to_char( buf, ch );					   /* OLC */
      }
 
      if (!IS_NPC(victim))
      {
-        sprintf( buf, "Mobkills: %d  Mobdeaths: %d\n\r"  
+        snprintf( buf, sizeof(buf), "Mobkills: %d  Mobdeaths: %d\n\r"  
                        "Pkills: %d  Pkdeaths: %d\n\r",
                        victim->pcdata->mob_kills,
                        victim->pcdata->mob_deaths,
@@ -1208,40 +1208,40 @@ DEF_DO_FUN(do_mstat)
                        victim->pcdata->pkill_deaths);
         send_to_char( buf, ch);
 
-        sprintf( buf, "Remorts: %d  Beheads: %d\n\r",
+        snprintf( buf, sizeof(buf), "Remorts: %d  Beheads: %d\n\r",
                         victim->pcdata->remorts,
                         victim->pcdata->behead_cnt);
         send_to_char( buf, ch);
 
-        sprintf( buf, "Bank: %ld\n\r",
+        snprintf( buf, sizeof(buf), "Bank: %ld\n\r",
                         victim->pcdata->bank);
         send_to_char( buf, ch);
 
      } 
          
  
-	sprintf( buf, "Short description: %s\n\rLong  description: %s\n\r",
+	snprintf( buf, sizeof(buf), "Short description: %s\n\rLong  description: %s\n\r",
 	victim->short_descr,
 	victim->long_descr[0] != '\0' ? victim->long_descr : "(none)" );
 	send_to_char( buf, ch );
 
 	if ( IS_NPC(victim) && victim->spec_fun != 0 )
 	{
-	sprintf(buf,"Mobile has special procedure %s.\n\r",
+	snprintf( buf, sizeof(buf),"Mobile has special procedure %s.\n\r",
 		spec_name_lookup(victim->spec_fun));
 	send_to_char(buf,ch);
 	}
 
 	if (IS_NPC(victim) && victim->hunting)
 	{
-		sprintf(buf, "Hunting victim: %s\n\r", victim->hunting);
+		snprintf( buf, sizeof(buf), "Hunting victim: %s\n\r", victim->hunting);
 		send_to_char(buf,ch);
 
 	}
 	
 	for ( paf = victim->affected; paf != NULL; paf = paf->next )
 	{
-	sprintf( buf,
+	snprintf( buf, sizeof(buf),
 		"Spell: '%s' modifies %s by %d for %d hours with bit %s, level %d.\n\r",
 		skill_table[(int) paf->type].name,
 		affect_loc_name( paf->location ),
@@ -1322,7 +1322,7 @@ DEF_DO_FUN(do_progfind)
         {
             if ( strstr(prog->code, argument) )
             {
-                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                snprintf( buf, sizeof(buf), "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
                 send_to_char_new( buf, ch, TRUE );
             }
         }
@@ -1335,7 +1335,7 @@ DEF_DO_FUN(do_progfind)
         {
             if ( strstr(prog->code, argument) )
             {
-                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                snprintf( buf, sizeof(buf), "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
                 send_to_char_new( buf, ch, TRUE );
             }
         }
@@ -1348,7 +1348,7 @@ DEF_DO_FUN(do_progfind)
         {
             if ( strstr(prog->code, argument) )
             {
-                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                snprintf( buf, sizeof(buf), "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
                 send_to_char_new( buf, ch, TRUE );
             }
         }
@@ -1361,7 +1361,7 @@ DEF_DO_FUN(do_progfind)
         {
             if ( strstr(prog->code, argument) )
             {
-                sprintf( buf, "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
+                snprintf( buf, sizeof(buf), "[%5d] %s\n\r", prog->vnum, first_line(prog->code) );
                 send_to_char_new( buf, ch, TRUE );
             }
         }
@@ -1425,7 +1425,7 @@ DEF_DO_FUN(do_lfind)
 		to_room = exit->u1.to_room;
 		if ( to_room->area != area )
 		{
-		    sprintf( buf, "Room %d leads %s to %d in %s\n\r",
+		    snprintf( buf, sizeof(buf), "Room %d leads %s to %d in %s\n\r",
 			     i, dir_name[door], to_room->vnum, to_room->area->name );
 		    add_buf( buffer, buf );
 		}
@@ -1454,7 +1454,7 @@ DEF_DO_FUN(do_lfind)
 		to_room = exit->u1.to_room;
 		if ( to_room->area == area )
 		{
-		    sprintf( buf, "Room %d in %s leads %s to %d\n\r",
+		    snprintf( buf, sizeof(buf), "Room %d in %s leads %s to %d\n\r",
 			     i, room->area->name, dir_name[door], to_room->vnum );
 		    add_buf( buffer, buf );
 		}
@@ -1502,7 +1502,7 @@ DEF_DO_FUN(do_mfind)
 		if ( fAll || is_name( argument, pMobIndex->player_name ) )
 		{
 		found = TRUE;
-		sprintf( buf, "M [%5d] %s\n\r",
+		snprintf( buf, sizeof(buf), "M [%5d] %s\n\r",
 			pMobIndex->vnum, pMobIndex->short_descr );
 		send_to_char( buf, ch );
 		}
@@ -1553,7 +1553,7 @@ DEF_DO_FUN(do_ofind)
 		if ( fAll || is_name( argument, pObjIndex->name ) )
 		{
 		found = TRUE;
-		sprintf( buf, "O [%5d] %s\n\r",
+		snprintf( buf, sizeof(buf), "O [%5d] %s\n\r",
 			pObjIndex->vnum, pObjIndex->short_descr );
 		send_to_char( buf, ch );
 		}
@@ -1606,16 +1606,16 @@ DEF_DO_FUN(do_owhere)
  
 		if ( in_obj->carried_by != NULL && can_see(ch,in_obj->carried_by)
 		     && in_obj->carried_by->in_room != NULL)
-		    sprintf( buf, "%3d) [%5d] %s is carried by %s [Room %d]\n\r",
+		    snprintf( buf, sizeof(buf), "%3d) [%5d] %s is carried by %s [Room %d]\n\r",
 			     number, obj->pIndexData->vnum, obj->short_descr,
 			     PERS(in_obj->carried_by, ch),
 			     in_obj->carried_by->in_room->vnum );
 		else if (in_obj->in_room != NULL && can_see_room(ch,in_obj->in_room))
-		    sprintf( buf, "%3d) [%5d] %s is in %s [Room %d]\n\r",
+		    snprintf( buf, sizeof(buf), "%3d) [%5d] %s is in %s [Room %d]\n\r",
 			     number, obj->pIndexData->vnum, obj->short_descr,
 			     in_obj->in_room->name, in_obj->in_room->vnum);
 		else
-		    sprintf( buf, "%3d) [%5d] %s is somewhere\n\r",
+		    snprintf( buf, sizeof(buf), "%3d) [%5d] %s is somewhere\n\r",
 			     number, obj->pIndexData->vnum, obj->short_descr);
  
 		buf[0] = UPPER(buf[0]);
@@ -1659,11 +1659,11 @@ DEF_DO_FUN(do_mwhere)
 		victim = d->character;
 		count++;
 		if (d->original != NULL)
-			sprintf(buf,"%3d) %s (in the body of %s) is in %s [%d]\n\r",
+			snprintf( buf, sizeof(buf),"%3d) %s (in the body of %s) is in %s [%d]\n\r",
 			count, d->original->name,victim->short_descr,
 			victim->in_room->name,victim->in_room->vnum);
 		else
-			sprintf(buf,"%3d) %s is in %s [%d]\n\r",
+			snprintf( buf, sizeof(buf),"%3d) %s is in %s [%d]\n\r",
 			count, victim->name,victim->in_room->name,
 			victim->in_room->vnum);
 		add_buf(buffer,buf);
@@ -1687,7 +1687,7 @@ DEF_DO_FUN(do_mwhere)
 	{
 		found = TRUE;
 		count++;
-		sprintf( buf, "%3d) [%5d] %-28s [%5d] %s\n\r", count,
+		snprintf( buf, sizeof(buf), "%3d) [%5d] %-28s [%5d] %s\n\r", count,
 		IS_NPC(victim) ? victim->pIndexData->vnum : 0,
 		IS_NPC(victim) ? victim->short_descr : victim->name,
 		victim->in_room->vnum,
@@ -2397,7 +2397,7 @@ MSETFUN( law )
 MSETFUN( ptitle )
 {
     char buf[MIL];
-    sprintf(buf, "%s ", arg3);
+    snprintf( buf, sizeof(buf), "%s ", arg3);
     free_string( victim->pcdata->pre_title );
     victim->pcdata->pre_title = str_dup( buf );
     return TRUE;
@@ -2891,7 +2891,7 @@ DEF_DO_FUN(do_frfind)
 	    if ( IS_BETWEEN(min, p->arg1, max) )
 		continue;
 
-	    sprintf( buf, "Room %5d: Reset %2d: %d\n\r", i, nr, p->arg1 );
+	    snprintf( buf, sizeof(buf), "Room %5d: Reset %2d: %d\n\r", i, nr, p->arg1 );
 	    send_to_char( buf, ch );
    	}
     }
@@ -2907,7 +2907,7 @@ DEF_DO_FUN(do_frfind)
 	    if ( IS_BETWEEN(min, mprog->vnum, max) )
 		continue;
 
-	    sprintf( buf, "Mob %5d: %5d\n\r", i, mprog->vnum );
+	    snprintf( buf, sizeof(buf), "Mob %5d: %5d\n\r", i, mprog->vnum );
 	    send_to_char( buf, ch );
    	}
     }
