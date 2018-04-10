@@ -5413,9 +5413,17 @@ MEDIT( medit_show )
     send_to_char( buf, ch );
     
     buf[0] = '\0';
-    for ( sn = 1; sn < MAX_SKILL; sn++ )
-        if ( pMob->skills[sn] )
-            sprintf(buf + strlen(buf), " %s", skill_table[sn].name);
+    {
+        size_t buf_i = 0;
+        for ( sn = 1; sn < MAX_SKILL; sn++ )
+        {
+            if ( pMob->skills[sn] )
+            {
+                buf_i += strlcpy(buf + buf_i, " ", sizeof(buf) - buf_i);
+                buf_i += strlcpy(buf + buf_i, skill_table[sn].name, sizeof(buf) - buf_i);
+            }
+        }
+    }
     if ( buf[0] != '\0' )
         ptc(ch, "Skills:      [%s]\n\r", buf + 1);
     
