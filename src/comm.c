@@ -3103,7 +3103,7 @@ void install_other_handlers ( void )
     signal (SIGINT, nasty_signal_handler);
 }
 
-const char *bin_info_string=
+const char * const bin_info_string=
 "\n\r"
 #ifdef MKTIME
 "Make time: "
