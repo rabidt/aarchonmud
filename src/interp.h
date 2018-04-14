@@ -615,5 +615,5 @@ DECLARE_DO_FUN( do_changelog);
 DECLARE_DO_FUN( do_ptitle);
 DECLARE_DO_FUN( do_protocol);
 DECLARE_DO_FUN( do_dxport);
-
+DECLARE_DO_FUN( do_version);
 #endif // INTERP_H
