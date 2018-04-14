@@ -4720,7 +4720,7 @@ void    bug_string( const char *str );
 void    log_string  args( ( const char *str ) );
 void    log_trace( void );
 void    tail_chain  args( ( void ) );
-extern const char *	bin_info_string;
+extern const char *	const bin_info_string;
 void    log_error( const char *str );
 void    arm_npc( CHAR_DATA *mob );
 void    cheat_log( const char *str );
