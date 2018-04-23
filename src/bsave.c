@@ -900,6 +900,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (luaconfig)
     {
         bprintf( buf, "LuaCfg %s~\n", luaconfig );
+        free_string(luaconfig);
     }
 
     const char *ptitles=save_ptitles( ch );
