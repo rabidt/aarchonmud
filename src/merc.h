@@ -27,7 +27,7 @@
 #ifndef MERC_H
 #define MERC_H
 
-
+#include <time.h>
 #include <lua.h>
 #include "booltype.h"
 #include "protocol.h"
@@ -708,8 +708,8 @@ struct penalty_data
 #define CON_FTP_DATA            17
 #define CON_FTP_AUTH            18
 */
-#define CON_LUA_HANDLER         16
-#define CON_LUA_PULSE_HANDLER   17
+#define CON_CB_HANDLER          16
+
 #define CON_GET_NEW_SUBCLASS    18
 #define CON_REMORT_BEGIN        19
 #define CON_GET_CREATION_MODE   20
@@ -735,6 +735,19 @@ struct penalty_data
 #define CREATION_NORMAL          1
 #define CREATION_EXPERT          2
 #define CREATION_REMORT          3
+
+typedef bool (CON_CB)(DESCRIPTOR_DATA *desc, void *cb_data, const char *argument);
+typedef void (CON_CB_CLEANUP)(void *);
+
+typedef struct
+{   
+    CON_CB *callback;
+    void *cb_data;
+    CON_CB_CLEANUP *cleanup;
+    bool per_pulse;
+
+    sh_int prev_con;
+} CON_CB_DATA;
 
 
 /*
@@ -765,7 +778,7 @@ struct  descriptor_data
     const char** pString;   /* OLC */
 	int         editor;     /* OLC */
 
-    LUAREF      conhandler;
+    CON_CB_DATA *con_cb_data;
 
     /* lua interpreter */
     struct
@@ -4110,7 +4123,7 @@ struct boss_achieve_record
 #define IS_WRITING_NOTE(con)  (( (con >= CON_NOTE_TO && con <= CON_NOTE_FINISH) \
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
-#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_LUA_HANDLER || con == CON_LUA_PULSE_HANDLER)
+#define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_CB_HANDLER)
 #define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
@@ -5294,6 +5307,15 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn );
 bool check_playing( DESCRIPTOR_DATA *d, const char *name );
 void nanny( DESCRIPTOR_DATA *d, const char *argument );
 bool check_password( const char *argument, const char *pwd );
+void CON_CB_DATA_free( CON_CB_DATA *ccd );
+void start_con_cb( 
+    DESCRIPTOR_DATA *desc, 
+    CON_CB *callback,
+    void *cb_data,
+    bool per_pulse,
+    CON_CB_CLEANUP *cleanup,
+    const char *argument);
+void run_con_cb( DESCRIPTOR_DATA *desc, const char *argument );
 
 /* playback.c */
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel );

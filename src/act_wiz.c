@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "merc.h"
 #include "recycle.h"
 #include "tables.h"
@@ -3333,4 +3336,115 @@ DEF_DO_FUN(do_perfmon)
         do_perfmon( ch, "" );
         return;
     }
+}
+
+typedef struct
+{
+    int pulse_cnt;
+    FILE *fp;
+    BUFFER *output;
+} PGREP_CB_DATA;
+
+static void pgrep_cleanup( void *cb_data )
+{
+    PGREP_CB_DATA *cbd = cb_data;
+
+    pclose( cbd->fp );
+
+    free_buf( cbd->output );
+    free( cbd );
+}
+
+static bool pgrep_cb( DESCRIPTOR_DATA *desc, void *cb_data, const char *argument )
+{
+    PGREP_CB_DATA *cbd = cb_data;
+
+    cbd->pulse_cnt++;
+
+    if ( !argument )
+    {
+        // Keep reading
+        char buf[MSL];
+        int fd = fileno( cbd->fp );
+
+        ssize_t r = read( fd, buf, MSL - 1 );
+        if ( r == -1 && errno == EAGAIN )
+        {
+            // no data available
+            return false;
+        }
+        else if ( r > 0 )
+        {
+            buf[r] = '\0'; /* not sure if necessary? */
+            add_buf( cbd->output, buf );
+            return false;
+        }
+        else
+        {
+            // Output is done
+            addf_buf( cbd->output, "\n\rTook %d pulses.\n\r", cbd->pulse_cnt );
+            if ( !desc->character )
+            {
+                bugf( "%s: NULL desc->character", __func__ );
+            }
+            else
+            {
+                page_to_char( buf_string(cbd->output), desc->character );    
+            }
+                   
+            return true;
+        }
+    } // if (!argument)
+    else if ( !strcmp( argument, "cancel" ) )
+    {
+        return true;
+    }
+    else
+    {
+        send_to_char( "Waiting for pgrep results. Type 'cancel' to abort.\n\r", desc->character );
+        return false;
+    }
+
+    // should not be reachable
+    return false;
+}
+
+DEF_DO_FUN( do_pgrep )
+{
+    char buf[MSL];
+
+    if ( IS_NPC(ch) )
+        return;
+
+    if ( !ch->desc )
+    {
+        bugf( "%s: NULL ch->desc", __func__ );
+        return;
+    }
+
+    if ( argument[0] == '\0' )
+    {
+        send_to_char( " pgrep <text> -- searches for the text in the player folder\n\r", ch );
+        return;
+    }
+    
+    snprintf( buf, sizeof(buf), "grep \"%s\" ../player/* ../box/*", argument );
+
+
+    /* http://stackoverflow.com/questions/1735781/non-blocking-pipe-using-popen */
+
+    FILE *fp = popen( buf, "r" );
+    int fd = fileno( fp );
+    int flags = fcntl( fd, F_GETFL, 0 );
+    fcntl( fd, F_SETFL, flags | O_NONBLOCK );
+
+    
+    send_to_char( "Waiting for pgrep results. Type 'cancel' to abort.\n\r", ch );
+
+    PGREP_CB_DATA *cbd = malloc(sizeof(*cbd));
+    cbd->pulse_cnt = 0;
+    cbd->fp = fp;
+    cbd->output = new_buf();
+
+    start_con_cb( ch->desc, pgrep_cb, cbd, true, pgrep_cleanup, NULL ); 
 }
