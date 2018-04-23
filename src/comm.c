@@ -542,10 +542,17 @@ void game_loop_unix( int control )
                 if ( d->outtop == 0 )
                     d->last_msg_was_prompt = FALSE;
             }                              /* if ( d->incomm[0] != '\0' ) */
-            else if (d->connected == CON_LUA_PULSE_HANDLER)
+            else if (d->connected == CON_CB_HANDLER)
             {
-                /* some lua con handlers need to process with no input */
-                lua_con_handler(d, NULL);
+                /* per pulse handlers called each pulse, even if no input */
+                if ( !d->con_cb_data )
+                {
+                    bugf("CON_CB_HANDLER but no con_cb_data");
+                }
+                else if ( d->con_cb_data->per_pulse )
+                {
+                    run_con_cb( d, NULL );
+                }
             }
             /* special handling for note editor */
             else if (d->connected == CON_NOTE_TEXT && d->inbuf[0] != '\0' )
