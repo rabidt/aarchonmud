@@ -843,7 +843,7 @@ const char *save_luaconfig( CHAR_DATA *ch )
     }
     else
     {
-        rtn=luaL_checkstring( g_mud_LS, -1 );
+        rtn = str_dup( luaL_checkstring( g_mud_LS, -1 ) );
     }
 
     lua_pop( g_mud_LS, 1 );
