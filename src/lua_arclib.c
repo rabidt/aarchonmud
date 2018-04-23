@@ -574,15 +574,97 @@ static int glob_mudconfig (lua_State *LS)
     return 0;
 }
 
+typedef struct
+{
+    LUAREF co_ref;
+    lua_State *co_state;
+    bool first_call;
+} LUA_CON_CB_DATA;
+
+static void lua_con_cleanup( void *cb_data )
+{
+    LUA_CON_CB_DATA *cbd = cb_data;
+
+    free_ref( &(cbd->co_ref) );
+    cbd->co_state = NULL;
+
+    free( cbd );
+}
+
+static bool lua_con_callback( DESCRIPTOR_DATA *desc, void *cb_data, const char *argument )
+{
+    LUA_CON_CB_DATA *cbd = cb_data;
+
+    int rc;
+    if ( cbd->first_call )
+    {
+        int nargs = lua_gettop( cbd->co_state ) - 1;
+        rc = lua_resume( cbd->co_state, nargs );
+        cbd->first_call = false;
+    }
+    else if ( argument )
+    {
+        lua_pushstring( cbd->co_state, argument );
+        rc = lua_resume( cbd->co_state, 1 );
+    }
+    else
+    {
+        rc = lua_resume( cbd->co_state, 0 );
+    }
+    
+
+    if ( rc == 0 )
+    {
+        // finishes its execution without errors
+        return true;
+    }
+    else if ( rc == LUA_YIELD )
+    {
+        // coroutine yields
+
+        // clean out stack between calls just in case
+        lua_settop( cbd->co_state, 0 );
+        return false;
+    }
+    else
+    {
+        // error during execution
+        bugf( "%s:\n %s",
+            __func__,
+            lua_tostring( cbd->co_state, -1) );
+
+        return true;
+    }
+
+}
+
 static int glob_start_con_handler( lua_State *LS)
 {
-    int top=lua_gettop(LS);
-    lua_getglobal( LS, "start_con_handler");
-    lua_insert( LS, 1);
-    lua_call( LS, top, LUA_MULTRET );
-    
-    return lua_gettop(LS);
+    DESCRIPTOR_DATA *ud_desc = check_DESCRIPTOR( LS, 1 );
+    luaL_checktype( LS, 2, LUA_TFUNCTION );
+
+    int nargs = lua_gettop( LS );
+
+    lua_State *L_coroutine = lua_newthread( LS );
+
+    lua_insert( LS, 2 ); // move coroutine just below the targe function
+
+    // move the target function and all additional args to coroutine state
+    lua_xmove( LS, L_coroutine, nargs - 1); 
+
+    LUA_CON_CB_DATA *cbd = malloc(sizeof(*cbd));
+
+    new_ref( &(cbd->co_ref) );
+    cbd->first_call = true;
+    cbd->co_state = L_coroutine;
+    save_ref( LS, 2, &(cbd->co_ref) );
+
+
+    start_con_cb( ud_desc, lua_con_callback, cbd, false, lua_con_cleanup, NULL );
+
+    return 0;
 }
+
 #ifdef LUA_TEST
 static int glob_runglobal(lua_State *LS)
 {
@@ -8033,77 +8115,15 @@ static int DESCRIPTOR_get_constate( lua_State *LS )
     return 1;
 }
 
-static int DESCRIPTOR_set_constate( lua_State *LS )
-{
-    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
-    const char *name=check_string(LS, 2, MIL);
-
-    int state=flag_lookup( name, con_states );
-
-    if ( state == -1 )
-        return luaL_error( LS, "No such constate: %s", name );
-
-    if (!is_settable(state, con_states))
-        return luaL_error( LS, "constate cannot be set to %s", name );
-
-    set_con_state( ud_d, state );
-    return 0;
-}
-
-static int DESCRIPTOR_get_inbuf( lua_State *LS )
-{
-    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
-    lua_pushstring( LS, ud_d->inbuf);
-    return 1;
-}
-
-static int DESCRIPTOR_set_inbuf( lua_State *LS )
-{
-    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
-    const char *arg=check_string( LS, 2, MAX_PROTOCOL_BUFFER );
-
-    strcpy( ud_d->inbuf, arg );
-    return 0;
-}
-
-static int DESCRIPTOR_get_conhandler( lua_State *LS )
-{
-    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
-
-    if (!is_set_ref(ud_d->conhandler))
-        return 0;
-
-    push_ref( LS, ud_d->conhandler); 
-    return 1;
-}
-
-static int DESCRIPTOR_set_conhandler( lua_State *LS )
-{
-    DESCRIPTOR_DATA *ud_d=check_DESCRIPTOR( LS, 1);
-
-    if (is_set_ref(ud_d->conhandler))
-        release_ref( LS, &ud_d->conhandler);
-
-    save_ref( LS, 2, &ud_d->conhandler);
-    return 0;
-}
-
 static const LUA_PROP_TYPE DESCRIPTOR_get_table [] =
 {
     { "character", DESCRIPTOR_get_character, 0, STS_ACTIVE },
-    { "constate", DESCRIPTOR_get_constate, SEC_NOSCRIPT, STS_ACTIVE },
-    { "inbuf", DESCRIPTOR_get_inbuf, SEC_NOSCRIPT, STS_ACTIVE },
-    { "conhandler", DESCRIPTOR_get_conhandler, SEC_NOSCRIPT, STS_ACTIVE },
-
+    { "constate", DESCRIPTOR_get_constate, 0, STS_ACTIVE },
     { NULL, NULL, 0, 0 }
 };
 
 static const LUA_PROP_TYPE DESCRIPTOR_set_table [] =
 {
-    { "constate", DESCRIPTOR_set_constate, SEC_NOSCRIPT, STS_ACTIVE },
-    { "inbuf", DESCRIPTOR_set_inbuf, SEC_NOSCRIPT, STS_ACTIVE },
-    { "conhandler", DESCRIPTOR_set_conhandler, SEC_NOSCRIPT, STS_ACTIVE },
-
     { NULL, NULL, 0, 0 }
 };
 

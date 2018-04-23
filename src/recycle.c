@@ -138,7 +138,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
 
-    new_ref(&d->conhandler);
+    d->con_cb_data = NULL;
 
     d->lua.interpret=FALSE;
     d->lua.incmpl=FALSE;
@@ -154,16 +154,19 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 {
 	if (!IS_VALID(d))
 	return;
-
     lua_unregister_desc(d);
 	free_string( d->host );
 	free_mem( d->outbuf, d->outsize );
     ProtocolDestroy( d->pProtocol );
-	INVALIDATE(d);
-	d->next = NULL;
 
-    free_ref( &d->conhandler );
+    if ( d->con_cb_data )
+    {
+        CON_CB_DATA_free( d->con_cb_data );
+        d->con_cb_data = NULL;
+    }
 
+    INVALIDATE(d);
+    d->next = NULL;
     free_DESCRIPTOR( d );
 }
 

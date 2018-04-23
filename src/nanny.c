@@ -183,10 +183,9 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 		penalty_finish(d, argument);
 		break;
 
-        case CON_LUA_HANDLER:
-        case CON_LUA_PULSE_HANDLER:
-        lua_con_handler(d, argument);
-        break;
+        case CON_CB_HANDLER:
+            run_con_cb(d, argument);
+            break;
 	    }	
 	    break;
 	    
@@ -2191,4 +2190,228 @@ void enter_game ( DESCRIPTOR_DATA *d )
     ap_connect_trigger(ch);
     rp_connect_trigger(ch);
     return;
+}
+
+void CON_CB_DATA_free( CON_CB_DATA *ccd )
+{
+    if ( !ccd )
+    {
+        bugf( "%s: NULL ccd", __func__ );
+        return;
+    }
+    if ( ccd->cleanup )
+    {
+        ccd->cleanup( ccd->cb_data );
+    }
+    free( ccd );
+}
+
+static void stop_con_cb( DESCRIPTOR_DATA *desc )
+{
+    if ( !desc )
+    {
+        bugf( "%s: NULL desc", __func__ );
+        return;
+    }
+    if ( !desc->con_cb_data )
+    {
+        bugf( "%s: NULL desc->con_cb", __func__ );
+        return;
+    }
+
+    desc->connected = desc->con_cb_data->prev_con;
+    CON_CB_DATA_free( desc->con_cb_data );
+    desc->con_cb_data = NULL;
+}
+
+void run_con_cb( DESCRIPTOR_DATA *desc, const char *argument )
+{
+    if ( !desc )
+    {
+        bugf( "%s: NULL desc", __func__ );
+        return;
+    }
+
+    if ( !desc->con_cb_data )
+    {
+        bugf( "%s: NULL desc->con_cb_data", __func__ );
+        return;
+    }
+
+    bool done = desc->con_cb_data->callback( desc, desc->con_cb_data->cb_data, argument );
+
+    if (done)
+    {
+        stop_con_cb( desc );
+    }
+}
+
+void start_con_cb( 
+    DESCRIPTOR_DATA *desc, 
+    CON_CB *callback,
+    void *cb_data,
+    bool per_pulse,
+    CON_CB_CLEANUP *cleanup,
+    const char *argument)
+{
+    if ( !desc )
+    {
+        bugf( "%s: NULL desc", __func__ );
+        return;
+    }
+    if ( desc->con_cb_data )
+    {
+        bugf( "%s: con_cb_data already running.", __func__ );
+        return;
+    }
+
+    CON_CB_DATA *ccd = malloc(sizeof(*ccd));
+    ccd->callback = callback;
+    ccd->cb_data = cb_data;
+    ccd->cleanup = cleanup;
+    ccd->per_pulse = per_pulse;
+    ccd->prev_con = desc->connected;
+
+    desc->con_cb_data = ccd;
+
+    set_con_state( desc, CON_CB_HANDLER );
+
+    // Also run it for the first time
+    run_con_cb( desc, argument );
+}
+
+typedef struct
+{
+    DO_FUN *yes_callback;
+    char *yes_arg;
+    DO_FUN *no_callback;
+    char *no_arg;
+
+} YES_NO_CB_DATA;
+
+static void yes_no_cleanup( void *cb_data )
+{
+    YES_NO_CB_DATA *cbd = cb_data;
+    if ( cbd->yes_arg )
+    {
+        free( cbd->yes_arg );
+    }
+    if ( cbd->no_arg )
+    {
+        free( cbd->no_arg );
+    }
+
+    free( cbd );
+}
+
+static bool yes_no_handler( DESCRIPTOR_DATA *desc, void *cb_data, const char *argument )
+{
+    YES_NO_CB_DATA *cbd = cb_data;
+
+    if ( !desc->character )
+    {
+        bugf( "%s: NULL desc->character", __func__ );
+        return true;
+    }
+
+    if ( !argument )
+    {
+        // First call argument is NULL        
+        send_to_char( "Enter Y or n: ", desc->character );
+        return false;
+    }
+    else if ( !strcmp( argument, "Y" ) )
+    {
+        if ( cbd->yes_callback )
+        {
+            cbd->yes_callback( desc->character, cbd->yes_arg ? cbd->yes_arg : "" );
+        }
+        return true;
+    }
+    else if ( !strcmp( argument, "n" ) )
+    {
+        if ( cbd->no_callback )
+        {
+            cbd->no_callback( desc->character, cbd->no_arg ? cbd->no_arg : "" );
+        }
+        return true;
+    }
+    else
+    {
+        send_to_char( "Invalid response!\n\r", desc->character );
+        return yes_no_handler( desc, cb_data, NULL );
+    }
+}
+
+/*  confirm_yes_no()
+
+    Have the player confirm an action.
+    
+    If provided, yes/no callbacks are called upon selection of Y or n by
+    the player.  These callbacks must have DO_FUN signature.
+
+    If yes_argument/no_argument are provided, they are used as the 'argument'
+    parameter to the respective callback, otherwise an empty string is used.
+    
+    Example using original do_fun as callback:
+
+    DEF_DO_FUN( do_test1 )
+    {
+        if (strcmp(argument, "confirm"))
+        {
+            send_to_char( "Are you sure you want to do it?\n\r", ch);
+            confirm_yes_no( ch->desc, do_test1, "confirm", NULL, NULL);
+            return;
+        }
+
+        send_to_char( ch, "You did it!\n\r");
+    }
+
+
+    Example using separate callback function:
+
+    DEF_DO_FUN( do_test1_confirm )
+    {
+        ptc( ch, "You did it!\n\rHere's your argument: %s\n\r", argument);
+        return;
+    }
+
+    DEF_DO_FUN( do_test1 )
+    {
+        send_to_char( "Are you sure you want to do it?\n\r", ch);
+        // forward original argument onto the callback
+        confirm_yes_no( ch->desc, do_test1_confirm, argument, NULL, NULL);
+        return;
+    }
+
+*/
+void confirm_yes_no( 
+    DESCRIPTOR_DATA *desc,
+    DO_FUN yes_callback, 
+    const char *yes_arg,
+    DO_FUN no_callback,
+    const char *no_arg)
+{
+
+    YES_NO_CB_DATA *cbd = malloc(sizeof(*cbd));
+    cbd->yes_callback = yes_callback;
+    if (yes_arg)
+    {
+        cbd->yes_arg = strdup(yes_arg);
+    }
+    else
+    {
+        cbd->yes_arg = NULL;
+    }
+    cbd->no_callback = no_callback;
+    if (no_arg)
+    {
+        cbd->no_arg = strdup(no_arg);
+    }
+    else
+    {
+        cbd->no_arg = NULL;
+    }
+
+    start_con_cb(desc, yes_no_handler, cbd, false, yes_no_cleanup, NULL);
 }
