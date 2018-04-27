@@ -474,7 +474,7 @@ void game_loop_unix( int control )
             {
 #ifdef LAG_FREE
                 if (d->lag_free)
-                    d_next=d;
+                    g_d_next=d;
 #endif
 
                 d->fcommand = TRUE;
