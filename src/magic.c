@@ -1206,7 +1206,7 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
     if ( meta_arg[0] == '\0' )
     {
         printf_to_char(ch, "What meta-magic flags do you want to apply?\n\r");
-        printf_to_char(ch, "Syntax: mmcast [cepq] <spell name> [other args]\n\r");
+        printf_to_char(ch, "Syntax: mmcast [cepqr] <spell name> [other args]\n\r");
         return;
     }
     
