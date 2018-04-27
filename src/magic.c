@@ -1192,6 +1192,7 @@ int meta_magic_sn( int meta )
         case META_MAGIC_EMPOWER: return gsn_empower_spell;
         case META_MAGIC_QUICKEN: return gsn_quicken_spell;
         case META_MAGIC_CHAIN: return gsn_chain_spell;
+        case META_MAGIC_PERMANENT: return gsn_extend_spell;
         default: return 0;
     }
 }
@@ -1227,13 +1228,14 @@ void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument 
             case 'p': meta = META_MAGIC_EMPOWER; break;
             case 'q': meta = META_MAGIC_QUICKEN; break;
             case 'c': meta = META_MAGIC_CHAIN; break;
+            case 'r': meta = META_MAGIC_RELIABLE; break;
             default:
                 printf_to_char(ch, "Invalid meta-magic option: %c\n\r", meta_arg[i]);
                 return;
         }
         // character has skill?
         int sn = meta_magic_sn(meta);
-        if ( get_skill(ch, sn) || spell_mastery >= 2 )
+        if ( !sn || get_skill(ch, sn) || spell_mastery >= 2 )
             flag_set(meta_flag, meta);
         else
             printf_to_char(ch, "You need the '%s' skill for this!\n\r", skill_table[sn].name);
@@ -1270,6 +1272,11 @@ DEF_DO_FUN(do_qcast)
 DEF_DO_FUN(do_ccast)
 {
     meta_magic_cast(ch, "c", argument);
+}
+
+DEF_DO_FUN(do_rcast)
+{
+    meta_magic_cast(ch, "r", argument);
 }
 
 DEF_DO_FUN(do_permcast)
@@ -1373,6 +1380,26 @@ int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
     }
 
     return wait;
+}
+
+double meta_magic_concentration_chance( CHAR_DATA *ch, bool improve )
+{
+    double chance = 1;
+    int flag;
+
+    // each meta-magic effect has chance of failure
+    for ( flag = 1; flag < FLAG_MAX_BIT; flag++ )
+        if ( IS_SET(meta_magic, flag) )
+        {
+            int sn = meta_magic_sn(flag);
+            if ( sn )
+            {
+                chance *= (100 + get_skill(ch, sn)) / 200.0;
+                if ( improve )
+                    check_improve(ch, sn, TRUE, 3);
+            }
+        }
+    return chance;
 }
 
 bool meta_magic_concentration_check( CHAR_DATA *ch )
@@ -1481,6 +1508,12 @@ void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
             send_to_char("Spells targeting objects cannot be chained.\n\r", ch);
             flag_remove(meta_magic, META_MAGIC_CHAIN);
         }
+    }
+    
+    if ( IS_SET(meta_magic, META_MAGIC_RELIABLE) && ch->fighting )
+    {
+        send_to_char("You cannot cast reliably while fighting.\n\r", ch);
+        flag_remove(meta_magic, META_MAGIC_RELIABLE);
     }
 }
 
@@ -1706,15 +1739,25 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
     
     // strip meta-magic options that are invalid for the spell & target
     meta_magic_strip(ch, sn, target, vo);
+    bool reliable = IS_SET(meta_magic, META_MAGIC_RELIABLE);
 
+    // reliable casting increases both cost and wait
+    double reliable_factor = 1;
+    if ( reliable )
+    {
+        double base_chance = (100 + chance) / 200.0 * meta_magic_concentration_chance(ch, false);
+        reliable_factor = 1.0 / base_chance;
+    }
+    
     // mana cost must be calculated after meta-magic effects have been worked out
     mana = mana_cost(ch, sn, chance);
     mana = meta_magic_adjust_cost(ch, mana, TRUE);
+    mana *= reliable_factor;
     if ( overcharging )
         mana *= 2;
     if ( was_wish_cast )
         mana = wish_cast_adjust_cost(ch, mana, sn, vo == ch);
-    mana += meta_magic_perm_cost(ch, sn);
+    mana += meta_magic_perm_cost(ch, sn);    
 
     if ( ch->mana < mana )
     {
@@ -1751,6 +1794,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
 
     wait = skill_table[sn].beats * (200-chance) / 100;
     wait = meta_magic_adjust_wait(ch, wait);
+    wait += (wait + 1) * (reliable_factor - 1);
     // combat casting reduces all casting times
     if ( check_skill(ch, gsn_combat_casting) )
         wait = rand_div(wait * 4, 5);
@@ -1767,6 +1811,7 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         ch->stop += rounds_missed;
     }
 
+    // various ways to fail casting the spell
     if (is_affected(ch, gsn_choke_hold) && number_bits(3) == 0)
     {
         send_to_char( "You choke and your spell fumbles.\n\r", ch);
@@ -1781,96 +1826,105 @@ void cast_spell( CHAR_DATA *ch, int sn, int chance )
         reduce_mana(ch, mana/2);
         return;
     }
-    else if ( check_casting_failure(ch, sn, chance)
-            || !meta_magic_concentration_check(ch)
-            || (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
+    else
+    {
+        bool fail = FALSE;
+        
+        if ( reliable )
+            // improve meta-magic skills used
+            meta_magic_concentration_chance(ch, true);
+        else if ( check_casting_failure(ch, sn, chance) || !meta_magic_concentration_check(ch) )
+            fail = TRUE;
+        
+        if ( (IS_AFFECTED(ch, AFF_INSANE) && IS_NPC(ch) && per_chance(25))
             || (IS_AFFECTED(ch, AFF_FEEBLEMIND) && per_chance(20))
             || (IS_AFFECTED(ch, AFF_CURSE) && per_chance(5))
             || (ch->fighting && per_chance(get_heavy_armor_penalty(ch)/2))
             || (concentrate && !check_concentration(ch)) )
-    {
-        ptc(ch, "You lost your concentration trying to cast %s.\n\r", skill_table[sn].name);
-        check_improve(ch,sn,FALSE,3);
-        reduce_mana(ch, mana/2);
-        return;
-    }
-
-    else
-    {
-        reduce_mana(ch, mana);
-
-        // held wand/staff with matching spell
-        OBJ_DATA *staff = get_eq_char(ch, WEAR_HOLD);
-        if ( !was_wish_cast && staff )
+            fail = TRUE;
+        
+        if ( fail )
         {
-            int staff_sn = staff->item_type == ITEM_STAFF ? gsn_staves : staff->item_type == ITEM_WAND ? gsn_wands : 0;
-            if ( staff_sn && staff->value[3] == sn && staff->value[2] > 0 )
-            {
-                if ( check_skill(ch, staff_sn) )
-                {
-                    staff->value[2]--;
-                    int bonus = 5 + staff->value[0] / 4;
-                    level = URANGE(1, level + bonus, level_cap);
-                    act("You draw on $p to empower your spell.", ch, staff, NULL, TO_CHAR);
-                    check_improve(ch, staff_sn, TRUE, 4);
-                    if ( staff->value[2] == 0 )
-                        act("$p has been drained of its last remaining charge!", ch, staff, NULL, TO_CHAR);
-                }
-            }
-        }
-
-        if ( target == TARGET_OBJ )
-        {
-            if (!op_act_trigger( (OBJ_DATA *) vo, ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
-                return;
-        }
-
-        vo = check_reflection( sn, level, ch, vo, target );
-
-        victim = (CHAR_DATA*) vo;
-        // remove invisibility etc.
-        if ( is_offensive(sn) && target == TARGET_CHAR )
-        {
-            attack_affect_strip(ch, victim);
-            if ( !ch->fighting && check_kill_trigger(ch, victim) )
-                return;
-            if ( !victim->fighting )
-            {
-                check_quick_draw(ch, victim);
-                if ( IS_DEAD(ch) )
-                    return;
-            }
-        }
-
-        bool success = (*skill_table[sn].spell_fun) (sn, level, ch, vo, target, FALSE);
-        if ( !success )
-        {
-            
-            // refund resources used for syntax errors or other issues that prevent the spell from being cast
-            // should not occur since we just already did a check for this earlier
-            bugf("cast_spell: spell function for '%s' failed during actual casting", skill_table[sn].name);
-            ch->mana = orig_mana;
-            ch->wait = orig_wait;
-            ch->stop = orig_stop;
+            ptc(ch, "You lost your concentration trying to cast %s.\n\r", skill_table[sn].name);
+            check_improve(ch, sn, FALSE, 3);
+            reduce_mana(ch, mana/2);
             return;
         }
-        check_improve(ch,sn,TRUE,3);
-        
-        apply_perm_cost(ch, sn);
+    }
 
-        if ( target == TARGET_CHAR )
+    reduce_mana(ch, mana);
+
+    // held wand/staff with matching spell
+    OBJ_DATA *staff = get_eq_char(ch, WEAR_HOLD);
+    if ( !was_wish_cast && staff )
+    {
+        int staff_sn = staff->item_type == ITEM_STAFF ? gsn_staves : staff->item_type == ITEM_WAND ? gsn_wands : 0;
+        if ( staff_sn && staff->value[3] == sn && staff->value[2] > 0 )
         {
-            post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
-            if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+            if ( check_skill(ch, staff_sn) )
             {
-                int overflow = UMIN(100, get_skill_overflow(ch, gsn_chain_spell));
-                int chain_level = level * (300 + overflow) / 400;
-                chain_spell(sn, chain_level, ch, (CHAR_DATA*)vo);
+                staff->value[2]--;
+                int bonus = 5 + staff->value[0] / 4;
+                level = URANGE(1, level + bonus, level_cap);
+                act("You draw on $p to empower your spell.", ch, staff, NULL, TO_CHAR);
+                check_improve(ch, staff_sn, TRUE, 4);
+                if ( staff->value[2] == 0 )
+                    act("$p has been drained of its last remaining charge!", ch, staff, NULL, TO_CHAR);
             }
         }
-        else
-            post_spell_process(sn, level, ch, NULL);
     }
+
+    if ( target == TARGET_OBJ )
+    {
+        if ( !op_act_trigger((OBJ_DATA *) vo, ch, NULL, skill_table[sn].name, OTRIG_SPELL) ) 
+            return;
+    }
+
+    vo = check_reflection(sn, level, ch, vo, target);
+
+    victim = (CHAR_DATA*) vo;
+    // remove invisibility etc.
+    if ( is_offensive(sn) && target == TARGET_CHAR )
+    {
+        attack_affect_strip(ch, victim);
+        if ( !ch->fighting && check_kill_trigger(ch, victim) )
+            return;
+        if ( !victim->fighting )
+        {
+            check_quick_draw(ch, victim);
+            if ( IS_DEAD(ch) )
+                return;
+        }
+    }
+
+    bool success = (*skill_table[sn].spell_fun) (sn, level, ch, vo, target, FALSE);
+    if ( !success )
+    {
+        
+        // refund resources used for syntax errors or other issues that prevent the spell from being cast
+        // should not occur since we just already did a check for this earlier
+        bugf("cast_spell: spell function for '%s' failed during actual casting", skill_table[sn].name);
+        ch->mana = orig_mana;
+        ch->wait = orig_wait;
+        ch->stop = orig_stop;
+        return;
+    }
+    check_improve(ch, sn, TRUE, 3);
+    
+    apply_perm_cost(ch, sn);
+
+    if ( target == TARGET_CHAR )
+    {
+        post_spell_process(sn, level, ch, (CHAR_DATA*)vo);
+        if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
+        {
+            int overflow = UMIN(100, get_skill_overflow(ch, gsn_chain_spell));
+            int chain_level = level * (300 + overflow) / 400;
+            chain_spell(sn, chain_level, ch, (CHAR_DATA*)vo);
+        }
+    }
+    else
+        post_spell_process(sn, level, ch, NULL);
     
     /* mana burn */
     if ( IS_AFFECTED(ch, AFF_MANA_BURN) )
