@@ -2612,13 +2612,13 @@ bool one_hit ( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool secondary )
             handle_arrow_shot( ch, victim, dt, FALSE );
         after_attack(ch, victim, dt, FALSE, secondary);
         #ifdef FSTAT
-        if ( normal_hit )
+        if ( is_normal_hit(dt) )
             ch->attacks_misses += 1;
         #endif
         return FALSE;
     }
     #ifdef FSTAT
-    if ( normal_hit )
+    if ( is_normal_hit(dt) )
         ch->attacks_success += 1;
     #endif
     
