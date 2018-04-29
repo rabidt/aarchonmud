@@ -5,13 +5,23 @@
 #include <sstream>
 #include <fstream>
 
-//
-#include <iostream>
-//
-
 extern "C" {
 #include "merc.h"
 }
+
+
+/* 
+HelpIndex.bin file format is described below.
+
+Offset 0: Metadata header with offset pointer to help data section and index data section.
+
+Directly after Metadata header is the help data section. This section contains the full text of 
+every single help entry.
+
+Directly after the help data section is the index data section. This contains the on-disk 
+representation of the prefix tree index. Ultimately the tree nodes have result offsets pointing 
+back into the help data section.
+*/
 
 
 static const size_t MAX_LETTER = 26;
@@ -26,11 +36,9 @@ struct DiskIndexNode
 {
     DiskIndexNode() 
         : next{ }
-        , datasOff( )
     { }
 
     long next[MAX_LETTER];
-    long datasOff;
 };
 
 struct DiskIndexData
@@ -71,26 +79,26 @@ void HelpIndexNode::Write(std::ofstream &f, long &nextPos)
     nextPos += static_cast<long>(datas.size() * sizeof(DiskIndexData)); // datas
 
     /* write all children and save their offsets */
-    DiskIndexNode childPos;
+    DiskIndexNode childNode;
     for (size_t i = 0; i < next.size(); ++i)
     {
         auto &node = next[i];
 
         if (node.get() != nullptr)
         {
-            childPos.next[i] = nextPos;
+            childNode.next[i] = nextPos;
             node->Write(f, nextPos);
         }
         else
         {
-            childPos.next[i] = 0;
+            childNode.next[i] = 0;
         }
     }
 
     /* Now actually write everything */
     f.seekp(myPos);
 
-    f.write(reinterpret_cast<char *>(&childPos), sizeof(childPos));
+    f.write(reinterpret_cast<char *>(&childNode), sizeof(childNode));
 
     size_t datasCnt = datas.size();
     f.write(
