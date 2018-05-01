@@ -2106,17 +2106,30 @@ void equip_char( CHAR_DATA *ch, OBJ_DATA *obj, int iWear )
  */
 void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
 {
+    unequip_char_nocheck(ch, obj);
+    // ensure weapon status is valid - cannot have offhand weapon without main
+    if ( get_eq_char(ch, WEAR_WIELD) == NULL )
+    {
+        OBJ_DATA *secondary = get_eq_char(ch, WEAR_SECONDARY);
+        if ( secondary )
+        {
+            act("You swap $p into your main hand.", ch, secondary, NULL, TO_CHAR);
+            act_gag("$n swaps $p into $s main hand.", ch, secondary, NULL, TO_ROOM, GAG_EQUIP);
+            secondary->wear_loc = WEAR_WIELD;
+        }
+    }
+    check_drop_weapon( ch );
+}
+
+// unequip obj worn by ch; does not check for consistency afterwards
+void unequip_char_nocheck( CHAR_DATA *ch, OBJ_DATA *obj )
+{
     AFFECT_DATA *paf = NULL;
     AFFECT_DATA *lpaf = NULL;
     AFFECT_DATA *lpaf_next = NULL;
-    int iWear;
-    OBJ_DATA *secondary;
+    const sh_int iWear = obj->wear_loc;
     
-    if ((obj->wear_loc == WEAR_WIELD) &&
-        ((secondary = get_eq_char(ch, WEAR_SECONDARY)) != NULL))
-        secondary->wear_loc = WEAR_WIELD;
-    
-    if ( (iWear=obj->wear_loc) == WEAR_NONE )
+    if ( iWear == WEAR_NONE )
     {
         bug( "Unequip_char: already unequipped.", 0 );
         return;
@@ -2176,9 +2189,6 @@ void unequip_char( CHAR_DATA *ch, OBJ_DATA *obj )
     
     if ( obj->item_type == ITEM_LIGHT && obj->value[2] != 0 && ch->in_room != NULL && ch->in_room->light > 0 )
         --ch->in_room->light;
-    
-    // we delayed weapon-drop check until all affects (equipment & tattoo) have been applied
-    check_drop_weapon( ch );    
     
     return;
 }

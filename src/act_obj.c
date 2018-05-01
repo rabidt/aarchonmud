@@ -60,6 +60,7 @@ int get_cost    args( (CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy ) );
 void    obj_to_keeper   args( (OBJ_DATA *obj, CHAR_DATA *ch ) );
 OD *    get_obj_keeper  args( (CHAR_DATA *ch,CHAR_DATA *keeper,char *argument));
 bool    expl_in_container args( ( OBJ_DATA *obj) );
+bool    remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize );
 
 
 #undef OD
@@ -1973,6 +1974,11 @@ DEF_DO_FUN(do_eat)
  */
 bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace )
 {
+    return remove_obj_new(ch, iWear, fReplace, TRUE);
+}
+
+bool remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize )
+{
     OBJ_DATA *obj;
 
     if ( ( obj = get_eq_char( ch, iWear ) ) == NULL )
@@ -1987,9 +1993,14 @@ bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace )
         return FALSE;
     }
 
-    unequip_char( ch, obj );
     act( "You stop using $p.", ch, obj, NULL, TO_CHAR );
     act_gag( "$n stops using $p.", ch, obj, NULL, TO_ROOM, GAG_EQUIP );
+
+    if ( finalize )
+        unequip_char(ch, obj);
+    else
+        unequip_char_nocheck(ch, obj);
+
     return TRUE;
 }
 
@@ -2349,10 +2360,15 @@ void wear_obj( CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace )
             return;
         }
 
-        if ( !remove_obj(ch, WEAR_WIELD, fReplace) )
-            return;
+        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) )
+        {
+            if ( !remove_obj(ch, WEAR_HOLD, fReplace) || !remove_obj(ch, WEAR_SECONDARY, fReplace) )
+                return;
+        }
 
-        if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS) && !remove_obj(ch, WEAR_HOLD, fReplace) )
+        // remove without finalizing - we don't want offhand weapon to get swapped into main hand
+        // other checks will be done when equipping new weapon
+        if ( !remove_obj_new(ch, WEAR_WIELD, fReplace, FALSE) )
             return;
 
         // if wielding non-bow, remove any arrows held
