@@ -5085,6 +5085,7 @@ void  all_colour      args( ( CHAR_DATA *ch, const char *argument ) );
 
 /* help.cpp */
 void help_search(CHAR_DATA *ch, const char *argument);
+void help_all(CHAR_DATA *ch, const char *argument);
 void build_help_index( void );
 
 /* interp.c */

@@ -2654,14 +2654,18 @@ DEF_DO_FUN(do_help)
         argument = "summary";
     }
     
-    // check for 'help search ...'
+    
     {
         char arg1[MIL];
         const char *search_arg = one_argument(argument, arg1);
-
         if (!strcmp(arg1, "search"))
         {
             help_search(ch, search_arg);
+            return;
+        }
+        if (!strcmp(arg1, "all"))
+        {
+            help_all(ch, search_arg);
             return;
         }
     }

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 extern "C" {
 #include "merc.h"
@@ -297,12 +298,31 @@ size_t HelpIndex::SearchWord(const char *word, std::vector<HelpIndexData> &resul
 
 static HelpIndex sIndex;
 
+static std::vector< std::pair< std::string, HELP_DATA * > > sSortedHelpKeywords;
 
 void build_help_index(void )
 {
     sIndex.BuildIndex();
-}
 
+    sSortedHelpKeywords.clear();
+
+    for ( HELP_DATA *pHelp = help_first; pHelp; pHelp = pHelp->next )
+    {
+        const char *keywords = pHelp->keyword;
+        
+        while ( keywords[0] != '\0' )
+        {
+            char buf[MIL];
+            keywords = one_argument(keywords, buf);
+
+            std::string kwd( buf );
+
+            sSortedHelpKeywords.emplace_back(buf, pHelp);
+        }
+    }
+
+    std::sort( sSortedHelpKeywords.begin(), sSortedHelpKeywords.end() );
+}
 
 void help_search(CHAR_DATA *ch, const char *argument)
 {
@@ -342,4 +362,69 @@ void help_search(CHAR_DATA *ch, const char *argument)
             ptc(ch, "%-20s - %s{x\n\r", data.keyword.c_str(), data.lineResult.c_str());
         }    
     }
+}
+
+void help_all(CHAR_DATA *ch, const char *argument)
+{
+    if (IS_NPC(ch))
+    {
+        return;
+    }
+
+    char arg1[MIL];
+
+    argument =  one_argument(argument, arg1);
+
+    unsigned pageNum = 1;
+    if (arg1[0] != '\0')
+    {
+        if (!is_number(arg1))
+        {
+            ptc( ch, "Page argument must be a number!\n\r");
+            return;
+        }
+        else
+        {
+            int pNum = ::atoi(arg1);
+            if (pNum < 1)
+            {
+                ptc( ch, "Page argument must be 1 or higher!\n\r");
+                return;
+            }
+            else
+            {
+                pageNum = static_cast<unsigned>(pNum);
+            }
+        }
+    }
+
+    // Reserve lines of space for top and bottom messages.
+    int chLines = (ch->lines >= 5) ? (ch->lines - 5) : 0;
+
+    unsigned startInd = ( pageNum - 1 ) * static_cast<unsigned>(chLines);
+    unsigned endInd = startInd + static_cast<unsigned>(chLines);
+    endInd = UMIN( endInd, sSortedHelpKeywords.size() );
+
+    if (startInd >= sSortedHelpKeywords.size())
+    {
+        ptc( ch, "No such page number %u\n\r", pageNum );
+        return;
+    }
+
+    unsigned pageCount = 1 + (sSortedHelpKeywords.size() - 1)/static_cast<unsigned>(chLines);
+
+    ptc( ch, "HELP ALL, PAGE %u/%u\n\r"
+             "----------------------------------------\n\r"
+             "      %-30s %s\n\r", 
+             pageNum, pageCount, "Keyword", "Full Keywords");
+    for (unsigned i = startInd; i < endInd; ++i)
+    {
+        ptc(ch, "%4u. \t<send 'help %s'>%-30s %s\t</send>\n\r",
+            i,
+            sSortedHelpKeywords[i].second->keyword,
+            sSortedHelpKeywords[i].first.c_str(),
+            sSortedHelpKeywords[i].second->keyword);
+    }
+    ptc( ch, "----------------------------------------\n\r"
+             "'help all <pagenum>' to see another page\n\r");
 }
