@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <crypt.h>
 
 #include "merc.h"
 #include "recycle.h"

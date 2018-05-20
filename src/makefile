@@ -39,7 +39,7 @@ L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
 
 SRC_FILES_C := $(wildcard *.c) 
 O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES_C))
-SRC_FILES_CPP := $(wildcard *.cpp)
+SRC_FILES_CPP := act_wiz.cpp changelog.cpp help.cpp perfmon.cpp str_buf.cpp
 OPP_FILES := $(patsubst %.cpp,$(OBJ_DIR)/%.opp,$(SRC_FILES_CPP))
 
 CU_TEST_C = tests/CuTest.c
@@ -78,6 +78,13 @@ remort: aeaea
 osx: C_FLAGS_BASE = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
 osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
 osx: aeaea
+
+.PHONY: db_dump
+db_dump: MODE_FLAGS += -DDB_DUMP
+db_dump: $(BIN_DIR)/db_dump
+$(BIN_DIR)/db_dump: $(OBJ_DIR)/db_dump.opp $(OPP_FILES) $(O_FILES)
+	rm -f $(BIN_DIR)/db_dump
+	$(CC) -o $(BIN_DIR)/db_dump $(OBJ_DIR)/db_dump.opp $(OPP_FILES) $(O_FILES) $(L_FLAGS)
 
 .PHONY: lint
 lint: lint_headers lint_src
