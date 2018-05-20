@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <crypt.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
