@@ -221,10 +221,12 @@ int main( int argc, char **argv )
     /*
      * Run the game.
      */
+#if !defined(DB_DUMP)
     if (!fCopyOver)
     {
         s_control = init_socket( s_port );
     }
+#endif
 
     boot_db();
     DXPORT_init();
@@ -237,12 +239,19 @@ int main( int argc, char **argv )
 
     /* check aprog boot triggers */
     ap_boot_trigger();
-#ifdef LIVETEST 
+#if defined(LIVETEST)
     RunAllTests();
+#elif defined(DB_DUMP)
+    void db_dump_main( void );
+
+    db_dump_main();
 #else
     game_loop_unix( s_control );
 #endif
+
+#if !defined(DB_DUMP)
     close (s_control);
+#endif
 
     /*
      * That's all, folks.

@@ -4369,20 +4369,6 @@ extern      tflag meta_magic;
 #define META_MAGIC_PERMANENT (E)
 #define META_MAGIC_RELIABLE (F)
 
-char *  crypt       args( ( const char *key, const char *salt ) );
-
-/*
- * The crypt(3) function is not available on some operating systems.
- * In particular, the U.S. Government prohibits its export from the
- *   United States to foreign countries.
- * Turn on NOCRYPT to keep passwords in plain text.
- */
-#if defined(NOCRYPT)
-#define crypt(s1, s2)   (s1)
-#endif
-
-
-
 /*
  * Data files used by the server.
  *

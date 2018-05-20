@@ -5252,7 +5252,9 @@ void bug_string( const char *str )
     }
 
     log_string( buf );
+#if !defined(DB_DUMP)
     log_trace();
+#endif
     
     if ( !recurse )
     {
