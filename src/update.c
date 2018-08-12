@@ -100,6 +100,8 @@ int move_cap( CHAR_DATA *ch )
 
 int gain_hit( CHAR_DATA *ch, int amount )
 {
+    if ( amount + ch->hit <= 0 )
+        amount = ch->hit > 0 ? 1 - ch->hit : 0;
     if ( amount + ch->hit > hit_cap(ch) )
         amount = hit_cap(ch) - ch->hit;
     ch->hit += amount;
@@ -108,6 +110,8 @@ int gain_hit( CHAR_DATA *ch, int amount )
 
 int gain_mana( CHAR_DATA *ch, int amount )
 {
+    if ( amount + ch->mana < 0 )
+        amount = -ch->mana;
     if ( amount + ch->mana > mana_cap(ch) )
         amount = mana_cap(ch) - ch->mana;
     ch->mana += amount;
@@ -116,6 +120,8 @@ int gain_mana( CHAR_DATA *ch, int amount )
 
 int gain_move( CHAR_DATA *ch, int amount )
 {
+    if ( amount + ch->move < 0 )
+        amount = -ch->move;
     if ( amount + ch->move > move_cap(ch) )
         amount = move_cap(ch) - ch->move;
     ch->move += amount;
@@ -1378,40 +1384,34 @@ void char_update( void )
 
                     if ((ch->pcdata->condition[COND_HUNGER]==0) && (ch->level>4))
                     {
-                        if (ch->move>ch->max_move/50+2)
-                            ch->move-=ch->max_move/50+2;
-                        else if (ch->move>0)
+                        int damage = ch->level/2 + 2;
+                        if ( ch->move > 0 )
                         {
-                            ch->move=0;
-                            send_to_char("You collapse from hunger.\n\r", ch);
+                            gain_move(ch, -damage);
+                            if ( ch->move == 0 )
+                            {
+                                send_to_char("You collapse from hunger.\n\r", ch);
+                                gain_hit(ch, -damage);
+                            }
                         }
-                        else if (ch->hit>ch->max_hit/30+2)
-                            ch->hit-=ch->max_hit/30+2;
-                        else if (ch->hit>-5)
-                        {
-                            ch->hit= -5;
-                            send_to_char("You pass out from starvation.\n\r", ch);
-                            update_pos(ch);
-                        }
+                        else
+                            gain_hit(ch, -2*damage);
                     }
 
                     if ((ch->pcdata->condition[COND_THIRST]==0) && (ch->level>4))
                     {
-                        if (ch->move>ch->max_move/30+2)
-                            ch->move-=ch->max_move/30+2;
-                        else if (ch->move>0)
+                        int damage = ch->level + 5;
+                        if ( ch->move > 0 )
                         {
-                            ch->move=0;
-                            send_to_char("You collapse from thirst.\n\r", ch);
+                            gain_move(ch, -damage);
+                            if ( ch->move == 0 )
+                            {
+                                send_to_char("You collapse from thirst.\n\r", ch);
+                                gain_hit(ch, -damage);
+                            }
                         }
-                        else if (ch->hit>ch->max_hit/20+2)
-                            ch->hit-=ch->max_hit/20+2;
-                        else if (ch->hit>-5)
-                        {
-                            ch->hit= -5;
-                            send_to_char("You pass out from dehydration.\n\r", ch);
-                            update_pos(ch);
-                        }
+                        else
+                            gain_hit(ch, -2*damage);
                     }
 
                 }
