@@ -1,6 +1,6 @@
 BIN_DIR := ../bin
 OBJ_DIR := ../obj
-VPATH = ./tests
+TESTS_DIR := ./tests
 
 CC      = gcc
 PROF    = -I$(AARCHON_INC) -L$(AARCHON_LIB) -O2
@@ -42,25 +42,16 @@ O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES_C))
 SRC_FILES_CPP := act_wiz.cpp changelog.cpp help.cpp perfmon.cpp str_buf.cpp
 OPP_FILES := $(patsubst %.cpp,$(OBJ_DIR)/%.opp,$(SRC_FILES_CPP))
 
-CU_TEST_C = tests/CuTest.c
-CU_TEST_O = $(OBJ_DIR)/CuTest.o
+aeaea_OBJS := $(OPP_FILES) $(O_FILES)
 
-UNITTEST_C_FILES = $(wildcard tests/UNIT_*.c)
-UNITTEST_O_FILE_NAMES = $(patsubst tests/%.c,%.o,$(UNITTEST_C_FILES)) 
-UNITTEST_O_FILES = $(addprefix $(OBJ_DIR)/,$(UNITTEST_O_FILE_NAMES))
-UNITTEST_O = $(OBJ_DIR)/UnitTests.o
-
-LIVETEST_C_FILES = $(wildcard tests/LIVE_*.c)
-LIVETEST_O_FILE_NAMES = $(patsubst tests/%.c,%.o,$(LIVETEST_C_FILES))
-LIVETEST_O_FILES = $(addprefix $(OBJ_DIR)/,$(LIVETEST_O_FILE_NAMES))
-LIVETEST_O = $(OBJ_DIR)/LiveTests.o
-
+.PHONY: all
+all: aeaea
 
 .PHONY: aeaea
 aeaea: $(BIN_DIR)/aeaea
-$(BIN_DIR)/aeaea: $(OPP_FILES) $(O_FILES)
+$(BIN_DIR)/aeaea: $(aeaea_OBJS)
 	rm -f $(BIN_DIR)/aeaea
-	$(CC) -o $(BIN_DIR)/aeaea $(OPP_FILES) $(O_FILES) $(L_FLAGS)
+	$(CC) -o $(BIN_DIR)/aeaea $(aeaea_OBJS) $(L_FLAGS)
 
 .PHONY: tester
 tester: MODE_FLAGS += -DTESTER
@@ -82,9 +73,9 @@ osx: aeaea
 .PHONY: db_dump
 db_dump: MODE_FLAGS += -DDB_DUMP
 db_dump: $(BIN_DIR)/db_dump
-$(BIN_DIR)/db_dump: $(OBJ_DIR)/db_dump.opp $(OPP_FILES) $(O_FILES)
+$(BIN_DIR)/db_dump: $(OBJ_DIR)/db_dump.opp $(aeaea_OBJS)
 	rm -f $(BIN_DIR)/db_dump
-	$(CC) -o $(BIN_DIR)/db_dump $(OBJ_DIR)/db_dump.opp $(OPP_FILES) $(O_FILES) $(L_FLAGS)
+	$(CC) -o $(BIN_DIR)/db_dump $(OBJ_DIR)/db_dump.opp $(aeaea_OBJS) $(L_FLAGS)
 
 .PHONY: lint
 lint: lint_headers lint_src
@@ -114,44 +105,37 @@ lint_headers: $(addsuffix @lint,$(wildcard *.hpp))
 	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
 
 
+UNIT_SRCS_C := $(wildcard $(TESTS_DIR)/UNIT_*.c)
+UNIT_OBJS_C := $(patsubst $(TESTS_DIR)/%.c,$(OBJ_DIR)/%.o,$(UNIT_SRCS_C))
+unittest_OBJS := $(OBJ_DIR)/CuTest.o $(OBJ_DIR)/UnitTests.o $(UNIT_OBJS_C) $(aeaea_OBJS)
+
+LIVE_SRCS_C := $(wildcard $(TESTS_DIR)/LIVE_*.c)
+LIVE_OBJS_C := $(patsubst $(TESTS_DIR)/%.c,$(OBJ_DIR)/%.o,$(LIVE_SRCS_C))
+livetest_OBJS := $(OBJ_DIR)/CuTest.o $(OBJ_DIR)/LiveTests.o $(LIVE_OBJS_C) $(aeaea_OBJS)
+
 # Compile live tests. The binary needs to be run rom area directory as with normal startup
 .PHONY: livetest
 livetest: $(BIN_DIR)/aeaea_livetest
 $(BIN_DIR)/aeaea_livetest: MODE_FLAGS += -DLIVETEST
-$(BIN_DIR)/aeaea_livetest: _live_tests $(OPP_FILES) $(O_FILES) $(LIVETEST_O_FILES) $(CU_TEST_O)
-	rm -f $(BIN_DIR)/aeaea_livetest
-	$(CC) -o $(BIN_DIR)/aeaea_livetest \
-		$(O_FILES) \
-		$(OPP_FILES) \
-		$(LIVETEST_O_FILES) \
-		$(LIVETEST_O) \
-		$(CU_TEST_O) \
-		$(L_FLAGS)
+$(BIN_DIR)/aeaea_livetest: $(livetest_OBJS)
+	rm -f $@
+	$(CC) -o $@ $^ $(L_FLAGS)
 
 # Compile with unit tests and run immediately
 .PHONY: unittest
 unittest: $(BIN_DIR)/aeaea_unittest
 $(BIN_DIR)/aeaea_unittest: MODE_FLAGS += -DUNITTEST
-$(BIN_DIR)/aeaea_unittest: _unit_tests $(OPP_FILES) $(O_FILES) $(UNITTEST_O_FILES) $(CU_TEST_O)
-	rm -f $(BIN_DIR)/aeaea_unittest
-	$(CC) -o $(BIN_DIR)/aeaea_unittest \
-		$(O_FILES) \
-		$(OPP_FILES) \
-		$(UNITTEST_O_FILES) \
-		$(UNITTEST_O) \
-		$(CU_TEST_O) \
-		$(L_FLAGS)
-	$(BIN_DIR)/aeaea_unittest
+$(BIN_DIR)/aeaea_unittest: $(unittest_OBJS)
+	rm -f $@
+	$(CC) -o $@ $^ $(L_FLAGS)
+	$@
 
-.PHONY: _live_tests
-_live_tests: $(OBJ_DIR)
-	./tests/make-live-tests.sh > ./tests/LiveTests.c
-	$(CC) -c $(C_FLAGS_C) -o $(OBJ_DIR)/LiveTests.o ./tests/LiveTests.c
+$(TESTS_DIR)/LiveTests.c: $(LIVE_SRCS_C)
+	$(TESTS_DIR)/make-live-tests.sh > $@
 
-.PHONY: _unit_tests
-_unit_tests: $(OBJ_DIR)
-	./tests/make-unit-tests.sh > ./tests/UnitTests.c
-	$(CC) -c $(C_FLAGS_C) -o $(OBJ_DIR)/UnitTests.o ./tests/UnitTests.c
+$(TESTS_DIR)/UnitTests.c: $(UNIT_SRCS_C)
+	$(TESTS_DIR)/make-unit-tests.sh > $@
+
 
 .PHONY: %.c@compile
 %.c@compile: $(OBJ_DIR)/%.o ;
@@ -173,9 +157,12 @@ $(OBJ_DIR):
 $(OBJ_DIR)/%.o: %.c merc.h | $(OBJ_DIR)
 	$(CC) -c $(C_FLAGS_C) -o $@ $<
 
+$(OBJ_DIR)/%.o: tests/%.c | $(OBJ_DIR)
+	$(CC) -c $(C_FLAGS_C) -o $@ $<
+
 $(OBJ_DIR)/%.opp: %.cpp merc.h | $(OBJ_DIR)
 	$(CC) -c $(C_FLAGS_CPP) -o $@ $<
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.opp
+	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.opp $(TESTS_DIR)/LiveTests.c $(TESTS_DIR)/UnitTests.c
