@@ -900,6 +900,21 @@ bool get_spell_target( CHAR_DATA *ch, const char *arg, int sn, /* input */
             *target = TARGET_OBJ;
             break;
 
+        case TAR_OBJ_ANY:
+            if ( arg[0] == '\0' )
+            {
+                send_to_char( "Which object should the spell be cast upon?\n\r", ch );
+                return FALSE;
+            }
+            if ( (obj = get_obj_list(ch, arg, ch->carrying)) == NULL )
+            {
+                send_to_char( "You are not wearing or carrying that.\n\r", ch );
+                return FALSE;
+            }
+            *vo = (void *) obj;
+            *target = TARGET_OBJ;
+            break;
+
         case TAR_OBJ_CHAR_OFF:
             if (arg[0] == '\0')
             {
@@ -1985,6 +2000,7 @@ bool can_wish_cast( int sn )
         case TAR_CHAR_NEUTRAL:
         case TAR_OBJ_CHAR_DEF:
         case TAR_OBJ_INV:
+        case TAR_OBJ_ANY:
         case TAR_IGNORE_OBJ:
         case TAR_IGNORE_DEF:
             return TRUE;
