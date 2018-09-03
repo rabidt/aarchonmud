@@ -1365,6 +1365,7 @@ const char* const spell_target_names[] =
     "char_defensive",
     "char_self",
     "obj_inventory",
+    "obj_any",
     "obj_char_defensive",
     "obj_char_offensive",
     "visible_char_offensive",
