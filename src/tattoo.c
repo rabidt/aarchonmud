@@ -108,6 +108,7 @@ struct tattoo_data
 };
 
 #define MAX_TATTOO 20
+#define MAX_BASIC 10 // number of basic tattoos that can be upgraded (must be first in list)
 static const TATTOO_DATA tattoo_data_list[MAX_TATTOO] =
 {
     { 10500, 500 }, // bear
@@ -120,7 +121,7 @@ static const TATTOO_DATA tattoo_data_list[MAX_TATTOO] =
     { 10507, 500 }, // eagle
     { 10508, 500 }, // dragon
     { 10509, 500 },  // tortoise
-
+    // order determines target tattoo for upgrading
     { 10510, 2500 }, // grizzly
     { 10511, 2500 }, // python
     { 10512, 2500 }, // white rabbit
@@ -410,6 +411,7 @@ void show_tattoo_syntax( CHAR_DATA *ch )
     send_to_char( "Syntax: tattoo list\n\r", ch );
     send_to_char( "        tattoo loc\n\r", ch );
     send_to_char( "        tattoo buy <location> <name>\n\r", ch );
+    send_to_char( "        tattoo upgrade <location>\n\r", ch );
     send_to_char( "        tattoo remove <location>\n\r", ch );
     send_to_char( "        tattoo refund\n\r", ch );
 }
@@ -515,6 +517,72 @@ DEF_DO_FUN(do_tattoo)
             }
             reset_char(ch);
             send_to_char( "Enjoy your new tattoos!\n\r", ch );
+        }
+    }
+    else if ( !strcmp(arg1, "upgrade") )
+    {
+        if ( IS_IMMORTAL(ch) && !strcmp(arg2, "all") )
+        {
+            all = TRUE;
+            loc = -1; // to stop compiler warnings
+        }
+        else if ( (loc = flag_lookup(arg2, wear_loc_flags)) == NO_FLAG || !is_tattoo_loc(loc) )
+        {
+            send_to_char( "That's not a valid location.\n\r", ch );
+            return;
+        }
+
+        if ( !all )
+        {
+            if ( get_eq_char(ch, loc) != NULL )
+            {
+                send_to_char( "You must remove your armor first!\n\r", ch );
+                return;
+            }
+
+            if ( (ID = get_tattoo_ch(ch, loc)) == TATTOO_NONE )
+            {
+                send_to_char( "You don't have a tattoo there!\n\r", ch );
+                return;
+            }
+
+            if ( ID >= MAX_BASIC )
+            {
+                send_to_char( "Your tattoo cannot be upgraded any further.\n\r", ch );
+                return;
+            }
+
+            int upgradedID = ID + MAX_BASIC;
+
+            if ( (cost = tattoo_cost(upgradedID) - tattoo_cost(ID)) > ch->pcdata->questpoints )
+            {
+                send_to_char( "You don't have enough quest points.\n\r", ch );
+                return;
+            }
+
+            /* ok, let's upgrade the tattoo */
+            add_tattoo( ch->pcdata->tattoos, loc, upgradedID );
+            // upgrade just adds basic effect
+            tattoo_modify_equip( ch, loc, TRUE, FALSE, TRUE );
+            logpf( "%s upgraded tattoo '%s' to '%s' at %s for %d qp",
+                ch->name, tattoo_name(ID), tattoo_name(upgradedID), flag_bit_name(wear_loc_flags, loc), cost );
+            ch->pcdata->questpoints -= cost;
+            send_to_char( "Enjoy your upgraded tattoo!\n\r", ch );
+        }
+        else
+        {
+            // upgrade all basic tattoos
+            for ( loc = 0; loc < MAX_WEAR; loc++ )
+            {
+                if ( !is_tattoo_loc(loc) || (ID = get_tattoo_ch(ch, loc)) == TATTOO_NONE || ID >= MAX_BASIC )
+                    continue;
+                int upgradedID = ID + MAX_BASIC;
+                add_tattoo( ch->pcdata->tattoos, loc, upgradedID );
+                logpf( "%s upgraded tattoo '%s' to '%s' at %s for free",
+                    ch->name, tattoo_name(ID), tattoo_name(upgradedID), flag_bit_name(wear_loc_flags, loc) );
+            }
+            reset_char(ch);
+            send_to_char( "Enjoy your upgraded tattoos!\n\r", ch );
         }
     }
     else if ( !strcmp(arg1, "remove") )
