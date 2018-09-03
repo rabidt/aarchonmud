@@ -3106,14 +3106,15 @@ struct  room_index_data
 #define TAR_CHAR_OFFENSIVE      1
 #define TAR_CHAR_DEFENSIVE      2
 #define TAR_CHAR_SELF           3
-#define TAR_OBJ_INV             4
-#define TAR_OBJ_CHAR_DEF        5
-#define TAR_OBJ_CHAR_OFF        6
-#define TAR_VIS_CHAR_OFF        7
-#define TAR_CHAR_NEUTRAL        8
-#define TAR_IGNORE_OFF          9 // for harmful area spells
-#define TAR_IGNORE_OBJ         10 // spells that create objects
-#define TAR_IGNORE_DEF         11 // for area spells that heal or buff
+#define TAR_OBJ_INV             4 // object carried (not equipped)
+#define TAR_OBJ_ANY             5 // object carried or equipped
+#define TAR_OBJ_CHAR_DEF        6
+#define TAR_OBJ_CHAR_OFF        7
+#define TAR_VIS_CHAR_OFF        8
+#define TAR_CHAR_NEUTRAL        9
+#define TAR_IGNORE_OFF         10 // for harmful area spells
+#define TAR_IGNORE_OBJ         11 // spells that create objects
+#define TAR_IGNORE_DEF         12 // for area spells that heal or buff
 
 #define TARGET_CHAR         0
 #define TARGET_OBJ          1

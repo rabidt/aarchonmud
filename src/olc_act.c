@@ -363,7 +363,10 @@ bool show_help( CHAR_DATA *ch, const char *argument )
                             else if ( !str_prefix( spell, "self" ) )
                                 show_skill_cmds( ch, TAR_CHAR_SELF );
                             else if ( !str_prefix( spell, "object" ) )
+                            {
                                 show_skill_cmds( ch, TAR_OBJ_INV );
+                                show_skill_cmds( ch, TAR_OBJ_ANY );
+                            }
                             else
                                 send_to_char( "Syntax:  ? spell "
                                 "[ignore/attack/defend/self/object/all]\n\r", ch );

@@ -3301,7 +3301,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_create_water, TAR_OBJ_INV,        POS_STANDING,
+    spell_create_water, TAR_OBJ_ANY,        POS_STANDING,
     NULL, 5, 0, 12, DUR_NONE,
     "",         "!Create Water!",   ""
     },
@@ -3501,7 +3501,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_detect_poison,    TAR_OBJ_INV,        POS_STANDING,
+    spell_detect_poison,    TAR_OBJ_ANY,        POS_STANDING,
     NULL, 5, 0, 12, DUR_NONE,
     "",         "!Detect Poison!",  ""
     },
@@ -3733,7 +3733,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_fireproof,    TAR_OBJ_INV,        POS_STANDING,
+    spell_fireproof,    TAR_OBJ_ANY,        POS_STANDING,
     NULL, 10, 0, 12, DUR_EXTREME,
     "",         "", "$p's protective aura fades."
     },
@@ -3956,7 +3956,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_holy_binding, TAR_OBJ_INV,        POS_STANDING,
+    spell_holy_binding, TAR_OBJ_ANY,        POS_STANDING,
     NULL, 100, 0, 24, DUR_NONE,
     "",         "!Holy Binding!",   ""
     },
@@ -3978,7 +3978,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_identify,     TAR_OBJ_INV,        POS_STANDING,
+    spell_identify,     TAR_OBJ_ANY,        POS_STANDING,
     NULL, 12, 0, 24, DUR_NONE,
     "",         "!Identify!",       ""
     },
@@ -4411,7 +4411,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 3, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-    spell_recharge,     TAR_OBJ_INV,        POS_STANDING,
+    spell_recharge,     TAR_OBJ_ANY,        POS_STANDING,
     NULL, 60, 0, 24, DUR_NONE,
     "",         "!Recharge!",       ""
     },
@@ -6714,7 +6714,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 2, 1,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_OBJ_INV,    POS_RESTING,
+        spell_null,     TAR_OBJ_ANY,    POS_RESTING,
     &gsn_weapons_lore, 0, 0, 20, DUR_NONE,
         "",         "!weapons lore!",   ""
     },
@@ -6725,7 +6725,7 @@ struct  skill_type
     {   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3 }, 1, 0,
     { 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100 },
     STAT_NONE, STAT_NONE, STAT_NONE,
-        spell_null,     TAR_OBJ_INV,    POS_RESTING,
+        spell_null,     TAR_OBJ_ANY,    POS_RESTING,
     &gsn_appraise, 0, 0, 20, DUR_NONE,
         "",         "!appraise!",   ""
     },
