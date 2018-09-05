@@ -27,6 +27,8 @@ bool cfg_const_damroll;
 char *cfg_word_of_day;
 const char *cfg_word_of_day_default="bananahammock";
 
+bool cfg_show_rolls=FALSE;
+bool cfg_const_damroll=FALSE;
 const bool cfg_default_false = FALSE;
 const bool cfg_default_true = TRUE;
 
