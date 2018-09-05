@@ -569,6 +569,9 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
         
 	if (ch->pcdata->trained_move)
 	    bprintf(buf, "TMov %d\n", ch->pcdata->trained_move);
+
+    if (ch->pcdata->train_cap_bonus)
+        bprintf(buf, "TCap %d\n", ch->pcdata->train_cap_bonus);
         
 	bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
@@ -1281,6 +1284,7 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
     ch->pcdata->trained_hit = 0;
     ch->pcdata->trained_mana = 0;
     ch->pcdata->trained_move = 0; 
+    ch->pcdata->train_cap_bonus = 0;
     ch->pcdata->highest_level = 0;
     ch->pcdata->qdata = NULL;
     clear_tattoos( ch->pcdata->tattoos );
@@ -2370,6 +2374,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 	KEY( "THit",	ch->pcdata->trained_hit, bread_number(buf));
 	KEY( "TMan",	ch->pcdata->trained_mana, bread_number(buf));
 	KEY( "TMov",	ch->pcdata->trained_move, bread_number(buf));
+        KEY( "TCap", ch->pcdata->train_cap_bonus, bread_number(buf) );
         
         if ( !str_cmp( word, "Title" )  || !str_cmp( word, "Titl"))
         {
