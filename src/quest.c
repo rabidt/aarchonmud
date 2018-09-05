@@ -486,6 +486,7 @@ DEF_DO_FUN(do_quest)
         strcat(buf, "-------------------------------\n\r");
 	strcat( buf, list_quest_items() );
 /*      strcat(buf, "500qp...........100,000 gold\n\r");  */
+        strcat(buf, " 1000qp.................+1 train cap (max +80)\n\r");
         strcat(buf, "  250qp.................50 practices\n\r");
 	strcat(buf, "  200qp.................Change name 'color'.\n\r");
 	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
@@ -527,6 +528,29 @@ DEF_DO_FUN(do_quest)
 	    if ( obj == NULL )
 		return;
 	}
+        else if (is_name(arg2, "train training traincap"))
+        {
+            if ( ch->pcdata->train_cap_bonus >= 80 )
+            {
+                snprintf( buf, sizeof(buf), "Sorry %s, your training cap is as high as it gets.", ch->name);
+                do_say(questman, buf);
+            }
+            else if (ch->pcdata->questpoints >= 1000)
+            {
+                ch->pcdata->questpoints -= 1000;
+                ch->pcdata->train_cap_bonus += 1;
+                act("$N teaches $n how to train even harder.", ch, NULL, questman, TO_ROOM);
+                act("$N teaches you how to train even harder.", ch, NULL, questman, TO_CHAR);
+                logpf("%s increased their training cap bonus to %d for 1000 qp", ch->name, ch->pcdata->train_cap_bonus);
+                update_perm_hp_mana_move(ch);
+            }
+            else
+            {
+                snprintf( buf, sizeof(buf), "Sorry, %s, but you don't have enough quest points for that.",ch->name);
+                do_say(questman,buf);
+            }
+            return;
+        }
         else if (is_name(arg2, "practices pracs prac practice"))
         {
             if (ch->pcdata->questpoints >= 250)

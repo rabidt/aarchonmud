@@ -2673,6 +2673,7 @@ struct  pc_data
     sh_int      trained_hit;
     sh_int      trained_mana;
     sh_int      trained_move;
+    sh_int      train_cap_bonus; // increases training hard cap
     sh_int      true_sex;
     int         last_level;
     sh_int      highest_level; /* highest level reached during current remort */
@@ -5420,7 +5421,7 @@ struct race_type* get_morph_race_type( CHAR_DATA *ch );
 struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch );
 int get_encumberance( CHAR_DATA *ch );
 void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap );
-int max_hmm_train( int level );
+int max_hmm_train( const CHAR_DATA *ch );
 int get_ac( CHAR_DATA *ch );
 int get_hitroll( CHAR_DATA *ch );
 int get_damroll( CHAR_DATA *ch );

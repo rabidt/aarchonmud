@@ -4831,7 +4831,7 @@ DEF_DO_FUN(do_score)
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
     snprintf( buf, sizeof(buf), "{D|{x Trains:      {C%5d        {cSpent:{x %d/%d {chp{x %d/%d {cmn{x %d/%d {cmv {cMAX %d{x",
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
-        mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch->level) );
+        mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch) );
 
     for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
         ; 

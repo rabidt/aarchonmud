@@ -1059,10 +1059,12 @@ DEF_DO_FUN(do_mstat)
 
 	if ( victim->pcdata != NULL )
 	{
-	    snprintf( buf, sizeof(buf), "Trains spent:  Hp: %d  Mana: %d  Move: %d\n\r",
+	    snprintf( buf, sizeof(buf), "Trains spent:  Hp: %d  Mana: %d  Move: %d  Cap: +%d\n\r",
 		     victim->pcdata->trained_hit,
 		     victim->pcdata->trained_mana,
-		     victim->pcdata->trained_move );
+		     victim->pcdata->trained_move,
+             victim->pcdata->train_cap_bonus
+                );
 	    send_to_char( buf, ch );
 	}
 
