@@ -448,16 +448,21 @@ int get_spell_penetration( CHAR_DATA *ch, int level )
         return (level + 10) * 6/5;
 }
 
-int max_hmm_train( int level )
+int max_hmm_train_by_level( int level )
 {
   int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
-  int max_trained = (level + hero_bonus * (hero_bonus + 1) / 2) * 2;
+  int max_trained = (5 + level + hero_bonus * (hero_bonus + 1) / 2) * 2;
   return max_trained;
+}
+
+int max_hmm_train( const CHAR_DATA *ch )
+{
+    return max_hmm_train_by_level(ch->level) + (ch->pcdata ? ch->pcdata->train_cap_bonus : 0);
 }
 
 bool train_stat(int trained, CHAR_DATA *ch)
 {
-  return trained < max_hmm_train( ch->level );
+  return trained < max_hmm_train( ch );
 }
 
 int stat_gain(CHAR_DATA *ch, int stat)
@@ -582,7 +587,7 @@ DEF_DO_FUN(do_train)
         if ( (inc = atoi(argument)) < 1 )
             inc = 1;
         cost = inc;
-        max = max_hmm_train(ch->level);
+        max = max_hmm_train(ch);
         
         if ( cost > ch->train )
         {
@@ -1575,7 +1580,7 @@ void update_perm_hp_mana_move(CHAR_DATA *ch)
     int level = modified_level(ch);
     level_factor = get_pc_hitdice(level);
     train_factor = 100 + get_curr_stat(ch, STAT_DIS);
-    max_train = max_hmm_train(level);
+    max_train = max_hmm_train(ch);
     
     /* calculate hp */
     stat_factor = 100 + get_curr_stat(ch, STAT_CON);
