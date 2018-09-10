@@ -456,15 +456,23 @@ static int glob_dammessage (lua_State *LS)
     return 3;
 }
 
+#ifdef TESTER
 static int glob_do_luaquery ( lua_State *LS)
 {
-    int top=lua_gettop(LS);
+    /* Simple hack to prevent infinite loop checking */
+    bool is_script = g_LuaScriptInProgress;
+    g_LuaScriptInProgress = FALSE;
+    
+    int top = lua_gettop(LS);
     lua_getglobal( LS, "do_luaquery");
     lua_insert(LS, 1);
     lua_call( LS, top, LUA_MULTRET );
 
+    g_LuaScriptInProgress = is_script;
+
     return lua_gettop(LS);
 }
+#endif // TESTER
 
 static void push_mudconfig_val( lua_State *LS, const CFG_DATA_ENTRY *en )
 {
@@ -1408,8 +1416,6 @@ static GLOB_TYPE glob_table[] =
 
 #ifdef TESTER
     { NULL,  "do_luaquery",       glob_do_luaquery,                  9, STS_ACTIVE },
-#else
-    { NULL,  "do_luaquery",       glob_do_luaquery,       SEC_NOSCRIPT, STS_ACTIVE },
 #endif
 #ifdef LUA_TEST
     { NULL,  "runglobal", glob_runglobal, 9, STS_ACTIVE },
