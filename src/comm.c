@@ -1682,8 +1682,12 @@ void bust_a_prompt( CHAR_DATA *ch )
 void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
 {
     txt = ProtocolOutput( d, txt, &length );
-    if ( d->pProtocol==NULL )
-        bugf("pProtocol null");
+    if ( d->pProtocol == NULL )
+    {
+        bugf("%s: pProtocol null", __func__);
+        return;
+    }
+    
     if ( d->pProtocol->WriteOOB > 0 )
         --d->pProtocol->WriteOOB;
 
