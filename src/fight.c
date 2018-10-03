@@ -2051,7 +2051,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     
     // killer instinct
     int ki_skill = get_skill(ch, gsn_killer_instinct) + mastery_bonus(ch, gsn_killer_instinct, 30, 50);
-    if ( ki_skill && victim->hit < victim->max_hit )
+    if ( ki_skill && victim && victim->hit < victim->max_hit )
     {
         int victim_health = 100 * victim->hit / UMAX(1, victim->max_hit);
         dam += ch->level * ki_skill / 150 * (100 - victim_health) / 100;
@@ -2059,7 +2059,7 @@ int one_hit_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dt, OBJ_DATA *wield )
     }
 
     // holy avenger - deal bonus damage against targets of opposing alignment
-    if ( wield && per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
+    if ( victim && wield && per_chance(get_skill(ch, gsn_holy_avenger)) && get_align_type(ch) != get_align_type(victim) )
     {
         int align_diff = ABS(ch->alignment - victim->alignment);
         if ( twohanded )
