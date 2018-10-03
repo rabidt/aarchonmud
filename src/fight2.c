@@ -2576,13 +2576,13 @@ DEF_DO_FUN(do_roundhouse)
    CHAR_DATA *vch_next;
    int skill, dam; 
 
-   dam = martial_damage( ch, NULL, gsn_roundhouse );
-
    if ( (skill = get_skill(ch, gsn_roundhouse)) == 0 )
    {
        send_to_char( "You wouldn't know how to do that.\n\r", ch );
        return;
    }
+
+   dam = martial_damage( ch, NULL, gsn_roundhouse );
 
    ptc(ch, "You swing your leg in a wild kick!\n\r");
    
