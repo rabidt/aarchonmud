@@ -573,7 +573,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->pcdata->train_cap_bonus)
         bprintf(buf, "TCap %d\n", ch->pcdata->train_cap_bonus);
         
-	bprintf( buf, "Cnd  %d %d %d %d\n",
+    bprintf( buf, "Cnd  %d %d %d %d\n",
             ch->pcdata->condition[0],
             ch->pcdata->condition[1],
             ch->pcdata->condition[2],
