@@ -4988,8 +4988,21 @@ bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim )
 
 bool is_opponent( CHAR_DATA *ch, CHAR_DATA *victim )
 {
-    return is_same_group(ch->fighting, victim)
-	|| is_same_group(ch, victim->fighting);
+    if (!ch)
+    {
+        logpf("%s: NULL ch", __func__);
+        return FALSE;
+    }
+    else if (!victim)
+    {
+        logpf("%s: NULL victim", __func__);
+        return FALSE;
+    }
+    else
+    {
+        return is_same_group(ch->fighting, victim)
+            || is_same_group(ch, victim->fighting);
+    }
 }
 
 int opponent_count( CHAR_DATA *ch )

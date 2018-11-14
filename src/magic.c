@@ -1584,13 +1584,15 @@ void post_spell_process( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
     if ( !was_obj_cast && per_chance(get_skill(ch, gsn_mystic_infusion)) )
     {
         int target = skill_table[sn].target;
-        if ( (target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF || target == TAR_OBJ_CHAR_OFF)
-            && is_opponent(ch, victim) )
+        if ( target == TAR_CHAR_OFFENSIVE || target == TAR_VIS_CHAR_OFF || target == TAR_OBJ_CHAR_OFF )
         {
-            int dam = get_sn_damage(sn, level, ch, victim) * 0.25;
-            if ( saves_spell(victim, ch, level, DAM_HARM) )
-                dam /= 2;
-            deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
+            if ( ch && victim && is_opponent(ch, victim) )
+            {
+                int dam = get_sn_damage(sn, level, ch, victim) * 0.25;
+                if ( saves_spell(victim, ch, level, DAM_HARM) )
+                    dam /= 2;
+                deal_damage(ch, victim, dam, gsn_mystic_infusion, DAM_HARM, TRUE, TRUE);
+            }
         }
         else if ( target == TAR_IGNORE_OFF && ch->in_room )
         {
