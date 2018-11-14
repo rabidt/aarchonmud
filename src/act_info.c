@@ -2021,14 +2021,14 @@ DEF_DO_FUN(do_exits)
     bool found;
     bool fAuto;
     int door;
-
-    BUFFER *outbuf = new_buf();
     
     fAuto  = !str_cmp( argument, "auto" );
     
     if ( !check_blind( ch ) )
         return;
     
+    BUFFER *outbuf = new_buf();
+
     if (fAuto)
     {
         add_buf(outbuf, "{O[Exits:");
