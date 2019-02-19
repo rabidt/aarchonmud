@@ -1074,7 +1074,10 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
                 else if ( ch->stance == STANCE_JIHAD )
                 {
                     if ( ch_align != get_align_type(vch) )
+                    {
+                        act_gag("You strike at the infidel known as $N.", ch, NULL, vch, TO_CHAR, GAG_ABILITY);
                         one_hit(ch, vch, dt, FALSE);
+                    }
                 }
                 else
                     one_hit(ch, vch, dt, FALSE);
