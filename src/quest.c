@@ -597,6 +597,11 @@ DEF_DO_FUN(do_quest)
                 send_to_char("You need to be authed first.\n\r", ch);
                 return;
             }
+            if ( IS_HERO(ch) )
+            {
+                send_to_char("You can't gain any more experience.\n\r", ch);
+                return;
+            }
             if (ch->pcdata->questpoints >= 100)
             {
                 ch->pcdata->questpoints -= 100;
