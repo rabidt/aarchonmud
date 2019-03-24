@@ -10,7 +10,7 @@ void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *so
         int security );
 
 bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char *source,
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2, const char *text1,
         int trig_type,
         int security );
 
