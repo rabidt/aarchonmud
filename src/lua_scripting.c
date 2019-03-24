@@ -70,7 +70,7 @@ static struct lua_script_type const mprog_type =
 };
 #undef MPARGS
 
-#define OPARGS { "obj2", "ch1", "ch2", "trigger", "trigtype" }
+#define OPARGS { "obj2", "ch1", "ch2", "text1", "trigger", "trigtype" }
 static struct lua_script_type const oprog_type =
 {
     .name = "OPROG",
@@ -332,7 +332,7 @@ void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *so
 
 
 bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char *source, 
-        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2,
+        OBJ_DATA *obj, OBJ_DATA *obj2,CHAR_DATA *ch1, CHAR_DATA *ch2, const char *text1,
         int trig_type,
         int security ) 
 {
@@ -406,6 +406,12 @@ bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char 
 
         /* CH2_ARG */
         if ( !(ch2 && push_CH(LS,(void *) ch2)))
+            lua_pushnil(LS);
+
+        /* TEXT1_ARG */
+        if ( text1 )
+            lua_pushstring(LS,text1);
+        else
             lua_pushnil(LS);
 
         /* TRIG_ARG */
