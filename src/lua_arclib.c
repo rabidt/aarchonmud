@@ -1950,7 +1950,7 @@ static int L_rundelay( lua_State *LS)
     {
         lua_obj_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_OBJ(LS, -3), NULL,
-                NULL, NULL,
+                NULL, NULL, NULL,
                 TRIG_CALL, sec );
     }
     else if ( is_AREA( LS, -3 ) )
@@ -5255,7 +5255,7 @@ static int OBJ_loadfunction (lua_State *LS)
     lua_pushnil(LS);
     lua_obj_program( LS, NULL, RUNDELAY_VNUM, NULL,
                 check_OBJ(LS, -3), NULL,
-                NULL, NULL,
+                NULL, NULL, NULL,
                 TRIG_CALL, 0 );
     return 0;
 }
@@ -5328,7 +5328,7 @@ static int OBJ_loadscript (lua_State *LS)
     /* now run the result as a regular oprog with vnum 0*/
 
     lua_pushboolean( LS,
-            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, -1, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 
@@ -5338,7 +5338,7 @@ static int OBJ_loadstring (lua_State *LS)
 {
     OBJ_DATA *ud_obj=check_OBJ(LS,1);
     lua_pushboolean( LS,
-            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, LOADSCRIPT_VNUM, check_string( LS, 2, MAX_SCRIPT_LENGTH), ud_obj, NULL, NULL, NULL, NULL, OTRIG_CALL, 0) );
     return 1;
 }
 
@@ -5355,7 +5355,7 @@ static int OBJ_loadprog (lua_State *LS)
     }
 
     lua_pushboolean( LS,
-            lua_obj_program( LS, NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, OTRIG_CALL, 0) );
+            lua_obj_program( LS, NULL, num, pOcode->code, ud_obj, NULL, NULL, NULL, NULL, OTRIG_CALL, 0) );
 
     return 1;
 }
