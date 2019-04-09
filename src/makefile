@@ -8,6 +8,15 @@ MKTIME	:= \""$(shell date)"\"
 BRANCH	:= \""$(shell hg branch)"\"
 PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
 
+# Any flags that need to be different on different platforms should be set here
+# Default values should work for the main server and can be overriden from the environment in other cases as needed.
+ifndef ARC_C_FLAGS
+	ARC_C_FLAGS =
+endif
+ifndef ARC_L_FLAGS
+	ARC_L_FLAGS = -llua
+endif
+
 
 MODE_FLAGS =
 
@@ -29,13 +38,14 @@ CPP_WARN = $(BASE_WARN) \
 	-Woverloaded-virtual -Wredundant-decls -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 \
 	-Wswitch-default -Weffc++ -Werror
 
+
 I_FLAGS_CPP = -I../3rdparty/rapidjson/include
 
-C_FLAGS_BASE = -ggdb -rdynamic $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+C_FLAGS_BASE = -ggdb -rdynamic $(PROF) $(ARC_C_FLAGS) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
 C_FLAGS_C = $(C_FLAGS_BASE) $(C_WARN) $(MODE_FLAGS)
 C_FLAGS_CPP = $(C_FLAGS_BASE) $(CPP_WARN) $(I_FLAGS_CPP) $(MODE_FLAGS) -std=c++11
 
-L_FLAGS =  $(PROF) -lstdc++ -llua -ldl -lcrypt -lm -lsqlite3
+L_FLAGS =  $(PROF) -lstdc++ -ldl -lcrypt -lm -lsqlite3 $(ARC_L_FLAGS)
 
 SRC_FILES_C := $(wildcard *.c) 
 O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES_C))
@@ -64,11 +74,6 @@ builder: aeaea
 .PHONY: remort
 remort: MODE_FLAGS += -DREMORT 
 remort: aeaea
-
-.PHONY: osx
-osx: C_FLAGS_BASE = -I/usr/local/include -I/usr/local/Cellar/lua51/5.1.5_1/include/lua-5.1 -ggdb -w
-osx: L_FLAGS = -L/usr/local/lib -ldl -llua5.1
-osx: aeaea
 
 .PHONY: db_dump
 db_dump: MODE_FLAGS += -DDB_DUMP
@@ -113,7 +118,7 @@ LIVE_SRCS_C := $(wildcard $(TESTS_DIR)/LIVE_*.c)
 LIVE_OBJS_C := $(patsubst $(TESTS_DIR)/%.c,$(OBJ_DIR)/%.o,$(LIVE_SRCS_C))
 livetest_OBJS := $(OBJ_DIR)/CuTest.o $(OBJ_DIR)/LiveTests.o $(LIVE_OBJS_C) $(aeaea_OBJS)
 
-# Compile live tests. The binary needs to be run rom area directory as with normal startup
+# Compile live tests. The binary needs to be run from area directory as with normal startup
 .PHONY: livetest
 livetest: $(BIN_DIR)/aeaea_livetest
 $(BIN_DIR)/aeaea_livetest: MODE_FLAGS += -DLIVETEST
