@@ -47,7 +47,6 @@ def main():
 		sys.exit(1)
 
 	db_path = os.getenv("AEAEA_DB_PATH")
-	print(db_path)
 	if db_path is None or db_path == "":
 		db_path = "/home/m256ada/website_support/data/aeaea_db.sqlite3"
 
