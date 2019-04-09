@@ -165,25 +165,26 @@ void DbMgr::Cleanup(sqlite3 *db)
 
 static DbMgr sDbMgr;
 
-DbMgr::tblid_t ID_areas;
-DbMgr::tblid_t ID_area_flags;
-DbMgr::tblid_t ID_mobs;
-DbMgr::tblid_t ID_objs;
-DbMgr::tblid_t ID_rooms;
-DbMgr::tblid_t ID_room_flags;
-DbMgr::tblid_t ID_exits;
-DbMgr::tblid_t ID_exit_flags;
-DbMgr::tblid_t ID_resets;
-DbMgr::tblid_t ID_players;
-DbMgr::tblid_t ID_player_skills;
-DbMgr::tblid_t ID_player_masteries;
-DbMgr::tblid_t ID_player_objs;
-DbMgr::tblid_t ID_player_aliases;
-DbMgr::tblid_t ID_player_qstats;
-DbMgr::tblid_t ID_player_tattoos;
-DbMgr::tblid_t ID_player_crimes;
-DbMgr::tblid_t ID_player_stats;
-DbMgr::tblid_t ID_player_invites;
+static DbMgr::tblid_t ID_areas;
+static DbMgr::tblid_t ID_area_flags;
+static DbMgr::tblid_t ID_mobs;
+static DbMgr::tblid_t ID_objs;
+static DbMgr::tblid_t ID_rooms;
+static DbMgr::tblid_t ID_room_flags;
+static DbMgr::tblid_t ID_exits;
+static DbMgr::tblid_t ID_exit_flags;
+static DbMgr::tblid_t ID_resets;
+static DbMgr::tblid_t ID_players;
+static DbMgr::tblid_t ID_player_skills;
+static DbMgr::tblid_t ID_player_masteries;
+static DbMgr::tblid_t ID_player_objs;
+static DbMgr::tblid_t ID_player_aliases;
+static DbMgr::tblid_t ID_player_qstats;
+static DbMgr::tblid_t ID_player_tattoos;
+static DbMgr::tblid_t ID_player_crimes;
+static DbMgr::tblid_t ID_player_stats;
+static DbMgr::tblid_t ID_player_invites;
+static DbMgr::tblid_t ID_box_objs;
 
 
 static void create_tables(sqlite3 *db)
@@ -422,6 +423,23 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddConstraint(id, "FOREIGN KEY(player_name) REFERENCES players(name)");
 
         ID_player_objs = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("box_objs");
+        sDbMgr.AddCol(id, "player_name", "TEXT");
+        sDbMgr.AddCol(id, "box_num", "INTEGER");
+        sDbMgr.AddCol(id, "vnum",  "INTEGER");
+        sDbMgr.AddCol(id, "owner",  "TEXT");
+        sDbMgr.AddCol(id, "name",  "TEXT");
+        sDbMgr.AddCol(id, "short_descr",  "TEXT");
+        sDbMgr.AddCol(id, "description",  "TEXT");
+        sDbMgr.AddCol(id, "material",  "TEXT");
+        sDbMgr.AddCol(id, "level",  "INTEGER");
+        sDbMgr.AddConstraint(id, "FOREIGN KEY(vnum) REFERENCES objs(vnum)");
+        sDbMgr.AddConstraint(id, "FOREIGN KEY(player_name) REFERENCES players(name)");
+
+        ID_box_objs = id;
     }
 
     {
@@ -810,6 +828,79 @@ static void dump_player_objs(sqlite3 *db, CHAR_DATA *ch, OBJ_DATA *head)
 
 }
 
+static void dump_box_contents(sqlite3 *db, CHAR_DATA *ch, int box_num, OBJ_DATA *contents)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_box_objs);
+
+    for ( OBJ_DATA *obj = contents; obj; obj = obj->next_content )
+    {
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":player_name", ch->name);
+        BINT(st, ":box_num", box_num);
+        BINT( st, ":vnum", obj->pIndexData->vnum);
+        if (obj->owner)
+        {
+            BTEXT(st, ":owner", obj->owner);
+        }
+        if (obj->name != obj->pIndexData->name)
+        {
+            BTEXT(st, ":name", obj->name);
+        }
+        if (obj->short_descr != obj->pIndexData->short_descr)
+        {
+            BTEXT(st, ":short_descr", obj->short_descr);
+        }
+        if (obj->description != obj->pIndexData->description)
+        {
+            BTEXT(st, ":description", obj->description);
+        }
+        if (obj->material != obj->pIndexData->material)
+        {
+            BTEXT(st, ":material", obj->material);
+        }
+        // TODO: extra flags
+
+        if (obj->level != obj->pIndexData->level)
+        {
+            BINT(st, ":level", obj->level);
+        }
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+        if (obj->contains)
+        {
+            dump_box_contents(db, ch, box_num, obj->contains);
+        }
+    }
+}
+
+static void dump_player_boxes(sqlite3 *db, CHAR_DATA *ch)
+{
+    if (ch->pcdata->storage_boxes < 1)
+    {
+        return;
+    }
+
+    char filepath[MAX_INPUT_LENGTH];
+    snprintf(filepath, sizeof(filepath), "%s%s_box", BOX_DIR, capitalize(ch->name));
+
+    struct stat buffer;
+    if (0 != ::stat(filepath, &buffer))
+    {
+        // No box file
+        return;
+    }
+    ASSERT( true == load_storage_boxes(ch) );
+
+    for (int i = 0; i < ch->pcdata->storage_boxes; ++i)
+    {
+        ASSERT( NULL != ch->pcdata->box_data[i] );
+        dump_box_contents(db, ch, i, ch->pcdata->box_data[i]->contains);
+    }
+}
+
 static void dump_player(sqlite3 *db, CHAR_DATA *ch)
 {
     sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_players);
@@ -1061,6 +1152,7 @@ static void dump_players(sqlite3 *db)
         dump_player_skills(db, desc->character);
         dump_player_masteries(db, desc->character);
         dump_player_objs(db, desc->character, desc->character->carrying);
+        dump_player_boxes(db, desc->character);
         dump_player_aliases(db, desc->character);
         dump_player_qstats(db, desc->character);
         dump_player_tattoos(db, desc->character);
