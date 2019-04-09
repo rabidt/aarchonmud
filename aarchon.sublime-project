@@ -3,7 +3,8 @@
 	[
 		{
 			"path": ".",
-            "folder_exclude_patterns": ["bin", "data", "doc", "obj"]
+            "folder_exclude_patterns": ["bin", "data", "doc", "obj"],
+            "file_exclude_patterns": ["src/.tags", "src/tags", "src/cscope.in.out", "src/cscope.out", "src/cscope.po.out"]
 		}
 	],
     "build_systems":
