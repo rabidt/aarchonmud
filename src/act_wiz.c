@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -3447,4 +3448,123 @@ DEF_DO_FUN( do_pgrep )
     cbd->output = new_buf();
 
     start_con_cb( ch->desc, pgrep_cb, cbd, true, pgrep_cleanup, NULL ); 
+}
+
+typedef struct
+{
+    int pulse_cnt;
+    FILE *fp;
+    BUFFER *output;
+} FINDQEQ_CB_DATA;
+
+static void findqeq_cleanup( void *cb_data )
+{
+    FINDQEQ_CB_DATA *cbd = cb_data;
+
+    pclose( cbd->fp );
+
+    free_buf( cbd->output );
+    free( cbd );
+}
+
+static bool findqeq_cb( DESCRIPTOR_DATA *desc, void *cb_data, const char *argument )
+{
+    FINDQEQ_CB_DATA *cbd = cb_data;
+
+    cbd->pulse_cnt++;
+
+    if ( !argument )
+    {
+        // Keep reading
+        char buf[MSL];
+        int fd = fileno( cbd->fp );
+
+        ssize_t r = read( fd, buf, MSL - 1 );
+        if ( r == -1 && errno == EAGAIN )
+        {
+            // no data available
+            return false;
+        }
+        else if ( r > 0 )
+        {
+            buf[r] = '\0'; /* not sure if necessary? */
+            add_buf( cbd->output, buf );
+            return false;
+        }
+        else
+        {
+            // Output is done
+            addf_buf( cbd->output, "\n\rTook %d pulses.\n\r", cbd->pulse_cnt );
+            if ( !desc->character )
+            {
+                bugf( "%s: NULL desc->character", __func__ );
+            }
+            else
+            {
+                page_to_char( buf_string(cbd->output), desc->character );
+            }
+
+            return true;
+        }
+    } // if (!argument)
+    else if ( !strcmp( argument, "cancel" ) )
+    {
+        return true;
+    }
+    else
+    {
+        send_to_char( "Waiting for findqeq results. Type 'cancel' to abort.\n\r", desc->character );
+        return false;
+    }
+
+    // should not be reachable
+    return false;
+}
+
+DEF_DO_FUN( do_findqeq )
+{
+    char buf[MSL];
+
+    if ( IS_NPC(ch) )
+        return;
+
+    if ( !ch->desc )
+    {
+        bugf( "%s: NULL ch->desc", __func__ );
+        return;
+    }
+
+    if ( argument[0] == '\0' )
+    {
+        send_to_char( " findqeq <player name> -- Search all players and boxes for the given player's quest eq\n\r", ch );
+        return;
+    }
+
+    // Make sure no funny shell injection...should just be alpha chars
+    const char *pC;
+    for (pC = argument; *pC != 0; ++pC)
+    {
+        if ( !isalpha(*pC) )
+        {
+            send_to_char("Player name argument must have only alphabetic characters.\n\r", ch);
+            return;
+        }
+    }
+
+    snprintf( buf, sizeof(buf), "../../tools/find_qeq.py %s", argument );
+
+    /* http://stackoverflow.com/questions/1735781/non-blocking-pipe-using-popen */
+    FILE *fp = popen( buf, "r" );
+    int fd = fileno( fp );
+    int flags = fcntl( fd, F_GETFL, 0 );
+    fcntl( fd, F_SETFL, flags | O_NONBLOCK );
+
+    send_to_char( "Waiting for findqeq results. Type 'cancel' to abort.\n\r", ch );
+
+    FINDQEQ_CB_DATA *cbd = malloc(sizeof(*cbd));
+    cbd->pulse_cnt = 0;
+    cbd->fp = fp;
+    cbd->output = new_buf();
+
+    start_con_cb( ch->desc, findqeq_cb, cbd, true, findqeq_cleanup, NULL );
 }
