@@ -3551,7 +3551,7 @@ DEF_DO_FUN( do_findqeq )
         }
     }
 
-    snprintf( buf, sizeof(buf), "../../tools/find_qeq.py %s", argument );
+    snprintf( buf, sizeof(buf), "../../tools/find_qeq.py %s 2>&1", argument );
 
     /* http://stackoverflow.com/questions/1735781/non-blocking-pipe-using-popen */
     FILE *fp = popen( buf, "r" );
