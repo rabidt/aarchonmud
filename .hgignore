@@ -11,6 +11,7 @@ syntax: regexp
 
 # ctags tags file
 ^src/tags
+^src/.tags
 
 # cscope database files
 cscope\.in\.out$
