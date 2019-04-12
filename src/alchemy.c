@@ -85,7 +85,10 @@ void reset_herbs( ROOM_INDEX_DATA *room )
     OBJ_DATA *herb;
 
     if ( room == NULL || IS_SET(room->room_flags, ROOM_BARREN))
-	return;
+    {
+      PERF_PROF_EXIT( pr_ );
+      return;
+    }
 
     for ( i = 0; herb_table[i].vnum != 0; i++ )
     {

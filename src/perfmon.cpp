@@ -306,6 +306,7 @@ public:
         , mTotal( )
         , mMax( )
         , mPulseEnterCount( 0 )
+        , mPulseExitCount( 0 )
         , mTotalEnterCount( 0 )
     {
         timerclear(&mLastEnterTime);
@@ -327,6 +328,7 @@ public:
     struct timeval const & GetMax() { return mMax; }
 
     unsigned long int GetPulseEnterCount() { return mPulseEnterCount; }
+    unsigned long int GetPulseExitCount() { return mPulseExitCount; }
     unsigned long int GetTotalEnterCount() { return mTotalEnterCount; }
 
 private:
@@ -340,6 +342,7 @@ private:
     struct timeval mTotal;
     struct timeval mMax;
     unsigned long int mPulseEnterCount;
+    unsigned long int mPulseExitCount;
     unsigned long int mTotalEnterCount;
 };
 
@@ -354,19 +357,19 @@ public:
 
     PERF_prof_sect *NewSection(const char *id);
     void ResetAll();
-    size_t ReprPulse( char *out_buf, size_t n ) { return ReprBase( out_buf, n, false, nullptr ); }
-    size_t ReprTotal( char *out_buf, size_t n ) { return ReprBase( out_buf, n, true,  nullptr ); }
-    size_t ReprSect( char *out_buf, size_t n, const char *id );
+    size_t ReprPulse( char *out_buf, size_t n ) const { return ReprBase( out_buf, n, false, nullptr ); }
+    size_t ReprTotal( char *out_buf, size_t n ) const { return ReprBase( out_buf, n, true,  nullptr ); }
+    size_t ReprSect( char *out_buf, size_t n, const char *id ) const;
 
 private:
-    size_t ReprBase( char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect );
-    void SectOutput( std::ostream &os, PERF_prof_sect *sect, bool isTotal);
+    size_t ReprBase( char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect ) const;
+    void SectOutput( std::ostream &os, PERF_prof_sect *sect, bool isTotal) const;
 
     std::map<std::string, PERF_prof_sect *> mSections;
 };
 
 size_t
-PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id)
+PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id) const
 {
     if (!out_buf)
     {
@@ -378,7 +381,7 @@ PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id)
         return 0;
     }
 
-    auto it = mSections.find(id);
+    auto &&it = mSections.find(id);
     if (it == mSections.end())
     {
         std::ostringstream os;
@@ -396,7 +399,7 @@ PerfProfMgr::ReprSect(char *out_buf, size_t n, const char *id)
 }
 
 void
-PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal)
+PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal) const
 {
     unsigned long int enterCount;
     long int usecTotal;
@@ -424,8 +427,12 @@ PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal)
     os << std::left 
        << std::setw(20) << sect->GetId() << "|" 
        << std::right 
-       << std::setw(12) << enterCount << "|"
-       << std::setw(12) << usecTotal << "|";
+       << std::setw(12) << enterCount << "|";
+    if (!isTotal)
+    {
+       os << std::setw(12) << sect->GetPulseExitCount() << "|";
+    }
+    os << std::setw(12) << usecTotal << "|";
 
     if (isTotal)
     {
@@ -442,7 +449,7 @@ PerfProfMgr::SectOutput(std::ostream &os, PERF_prof_sect *sect, bool isTotal)
 }
 
 size_t
-PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect)
+PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sect) const
 {
     if (!out_buf)
     {
@@ -470,8 +477,12 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sec
        << std::left 
        << std::setw(20) << "Section name" << "|"
        << std::right 
-       << std::setw(12) << "Enter Count" << "|"
-       << std::setw(12) << "usec total" << "|";
+       << std::setw(12) << "Enter Count" << "|";
+    if (!isTotal)
+    {
+        os << std::setw(12) << "Exit Count" << "|";
+    }
+    os << std::setw(12) << "usec total" << "|";
 
     if (isTotal)
     {
@@ -491,7 +502,7 @@ PerfProfMgr::ReprBase(char *out_buf, size_t n, bool isTotal, PERF_prof_sect *sec
     }
     else
     {
-        for ( auto entry : this->mSections )
+        for ( auto &&entry : this->mSections )
         {
             SectOutput(os, entry.second, isTotal);
         }
@@ -516,7 +527,7 @@ PerfProfMgr::NewSection(const char *id)
 void
 PerfProfMgr::ResetAll()
 {
-    for ( auto &entry : this->mSections )
+    for ( auto &&entry : this->mSections )
     {
         entry.second->PulseReset();
     }
@@ -526,6 +537,7 @@ void
 PERF_prof_sect::PulseReset()
 {
     mPulseEnterCount = 0;
+    mPulseExitCount = 0;
     timerclear( &mPulseTotal );
     timerclear( &mPulseMax );
 }
@@ -541,6 +553,7 @@ PERF_prof_sect::Enter()
 void
 PERF_prof_sect::Exit()
 {
+    ++mPulseExitCount;
     struct timeval now;
     struct timeval diff;
     gettimeofday(&now, NULL);
