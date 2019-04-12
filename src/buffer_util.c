@@ -203,18 +203,21 @@ MEMFILE *memfile_new( char *filename, int min_size )
  */
 void memfile_free(MEMFILE *mf)
 {
+  PERF_PROF_ENTER(pr_, "memfile_free");
 #if defined(SIM_DEBUG)
    log_string("memfile_free: start");
 #endif
   if (mf == NULL)
   {
     bug("memfile_free: NULL pointer given", 0);
+    PERF_PROF_EXIT( pr_ );
     return;
   }
   if (mf->buf == NULL)
   {
     bug("memfile_free: no buffer allocated", 0);
     free_mem(mf, sizeof(MEMFILE));
+    PERF_PROF_EXIT( pr_ );
     return;
   }
   buffer_free(mf->buf);
@@ -222,6 +225,7 @@ void memfile_free(MEMFILE *mf)
 #if defined(SIM_DEBUG)
    log_string("memfile_free: done");
 #endif
+   PERF_PROF_EXIT( pr_ );
 }
 
 /* wrap a DBUFFER with a MEMFILE
@@ -341,6 +345,7 @@ bool write_buffer_to_file( DBUFFER *buf, FILE *fp )
  */
 bool save_to_dir( MEMFILE *mf, char *dir )
 {
+  PERF_PROF_ENTER( pr_, "save_to_dir" );
   char strsave[MAX_INPUT_LENGTH];
   char bug_buf1[MSL];
   bool success;
@@ -352,6 +357,7 @@ bool save_to_dir( MEMFILE *mf, char *dir )
   if (mf == NULL || dir == NULL)
   {
     bug("save_to_dir: NULL pointer given", 0);
+    PERF_PROF_EXIT( pr_ );
     return FALSE;
   }
 
@@ -360,6 +366,7 @@ bool save_to_dir( MEMFILE *mf, char *dir )
   {
     snprintf( bug_buf1, sizeof(bug_buf1), "save_to_dir: couldn't open %s", strsave);
     bug(bug_buf1, 0);
+    PERF_PROF_EXIT( pr_ );
     return FALSE;
   }
 
@@ -374,6 +381,7 @@ bool save_to_dir( MEMFILE *mf, char *dir )
 #if defined(SIM_DEBUG)
    log_string("save_to_dir: done");
 #endif
+  PERF_PROF_EXIT( pr_ );
   return success;
 }
 
