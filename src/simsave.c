@@ -158,6 +158,7 @@ void handle_player_save( void )
 #if defined(SIM_DEBUG)
   log_string("handle_player_save: done");
 #endif
+  PERF_PROF_EXIT( pr_ );
 }
 
 /* do an immediate save for all players
@@ -696,6 +697,7 @@ void mem_sim_save_other( void )
     if ( other_save_list != NULL )
     {
 	bug( "mem_sim_save_other: other_save_list != NULL", 0 );
+  PERF_PROF_EXIT(pr_);
 	return;
     }
 
@@ -735,6 +737,7 @@ void mem_sim_save_other( void )
 #if defined(SIM_DEBUG)
    log_string("mem_sim_save_other: done");
 #endif
+   PERF_PROF_EXIT(pr_);
 }
 
 /* save files in other_save_list to disk */
