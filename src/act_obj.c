@@ -4604,6 +4604,11 @@ DEF_DO_FUN(do_second)
         act( "You sheath $p.", ch, second, NULL, TO_CHAR );
     }
 
+    if ( !op_percent_trigger( arg, obj, NULL, ch, NULL, OTRIG_WEAR) )
+    {
+        return;
+    }
+
     act_gag ("$n wields $p in $s off-hand.",ch,obj,NULL,TO_ROOM,GAG_EQUIP);
     act ("You wield $p in your off-hand.",ch,obj,NULL,TO_CHAR);
     equip_char ( ch, obj, WEAR_SECONDARY);
