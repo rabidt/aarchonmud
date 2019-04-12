@@ -2,8 +2,8 @@ VPATH = ../../src
 CC      = gcc
 PROF    = -I$(AARCHON_INC) -L$(AARCHON_LIB) -O2
 
-C_FLAGS =  -ggdb -rdynamic -m32 -Wall $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
-L_FLAGS =  $(PROF) -m32
+C_FLAGS =  -ggdb -rdynamic -Wall $(PROF) -DMKTIME=$(MKTIME) -DBRANCH=$(BRANCH) -DPARENT=$(PARENT)
+L_FLAGS =  $(PROF) -lstdc++
 
 O_FILES := iotest.o perfmon.o
 

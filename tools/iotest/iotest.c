@@ -16,32 +16,33 @@ int main()
 
     while (1)
     {
-        iter++;
-        struct PERF_meas_s *ms_main;
-        struct PERF_meas_s *ms_writes;
+        PERF_PROF_ENTER( _ms_main, "main");
         
         gettimeofday(&start_time, NULL);
         
-        PERF_meas_reset();
+        PERF_prof_reset();
 
-        PERF_meas_start(&ms_main, "main");
-        PERF_MEASURE(fopen,
-                fp = fopen("dummy.txt", "w"););
+        PERF_PROF_ENTER( _ms_fopen, "fopen" );
+        fp = fopen("dummy.txt", "w");
+        PERF_PROF_EXIT( _ms_fopen );
 
-        PERF_meas_start(&ms_writes, "writes");
+        PERF_PROF_ENTER( _ms_writes, "writes");
         int i;
         for (i=0; i < 500; i++)
         {
             fprintf(fp, line);
         }
-        PERF_meas_end(&ms_writes);
-        PERF_MEASURE(fclose,
-                fclose(fp););
+        PERF_PROF_EXIT( _ms_writes );
 
-        PERF_MEASURE(echo1,
-                system("echo HELLO > /dev/null"););
+        PERF_PROF_ENTER( _ms_fclose, "fclose" );
+        fclose(fp);
+        PERF_PROF_EXIT( _ms_fclose );
+
+        PERF_PROF_ENTER( _ms_echo1, "echo1");
+        system("echo HELLO > /dev/null");
+        PERF_PROF_EXIT( _ms_echo1 );
         
-        PERF_meas_end(&ms_main); 
+        PERF_PROF_EXIT( _ms_main );
         gettimeofday(&end_time, NULL);
 
         long elapsed = (end_time.tv_sec  - start_time.tv_sec)*1000000 +
@@ -54,8 +55,10 @@ int main()
             printf("--------------------------------------------------\n");
             printf("Iteration %ld\n", iter);
             printf("Elapsed: %ld\n", elapsed);
-            printf(PERF_meas_repr());
-            printf(PERF_repr());
+
+            char buf[2048];
+            PERF_repr( buf, sizeof(buf) );
+            printf(buf);
             fflush(stdout);
         }
         struct timeval stall_time;
