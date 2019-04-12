@@ -88,22 +88,25 @@ void handle_player_save( void )
     /* char might have deleted => player_save_list is empty */
     if (player_save_list != NULL)
     {
-	mf = player_save_list;
-	player_save_list = player_save_list->next;
+        mf = player_save_list;
+        player_save_list = player_save_list->next;
 
-	if (!save_to_dir( mf, PLAYER_TEMP_DIR ))
-	{
-	    bugf( "handle_player_save: couldn't save %s, exit to avoid corruption",
-		  mf->filename );
-	    /* we don't want corrupt player files */
-	    exit(1);
-	}
+        PERF_PROF_ENTER( pr_ts_dir_, "hps_temp_dir" );
+        if (!save_to_dir( mf, PLAYER_TEMP_DIR ))
+        {
+            bugf( "handle_player_save: couldn't save %s, exit to avoid corruption",
+                mf->filename );
+            /* we don't want corrupt player files */
+            exit(1);
+        }
+        PERF_PROF_EXIT( pr_ts_dir_ );
        
        /* See if corresponding box in box_mf_list */
        snprintf( buf, sizeof(buf), "%s_box", mf->filename);
        if ( (box_mf = memfile_from_list(buf,box_mf_list)) )
        {
-	   boxtemp = TRUE;
+           boxtemp = TRUE;
+           PERF_PROF_ENTER( pr_ts_box_, "hps_temp_box" );
            if (!save_to_dir(box_mf, BOX_TEMP_DIR))
            {
                bugf( "handle_player_save: couldn't save %s's box (%s), exit to avoid corruption",
@@ -111,6 +114,7 @@ void handle_player_save( void )
             /* we don't want corrupt box files */
                exit(1);
            }
+           PERF_PROF_EXIT( pr_ts_box_ );
 
            remove_from_box_list(box_mf->filename);
        }
@@ -124,19 +128,25 @@ void handle_player_save( void )
   case SAVE_STATE_TEMPCOPY:
     snprintf( command, sizeof(command), "mv %s* %s", PLAYER_TEMP_DIR, PLAYER_DIR);
 
+    PERF_PROF_ENTER( pr_tc1_, "hps_temp_copy" );
     if ( system(command) == -1 )
     {
         bugf("handle_player_save: failed to execute command '%s'", command);
         exit(1);
     }
+    PERF_PROF_EXIT( pr_tc1_ );
+
     if (boxtemp)
     {
       snprintf( command, sizeof(command), "mv %s* %s", BOX_TEMP_DIR, BOX_DIR);
+
+      PERF_PROF_ENTER( pr_tc2_, "hps_temp_copy_box" );
       if ( system(command) == -1 )
       {
           bugf("handle_player_save: failed to execute command '%s'", command);
           exit(1);
       }
+      PERF_PROF_EXIT( pr_tc2_ );
       boxtemp=FALSE;
     }
 
@@ -743,6 +753,7 @@ void mem_sim_save_other( void )
 /* save files in other_save_list to disk */
 void sim_save_other( void )
 {
+    PERF_PROF_ENTER( pr_, "sim_save_other" );
     MEMFILE *mf;
 
 #if defined(SIM_DEBUG)
@@ -759,6 +770,7 @@ void sim_save_other( void )
 #if defined(SIM_DEBUG)
    log_string("sim_save_other: done");
 #endif
+   PERF_PROF_EXIT( pr_ );
 }
 
 int unlink_pfile( const char *filename )
