@@ -320,6 +320,7 @@ static void create_tables(sqlite3 *db)
     {
         DbMgr::tblid_t id = sDbMgr.NewTbl("players");
         sDbMgr.AddCol(id, "name", "TEXT PRIMARY KEY");
+        sDbMgr.AddCol(id, "pwd", "TEXT");
         sDbMgr.AddCol(id, "level", "INTEGER");
         sDbMgr.AddCol(id, "sex", "TEXT");
         sDbMgr.AddCol(id, "class", "TEXT");
@@ -909,6 +910,7 @@ static void dump_player(sqlite3 *db, CHAR_DATA *ch)
     ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
 
     BTEXT(st, ":name", ch->name);
+    BTEXT(st, ":pwd", ch->pcdata->pwd);
     BINT( st, ":level", ch->level);
     BTEXT(st, ":sex", sex_table[ch->sex].name);
     BTEXT(st, ":class", class_table[ch->clss].name);
