@@ -295,6 +295,7 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddCol(id, "area_vnum", "INTEGER");
         sDbMgr.AddCol(id, "vnum", "INTEGER PRIMARY KEY");
         sDbMgr.AddCol(id, "player_name", "TEXT");
+        sDbMgr.AddCol(id, "level", "INTEGER");
         sDbMgr.AddCol(id, "short_descr", "TEXT");
         sDbMgr.AddCol(id, "long_descr", "TEXT");
         sDbMgr.AddCol(id, "description", "TEXT");
@@ -573,6 +574,7 @@ static void dump_mobs(sqlite3 *db)
             BINT( st, ":area_vnum", pMob->area->vnum);
             BINT( st, ":vnum", pMob->vnum);
             BTEXT(st, ":player_name", pMob->player_name);
+            BINT( st, ":level", pMob->level);
             BTEXT(st, ":short_descr", pMob->short_descr);
             BTEXT(st, ":long_descr", pMob->long_descr);
             BTEXT(st, ":description", pMob->description);
