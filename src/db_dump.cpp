@@ -44,7 +44,7 @@ extern "C" { extern int fingertime; }
     } while (0)
 
 
-const char *cDbPath = "aeaea_db.sqlite3";
+const char * const cDbPath = "aeaea_db.sqlite3";
 
 
 
@@ -185,6 +185,7 @@ static DbMgr::tblid_t ID_player_crimes;
 static DbMgr::tblid_t ID_player_stats;
 static DbMgr::tblid_t ID_player_invites;
 static DbMgr::tblid_t ID_box_objs;
+static DbMgr::tblid_t ID_notes;
 
 
 static void create_tables(sqlite3 *db)
@@ -514,6 +515,20 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddConstraint(id, "FOREIGN KEY(player_name) REFERENCES players(name)");
         
         ID_player_invites = id;   
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("notes");
+        sDbMgr.AddCol(id, "board", "TEXT");
+        sDbMgr.AddCol(id, "sender", "TEXT");
+        sDbMgr.AddCol(id, "date", "TEXT");
+        sDbMgr.AddCol(id, "to_list", "TEXT");
+        sDbMgr.AddCol(id, "subject", "TEXT");
+	sDbMgr.AddCol(id, "text", "TEXT");
+        sDbMgr.AddCol(id, "date_stamp", "INTEGER");
+        sDbMgr.AddCol(id, "expire", "INTEGER");
+
+        ID_notes = id;
     }
 }
 
@@ -1172,6 +1187,31 @@ static void dump_players(sqlite3 *db)
     ::closedir(dir);
 }
 
+static void dump_notes(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_notes);
+
+    for (int i = 0; i < MAX_BOARD; ++i)
+    {
+        for (NOTE_DATA *note = boards[i].note_first; note; note = note->next)
+        {
+            ASSERT( SQLITE_OK == sqlite3_reset(st));
+            ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+            BTEXT(st, ":board", boards[i].short_name);
+            BTEXT(st, ":sender", note->sender);
+            BTEXT(st, ":date", note->date);
+            BTEXT(st, ":to_list", note->to_list);
+            BTEXT(st, ":subject", note->subject);
+            BTEXT(st, ":text", note->text);
+            BINT (st, ":date_stamp", note->date_stamp);
+            BINT (st, ":expire", note->expire);
+
+            ASSERT( SQLITE_DONE == sqlite3_step(st) );
+        }
+    }
+}
+
 void db_dump_main( void )
 {
     sqlite3 *db;
@@ -1196,6 +1236,7 @@ void db_dump_main( void )
     dump_mobs(db);
     dump_objs(db);
     dump_players(db);
+    dump_notes(db);
 
     ASSERT( SQLITE_OK == sqlite3_exec(db, "END TRANSACTION;", 0, 0, &zErrMsg));
 
