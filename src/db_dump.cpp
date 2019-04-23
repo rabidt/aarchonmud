@@ -8,8 +8,10 @@
 #include <sqlite3.h>
 
 extern "C" {
+#include <lauxlib.h>
 #include "merc.h"
 #include "db.h"
+#include "lua_main.h"
 }
 
 extern "C" void db_dump_main( void );
@@ -186,6 +188,7 @@ static DbMgr::tblid_t ID_player_stats;
 static DbMgr::tblid_t ID_player_invites;
 static DbMgr::tblid_t ID_box_objs;
 static DbMgr::tblid_t ID_notes;
+static DbMgr::tblid_t ID_changelog;
 
 
 static void create_tables(sqlite3 *db)
@@ -524,11 +527,20 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddCol(id, "date", "TEXT");
         sDbMgr.AddCol(id, "to_list", "TEXT");
         sDbMgr.AddCol(id, "subject", "TEXT");
-	sDbMgr.AddCol(id, "text", "TEXT");
+        sDbMgr.AddCol(id, "text", "TEXT");
         sDbMgr.AddCol(id, "date_stamp", "INTEGER");
         sDbMgr.AddCol(id, "expire", "INTEGER");
 
         ID_notes = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("changelog");
+        sDbMgr.AddCol(id, "date", "INTEGER");
+        sDbMgr.AddCol(id, "author", "TEXT");
+        sDbMgr.AddCol(id, "desc", "TEXT");
+
+        ID_changelog = id;
     }
 }
 
@@ -1212,6 +1224,44 @@ static void dump_notes(sqlite3 *db)
     }
 }
 
+static void dump_changelog(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_changelog);
+
+    lua_State *LS = g_mud_LS;
+
+    lua_getglobal(LS, "changelog_table");
+
+    for (int i = 1; ; ++i)
+    {
+        lua_rawgeti(LS, -1, i);
+        if (lua_isnil(LS, -1))
+        {
+            lua_pop(LS, 1);
+            break;
+        }
+
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        lua_getfield(LS, -1, "date");
+        BINT(st, ":date", luaL_checkinteger(LS, -1));
+        lua_pop(LS, 1);
+
+        lua_getfield(LS, -1, "author");
+        BTEXT(st, ":author", luaL_checkstring(LS, -1));
+        lua_pop(LS, 1);
+
+        lua_getfield(LS, -1, "desc");
+        BTEXT(st, ":desc", luaL_checkstring(LS, -1));
+        lua_pop(LS, 1);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+        lua_pop(LS, 1);
+    }
+}
+
 void db_dump_main( void )
 {
     sqlite3 *db;
@@ -1237,6 +1287,7 @@ void db_dump_main( void )
     dump_objs(db);
     dump_players(db);
     dump_notes(db);
+    dump_changelog(db);
 
     ASSERT( SQLITE_OK == sqlite3_exec(db, "END TRANSACTION;", 0, 0, &zErrMsg));
 
