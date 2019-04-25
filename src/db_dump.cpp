@@ -1092,6 +1092,19 @@ static void dump_player_crimes(sqlite3 *db, CHAR_DATA *ch)
 
 static void dump_player_stats(sqlite3 *db, CHAR_DATA *ch)
 {
+    sh_int curr_stat[MAX_STATS];
+
+    curr_stat[STAT_STR] = get_curr_stat(ch, STAT_STR);
+    curr_stat[STAT_CON] = get_curr_stat(ch, STAT_CON);
+    curr_stat[STAT_VIT] = get_curr_stat(ch, STAT_VIT);
+    curr_stat[STAT_AGI] = get_curr_stat(ch, STAT_AGI);
+    curr_stat[STAT_DEX] = get_curr_stat(ch, STAT_DEX);
+    curr_stat[STAT_INT] = get_curr_stat(ch, STAT_INT);
+    curr_stat[STAT_WIS] = get_curr_stat(ch, STAT_WIS);
+    curr_stat[STAT_DIS] = get_curr_stat(ch, STAT_DIS);
+    curr_stat[STAT_CHA] = get_curr_stat(ch, STAT_CHA);
+    curr_stat[STAT_LUC] = get_curr_stat(ch, STAT_LUC);
+
     struct
     {
         const char *typeName;
@@ -1101,7 +1114,8 @@ static void dump_player_stats(sqlite3 *db, CHAR_DATA *ch)
         { "perm_stat", ch->perm_stat },
         { "mod_stat", ch->mod_stat },
         { "original_stats", ch->pcdata->original_stats },
-        { "history_stats", ch->pcdata->history_stats }
+        { "history_stats", ch->pcdata->history_stats },
+        { "curr_stat", curr_stat }
     };
 
     sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_player_stats);
@@ -1127,6 +1141,7 @@ static void dump_player_stats(sqlite3 *db, CHAR_DATA *ch)
         BINT( st, ":luc", stats[STAT_LUC]);
 
         ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
     }
 }
 
