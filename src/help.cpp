@@ -154,6 +154,7 @@ void HelpIndex::BuildIndex()
         const char *pC;
         long lineStart = f.tellp();
         bool newLine = true;
+        bool isCurly = false;  // Whether curly bracket is in effect (eats the next character)
 
         for (pC = pHelp->text; *pC != '\0'; ++pC)
         {
@@ -174,11 +175,22 @@ void HelpIndex::BuildIndex()
                 newLine = true;
                 continue;
             }
+            else if (isCurly)
+            {
+                isCurly = false;
+                continue;
+            }
+            else if (c == '{')
+            {
+                isCurly = true;
+                continue;
+            }
             else if (c == ' ')
             {
                 curr = &first;
                 continue;
             }
+
             else if ( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') )
             {
                 c = LOWER(c);
@@ -198,7 +210,7 @@ void HelpIndex::BuildIndex()
             }
             else
             {
-                // ignore non alpha
+                // ignore other non alpha
                 continue;
             }
         }
