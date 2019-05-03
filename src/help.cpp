@@ -210,7 +210,8 @@ void HelpIndex::BuildIndex()
             }
             else
             {
-                // ignore other non alpha
+                // treat other non alphas as word boundary
+                curr = &first;
                 continue;
             }
         }
