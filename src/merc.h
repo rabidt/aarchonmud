@@ -4576,6 +4576,7 @@ bool is_note_to args((CHAR_DATA *ch, NOTE_DATA *note));
 void personal_message args((const char *sender, const char *to,
    const char *subject, const int expire_days, const char *text));
 void load_boards args((void));
+void load_board(BOARD_DATA *board, bool noarchive);
 void save_notes args((void));
 int board_lookup args((const char *name));
 void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument);
