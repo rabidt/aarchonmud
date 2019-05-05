@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <cstring>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -36,6 +37,13 @@ extern "C" { extern int fingertime; }
         int ind_ = sqlite3_bind_parameter_index(st, name); \
         ASSERTM( ind_ != 0, name << " lookup failed."); \
         ASSERT( SQLITE_OK == sqlite3_bind_int(st, ind_, val)); \
+    } while (0)
+
+#define BINT64(st, name, val) \
+    do { \
+        int ind_ = sqlite3_bind_parameter_index(st, name); \
+        ASSERTM( ind_ != 0, name << " lookup failed."); \
+        ASSERT( SQLITE_OK == sqlite3_bind_int64(st, ind_, val)); \
     } while (0)
 
 #define BTEXT(st, name, val) \
@@ -188,6 +196,7 @@ static DbMgr::tblid_t ID_player_stats;
 static DbMgr::tblid_t ID_player_invites;
 static DbMgr::tblid_t ID_box_objs;
 static DbMgr::tblid_t ID_notes;
+static DbMgr::tblid_t ID_notes_to;
 static DbMgr::tblid_t ID_changelog;
 
 
@@ -525,13 +534,22 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddCol(id, "board", "TEXT");
         sDbMgr.AddCol(id, "sender", "TEXT");
         sDbMgr.AddCol(id, "date", "TEXT");
-        sDbMgr.AddCol(id, "to_list", "TEXT");
         sDbMgr.AddCol(id, "subject", "TEXT");
         sDbMgr.AddCol(id, "text", "TEXT");
         sDbMgr.AddCol(id, "date_stamp", "INTEGER");
         sDbMgr.AddCol(id, "expire", "INTEGER");
+        sDbMgr.AddConstraint(id, "PRIMARY KEY(sender, date_stamp)");
 
         ID_notes = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("notes_to");
+        sDbMgr.AddCol(id, "note_id", "INTEGER");
+        sDbMgr.AddCol(id, "to_name", "TEXT");
+        sDbMgr.AddConstraint(id, "FOREIGN KEY(note_id) REFERENCES notes(rowid)");
+
+        ID_notes_to = id;
     }
 
     {
@@ -1214,28 +1232,90 @@ static void dump_players(sqlite3 *db)
     ::closedir(dir);
 }
 
-static void dump_notes(sqlite3 *db)
+static void dump_board(sqlite3 *db, BOARD_DATA *board)
 {
     sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_notes);
+    sqlite3_stmt *st_to = sDbMgr.GetInsertStmt(ID_notes_to);
 
+    for (NOTE_DATA *note = board->note_first; note; note = note->next)
+    {
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":board", board->short_name);
+        BTEXT(st, ":sender", note->sender);
+        BTEXT(st, ":date", note->date);
+        BTEXT(st, ":subject", note->subject);
+        BTEXT(st, ":text", note->text);
+        BINT (st, ":date_stamp", note->date_stamp);
+        BINT (st, ":expire", note->expire);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+        sqlite3_int64 note_id = sqlite3_last_insert_rowid(db);
+
+        {
+            const char *namelist = note->to_list;
+            char name[MIL];
+
+            while (true)
+            {
+                namelist = one_argument(namelist, name);
+                if (name[0] == '\0')
+                    break;
+
+                ASSERT( SQLITE_OK == sqlite3_reset(st_to));
+                ASSERT( SQLITE_OK == sqlite3_clear_bindings(st_to));
+
+                BINT64(st_to, ":note_id", note_id);
+                BTEXT(st_to, ":to_name", name);
+
+                ASSERT( SQLITE_DONE == sqlite3_step(st_to) );
+            }
+        }
+    }
+}
+
+static void dump_old_notes(sqlite3 *db)
+{
+    struct dirent *ent;
+
+    DIR *dir = ::opendir(NOTE_DIR);
+
+    ASSERT( dir );
+
+    while ((ent = readdir(dir)) != NULL)
+    {
+        int len = strlen(ent->d_name);
+        if (len >= 4 && !strcmp(ent->d_name + len - 4, ".old"))
+        {
+            BOARD_DATA board =
+            {
+                ent->d_name,
+                nullptr,
+                0,
+                0,
+                0,
+                nullptr,
+                0,
+                0,
+                0,
+                nullptr,
+                false
+            };
+
+            load_board(&board, true);
+            dump_board(db, &board);
+            // TODO: should free all the notes
+        }
+    }
+}
+
+static void dump_notes(sqlite3 *db)
+{
     for (int i = 0; i < MAX_BOARD; ++i)
     {
-        for (NOTE_DATA *note = boards[i].note_first; note; note = note->next)
-        {
-            ASSERT( SQLITE_OK == sqlite3_reset(st));
-            ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
-
-            BTEXT(st, ":board", boards[i].short_name);
-            BTEXT(st, ":sender", note->sender);
-            BTEXT(st, ":date", note->date);
-            BTEXT(st, ":to_list", note->to_list);
-            BTEXT(st, ":subject", note->subject);
-            BTEXT(st, ":text", note->text);
-            BINT (st, ":date_stamp", note->date_stamp);
-            BINT (st, ":expire", note->expire);
-
-            ASSERT( SQLITE_DONE == sqlite3_step(st) );
-        }
+        dump_board(db, &boards[i]);
     }
 }
 
@@ -1302,6 +1382,7 @@ void db_dump_main( void )
     dump_objs(db);
     dump_players(db);
     dump_notes(db);
+    dump_old_notes(db);
     dump_changelog(db);
 
     ASSERT( SQLITE_OK == sqlite3_exec(db, "END TRANSACTION;", 0, 0, &zErrMsg));
