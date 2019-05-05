@@ -70,7 +70,6 @@
 */
 
 /* Local function prototypes (some are defined in merc.h) */
-static void load_board (BOARD_DATA *board);
 static void save_board (BOARD_DATA *board);
 
 static void append_note (FILE *fp, NOTE_DATA *note);
@@ -343,7 +342,7 @@ void save_notes ( void )
 }
 
 /* Load a single board */
-static void load_board (BOARD_DATA *board)
+void load_board (BOARD_DATA *board, bool noarchive)
 {
    FILE *fp;
    NOTE_DATA *last_note;
@@ -410,14 +409,17 @@ static void load_board (BOARD_DATA *board)
       
       pnote->next = NULL; /* jic */
       
-      /* Should this note be archived right now ? */
-      if (pnote->expire < current_time)
+      if (!noarchive)
       {
-          archive_note(board, pnote);
-          free_note (pnote);
+          /* Should this note be archived right now ? */
+          if (pnote->expire < current_time)
+          {
+              archive_note(board, pnote);
+              free_note (pnote);
 
-          board->changed = TRUE;
-          continue;
+              board->changed = TRUE;
+              continue;
+          }
       }
       
       if ( board->note_first == NULL )
@@ -439,7 +441,7 @@ void load_boards ( void )
    int i;
    
    for (i = 0; i < MAX_BOARD; i++)
-      load_board (&boards[i]);
+      load_board (&boards[i], false);
 }
 
 /* Returns TRUE if the specified note is addressed to ch */
