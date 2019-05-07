@@ -977,12 +977,7 @@ void auth_update( void )
     char buf [MAX_STRING_LENGTH], log_buf1 [MAX_STRING_LENGTH];
     bool found_hit = FALSE;       /* was at least one found? */
     
-
-    /* Auth notification no longer beeps - Elik, Jan 16, 2006. */
-    /* beep imms.. */
-    /* Readded the beep too many auths going unnoticed */
-      strcpy( log_buf1, "{*{+--- Characters awaiting approval ---{x\n\r" ); 
-    /* strcpy(log_buf1, "{+--- Characters awaiting approval ---{x\n\r"); */
+    strcpy( log_buf1, "{+--- Characters awaiting approval ---{x\n\r" );
 
     for ( auth = first_auth_name; auth; auth = auth->next )
     {
