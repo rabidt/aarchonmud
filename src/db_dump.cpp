@@ -198,6 +198,8 @@ static DbMgr::tblid_t ID_box_objs;
 static DbMgr::tblid_t ID_notes;
 static DbMgr::tblid_t ID_notes_to;
 static DbMgr::tblid_t ID_changelog;
+static DbMgr::tblid_t ID_helps;
+static DbMgr::tblid_t ID_helps_keywords;
 
 
 static void create_tables(sqlite3 *db)
@@ -559,6 +561,24 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddCol(id, "desc", "TEXT");
 
         ID_changelog = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("helps");
+        sDbMgr.AddCol(id, "keywords", "TEXT");
+        sDbMgr.AddCol(id, "txt", "TEXT");
+        sDbMgr.AddCol(id, "level", "INTEGER");
+
+        ID_helps = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("helps_keywords");
+        sDbMgr.AddCol(id, "help_id", "INTEGER");
+        sDbMgr.AddCol(id, "keyword", "TEXT");
+        sDbMgr.AddConstraint(id, "FOREIGN KEY(help_id) REFERENCES helps(rowid)");
+
+        ID_helps_keywords = id;
     }
 }
 
@@ -1357,6 +1377,46 @@ static void dump_changelog(sqlite3 *db)
     }
 }
 
+static void dump_helps(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_helps);
+    sqlite3_stmt *st_kw = sDbMgr.GetInsertStmt(ID_helps_keywords);
+
+    for (HELP_DATA *pHelp = help_first; pHelp; pHelp = pHelp->next)
+    {
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":keywords", pHelp->keyword);
+        BTEXT(st, ":txt", pHelp->text);
+        BINT (st, ":level", pHelp->level);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+        sqlite3_int64 help_id = sqlite3_last_insert_rowid(db);
+
+        {
+            const char *kw = pHelp->keyword;
+            char buf[MIL];
+
+            while (true)
+            {
+                kw = one_argument(kw, buf);
+                if (buf[0] == '\0')
+                    break;
+
+                ASSERT( SQLITE_OK == sqlite3_reset(st_kw));
+                ASSERT( SQLITE_OK == sqlite3_clear_bindings(st_kw));
+
+                BINT64(st_kw, ":help_id", help_id);
+                BTEXT (st_kw, ":keyword", buf);
+
+                ASSERT( SQLITE_DONE == sqlite3_step(st_kw) );
+            }
+        }
+    }
+}
+
 void db_dump_main( void )
 {
     sqlite3 *db;
@@ -1384,6 +1444,7 @@ void db_dump_main( void )
     dump_notes(db);
     dump_old_notes(db);
     dump_changelog(db);
+    dump_helps(db);
 
     ASSERT( SQLITE_OK == sqlite3_exec(db, "END TRANSACTION;", 0, 0, &zErrMsg));
 
