@@ -12,6 +12,7 @@ extern "C" {
 #include <lauxlib.h>
 #include "merc.h"
 #include "db.h"
+#include "interp.h"
 #include "lua_main.h"
 }
 
@@ -175,6 +176,9 @@ void DbMgr::Cleanup(sqlite3 *db)
 
 static DbMgr sDbMgr;
 
+static DbMgr::tblid_t ID_commands;
+static DbMgr::tblid_t ID_classes;
+static DbMgr::tblid_t ID_skills;
 static DbMgr::tblid_t ID_areas;
 static DbMgr::tblid_t ID_area_flags;
 static DbMgr::tblid_t ID_mobs;
@@ -204,6 +208,33 @@ static DbMgr::tblid_t ID_helps_keywords;
 
 static void create_tables(sqlite3 *db)
 {
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("commands");
+        sDbMgr.AddCol(id, "command", "TEXT PRIMARY KEY");
+        sDbMgr.AddCol(id, "level", "INTEGER");
+
+        ID_commands = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("classes");
+        sDbMgr.AddCol(id, "name", "TEXT PRIMARY KEY");
+        sDbMgr.AddCol(id, "who_name", "TEXT");
+        sDbMgr.AddCol(id, "attr_prime", "INTEGER");
+        sDbMgr.AddCol(id, "attr_second0", "TEXT");
+        sDbMgr.AddCol(id, "attr_second1", "TEXT");
+
+        ID_classes = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("skills");
+        // sDbMgr.AddCol(id, "name", "TEXT PRIMARY KEY");
+        // TODO: make it primary key after duplicates removed from skill table
+        sDbMgr.AddCol(id, "name", "TEXT");
+
+        ID_skills = id;
+    }
 
     {
         DbMgr::tblid_t id = sDbMgr.NewTbl("areas");
@@ -1417,6 +1448,83 @@ static void dump_helps(sqlite3 *db)
     }
 }
 
+static const char *stat_name(int stat)
+{
+    switch (stat)
+    {
+        case STAT_STR: return "strength";
+        case STAT_CON: return "constitution";
+        case STAT_VIT: return "vitality";
+        case STAT_AGI: return "agility";
+        case STAT_DEX: return "dexterity";
+        case STAT_INT: return "intelligence";
+        case STAT_WIS: return "wisdom";
+        case STAT_DIS: return "discipline";
+        case STAT_CHA: return "charisma";
+        case STAT_LUC: return "luck";
+        default: ASSERT( false ); return NULL;
+    }
+}
+
+static void dump_classes(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_classes);
+
+    for (int i = 0; i < MAX_CLASS; ++i)
+    {
+        const class_type &cls = class_table[i];
+
+        ASSERT( cls.name );
+
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":name", cls.name);
+        BTEXT(st, ":who_name", cls.who_name);
+        BTEXT(st, ":attr_prime", stat_name(cls.attr_prime));
+        BTEXT(st, ":attr_second0", stat_name(cls.attr_second[0]));
+        BTEXT(st, ":attr_second1", stat_name(cls.attr_second[1]));
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+    }
+}
+
+static void dump_skills(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_skills);
+
+    for (int sn = 0; sn < MAX_SKILL; ++sn)
+    {
+        const skill_type &sk = skill_table[sn];
+
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":name", sk.name);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+    }
+}
+
+static void dump_commands(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_commands);
+
+    for (int i = 0; cmd_table[i].name[0] != '\0'; ++i)
+    {
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        const cmd_type &cmd = cmd_table[i];
+
+        BTEXT(st, ":command", cmd.name);
+        BINT (st, ":level", cmd.level);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+    }
+}
+
 void db_dump_main( void )
 {
     sqlite3 *db;
@@ -1436,6 +1544,9 @@ void db_dump_main( void )
     create_tables(db);
     sDbMgr.Init(db);
 
+    dump_commands(db);
+    dump_classes(db);
+    dump_skills(db);
     dump_areas(db);
     dump_rooms(db);
     dump_mobs(db);
