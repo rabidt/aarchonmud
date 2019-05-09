@@ -48,7 +48,7 @@ def main():
 
 	db_path = os.getenv("AEAEA_DB_PATH")
 	if db_path is None or db_path == "":
-		db_path = "/home/m256ada/website_support/data/aeaea_db.sqlite3"
+		db_path = "/home/m256ada/website_proj/flask_app/instance/aeaea_db.sqlite3"
 
 	conn = sqlite3.connect(db_path)
 
