@@ -66,6 +66,9 @@ int nAllocString;
 int nAllocPerm;
 
 
+DECLARE_DO_FUN(do_tattoo);
+
+
 /*
  * Command table.
  */
@@ -462,7 +465,6 @@ const   struct  cmd_type    cmd_table   [] =
     { "steal",      do_steal,   POS_STANDING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "train",      do_train,   POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "finger",     do_finger,  POS_DEAD,   0,  LOG_NORMAL, 1, FALSE, FALSE  },
-    { "bounty",     do_bounty,  POS_RESTING,     0,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "visible",    do_visible, POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "wake",       do_wake,    POS_SLEEPING,    0,  LOG_NORMAL, 1, FALSE, TRUE  },
     { "walk",       do_walk,    POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
