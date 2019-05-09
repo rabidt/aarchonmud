@@ -229,9 +229,7 @@ static void create_tables(sqlite3 *db)
 
     {
         DbMgr::tblid_t id = sDbMgr.NewTbl("skills");
-        // sDbMgr.AddCol(id, "name", "TEXT PRIMARY KEY");
-        // TODO: make it primary key after duplicates removed from skill table
-        sDbMgr.AddCol(id, "name", "TEXT");
+        sDbMgr.AddCol(id, "name", "TEXT PRIMARY KEY");
 
         ID_skills = id;
     }

@@ -71,7 +71,6 @@ typedef short   int         sh_int;
 typedef struct  affect_data      AFFECT_DATA;
 typedef struct  area_data        AREA_DATA;
 typedef struct  ban_data         BAN_DATA;
-typedef struct  str_buf_type     BUFFER;
 typedef struct  string_ring_buf  SR_BUF;
 typedef struct  char_data        CHAR_DATA;
 typedef struct  descriptor_data  DESCRIPTOR_DATA;
@@ -241,7 +240,7 @@ bool is_nosac( OBJ_DATA *obj );
  * Increase the max'es if you add more of something.
  * Adjust the pulse numbers to suit yourself.
  */
-#define MAX_SKILL         499
+#define MAX_SKILL         498
 #define MAX_GROUP          83 /* accurate july 2016 */
 #define MAX_IN_GROUP       15
 #define MAX_IN_MASTERY     50
@@ -4434,6 +4433,7 @@ extern      tflag meta_magic;
 #include "tattoo.h"
 #include "recycle.h"
 #include "lookup.h"
+#include "str_buf.h"
 
 /*
  * Our function prototypes.
@@ -5460,18 +5460,6 @@ bool is_alpha_string( const char *s );
 bool split_string( const char *s, char split_char, char *prefix, char *suffix );
 size_t strlcpy(char *buf, const char *src, size_t bufsz);
 size_t strlcat(char *buf, const char *src, size_t bufsz);
-
-/* str_buf.cpp */
-int get_buf_count( void );
-void print_buf_debug( char *out, size_t sz );
-#define new_buf( ) new_buf_trace(__FILE__, __func__, __LINE__)
-BUFFER *new_buf_trace( const char *file, const char *func, int line );
-void free_buf(BUFFER *buffer);
-bool add_buf(BUFFER *buffer, const char *string );
-void clear_buf(BUFFER *buffer);
-const char *buf_string(BUFFER *buffer);
-bool addf_buf(BUFFER *buffer, const char *fmt, ...);
-bool addf_buf_pad(BUFFER *buffer, int pad_length, const char *fmt, ...);
 
 /* teleport.c */
 RID *   room_by_name    args( ( char *target, int level, bool error) );

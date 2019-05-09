@@ -56,6 +56,7 @@
 #include "mob_stats.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
+#include "boot_checks.h"
 
 extern  int _filbuf     args( (FILE *) );
 
@@ -943,6 +944,16 @@ void boot_db( void )
     }
 
     build_help_index();
+
+    {
+        BUFFER *chkbuf = new_buf();
+        if (!boot_check_skills(chkbuf))
+        {
+            log_string(buf_string(chkbuf));
+            exit(1);
+        }
+        free_buf(chkbuf);
+    }
 
     fBootDb = FALSE;
 
