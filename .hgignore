@@ -21,3 +21,5 @@ cscope\.po\.out$
 .*\.orig$
 
 .*\.sublime-workspace$
+
+.*\.pyc$
