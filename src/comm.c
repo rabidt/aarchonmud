@@ -2711,11 +2711,6 @@ static void copyover_mud( const char *argument )
         }
     }
 
-    if (DXPORT_status() == eDXPORT_OPENED)
-    {
-        DXPORT_close();
-    }
-
     fprintf (fp, "-1\n");
     fclose (fp);
 
