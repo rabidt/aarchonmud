@@ -20,8 +20,32 @@ static const char MSG_START = '\x2';
 static const char PARAM_DELIM = '\x1e';
 static const char MSG_END = '\x3';
 
+#define SOCKFD_ENV "DXPORT_sockfd"
+
 
 static int sockfd = 0;
+static void set_sockfd(int fd)
+{
+    sockfd = fd;
+    if (0 == fd)
+    {
+        int rc;
+        if (0 != (rc = unsetenv(SOCKFD_ENV)))
+        {
+            bugf("unsetenv result: %d", rc);
+        }
+    }
+    else
+    {
+        char buf[16];
+        snprintf(buf, sizeof(buf), "%d", fd);
+        int rc;
+        if (0 != (rc = setenv(SOCKFD_ENV, buf, 1)))
+        {
+            bugf("setenv result: %d", rc);
+        }
+    }
+}
 
 #define BUF_SIZE 1024
 static char msg_buf[BUF_SIZE];
@@ -49,7 +73,7 @@ eDXPORT_rc write_msg_buf( void )
         {
             bugf("close returned %d", rtn);
         }
-        sockfd = 0;
+        set_sockfd(0);
         return eDXPORT_CLOSED;
     }
     else
@@ -95,6 +119,16 @@ eDXPORT_rc DXPORT_player_connect(const char *player_name, const char *ip, time_t
 
 eDXPORT_rc DXPORT_init( void )
 {
+    {
+        // copyover case. Connection is still open, just need to know the fd number.
+        const char *fd_str = getenv(SOCKFD_ENV);
+        if (fd_str != NULL)
+        {
+            sockfd = atoi(fd_str);
+            return eDXPORT_SUCCESS;
+        }
+    }
+
     struct sockaddr_un server;
     int sock;
     size_t size;
@@ -116,7 +150,7 @@ eDXPORT_rc DXPORT_init( void )
     }
     else
     {
-        sockfd = sock;
+        set_sockfd(sock);
         return eDXPORT_SUCCESS;
     }
 }
@@ -135,7 +169,7 @@ eDXPORT_rc DXPORT_close( void )
         bugf("close returned %d", rtn);
     }
 
-    sockfd = 0;
+    set_sockfd(0);
 
     return eDXPORT_SUCCESS;
 }
