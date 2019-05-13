@@ -1,3 +1,4 @@
+import os
 import sys
 import signal
 import config
@@ -15,7 +16,14 @@ def main():
 
     conn = DbConn(config.DB_PATH)
     stat_db = StatDb(conn)
-    msg_hndlr = MessageHandler(stat_db)
+
+    def handle_reload():
+        LOG.info("Handling reload request")
+        conn.stop()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+        LOG.error("execv failed")
+
+    msg_hndlr = MessageHandler(stat_db, handle_reload)
     server = Server(msg_hndlr)
 
     def handle_signals(signal, frame):

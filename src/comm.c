@@ -2668,6 +2668,10 @@ static void copyover_mud( const char *argument )
 
     //do_asave (NULL, ""); /* autosave changed areas */
 
+    // syncronize mud and dxport handler copyover to ensure changes that touch both
+    // will be loaded at the same time
+    DXPORT_reload();
+
     if ( argument[0] != '\0' )
         snprintf( buf, sizeof(buf), "\n\r%s", argument );
     else
