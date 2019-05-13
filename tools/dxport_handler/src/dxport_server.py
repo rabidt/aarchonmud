@@ -72,8 +72,9 @@ class StatDb(object):
 
 
 class MessageHandler(object):
-    def __init__(self, stat_db):
+    def __init__(self, stat_db, reload_handler):
         self.stat_db = stat_db
+        self.reload_handler = reload_handler
         self.msg_queue = Queue()
         self.hndl_loop_thread = Thread(target=self._hndl_loop)
         self.hndl_loop_thread.setDaemon(True)
@@ -119,6 +120,9 @@ class MessageHandler(object):
             datetime.fromtimestamp(float(timestamp))))
         self.stat_db.add_player_connect(player_name, ip, timestamp)
 
+    def reload(self):
+        self.reload_handler()
+
 
 class Server(object):
     def __init__(self, msg_hndlr):
@@ -135,28 +139,47 @@ class Server(object):
             if os.path.exists(config.SOCK_PATH):
                 raise
 
-        # Create a UDS socket
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        if 'DXPORT_sockfd' in os.environ:
+            # reload case
+            fd = int(os.environ['DXPORT_sockfd'])
+            LOG.info('Server socket fd is %d', fd)
+            sock = socket.socket(fileno=fd)
+        else:
+            # Create a UDS socket
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-        # Bind the socket to the port
-        LOG.info("Starting up on {}".format(config.SOCK_PATH))
-        sock.bind(config.SOCK_PATH)
+            # Bind the socket to the port
+            LOG.info("Starting up on {}".format(config.SOCK_PATH))
+            sock.bind(config.SOCK_PATH)
 
-        # Listen for incoming connections
-        sock.listen(1)
+            # Listen for incoming connections
+            sock.listen(1)
+
+            os.environ['DXPORT_sockfd'] = str(sock.fileno())
+        
+        sock.set_inheritable(True)
 
         while True:
-            # Wait for a connection
-            LOG.info("Waiting for a connection.")
-            # sock.settimeout(5)
-            connection, client_address = sock.accept()
+            # reload case
+            if 'DXPORT_connfd' in os.environ:
+                fd = int(os.environ['DXPORT_connfd'])
+                LOG.info('Conn socket fd is %d', fd)
+                connection = socket.socket(fileno=fd)
+            else:
+                # Wait for a connection
+                LOG.info("Waiting for a connection.")
+                # sock.settimeout(5)
+                connection, client_address = sock.accept()
 
-            LOG.info("Connection from mud established")
+                LOG.info("Connection from mud established")
+                os.environ['DXPORT_connfd'] = str(connection.fileno())
+
+            connection.set_inheritable(True)
+
             msg = b''
             try:
                 while True:
                     data = connection.recv(_BUF_SIZE)
-                    print(data)
                     if data == '':
                         break
 
@@ -176,3 +199,4 @@ class Server(object):
                 # Clean up the connection
                 LOG.info("Connection closing.")
                 connection.close()
+                del os.environ['DXPORT_connfd']

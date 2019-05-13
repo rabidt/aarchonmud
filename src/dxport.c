@@ -82,6 +82,14 @@ eDXPORT_rc write_msg_buf( void )
     }
 }
 
+eDXPORT_rc DXPORT_reload( void )
+{
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c",
+            MSG_START,
+            "reload",
+            MSG_END);
+    return write_msg_buf();
+}
 
 eDXPORT_rc DXPORT_mob_kill(const char *player_name, int mob_vnum, int mob_room, time_t timestamp)
 {

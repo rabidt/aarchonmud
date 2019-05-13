@@ -3265,13 +3265,18 @@ DEF_DO_FUN(do_dxport)
 
         DXPORT_close();
     }
+    else if (!str_cmp(arg1, "reload"))
+    {
+        DXPORT_reload();
+    }
 
     status = DXPORT_status();
     ptc(ch, 
         "Status: %s\n\r"
         "\n\r"
-        "  dxport open  - Connect to server.\n\r"
-        "  dxport close - Disconnect from server.\n\r",
+        "  dxport open   - Connect to server.\n\r"
+        "  dxport close  - Disconnect from server.\n\r"
+        "  dxport reload - Send message to reload dxport handler.\n\r",
         status == eDXPORT_OPENED ? "OPENED" :
         status == eDXPORT_CLOSED ? "CLOSED" :
         "UNKNOWN"); 
