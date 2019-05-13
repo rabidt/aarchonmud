@@ -2,7 +2,7 @@ import time
 import sqlite3
 import logging
 from threading import Thread, Lock
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 
 LOG = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ class DbConn(object):
         # TODO: fix logic to finish transactions before stop?
         while True:
             if self._stop_request is True:
+                self._conn.close()
                 self._stop_complete = True
                 return
 
@@ -37,7 +38,7 @@ class DbConn(object):
                 args, kwargs = self._q.get(True, 1)
             except Empty:
                 continue
-            # print args, kwargs
+
             try:
                 self._curs.execute(*args, **kwargs)
             except Exception as ex:
