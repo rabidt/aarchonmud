@@ -3,7 +3,7 @@ import config
 import socket
 import logging
 from datetime import datetime
-from Queue import Queue
+from queue import Queue
 from threading import Thread
 
 
@@ -124,11 +124,6 @@ class Server(object):
     def __init__(self, msg_hndlr):
         self.message_handler = msg_hndlr
 
-        self._stop_requested = False
-
-    def stop(self):
-        self._stop_requested = True
-
     def handle_message(self, msg):
         self.message_handler.handle_message(msg)
 
@@ -157,14 +152,16 @@ class Server(object):
             connection, client_address = sock.accept()
 
             LOG.info("Connection from mud established")
-            msg = ''
+            msg = b''
             try:
                 while True:
                     data = connection.recv(_BUF_SIZE)
+                    print(data)
                     if data == '':
                         break
 
-                    for c in data:
+                    for v in data:
+                        c = chr(v)
                         if c == _MSG_START:
                             msg = ''
                         elif c == _MSG_END:

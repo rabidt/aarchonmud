@@ -21,7 +21,6 @@ def main():
     def handle_signals(signal, frame):
         LOG.info("Handling signal {}".format(signal))
         conn.stop()
-        server.stop()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, handle_signals)
