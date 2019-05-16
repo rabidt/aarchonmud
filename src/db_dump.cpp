@@ -204,6 +204,7 @@ static DbMgr::tblid_t ID_notes_to;
 static DbMgr::tblid_t ID_changelog;
 static DbMgr::tblid_t ID_helps;
 static DbMgr::tblid_t ID_helps_keywords;
+static DbMgr::tblid_t ID_showrace;
 
 
 static void create_tables(sqlite3 *db)
@@ -608,6 +609,15 @@ static void create_tables(sqlite3 *db)
         sDbMgr.AddConstraint(id, "FOREIGN KEY(help_id) REFERENCES helps(rowid)");
 
         ID_helps_keywords = id;
+    }
+
+    {
+        DbMgr::tblid_t id = sDbMgr.NewTbl("showrace");
+        sDbMgr.AddCol(id, "race_name", "TEXT PRIMARY KEY");
+        sDbMgr.AddCol(id, "remort", "INTEGER");
+        sDbMgr.AddCol(id, "output", "TEXT");
+
+        ID_showrace = id;
     }
 }
 
@@ -1523,6 +1533,39 @@ static void dump_commands(sqlite3 *db)
     }
 }
 
+static void dump_showrace(sqlite3 *db)
+{
+    sqlite3_stmt *st = sDbMgr.GetInsertStmt(ID_showrace);
+
+    for (int i = 0; race_table[i].name; ++i)
+    {
+        if (!race_table[i].pc_race)
+        {
+            continue;
+        }
+
+        DESCRIPTOR_DATA *desc = new_descriptor();
+        CHAR_DATA *ch = new_char();
+        ch->pcdata = new_pcdata();
+        ch->desc = desc;
+        desc->character = ch;
+
+        do_showrace(ch, race_table[i].name);
+
+        ASSERT( SQLITE_OK == sqlite3_reset(st));
+        ASSERT( SQLITE_OK == sqlite3_clear_bindings(st));
+
+        BTEXT(st, ":race_name", race_table[i].name);
+        BINT (st, ":remort", pc_race_table[i].remorts);
+        BTEXT(st, ":output", desc->outbuf);
+
+        ASSERT( SQLITE_DONE == sqlite3_step(st) );
+
+        free_char(ch); // also frees pcdata
+        free_descriptor(desc);
+    }
+}
+
 void db_dump_main( void )
 {
     sqlite3 *db;
@@ -1554,6 +1597,7 @@ void db_dump_main( void )
     dump_old_notes(db);
     dump_changelog(db);
     dump_helps(db);
+    dump_showrace(db);
 
     ASSERT( SQLITE_OK == sqlite3_exec(db, "END TRANSACTION;", 0, 0, &zErrMsg));
 
