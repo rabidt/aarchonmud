@@ -3,7 +3,6 @@ import sys
 import signal
 import config
 import logging
-from db_conn import DbConn
 from dxport_server import Server, MessageHandler, StatDb
 
 
@@ -14,12 +13,11 @@ def main():
     logging.basicConfig(stream=sys.stdout, level=getattr(logging, config.LOG_LEVEL))
     LOG.debug("main running.")
 
-    conn = DbConn(config.DB_PATH)
-    stat_db = StatDb(conn)
+    stat_db = StatDb(config.DB_PATH)
 
     def handle_reload():
         LOG.info("Handling reload request")
-        conn.stop()
+        stat_db.stop()
         os.execv(sys.executable, [sys.executable] + sys.argv)
         LOG.error("execv failed")
 
@@ -28,7 +26,7 @@ def main():
 
     def handle_signals(signal, frame):
         LOG.info("Handling signal {}".format(signal))
-        conn.stop()
+        stat_db.stop()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, handle_signals)
@@ -37,7 +35,7 @@ def main():
     try:
         server.start_server()
     except:
-        conn.stop()
+        stat_db.stop()
         raise
 
 

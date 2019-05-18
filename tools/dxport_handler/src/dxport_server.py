@@ -1,10 +1,12 @@
 import os
+import time
 import config
 import socket
 import logging
+import sqlite3
 from datetime import datetime
-from queue import Queue
-from threading import Thread
+from queue import Queue, Empty
+from threading import Thread, Lock
 
 
 LOG = logging.getLogger(__name__)
@@ -20,39 +22,78 @@ _TRANSACTION_MAX = 1000  # Max # of statements per transaction
 
 
 class StatDb(object):
-    def __init__(self, conn):
-        self.conn = conn
-        self.create_tables()
+    def __init__(self, db_path):
+        self._db_path = db_path
 
-    def create_tables(self):
-        self.conn.lock()
-        self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS mob_kill (
-                player_name TEXT,
-                mob_vnum INTEGER,
-                mob_room INTEGER,
-                timestamp INTEGER
-            );
-        """)
-        self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS player_connect (
-                player_name TEXT,
-                ip TEXT,
-                timestamp INTEGER
-            );
-        """)
-        self.conn.unlock()
+        self._stop_request = False
+        self._stop_complete = False
+        self._q = Queue()
+        self._lock = Lock()
+        self._loop_thread = Thread(target=self._loop)
+        self._loop_thread.setDaemon(False)
+        self._loop_thread.start()
+
+    def _loop(self):
+        # have to open the connection in the same thread
+        # we will use it in
+        self._conn = sqlite3.connect(self._db_path)
+        self._conn.isolation_level = None
+        curs = self._conn.cursor()
+
+        # Schema migrations
+        while True:
+            curr_ver = curs.execute("PRAGMA user_version").fetchone()[0]
+            LOG.info("Schema version is {}".format(curr_ver))
+            tgt_ver = curr_ver + 1
+            tgt_path = "migrations/{}.sql".format(tgt_ver)
+            if not os.path.exists(tgt_path):
+                LOG.info("Schema at latest version")
+                break
+            else:
+                curs.execute("BEGIN TRANSACTION")
+                script = open(tgt_path, 'r').read()
+                script += "\nPRAGMA user_version = {}".format(tgt_ver)
+                curs.executescript(script)
+
+        # TODO: fix logic to finish transactions before stop?
+        while True:
+            if self._stop_request is True:
+                self._conn.close()
+                self._stop_complete = True
+                return
+
+            try:
+                args, kwargs = self._q.get(True, 1)
+            except Empty:
+                continue
+
+            try:
+                curs.execute(*args, **kwargs)
+            except Exception as ex:
+                LOG.exception("{},{}".format(args, kwargs))
+
+    def stop(self):
+        LOG.info("Stopping StatDb")
+        self._stop_request = True
+        while True:
+            if self._stop_complete is True:
+                LOG.info("StatDb stopped")
+                return
+            time.sleep(1)
+
+    def execute(self, *args, **kwargs):
+        self._q.put((args, kwargs))
 
     def begin_transaction(self):
-        self.conn.lock()
-        self.conn.execute("BEGIN TRANSACTION;")
+        self._lock.acquire()
+        self.execute("BEGIN TRANSACTION;")
 
     def end_transaction(self):
-        self.conn.execute("END TRANSACTION;")
-        self.conn.unlock()
+        self.execute("END TRANSACTION;")
+        self._lock.release()
 
     def add_mob_kill(self, player_name, mob_vnum, mob_room, timestamp):
-        self.conn.execute("""
+        self.execute("""
             INSERT INTO mob_kill values (?, ?, ?, ?);
             """, (
                 player_name,
@@ -62,7 +103,7 @@ class StatDb(object):
             ))
 
     def add_player_connect(self, player_name, ip, timestamp):
-        self.conn.execute("""
+        self.execute("""
             INSERT INTO player_connect values (?, ?, ?);
             """, (
                 player_name,
