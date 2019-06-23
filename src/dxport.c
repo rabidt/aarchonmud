@@ -128,19 +128,22 @@ eDXPORT_rc DXPORT_player_connect(const char *player_name, const char *ip, time_t
 eDXPORT_rc DXPORT_quest_request(
     const char *player_name,
     long quest_id,
+    int player_level,
     bool is_hard,
     int giver_vnum,
     int obj_vnum,
     int mob_vnum,
     int room_vnum)
 {
-    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%d%c%d%c%d%c%d%c%d%c",
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%d%c%d%c%d%c%d%c%d%c%d%c",
             MSG_START,
             "quest_request",
             PARAM_DELIM,
             player_name,
             PARAM_DELIM,
             quest_id,
+            PARAM_DELIM,
+            player_level,
             PARAM_DELIM,
             (int)is_hard,
             PARAM_DELIM,

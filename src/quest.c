@@ -1143,6 +1143,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
         DXPORT_quest_request(
             ch->name,
             ch->pcdata->questid,
+            ch->level,
             FALSE,
             questman->pIndexData->vnum,
             ch->pcdata->questobj,
@@ -1201,6 +1202,7 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
         DXPORT_quest_request(
             ch->name,
             ch->pcdata->questid,
+            ch->level,
             FALSE,
             questman->pIndexData->vnum,
             0,
@@ -1366,6 +1368,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
         DXPORT_quest_request(
             ch->name,
             ch->pcdata->questid,
+            ch->level,
             TRUE,
             questman->pIndexData->vnum,
             ch->pcdata->questobj,
@@ -1417,6 +1420,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
         DXPORT_quest_request(
             ch->name,
             ch->pcdata->questid,
+            ch->level,
             TRUE,
             questman->pIndexData->vnum,
             0,

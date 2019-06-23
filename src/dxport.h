@@ -19,6 +19,7 @@ eDXPORT_rc DXPORT_mob_kill(const char *player_name, int mob_vnum, int mob_room, 
 eDXPORT_rc DXPORT_quest_request(
     const char *player_name,
     long quest_id,
+    int player_level,
     bool is_hard,
     int giver_vnum,
     int obj_vnum,
