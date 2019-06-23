@@ -125,6 +125,105 @@ eDXPORT_rc DXPORT_player_connect(const char *player_name, const char *ip, time_t
 }
 
 
+eDXPORT_rc DXPORT_quest_request(
+    const char *player_name,
+    long quest_id,
+    bool is_hard,
+    int giver_vnum,
+    int obj_vnum,
+    int mob_vnum,
+    int room_vnum)
+{
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%d%c%d%c%d%c%d%c%d%c",
+            MSG_START,
+            "quest_request",
+            PARAM_DELIM,
+            player_name,
+            PARAM_DELIM,
+            quest_id,
+            PARAM_DELIM,
+            (int)is_hard,
+            PARAM_DELIM,
+            giver_vnum,
+            PARAM_DELIM,
+            obj_vnum,
+            PARAM_DELIM,
+            mob_vnum,
+            PARAM_DELIM,
+            room_vnum,
+            MSG_END);
+    return write_msg_buf();
+}
+
+eDXPORT_rc DXPORT_quest_complete(
+    const char *player_name,
+    long quest_id,
+    long end_time,
+    int completer_vnum,
+    int silver,
+    int qp,
+    int prac,
+    int exp)
+{
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%ld%c%d%c%d%c%d%c%d%c%d%c",
+        MSG_START,
+        "quest_complete",
+        PARAM_DELIM,
+        player_name,
+        PARAM_DELIM,
+        quest_id,
+        PARAM_DELIM,
+        end_time,
+        PARAM_DELIM,
+        completer_vnum,
+        PARAM_DELIM,
+        silver,
+        PARAM_DELIM,
+        qp,
+        PARAM_DELIM,
+        prac,
+        PARAM_DELIM,
+        exp,
+        MSG_END);
+    return write_msg_buf();
+}
+
+eDXPORT_rc DXPORT_quest_timeout(
+    const char *player_name,
+    long quest_id,
+    long end_time)
+{
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%ld%c",
+        MSG_START,
+        "quest_timeout",
+        PARAM_DELIM,
+        player_name,
+        PARAM_DELIM,
+        quest_id,
+        PARAM_DELIM,
+        end_time,
+        MSG_END);
+    return write_msg_buf();
+}
+
+eDXPORT_rc DXPORT_quest_giveup(
+    const char *player_name,
+    long quest_id,
+    long end_time)
+{
+    snprintf(msg_buf, BUF_SIZE, "%c%s%c%s%c%ld%c%ld%c",
+        MSG_START,
+        "quest_giveup",
+        PARAM_DELIM,
+        player_name,
+        PARAM_DELIM,
+        quest_id,
+        PARAM_DELIM,
+        end_time,
+        MSG_END);
+    return write_msg_buf();
+}
+
 eDXPORT_rc DXPORT_init( void )
 {
     {

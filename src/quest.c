@@ -23,6 +23,7 @@
 #include "mudconfig.h"
 #include "olc.h"
 #include "warfare.h"
+#include "dxport.h"
 
 DECLARE_DO_FUN( do_say );
 DECLARE_DO_FUN( do_startwar );
@@ -405,12 +406,15 @@ DEF_DO_FUN(do_quest)
         if (IS_SET(ch->act,PLR_QUESTORHARD))
             ch->pcdata->quest_hard_failed++;
 
+        DXPORT_quest_giveup(ch->name, ch->pcdata->questid, current_time);
+
         ch->pcdata->questgiver = NULL;
         ch->pcdata->countdown = 0;
         ch->pcdata->questmob = 0;
         ch->pcdata->questobj = 0;
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
+        ch->pcdata->questid = 0;
         REMOVE_BIT(ch->act, PLR_QUESTOR);
         REMOVE_BIT(ch->act, PLR_QUESTORHARD);
         
@@ -441,6 +445,22 @@ DEF_DO_FUN(do_quest)
             send_to_char(buf, ch);
         }
         return;
+    }
+    else if (IS_IMMORTAL(ch) && !strcmp(arg1, "timeout"))
+    {
+        if (ch->pcdata->countdown > 0)
+        {
+            ch->pcdata->nextquest = 0;
+            ch->pcdata->countdown = 1;
+            send_to_char("Your quest will time out next tick.\n\r", ch);
+            return;
+        }
+        else
+        {
+            send_to_char("No current quest.\n\r", ch);
+            return;
+        }
+        
     }
     else if ( !strcmp(arg1, "refund") )
     {
@@ -719,6 +739,7 @@ DEF_DO_FUN(do_quest)
         ch->pcdata->questobj = 0;
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
+        ch->pcdata->questid = 0;
         /* How about ch->pcdata->nextquest = 0;, for Immortals? - Maedhros */ 
 
         generate_quest(ch, questman);
@@ -774,6 +795,7 @@ DEF_DO_FUN(do_quest)
         ch->pcdata->questobj = 0;
 	ch->pcdata->questroom = 0;
 	ch->pcdata->questarea = 0;
+        ch->pcdata->questid = 0;
         
         generate_quest_hard(ch, questman);
         
@@ -925,6 +947,16 @@ DEF_DO_FUN(do_quest)
         logpf("quest complete: awarded %d qp to %s.", reward_points, ch->name);
         ch->practice += reward_prac;
         gain_exp(ch, reward_exp, TRUE);
+
+        DXPORT_quest_complete(
+            ch->name,
+            ch->pcdata->questid,
+            current_time,
+            questman->pIndexData->vnum,
+            reward_silver,
+            reward_points,
+            reward_prac,
+            reward_exp);
         
         // cleanup
         REMOVE_BIT(ch->act, PLR_QUESTOR);
@@ -935,6 +967,7 @@ DEF_DO_FUN(do_quest)
         ch->pcdata->questobj = 0;
         ch->pcdata->questroom = 0;
         ch->pcdata->questarea = 0;
+        ch->pcdata->questid = 0;
         ch->pcdata->nextquest = QUEST_NEXTQUEST_MAX;
 
         // tracking
@@ -1106,6 +1139,15 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
         snprintf( buf, sizeof(buf), "Look in the general area of %s for %s!",room->area->name, room->name);
 	ch->pcdata->questroom = room->vnum;
 	ch->pcdata->questarea = room->area->vnum;
+        ch->pcdata->questid = current_time;
+        DXPORT_quest_request(
+            ch->name,
+            ch->pcdata->questid,
+            FALSE,
+            questman->pIndexData->vnum,
+            ch->pcdata->questobj,
+            0,
+            ch->pcdata->questroom);
         do_say(questman, buf);
         return;
     }
@@ -1155,7 +1197,15 @@ void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
 	 */
         ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX); 	
         /* ch->pcdata->countdown = number_range(15, 30); */
-
+        ch->pcdata->questid = current_time;
+        DXPORT_quest_request(
+            ch->name,
+            ch->pcdata->questid,
+            FALSE,
+            questman->pIndexData->vnum,
+            0,
+            ch->pcdata->questmob,
+            ch->pcdata->questroom);
     }
     return;
 }
@@ -1312,6 +1362,15 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
         snprintf( buf, sizeof(buf), "Look in the general area of %s for %s!",room->area->name, room->name);
 	ch->pcdata->questroom = room->vnum;
 	ch->pcdata->questarea = room->area->vnum;
+        ch->pcdata->questid = current_time;
+        DXPORT_quest_request(
+            ch->name,
+            ch->pcdata->questid,
+            TRUE,
+            questman->pIndexData->vnum,
+            ch->pcdata->questobj,
+            0,
+            ch->pcdata->questroom);
         do_say(questman, buf);
         return;
     }
@@ -1354,6 +1413,15 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
         }
         ch->pcdata->questmob = victim->pIndexData->vnum;
         ch->pcdata->countdown = number_range(QUEST_COUNTDOWN_MIN, QUEST_COUNTDOWN_MAX); 
+        ch->pcdata->questid = current_time;
+        DXPORT_quest_request(
+            ch->name,
+            ch->pcdata->questid,
+            TRUE,
+            questman->pIndexData->vnum,
+            0,
+            ch->pcdata->questmob,
+            ch->pcdata->questroom);
     }
     return;
 }
@@ -1416,10 +1484,12 @@ void quest_update(void)
                     REMOVE_BIT(ch->act, PLR_QUESTOR);
                     REMOVE_BIT(ch->act, PLR_QUESTORHARD);
                     ch->pcdata->quest_failed++;
-					update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+                    update_lboard( LBOARD_QFAIL, ch, ch->pcdata->quest_failed, 1);
+                    DXPORT_quest_timeout(ch->name, ch->pcdata->questid, current_time);
                     ch->pcdata->questgiver = NULL;
                     ch->pcdata->countdown = 0;
                     ch->pcdata->questmob = 0;
+                    ch->pcdata->questid = 0;
                 }
                 else if (ch->pcdata->countdown < 6)
                     send_to_char("Better hurry, you're almost out of time for your quest!\n\r",ch);

@@ -2779,6 +2779,7 @@ struct  pc_data
 	sh_int              questmob; /* Vassago */
 	sh_int		    questroom;  /* Quirky */
 	sh_int		    questarea;  /* Quirky */
+  long                questid;
 	long		bank;
 	sh_int      clan_rank; /* 0 for unguilded and loner, > 0 otherwise */
 	tflag        tag_flags;

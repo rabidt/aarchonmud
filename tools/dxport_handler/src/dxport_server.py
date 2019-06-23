@@ -111,6 +111,55 @@ class StatDb(object):
                 timestamp
             ))
 
+    def add_quest_request(self, player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
+        self.execute("""
+            INSERT INTO quests (
+                player_name,
+                request_time,
+                is_hard,
+                giver_vnum,
+                obj_vnum,
+                mob_vnum,
+                room_vnum)
+            VALUES (?,?,?,?,?,?,?)
+            """, (
+                player_name,
+                quest_id,
+                is_hard,
+                giver_vnum,
+                None if obj_vnum == '0' else obj_vnum,
+                None if mob_vnum == '0' else mob_vnum,
+                None if room_vnum == '0' else room_vnum))
+
+    def add_quest_complete(self, player_name, quest_id, end_time, completer_vnum, silver, qp, prac, exp):
+        self.execute("""
+            UPDATE quests
+            SET end_time = ?,
+                end_type = 'complete',
+                completer_vnum = ?,
+                silver = ?,
+                qp = ?,
+                prac = ?,
+                exp = ?
+            WHERE player_name = ? AND request_time = ?
+            """, (end_time, completer_vnum, silver, qp, prac, exp, player_name, quest_id))
+
+    def add_quest_timeout(self, player_name, quest_id, end_time):
+        self.execute("""
+            UPDATE quests
+            SET end_time = ?,
+                end_type = 'timeout'
+            WHERE player_name = ? and request_time = ?
+            """, (end_time, player_name, quest_id))
+
+    def add_quest_giveup(self, player_name, quest_id, end_time):
+        self.execute("""
+            UPDATE quests
+            SET end_time = ?,
+                end_type = 'giveup'
+            WHERE player_name = ? and request_time = ?
+            """, (end_time, player_name, quest_id))
+
 
 class MessageHandler(object):
     def __init__(self, stat_db, reload_handler):
@@ -160,6 +209,20 @@ class MessageHandler(object):
             ip,
             datetime.fromtimestamp(float(timestamp))))
         self.stat_db.add_player_connect(player_name, ip, timestamp)
+
+    def quest_request(self, player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
+        LOG.debug("{} quest_request, hard: {}".format(player_name, is_hard))
+        self.stat_db.add_quest_request(player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum)
+
+    def quest_complete(self, player_name, quest_id, complete_time, completer_vnum, silver, qp, prac, exp):
+        LOG.debug("{} quest_complete, qp: {}".format(player_name, qp))
+        self.stat_db.add_quest_complete(player_name, quest_id, complete_time, completer_vnum, silver, qp, prac, exp)
+
+    def quest_timeout(self, player_name, quest_id, end_time):
+        self.stat_db.add_quest_timeout(player_name, quest_id, end_time)
+
+    def quest_giveup(self, player_name, quest_id, end_time):
+        self.stat_db.add_quest_giveup(player_name, quest_id, end_time)
 
     def reload(self):
         self.reload_handler()
