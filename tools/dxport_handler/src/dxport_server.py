@@ -111,20 +111,22 @@ class StatDb(object):
                 timestamp
             ))
 
-    def add_quest_request(self, player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
+    def add_quest_request(self, player_name, quest_id, player_level, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
         self.execute("""
             INSERT INTO quests (
                 player_name,
                 request_time,
+                player_level,
                 is_hard,
                 giver_vnum,
                 obj_vnum,
                 mob_vnum,
                 room_vnum)
-            VALUES (?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?)
             """, (
                 player_name,
                 quest_id,
+                player_level,
                 is_hard,
                 giver_vnum,
                 None if obj_vnum == '0' else obj_vnum,
@@ -210,9 +212,9 @@ class MessageHandler(object):
             datetime.fromtimestamp(float(timestamp))))
         self.stat_db.add_player_connect(player_name, ip, timestamp)
 
-    def quest_request(self, player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
+    def quest_request(self, player_name, quest_id, player_level, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum):
         LOG.debug("{} quest_request, hard: {}".format(player_name, is_hard))
-        self.stat_db.add_quest_request(player_name, quest_id, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum)
+        self.stat_db.add_quest_request(player_name, quest_id, player_level, is_hard, giver_vnum, obj_vnum, mob_vnum, room_vnum)
 
     def quest_complete(self, player_name, quest_id, complete_time, completer_vnum, silver, qp, prac, exp):
         LOG.debug("{} quest_complete, qp: {}".format(player_name, qp))

@@ -1,0 +1,1 @@
+ALTER TABLE quests ADD COLUMN player_level INTEGER;
