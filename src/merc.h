@@ -4466,6 +4466,7 @@ void    gui_login_setup( CHAR_DATA *ch );
 void    open_imagewin_tag( CHAR_DATA *ch );
 void    close_imagewin_tag( CHAR_DATA *ch );
 const char *parse_url( const char *txt );
+int parse_walk(const char *argument, char *cmd_buf, size_t cmd_buf_len, char *err_buf, size_t err_buf_len);
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );

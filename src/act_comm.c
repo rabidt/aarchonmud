@@ -3515,14 +3515,22 @@ DEF_DO_FUN(do_guiconfig)
         USE_CHAT_WIN(ch) ? "ON" : "OFF" );
 }
 
-DEF_DO_FUN(do_walk)
+// return number of characters added to the cmd_buf, -1 for error
+int parse_walk(
+    const char *argument,
+    char *cmd_buf,
+    size_t cmd_buf_len,
+    char *err_buf,
+    size_t err_buf_len)
 {
-    DESCRIPTOR_DATA *d = ch->desc;
-    if ( d == NULL )
-        return;
-    
-    const int orig_inbuf_len = strlen(d->inbuf);
-    char *inbuf_next = d->inbuf + orig_inbuf_len;
+    if (cmd_buf_len < 1)
+    {
+        snprintf(err_buf, err_buf_len, "cmd_buf_len < 1 && argument not empty");
+        return -1;
+    }
+
+    // const int orig_inbuf_len = strlen(d->inbuf);
+    char *cmd_buf_next = cmd_buf;
     
     char arg_buf[MIL+1];
     const char *next;
@@ -3553,19 +3561,19 @@ DEF_DO_FUN(do_walk)
                     command[command_len] = '\0';
                     int repeats = URANGE(1, atoi(repeat), 99);
                     // ensure we have enough buffer space
-                    int buf_space = MAX_PROTOCOL_BUFFER - (inbuf_next - d->inbuf) - 1;
+                    int buf_space = cmd_buf_len - (cmd_buf_next - cmd_buf) - 1;
                     if ( repeats * (command_len + 1) > buf_space ) {
-                        ptc(ch, "Buffer overflow at %d * '%s'.\n\r", repeats, command);
-                        d->inbuf[orig_inbuf_len] = '\0';
-                        return;
+                        snprintf(err_buf, err_buf_len, "Buffer overflow at %d * '%s'.\n\r", repeats, command);
+                        *cmd_buf = '\0';
+                        return -1;
                     }
                     // add command to input buffer multiple times
                     for ( ; repeats > 0; repeats-- ) {
-                        strcpy(inbuf_next, command);
-                        inbuf_next += command_len;
-                        *(inbuf_next++) = '\n';
+                        strcpy(cmd_buf_next, command);
+                        cmd_buf_next += command_len;
+                        *(cmd_buf_next++) = '\n';
                     }
-                    *inbuf_next = '\0';
+                    *cmd_buf_next = '\0';
                     repeat_len = command_len = 0;
                     command_started = FALSE;
                 } else if ( repeat_len == 0 )
@@ -3580,9 +3588,31 @@ DEF_DO_FUN(do_walk)
                 break;
         }
     }
+
+    return cmd_buf_next - cmd_buf;
+}
+
+DEF_DO_FUN(do_walk)
+{
+    DESCRIPTOR_DATA *d = ch->desc;
+    if ( d == NULL )
+        return;
     
-    // nothing added to buffer ?
-    if ( (inbuf_next - d->inbuf) == orig_inbuf_len )
+
+    char err_buf[256];
+
+    
+    const int orig_inbuf_len = strlen(d->inbuf);
+    char *inbuf_next = d->inbuf + orig_inbuf_len;
+    
+    int rc = parse_walk(argument, inbuf_next, sizeof(d->inbuf) - orig_inbuf_len - 1, err_buf, sizeof(err_buf));
+
+    if (-1 == rc)
+    {
+        ptc(ch, "%s\n\r", err_buf);
+        return;
+    }
+    else if ( 0 == rc )
     {
         ptc(ch, "Syntax: walk 26e open_east 11e 4n\n\r");
         ptc(ch, "    or: walk 26e, open_east, 11e, 4n\n\r");
