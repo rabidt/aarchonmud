@@ -3529,22 +3529,16 @@ int parse_walk(
         return -1;
     }
 
-    // const int orig_inbuf_len = strlen(d->inbuf);
     char *cmd_buf_next = cmd_buf;
     
-    char arg_buf[MIL+1];
     const char *next;
     
     char repeat[MIL], command[MIL];
-    int repeat_len = 0, command_len = 0;
+    unsigned repeat_len = 0, command_len = 0;
     bool command_started = FALSE;
 
-    // add separating blank to end of argument
-    strcpy(arg_buf, argument);
-    strcat(arg_buf, " ");
-    
     // process argument one character at a time
-    for ( next = arg_buf; *next != '\0'; next++ ) {
+    for ( next = argument; ; next++ ) {
         // repeat argument or command?
         if ( !command_started && '0' <= *next && *next <= '9' ) {
             repeat[repeat_len++] = *next;
@@ -3554,14 +3548,15 @@ int parse_walk(
         switch ( *next ) {
             case ',':
             case ' ':
+            case '\0':
                 // command separator IF there is a command to end
                 // this allows for "2 n 3 w" spacing
                 if ( command_len > 0 ) {
                     repeat[repeat_len] = '\0';
                     command[command_len] = '\0';
-                    int repeats = URANGE(1, atoi(repeat), 99);
+                    unsigned repeats = (unsigned)URANGE(1, atoi(repeat), 99);
                     // ensure we have enough buffer space
-                    int buf_space = cmd_buf_len - (cmd_buf_next - cmd_buf) - 1;
+                    size_t buf_space = cmd_buf_len - ((unsigned)(cmd_buf_next - cmd_buf)) - 1;
                     if ( repeats * (command_len + 1) > buf_space ) {
                         snprintf(err_buf, err_buf_len, "Buffer overflow at %d * '%s'.\n\r", repeats, command);
                         *cmd_buf = '\0';
@@ -3587,6 +3582,11 @@ int parse_walk(
                 command[command_len++] = *next;
                 break;
         }
+
+        if (*next == '\0')
+        {
+            break;
+        }
     }
 
     return cmd_buf_next - cmd_buf;
@@ -3597,12 +3597,10 @@ DEF_DO_FUN(do_walk)
     DESCRIPTOR_DATA *d = ch->desc;
     if ( d == NULL )
         return;
-    
 
     char err_buf[256];
 
-    
-    const int orig_inbuf_len = strlen(d->inbuf);
+    const size_t orig_inbuf_len = strlen(d->inbuf);
     char *inbuf_next = d->inbuf + orig_inbuf_len;
     
     int rc = parse_walk(argument, inbuf_next, sizeof(d->inbuf) - orig_inbuf_len - 1, err_buf, sizeof(err_buf));
