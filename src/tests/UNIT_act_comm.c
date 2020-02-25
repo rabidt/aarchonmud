@@ -87,6 +87,33 @@ void Test_parse_walk(CuTest *tc)
     }
 
     {
+        const char arguments[][64] = 
+        {
+            "26e open_east 11e 4n",
+            "26e, open_east, 11e, 4n",
+            "26 e open_east 11 e 4 n"
+        };
+        char cmdbuf[MAX_PROTOCOL_BUFFER];
+        char errbuf[256];
+
+        const char * const exp = 
+            "e\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\n"
+            "open east\n"
+            "e\ne\ne\ne\ne\ne\ne\ne\ne\ne\ne\n"
+            "n\nn\nn\nn\n";
+
+        unsigned i;
+        for (i = 0; i < sizeof(arguments)/sizeof(arguments[0]); ++i)
+        {
+            const char *argument = arguments[i];
+
+            int rc = parse_walk(argument, cmdbuf, sizeof(cmdbuf), errbuf, sizeof(errbuf));
+            CuAssertIntEquals(tc, strlen(exp), rc);
+            CuAssertStrEquals(tc, exp, cmdbuf);
+        }
+    }
+
+    {
         // overflow
         char argument[] = "2hello , 4world";
         char cmdbuf[10];
