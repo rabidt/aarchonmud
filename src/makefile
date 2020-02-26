@@ -5,8 +5,8 @@ TESTS_DIR := ./tests
 CC      = gcc
 PROF    = -I$(AARCHON_INC) -L$(AARCHON_LIB) -O2
 MKTIME	:= \""$(shell date)"\"
-BRANCH	:= \""$(shell hg branch)"\"
-PARENT	:= \""$(shell hg summary | grep parent | sed 's/parent: //')"\"
+BRANCH	:= \""$(shell git branch)"\"
+PARENT	:= \""$(shell git rev-parse HEAD)"\"
 
 # Any flags that need to be different on different platforms should be set here
 # Default values should work for the main server and can be overriden from the environment in other cases as needed.
