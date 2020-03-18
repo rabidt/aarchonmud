@@ -2513,6 +2513,11 @@ local ptitle_list={
     "Madame",
     "Signore",
     "Signora",
+    "Big",
+    "Little",
+    "Lil",
+    "Mama",
+    "Papa",
 }
 local ptitle_cost=200
 function quest_buy_ptitle(ch, argument)
