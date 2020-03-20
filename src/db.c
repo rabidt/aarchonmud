@@ -611,7 +611,7 @@ int  top_jail_room = -1;
 * Tune the others only if you understand what you're doing.
 */
 #define         MAX_STRING  10000000
-#define         MAX_PERM_BLOCK  131072
+#define         MAX_PERM_BLOCK  262144
 /*#define         MAX_MEM_LIST    16*/
 
 void *          rgFreeList  [MAX_MEM_LIST];
