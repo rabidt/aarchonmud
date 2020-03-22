@@ -478,7 +478,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	
 	/* This buffer is only used for the items where arg2 really IS reboot arg */
 	if (pReset->arg2 < 0)
-		strcpy (reboot, "reboot");
+		strlcpy (reboot, "reboot", sizeof(reboot));
 	else
 	if (pReset->command == 'M')
 		snprintf( reboot, sizeof(reboot), "%2d  - %2d ", pReset->arg2, pReset->arg4);
@@ -536,7 +536,7 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 	{
 		OBJ_INDEX_DATA *obj = get_obj_index (pReset->arg1);
         const char *sdesc = truncate_color_string(obj->short_descr, 28);
-		strcpy (spaces, "          "); /* fill spaces.. with spaces! */
+		strlcpy (spaces, "          ", sizeof(spaces)); /* fill spaces.. with spaces! */
 		spaces[nesting*2] = '\0'; /* spaces now has nesting*2 spaces */
                 snprintf( buf2, sizeof(buf2), "%%2d>  ^[%%5d]  <inside [%%5d]>    Lv%%3d %%-%zus {x(%%s)",
                     28 + ( obj ? strlen(sdesc) - (size_t)strlen_color(sdesc) : 0));

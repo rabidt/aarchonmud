@@ -303,7 +303,7 @@ DEF_DO_FUN(do_smote)
             continue;
         }
         
-        strcpy(temp,argument);
+        strlcpy(temp, argument, sizeof(temp));
         temp[strlen(argument) - strlen(letter)] = '\0';
         last[0] = '\0';
         name = vch->name;
@@ -1769,7 +1769,7 @@ DEF_DO_FUN(do_pflag)
     argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( arg1[0] == '\0' || arg2[0] == '\0' || ((!is_number(arg2) || arg3[0] == '\0')
         && strcmp(arg2, "clear")) )
@@ -1842,7 +1842,7 @@ DEF_DO_FUN(do_string)
     argument = one_argument( argument, type );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( type[0] == '\0' || arg1[0] == '\0' || arg2[0] == '\0' || arg3[0] == '\0' )
     {

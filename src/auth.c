@@ -977,7 +977,7 @@ void auth_update( void )
     char buf [MAX_STRING_LENGTH], log_buf1 [MAX_STRING_LENGTH];
     bool found_hit = FALSE;       /* was at least one found? */
     
-    strcpy( log_buf1, "{+--- Characters awaiting approval ---{x\n\r" );
+    strlcpy( log_buf1, "{+--- Characters awaiting approval ---{x\n\r", sizeof(log_buf1) );
 
     for ( auth = first_auth_name; auth; auth = auth->next )
     {

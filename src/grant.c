@@ -623,7 +623,7 @@ DEF_DO_FUN(do_gstat)
         for (x = 0; x < sl; x++)
             strcat(str," ");
         
-        strcpy(s2,str);
+        strlcpy(s2, str, sizeof(s2));
         
         if ((strlen(str) + strlen(ds)) % 2 == 1) 
             strcat(s2," ");

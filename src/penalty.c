@@ -627,7 +627,7 @@ void penalty_severity( DESCRIPTOR_DATA *d, const char *argument )
 
    pen = penalty_table_lookup(p->penalty_type);   
 
-   strcpy (buf, argument);
+   strlcpy (buf, argument, sizeof(buf));
 
    if (!buf[0] || !is_number(buf))
    {
@@ -691,7 +691,7 @@ void penalty_hours( DESCRIPTOR_DATA *d, const char *argument )
         return;
     }
     
-    strcpy (buf, argument);
+    strlcpy (buf, argument, sizeof(buf));
     
     if (!buf[0] || !is_number(buf))
     {
@@ -747,7 +747,7 @@ void penalty_points( DESCRIPTOR_DATA *d, const char *argument )
       return;
    }
 
-   strcpy (buf, argument);
+   strlcpy (buf, argument, sizeof(buf));
 
    if (!buf[0] || !is_number(buf))
    {
@@ -843,7 +843,7 @@ void penalty_penlist( DESCRIPTOR_DATA *d, const char *argument )
       return;
    }
 
-   strcpy (buf, argument);
+   strlcpy (buf, argument, sizeof(buf));
 
    if (!buf[0] || !is_number(buf))
    {

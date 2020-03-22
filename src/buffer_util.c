@@ -192,7 +192,7 @@ MEMFILE *memfile_new( char *filename, int min_size )
   }
   mf->next = NULL;
   mf->buf = buf;
-  strcpy(mf->filename, filename);
+  strlcpy(mf->filename, filename, sizeof(mf->filename));
 #if defined(SIM_DEBUG)
    log_string("memfile_new: done");
 #endif
@@ -243,7 +243,7 @@ MEMFILE* memfile_wrap_buffer( char *filename, DBUFFER *buf )
   }
   mf->next = NULL;
   mf->buf = buf;
-  strcpy(mf->filename, filename);
+  strlcpy(mf->filename, filename, sizeof(mf->filename));
 #if defined(SIM_DEBUG)
    log_string("memfile_wrap_buffer: done");
 #endif

@@ -342,7 +342,7 @@ bool load_char_obj( DESCRIPTOR_DATA *d, const char *name, bool char_only )
   // safety-net against invalid filenames
   if ( !is_alpha_string(name) )
       return false;
-  strcpy(filename, capitalize(name));
+  strlcpy(filename, capitalize(name), sizeof(filename));
   /* search player_quit_list */
   for (mf = player_quit_list; mf != NULL; mf = mf->next)
     if (!strcmp(mf->filename, filename))
@@ -582,7 +582,7 @@ bool remove_from_list( const char *name, MEMFILE **list )
   if ( (*list) == NULL)
     return FALSE;
 
-  strcpy(filename, capitalize(name));
+  strlcpy(filename, capitalize(name), sizeof(filename));
 
   /* special case if first in list */
   last_mf = (*list);

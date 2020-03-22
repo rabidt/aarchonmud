@@ -1079,7 +1079,7 @@ void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument)
       return;
    }
    
-   strcpy (buf, argument);
+   strlcpy (buf, argument, sizeof(buf));
    smash_tilde (buf); /* change ~ to - as we save this field as a string later */
    
    switch (ch->pcdata->board->force_type)
@@ -1153,7 +1153,7 @@ void handle_con_note_subject (DESCRIPTOR_DATA *d, const char * argument)
       return;
    }
    
-   strcpy (buf, argument);
+   strlcpy (buf, argument, sizeof(buf));
    smash_tilde (buf); /* change ~ to - as we save this field as a string later */
    
    /* Do not allow empty subjects */
@@ -1207,7 +1207,7 @@ void handle_con_note_expire(DESCRIPTOR_DATA *d, const char * argument)
     }
 
     /* Numeric argument. no tilde smashing */
-    strcpy (buf, argument);
+    strlcpy (buf, argument, sizeof(buf));
     if (!buf[0]) /* assume default expire */
         days = 	ch->pcdata->board->purge_days;
     else /* use this expire */
@@ -1422,12 +1422,12 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
            add a new line, and copy back. */
         if (ch->pcdata->in_progress->text)
         {
-            strcpy (letter, ch->pcdata->in_progress->text);
+            strlcpy (letter, ch->pcdata->in_progress->text, sizeof(letter));
             free_string (ch->pcdata->in_progress->text);
             ch->pcdata->in_progress->text = NULL; /* be sure we don't free it twice */
         }
         else
-            strcpy (letter, "");
+            letter[0] = '\0';
 
         /* Check for overflow */
 

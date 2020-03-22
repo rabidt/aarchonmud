@@ -95,7 +95,7 @@ void log_pers( PERS_HISTORY *history, const char *text )
 	char time[MSL];
 	char buf[MSL*2];
 	
-	strcpy(time, ctime( &current_time ) );
+	strlcpy(time, ctime( &current_time ), sizeof(time) );
 	time[strlen(time)-1] = '\0';
 	snprintf( buf, sizeof(buf), "%s::%s", time, text );
 	entry->text=str_dup(buf);

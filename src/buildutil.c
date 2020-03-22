@@ -1884,7 +1884,7 @@ MSETFUN ( class )
     {
         char buf[MAX_STRING_LENGTH];
        
-        strcpy( buf, "Possible classes are: " );
+        strlcpy( buf, "Possible classes are: ", sizeof(buf) );
         for ( class = 0; class < MAX_CLASS; class++ )
         {
             if ( class > 0 )
@@ -1907,7 +1907,7 @@ static void show_subclasses(CHAR_DATA * ch)
     char buf[MAX_STRING_LENGTH];
     int subclass;
 
-    strcpy( buf, "Possible subclasses are: " );
+    strlcpy( buf, "Possible subclasses are: ", sizeof(buf) );
     for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
     {
         if ( subclass > 0 )
@@ -2539,7 +2539,7 @@ DEF_DO_FUN(do_mset)
     argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( arg1[0] == '\0' || arg2[0] == '\0' || arg3[0] == '\0' )
     {
@@ -2641,7 +2641,7 @@ DEF_DO_FUN(do_oset)
     argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( arg1[0] == '\0' || arg2[0] == '\0' || arg3[0] == '\0' )
     {
@@ -2793,7 +2793,7 @@ DEF_DO_FUN(do_rset)
     argument = smash_tilde_cc( argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( arg1[0] == '\0' || arg2[0] == '\0' || arg3[0] == '\0' )
     {

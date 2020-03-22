@@ -1145,7 +1145,7 @@ DEF_DO_FUN(do_mpat)
 	    break;
 	}
     }
-    strcpy( last_debug, "" );
+    last_debug[0] = '\0';
 
     return;
 }

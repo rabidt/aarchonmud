@@ -177,12 +177,12 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
             else
                snprintf( pstat, sizeof(pstat), "{yTruce(%d){x", abs(p->truce_timer));  
             break;
-         case CLANWAR_TREATY: strcpy(pstat, "{gTreaty{x"); break;
+         case CLANWAR_TREATY: strlcpy(pstat, "{gTreaty{x", sizeof(pstat)); break;
          default: return; break;
          }
       }
       else
-         strcpy(pstat, "{cPeace{x");
+         strlcpy(pstat, "{cPeace{x", sizeof(pstat));
 
       q = clanwar_lookup(i, clan_number);
 
@@ -196,12 +196,12 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
             else
                snprintf( qstat, sizeof(qstat), "{yTruce(%d){x", abs(q->truce_timer));  
             break;
-         case CLANWAR_TREATY: strcpy(qstat, "{gTreaty{x"); break;
+         case CLANWAR_TREATY: strlcpy(qstat, "{gTreaty{x", sizeof(qstat)); break;
          default: return; break;
          }
       }
       else
-         strcpy(qstat, "{cPeace{x");
+         strlcpy(qstat, "{cPeace{x", sizeof(qstat));
 
 
       printf_to_char(ch, "%s -> ", lpad(capitalize(clan_table[clan_number].name), 12, ' '));

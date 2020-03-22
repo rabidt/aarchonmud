@@ -665,7 +665,7 @@ DEF_DO_FUN(do_scout)
     int skill, sn;
     
     /*one_argument( argument, arg );*/
-    strcpy( arg, argument );
+    strlcpy( arg, argument, sizeof(arg) );
     
     if ( is_wilderness(ch->in_room->sector_type) )
     {

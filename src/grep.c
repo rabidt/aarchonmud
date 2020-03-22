@@ -45,7 +45,7 @@ GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool ne
     if ( str_value == NULL )
 	gd->str_value[0] = '\0';
     else
-	strcpy( gd->str_value, str_value );
+	strlcpy( gd->str_value, str_value, sizeof(gd->str_value) );
     return gd;
 }
 

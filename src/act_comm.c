@@ -438,7 +438,7 @@ void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
                     chan->second_color);
         }
 
-        strcpy(arg_buf, argument);
+        strlcpy(arg_buf, argument, sizeof(arg_buf));
         smash_beep_n_blink(arg_buf);
         argument=parse_url(arg_buf);
         
@@ -1001,7 +1001,7 @@ DEF_DO_FUN(do_shout)
 
     WAIT_STATE( ch, 12 );
     
-    strcpy(arg_buf, argument);
+    strlcpy(arg_buf, argument, sizeof(arg_buf));
     smash_beep_n_blink(arg_buf);
     act( "{uYou shout {U'$T{U'{x", ch, NULL, arg_buf, TO_CHAR );
     argument = makedrunk(arg_buf, ch);
@@ -1273,7 +1273,7 @@ DEF_DO_FUN(do_yell)
         return;
     }
     
-    strcpy(arg_buf, argument);
+    strlcpy(arg_buf, argument, sizeof(arg_buf));
     smash_beep_n_blink(arg_buf);
     argument = arg_buf;
         
@@ -1382,7 +1382,7 @@ DEF_DO_FUN(do_pmote)
             continue;
         }
         
-        strcpy(temp,argument);
+        strlcpy(temp, argument, sizeof(temp));
         temp[strlen(argument) - strlen(letter)] = '\0';
         last[0] = '\0';
         name = vch->name;
@@ -3146,7 +3146,7 @@ const char * makedrunk (const char *string, CHAR_DATA * ch)
     
     if ( IS_AFFECTED(ch, AFF_INSANE) )
     {
-        strcpy(buf, string);
+        strlcpy(buf, string, sizeof(buf));
         // garble up character order using "reverse bubble-sort" - a "bobble sort" ;)
         pos = 0;
         while ( buf[pos+1] != '\0' )

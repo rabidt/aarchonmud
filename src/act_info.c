@@ -693,7 +693,7 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     else
         percent = -1;
     
-    strcpy( buf, PERS(victim, ch) );
+    strlcpy( buf, PERS(victim, ch), sizeof(buf) );
     
     if (percent >= 100) 
         strcat( buf, " is in excellent condition.\n\r");
@@ -1466,10 +1466,10 @@ DEF_DO_FUN(do_prompt)
     }
     
     if( !strcmp( argument, "all" ) )
-        strcpy( buf, PROMPT_DEFAULT );     
+        strlcpy( buf, PROMPT_DEFAULT, sizeof(buf) );
     else
     {
-        strcpy( buf, argument );
+        strlcpy( buf, argument, sizeof(buf) );
         if ( strlen_color(buf) > MAX_PROMPT_LENGTH )
         {
             for( temp = buf; *temp != '\0'; temp++ )
@@ -1936,7 +1936,7 @@ DEF_DO_FUN(do_examine)
         break;
 
 	case ITEM_WEAPON:
-        strcpy(buf, "It is ");
+        strlcpy(buf, "It is ", sizeof(buf));
         switch (obj->value[0])
         {
         case(WEAPON_EXOTIC) : strcat(buf, "a weapon of some exotic type, ");  break;
@@ -1968,7 +1968,7 @@ DEF_DO_FUN(do_examine)
 
         case ITEM_ARMOR:
             ptc(ch, "It is %s armor.\n\r", IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) ? "heavy" : "light");
-	strcpy(buf, "It looks like it could be ");
+	strlcpy(buf, "It looks like it could be ", sizeof(buf));
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
 	    strcat(buf, "worn on the finger.\n\r");
@@ -1982,13 +1982,13 @@ DEF_DO_FUN(do_examine)
 	    strcat(buf, "worn on the legs.\n\r");
 	else if( CAN_WEAR(obj,ITEM_WEAR_FEET) )
 	    if( obj->pIndexData->vnum != 10415 )	/* Shaft's Lost Left Shoe! */
-	        strcpy(buf, "It looks like they can be worn on the feet.\n\r");
+	        strlcpy(buf, "It looks like they can be worn on the feet.\n\r", sizeof(buf));
 	    else
 		strcat(buf, "worn on the left foot.\n\r");
 	else if( CAN_WEAR(obj,ITEM_WEAR_HANDS) )
-	    strcpy(buf, "It looks like they can be worn on the hands.\n\r");
+	    strlcpy(buf, "It looks like they can be worn on the hands.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_ARMS) )
-	    strcpy(buf, "It looks like they can be worn on the arms.\n\r");
+	    strlcpy(buf, "It looks like they can be worn on the arms.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_SHIELD) )
 	    strcat(buf, "used as a shield.\n\r");
 	else if( CAN_WEAR(obj,ITEM_WEAR_ABOUT) )
@@ -3451,11 +3451,11 @@ void set_title( CHAR_DATA *ch, const char *title )
     if ( title[0] != '.' && title[0] != ',' && title[0] != '!' && title[0] != '?' && title[0] != '\'' && title[0] != ' ' )
     {
         buf[0] = ' ';
-        strcpy( buf+1, title );
+        strlcpy( buf+1, title, sizeof(buf) - 1 );
     }
     else
     {
-        strcpy( buf, title );
+        strlcpy( buf, title, sizeof(buf) );
     }
     
     free_string( ch->pcdata->title );
@@ -3481,7 +3481,7 @@ DEF_DO_FUN(do_title)
         return;
     }
     
-    strcpy(buf, argument);
+    strlcpy(buf, argument, sizeof(buf));
     if ( strlen_color(buf) > 45 )
     {
         for( temp = buf; *temp != '\0' ; temp++ )
@@ -3561,7 +3561,7 @@ DEF_DO_FUN(do_description)
                 return;
             }
             
-            strcpy(buf,ch->description);
+            strlcpy(buf, ch->description, sizeof(buf));
             
             for (len = strlen(buf); len > 0; len--)
             {
@@ -3911,7 +3911,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             break;
 
         case ITEM_WEAPON:
-            strcpy(buf, "The weapon is ");
+            strlcpy(buf, "The weapon is ", sizeof(buf));
             switch (obj->value[0])
             {
                 case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
@@ -4075,7 +4075,7 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             break;
 
         case ITEM_WEAPON:
-            strcpy(buf, "The weapon is ");
+            strlcpy(buf, "The weapon is ", sizeof(buf));
             switch (obj->value[0])
             {
                 case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;

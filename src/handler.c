@@ -706,7 +706,7 @@ bool match_obj( OBJ_DATA *obj, const char *arg )
         return FALSE;
     
     // split into header + last char
-    strcpy(header, arg);
+    strlcpy(header, arg, sizeof(header));
     header[strlen(arg)-1] = '\0';
     last = arg[strlen(arg)-1];
     
@@ -3507,7 +3507,7 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
     /* allow searching of room only for obj */
     if ( str_prefix( "room.", arg1 ) )
     {
-	strcpy( arg, arg1 );
+	strlcpy( arg, arg1, sizeof(arg) );
 
 	if ( ( obj = get_obj_carry_new( ch, arg, ch, &number, exact ) ) != NULL )
 	    return obj;
@@ -3517,7 +3517,7 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
     }
     else
     {
-	strcpy( arg, &arg1[5] );
+	strlcpy( arg, &arg1[5], sizeof(arg) );
     }
 
     obj = get_obj_list_new(ch, arg, ch->in_room->contents, &number, exact); 

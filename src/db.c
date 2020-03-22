@@ -853,7 +853,7 @@ void boot_db( void )
         
         for ( ; ; )
         {
-            strcpy( strArea, fread_word( fpList ) );
+            strlcpy( strArea, fread_word( fpList ), sizeof(strArea) );
             if ( strArea[0] == '$' )
                 break;
             
@@ -4517,7 +4517,7 @@ const char *upper_realloc( const char *str )
         return str;
     
     buf[0] = UPPER(str[0]);
-    strcpy(buf+1, str+1);
+    strlcpy(buf+1, str+1, sizeof(buf) - 1);
     
     free_string(str);
     return str_dup(buf);
@@ -4545,7 +4545,7 @@ const char *trim_realloc( const char *str )
     
     // copy substring
     char buf[MSL];
-    strcpy(buf, first);
+    strlcpy(buf, first, sizeof(buf));
     buf[1 + (last-first)] = '\0';
     
     free_string(str);
@@ -5398,12 +5398,8 @@ void cheat_log( const char *str )
         bug ("Could not open " CHEAT_LIST " for writing", 0);
         return;
     }
-    
-    /* this is the main thing ;) */
-    
-    /* have to add the EOL to timestamp or it won't have one, weird */
-    strcpy( ts, ctime(&current_time));
-    ts[strlen(ts)-1] = '\0';
+
+    strlcpy( ts, ctime(&current_time), sizeof(ts) );
     fprintf( fp, "%s::%s\n",ts, str );
 
     fclose (fp);

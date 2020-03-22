@@ -465,7 +465,7 @@ DEF_NANNY_FUN(get_name)
     }
     
     //argument[0] = UPPER(argument[0]);
-    strcpy(argbuf, argument);
+    strlcpy(argbuf, argument, sizeof(argbuf));
     argbuf[0] = UPPER(argument[0]);
     argument = argbuf;
 
@@ -1072,7 +1072,7 @@ DEF_NANNY_FUN(get_new_class)
 		write_to_buffer( d, "\n\r", 0 );
 		do_help(ch, "classes");
 
-		strcpy( buf, "The following classes are available:\n\r[ {W" );
+		strlcpy( buf, "The following classes are available:\n\r[ {W", sizeof(buf) );
 		for ( i = 0; i < MAX_CLASS; i++ )
 		{
 			if ( i > 0 )
@@ -1184,7 +1184,7 @@ DEF_NANNY_FUN(get_new_class)
 	{
 		write_to_buffer( d, "That's not a class.\n\r", 0 );
 
-		strcpy( buf, "The following classes are available: [ {W" );
+		strlcpy( buf, "The following classes are available: [ {W", sizeof(buf) );
 		for ( i = 0; i < MAX_CLASS; i++ )
 		{
 			if ( i > 0 )

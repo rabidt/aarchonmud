@@ -241,7 +241,7 @@ void string_add( CHAR_DATA *ch, const char *argument )
       
       argument = one_argument( argument, arg1 );
       argument = first_arg( argument, arg2, FALSE );
-      strcpy( tmparg3, argument );
+      strlcpy( tmparg3, argument, sizeof(tmparg3) );
       argument = first_arg( argument, arg3, FALSE );
 
       if ( !str_cmp( arg1, ".c" ) )
@@ -351,7 +351,7 @@ void string_add( CHAR_DATA *ch, const char *argument )
       return;
    }
    
-   strcpy( buf, *ch->desc->pString );
+   strlcpy( buf, *ch->desc->pString, sizeof(buf) );
    
    /*
     * Truncate strings to MAX_STRING_LENGTH.

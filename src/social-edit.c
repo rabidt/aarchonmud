@@ -47,7 +47,7 @@ struct social_type *social_table;	   /* and social table */
 
 void load_social (FILE *fp, struct social_type *social)
 {
-	strcpy(social->name, fread_string (fp));
+	strlcpy(social->name, fread_string (fp), sizeof(social->name));
 	social->char_no_arg =   fread_string (fp);
 	social->others_no_arg = fread_string (fp);
 	social->char_found =    fread_string (fp);
@@ -86,7 +86,7 @@ void load_social_table ( void )
 
 	/* For backwards compatibility */
 			
-	strcpy(social_table[maxSocial].name, str_dup("")); /* empty! */		
+	social_table[maxSocial].name[0] = '\0'; /* empty! */
 		
 	fclose (fp);
 	
@@ -239,7 +239,7 @@ DEF_DO_FUN(do_sedit)
 		
 		social_table = new_table;
 		
-		strcpy(social_table[maxSocial-1].name, str_dup (social));
+		strlcpy(social_table[maxSocial-1].name, social, sizeof(social_table[maxSocial-1].name));
 		social_table[maxSocial-1].char_no_arg = str_dup ("");
 		social_table[maxSocial-1].others_no_arg = str_dup ("");
 		social_table[maxSocial-1].char_found = str_dup ("");
@@ -248,7 +248,7 @@ DEF_DO_FUN(do_sedit)
 		social_table[maxSocial-1].char_auto = str_dup ("");
 		social_table[maxSocial-1].others_auto = str_dup ("");
 		
-		strcpy(social_table[maxSocial].name, str_dup ("")); /* 'terminating' empty string */
+		social_table[maxSocial].name[0] = '\0'; /* 'terminating' empty string */
 		
 		send_to_char ("New social added.\n\r",ch);
 			

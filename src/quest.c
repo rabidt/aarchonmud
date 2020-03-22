@@ -1719,47 +1719,47 @@ bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim )
 
   if (!strcmp(arg2, "red"))
   {
-    strcpy(buf,"{r");
+    strlcpy(buf,"{r", sizeof(buf));
   }
 
   if (!strcmp(arg2, "magenta"))
   {
-    strcpy(buf,"{m");
+    strlcpy(buf,"{m", sizeof(buf));
   }
 
   if (!strcmp(arg2, "white"))
   {
-    strcpy(buf,"{w");
+    strlcpy(buf,"{w", sizeof(buf));
   }
 
   if (!strcmp(arg2, "hi-blue"))
   {
-    strcpy(buf,"{B");
+    strlcpy(buf,"{B", sizeof(buf));
   }
   
   if (!strcmp(arg2, "green"))
   {
-    strcpy(buf,"{g");
+    strlcpy(buf,"{g", sizeof(buf));
   }
 
   if (!strcmp(arg2, "yellow"))
   {
-    strcpy(buf, "{y");
+    strlcpy(buf, "{y", sizeof(buf));
   }
 
   if (!strcmp(arg2, "cyan"))
   {
-    strcpy(buf,"{c");
+    strlcpy(buf,"{c", sizeof(buf));
   }
 
   if (!strcmp(arg2, "grey"))
   {
-    strcpy(buf, "{D");
+    strlcpy(buf, "{D", sizeof(buf));
   }
 
   if (!strcmp(arg2, "gray"))
   {
-    strcpy(buf, "{D");
+    strlcpy(buf, "{D", sizeof(buf));
   }
 
   if (!strcmp(buf, ""))

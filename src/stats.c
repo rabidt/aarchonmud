@@ -527,7 +527,7 @@ void show_can_train( CHAR_DATA *ch )
     char buf2[MAX_STRING_LENGTH];
     int stat, inc;
     
-    strcpy( buf, "You can train:" );
+    strlcpy( buf, "You can train:", sizeof(buf) );
     for ( stat = 0; stat < MAX_STATS; stat++ )
         if ( (inc = train_stat_inc(ch, stat)) > 0 )
         {
@@ -1491,14 +1491,14 @@ void show_dice(CHAR_DATA *ch)
         else
         {
             if (ch->gen_data->assigned_die[i+10]==-1)
-                strcpy(buf3, " --");
+                strlcpy(buf3, " --", sizeof(buf3));
             else
                 snprintf( buf3, sizeof(buf3), "%3d", ch->gen_data->assigned_die[i+10]);
             snprintf( buf2, sizeof(buf2), "%10s %3s", stat_table[i+10].name, buf3);
         }
         
         if (ch->gen_data->assigned_die[i]==-1)
-            strcpy(buf3, " --");
+            strlcpy(buf3, " --", sizeof(buf3));
         else
             snprintf( buf3, sizeof(buf3), "%3d", ch->gen_data->assigned_die[i]);
         
@@ -1509,7 +1509,7 @@ void show_dice(CHAR_DATA *ch)
         send_to_char(buf, ch);
     }
     
-    strcpy(buf, "\n\rDice left to distribute: ");
+    strlcpy(buf, "\n\rDice left to distribute: ", sizeof(buf));
     for (i=0; i<15; i++)
     {
         if ((die=ch->gen_data->unused_die[i])==-1) break;

@@ -181,7 +181,7 @@ int main( int argc, char **argv )
      */
     gettimeofday( &now_time, NULL );
     current_time    = (time_t) now_time.tv_sec;
-    strcpy( str_boot_time, ctime( &current_time ) );
+    strlcpy( str_boot_time, ctime( &current_time ), sizeof(str_boot_time) );
 
     /* Log some info about the binary if present */
     log_string(bin_info_string);
@@ -1007,7 +1007,7 @@ bool read_from_descriptor( DESCRIPTOR_DATA *d )
     if (read_buf[0]=='&')
     {
         /* allow to clear command buffer with '&' */
-        strcpy( d->inbuf, "");
+        d->inbuf[0] = '\0';
     }
     else
     {
@@ -1145,9 +1145,9 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
      * Do '!' substitution.
      */
     if ( d->incomm[0] == '!' )
-        strcpy( d->incomm, d->inlast );
+        strlcpy( d->incomm, d->inlast, sizeof(d->incomm) );
     else
-        strcpy( d->inlast, d->incomm );
+        strlcpy( d->inlast, d->incomm, sizeof(d->inlast) );
 
     /*
      * Shift the input buffer.
@@ -1645,7 +1645,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         snprintf( buf2, sizeof(buf2), "humanoid" );
                 }
-                else strcpy(buf2, "");
+                else buf2[0] = '\0';
                 i = buf2; break;
 
             case 'P' :
@@ -1656,7 +1656,7 @@ void bust_a_prompt( CHAR_DATA *ch )
                     else
                         snprintf( buf2, sizeof(buf2), "..." );
                 }
-                else strcpy(buf2, "");
+                else buf2[0] = '\0';
                 i = buf2; break;
             case 'n' :
                 snprintf( buf2, sizeof(buf2), "%s", songs[ch->song].name );
@@ -2383,10 +2383,10 @@ int colour( char type, CHAR_DATA *ch, char *string )
     switch( type )
     {
         default:
-            strcpy( code, CLEAR );
+            strlcpy( code, CLEAR, sizeof(code) );
             break;
         case 'x':
-            strcpy( code, CLEAR );
+            strlcpy( code, CLEAR, sizeof(code) );
             break;
 #define CUSTC(chr, field) \
     case chr: \
@@ -2449,49 +2449,49 @@ int colour( char type, CHAR_DATA *ch, char *string )
 #undef CUSTC
 
         case 'b':
-            strcpy( code, C_BLUE );
+            strlcpy( code, C_BLUE, sizeof(code) );
             break;
         case 'c':
-            strcpy( code, C_CYAN );
+            strlcpy( code, C_CYAN, sizeof(code) );
             break;
         case 'g':
-            strcpy( code, C_GREEN );
+            strlcpy( code, C_GREEN, sizeof(code) );
             break;
         case 'm':
-            strcpy( code, C_MAGENTA );
+            strlcpy( code, C_MAGENTA, sizeof(code) );
             break;
         case 'r':
-            strcpy( code, C_RED );
+            strlcpy( code, C_RED, sizeof(code) );
             break;
         case 'w':
-            strcpy( code, C_WHITE );
+            strlcpy( code, C_WHITE, sizeof(code) );
             break;
         case 'y':
-            strcpy( code, C_YELLOW );
+            strlcpy( code, C_YELLOW, sizeof(code) );
             break;
         case 'B':
-            strcpy( code, C_B_BLUE );
+            strlcpy( code, C_B_BLUE, sizeof(code) );
             break;
         case 'C':
-            strcpy( code, C_B_CYAN );
+            strlcpy( code, C_B_CYAN, sizeof(code) );
             break;
         case 'G':
-            strcpy( code, C_B_GREEN );
+            strlcpy( code, C_B_GREEN, sizeof(code) );
             break;
         case 'M':
-            strcpy( code, C_B_MAGENTA );
+            strlcpy( code, C_B_MAGENTA, sizeof(code) );
             break;
         case 'R':
-            strcpy( code, C_B_RED );
+            strlcpy( code, C_B_RED, sizeof(code) );
             break;
         case 'W':
-            strcpy( code, C_B_WHITE );
+            strlcpy( code, C_B_WHITE, sizeof(code) );
             break;
         case 'Y':
-            strcpy( code, C_B_YELLOW );
+            strlcpy( code, C_B_YELLOW, sizeof(code) );
             break;
         case 'D':
-            strcpy( code, C_D_GREY );
+            strlcpy( code, C_D_GREY, sizeof(code) );
             break;
         case '*':
             snprintf( code, sizeof(code), "%c", 007 );
@@ -2505,13 +2505,13 @@ int colour( char type, CHAR_DATA *ch, char *string )
             snprintf( code, sizeof(code), "%c", '{' );
             break;
         case '+':
-            strcpy( code, BOLD );
+            strlcpy( code, BOLD, sizeof(code) );
             break;
         case 'v':
-            strcpy( code, REVERSE );
+            strlcpy( code, REVERSE, sizeof(code) );
             break;
         case '%':
-            strcpy( code, BLINK );
+            strlcpy( code, BLINK, sizeof(code) );
             break;
     }
 
@@ -2675,7 +2675,7 @@ static void copyover_mud( const char *argument )
     if ( argument[0] != '\0' )
         snprintf( buf, sizeof(buf), "\n\r%s", argument );
     else
-        strcpy( buf, "" );
+        buf[0] = '\0';
 
     strcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r");
     strcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r");

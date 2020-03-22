@@ -792,7 +792,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
     int string_count = nAllocString ;
     int perm_count = nAllocPerm ;
     char cmd_copy[MAX_INPUT_LENGTH] ;
-    strcpy(cmd_copy, argument) ;
+    strlcpy(cmd_copy, argument, sizeof(cmd_copy)) ;
 #endif
     
     /*
@@ -824,7 +824,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
     * Special parsing so ' can be a command,
     *   also no spaces needed after punctuation.
     */
-    strcpy( logline, argument );
+    strlcpy( logline, argument, sizeof(logline) );
     if ( !isalpha(argument[0]) && !isdigit(argument[0]) )
     {
         command[0] = argument[0];
@@ -870,7 +870,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
     * Log and snoop.
     */
     if ( cmd_table[cmd].log == LOG_NEVER )
-        strcpy( logline, command );
+        strlcpy( logline, command, sizeof(logline) );
     else if ( (!IS_NPC(ch) && IS_SET(ch->act, PLR_LOG) )
 	      || fLogAll
 	      || cmd_table[cmd].log == LOG_ALWAYS )
@@ -954,7 +954,7 @@ void interpret( CHAR_DATA *ch, const char *argument )
     {
         /* if player quit, they're char is no longer valid so we
            need to just re-use info in last_command */
-        strcpy(buf, last_command);
+        strlcpy(buf, last_command, sizeof(buf));
         snprintf( last_command, sizeof(last_command), "(Finished) %s", buf );
     }
 	

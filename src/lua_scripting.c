@@ -112,7 +112,7 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, struct lua
         return FALSE;
     }
 
-    strcpy( buf, "return function (" );
+    strlcpy( buf, "return function (", sizeof(buf) );
     
     int i;
     for (i=0; i < script_type->narg ; i++)

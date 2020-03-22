@@ -1264,7 +1264,7 @@ DEF_DO_FUN(do_cset)
     argument = smash_tilde_cpy( arg_buf, argument );
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    strcpy( arg3, argument );
+    strlcpy( arg3, argument, sizeof(arg3) );
     
     if ( arg1[0] == '\0' || arg2[0] == '\0' || arg3[0] == '\0' )
     {

@@ -164,7 +164,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 #endif
     
     /* alloc memory file */
-    strcpy(strsave, capitalize(ch->name));
+    strlcpy(strsave, capitalize(ch->name), sizeof(strsave));
     /* 16k should do for most players; 
        if not, the buffer will expand automatically */
     mf = memfile_new(strsave, 16*1024);
