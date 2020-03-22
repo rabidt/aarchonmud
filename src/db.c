@@ -5400,6 +5400,7 @@ void cheat_log( const char *str )
     }
 
     strlcpy( ts, ctime(&current_time), sizeof(ts) );
+    ts[strlen(ts)-1] = '\0'; // Remove the newline that ctime adds
     fprintf( fp, "%s::%s\n",ts, str );
 
     fclose (fp);
