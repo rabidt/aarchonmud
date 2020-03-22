@@ -4646,50 +4646,58 @@ void do_areas( CHAR_DATA *ch )
     return;
 } 
 
-DEF_DO_FUN(do_memory)
+void print_memory(BUFFER *output)
 {
-    ptc( ch, "          %-5s %s\n\r", "C", "Lua" );
-    ptc( ch, "Affects   %5d %5d\n\r", top_affect, count_AFFECT()); 
-    ptc( ch, "Areas     %5d %5d\n\r", top_area, count_AREA()); 
-    ptc( ch, "ExDes     %5d\n\r", top_ed        ); 
-    ptc( ch, "Exits     %5d %5d\n\r", top_exit, count_EXIT()); 
-    ptc( ch, "Helps     %5d %5d\n\r", top_help, count_HELP()); 
-    ptc( ch, "Socials   %5d\n\r", maxSocial  ); 
-    ptc( ch, "Resets    %5d %5d\n\r", top_reset, count_RESET()); 
-    ptc( ch, "Rooms     %5d %5d\n\r", top_room, count_ROOM()); 
-    ptc( ch, "Shops     %5d %5d\n\r", top_shop, count_SHOP()); 
-    ptc( ch, "\n\r");
-    ptc( ch, "Mobs      %5d %5d\n\r", top_mob_index, count_MOBPROTO());
-    ptc( ch, " (in use) %5d\n\r", mobile_count  );
-    ptc( ch, "Objs      %5d %5d\n\r", top_obj_index, count_OBJPROTO());
-    ptc( ch, " (in use) %5d %5d\n\r", object_count, count_OBJ());
-    ptc( ch, "\n\r");
-    ptc( ch, "Mprogs    %5d\n\r", top_mprog_index);
-    ptc( ch, " (lua)    %5d\n\r", lua_mprogs);
-    ptc( ch, "Oprogs    %5d\n\r", top_oprog_index);
-    ptc( ch, "Aprogs    %5d\n\r", top_aprog_index);
-    ptc( ch, "Rprogs    %5d\n\r", top_rprog_index);
-    ptc( ch, "Total     %5d %5d\n\r",
+    addf_buf( output, "          %-5s %s\n\r", "C", "Lua" );
+    addf_buf( output, "Affects   %5d %5d\n\r", top_affect, count_AFFECT());
+    addf_buf( output, "Areas     %5d %5d\n\r", top_area, count_AREA());
+    addf_buf( output, "ExDes     %5d\n\r", top_ed        );
+    addf_buf( output, "Exits     %5d %5d\n\r", top_exit, count_EXIT());
+    addf_buf( output, "Helps     %5d %5d\n\r", top_help, count_HELP());
+    addf_buf( output, "Socials   %5d\n\r", maxSocial  );
+    addf_buf( output, "Resets    %5d %5d\n\r", top_reset, count_RESET());
+    addf_buf( output, "Rooms     %5d %5d\n\r", top_room, count_ROOM());
+    addf_buf( output, "Shops     %5d %5d\n\r", top_shop, count_SHOP());
+    addf_buf( output, "\n\r");
+    addf_buf( output, "Mobs      %5d %5d\n\r", top_mob_index, count_MOBPROTO());
+    addf_buf( output, " (in use) %5d\n\r", mobile_count  );
+    addf_buf( output, "Objs      %5d %5d\n\r", top_obj_index, count_OBJPROTO());
+    addf_buf( output, " (in use) %5d %5d\n\r", object_count, count_OBJ());
+    addf_buf( output, "\n\r");
+    addf_buf( output, "Mprogs    %5d\n\r", top_mprog_index);
+    addf_buf( output, " (lua)    %5d\n\r", lua_mprogs);
+    addf_buf( output, "Oprogs    %5d\n\r", top_oprog_index);
+    addf_buf( output, "Aprogs    %5d\n\r", top_aprog_index);
+    addf_buf( output, "Rprogs    %5d\n\r", top_rprog_index);
+    addf_buf( output, "Total     %5d %5d\n\r",
             top_mprog_index + top_oprog_index + top_aprog_index + top_rprog_index,
             count_PROG() );
-    ptc( ch, "\n\r");
+    addf_buf( output, "\n\r");
     
-    ptc( ch, "Strings %5d strings of %7d bytes (max %d).\n\r",
+    addf_buf( output, "Strings %5d strings of %7d bytes (max %d).\n\r",
         nAllocString, sAllocString, MAX_STRING );
     
-    ptc( ch, "Perms   %5d blocks  of %7d bytes.\n\r",
+    addf_buf( output, "Perms   %5d blocks  of %7d bytes.\n\r",
         nAllocPerm, sAllocPerm );
-    ptc( ch, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
-    ptc( ch, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
-    ptc( ch, "BUFFER count            %d\n\r", get_buf_count());
-    ptc( ch, "\n\r");
-    ptc( ch, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
-    ptc( ch, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
-    ptc( ch, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
+    addf_buf( output, "STR_DUP_STRINGS         %d\n\r", STR_DUP_STRINGS);
+    addf_buf( output, "HIGHEST_STR_DUP_STRINGS %d\n\r", HIGHEST_STR_DUP_STRINGS);
+    addf_buf( output, "BUFFER count            %d\n\r", get_buf_count());
+    addf_buf( output, "\n\r");
+    addf_buf( output, "Lua usage:        %dk\n\r", GetLuaMemoryUsage());
+    addf_buf( output, "Lua game objects: %d\n\r", GetLuaGameObjectCount());
+    addf_buf( output, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
 
-    ptc( ch, "\n\r");
-    ptc( ch, "BINARY INFO%s\n\r", bin_info_string );
-    
+    addf_buf( output, "\n\r");
+    addf_buf( output, "BINARY INFO%s\n\r", bin_info_string );
+}
+
+DEF_DO_FUN(do_memory)
+{
+    BUFFER *output = new_buf();
+    print_memory( output );
+    page_to_char( buf_string(output), ch );
+    free_buf( output );
+
     return;
 }
 

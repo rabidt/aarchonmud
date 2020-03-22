@@ -4739,6 +4739,7 @@ void    bread_to_eol( RBUFFER *rbuf );
 const char* bread_word( RBUFFER *rbuf );
 int spell_base_cost( int sn );
 int spell_obj_cost( int level, int base_cost );
+void print_memory( BUFFER *output );
 
 /* db2.c */
 void load_mobbles( FILE *fp );

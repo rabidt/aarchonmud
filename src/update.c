@@ -2349,6 +2349,19 @@ void update_handler( void )
                 all_religions( &religion_restore_relic );
             }
             */
+
+            {
+                BUFFER *output = new_buf();
+                print_memory(output);
+                log_string( buf_string(output) );
+                free_buf(output);
+            }
+
+            {
+                char perf_buf[MSL * 12];
+                PERF_repr(perf_buf, sizeof(perf_buf));
+                log_string(perf_buf);
+            }
         }
         hour_update = FALSE;
     }
