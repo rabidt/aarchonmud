@@ -326,12 +326,23 @@ const char *parse_url( const char *argument )
     const char open[]="\t<a href=\"";
     const char mid[]= "\">";
     const char close[]="\t</a>";
+    
+    static size_t len_open = 0;
+    static size_t len_mid = 0;
+    static size_t len_close = 0;
+
+    if (0 == len_open)
+    {
+        len_open = strlen(open);
+        len_mid = strlen(mid);
+        len_close= strlen(close);
+    }
 
     char *url;
     if ( ! (    ( url=strstr(argument, "http://" ) )
              || ( url=strstr(argument, "https://") )
              || ( url=strstr(argument, "www."    ) ) ) )
-    return argument;
+        return argument;
     
     static char rtn[MSL*10];
     size_t rtnIndex;
@@ -340,8 +351,8 @@ const char *parse_url( const char *argument )
     {
         if ( argument==url )
         {
-            strncpy( &rtn[rtnIndex], open, strlen(open));
-            rtnIndex+=strlen(open);
+            strlcpy( &rtn[rtnIndex], open, sizeof(rtn) - rtnIndex);
+            rtnIndex += len_open;
 
             char *cptr;
             for (cptr=url; *cptr != ' ' && *cptr !='\0' && *cptr !='\n' && *cptr !='\r'; cptr++)
@@ -349,16 +360,16 @@ const char *parse_url( const char *argument )
                 rtn[rtnIndex++]=*cptr;
             }
 
-            strncpy( &rtn[rtnIndex], mid, strlen(mid));
-            rtnIndex+=strlen(mid);
+            strlcpy( &rtn[rtnIndex], mid, sizeof(rtn) - rtnIndex);
+            rtnIndex += len_mid;
 
             for (argument=url; *argument != ' ' && *argument !='\0' ; argument++)
             {
                 rtn[rtnIndex++]=*argument;
             }
 
-            strncpy( &rtn[rtnIndex], close, strlen(close));
-            rtnIndex+=strlen(close);
+            strlcpy( &rtn[rtnIndex], close, sizeof(rtn) - rtnIndex);
+            rtnIndex += len_close;
 
         }
         

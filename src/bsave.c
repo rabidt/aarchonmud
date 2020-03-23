@@ -2451,7 +2451,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
         bread_to_eol( buf );
     }
     else
-        strncpy(last_word, word, sizeof(last_word) - 1);
+        strlcpy(last_word, word, sizeof(last_word) - 1);
     
     }
 
