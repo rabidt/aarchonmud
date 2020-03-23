@@ -740,7 +740,6 @@ DEF_NANNY_FUN(get_creation_mode)
 	char arg[MAX_STRING_LENGTH];
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
-	char *pbuff;
 
 	if (con_state(d) != CON_GET_CREATION_MODE)
 	{
@@ -748,8 +747,7 @@ DEF_NANNY_FUN(get_creation_mode)
 		do_help(d->character,"header creation");
 		snprintf( msg, sizeof(msg), "{CWhich creation option do you choose(normal, expert)?{x " );
 
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d, buffer, 0);
 
 		set_con_state(d, CON_GET_CREATION_MODE);
@@ -778,8 +776,7 @@ DEF_NANNY_FUN(get_creation_mode)
 	write_to_buffer(d,"That isn't a valid choice.\n\r",0);
 
         snprintf( msg, sizeof(msg), "{CWhich creation option do you choose(normal, expert)?{x " );
-        pbuff = buffer;
-        colourconv( pbuff, msg, d->character ); 
+        colourconv( buffer, sizeof(buffer), msg, d->character ); 
         write_to_buffer(d, buffer ,0);
 
 	return FALSE;
@@ -805,7 +802,6 @@ DEF_NANNY_FUN(get_new_race)
     int race, i;
     char msg[MAX_STRING_LENGTH];
     char buffer[MAX_STRING_LENGTH*2];
-    char *pbuff; 
     
     if (con_state(d) != CON_GET_NEW_RACE)
     {
@@ -818,8 +814,7 @@ DEF_NANNY_FUN(get_new_race)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
 	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 
 	set_con_state(d, CON_GET_NEW_RACE);
@@ -840,8 +835,7 @@ DEF_NANNY_FUN(get_new_race)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
 	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 
 	return FALSE;
@@ -865,8 +859,7 @@ DEF_NANNY_FUN(get_new_race)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
 	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 
 	return FALSE;
@@ -890,8 +883,7 @@ DEF_NANNY_FUN(get_new_race)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
 	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 
 	return FALSE;
@@ -928,8 +920,7 @@ DEF_NANNY_FUN(get_new_race)
 	    write_to_buffer(d, "Type HELP REMORTRACE for information on remort races.\n\r ",0);
 
 	snprintf( msg, sizeof(msg), "{CWhat is your race (for more information type HELP, STATS, or ETLS)? {x" );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 
 	return FALSE;
@@ -966,8 +957,7 @@ DEF_NANNY_FUN(get_new_race)
     
     snprintf( msg, sizeof(msg), "\n\r     {cFor your first incarnation, you have chosen to be %s %s.{x\n\r\n\r",
         aan(pc_race_table[race].name), pc_race_table[race].name );
-    pbuff = buffer;
-    colourconv( pbuff, msg, d->character );
+    colourconv( buffer, sizeof(buffer), msg, d->character );
     write_to_buffer(d, buffer, 0);
 
     return TRUE;
@@ -980,7 +970,6 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 	char msg[MAX_STRING_LENGTH];
 	char tmp[20];
 	char buffer[MAX_STRING_LENGTH*2];
-	char *pbuff;	/* pointer to buff */
 
 	snprintf( msg, sizeof(msg), "[ " );
 	for ( race = 1; race_table[race].name != NULL; race++ )
@@ -1011,8 +1000,7 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 	}
 	strlcat( msg, "{x]\n\r", sizeof(msg) );
 
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 }
 
@@ -1022,13 +1010,11 @@ DEF_NANNY_FUN(get_new_sex)
 	CHAR_DATA *ch = d->character;
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
-	char *pbuff; 
 
 	if (con_state(d)!=CON_GET_NEW_SEX)
 	{
 		snprintf( msg, sizeof(msg), "\n\r{CWhat is your sex (M/F)?{x " );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		set_con_state(d, CON_GET_NEW_SEX);
@@ -1045,8 +1031,7 @@ DEF_NANNY_FUN(get_new_sex)
 				return TRUE;
 	default:
 		snprintf( msg, sizeof(msg), "That's not a sex.\n\r{CWhat is your sex (M/F)?{x " );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		break;
@@ -1063,7 +1048,6 @@ DEF_NANNY_FUN(get_new_class)
 	int i;
 	char buf[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH];
-	char *pbuff;
 	char arg[MAX_STRING_LENGTH];
 	CHAR_DATA *ch = d->character;
 
@@ -1081,8 +1065,7 @@ DEF_NANNY_FUN(get_new_class)
 		}
 //		strcat( buf, "{x ]\n\r{CChoose a class(for more information type HELP, STATS, or ETLS):{x" );
 		strlcat( buf, "{x ]\n\r{CChoose a class(for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS):{x", sizeof(buf) ); 
-		pbuff = buffer;
-		colourconv( pbuff, buf, d->character );
+		colourconv( buffer, sizeof(buffer), buf, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		set_con_state(d, CON_GET_NEW_CLASS);
@@ -1113,8 +1096,7 @@ DEF_NANNY_FUN(get_new_class)
 
 //		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
 		snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
-		pbuff = buffer;
-		colourconv( pbuff, buf, d->character );
+		colourconv( buffer, sizeof(buffer), buf, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		return FALSE;
@@ -1135,8 +1117,7 @@ DEF_NANNY_FUN(get_new_class)
 
 //		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
                 snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
-		pbuff = buffer;
-		colourconv( pbuff, buf, d->character );
+		colourconv( buffer, sizeof(buffer), buf, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		return FALSE;
@@ -1157,8 +1138,7 @@ DEF_NANNY_FUN(get_new_class)
 
 //		snprintf( buf, sizeof(buf), "{CWhat is your class (for more information type HELP, STATS, or ETLS)?{x" );
                 snprintf( buf, sizeof(buf), "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
-		pbuff = buffer;
-		colourconv( pbuff, buf, d->character );
+		colourconv( buffer, sizeof(buffer), buf, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		return FALSE;
@@ -1194,8 +1174,7 @@ DEF_NANNY_FUN(get_new_class)
 
 //		strcat( buf, "{CWhat is your class(for more information type HELP, STATS, or ETLS)?{x" );
                 strlcat( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x", sizeof(buf) ); 
-		pbuff = buffer;
-		colourconv( pbuff, buf, d->character );
+		colourconv( buffer, sizeof(buffer), buf, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		return FALSE;
@@ -1204,8 +1183,7 @@ DEF_NANNY_FUN(get_new_class)
 	ch->clss = i;
 
     snprintf( buf, sizeof(buf), "\n\r     {cYou have chosen to be %s %s.{x\n\r\n\r", aan(class_table[i].name), class_table[i].name );
-    pbuff = buffer;
-    colourconv( pbuff, buf, d->character );
+    colourconv( buffer, sizeof(buffer), buf, d->character );
     write_to_buffer(d, buffer, 0);
 
 	return TRUE;
@@ -1331,15 +1309,13 @@ DEF_NANNY_FUN(get_alignment)
 	CHAR_DATA *ch=d->character;
     char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2]="";
-	char *pbuff; 
 	char arg[MAX_STRING_LENGTH];
 
 	if (con_state(d)!= CON_GET_ALIGNMENT)
 	{
 		write_to_buffer( d, "You may be angelic, saintly, good, kind, neutral, mean, evil, demonic, or satanic.\n\r",0);
 		snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer( d, buffer, 0 );
 
 		set_con_state(d, CON_GET_ALIGNMENT);
@@ -1356,9 +1332,8 @@ DEF_NANNY_FUN(get_alignment)
 	else
 	    do_help(ch,argument);
 
-	pbuff = buffer;
     snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer(d,buffer,0);
 	return FALSE;
     } 
@@ -1412,15 +1387,13 @@ DEF_NANNY_FUN(get_alignment)
 	write_to_buffer(d,"That's not a valid alignment.\n\r",0);
 	write_to_buffer( d, "You may be angelic, saintly, good, kind, neutral, mean, evil, demonic, or satanic.\n\r",0);
 	snprintf( msg, sizeof(msg), "{CWhich alignment (angelic/saintly/good/kind/neutral/mean/evil/demonic/satanic)?{x " );
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer( d, buffer, 0 );
 	return FALSE;
     }
 
 
-	pbuff = buffer;
-	colourconv( pbuff, msg, d->character );
+	colourconv( buffer, sizeof(buffer), msg, d->character );
 	write_to_buffer( d, buffer, 0 );
 
 	write_to_buffer(d,"\n\r",0);
@@ -1451,7 +1424,6 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 	int i;
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
-	char *pbuff; 
 
 	for(i=0; weapon_table[i].name!=NULL; i++)
 		if (weapon_table[i].vnum == class_table[d->character->clss].weapon)
@@ -1460,16 +1432,14 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 	if (d->character->clss == class_lookup("monk"))
 	{
 		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin fighting barehanded.{x\n\r\n\r" );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d,buffer,0);
 		d->character->pcdata->learned[gsn_hand_to_hand] = 40;
 	}
 	else
 	{
 		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin with a %s in hand.{x\n\r\n\r", weapon_table[i].name );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d,buffer,0);
 		d->character->pcdata->learned[*weapon_table[i].gsn] = 40;
 	}
@@ -1502,15 +1472,13 @@ DEF_NANNY_FUN(default_choice)
 {
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
-	char *pbuff; 
 
 	if (con_state(d) != CON_DEFAULT_CHOICE)
 	{
 		snprintf( msg, sizeof(msg), "Do you wish to customize this character?\n\r"
 			"Customization takes time, but allows a wider range of skills and abilities.\n\r"
 			"{CCustomize (Y/N)?{x " );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character ); 
+		colourconv( buffer, sizeof(buffer), msg, d->character ); 
 		write_to_buffer(d, buffer ,0);
 
 		set_con_state(d, CON_DEFAULT_CHOICE);
@@ -1527,8 +1495,7 @@ DEF_NANNY_FUN(default_choice)
 		return TRUE;
 	default:
 		snprintf( msg, sizeof(msg), "{CPlease answer yes/no (Y/N)?{x ");
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character ); 
+		colourconv( buffer, sizeof(buffer), msg, d->character ); 
 		write_to_buffer(d, buffer ,0);
 		break;
 	}
@@ -1585,7 +1552,6 @@ DEF_NANNY_FUN(pick_weapon)
 	CHAR_DATA *ch=d->character;
 	char msg[MAX_STRING_LENGTH];
 	char buffer[MAX_STRING_LENGTH*2];
-        char *pbuff;    /* pointer to buff */
 
 	if (con_state(d) != CON_PICK_WEAPON)
 	{
@@ -1609,13 +1575,11 @@ DEF_NANNY_FUN(pick_weapon)
 		    strlcat(msg," unarmed", sizeof(msg));
 	        strlcat( msg, "{x ]\n\r", sizeof(msg) );
 
-        	pbuff = buffer;
-	        colourconv( pbuff, msg, d->character );
+	        colourconv( buffer, sizeof(buffer), msg, d->character );
         	write_to_buffer(d,buffer,0);
 
 		snprintf( msg, sizeof(msg),"{CYour choice of weapon (Press enter to take your class default)?{x ");
-        	pbuff = buffer;
-	        colourconv( pbuff, msg, d->character );
+        colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d,buffer,0);
 		set_con_state(d, CON_PICK_WEAPON);
 		return FALSE;
@@ -1651,12 +1615,10 @@ DEF_NANNY_FUN(pick_weapon)
 		    }
 		        strlcat( msg, "{x ]\n\r" , sizeof(msg));
 
-        		pbuff = buffer;
-		        colourconv( pbuff, msg, d->character );
+		        colourconv( buffer, sizeof(buffer), msg, d->character );
 
 			strlcat(msg,"{CYour choice of weapon (Press enter to take your class default)?{x ", sizeof(msg));
-        		pbuff = buffer;
-		        colourconv( pbuff, msg, d->character );
+		        colourconv( buffer, sizeof(buffer), msg, d->character );
 			write_to_buffer(d,buffer,0);
 			return FALSE;
 		}
@@ -1665,16 +1627,14 @@ DEF_NANNY_FUN(pick_weapon)
 	if (weapon==-1)
 	{
 		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin fighting barehanded.{x\n\r" );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d,buffer,0);
 		ch->pcdata->learned[gsn_hand_to_hand] = 40;
 	}
 	else
 	{
 		snprintf( msg, sizeof(msg), "     {cYou have chosen to begin with a %s in hand.{x\n\r", weapon_table[weapon].name );
-		pbuff = buffer;
-		colourconv( pbuff, msg, d->character );
+		colourconv( buffer, sizeof(buffer), msg, d->character );
 		write_to_buffer(d,buffer,0);
 		ch->pcdata->learned[*weapon_table[weapon].gsn] = 40;
 	}

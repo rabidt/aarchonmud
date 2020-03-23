@@ -1176,9 +1176,8 @@ void battle_prompt( DESCRIPTOR_DATA *d )
 
     int percent;
     char wound[100];
-    char *pbuff;
     char buf[MAX_STRING_LENGTH];
-    char buffer[MAX_STRING_LENGTH*2];
+    char outbuf[MAX_STRING_LENGTH*2];
 
     ch = d->character;
     if ( ch == NULL || (victim = ch->fighting) == NULL
@@ -1246,9 +1245,8 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 IS_NPC(victim) ? victim->short_descr : victim->name,wound);
         buf[0]  = UPPER( buf[0] );
     }
-    pbuff   = buffer;
-    colourconv( pbuff, buf, d->character );
-    write_to_buffer( d, buffer, 0);
+    colourconv( outbuf, sizeof(outbuf), buf, d->character );
+    write_to_buffer( d, outbuf, 0);
 }
 
 /*
@@ -1354,8 +1352,7 @@ void bust_a_prompt( CHAR_DATA *ch )
     const char *str;
     const char *i;
     char *point;
-    char *pbuff;
-    char buffer[ MAX_STRING_LENGTH*2 ];
+    char outbuf[ MAX_STRING_LENGTH*2 ];
     char doors[MAX_INPUT_LENGTH];
     EXIT_DATA *pexit;
     bool found;
@@ -1667,9 +1664,8 @@ void bust_a_prompt( CHAR_DATA *ch )
             ++point, ++i;
     }
     *point  = '\0';
-    pbuff   = buffer;
-    colourconv( pbuff, buf, ch );
-    write_to_buffer( ch->desc, buffer, 0 );
+    colourconv( outbuf, sizeof(outbuf), buf, ch );
+    write_to_buffer( ch->desc, outbuf, 0 );
 
     if (ch->prefix[0] != '\0')
         write_to_buffer(ch->desc,ch->prefix,0);
@@ -1876,7 +1872,6 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
     char       * p_dest;
     char         buf[ MAX_STRING_LENGTH*4 ];
     char * const p_dest_last = &(buf[sizeof(buf) - 1]);
-    int skip = 0;
 
     // players may overwrite whether color is sent in raw format
     if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
@@ -1888,7 +1883,7 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
     {
         if ( raw )
         {
-            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
+            for( p_src = txt ; *p_src && p_dest < p_dest_last ; p_src++ )
             {
                 // escape MXP
                 if ( *p_src == '\t' && *(p_src+1) == '<' )
@@ -1900,45 +1895,12 @@ void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
                     *(p_dest++) = *p_src;
                 }
             }
-        }
-        else if ( IS_SET(ch->act, PLR_COLOUR) )
-        {
-            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
-            {
-                if( *p_src == '{' )
-                {
-                    p_src++;
-                    skip = colour( *p_src, ch, p_dest );
-                    while( skip-- > 0 )
-                    {
-                        ++p_dest;
-                    }
-                    continue;
-                }
-                *(p_dest++) = *p_src;
-            }
-        }
-        else
-        {
-            for( p_src = txt ; *p_src && p_dest <= p_dest_last ; p_src++ )
-            {
-                if( *p_src == '{' )
-                {
-                    p_src++;
-                    continue;
-                }
-                *(p_dest++) = *p_src;
-            }
-        }
 
-        if ( p_dest > p_dest_last )
-        {
-            *p_dest_last = '\0';
-            bugf("%s: buffer truncated for %s", __func__, ch->name);
+            *p_dest = '\0';
         }
         else
         {
-            *p_dest = '\0';    
+            colourconv(buf, sizeof(buf), txt, ch);
         }
         
         write_to_buffer(ch->desc, buf, p_dest - buf);
@@ -1978,10 +1940,10 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 
 void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
-    const  char    *point;
-    char    *point2;
+    const  char * p_src;
+    char        * p_dest;
     char    buf[ MAX_BUF_INDEX + MSL ]; // some safety space
-    int skip = 0;
+    char * const p_dest_last = &(buf[sizeof(buf) - 1]);
 
     /* safety-net for super-long texts */
     if ( strlen(txt) > MAX_BUF_INDEX )
@@ -1996,56 +1958,31 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
         raw = TRUE;    
 
     buf[0] = '\0';
-    point2 = buf;
+    p_dest = buf;
     if( txt && ch->desc )
     {
         if ( raw )
         {
-            for ( point = txt ; *point ; point++ )
+            for ( p_src = txt ; *p_src && p_dest < p_dest_last ; p_src++ )
             {
                 // escape MXP
-                if ( *point == '\t' && *(point+1) == '<' )
-                    *(point2++) = '~';
+                if ( *p_src == '\t' && *(p_src+1) == '<' )
+                {
+                    *(p_dest++) = '~';
+                }
                 else
-                    *(point2++) = *point;
-            }
-        }
-        else if ( IS_SET(ch->act, PLR_COLOUR) )
-        {
-            for( point = txt ; *point ; point++ )
-            {
-                /* safety net --Bobble */
-                if ( point2 - buf > MAX_BUF_INDEX )
                 {
-                    bugf( "page_to_char: string paged to %s too long",
-                            ch->name );
-                    return;
+                    *(p_dest++) = *p_src;
                 }
+            }
 
-                if ( *point == '{' )
-                {
-                    point++;
-                    skip = colour( *point, ch, point2 );
-                    while( skip-- > 0 )
-                        ++point2;
-                    continue;
-                }
-                *(point2++) = *point;
-            }           
+            *p_dest = '\0';
         }
-        else
+        else 
         {
-            for( point = txt ; *point ; point++ )
-            {
-                if( *point == '{' )
-                {
-                    point++;
-                    continue;
-                }
-                *(point2++) = *point;
-            }
+            colourconv(buf, sizeof(buf), txt, ch);
         }
-        *point2 = '\0';
+        
         ch->desc->showstr_head = malloc(strlen(buf) + 1);
         strcpy(ch->desc->showstr_head, buf);
         ch->desc->showstr_point = ch->desc->showstr_head;
@@ -2144,18 +2081,18 @@ void act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2,
 void act_new( const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, int min_pos )
 {
-    act_new_gag(format, ch, arg1, arg2, type, min_pos, 0, FALSE, NULL, 0);
+    act_new_gag(format, ch, arg1, arg2, type, min_pos, 0, FALSE);
 }
 
 void act_gag(const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, long gag_type)
 {
-    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE, NULL, 0);
+    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, gag_type, FALSE);
 }
 
 void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type )
 {
-    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE, NULL, 0);
+    act_new_gag(format, ch, arg1, arg2, type, POS_RESTING, 0, TRUE);
 }
 
 
@@ -2163,7 +2100,7 @@ void act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *a
  */
 void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1, 
         const void *arg2, int type, int min_pos, long gag_type,
-        bool see_only, char *to_buf, size_t to_buf_sz )
+        bool see_only )
 {
     static char * const he_she  [] = { "it",  "he",  "she" };
     static char * const him_her [] = { "it",  "him", "her" };
@@ -2336,14 +2273,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         *point   = '\0';  
         buf[0]   = UPPER(buf[0]);
 
-        if (to_buf)
-        {
-            // TODO: fix colourconv to honor to_buf_sz
-            colourconv( to_buf, buf, to );
-            return;
-        }
-
-        colourconv( buffer, buf, to );
+        colourconv( buffer, sizeof(buffer), buf, to );
         if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
             write_to_buffer( to->desc, buffer, 0 );
@@ -2369,34 +2299,42 @@ void recho( const char *msg, ROOM_INDEX_DATA *room )
         send_to_char(buf, ch);
 }
 
-int colour( char type, CHAR_DATA *ch, char *string )
+/*
+Interpret the given color code character (`type` argument) and write its expansion to `buf`.
+
+If the resulting string would be longer than `bufsz-1` characters, the remaining characters are discarded and not stored, but counted for the value returned by the function.
+
+The longest possible expansion is 8 characters, so a `bufsz` of 9 or larger will never have a truncated expansion.
+
+Returns:
+    The number of characters that would have been written if `bufsz` had been sufficiently large, not counting the terminating null character.
+*/
+int colour( char type, const CHAR_DATA *ch, char *buf, size_t bufsz )
 {
     PC_DATA   *col;
-    char   code[ 20 ];
-    char   *p = '\0';
-
-    if( ch && IS_NPC( ch ) )
-        return( 0 );
+   
+    if( !ch || !ch->pcdata )
+        return 0 ;
 
     col = ch->pcdata;
 
     switch( type )
     {
         default:
-            strlcpy( code, CLEAR, sizeof(code) );
+            return strlcpy( buf, CLEAR, bufsz );
             break;
         case 'x':
-            strlcpy( code, CLEAR, sizeof(code) );
+            return strlcpy( buf, CLEAR, bufsz );
             break;
 #define CUSTC(chr, field) \
     case chr: \
         if ( col->field[1] == COLOUR_NONE ) \
         { \
-            snprintf( code, sizeof(code), "%s%s", CLEAR, col->field[2] ? "\a" : ""); \
+            return snprintf( buf, bufsz, "%s%s", CLEAR, col->field[2] ? "\a" : ""); \
         } \
         else \
         { \
-            snprintf( code, sizeof(code), "[%d;3%dm%s", \
+            return snprintf( buf, bufsz, "\x1b[%d;3%dm%s", \
                     col->field[0], \
                     col->field[1], \
                     col->field[2] ? "\a" : ""); \
@@ -2449,52 +2387,52 @@ int colour( char type, CHAR_DATA *ch, char *string )
 #undef CUSTC
 
         case 'b':
-            strlcpy( code, C_BLUE, sizeof(code) );
+            return strlcpy( buf, C_BLUE, bufsz );
             break;
         case 'c':
-            strlcpy( code, C_CYAN, sizeof(code) );
+            return strlcpy( buf, C_CYAN, bufsz );
             break;
         case 'g':
-            strlcpy( code, C_GREEN, sizeof(code) );
+            return strlcpy( buf, C_GREEN, bufsz );
             break;
         case 'm':
-            strlcpy( code, C_MAGENTA, sizeof(code) );
+            return strlcpy( buf, C_MAGENTA, bufsz );
             break;
         case 'r':
-            strlcpy( code, C_RED, sizeof(code) );
+            return strlcpy( buf, C_RED, bufsz );
             break;
         case 'w':
-            strlcpy( code, C_WHITE, sizeof(code) );
+            return strlcpy( buf, C_WHITE, bufsz );
             break;
         case 'y':
-            strlcpy( code, C_YELLOW, sizeof(code) );
+            return strlcpy( buf, C_YELLOW, bufsz );
             break;
         case 'B':
-            strlcpy( code, C_B_BLUE, sizeof(code) );
+            return strlcpy( buf, C_B_BLUE, bufsz );
             break;
         case 'C':
-            strlcpy( code, C_B_CYAN, sizeof(code) );
+            return strlcpy( buf, C_B_CYAN, bufsz );
             break;
         case 'G':
-            strlcpy( code, C_B_GREEN, sizeof(code) );
+            return strlcpy( buf, C_B_GREEN, bufsz );
             break;
         case 'M':
-            strlcpy( code, C_B_MAGENTA, sizeof(code) );
+            return strlcpy( buf, C_B_MAGENTA, bufsz );
             break;
         case 'R':
-            strlcpy( code, C_B_RED, sizeof(code) );
+            return strlcpy( buf, C_B_RED, bufsz );
             break;
         case 'W':
-            strlcpy( code, C_B_WHITE, sizeof(code) );
+            return strlcpy( buf, C_B_WHITE, bufsz );
             break;
         case 'Y':
-            strlcpy( code, C_B_YELLOW, sizeof(code) );
+            return strlcpy( buf, C_B_YELLOW, bufsz );
             break;
         case 'D':
-            strlcpy( code, C_D_GREY, sizeof(code) );
+            return strlcpy( buf, C_D_GREY, bufsz );
             break;
         case '*':
-            snprintf( code, sizeof(code), "%c", 007 );
+            return snprintf( buf, bufsz, "%c", 007 );
             break;
             /* removed Sept 98 by Q, due to abuse by mortals
                case '/':
@@ -2502,69 +2440,82 @@ int colour( char type, CHAR_DATA *ch, char *string )
                break;
              */
         case '{':
-            snprintf( code, sizeof(code), "%c", '{' );
+            return strlcpy( buf, "{", bufsz );
             break;
         case '+':
-            strlcpy( code, BOLD, sizeof(code) );
+            return strlcpy( buf, BOLD, bufsz );
             break;
         case 'v':
-            strlcpy( code, REVERSE, sizeof(code) );
+            return strlcpy( buf, REVERSE, bufsz );
             break;
         case '%':
-            strlcpy( code, BLINK, sizeof(code) );
+            return strlcpy( buf, BLINK, bufsz );
             break;
     }
-
-    p = code;
-    while( *p != '\0' )
-    {
-        *string = *p++;
-        *++string = '\0';
-    }
-
-    return( strlen( code ) );
 }
 
-void colourconv( char *buffer, const char *txt, CHAR_DATA *ch )
+void colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch )
 {
-    const  char    *point;
-    int skip = 0;
-
-    if( ch->desc && txt )
+    if (!buf || bufsz < 1 || !txt || !ch || !ch->desc)
     {
-        if( IS_SET( ch->act, PLR_COLOUR ) )
+        return;
+    }
+
+    if( IS_SET( ch->act, PLR_COLOUR ) )
+    {
+        const char *point;
+
+        for( point = txt ; *point && bufsz > 1 ; point++ )
         {
-            for( point = txt ; *point ; point++ )
+            if( *point == '{' )
             {
-                if( *point == '{' )
+                char colbuf[9];
+                ++point;
+                if (*point == '\0')
                 {
-                    point++;
-                    skip = colour( *point, ch, buffer );
-                    while( skip-- > 0 )
-                        ++buffer;
-                    continue;
+                    // { was last character. truncate here.
+                    break;
                 }
-                *buffer = *point;
-                *++buffer = '\0';
-            }           
-            *buffer = '\0';
-        }
-        else
-        {
-            for( point = txt ; *point ; point++ )
-            {
-                if( *point == '{' )
+                int rc = colour( *point, ch, colbuf, sizeof(colbuf) );
+                if (rc > 0 && bufsz > (unsigned)(rc + 1))
                 {
-                    point++;
-                    continue;
+                    size_t ncpy = strlcpy(buf, colbuf, bufsz);
+                    bufsz -= ncpy;
+                    buf += ncpy;
                 }
-                *buffer = *point;
-                *++buffer = '\0';
+                else
+                {
+                    // Not enough room for full sequence. truncate here.
+                    break;
+                }
             }
-            *buffer = '\0';
+            else
+            {
+                *buf = *point;
+                ++buf;
+                --bufsz;
+            }
+        }           
+    }
+    else
+    {
+        const char *point;
+
+        for( point = txt ; *point && bufsz > 1; point++ )
+        {
+            if( *point == '{' )
+            {
+                point++;
+                if ( *point != '{' )
+                    continue;
+            }
+            *buf = *point;
+            ++buf;
+            --bufsz;
         }
     }
-    return;
+
+    *buf = '\0';
 }
 
 /* returns a string from text where the color flags are removed */

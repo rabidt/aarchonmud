@@ -339,25 +339,25 @@ bool is_nosac( OBJ_DATA *obj );
 /*
  * Colour stuff by Lope of Loping Through The MUD
  */
-#define CLEAR      "[0m"      /* Resets Colour    */
-#define C_RED      "[0;31m"   /* Normal Colours   */
-#define C_GREEN        "[0;32m"
-#define C_YELLOW   "[0;33m"
-#define C_BLUE     "[0;34m"
-#define C_MAGENTA  "[0;35m"
-#define C_CYAN     "[0;36m"
-#define C_WHITE        "[0;37m"
-#define C_D_GREY   "[1;30m"   /* Light Colors     */
-#define C_B_RED        "[1;31m"
-#define C_B_GREEN  "[1;32m"
-#define C_B_YELLOW "[1;33m"
-#define C_B_BLUE   "[1;34m"
-#define C_B_MAGENTA    "[1;35m"
-#define C_B_CYAN   "[1;36m"
-#define C_B_WHITE  "[1;37m"
-#define BOLD       "[1m"
-#define BLINK      "[5m"
-#define REVERSE    "[7m"
+#define CLEAR      "\x1b[0m"      /* Resets Colour    */
+#define C_RED      "\x1b[0;31m"   /* Normal Colours   */
+#define C_GREEN        "\x1b[0;32m"
+#define C_YELLOW   "\x1b[0;33m"
+#define C_BLUE     "\x1b[0;34m"
+#define C_MAGENTA  "\x1b[0;35m"
+#define C_CYAN     "\x1b[0;36m"
+#define C_WHITE        "\x1b[0;37m"
+#define C_D_GREY   "\x1b[1;30m"   /* Light Colors     */
+#define C_B_RED        "\x1b[1;31m"
+#define C_B_GREEN  "\x1b[1;32m"
+#define C_B_YELLOW "\x1b[1;33m"
+#define C_B_BLUE   "\x1b[1;34m"
+#define C_B_MAGENTA    "\x1b[1;35m"
+#define C_B_CYAN   "\x1b[1;36m"
+#define C_B_WHITE  "\x1b[1;37m"
+#define BOLD       "\x1b[1m"
+#define BLINK      "\x1b[5m"
+#define REVERSE    "\x1b[7m"
 
 #define COLOUR_NONE 8
 #define RED         1
@@ -4631,8 +4631,7 @@ void    act_gag     args( ( const char *format, CHAR_DATA *ch,
 				long gag_type) );
 void    act_new_gag args( ( const char *format, CHAR_DATA *ch, 
 				const void *arg1, const void *arg2, int type,
-				int min_pos, long gag_type, bool see_only,
-        char *to_buf, size_t to_buf_sz ) );
+				int min_pos, long gag_type, bool see_only) );
 void    recho( const char *msg, ROOM_INDEX_DATA *room );
 int     write_to_descriptor args( ( int desc, char *txt, int length, bool SGA ) );
 void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
@@ -4656,8 +4655,8 @@ bool name_sorted_skill_table( size_t seq, int *ind );
 /*
  * Colour stuff by Lope of Loping Through The MUD
  */
-int    colour      args( ( char type, CHAR_DATA *ch, char *string ) );
-void   colourconv  args( ( char *buffer, const char *txt, CHAR_DATA *ch ) );
+int    colour      args( ( char type, const CHAR_DATA *ch, char *buf, size_t bufsz ) );
+void   colourconv  args( ( char *buffer, size_t bufsz, const char *txt, const CHAR_DATA *ch ) );
 void   send_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 void   page_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 
