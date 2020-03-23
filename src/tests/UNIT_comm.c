@@ -144,6 +144,16 @@ void Test_colourconv(CuTest *tc)
     }
 
     {
+        // truncate
+        const char *input = "{RHello {gworld {{{xdonkey}";
+        const char *exp = "\x1b[1;31mHe";
+        char outbuf[10];
+
+        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
         // truncate with no partial escapes
         const char *input = "{RHello {gworld {{{xdonkey}";
         const char *exp = "\x1b[1;31mHello ";
