@@ -1418,7 +1418,9 @@ DEF_DO_FUN(do_pmote)
                     name = vch->name;
                     continue;
                 }
-                strncat(last,letter,1);
+                char buf_letter[2] = {0,0};
+                buf_letter[0] = *letter;
+                strlcat(last,buf_letter,sizeof(last));
                 continue;
             }
             
