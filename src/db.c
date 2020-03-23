@@ -4967,11 +4967,10 @@ const char* smash_tilde_cc( const char *str )
     return buf;
 }
 
-char* smash_tilde_cpy( char *dest, const char *source )
+void smash_tilde_cpy( char *dest, const char *source, size_t destsz )
 {
-    strcpy(dest, source);
+    strlcpy(dest, source, destsz);
     smash_tilde(dest);
-    return dest;
 }
 
 

@@ -4710,7 +4710,7 @@ int dice        args( ( int number, int size ) );
 int interpolate args( ( int level, int value_00, int value_32 ) );
 void    smash_tilde args( ( char *str ) );
 const char* smash_tilde_cc( const char *str );
-char*   smash_tilde_cpy( char *dest, const char *source );
+void    smash_tilde_cpy( char *dest, const char *source, size_t destsz );
 bool    str_cmp     args( ( const char *astr, const char *bstr ) );
 bool    str_prefix  args( ( const char *astr, const char *bstr ) );
 bool    str_infix   args( ( const char *astr, const char *bstr ) );

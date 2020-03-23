@@ -527,7 +527,7 @@ void aedit( CHAR_DATA *ch, const char *argument )
       return;
    }
 
-   smash_tilde_cpy(arg, argument);
+   smash_tilde_cpy(arg, argument, sizeof(arg));
    argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
@@ -608,7 +608,7 @@ void redit( CHAR_DATA *ch, const char *argument )
     }
    pArea = pRoom->area;
    
-   smash_tilde_cpy(arg, argument);
+   smash_tilde_cpy(arg, argument, sizeof(arg));
    argument = one_argument( arg, command );
    
    if ( !IS_BUILDER( ch, pArea ) )
@@ -665,7 +665,7 @@ void oedit( CHAR_DATA *ch, const char *argument )
    char command[MAX_INPUT_LENGTH];
    int  cmd;
    
-   smash_tilde_cpy(arg, argument);
+   smash_tilde_cpy(arg, argument, sizeof(arg));
    argument = one_argument( arg, command );
    
    EDIT_OBJ(ch, pObj);
@@ -731,7 +731,7 @@ void medit( CHAR_DATA *ch, const char *argument )
    char arg[MAX_STRING_LENGTH];
    int  cmd;
    
-   smash_tilde_cpy(arg, argument);
+   smash_tilde_cpy(arg, argument, sizeof(arg));
    argument = one_argument( arg, command );
    
    EDIT_MOB(ch, pMob);
@@ -1767,7 +1767,7 @@ void hedit( CHAR_DATA *ch, const char *argument )
    char arg[MIL];
    int cmd;
    
-   smash_tilde_cpy(arg, argument);
+   smash_tilde_cpy(arg, argument, sizeof(arg));
    argument = one_argument(arg, command);
    
    /* This was our bug. *bonk Kermit* -BC

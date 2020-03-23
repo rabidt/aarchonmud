@@ -40,7 +40,7 @@ void rpedit( CHAR_DATA *ch, const char *argument )
     int cmd;
     AREA_DATA *ad;
 
-    smash_tilde_cpy(arg, argument);
+    smash_tilde_cpy(arg, argument, sizeof(arg));
     argument = one_argument(arg, command);
 
     EDIT_RPCODE(ch, pRcode);

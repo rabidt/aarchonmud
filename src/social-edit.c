@@ -162,7 +162,8 @@ DEF_DO_FUN(do_sedit)
 	char buf[MAX_STRING_LENGTH], arg_buf[MIL];
 	int iSocial;
 	
-    argument = smash_tilde_cpy(arg_buf, argument);
+	smash_tilde_cpy(arg_buf, argument, sizeof(arg_buf));
+    argument = arg_buf;
 	
 	argument = one_argument (argument,cmd);
 	argument = one_argument (argument,social);

@@ -1250,7 +1250,7 @@ DEF_DO_FUN(do_asave)
     AREA_DATA *pArea;
     int value;
     
-    smash_tilde_cpy( arg1, argument );
+    smash_tilde_cpy( arg1, argument, sizeof(arg1) );
     
     if ( arg1[0] == '\0' )
     {

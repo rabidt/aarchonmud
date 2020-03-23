@@ -194,7 +194,8 @@ void string_add( CHAR_DATA *ch, const char *argument )
    /*
     * Thanks to James Seng
     */
-   argument = smash_tilde_cpy( argbuf, argument );
+   smash_tilde_cpy( argbuf, argument, sizeof(argbuf) );
+   argument = argbuf;
 
    if ( !str_cmp(argument, ".q") || *argument == '~' || *argument == '@' )
    {

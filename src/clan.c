@@ -1260,8 +1260,9 @@ DEF_DO_FUN(do_cset)
     CLAN_DATA *clan;
     int clannum;
     bool found = FALSE;
-    
-    argument = smash_tilde_cpy( arg_buf, argument );
+
+    smash_tilde_cpy( arg_buf, argument, sizeof(arg_buf) );
+    argument = arg_buf;
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
     strlcpy( arg3, argument, sizeof(arg3) );
