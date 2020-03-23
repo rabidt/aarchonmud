@@ -125,41 +125,89 @@ void Test_colourconv(CuTest *tc)
     SET_BIT( ch.act, PLR_COLOUR );
     {
         // standard case
-        const char *input = "{RHello {gworld {{{xdonkey}";
-        const char *exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey}";
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey}";
         char outbuf[128];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, FALSE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 
     {
         // should trim a trailing single '{''
-        const char *input = "Some sort of string{";
-        const char *exp = "Some sort of string";
+        /* not truncation because it's not because of insufficient output buffer size */
+        const char * const input = "Some sort of string{";
+        const char * const exp = "Some sort of string";
         char outbuf[128];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, FALSE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 
     {
         // truncate
-        const char *input = "{RHello {gworld {{{xdonkey}";
-        const char *exp = "\x1b[1;31mHe";
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "\x1b[1;31mHe";
         char outbuf[10];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 
     {
         // truncate with no partial escapes
-        const char *input = "{RHello {gworld {{{xdonkey}";
-        const char *exp = "\x1b[1;31mHello ";
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "\x1b[1;31mHello ";
         char outbuf[16];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // no truncate. exact size
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey}";
+        char outbuf[39];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, FALSE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 character
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey";
+        char outbuf[38];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+    {
+        // truncate 1 character {
+        const char * const input = "{RHello {gworld {{{xdonkey{";
+        const char * const exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey";
+        char outbuf[38];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 color code
+        const char * const input = "{RHello {gworld {{{xdonkey{r";
+        const char * const exp = "\x1b[1;31mHello \x1b[0;32mworld {\x1b[0mdonkey";
+        char outbuf[38];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 
@@ -167,21 +215,123 @@ void Test_colourconv(CuTest *tc)
     REMOVE_BIT( ch.act, PLR_COLOUR );
     {
         // standard case
-        const char *input = "{RHello {gworld {{{xdonkey}";
-        const char *exp = "Hello world {donkey}";
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey}";
         char outbuf[128];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, FALSE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 
     {
         // truncate case
-        const char *input = "{RHello {gworld {{{xdonkey}";
-        const char *exp = "Hello w";
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello w";
         char outbuf[8];
 
-        colourconv(outbuf, sizeof(outbuf), input, &ch);
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // no truncate. exact size
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey}";
+        char outbuf[21];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, FALSE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 character
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey";
+        char outbuf[20];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 character {
+        const char * const input = "{RHello {gworld {{{xdonkey{";
+        const char * const exp = "Hello world {donkey";
+        char outbuf[20];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, FALSE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    // raw
+    {
+        // standard color case
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = input;
+        char outbuf[128];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, FALSE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // color and MXP
+        const char * const input = "{RHello {gworld \t<send>";
+        const char * const exp = "{RHello {gworld ~<send>";
+        char outbuf[128];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, FALSE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate
+        const char * const input = "{RHello {gworld \t<send>";
+        const char * const exp = "{RHello";
+        char outbuf[8];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // no truncate. exact size
+        const char * const input = "{RHello {gworld \t<send>";
+        const char * const exp = "{RHello {gworld ~<send>";
+        char outbuf[24];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, FALSE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 character
+        const char * const input = "{RHello {gworld \t<send>";
+        const char * const exp = "{RHello {gworld ~<send";
+        char outbuf[23];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, TRUE, trunc);
+        CuAssertStrEquals(tc, exp, outbuf);
+    }
+
+    {
+        // truncate 1 character \t
+        const char * const input = "{RHello {gworld \t<send\t";
+        const char * const exp = "{RHello {gworld ~<send";
+        char outbuf[23];
+
+        bool trunc = colourconv(outbuf, sizeof(outbuf), input, &ch, TRUE);
+        CuAssertIntEquals(tc, TRUE, trunc);
         CuAssertStrEquals(tc, exp, outbuf);
     }
 }

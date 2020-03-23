@@ -4656,7 +4656,7 @@ bool name_sorted_skill_table( size_t seq, int *ind );
  * Colour stuff by Lope of Loping Through The MUD
  */
 int    colour      args( ( char type, const CHAR_DATA *ch, char *buf, size_t bufsz ) );
-void   colourconv  args( ( char *buffer, size_t bufsz, const char *txt, const CHAR_DATA *ch ) );
+bool   colourconv  args( ( char *buffer, size_t bufsz, const char *txt, const CHAR_DATA *ch, bool raw ) );
 void   send_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 void   page_to_char_bw args( ( const char *txt, CHAR_DATA *ch ) );
 

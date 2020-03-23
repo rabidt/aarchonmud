@@ -1245,7 +1245,7 @@ void battle_prompt( DESCRIPTOR_DATA *d )
                 IS_NPC(victim) ? victim->short_descr : victim->name,wound);
         buf[0]  = UPPER( buf[0] );
     }
-    colourconv( outbuf, sizeof(outbuf), buf, d->character );
+    colourconv( outbuf, sizeof(outbuf), buf, d->character, FALSE );
     write_to_buffer( d, outbuf, 0);
 }
 
@@ -1664,7 +1664,7 @@ void bust_a_prompt( CHAR_DATA *ch )
             ++point, ++i;
     }
     *point  = '\0';
-    colourconv( outbuf, sizeof(outbuf), buf, ch );
+    colourconv( outbuf, sizeof(outbuf), buf, ch, FALSE );
     write_to_buffer( ch->desc, outbuf, 0 );
 
     if (ch->prefix[0] != '\0')
@@ -1868,42 +1868,31 @@ void send_to_char( const char *txt, CHAR_DATA *ch )
 
 void send_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
-    const char * p_src;
-    char       * p_dest;
-    char         buf[ MAX_STRING_LENGTH*4 ];
-    char * const p_dest_last = &(buf[sizeof(buf) - 1]);
+    char                buf[ MAX_STRING_LENGTH*4 ];
+    const char * const  trunc_msg = "[TRUNCATED]";
+    static size_t       len_trunc_msg = 0;
+
+    if (len_trunc_msg == 0)
+    {
+        len_trunc_msg = strlen(trunc_msg);
+    }
 
     // players may overwrite whether color is sent in raw format
     if ( IS_SET(ch->act, PLR_COLOUR_VERBATIM) )
         raw = TRUE;
     
     buf[0] = '\0';
-    p_dest = buf;
     if( txt && ch->desc )
     {
-        if ( raw )
+        bool trunc = colourconv(buf, sizeof(buf), txt, ch, raw);
+        if (trunc)
         {
-            for( p_src = txt ; *p_src && p_dest < p_dest_last ; p_src++ )
-            {
-                // escape MXP
-                if ( *p_src == '\t' && *(p_src+1) == '<' )
-                {
-                    *(p_dest++) = '~';
-                }
-                else
-                {
-                    *(p_dest++) = *p_src;
-                }
-            }
-
-            *p_dest = '\0';
+            strlcpy(
+                buf + sizeof(buf) - len_trunc_msg - 1,
+                trunc_msg,
+                len_trunc_msg + 1);
         }
-        else
-        {
-            colourconv(buf, sizeof(buf), txt, ch);
-        }
-        
-        write_to_buffer(ch->desc, buf, p_dest - buf);
+        write_to_buffer(ch->desc, buf, 0);
     }
     return;
 }
@@ -1940,17 +1929,13 @@ void page_to_char( const char *txt, CHAR_DATA *ch )
 
 void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
 {
-    const  char * p_src;
-    char        * p_dest;
-    char    buf[ MAX_BUF_INDEX + MSL ]; // some safety space
-    char * const p_dest_last = &(buf[sizeof(buf) - 1]);
+    char                buf[ MAX_BUF_INDEX ];
+    const char * const  trunc_msg = "[TRUNCATED]";
+    static size_t       len_trunc_msg = 0;
 
-    /* safety-net for super-long texts */
-    if ( strlen(txt) > MAX_BUF_INDEX )
+    if (len_trunc_msg == 0)
     {
-        bugf( "page_to_char: string paged to %s too long: %d",
-                ch->name, strlen(txt) );
-        return;
+        len_trunc_msg = strlen(trunc_msg);
     }
     
     // players may overwrite whether color is sent in raw format
@@ -1958,29 +1943,15 @@ void page_to_char_new( const char *txt, CHAR_DATA *ch, bool raw )
         raw = TRUE;    
 
     buf[0] = '\0';
-    p_dest = buf;
     if( txt && ch->desc )
     {
-        if ( raw )
+        bool trunc = colourconv(buf, sizeof(buf), txt, ch, raw);
+        if (trunc)
         {
-            for ( p_src = txt ; *p_src && p_dest < p_dest_last ; p_src++ )
-            {
-                // escape MXP
-                if ( *p_src == '\t' && *(p_src+1) == '<' )
-                {
-                    *(p_dest++) = '~';
-                }
-                else
-                {
-                    *(p_dest++) = *p_src;
-                }
-            }
-
-            *p_dest = '\0';
-        }
-        else 
-        {
-            colourconv(buf, sizeof(buf), txt, ch);
+            strlcpy(
+                buf + sizeof(buf) - len_trunc_msg - 1,
+                trunc_msg,
+                len_trunc_msg + 1);
         }
         
         ch->desc->showstr_head = malloc(strlen(buf) + 1);
@@ -2273,7 +2244,7 @@ void act_new_gag( const char *format, CHAR_DATA *ch, const void *arg1,
         *point   = '\0';  
         buf[0]   = UPPER(buf[0]);
 
-        colourconv( buffer, sizeof(buffer), buf, to );
+        colourconv( buffer, sizeof(buffer), buf, to, FALSE );
         if (to->desc && (IS_PLAYING(to->desc->connected )))
         {
             write_to_buffer( to->desc, buffer, 0 );
@@ -2454,17 +2425,40 @@ int colour( char type, const CHAR_DATA *ch, char *buf, size_t bufsz )
     }
 }
 
-void colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch )
+/* 
+    return true if truncated (not all of txt was processed into buf)
+    note:
+        truncation doesn't always mean buf will completely filled since colour() will 
+        truncate entire color sequences
+*/
+bool colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch, bool raw )
 {
     if (!buf || bufsz < 1 || !txt || !ch || !ch->desc)
     {
-        return;
+        return TRUE;
     }
 
-    if( IS_SET( ch->act, PLR_COLOUR ) )
-    {
-        const char *point;
+    const char *point;
 
+    if ( raw )
+    {
+        /* raw means color codes pass through without expansion
+           we also replace \t< with ~< so that MXP sequences will be printed */
+        for ( point = txt; *point && bufsz > 1; ++point )
+        {
+            if ( *point == '\t' && *(point+1) == '<' )
+            {
+                *(buf++) = '~';
+            }
+            else
+            {
+                *(buf++) = *point;
+            }
+            --bufsz;
+        }
+    }
+    else if( IS_SET( ch->act, PLR_COLOUR ) )
+    {
         for( point = txt ; *point && bufsz > 1 ; point++ )
         {
             if( *point == '{' )
@@ -2499,8 +2493,6 @@ void colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch )
     }
     else
     {
-        const char *point;
-
         for( point = txt ; *point && bufsz > 1; point++ )
         {
             if( *point == '{' )
@@ -2516,6 +2508,8 @@ void colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch )
     }
 
     *buf = '\0';
+
+    return *point != '\0';
 }
 
 /* returns a string from text where the color flags are removed */
