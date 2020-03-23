@@ -157,7 +157,7 @@ void update_herb_reset( void )
 
 	/* print to log */
 	snprintf( buf, sizeof(buf), " %2d/%2d", herb_table[i].reset_nr, nr );
-	strcat( outbuf, buf );
+	strlcat( outbuf, buf, sizeof(outbuf) );
 
 	herb_table[i].reset_nr = 0;
     }

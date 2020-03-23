@@ -1105,8 +1105,8 @@ void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
     else
     {
         if ( ibl->info_count[level] % 2 == 0)
-            strcat(ibl->info_list[level], "\n\r          ");
-        strcat(ibl->info_list[level], info);
+            strlcat(ibl->info_list[level], "\n\r          ", sizeof(ibl->info_list[level]));
+        strlcat(ibl->info_list[level], info, sizeof(ibl->info_list[level]));
     }
     ibl->info_count[level] += 1;
 }

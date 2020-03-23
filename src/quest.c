@@ -160,7 +160,7 @@ char* list_quest_items( void )
 
         //	snprintf( buf, sizeof(buf), "%5dqp..........%s\n\r", qi->cost, obj->short_descr );
         snprintf( buf, sizeof(buf), "%5dqp   %-10s    %s\n\r", qi->cost, wloc, obj->short_descr);
-        strcat( list_buf, buf );
+        strlcat( list_buf, buf, sizeof(list_buf) );
     }
     return list_buf;
 }
@@ -503,19 +503,19 @@ DEF_DO_FUN(do_quest)
         act ("You ask $N for a list of quest items.",ch, NULL, questman, TO_CHAR);
 /*        snprintf( buf, sizeof(buf), "Current Quest Items available for Purchase:\n\r"); */
         snprintf( buf, sizeof(buf), "{w Cost   Wear Location   Name{x\n\r");
-        strcat(buf, "-------------------------------\n\r");
-	strcat( buf, list_quest_items() );
+        strlcat(buf, "-------------------------------\n\r", sizeof(buf));
+	strlcat( buf, list_quest_items(), sizeof(buf) );
 /*      strcat(buf, "500qp...........100,000 gold\n\r");  */
-        strcat(buf, " 1000qp.................+1 train cap (max +80)\n\r");
-        strcat(buf, "  250qp.................50 practices\n\r");
-	strcat(buf, "  200qp.................Change name 'color'.\n\r");
-	strcat(buf, "  200qp.................Change pretitle (ptitle).\n\r");
-        strcat(buf, "  100qp.................Experience (1 level)\n\r");
-	strcat(buf, "   50qp.................Warfare\n\r");
-    strcat(buf, "   10qp.................Duel\n\r");
-        strcat(buf, "\n\r");
-        strcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r");
-        strcat(buf, "To see a list of items, type '\t<send href='help questitems'>{whelp questitems{x\t</send>'\n\r");
+        strlcat(buf, " 1000qp.................+1 train cap (max +80)\n\r", sizeof(buf));
+        strlcat(buf, "  250qp.................50 practices\n\r", sizeof(buf));
+	strlcat(buf, "  200qp.................Change name 'color'.\n\r", sizeof(buf));
+	strlcat(buf, "  200qp.................Change pretitle (ptitle).\n\r", sizeof(buf));
+        strlcat(buf, "  100qp.................Experience (1 level)\n\r", sizeof(buf));
+	strlcat(buf, "   50qp.................Warfare\n\r", sizeof(buf));
+    strlcat(buf, "   10qp.................Duel\n\r", sizeof(buf));
+        strlcat(buf, "\n\r", sizeof(buf));
+        strlcat(buf, "To buy an item, type 'QUEST BUY <item>'.\n\r", sizeof(buf));
+        strlcat(buf, "To see a list of items, type '\t<send href='help questitems'>{whelp questitems{x\t</send>'\n\r", sizeof(buf));
         send_to_char(buf, ch);
         return;
       }

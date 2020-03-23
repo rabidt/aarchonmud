@@ -848,7 +848,7 @@ void time_update( void )
     {
         case  5:
             weather_info.sunlight = SUN_RISE;
-            strcat( buf, "The sun rises in the east.\n\r" );
+            strlcat( buf, "The sun rises in the east.\n\r", sizeof(buf) );
             break;
 
         case  6:
@@ -866,7 +866,7 @@ void time_update( void )
                     }
                 }
 
-            strcat( buf, "The day has begun.\n\r" );
+            strlcat( buf, "The day has begun.\n\r", sizeof(buf) );
             break;
 
         case 19:
@@ -884,12 +884,12 @@ void time_update( void )
                     }
                 }
 
-            strcat( buf, "The sun slowly disappears in the west.\n\r" );
+            strlcat( buf, "The sun slowly disappears in the west.\n\r", sizeof(buf) );
             break;
 
         case 20:
             weather_info.sunlight = SUN_DARK;
-            strcat( buf, "The night has begun.\n\r" );
+            strlcat( buf, "The night has begun.\n\r", sizeof(buf) );
             break;
 
         case 24:
@@ -961,7 +961,7 @@ void weather_update( void )
             if ( weather_info.mmhg <  990
                     || ( weather_info.mmhg < 1010 && number_bits( 2 ) == 0 ) )
             {
-                strcat( buf, "The sky is getting cloudy.\n\r" );
+                strlcat( buf, "The sky is getting cloudy.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_CLOUDY;
             }
             break;
@@ -970,13 +970,13 @@ void weather_update( void )
             if ( weather_info.mmhg <  970
                     || ( weather_info.mmhg <  990 && number_bits( 2 ) == 0 ) )
             {
-                strcat( buf, "It starts to rain.\n\r" );
+                strlcat( buf, "It starts to rain.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_RAINING;
             }
 
             if ( weather_info.mmhg > 1030 && number_bits( 2 ) == 0 )
             {
-                strcat( buf, "The clouds disappear.\n\r" );
+                strlcat( buf, "The clouds disappear.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_CLOUDLESS;
             }
             break;
@@ -984,14 +984,14 @@ void weather_update( void )
         case SKY_RAINING:
             if ( weather_info.mmhg <  970 && number_bits( 2 ) == 0 )
             {
-                strcat( buf, "Lightning flashes in the sky.\n\r" );
+                strlcat( buf, "Lightning flashes in the sky.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_LIGHTNING;
             }
 
             if ( weather_info.mmhg > 1030
                     || ( weather_info.mmhg > 1010 && number_bits( 2 ) == 0 ) )
             {
-                strcat( buf, "The rain stopped.\n\r" );
+                strlcat( buf, "The rain stopped.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_CLOUDY;
             }
             break;
@@ -1000,7 +1000,7 @@ void weather_update( void )
             if ( weather_info.mmhg > 1010
                     || ( weather_info.mmhg >  990 && number_bits( 2 ) == 0 ) )
             {
-                strcat( buf, "The lightning has stopped.\n\r" );
+                strlcat( buf, "The lightning has stopped.\n\r", sizeof(buf) );
                 weather_info.sky = SKY_RAINING;
                 break;
             }
@@ -2962,14 +2962,14 @@ void msdp_update( void )
                         const char MsdpVar[] = { (char)MSDP_VAR, '\0' };
                         const char MsdpVal[] = { (char)MSDP_VAL, '\0' };
 
-                        strcat( buf, MsdpVar );
-                        strcat( buf, dir_name[i] );
-                        strcat( buf, MsdpVal );
+                        strlcat( buf, MsdpVar, sizeof(buf) );
+                        strlcat( buf, dir_name[i], sizeof(buf) );
+                        strlcat( buf, MsdpVal, sizeof(buf) );
 
                         if ( IS_SET(pRoom->exit[i]->exit_info, EX_CLOSED) )
-                            strcat( buf, "C" );
+                            strlcat( buf, "C", sizeof(buf) );
                         else /* The exit is open */
-                            strcat( buf, "O" );
+                            strlcat( buf, "O", sizeof(buf) );
                     }
                 }
 
@@ -3002,7 +3002,7 @@ void msdp_update( void )
                 snprintf( skill_buf, sizeof(skill_buf), "%c%s%c%d",
                     (char)MSDP_VAR, skill_table[paf->type].name, 
                     (char)MSDP_VAL, paf->duration );
-                strcat( buf, skill_buf );
+                strlcat( buf, skill_buf, sizeof(buf) );
             }
             MSDPSetTable( d, eMSDP_AFFECTS, buf );
 

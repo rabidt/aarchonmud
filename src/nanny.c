@@ -1006,10 +1006,10 @@ void show_races_to_d( DESCRIPTOR_DATA *d )
 	    }
 	    //snprintf( msg, sizeof(msg), "%s{%c%s ", msg,colour, race_table[race].name );
             snprintf( tmp, sizeof(tmp), "{%c%s ", colour, race_table[race].name );
-            strcat( msg, tmp );
+            strlcat( msg, tmp, sizeof(msg) );
 
 	}
-	strcat( msg, "{x]\n\r" );
+	strlcat( msg, "{x]\n\r", sizeof(msg) );
 
 	pbuff = buffer;
 	colourconv( pbuff, msg, d->character );
@@ -1076,11 +1076,11 @@ DEF_NANNY_FUN(get_new_class)
 		for ( i = 0; i < MAX_CLASS; i++ )
 		{
 			if ( i > 0 )
-			strcat( buf, " " );
-			strcat( buf, class_table[i].name );
+			strlcat( buf, " ", sizeof(buf) );
+			strlcat( buf, class_table[i].name, sizeof(buf) );
 		}
 //		strcat( buf, "{x ]\n\r{CChoose a class(for more information type HELP, STATS, or ETLS):{x" );
-		strcat( buf, "{x ]\n\r{CChoose a class(for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS):{x" ); 
+		strlcat( buf, "{x ]\n\r{CChoose a class(for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS):{x", sizeof(buf) ); 
 		pbuff = buffer;
 		colourconv( pbuff, buf, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1188,12 +1188,12 @@ DEF_NANNY_FUN(get_new_class)
 		for ( i = 0; i < MAX_CLASS; i++ )
 		{
 			if ( i > 0 )
-			strcat( buf, " " );
-			strcat( buf, class_table[i].name );
+			strlcat( buf, " ", sizeof(buf) );
+			strlcat( buf, class_table[i].name, sizeof(buf) );
 		}
 
 //		strcat( buf, "{CWhat is your class(for more information type HELP, STATS, or ETLS)?{x" );
-                strcat( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x" ); 
+                strlcat( buf, "\n\r{CWhat is your class (for more information type HELP <CLASS NAME>, HELP STATS or HELP ETLS)?{x", sizeof(buf) ); 
 		pbuff = buffer;
 		colourconv( pbuff, buf, d->character );
 		write_to_buffer( d, buffer, 0 );
@@ -1600,14 +1600,14 @@ DEF_NANNY_FUN(pick_weapon)
 		if ( ch->pcdata->learned[*weapon_table[w].gsn] > 0 
 			&& skill_table[*weapon_table[w].gsn].skill_level[ch->clss] == 1 )
 			{
-			    strcat(msg, " ");
-			    strcat(msg,weapon_table[w].name);
+			    strlcat(msg, " ", sizeof(msg));
+			    strlcat(msg,weapon_table[w].name, sizeof(msg));
 			}
 	        }
 		if ( ch->pcdata->learned[gsn_hand_to_hand] > 0
 			&& skill_table[gsn_hand_to_hand].skill_level[ch->clss] == 1 )
-		    strcat(msg," unarmed");
-	        strcat( msg, "{x ]\n\r" );
+		    strlcat(msg," unarmed", sizeof(msg));
+	        strlcat( msg, "{x ]\n\r", sizeof(msg) );
 
         	pbuff = buffer;
 	        colourconv( pbuff, msg, d->character );
@@ -1643,18 +1643,18 @@ DEF_NANNY_FUN(pick_weapon)
 				if (ch->pcdata->learned[*weapon_table[w].gsn] > 0 
 				&& skill_table[*weapon_table[w].gsn].skill_level[ch->clss] == 1)
 				{
-				    strcat(msg,weapon_table[w].name);
-				    strcat(msg, " ");
+				    strlcat(msg,weapon_table[w].name, sizeof(msg));
+				    strlcat(msg, " ", sizeof(msg));
 				}
 				if (ch->pcdata->learned[gsn_hand_to_hand]>0)
-				    strcat(msg,"unarmed");
+				    strlcat(msg,"unarmed", sizeof(msg));
 		    }
-		        strcat( msg, "{x ]\n\r" );
+		        strlcat( msg, "{x ]\n\r" , sizeof(msg));
 
         		pbuff = buffer;
 		        colourconv( pbuff, msg, d->character );
 
-			strcat(msg,"{CYour choice of weapon (Press enter to take your class default)?{x ");
+			strlcat(msg,"{CYour choice of weapon (Press enter to take your class default)?{x ", sizeof(msg));
         		pbuff = buffer;
 		        colourconv( pbuff, msg, d->character );
 			write_to_buffer(d,buffer,0);

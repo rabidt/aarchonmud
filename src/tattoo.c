@@ -84,7 +84,7 @@ char* print_tattoos( tattoo_list tl )
     for ( i = 1; i < MAX_WEAR; i++ )
     {
 	snprintf( nr_buf, sizeof(nr_buf), " %d", tl[i] );
-	strcat( buf, nr_buf );
+	strlcat( buf, nr_buf, sizeof(buf) );
     }
     
     return buf;

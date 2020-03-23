@@ -1392,7 +1392,7 @@ DEF_DO_FUN(do_pmote)
             if ((*letter == '\'') && 
 				(matches == strlen(vch->name)))
             {
-                strcat(temp,"r");
+                strlcat(temp, "r", sizeof(temp));
                 continue;
             }
             
@@ -1413,7 +1413,7 @@ DEF_DO_FUN(do_pmote)
                 name++;
                 if (matches == strlen(vch->name))
                 {
-                    strcat(temp,"you");
+                    strlcat(temp, "you", sizeof(temp));
                     last[0] = '\0';
                     name = vch->name;
                     continue;
@@ -1423,8 +1423,12 @@ DEF_DO_FUN(do_pmote)
             }
             
             matches = 0;
-            strcat(temp,last);
-            strncat(temp,letter,1);
+            strlcat(temp, last, sizeof(temp));
+
+            char buf_letter[2] = {0,0};
+            buf_letter[0] = *letter;
+
+            strlcat(temp, buf_letter, sizeof(temp));
             last[0] = '\0';
             name = vch->name;
         }
@@ -1836,7 +1840,7 @@ void quit_char( CHAR_DATA *ch )
     snprintf( log_buf, sizeof(log_buf), "%s has left the game.", ch->name);
     info_message_new(ch, log_buf, FALSE, FALSE);
 
-    strcat(log_buf, "\n");
+    strlcat(log_buf, "\n", sizeof(log_buf));
     /*
     * After extract_char the ch is no longer valid!
     */

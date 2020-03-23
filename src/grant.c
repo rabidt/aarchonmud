@@ -621,12 +621,12 @@ DEF_DO_FUN(do_gstat)
         sl = (int)((6 - strlen(ds)) / 2);
         
         for (x = 0; x < sl; x++)
-            strcat(str," ");
+            strlcat(str," ", sizeof(str));
         
         strlcpy(s2, str, sizeof(s2));
         
         if ((strlen(str) + strlen(ds)) % 2 == 1) 
-            strcat(s2," ");
+            strlcat(s2," ", sizeof(s2));
         
         if (grant->duration == -1)
             snprintf( buf, sizeof(buf),"[ perm ] %-11s",grant->name);

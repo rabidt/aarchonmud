@@ -109,11 +109,11 @@ void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
             if (!strcmp(ch->pcdata->alias[alias],name))
             {
                 buf[0] = '\0';
-                strcat(buf,ch->pcdata->alias_sub[alias]);
+                strlcat(buf,ch->pcdata->alias_sub[alias],sizeof(buf));
                 if (point[0] != '\0')
                 {                 
-                    strcat(buf," ");
-                    strcat(buf,point);
+                    strlcat(buf," ",sizeof(buf));
+                    strlcat(buf,point,sizeof(buf));
                 }
                 break;
             }

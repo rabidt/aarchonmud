@@ -119,13 +119,13 @@ static bool lua_load_prog( lua_State *LS, int vnum, const char *code, struct lua
     {
         if (i>0)
         {
-            strcat( buf, ",");
+            strlcat( buf, ",", sizeof(buf));
         }
-        strcat( buf, script_type->arg_list[i] );
+        strlcat( buf, script_type->arg_list[i], sizeof(buf) );
     }
-    strcat( buf, ") ");
-    strcat( buf, code );
-    strcat( buf, "\nend");
+    strlcat( buf, ") ", sizeof(buf));
+    strlcat( buf, code, sizeof(buf) );
+    strlcat( buf, "\nend", sizeof(buf));
 
     if (luaL_loadstring ( LS, buf) ||
             CallLuaWithTraceBack ( LS, 0, 1))

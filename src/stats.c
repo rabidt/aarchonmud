@@ -532,19 +532,19 @@ void show_can_train( CHAR_DATA *ch )
         if ( (inc = train_stat_inc(ch, stat)) > 0 )
         {
             snprintf( buf2, sizeof(buf2), " %s(+%d)", stat_table[stat].abbreviation, inc );
-            strcat( buf, buf2); 
+            strlcat( buf, buf2, sizeof(buf)); 
         }
         
     if ( train_stat(ch->pcdata->trained_hit, ch) )
-        strcat(buf, " hp");
+        strlcat(buf, " hp", sizeof(buf));
     if ( train_stat(ch->pcdata->trained_move, ch) )
-        strcat(buf, " move");
+        strlcat(buf, " move", sizeof(buf));
     if ( train_stat(ch->pcdata->trained_mana, ch) )
-        strcat(buf, " mana");
+        strlcat(buf, " mana", sizeof(buf));
     
     if ( buf[strlen(buf)-1] != ':' )
     {
-        strcat( buf, ".\n\r" );
+        strlcat( buf, ".\n\r", sizeof(buf) );
         send_to_char( buf, ch );
     }
     else
@@ -1513,11 +1513,11 @@ void show_dice(CHAR_DATA *ch)
     for (i=0; i<15; i++)
     {
         if ((die=ch->gen_data->unused_die[i])==-1) break;
-        if (i>0) strcat(buf, ", ");
+        if (i>0) strlcat(buf, ", ", sizeof(buf));
         snprintf( buf3, sizeof(buf3), "%d", die);
-        strcat(buf, buf3);
+        strlcat(buf, buf3, sizeof(buf));
     }
-    strcat(buf, "\n\r");
+    strlcat(buf, "\n\r", sizeof(buf));
     send_to_char(buf, ch);
     
     // show total of roll

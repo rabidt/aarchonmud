@@ -41,13 +41,13 @@ char *penalty_status_name(int status)
 
     switch (status) 
     {
-       case PENALTY_STATUS_PENDING:        strcat(buf, " Pending"); break;
-       case PENALTY_STATUS_SERVING:        strcat(buf, " Serving"); break;
-       case PENALTY_STATUS_PAROLE_PENDING: strcat(buf, " Parole Pending"); break;
-       case PENALTY_STATUS_PARDON_PENDING: strcat(buf, " Pardon Pending"); break;
-       case PENALTY_STATUS_PAROLED:        strcat(buf, " Paroled"); break;
-       case PENALTY_STATUS_PARDONED:       strcat(buf, " Pardoned"); break;
-       case PENALTY_STATUS_COMPLETE:       strcat(buf, " Complete"); break;
+       case PENALTY_STATUS_PENDING:        strlcat(buf, " Pending", sizeof(buf)); break;
+       case PENALTY_STATUS_SERVING:        strlcat(buf, " Serving", sizeof(buf)); break;
+       case PENALTY_STATUS_PAROLE_PENDING: strlcat(buf, " Parole Pending", sizeof(buf)); break;
+       case PENALTY_STATUS_PARDON_PENDING: strlcat(buf, " Pardon Pending", sizeof(buf)); break;
+       case PENALTY_STATUS_PAROLED:        strlcat(buf, " Paroled", sizeof(buf)); break;
+       case PENALTY_STATUS_PARDONED:       strlcat(buf, " Pardoned", sizeof(buf)); break;
+       case PENALTY_STATUS_COMPLETE:       strlcat(buf, " Complete", sizeof(buf)); break;
        case PENALTY_STATUS_NONE:
        default:
            break;

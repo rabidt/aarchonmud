@@ -312,7 +312,7 @@ DEF_DO_FUN(do_smote)
         {
             if (*letter == '\'' && matches == strlen(vch->name))
             {
-                strcat(temp,"r");
+                strlcat(temp,"r",sizeof(temp));
                 continue;
             }
             
@@ -333,18 +333,22 @@ DEF_DO_FUN(do_smote)
                 name++;
                 if (matches == strlen(vch->name))
                 {
-                    strcat(temp,"you");
+                    strlcat(temp,"you",sizeof(temp));
                     last[0] = '\0';
                     name = vch->name;
                     continue;
                 }
-                strncat(last,letter,1);
+                char buf_letter[2] = {0,0};
+                buf_letter[0] = *letter;
+                strlcat(last,buf_letter,sizeof(last));
                 continue;
             }
             
             matches = 0;
-            strcat(temp,last);
-            strncat(temp,letter,1);
+            strlcat(temp,last,sizeof(temp));
+            char buf_letter[2] = {0,0};
+            buf_letter[0] = *letter;
+            strlcat(temp,buf_letter,sizeof(temp));
             last[0] = '\0';
             name = vch->name;
         }
@@ -810,7 +814,7 @@ DEF_DO_FUN(do_shutdown)
     if (ch->invis_level < LEVEL_HERO)
         snprintf( buf, sizeof(buf), "Shutdown by %s.", ch->name );
     append_file( ch, SHUTDOWN_FILE, buf );
-    strcat( buf, "\n\r" );
+    strlcat( buf, "\n\r", sizeof(buf) );
     if (ch->invis_level < LEVEL_HERO)
         do_echo( ch, buf );
     merc_down = TRUE;

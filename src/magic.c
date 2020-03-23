@@ -322,7 +322,7 @@ void say_spell( CHAR_DATA *ch, int sn )
         {
             if ( !str_prefix( syl_table[iSyl].old, pName ) )
             {
-                strcat( buf, syl_table[iSyl].new );
+                strlcat( buf, syl_table[iSyl].new, sizeof(buf) );
                 break;
             }
         }
@@ -2074,8 +2074,8 @@ void show_wishes( CHAR_DATA *ch, bool all )
         else /* append */
         {
             if ( ++spell_columns[level] % 2 == 0 )
-                strcat(spell_list[level], "\n\r         ");
-            strcat(spell_list[level], buf);
+                strlcat(spell_list[level], "\n\r         ", sizeof(spell_list[level]));
+            strlcat(spell_list[level], buf, sizeof(spell_list[level]));
         }
     }
 

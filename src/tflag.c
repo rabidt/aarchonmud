@@ -186,7 +186,7 @@ char* print_tflag( const tflag f )
     i = strlen( buf );
     if ( i > 1 )
 	buf[i - 1] = '\0';
-    strcat( buf, ">" );
+    strlcat( buf, ">", sizeof(buf) );
     return buf;
 }
 

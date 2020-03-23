@@ -4444,8 +4444,8 @@ const char *penalty_bits_name( tflag penalty_flags )
     {
         if ( IS_SET(penalty_flags, penalty_table[i].bit) )
         {
-            strcat(buf, " ");
-            strcat(buf, penalty_table[i].apply_string);
+            strlcat(buf, " ", sizeof(buf));
+            strlcat(buf, penalty_table[i].apply_string, sizeof(buf));
         }
     }
     

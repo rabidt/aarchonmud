@@ -5266,8 +5266,8 @@ void bug_string( const char *str )
     snprintf( buf, sizeof(buf), "[*****] BUG: %s", str );
     if (!recurse)
     {
-        strcat( buf, "\n\rLast command: " );
-        strcat( buf, last_command );
+        strlcat( buf, "\n\rLast command: ", sizeof(buf) );
+        strlcat( buf, last_command, sizeof(buf) );
     }
 
     log_string( buf );
@@ -5336,8 +5336,8 @@ void log_trace( void )
         if (strstr(trace_msg[i], "aeaea") != NULL)
         {
             if ( strlen(address_buf) != 0 )
-                strcat(address_buf, " ");
-            strcat(address_buf, substr_delim(trace_msg[i], '[', ']'));
+                strlcat(address_buf, " ", sizeof(address_buf));
+            strlcat(address_buf, substr_delim(trace_msg[i], '[', ']'), sizeof(address_buf));
         }
         else
             break;

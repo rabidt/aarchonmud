@@ -366,8 +366,8 @@ void string_add( CHAR_DATA *ch, const char *argument )
       return;
    }
    
-   strcat( buf, argument );
-   strcat( buf, "\n\r" );
+   strlcat( buf, argument, sizeof(buf) );
+   strlcat( buf, "\n\r", sizeof(buf) );
    free_string( *ch->desc->pString );
    *ch->desc->pString = str_dup( buf );
    return;
@@ -522,8 +522,8 @@ const char* format_string( const char *oldstring /*, bool fSpace */)
     if (i)
     {
       *(rdesc+i)=0;
-      strcat(xbuf,rdesc);
-      strcat(xbuf,"\n\r");
+      strlcat(xbuf,rdesc, sizeof(xbuf));
+      strlcat(xbuf,"\n\r", sizeof(xbuf));
       rdesc += i+1;
       while (*rdesc == ' ') rdesc++;
     }
@@ -531,8 +531,8 @@ const char* format_string( const char *oldstring /*, bool fSpace */)
     {
       bug ("No spaces", 0);
       *(rdesc+75)=0;
-      strcat(xbuf,rdesc);
-      strcat(xbuf,"-\n\r");
+      strlcat(xbuf,rdesc, sizeof(xbuf));
+      strlcat(xbuf,"-\n\r", sizeof(xbuf));
       rdesc += 76;
     }
   }
@@ -541,9 +541,9 @@ const char* format_string( const char *oldstring /*, bool fSpace */)
                         *(rdesc+i)=='\r'))
     i--;
   *(rdesc+i+1)=0;
-  strcat(xbuf,rdesc);
+  strlcat(xbuf,rdesc, sizeof(xbuf));
   if (xbuf[strlen_color(xbuf)-2] != '\n')
-    strcat(xbuf,"\n\r");
+    strlcat(xbuf,"\n\r", sizeof(xbuf));
 
   free_string(oldstring);
   return(str_dup(xbuf));
@@ -715,8 +715,8 @@ const char *string_lineadd( const char *string, const char *newstr, int line )
    {
       if ( cnt == line && !done )
       {
-         strcat( buf, newstr );
-         strcat( buf, "\n\r" );
+         strlcat( buf, newstr, sizeof(buf) );
+         strlcat( buf, "\n\r", sizeof(buf) );
          tmp += (int)strlen(newstr) + 2;
          cnt++;
          done = TRUE;
@@ -784,7 +784,7 @@ const char* numlineas( const char *string )
    {
       string = get_line( string, tmpb );
       snprintf( buf2, sizeof(buf2), "%2d. %s\n\r", cnt++, tmpb );
-      strcat( buf, buf2 );
+      strlcat( buf, buf2, sizeof(buf) );
    }
    
    return buf;
@@ -981,13 +981,13 @@ const char * center( const char *argument, int width, char fill )
     lead_chrs = (int)((width / 2) - (length / 2) + .5);
     memset( buf2, fill, (size_t)lead_chrs );
 
-    strcat( buf2, argument);
+    strlcat( buf2, argument, sizeof(buf2));
 
     trail_chrs = width - lead_chrs - length;
     if( trail_chrs > 0 )
     {
         memset( buf, fill, (size_t)trail_chrs );
-        strcat( buf2, buf );
+        strlcat( buf2, buf, sizeof(buf2) );
     }
     
     return buf2;
@@ -1016,7 +1016,7 @@ const char *lpad( const char *argument, int width, char fill )
     lead_chrs = width - length;
     memset( buf2, fill, (size_t)lead_chrs );
 
-    strcat( buf2, argument);
+    strlcat( buf2, argument, sizeof(buf2));
 
     return buf2;
 }
@@ -1043,14 +1043,14 @@ const char *rpad( const char *argument, int width, char fill )
     if ( length >= width )
         return argument;
     
-    strcat( buf2, argument);
+    strlcat( buf2, argument, sizeof(buf2));
 
     trail_chrs = width - length;
 
     if( trail_chrs > 0 )
     {
         memset( buf, fill, (size_t)trail_chrs );
-        strcat( buf2, buf );
+        strlcat( buf2, buf, sizeof(buf2) );
     }
     
     return buf2;

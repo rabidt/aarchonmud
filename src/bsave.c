@@ -3306,8 +3306,8 @@ DEF_DO_FUN(do_finger)
         class_table[wch->clss].name,
         clanbuf,
         pkstring);
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     add_buf( output, buf );
 
     /* revised religion */
@@ -3320,10 +3320,10 @@ DEF_DO_FUN(do_finger)
     else
         snprintf( buf2, sizeof(buf2), "Spouse: None" );
         
-    strcat( buf, buf2 );
+    strlcat( buf, buf2, sizeof(buf) );
     
-    for( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     add_buf( output, buf );
     
     /* Remorts, Age, Hours, Bounty */
@@ -3333,26 +3333,26 @@ DEF_DO_FUN(do_finger)
         snprintf( buf2, sizeof(buf2), "Remorts: {c%-2d{x          Age: %-3d",
             wch->pcdata->remorts,
             get_age(wch));
-        strcat( buf, buf2 );
+        strlcat( buf, buf2, sizeof(buf) );
     }
     else
     {
         snprintf( buf2, sizeof(buf2), " *** %s ***      ", immbuf );
-        strcat( buf, buf2 );
+        strlcat( buf, buf2, sizeof(buf) );
     }
     
     if ( get_trust(ch) > LEVEL_IMMORTAL )
     {
         snprintf( buf2, sizeof(buf2), "             Hours: {c%d{x   ", ((int)wch->played)/3600);
-        strcat( buf, buf2 );
+        strlcat( buf, buf2, sizeof(buf) );
     }
     if ( wch->pcdata->bounty )
     {
         snprintf( buf2, sizeof(buf2), "     Bounty: %d", wch->pcdata->bounty );
-        strcat( buf, buf2 );
+        strlcat( buf, buf2, sizeof(buf) );
     }
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     add_buf( output, buf );
     
     /* ascent and subclass */
@@ -3362,9 +3362,9 @@ DEF_DO_FUN(do_finger)
         snprintf( buf2, sizeof(buf2), "Ascents: {c%-2d{x     Subclass: %s",
             wch->pcdata->ascents,
             subclass_string(wch));
-        strcat( buf, buf2 );
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
+        strlcat( buf, buf2, sizeof(buf) );
+        for ( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) );
         add_buf( output, buf );        
     }
     
@@ -3377,8 +3377,8 @@ DEF_DO_FUN(do_finger)
         {
         snprintf( buf, sizeof(buf), "{D|{x Date Last On: %s    ",
             time_format(fingertime, custombuf, sizeof(custombuf)));
-        for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-        strcat( buf, "{D|{x\n\r" );
+        for ( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) );
         add_buf( output, buf );
         }
     }
@@ -3386,8 +3386,8 @@ DEF_DO_FUN(do_finger)
     /* Date Created */
     snprintf( buf, sizeof(buf), "{D|{x Date Created: %s   ",
 	    time_format(wch->id, custombuf, sizeof(custombuf)));
-    for ( ; strlen_color(buf) <= 67; strcat( buf, " " ));
-    strcat( buf, "{D|{x\n\r" );
+    for ( ; strlen_color(buf) <= 67; strlcat( buf, " ", sizeof(buf) ));
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     add_buf( output, buf );
 
     if ( get_trust(ch) > GOD )
@@ -3399,8 +3399,8 @@ DEF_DO_FUN(do_finger)
         else
         {
             snprintf( buf, sizeof(buf), "{D|{x Last host: 	<send 'pgrep %15s'>%s	</send>", wch->pcdata->last_host, wch->pcdata->last_host);
-            for ( ; strlen_color(buf) <= 106; strcat( buf, " " ));
-            strcat( buf, "{D|{x\n\r" );
+            for ( ; strlen_color(buf) <= 106; strlcat( buf, " ", sizeof(buf) ));
+            strlcat( buf, "{D|{x\n\r", sizeof(buf) );
             add_buf( output, buf );
         }
     }

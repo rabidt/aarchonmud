@@ -607,10 +607,10 @@ static void show_reset (CHAR_DATA *ch, int number, RESET_DATA *pReset, int nesti
 			snprintf( buf, sizeof(buf), "%2d> Exits: ", number);
 			for (i = 0; i < pReset->arg2; i++)
 			{
-				strcat (buf, dir_name[i]);
-				strcat (buf, " ");
+				strlcat (buf, dir_name[i], sizeof(buf));
+				strlcat (buf, " ", sizeof(buf));
 			}
-			strcat (buf, "are randomized.");
+			strlcat (buf, "are randomized.", sizeof(buf));
 		}
 		break;
 	}

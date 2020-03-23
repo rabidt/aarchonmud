@@ -985,7 +985,7 @@ void auth_update( void )
         {
             found_hit = TRUE;
             snprintf( buf, sizeof(buf), "Name: %s      Status: %s\n\r", auth->name, ( auth->state == AUTH_ONLINE ) ? "Online" : "Offline" ); 
-            strcat( log_buf1, buf );
+            strlcat( log_buf1, buf, sizeof(log_buf1) );
         }
     }
 

@@ -164,47 +164,47 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
                 snprintf( lvlBuf, sizeof(lvlBuf), "(lvl %d %s) ", obj->level, wear_bit_name(obj->wear_type));
                 break;
         }
-        strcat(buf, lvlBuf);
+        strlcat(buf, lvlBuf, sizeof(buf));
     }
     
-    if ( IS_OBJ_STAT(obj, ITEM_INVIS)     )   strcat( buf, "(Invis) "     );
+    if ( IS_OBJ_STAT(obj, ITEM_INVIS)     )   strlcat( buf, "(Invis) ", sizeof(buf) );
     if ( IS_AFFECTED(ch, AFF_DETECT_EVIL)
-        && IS_OBJ_STAT(obj, ITEM_EVIL)   )   strcat( buf, "(Red Aura) "  );
+        && IS_OBJ_STAT(obj, ITEM_EVIL)   )   strlcat( buf, "(Red Aura) ", sizeof(buf) );
     if (IS_AFFECTED(ch, AFF_DETECT_GOOD)
-        &&  IS_OBJ_STAT(obj,ITEM_BLESS))          strcat(buf,"(Blue Aura) " );
+        &&  IS_OBJ_STAT(obj,ITEM_BLESS))          strlcat(buf,"(Blue Aura) ", sizeof(buf) );
     if ( IS_OBJ_STAT(obj, ITEM_MAGIC) )
     {
         // show magic item flag based on number of enchantments
         int ops = get_obj_ops_by_duration(obj, AFFDUR_DISENCHANTABLE);
         if ( ops > 12 )
-            strcat(buf, "{M(Mythical){x ");
+            strlcat(buf, "{M(Mythical){x ", sizeof(buf));
         else if ( ops > 8 )
-            strcat(buf, "{G(Epic){x ");
+            strlcat(buf, "{G(Epic){x ", sizeof(buf));
         else if ( ops > 4 )
-            strcat(buf, "{Y(Brilliant){x ");
+            strlcat(buf, "{Y(Brilliant){x ", sizeof(buf));
         else if ( ops > 0 )
-            strcat(buf, "{B(Magical){x ");
+            strlcat(buf, "{B(Magical){x ", sizeof(buf));
         else if ( IS_AFFECTED(ch, AFF_DETECT_MAGIC) )
-            strcat(buf, "(Magical) ");
+            strlcat(buf, "(Magical) ", sizeof(buf));
     }
-    if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strcat( buf, "(Glowing) "   );
-    if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strcat( buf, "(Dark) "   );
-    if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strcat( buf, "(Humming) "   );
-    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strcat( buf, "(Heavy) "     );
+    if ( IS_OBJ_STAT(obj, ITEM_GLOW)      )   strlcat( buf, "(Glowing) ", sizeof(buf) );
+    if ( IS_OBJ_STAT(obj, ITEM_DARK)      )   strlcat( buf, "(Dark) ", sizeof(buf) );
+    if ( IS_OBJ_STAT(obj, ITEM_HUM)       )   strlcat( buf, "(Humming) ", sizeof(buf) );
+    if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR))  strlcat( buf, "(Heavy) ", sizeof(buf) );
     if ( obj->timer == -1 && obj->item_type != ITEM_EXPLOSIVE )
-        strcat( buf, "(Preserved) " );
+        strlcat( buf, "(Preserved) ", sizeof(buf) );
     if ( show_empty_flag(obj) )
-        strcat( buf, "(Empty) " );
+        strlcat( buf, "(Empty) ", sizeof(buf) );
     
     if ( fShort )
     {
         if ( obj->short_descr != NULL )
-            strcat( buf, obj->short_descr );
+            strlcat( buf, obj->short_descr, sizeof(buf) );
     }
     else
     {
         if ( obj->description != NULL)
-            strcat( buf, obj->description );
+            strlcat( buf, obj->description, sizeof(buf) );
     }
     
     return buf;
@@ -340,46 +340,46 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
     
     buf[0] = '\0';
     
-    if ( IS_SET(victim->comm,COMM_AFK     )   ) strcat( buf, "[AFK] "        );
+    if ( IS_SET(victim->comm,COMM_AFK     )   ) strlcat( buf, "[AFK] ", sizeof(buf) );
     
     if (!IS_NPC(victim) && IS_SET(victim->act, PLR_UNAUTHED))
-        strcat( buf, "{Y[Pre-Auth] {x" );
+        strlcat( buf, "{Y[Pre-Auth] {x", sizeof(buf) );
     else if (!IS_NPC(victim) && victim->desc == NULL)
-        strcat( buf, "(Linkdead) ");
+        strlcat( buf, "(Linkdead) ", sizeof(buf) );
     else if (!IS_NPC(victim) && IS_TAG(victim))
     {
-        if ( IS_SET(victim->pcdata->tag_flags,TAG_RED)    ) strcat( buf,"{R[RED] {x"     );
-        if ( IS_SET(victim->pcdata->tag_flags,TAG_BLUE)   ) strcat( buf,"{B[BLUE] {x"    );
-        if ( IS_SET(victim->pcdata->tag_flags,TAG_FROZEN) ) strcat( buf,"{W[Frozen] {x"  );
+        if ( IS_SET(victim->pcdata->tag_flags,TAG_RED)    ) strlcat( buf,"{R[RED] {x", sizeof(buf) );
+        if ( IS_SET(victim->pcdata->tag_flags,TAG_BLUE)   ) strlcat( buf,"{B[BLUE] {x", sizeof(buf) );
+        if ( IS_SET(victim->pcdata->tag_flags,TAG_FROZEN) ) strlcat( buf,"{W[Frozen] {x", sizeof(buf) );
     }
     else
     {
-        if ( IS_SET(victim->penalty, PENALTY_JAIL)) strcat( buf, "[Jailed] "     );
-        if ( IS_AFFECTED(victim, AFF_INVISIBLE)   ) strcat( buf, "(Invis) "      );
-        if ( victim->invis_level > LEVEL_HERO     ) strcat( buf, "(Wizi) "       );
-        if ( IS_AFFECTED(victim, AFF_HIDE)        ) strcat( buf, "(Hide) "       );
-        if ( IS_AFFECTED(victim, AFF_SHELTER)     ) strcat( buf, "(Shelter) "    );
-        if ( IS_AFFECTED(victim, AFF_ASTRAL)      ) strcat( buf, "(Astral) "     );  
-        if ( IS_AFFECTED(victim, AFF_CHARM)       ) strcat( buf, "(Charmed) "    );
-        if ( IS_AFFECTED(victim, AFF_PASS_DOOR)   ) strcat( buf, "(Translucent) ");
-        if ( IS_AFFECTED(victim, AFF_PETRIFIED)   ) strcat( buf, "(Petrified) "  );
-        if ( IS_AFFECTED(victim, AFF_FAERIE_FIRE) ) strcat( buf, "(Pink Aura) "  );
+        if ( IS_SET(victim->penalty, PENALTY_JAIL)) strlcat( buf, "[Jailed] ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_INVISIBLE)   ) strlcat( buf, "(Invis) ", sizeof(buf) );
+        if ( victim->invis_level > LEVEL_HERO     ) strlcat( buf, "(Wizi) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_HIDE)        ) strlcat( buf, "(Hide) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_SHELTER)     ) strlcat( buf, "(Shelter) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_ASTRAL)      ) strlcat( buf, "(Astral) ", sizeof(buf) );  
+        if ( IS_AFFECTED(victim, AFF_CHARM)       ) strlcat( buf, "(Charmed) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_PASS_DOOR)   ) strlcat( buf, "(Translucent) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_PETRIFIED)   ) strlcat( buf, "(Petrified) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_FAERIE_FIRE) ) strlcat( buf, "(Pink Aura) ", sizeof(buf) );
         if ( IS_EVIL(victim)
-            &&   IS_AFFECTED(ch, AFF_DETECT_EVIL)     ) strcat( buf, "(Red Aura) "   );
+            &&   IS_AFFECTED(ch, AFF_DETECT_EVIL)     ) strlcat( buf, "(Red Aura) ", sizeof(buf) );
         if ( IS_GOOD(victim)
-            &&   IS_AFFECTED(ch, AFF_DETECT_GOOD)     ) strcat( buf, "(Golden Aura) ");
-        if ( IS_AFFECTED(victim, AFF_SANCTUARY)   ) strcat( buf, "(White Aura) " );
+            &&   IS_AFFECTED(ch, AFF_DETECT_GOOD)     ) strlcat( buf, "(Golden Aura) ", sizeof(buf) );
+        if ( IS_AFFECTED(victim, AFF_SANCTUARY)   ) strlcat( buf, "(White Aura) ", sizeof(buf) );
         if ( IS_NPC(victim)
-	     && IS_SET(victim->act, ACT_WIZI)     ) strcat( buf, "(Mob-Wizi) "   );
+	     && IS_SET(victim->act, ACT_WIZI)     ) strlcat( buf, "(Mob-Wizi) ", sizeof(buf) );
         if (IS_NPC(victim) && !IS_NPC(ch) &&
 	    ch->pcdata->questmob > 0 && victim->pIndexData->vnum == ch->pcdata->questmob)
-            strcat( buf, "[TARGET] ");
+            strlcat( buf, "[TARGET] ", sizeof(buf) );
 	if ( !is_mimic(victim) )
 	{
 	    if ( !IS_NPC(victim) && IS_SET(victim->act, PLR_KILLER ) )
-		strcat( buf, "(KILLER) "     );
+		strlcat( buf, "(KILLER) ", sizeof(buf) );
 	    if ( !IS_NPC(victim) && IS_SET(victim->act, PLR_THIEF  ) )
-		strcat( buf, "(THIEF) "      );
+		strlcat( buf, "(THIEF) ", sizeof(buf) );
 	}
     }
 
@@ -389,8 +389,8 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 	MOB_INDEX_DATA *mimic = get_mimic(victim);
 	if ( mimic != NULL && mimic->long_descr[0] != '\0' )
 	{
-	    strcat( buf, mimic->long_descr );
-        strcat( buf, "\n\r");
+	    strlcat( buf, mimic->long_descr, sizeof(buf) );
+        strlcat( buf, "\n\r", sizeof(buf) );
 	    send_to_char( buf, ch );
 	    return;
 	}
@@ -398,23 +398,23 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 
     if ( victim->position == victim->start_pos && victim->long_descr[0] != '\0' )
     {
-        strcat( buf, victim->long_descr );
-        strcat( buf, "\n\r");
+        strlcat( buf, victim->long_descr, sizeof(buf) );
+        strlcat( buf, "\n\r", sizeof(buf));
         send_to_char( buf, ch );
         return;
     }
     
-    strcat( buf, PERS( victim, ch ) );
+    strlcat( buf, PERS( victim, ch ), sizeof(buf) );
 	if ( !IS_NPC(victim) && !IS_SET(ch->comm, COMM_BRIEF) 
         &&   victim->position == POS_STANDING && ch->on == NULL )
-        strcat( buf, victim->pcdata->title );
+        strlcat( buf, victim->pcdata->title, sizeof(buf) );
     
     switch ( victim->position )
     {
-    case POS_DEAD:     strcat( buf, " is DEAD!!" );              break;
-    case POS_MORTAL:   strcat( buf, " is mortally wounded." );   break;
-    case POS_INCAP:    strcat( buf, " is incapacitated." );      break;
-    case POS_STUNNED:  strcat( buf, " is lying here stunned." ); break;
+    case POS_DEAD:     strlcat( buf, " is DEAD!!", sizeof(buf) );              break;
+    case POS_MORTAL:   strlcat( buf, " is mortally wounded.", sizeof(buf) );   break;
+    case POS_INCAP:    strlcat( buf, " is incapacitated.", sizeof(buf) );      break;
+    case POS_STUNNED:  strlcat( buf, " is lying here stunned.", sizeof(buf) ); break;
     case POS_SLEEPING: 
         if (victim->on != NULL)
         {
@@ -422,23 +422,23 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
             {
                 snprintf( message, sizeof(message)," is sleeping at %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else if (I_IS_SET(victim->on->value[2],SLEEP_ON))
             {
                 snprintf( message, sizeof(message)," is sleeping on %s.",
                     victim->on->short_descr); 
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else
             {
                 snprintf( message, sizeof(message), " is sleeping in %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
         }
         else 
-            strcat(buf," is sleeping here.");
+            strlcat(buf," is sleeping here.", sizeof(buf));
         break;
     case POS_RESTING:  
         if (victim->on != NULL)
@@ -447,23 +447,23 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
             {
                 snprintf( message, sizeof(message)," is resting at %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else if (I_IS_SET(victim->on->value[2],REST_ON))
             {
                 snprintf( message, sizeof(message)," is resting on %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else 
             {
                 snprintf( message, sizeof(message), " is resting in %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
         }
         else
-            strcat( buf, " is resting here." );       
+            strlcat( buf, " is resting here.", sizeof(buf) );       
         break;
     case POS_SITTING:  
         if (victim->on != NULL)
@@ -472,23 +472,23 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
             {
                 snprintf( message, sizeof(message)," is sitting at %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else if (I_IS_SET(victim->on->value[2],SIT_ON))
             {
                 snprintf( message, sizeof(message)," is sitting on %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else
             {
                 snprintf( message, sizeof(message), " is sitting in %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
         }
         else
-            strcat(buf, " is sitting here.");
+            strlcat(buf, " is sitting here.", sizeof(buf));
         break;
     case POS_STANDING: 
         if (victim->on != NULL)
@@ -497,41 +497,41 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
             {
                 snprintf( message, sizeof(message)," is standing at %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else if (I_IS_SET(victim->on->value[2],STAND_ON))
             {
                 snprintf( message, sizeof(message)," is standing on %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
             else
             {
                 snprintf( message, sizeof(message)," is standing in %s.",
                     victim->on->short_descr);
-                strcat(buf,message);
+                strlcat(buf,message, sizeof(buf));
             }
         }
         else
-            strcat( buf, " is here." );               
+            strlcat( buf, " is here.", sizeof(buf) );               
         break;
     case POS_FIGHTING:
-        strcat( buf, " is here, fighting " );
+        strlcat( buf, " is here, fighting ", sizeof(buf) );
         if ( victim->fighting == NULL )
-            strcat( buf, "thin air??" );
+            strlcat( buf, "thin air??", sizeof(buf) );
         else if ( victim->fighting == ch )
-            strcat( buf, "YOU!" );
+            strlcat( buf, "YOU!", sizeof(buf) );
         else if ( victim->in_room == victim->fighting->in_room )
         {
-            strcat( buf, PERS( victim->fighting, ch ) );
-            strcat( buf, "." );
+            strlcat( buf, PERS( victim->fighting, ch ), sizeof(buf) );
+            strlcat( buf, ".", sizeof(buf) );
         }
         else
-            strcat( buf, "someone who left??" );
+            strlcat( buf, "someone who left??", sizeof(buf) );
         break;
    }
    
-   strcat( buf, "\n\r" );
+   strlcat( buf, "\n\r", sizeof(buf) );
    buf[0] = UPPER(buf[0]);
    send_to_char( buf, ch );
    return;
@@ -696,21 +696,21 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     strlcpy( buf, PERS(victim, ch), sizeof(buf) );
     
     if (percent >= 100) 
-        strcat( buf, " is in excellent condition.\n\r");
+        strlcat( buf, " is in excellent condition.\n\r", sizeof(buf));
     else if (percent >= 90) 
-        strcat( buf, " has a few scratches.\n\r");
+        strlcat( buf, " has a few scratches.\n\r", sizeof(buf));
     else if (percent >= 75) 
-        strcat( buf," has some small wounds and bruises.\n\r");
+        strlcat( buf," has some small wounds and bruises.\n\r", sizeof(buf));
     else if (percent >=  50)
-        strcat( buf, " has quite a few wounds.\n\r");
+        strlcat( buf, " has quite a few wounds.\n\r", sizeof(buf));
     else if (percent >= 30)
-        strcat( buf, " has some big nasty wounds and scratches.\n\r");
+        strlcat( buf, " has some big nasty wounds and scratches.\n\r", sizeof(buf));
     else if (percent >= 15)
-        strcat ( buf, " looks pretty hurt.\n\r");
+        strlcat ( buf, " looks pretty hurt.\n\r", sizeof(buf));
     else if (percent >= 0 )
-        strcat (buf, " is in awful condition.\n\r");
+        strlcat (buf, " is in awful condition.\n\r", sizeof(buf));
     else
-        strcat(buf, " is bleeding to death.\n\r");
+        strlcat(buf, " is bleeding to death.\n\r", sizeof(buf));
     
     buf[0] = UPPER(buf[0]);
     send_to_char( buf, ch );
@@ -1484,7 +1484,7 @@ DEF_DO_FUN(do_prompt)
         }
         smash_tilde( buf );
         if (str_suffix("%c",buf))
-            strcat(buf," ");
+            strlcat(buf," ", sizeof(buf));
     }
     
     free_string( ch->prompt );
@@ -1939,28 +1939,28 @@ DEF_DO_FUN(do_examine)
         strlcpy(buf, "It is ", sizeof(buf));
         switch (obj->value[0])
         {
-        case(WEAPON_EXOTIC) : strcat(buf, "a weapon of some exotic type, ");  break;
-        case(WEAPON_SWORD)  : strcat(buf, "a sword, ");  break;  
-        case(WEAPON_DAGGER) : strcat(buf, "a dagger, "); break;
-        case(WEAPON_SPEAR)  : strcat(buf, "a spear, "); break;
-        case(WEAPON_MACE)   : strcat(buf, "a mace or club, ");   break;
-        case(WEAPON_AXE)    : strcat(buf, "an axe, ");       break;
-        case(WEAPON_FLAIL)  : strcat(buf, "a flail, ");  break;
-        case(WEAPON_WHIP)   : strcat(buf, "a whip, ");       break;
-        case(WEAPON_POLEARM): strcat(buf, "a polearm, ");    break;
-        case(WEAPON_GUN)    : strcat(buf, "a gun, ");    break;
-        case(WEAPON_BOW)    : strcat(buf, "a bow, ");    break;
-        default             : strcat(buf, "a weapon of some unknown type, "); break;
+        case(WEAPON_EXOTIC) : strlcat(buf, "a weapon of some exotic type, ", sizeof(buf));  break;
+        case(WEAPON_SWORD)  : strlcat(buf, "a sword, ", sizeof(buf));  break;  
+        case(WEAPON_DAGGER) : strlcat(buf, "a dagger, ", sizeof(buf)); break;
+        case(WEAPON_SPEAR)  : strlcat(buf, "a spear, ", sizeof(buf)); break;
+        case(WEAPON_MACE)   : strlcat(buf, "a mace or club, ", sizeof(buf));   break;
+        case(WEAPON_AXE)    : strlcat(buf, "an axe, ", sizeof(buf));       break;
+        case(WEAPON_FLAIL)  : strlcat(buf, "a flail, ", sizeof(buf));  break;
+        case(WEAPON_WHIP)   : strlcat(buf, "a whip, ", sizeof(buf));       break;
+        case(WEAPON_POLEARM): strlcat(buf, "a polearm, ", sizeof(buf));    break;
+        case(WEAPON_GUN)    : strlcat(buf, "a gun, ", sizeof(buf));    break;
+        case(WEAPON_BOW)    : strlcat(buf, "a bow, ", sizeof(buf));    break;
+        default             : strlcat(buf, "a weapon of some unknown type, ", sizeof(buf)); break;
         }
-	if( obj->weight < 10 ) strcat(buf, "and it is very lightweight.\n\r");
-	 else if( obj->weight < 40 ) strcat(buf, "and it is relatively lightweight.\n\r");
-	 else if( obj->weight < 70 ) strcat(buf, "and it is easy to carry.\n\r");
-	 else if( obj->weight < 100 ) strcat(buf, "and it is of medium weight.\n\r");
-	 else if( obj->weight < 180 ) strcat(buf, "and it has a good weight to it.\n\r");
-	 else if( obj->weight < 260 ) strcat(buf, "and it is quite massive.\n\r");
-	 else strcat(buf, "and it is extremely heavy.\n\r");
+	if( obj->weight < 10 ) strlcat(buf, "and it is very lightweight.\n\r", sizeof(buf));
+	 else if( obj->weight < 40 ) strlcat(buf, "and it is relatively lightweight.\n\r", sizeof(buf));
+	 else if( obj->weight < 70 ) strlcat(buf, "and it is easy to carry.\n\r", sizeof(buf));
+	 else if( obj->weight < 100 ) strlcat(buf, "and it is of medium weight.\n\r", sizeof(buf));
+	 else if( obj->weight < 180 ) strlcat(buf, "and it has a good weight to it.\n\r", sizeof(buf));
+	 else if( obj->weight < 260 ) strlcat(buf, "and it is quite massive.\n\r", sizeof(buf));
+	 else strlcat(buf, "and it is extremely heavy.\n\r", sizeof(buf));
         if ( IS_WEAPON_STAT(obj, WEAPON_TWO_HANDS))
-           strcat(buf, "It requires two hands to wield.\n\r");
+           strlcat(buf, "It requires two hands to wield.\n\r", sizeof(buf));
 	send_to_char(buf,ch);
         snprintf( buf, sizeof(buf), "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
@@ -1971,38 +1971,38 @@ DEF_DO_FUN(do_examine)
 	strlcpy(buf, "It looks like it could be ", sizeof(buf));
 
 	if( CAN_WEAR(obj,ITEM_WEAR_FINGER) )
-	    strcat(buf, "worn on the finger.\n\r");
+	    strlcat(buf, "worn on the finger.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_NECK) )
-	    strcat(buf, "worn around the neck.\n\r");
+	    strlcat(buf, "worn around the neck.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_TORSO) )
-	    strcat(buf, "worn on the torso.\n\r");
+	    strlcat(buf, "worn on the torso.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_HEAD) )
-	    strcat(buf, "worn on the head.\n\r");
+	    strlcat(buf, "worn on the head.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_LEGS) )
-	    strcat(buf, "worn on the legs.\n\r");
+	    strlcat(buf, "worn on the legs.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_FEET) )
 	    if( obj->pIndexData->vnum != 10415 )	/* Shaft's Lost Left Shoe! */
 	        strlcpy(buf, "It looks like they can be worn on the feet.\n\r", sizeof(buf));
 	    else
-		strcat(buf, "worn on the left foot.\n\r");
+		strlcat(buf, "worn on the left foot.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_HANDS) )
 	    strlcpy(buf, "It looks like they can be worn on the hands.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_ARMS) )
 	    strlcpy(buf, "It looks like they can be worn on the arms.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_SHIELD) )
-	    strcat(buf, "used as a shield.\n\r");
+	    strlcat(buf, "used as a shield.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_ABOUT) )
-	    strcat(buf, "worn about the body.\n\r");
+	    strlcat(buf, "worn about the body.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_WAIST) )
-	    strcat(buf, "worn about the waist.\n\r");
+	    strlcat(buf, "worn about the waist.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_WRIST) )
-	    strcat(buf, "worn on the wrist.\n\r");
+	    strlcat(buf, "worn on the wrist.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_WEAR_FLOAT) )
-	    strcat(buf, "something that would float nearby.\n\r");
+	    strlcat(buf, "something that would float nearby.\n\r", sizeof(buf));
 	else if( CAN_WEAR(obj,ITEM_HOLD) )
-	    strcat(buf, "held in the hand, to focus magic.\n\r");
+	    strlcat(buf, "held in the hand, to focus magic.\n\r", sizeof(buf));
 	else
-	    strcat(buf, "used as armor, but you can't figure out how.\n\r");
+	    strlcat(buf, "used as armor, but you can't figure out how.\n\r", sizeof(buf));
 	send_to_char(buf,ch);
         snprintf( buf, sizeof(buf), "It has a level requirement of %d.\n\r", obj->level);
 	send_to_char(buf,ch);
@@ -2493,8 +2493,8 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
     {
         argument = one_argument(argument,argone);
         if (argall[0] != '\0')
-            strcat(argall," ");
-        strcat(argall,argone);
+            strlcat(argall," ",sizeof(argall));
+        strlcat(argall,argone,sizeof(argall));
     }
 
     for ( pHelp = help_first; pHelp != NULL; pHelp = pHelp->next )
@@ -3498,7 +3498,7 @@ DEF_DO_FUN(do_title)
     smash_beep_n_blink( buf );
     smash_reserved_colcodes( buf );
     smash_tilde( buf );
-    strcat (buf, " {x");
+    strlcat (buf, " {x", sizeof(buf));
     set_title( ch, buf );
     SET_BIT(ch->act, PLR_TITLE);
     send_to_char( "Ok.\n\r", ch );
@@ -3594,7 +3594,7 @@ DEF_DO_FUN(do_description)
         if ( argument[0] == '+' )
         {
             if ( ch->description != NULL )
-                strcat( buf, ch->description );
+                strlcat( buf, ch->description, sizeof(buf) );
             argument++;
             while ( isspace(*argument) )
                 argument++;
@@ -3606,8 +3606,8 @@ DEF_DO_FUN(do_description)
             return;
         }
         
-        strcat( buf, argument );
-        strcat( buf, "\n\r" );
+        strlcat( buf, argument, sizeof(buf) );
+        strlcat( buf, "\n\r", sizeof(buf) );
         free_string( ch->description );
         ch->description = str_dup( buf );
     }
@@ -3860,12 +3860,12 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             for ( c=1; c<5; c++)
                 if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
                 {
-                    strcat( buf, " '");
-                    strcat( buf, skill_table[obj->value[c]].name);
-                    strcat( buf, "'");
+                    strlcat( buf, " '", sizeof(buf));
+                    strlcat( buf, skill_table[obj->value[c]].name, sizeof(buf));
+                    strlcat( buf, "'", sizeof(buf));
                 }
 
-            strcat( buf, ".");
+            strlcat( buf, ".", sizeof(buf));
             do_say(ch, buf);
 
             break;
@@ -3877,12 +3877,12 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
             {
-                strcat( buf, " '");
-                strcat( buf, skill_table[obj->value[3]].name);
-                strcat( buf, "'");
+                strlcat( buf, " '", sizeof(buf));
+                strlcat( buf, skill_table[obj->value[3]].name, sizeof(buf));
+                strlcat( buf, "'", sizeof(buf));
             }
 
-            strcat( buf, ".");
+            strlcat( buf, ".", sizeof(buf));
             do_say(ch, buf);
 
             break;
@@ -3914,18 +3914,18 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
             strlcpy(buf, "The weapon is ", sizeof(buf));
             switch (obj->value[0])
             {
-                case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
-                case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
-                case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-                case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
-                case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
-                case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
-                case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
-                case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
-                case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
-                case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
-                case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
-                default             : strcat(buf, "of some unknown type."); break;
+                case(WEAPON_EXOTIC) : strlcat(buf, "of some exotic type.", sizeof(buf));  break;
+                case(WEAPON_SWORD)  : strlcat(buf, "a sword.", sizeof(buf));  break;  
+                case(WEAPON_DAGGER) : strlcat(buf, "a dagger.", sizeof(buf)); break;
+                case(WEAPON_SPEAR)  : strlcat(buf, "a spear.", sizeof(buf)); break;
+                case(WEAPON_MACE)   : strlcat(buf, "a mace or club.", sizeof(buf));   break;
+                case(WEAPON_AXE)    : strlcat(buf, "an axe.", sizeof(buf));       break;
+                case(WEAPON_FLAIL)  : strlcat(buf, "a flail.", sizeof(buf));  break;
+                case(WEAPON_WHIP)   : strlcat(buf, "a whip.", sizeof(buf));       break;
+                case(WEAPON_POLEARM): strlcat(buf, "a polearm.", sizeof(buf));    break;
+                case(WEAPON_GUN)    : strlcat(buf, "a gun.", sizeof(buf));    break;
+                case(WEAPON_BOW)    : strlcat(buf, "a bow.", sizeof(buf));    break;
+                default             : strlcat(buf, "of some unknown type.", sizeof(buf)); break;
             }
             do_say(ch, buf);
 
@@ -4024,12 +4024,12 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             for ( c=1; c<5; c++)
                 if ( obj->value[c] >= 0 && obj->value[c] < MAX_SKILL )
                 {
-                    strcat( buf, " '");
-                    strcat( buf, skill_table[obj->value[c]].name);
-                    strcat( buf, "'");
+                    strlcat( buf, " '", sizeof(buf));
+                    strlcat( buf, skill_table[obj->value[c]].name, sizeof(buf));
+                    strlcat( buf, "'", sizeof(buf));
                 }
 
-            strcat( buf, ".");
+            strlcat( buf, ".", sizeof(buf));
             do_say(ch, buf);
 
             break;
@@ -4041,12 +4041,12 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
             if ( obj->value[3] >= 0 && obj->value[3] < MAX_SKILL )
             {
-                strcat( buf, " '");
-                strcat( buf, skill_table[obj->value[3]].name);
-                strcat( buf, "'");
+                strlcat( buf, " '", sizeof(buf));
+                strlcat( buf, skill_table[obj->value[3]].name, sizeof(buf));
+                strlcat( buf, "'", sizeof(buf));
             }
 
-            strcat( buf, ".");
+            strlcat( buf, ".", sizeof(buf));
             do_say(ch, buf);
 
             break;
@@ -4078,18 +4078,18 @@ void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
             strlcpy(buf, "The weapon is ", sizeof(buf));
             switch (obj->value[0])
             {
-                case(WEAPON_EXOTIC) : strcat(buf, "of some exotic type.");  break;
-                case(WEAPON_SWORD)  : strcat(buf, "a sword.");  break;  
-                case(WEAPON_DAGGER) : strcat(buf, "a dagger."); break;
-                case(WEAPON_SPEAR)  : strcat(buf, "a spear."); break;
-                case(WEAPON_MACE)   : strcat(buf, "a mace or club.");   break;
-                case(WEAPON_AXE)    : strcat(buf, "an axe.");       break;
-                case(WEAPON_FLAIL)  : strcat(buf, "a flail.");  break;
-                case(WEAPON_WHIP)   : strcat(buf, "a whip.");       break;
-                case(WEAPON_POLEARM): strcat(buf, "a polearm.");    break;
-                case(WEAPON_GUN)    : strcat(buf, "a gun.");    break;
-                case(WEAPON_BOW)    : strcat(buf, "a bow.");    break;
-                default             : strcat(buf, "of some unknown type."); break;
+                case(WEAPON_EXOTIC) : strlcat(buf, "of some exotic type.", sizeof(buf));  break;
+                case(WEAPON_SWORD)  : strlcat(buf, "a sword.", sizeof(buf));  break;  
+                case(WEAPON_DAGGER) : strlcat(buf, "a dagger.", sizeof(buf)); break;
+                case(WEAPON_SPEAR)  : strlcat(buf, "a spear.", sizeof(buf)); break;
+                case(WEAPON_MACE)   : strlcat(buf, "a mace or club.", sizeof(buf));   break;
+                case(WEAPON_AXE)    : strlcat(buf, "an axe.", sizeof(buf));       break;
+                case(WEAPON_FLAIL)  : strlcat(buf, "a flail.", sizeof(buf));  break;
+                case(WEAPON_WHIP)   : strlcat(buf, "a whip.", sizeof(buf));       break;
+                case(WEAPON_POLEARM): strlcat(buf, "a polearm.", sizeof(buf));    break;
+                case(WEAPON_GUN)    : strlcat(buf, "a gun.", sizeof(buf));    break;
+                case(WEAPON_BOW)    : strlcat(buf, "a bow.", sizeof(buf));    break;
+                default             : strlcat(buf, "of some unknown type.", sizeof(buf)); break;
             }
             do_say(ch, buf);
 
@@ -4749,9 +4749,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->title);
 
     /* This line is used throughout to close each score line */
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Level, Remorts/Trust, Clan Name, Clan Rank */
@@ -4763,9 +4763,9 @@ DEF_DO_FUN(do_score)
         clan_table[ch->clan].active ? clan_table[ch->clan].who_color : "",
         clan_table[ch->clan].active ? capitalize(clan_table[ch->clan].rank_list[ch->pcdata->clan_rank].name) : "None");
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Class, Race, Gender */
@@ -4774,9 +4774,9 @@ DEF_DO_FUN(do_score)
         race_table[ch->race].name,
         ch->sex == 0 ? "sexless" : ch->sex == 1 ? "male" : "female" );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
     /* Remort, Ascent, Subclass */
     snprintf( buf, sizeof(buf), "{D|{x Sub: %13s        Ascent: %11d        Remort: %10d",
@@ -4784,9 +4784,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->ascents,
         ch->pcdata->remorts);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     
 
     snprintf( buf, sizeof(buf), "{D|{x Dual: %12s        Age:    %5d years        Played:  %5d hrs",
@@ -4794,9 +4794,9 @@ DEF_DO_FUN(do_score)
         get_age(ch),
         (ch->played + (int)(current_time - ch->logon))/3600);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf( output, buf );
 
 
     /* Holy Light, Wizinvis and Incog Levels */
@@ -4807,9 +4807,9 @@ DEF_DO_FUN(do_score)
             IS_WIZI(ch) ? ch->invis_level : 0, 
             IS_INCOG(ch) ? ch->incog_level : 0 );
 
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     }
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4823,9 +4823,9 @@ DEF_DO_FUN(do_score)
 
     snprintf( buf, sizeof(buf), "{D|{x Practices:   {C%5d{x     %s", ch->practice, temp );
     
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     get_hmm_softcap( ch, &hp_cap, &mana_cap, &move_cap );
@@ -4833,17 +4833,17 @@ DEF_DO_FUN(do_score)
         ch->train, ch->pcdata->trained_hit, hp_cap, ch->pcdata->trained_mana, 
         mana_cap, ch->pcdata->trained_move, move_cap, max_hmm_train(ch) );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Call the alignbuf here to show alignment */
     snprintf( buf, sizeof(buf), "{D|{x Alignment:   %s", alignbuf );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Cleaned up this section below but leaving commented out - Astark
@@ -4882,9 +4882,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->mob_deaths, 
         ch->pcdata->behead_cnt);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Warfare grade, kills and points */
@@ -4893,9 +4893,9 @@ DEF_DO_FUN(do_score)
         pkgrade_table[get_pkgrade_level(ch->pcdata->warpoints)].grade,
         ch->pcdata->warpoints);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Pkills and Pkill Deaths */
@@ -4903,9 +4903,9 @@ DEF_DO_FUN(do_score)
         ch->pcdata->pkill_count, 
         ch->pcdata->pkill_deaths);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -4918,9 +4918,9 @@ DEF_DO_FUN(do_score)
             custombuf, 
             ch->pcdata->customduration );
         
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     }
 
 
@@ -4930,9 +4930,9 @@ DEF_DO_FUN(do_score)
         ch->stance == STANCE_DEFAULT ? "None" : capitalize(stances[ch->stance].name),
         ch->song == SONG_DEFAULT ? "None" : capitalize(songs[ch->song].name) );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
     
     /* Clean this part up some more, but will only show when booleans are true */
@@ -4951,9 +4951,9 @@ DEF_DO_FUN(do_score)
             thirst == 0 ? "{Rdesiccated{x" : thirst > 0 && thirst < 20 ? "       yes" : "      None",
             drunk > 20 ? "{Rintoxicated{x" : drunk > 10 && drunk <= 20 ? "     buzzed" : "       None");
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     }
 
 
@@ -4965,9 +4965,9 @@ DEF_DO_FUN(do_score)
         (int)can_carry_w(ch)/10,
         encumberbuf);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     /* Morph information for races that utilize it */
@@ -4979,9 +4979,9 @@ DEF_DO_FUN(do_score)
         else
             snprintf( buf, sizeof(buf), "{D|{x Morph:  {Gbasic form{x" );
         
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     }
     else if( ch->race == race_naga )
     {
@@ -4990,9 +4990,9 @@ DEF_DO_FUN(do_score)
         else
             snprintf( buf, sizeof(buf), "{D|{x Morph:    {Ghumanoid{x" );
     
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
     }
 
 
@@ -5002,9 +5002,9 @@ DEF_DO_FUN(do_score)
     else
         snprintf( buf, sizeof(buf), "{D|{x Command Actioned:         {w%s{x", ch->pcdata->combat_action );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf(output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf(output, buf );
 
 
     add_buf(output, "{D:============================================================================:{x\n\r");
@@ -5042,9 +5042,9 @@ DEF_DO_FUN(do_worth)
     if ( !ch->pcdata )
     {
         snprintf( buf, sizeof(buf), "{D|{x You have {C%ld gold{x and {W%ld silver{x.", ch->gold, ch->silver );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) );
         send_to_char( buf, ch );
         send_to_char("{D:============================================================================:{x\n\r", ch);
         return;
@@ -5057,9 +5057,9 @@ DEF_DO_FUN(do_worth)
         (int)ch->silver,
         (int)ch->pcdata->bank);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     send_to_char( buf, ch );
 
 
@@ -5069,9 +5069,9 @@ DEF_DO_FUN(do_worth)
         (int)ch->pcdata->field,
         (int)ch->exp);
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     send_to_char( buf, ch );
 
 
@@ -5081,9 +5081,9 @@ DEF_DO_FUN(do_worth)
         ch->pcdata->faith,
         ch->pcdata->storage_boxes);
 
-    for( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) );
     send_to_char( buf, ch );
 
 
@@ -5091,9 +5091,9 @@ DEF_DO_FUN(do_worth)
     if ( ch->pcdata->bounty > 0 )
     {
         snprintf( buf, sizeof(buf), "{D|{x There is a {Rbounty{x of {Y%d gold{x on your head.", ch->pcdata->bounty );
-        for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+        for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
             ; 
-        strcat( buf, "{D|{x\n\r" );
+        strlcat( buf, "{D|{x\n\r", sizeof(buf) );
         send_to_char( buf, ch );
     }
 
@@ -5145,9 +5145,9 @@ DEF_DO_FUN(do_attributes)
         mn_col, ch->mana, ch->max_mana, 
         mv_col, ch->move, ch->max_move );
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf( output, buf );
 
  
     /* Armor Class, Saves Magic, Saves Physical */
@@ -5156,9 +5156,9 @@ DEF_DO_FUN(do_attributes)
         get_save(ch, TRUE),
         get_save(ch, FALSE));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf( output, buf );
 
 
     /* Hitroll, Damroll, Wimpy, Calm */
@@ -5167,9 +5167,9 @@ DEF_DO_FUN(do_attributes)
         GET_DAMROLL(ch),
         get_spell_penetration(ch, ch->level));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf( output, buf );
 
     /* Wimpy, Calm */
     snprintf( buf, sizeof(buf), "{D|{x {CWimpy:{x        %3d%%        {CCalm:{x          %3d%%        {CSpell Damage{x: %4d",
@@ -5177,9 +5177,9 @@ DEF_DO_FUN(do_attributes)
         ch->calm,
         get_spell_bonus_damage(ch, PULSE_VIOLENCE, TRUE, NULL));
 
-    for ( ; strlen_color(buf) <= LENGTH; strcat( buf, " " ))
+    for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
-    strcat( buf, "{D|{x\n\r" ); add_buf( output, buf );
+    strlcat( buf, "{D|{x\n\r", sizeof(buf) ); add_buf( output, buf );
 
     /* ** Stats ** */
     if (IS_SET(ch->comm, COMM_SHOW_STATBARS))

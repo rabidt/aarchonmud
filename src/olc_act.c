@@ -182,14 +182,14 @@ void show_flag_cmds( CHAR_DATA *ch, const struct flag_type *flag_table )
         if ( flag_table[flag].settable )
         {
             snprintf( buf, sizeof(buf), "%-19.18s", flag_table[flag].name );
-            strcat( buf1, buf );
+            strlcat( buf1, buf, sizeof(buf1) );
             if ( ++col % 4 == 0 )
-                strcat( buf1, "\n\r" );
+                strlcat( buf1, "\n\r", sizeof(buf1) );
         }
     }
     
     if ( col % 4 != 0 )
-        strcat( buf1, "\n\r" );
+        strlcat( buf1, "\n\r", sizeof(buf1) );
     
     send_to_char( buf1, ch );
     return;
@@ -226,14 +226,14 @@ void show_skill_cmds( CHAR_DATA *ch, int tar )
         if ( tar == -1 || skill_table[sn].target == tar )
         {
             snprintf( buf, sizeof(buf), "%-19.18s", skill_table[sn].name );
-            strcat( buf1, buf );
+            strlcat( buf1, buf, sizeof(buf1) );
             if ( ++col % 4 == 0 )
-                strcat( buf1, "\n\r" );
+                strlcat( buf1, "\n\r", sizeof(buf1) );
         }
     }
     
     if ( col % 4 != 0 )
-        strcat( buf1, "\n\r" );
+        strlcat( buf1, "\n\r", sizeof(buf1) );
     
     send_to_char( buf1, ch );
     return;
@@ -259,13 +259,13 @@ void show_spec_cmds( CHAR_DATA *ch )
     for (spec = 0; spec_table[spec].function != NULL; spec++)
     {
         snprintf( buf, sizeof(buf), "%-19.18s", &spec_table[spec].name[5] );
-        strcat( buf1, buf );
+        strlcat( buf1, buf, sizeof(buf1) );
         if ( ++col % 4 == 0 )
-            strcat( buf1, "\n\r" );
+            strlcat( buf1, "\n\r", sizeof(buf1) );
     }
     
     if ( col % 4 != 0 )
-        strcat( buf1, "\n\r" );
+        strlcat( buf1, "\n\r", sizeof(buf1) );
     
     send_to_char( buf1, ch );
     return;
@@ -1174,7 +1174,7 @@ AEDIT( aedit_file )
     }    
     
     free_string( pArea->file_name );
-    strcat( file, ".are" );
+    strlcat( file, ".are", sizeof(file) );
     pArea->file_name = str_dup( file );
     
     send_to_char( "Filename set.\n\r", ch );
@@ -1419,10 +1419,10 @@ AEDIT( aedit_builder )
         
         if (pArea->builders[0] != '\0' )
         {
-            strcat( buf, pArea->builders );
-            strcat( buf, " " );
+            strlcat( buf, pArea->builders, sizeof(buf) );
+            strlcat( buf, " ", sizeof(buf) );
         }
-        strcat( buf, name );
+        strlcat( buf, name, sizeof(buf) );
         free_string( pArea->builders );
         pArea->builders = str_dup(string_proper(buf));
         
@@ -1732,25 +1732,25 @@ REDIT( redit_show )
     buf1[0] = '\0';
     
     snprintf( buf, sizeof(buf), "Description:\n\r%s", pRoom->description );
-    strcat( buf1, buf );
+    strlcat( buf1, buf, sizeof(buf1) );
     
     snprintf( buf, sizeof(buf), "Name:       [%s]\n\rArea:       [%5d] %s\n\r",
         pRoom->name, pRoom->area->vnum, pRoom->area->name );
-    strcat( buf1, buf );
+    strlcat( buf1, buf, sizeof(buf1) );
     
     snprintf( buf, sizeof(buf), "Vnum:       [%5d]\n\rSector:     [%s]\n\r",
         pRoom->vnum, flag_bit_name(sector_flags, pRoom->sector_type) );
-    strcat( buf1, buf );
+    strlcat( buf1, buf, sizeof(buf1) );
     
     snprintf( buf, sizeof(buf), "Room flags: [%s]\n\r",
         flag_bits_name(room_flags, pRoom->room_flags) );
-    strcat( buf1, buf );
+    strlcat( buf1, buf, sizeof(buf1) );
     
     if ( pRoom->heal_rate != 100 || pRoom->mana_rate != 100 )
     {
         snprintf( buf, sizeof(buf), "Health rec: [%d]\n\rMana rec  : [%d]\n\r",
             pRoom->heal_rate , pRoom->mana_rate );
-        strcat( buf1, buf );
+        strlcat( buf1, buf, sizeof(buf1) );
     }
     
     if ( pRoom->clan > 0 )
@@ -1758,7 +1758,7 @@ REDIT( redit_show )
         snprintf( buf, sizeof(buf), "Clan      : [%d] %s\n\r",
             pRoom->clan,
             clan_table[pRoom->clan].name );
-        strcat( buf1, buf );
+        strlcat( buf1, buf, sizeof(buf1) );
     }
     
     if ( pRoom->clan_rank > 0 )
@@ -1766,38 +1766,38 @@ REDIT( redit_show )
         snprintf( buf, sizeof(buf), "Clan Rank : [%d] %s\n\r",
             pRoom->clan_rank,
             clan_table[pRoom->clan].rank_list[pRoom->clan_rank].name );
-        strcat( buf1, buf );
+        strlcat( buf1, buf, sizeof(buf1) );
     }
     
     if ( !IS_NULLSTR(pRoom->owner) )
     {
         snprintf( buf, sizeof(buf), "Owner     : [%s]\n\r", pRoom->owner );
-        strcat( buf1, buf );
+        strlcat( buf1, buf, sizeof(buf1) );
     }
     
     if ( pRoom->extra_descr )
     {
         EXTRA_DESCR_DATA *ed;
         
-        strcat( buf1, "Desc Kwds:  [" );
+        strlcat( buf1, "Desc Kwds:  [", sizeof(buf1) );
         for ( ed = pRoom->extra_descr; ed; ed = ed->next )
         {
-            strcat( buf1, ed->keyword );
+            strlcat( buf1, ed->keyword, sizeof(buf1) );
             if ( ed->next )
-                strcat( buf1, " " );
+                strlcat( buf1, " ", sizeof(buf1) );
         }
-        strcat( buf1, "]\n\r" );
+        strlcat( buf1, "]\n\r", sizeof(buf1) );
     }
     
-    strcat( buf1, "Characters: [" );
+    strlcat( buf1, "Characters: [", sizeof(buf1) );
     fcnt = FALSE;
     for ( rch = pRoom->people; rch; rch = rch->next_in_room )
     {
         if (can_see( ch, rch ) )
         {
             one_argument( rch->name, buf );
-            strcat( buf1, buf );
-            strcat( buf1, " " );
+            strlcat( buf1, buf, sizeof(buf1) );
+            strlcat( buf1, " ", sizeof(buf1) );
             fcnt = TRUE;
         }
     }
@@ -1808,18 +1808,18 @@ REDIT( redit_show )
         
         end = strlen(buf1) - 1;
         buf1[end] = ']';
-        strcat( buf1, "\n\r" );
+        strlcat( buf1, "\n\r", sizeof(buf1) );
     }
     else
-        strcat( buf1, "none]\n\r" );
+        strlcat( buf1, "none]\n\r", sizeof(buf1) );
     
-    strcat( buf1, "Objects:    [" );
+    strlcat( buf1, "Objects:    [", sizeof(buf1) );
     fcnt = FALSE;
     for ( obj = pRoom->contents; obj; obj = obj->next_content )
     {
         one_argument( obj->name, buf );
-        strcat( buf1, buf );
-        strcat( buf1, " " );
+        strlcat( buf1, buf, sizeof(buf1) );
+        strlcat( buf1, " ", sizeof(buf1) );
         fcnt = TRUE;
     }
     
@@ -1829,10 +1829,10 @@ REDIT( redit_show )
         
         end = strlen(buf1) - 1;
         buf1[end] = ']';
-        strcat( buf1, "\n\r" );
+        strlcat( buf1, "\n\r", sizeof(buf1) );
     }
     else
-        strcat( buf1, "none]\n\r" );
+        strlcat( buf1, "none]\n\r", sizeof(buf1) );
     
     for ( door = 0; door < MAX_DIR; door++ )
     {
@@ -1849,7 +1849,7 @@ REDIT( redit_show )
                 capitalize(dir_name[door]),
                 pexit->u1.to_room ? pexit->u1.to_room->vnum : 0,      /* ROM OLC */
                 pexit->key );
-            strcat( buf1, buf );
+            strlcat( buf1, buf, sizeof(buf1) );
             
             /*
             * Format up the exit info.
@@ -1858,17 +1858,17 @@ REDIT( redit_show )
 	    snprintf( reset_state, sizeof(reset_state), " Exit flags: [%s] [%s]\n\r", 
             flag_bits_name(exit_flags, pexit->rs_flags),
             flag_bits_name(exit_flags, pexit->exit_info));
-	    strcat( buf1, reset_state );
+	    strlcat( buf1, reset_state, sizeof(buf1) );
             
             if ( pexit->keyword && pexit->keyword[0] != '\0' )
             {
                 snprintf( buf, sizeof(buf), "Kwds: [%s]\n\r", pexit->keyword );
-                strcat( buf1, buf );
+                strlcat( buf1, buf, sizeof(buf1) );
             }
             if ( pexit->description && pexit->description[0] != '\0' )
             {
                 snprintf( buf, sizeof(buf), "%s", pexit->description );
-                strcat( buf1, buf );
+                strlcat( buf1, buf, sizeof(buf1) );
             }
         }
     }

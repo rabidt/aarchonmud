@@ -204,13 +204,13 @@ void show_olc_cmds( CHAR_DATA *ch, const struct olc_cmd_type *olc_table )
    for (cmd = 0; olc_table[cmd].name != NULL; cmd++)
    {
       snprintf( buf, sizeof(buf), "%-15.15s", olc_table[cmd].name );
-      strcat( buf1, buf );
+      strlcat( buf1, buf, sizeof(buf1) );
       if ( ++col % 5 == 0 )
-         strcat( buf1, "\n\r" );
+         strlcat( buf1, "\n\r", sizeof(buf1) );
    }
    
    if ( col % 5 != 0 )
-      strcat( buf1, "\n\r" );
+      strlcat( buf1, "\n\r", sizeof(buf1) );
    
    send_to_char( buf1, ch );
    return;
@@ -1220,21 +1220,21 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
       {
       default:
          snprintf( buf, sizeof(buf), "Bad reset command: %c.", pReset->command );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          break;
          
       case 'M':
          if ( !( pMobIndex = get_mob_index( pReset->arg1 ) ) )
          {
             snprintf( buf, sizeof(buf), "Load Mobile - Bad Mob %d\n\r", pReset->arg1 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
          if ( !( pRoomIndex = get_room_index( pReset->arg3 ) ) )
          {
             snprintf( buf, sizeof(buf), "Load Mobile - Bad Room %d\n\r", pReset->arg3 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1242,7 +1242,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          snprintf( buf, sizeof(buf), "M[%5d] %-13.13s in room             R[%5d] %2d-%2d %-15.15s\n\r",
             pReset->arg1, pMob->short_descr, pReset->arg3,
             pReset->arg2, pReset->arg4, pRoomIndex->name );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          /*
          * Check for pet shop.
@@ -1264,7 +1264,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          {
             snprintf( buf, sizeof(buf), "Load Object - Bad Object %d\n\r",
                pReset->arg1 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1273,7 +1273,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          if ( !( pRoomIndex = get_room_index( pReset->arg3 ) ) )
          {
             snprintf( buf, sizeof(buf), "Load Object - Bad Room %d\n\r", pReset->arg3 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1281,7 +1281,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             "R[%5d]       %-15.15s\n\r",
             pReset->arg1, pObj->short_descr,
             pReset->arg3, pRoomIndex->name );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          break;
          
@@ -1290,7 +1290,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          {
             snprintf( buf, sizeof(buf), "Put Object - Bad Object %d\n\r",
                pReset->arg1 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1300,7 +1300,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          {
             snprintf( buf, sizeof(buf), "Put Object - Bad To Object %d\n\r",
                pReset->arg3 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1312,7 +1312,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             pReset->arg2,
             pReset->arg4,
             pObjToIndex->short_descr );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          break;
          
@@ -1322,7 +1322,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          {
             snprintf( buf, sizeof(buf), "Give/Equip Object - Bad Object %d\n\r",
                pReset->arg1 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
@@ -1331,7 +1331,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          if ( !pMob )
          {
             snprintf( buf, sizeof(buf), "Give/Equip Object - No Previous Mobile\n\r" );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             break;
          }
          
@@ -1352,7 +1352,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             flag_bit_name(wear_loc_strings, (pReset->command == 'G') ? WEAR_NONE : pReset->arg3),
             pMob->vnum,
             pMob->short_descr );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          break;
          
@@ -1368,7 +1368,7 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
             capitalize( dir_name[ pReset->arg2 ] ),
             pRoomIndex->name,
             flag_bit_name(door_resets, pReset->arg3) );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          break;
          /*
@@ -1379,13 +1379,13 @@ void display_resets( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom )
          {
             snprintf( buf, sizeof(buf), "Randomize Exits - Bad Room %d\n\r",
                pReset->arg1 );
-            strcat( final, buf );
+            strlcat( final, buf, sizeof(final) );
             continue;
          }
          
          snprintf( buf, sizeof(buf), "R[%5d] Exits are randomized in %s\n\r",
             pReset->arg1, pRoomIndex->name );
-         strcat( final, buf );
+         strlcat( final, buf, sizeof(final) );
          
          break;
    }

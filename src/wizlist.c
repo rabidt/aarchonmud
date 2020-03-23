@@ -187,7 +187,7 @@ DEF_DO_FUN(do_wizlist)
     lngth = (70 - strlen(title))/2;
     for( ; lngth >= 0; lngth--)
     {
-        strcat(title, " ");
+        strlcat(title, " ", sizeof(title));
     }
     snprintf( buf, sizeof(buf),"|/\\\\_\\{W%70s{x\\_\\\n\r", title);
     add_buf(buffer,buf);

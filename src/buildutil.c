@@ -1888,10 +1888,10 @@ MSETFUN ( class )
         for ( class = 0; class < MAX_CLASS; class++ )
         {
             if ( class > 0 )
-                strcat( buf, " " );
-            strcat( buf, class_table[class].name );
+                strlcat( buf, " ", sizeof(buf) );
+            strlcat( buf, class_table[class].name, sizeof(buf) );
         }
-        strcat( buf, ".\n\r" );
+        strlcat( buf, ".\n\r", sizeof(buf) );
        
         send_to_char(buf,ch);
         return FALSE;
@@ -1911,10 +1911,10 @@ static void show_subclasses(CHAR_DATA * ch)
     for ( subclass = 0; subclass_table[subclass].name != NULL; subclass++ )
     {
         if ( subclass > 0 )
-            strcat( buf, " " );
-        strcat( buf, subclass_table[subclass].name );
+            strlcat( buf, " ", sizeof(buf) );
+        strlcat( buf, subclass_table[subclass].name, sizeof(buf) );
     }
-    strcat(buf, ".\n\r");
+    strlcat(buf, ".\n\r", sizeof(buf));
 
     send_to_char(buf, ch);
 }

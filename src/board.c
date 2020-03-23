@@ -1098,8 +1098,8 @@ void handle_con_note_to (DESCRIPTOR_DATA *d, const char * argument)
    case DEF_INCLUDE: /* forced default */
       if (!is_exact_name (ch->pcdata->board->names, buf))
       {
-          strcat (buf, " ");
-          strcat (buf, ch->pcdata->board->names);
+          strlcat (buf, " ", sizeof(buf));
+          strlcat (buf, ch->pcdata->board->names, sizeof(buf));
           ch->pcdata->in_progress->to_list = str_dup(buf);
 
           printf_to_char(ch,"\n\rYou did not specify %s as recipient, so it was automatically added.\n\r"
@@ -1444,8 +1444,8 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
             send_to_char ("Line exceeds 80 characters. It has been wrapped.\n\r",ch);
 
         /* Add new line to the buffer */   
-        strcat (letter, force_wrap(line));
-        strcat (letter, "\n\r");
+        strlcat (letter, force_wrap(line), sizeof(letter));
+        strlcat (letter, "\n\r", sizeof(letter));
 
         /* allocate dynamically */		
         ch->pcdata->in_progress->text = str_dup (letter);
