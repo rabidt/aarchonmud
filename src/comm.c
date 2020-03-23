@@ -2752,7 +2752,7 @@ void handle_copyover_timer( void )
     {
         if ( IS_PLAYING(d->connected ) )
         {
-            ptc( d->character, "{R!!!{WA copyover will occur in %d seconds{R!!!{x\n\r", copyover_countdown);
+            ptc( d->character, "{R!!!{WA copyover will occur in %d %s{R!!!{x\n\r", copyover_countdown, copyover_countdown == 1 ? "second" : "seconds");
         }
     }  
   
