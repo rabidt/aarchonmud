@@ -3300,7 +3300,7 @@ OBJ_DATA *get_obj_keeper( CHAR_DATA *ch, CHAR_DATA *keeper, char *argument )
     int number;
     int count;
 
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     count  = 0;
     for ( obj = keeper->carrying; obj != NULL; obj = obj->next_content )
     {
@@ -3558,7 +3558,7 @@ DEF_DO_FUN(do_buy)
         if ( ( keeper = find_keeper( ch ) ) == NULL )
             return;
 
-        number = mult_argument(argument,arg);
+        number = mult_argument(argument,arg,sizeof(arg));
         number = URANGE(0, number, 100);
         obj  = get_obj_keeper( ch,keeper, arg );
         cost1 = get_cost( keeper, obj, TRUE );

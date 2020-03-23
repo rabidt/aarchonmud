@@ -5083,8 +5083,9 @@ void build_help_index( void );
 /* interp.c */
 void    interpret   args( ( CHAR_DATA *ch, const char *argument ) );
 bool    is_number   args( ( const char *arg ) );
-int number_argument args( ( const char *argument, char *arg ) );
-int mult_argument   args( ( const char *argument, char *arg) );
+int split_argument( const char *argument, char *arg, size_t argsz, char split_char );
+int number_argument args( ( const char *argument, char *arg, size_t argsz ) );
+int mult_argument   args( ( const char *argument, char *arg, size_t argsz) );
 const char * one_argument args( ( const char *argument, char *arg_first ) );
 const char * one_argument_keep_case( const char *argument, char *arg_first );
 const char * spell_argument( const char *argument, char *arg_spell );

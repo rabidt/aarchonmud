@@ -486,8 +486,8 @@ DEF_DO_FUN(do_tag)
     
     argument = one_argument( argument, temp );
     
-    number_argument(temp, arg); /* Strip off numeric references from argument,
-                                   to cut down on triggers. -Rim */
+    number_argument(temp, arg, sizeof(arg)); /* Strip off numeric references from argument,
+                                                to cut down on triggers. -Rim */
     
     if ( (!IS_IMMORTAL(ch) && !IS_TAG(ch) && !going) || IS_NPC(ch) )
     {

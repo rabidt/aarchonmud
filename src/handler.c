@@ -2830,7 +2830,7 @@ ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argu
     if ( argument == NULL || argument[0] == '\0' )
 	return NULL;
 
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
 
     for ( vnum = min_vnum; vnum <= max_vnum; vnum++ )
     {
@@ -2992,7 +2992,7 @@ CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, b
         group = true;
         argument += 2;
     }
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     
     if ( !str_cmp( arg, "self" ) )
         return ch;
@@ -3106,7 +3106,7 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
     }
 
     char location = target_location(argument, &argument);
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     count = 0;
 
     // area flag restricts locations
@@ -3212,7 +3212,7 @@ CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
         return NULL;
     }
 
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     count  = 0;
 
     // check in room first
@@ -3356,7 +3356,7 @@ OBJ_DATA* get_obj_by_type( OBJ_DATA *contents, int item_type )
 OBJ_DATA *get_obj_list( CHAR_DATA *ch, const char *argument, OBJ_DATA *list )
 {
     char arg[MAX_INPUT_LENGTH];
-    int buf, number = number_argument( argument, arg );
+    int buf, number = number_argument( argument, arg, sizeof(arg) );
     OBJ_DATA *obj; 
 
     buf = number;
@@ -3402,7 +3402,7 @@ OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list,
 OBJ_DATA *get_obj_carry( CHAR_DATA *ch, const char *argument, CHAR_DATA *viewer )
 {
     char arg[MAX_INPUT_LENGTH];
-    int buf, number = number_argument( argument, arg );
+    int buf, number = number_argument( argument, arg, sizeof(arg) );
     OBJ_DATA *obj;
 
     buf = number;
@@ -3447,7 +3447,7 @@ OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer,
 OBJ_DATA *get_obj_wear( CHAR_DATA *ch, const char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
-    int buf, number = number_argument( argument, arg );
+    int buf, number = number_argument( argument, arg, sizeof(arg) );
     OBJ_DATA *obj;
 
     buf = number;
@@ -3502,7 +3502,7 @@ OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     OBJ_DATA *obj;
     char arg[MIL], arg1[MIL];
-    int number = number_argument( argument, arg1 );
+    int number = number_argument( argument, arg1, sizeof(arg1) );
 
     /* allow searching of room only for obj */
     if ( str_prefix( "room.", arg1 ) )
@@ -3560,7 +3560,7 @@ OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exac
     if ( ( obj = get_obj_here( ch, argument ) ) != NULL )
         return obj;
 
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     count  = 0;
     for ( obj = object_list; obj != NULL; obj = obj->next )
     {

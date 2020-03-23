@@ -1159,44 +1159,44 @@ bool is_number ( const char *arg )
     return TRUE;
 }
 
-int split_argument( const char *argument, char *arg, char split_char )
+int split_argument( const char *argument, char *arg, size_t argsz, char split_char )
 {
     const char *psplit = strchr(argument, split_char);
     if ( psplit == NULL )
     {
-        strcpy(arg, argument);
+        strlcpy(arg, argument, argsz);
         return 1;
     }
-    size_t split_idx = (size_t)psplit - (size_t)argument;
+    size_t split_offset = (size_t)psplit - (size_t)argument;
     
     // valid number up till split_char?
     char buf[MIL];
-    strncpy(buf, argument, split_idx);
-    buf[split_idx] = '\0';
+    strlcpy(buf, argument, UMIN(sizeof(buf), split_offset + 1));
+
     if ( !is_number(buf) )
     {
-        strcpy(arg, argument);
+        strlcpy(arg, argument, argsz);
         return 1;
     }
     
-    strcpy(arg, psplit+1);
+    strlcpy(arg, psplit+1, argsz);
     return atoi(buf);
 }
 
 /*
 * Given a string like 14.foo, return 14 and 'foo'
 */
-int number_argument( const char *argument, char *arg )
+int number_argument( const char *argument, char *arg, size_t argsz )
 {
-    return split_argument(argument, arg, '.');
+    return split_argument(argument, arg, argsz, '.');
 }
 
 /*
 * Given a string like 14*foo, return 14 and 'foo'
 */
-int mult_argument( const char *argument, char *arg )
+int mult_argument( const char *argument, char *arg, size_t argsz )
 {
-    return split_argument(argument, arg, '*');
+    return split_argument(argument, arg, argsz, '*');
 }
 
 /*

@@ -234,7 +234,7 @@ static MOB_INDEX_DATA* find_mob_area (AREA_DATA *area, char* keyword)
 	int i,number, count;
 	bool found = FALSE;
 	
-    number = number_argument( keyword, arg );
+    number = number_argument( keyword, arg, sizeof(arg) );
     count  = 0;
     
     for (i = 0 ; (i < MAX_KEY_HASH) && (!found); i++)
@@ -260,7 +260,7 @@ static OBJ_INDEX_DATA* find_obj_area (AREA_DATA *area, char* keyword)
 	int i,number, count;
 	bool found = FALSE;
 	
-    number = number_argument( keyword, arg );
+    number = number_argument( keyword, arg, sizeof(arg) );
     count  = 0;
     
     for (i = 0 ; (i < MAX_KEY_HASH) && (!found); i++)
@@ -292,7 +292,7 @@ static RESET_DATA *find_mob_here (ROOM_INDEX_DATA *room, char* argument)
 	/* Find the reset for the mob with this keyword in this room! */
 	/* mob is allowed to be phrased as e.g. 2.guard */
 	
-	number = number_argument (argument, mob_keyword);
+	number = number_argument (argument, mob_keyword, sizeof(mob_keyword));
 	
 	count = 0;
 	
@@ -348,7 +348,7 @@ static RESET_DATA *find_obj_here (ROOM_INDEX_DATA *room, char* argument)
 	   P resets are not searched through.
 	*/
 	
-	number = number_argument (argument, obj_keyword);
+	number = number_argument (argument, obj_keyword, sizeof(obj_keyword));
 	
 	count = 0;
 	

@@ -1544,7 +1544,7 @@ DEF_DO_FUN(do_glance)
 OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
 {
     static char arg3[MSL];
-    int number = number_argument(argument, arg3);
+    int number = number_argument(argument, arg3, sizeof(arg3));
     int count = 0;
     OBJ_DATA *obj;
     const char *pdesc;
@@ -1695,7 +1695,7 @@ DEF_DO_FUN(do_look)
     
     argument = one_argument( argument, arg1 );
     argument = one_argument( argument, arg2 );
-    number = number_argument(arg1,arg3);
+    number = number_argument(arg1,arg3,sizeof(arg3));
     count = 0;
     
     if ( arg1[0] == '\0' || !str_cmp( arg1, "auto" ) )
@@ -2479,7 +2479,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
     int level, number, count = 0;
     bool exact_number = FALSE;
     
-    number = number_argument( argument, arg );
+    number = number_argument( argument, arg, sizeof(arg) );
     if ( strcmp(argument, arg) )
     {
 	exact_number = TRUE;
