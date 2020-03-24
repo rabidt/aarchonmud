@@ -1422,11 +1422,11 @@ void bust_a_prompt( CHAR_DATA *ch )
                             &&  !IS_SET(pexit->exit_info,EX_DORMANT))
                     {
                         found = TRUE;
-                        strcat(doors,dir_name_lookup[door]);
+                        strlcat(doors,dir_name_lookup[door],sizeof(doors));
                     }
                 }
                 if (!found)
-                    strcat(buf,"none");
+                    strlcat(buf,"none",sizeof(buf));
                 snprintf( buf2, sizeof(buf2),"%s",doors);
                 i = buf2; break;
                 /* Players can track new rooms that they've visited - Astark Nov 2012 */
@@ -2622,8 +2622,8 @@ static void copyover_mud( const char *argument )
     else
         buf[0] = '\0';
 
-    strcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r");
-    strcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r");
+    strlcat (buf, "\n\r\n\rThe world slows down around you as it fades from your vision.\n\r", sizeof(buf));
+    strlcat (buf, "\n\rAs if in a bizarre waking dream, you lurch forward into the darkness...\n\r", sizeof(buf));
 
 
     /* Loop through connected players, ensure quests aren't snarfed */
