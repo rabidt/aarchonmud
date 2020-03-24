@@ -53,20 +53,20 @@ bool can_steal( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *obj, bool verbose );
 #define CD CHAR_DATA
 #define OD OBJ_DATA
 
-void      check_bomb  args( (CHAR_DATA *ch, OBJ_DATA *obj) );
+static void      check_bomb  args( (CHAR_DATA *ch, OBJ_DATA *obj) );
 void    wear_obj    args( (CHAR_DATA *ch, OBJ_DATA *obj, bool fReplace ) );
-CD *    find_keeper args( (CHAR_DATA *ch ) );
-int get_cost    args( (CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy ) );
-void    obj_to_keeper   args( (OBJ_DATA *obj, CHAR_DATA *ch ) );
-OD *    get_obj_keeper  args( (CHAR_DATA *ch,CHAR_DATA *keeper,char *argument));
-bool    expl_in_container args( ( OBJ_DATA *obj) );
-bool    remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize );
+static CD *    find_keeper args( (CHAR_DATA *ch ) );
+static int get_cost    args( (CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy ) );
+static void    obj_to_keeper   args( (OBJ_DATA *obj, CHAR_DATA *ch ) );
+static OD *    get_obj_keeper  args( (CHAR_DATA *ch,CHAR_DATA *keeper,char *argument));
+static bool    expl_in_container args( ( OBJ_DATA *obj) );
+static bool    remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize );
 
 
 #undef OD
 #undef  CD
 
-bool can_buy( CHAR_DATA *ch, OBJ_DATA *obj, bool quiet )
+static bool can_buy( CHAR_DATA *ch, OBJ_DATA *obj, bool quiet )
 {
     if ( IS_NPC(ch) )
         return FALSE;
@@ -91,7 +91,7 @@ bool can_buy( CHAR_DATA *ch, OBJ_DATA *obj, bool quiet )
     return TRUE;
 }
 
-bool can_use_obj( CHAR_DATA *ch, OBJ_DATA *obj )
+static bool can_use_obj( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     if ( IS_NPC(ch) || IS_IMMORTAL(ch) )
         return TRUE;
@@ -198,7 +198,7 @@ bool in_donation_room(OBJ_DATA *obj)
     return FALSE;
 }
 
-bool get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
+static bool get_obj( CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *container )
 {
     /* variables for AUTOSPLIT */
     CHAR_DATA *gch;
@@ -1972,12 +1972,12 @@ DEF_DO_FUN(do_eat)
 /*
  * Remove an object.
  */
-bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace )
+static bool remove_obj( CHAR_DATA *ch, int iWear, bool fReplace )
 {
     return remove_obj_new(ch, iWear, fReplace, TRUE);
 }
 
-bool remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize )
+static bool remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize )
 {
     OBJ_DATA *obj;
 
@@ -2005,7 +2005,7 @@ bool remove_obj_new( CHAR_DATA *ch, int iWear, bool fReplace, bool finalize )
 }
 
 /* remove obj for new obj when 2 locations are possible --Bobble */
-bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, bool fReplace )
+static bool remove_smart( CHAR_DATA *ch, OBJ_DATA *new_obj, int iWear1, int iWear2, bool fReplace )
 {
     OBJ_DATA *obj1, *obj2;
     int vnum;
@@ -2509,7 +2509,7 @@ DEF_DO_FUN(do_remove)
     }
 }
 
-int get_obj_faith_worth( OBJ_DATA *obj )
+static int get_obj_faith_worth( OBJ_DATA *obj )
 {
     int worth = 0;
     OBJ_DATA *in_obj;
@@ -3172,7 +3172,7 @@ DEF_DO_FUN(do_steal)
 /*
  * Shopping commands.
  */
-CHAR_DATA *find_keeper( CHAR_DATA *ch )
+static CHAR_DATA *find_keeper( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *keeper;
@@ -3251,7 +3251,7 @@ CHAR_DATA *find_keeper( CHAR_DATA *ch )
 }
 
 /* insert an object at the right spot for the keeper */
-void obj_to_keeper( OBJ_DATA *obj, CHAR_DATA *ch )
+static void obj_to_keeper( OBJ_DATA *obj, CHAR_DATA *ch )
 {
     OBJ_DATA *t_obj, *t_obj_next;
 
@@ -3293,7 +3293,7 @@ void obj_to_keeper( OBJ_DATA *obj, CHAR_DATA *ch )
 }
 
 /* get an object from a shopkeeper's list */
-OBJ_DATA *get_obj_keeper( CHAR_DATA *ch, CHAR_DATA *keeper, char *argument )
+static OBJ_DATA *get_obj_keeper( CHAR_DATA *ch, CHAR_DATA *keeper, char *argument )
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -3323,7 +3323,7 @@ OBJ_DATA *get_obj_keeper( CHAR_DATA *ch, CHAR_DATA *keeper, char *argument )
     return NULL;
 }
 
-int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
+static int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
 {
     SHOP_DATA *pShop;
     long cost;
@@ -3381,7 +3381,7 @@ int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
     return cost;
 }
 
-int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
+static int haggle_cost( CHAR_DATA *ch, int cost, int base_cost )
 {
     char buf[MSL];
     
@@ -4480,7 +4480,7 @@ DEF_DO_FUN(do_ignite)
 
 /* This recursively searches for a lit explosive inside */
 /* containers. --Rimbol 07/97                           */
-bool expl_in_container( OBJ_DATA *obj)
+static bool expl_in_container( OBJ_DATA *obj)
 {
     OBJ_DATA *cur_obj;
 
@@ -4499,7 +4499,7 @@ bool expl_in_container( OBJ_DATA *obj)
     return FALSE;
 }
 
-void check_bomb( CHAR_DATA *ch, OBJ_DATA *obj )
+static void check_bomb( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -4619,7 +4619,7 @@ DEF_DO_FUN(do_second)
     return;
 }
 
-void merge_arrows( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2 )
+static void merge_arrows( CHAR_DATA *ch, OBJ_DATA *obj1, OBJ_DATA *obj2 )
 {
     int sum, max;
 
