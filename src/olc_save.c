@@ -29,6 +29,7 @@
 #include "merc.h"
 #include "tables.h"
 #include "olc.h"
+#include "olc_save.h"
 
 //#define DIF(a,b) (~((~a)|(b)))
 #define DIF(a,b,c) flag_copy(a,b); flag_remove_field(a,c)
@@ -136,16 +137,19 @@ void save_area_list( void )
 *
 * -- Hugin
 */
-char *fwrite_flag( long flags, char buf[] )
+char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf )
 {
     char offset;
     char *cp;
+
+    char *buf = stbuf->buf;
 
     buf[0] = '\0';
 
     if ( flags == 0 )
     {
-        strcpy( buf, "0" );
+        buf[0] = '0';
+        buf[1] = '\0';
         return buf;
     }
 
@@ -469,7 +473,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
-    char buf[MAX_STRING_LENGTH];
+    struct fwrite_flag_buf fwbuf;
     
     fprintf( fp, "#%d\n",    pObjIndex->vnum );
     rfprintf( fp, "%s~\n",    pObjIndex->name );
@@ -492,11 +496,11 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     switch ( pObjIndex->item_type )
     {
     default:
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[0], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[1], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[2], buf ) );
-        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[3], buf ) );
-        fprintf( fp, "%s\n", fwrite_flag( pObjIndex->value[4], buf ) );
+        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[0], &fwbuf ) );
+        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[1], &fwbuf ) );
+        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[2], &fwbuf ) );
+        fprintf( fp, "%s ",  fwrite_flag( pObjIndex->value[3], &fwbuf ) );
+        fprintf( fp, "%s\n", fwrite_flag( pObjIndex->value[4], &fwbuf ) );
         break;
         
         
@@ -506,7 +510,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             pObjIndex->value[1],
             pObjIndex->value[2],
             pObjIndex->value[3],
-            fwrite_flag(pObjIndex->value[4], buf) );
+            fwrite_flag(pObjIndex->value[4], &fwbuf) );
         break;			
         
     case ITEM_DRINK_CON:
@@ -522,7 +526,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
     case ITEM_CONTAINER:
         fprintf( fp, "%d %s %d %d %d\n",
             pObjIndex->value[0],
-            fwrite_flag( pObjIndex->value[1], buf ),
+            fwrite_flag( pObjIndex->value[1], &fwbuf ),
             pObjIndex->value[2],
             pObjIndex->value[3],
             pObjIndex->value[4]);
@@ -534,7 +538,7 @@ void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
             pObjIndex->value[1],
             pObjIndex->value[2],
             attack_table[pObjIndex->value[3]].name,
-            fwrite_flag( pObjIndex->value[4], buf ) );
+            fwrite_flag( pObjIndex->value[4], &fwbuf ) );
         break;
         
     case ITEM_PILL:
