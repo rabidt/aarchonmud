@@ -162,7 +162,7 @@ const char * string_replace_ext( const char * orig, const char * old, const char
     int i;
 
     xbuf[0] = '\0';
-    strcpy( xbuf, orig );
+    strlcpy( xbuf, orig, xbuf_length );
 
     /* Suggested fix by: Nebseni [nebseni@clandestine.bcn.net] */
     if ( strstr( orig, old ) != NULL 
