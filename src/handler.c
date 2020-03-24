@@ -736,13 +736,13 @@ bool match_obj( OBJ_DATA *obj, const char *arg )
     return is_name(arg, obj->name);
 }
 
-bool is_mimic( CHAR_DATA *ch )
+bool is_mimic( const CHAR_DATA *ch )
 {
     return is_affected( ch, gsn_mimic )
 	|| is_affected( ch, gsn_disguise );
 }
 
-MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch )
+MOB_INDEX_DATA* get_mimic( const CHAR_DATA *ch )
 {
     AFFECT_DATA *aff = affect_find( ch->affected, gsn_mimic );
     
@@ -1421,9 +1421,9 @@ void affect_strip_permcast( CHAR_DATA *ch )
 /*
  * Return true if a char is affected by a spell.
  */
-bool is_affected( CHAR_DATA *ch, int sn )
+bool is_affected( const CHAR_DATA *ch, int sn )
 {
-    AFFECT_DATA *paf;
+    const AFFECT_DATA *paf;
     
     for ( paf = ch->affected; paf != NULL; paf = paf->next )
     {

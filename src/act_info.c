@@ -541,9 +541,8 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 char* get_disguise_name( CHAR_DATA *ch );
 */
 
-char* char_look_info( CHAR_DATA *ch )
+const char *char_look_info( const CHAR_DATA *ch, char *buf, size_t bufsz )
 {
-    static char buf[MSL];
     static const char * const appear_str[] =
     {
 	"horrid",
@@ -597,7 +596,7 @@ char* char_look_info( CHAR_DATA *ch )
 	return get_disguise_name( ch );
     */
 
-    snprintf( buf, sizeof(buf), "a %s %s %s %s%s%s%s%s",
+    snprintf( buf, bufsz, "a %s %s %s %s%s%s%s%s",
 	     size == SIZE_MEDIUM ? "medium-sized" : size_table[size].name,
 	     appear_str[appearance],
 	     sex == 0 ? "sexless" : sex_table[sex].name,
@@ -662,7 +661,8 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 
     if ( !victim_is_obj )
     {
-        snprintf( buf, sizeof(buf), "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim) );
+        char lkbuf[MSL];
+        snprintf( buf, sizeof(buf), "%s is %s.\n\r", PERS(victim, ch), char_look_info(victim, lkbuf, sizeof(lkbuf)) );
         send_to_char( buf, ch );
     }
 

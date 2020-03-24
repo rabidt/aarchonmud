@@ -4479,7 +4479,7 @@ void show_portal_names( CHAR_DATA *ch );
 /* act_info.c */
 void    set_title( CHAR_DATA *ch, const char *title );
 char    get_pkflag  args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
-char*   char_look_info( CHAR_DATA *ch );
+const char *char_look_info( const CHAR_DATA *ch, char *buf, size_t bufsz );
 bool    is_disguised( CHAR_DATA *ch );
 int     get_lore_level( CHAR_DATA *ch, int obj_level );
 void    say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj );
@@ -4505,7 +4505,7 @@ int get_random_exit( CHAR_DATA *ch );
 bool check_item_trap_hit( CHAR_DATA *ch, OBJ_DATA *obj );
 void make_visible( CHAR_DATA *ch );
 void morph_update( CHAR_DATA *ch );
-int morph_power( CHAR_DATA *ch );
+int morph_power( const CHAR_DATA *ch );
 void dragonborn_rebirth( CHAR_DATA *ch );
 
 /* act_obj.c */
@@ -4926,8 +4926,8 @@ bool    is_either_name( const char *str, const char *namelist, bool exact );
 bool    show_empty_flag( OBJ_DATA *obj );
 bool    match_obj( OBJ_DATA *obj, const char *arg );
 bool    is_in_room( CHAR_DATA *ch );
-bool    is_mimic( CHAR_DATA *ch );
-MOB_INDEX_DATA* get_mimic( CHAR_DATA *ch );
+bool    is_mimic( const CHAR_DATA *ch );
+MOB_INDEX_DATA* get_mimic( const CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
 const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
 const char* affect_name( AFFECT_DATA *paf );
@@ -4952,7 +4952,7 @@ void    affect_strip_offensive( CHAR_DATA *ch );
 void    affect_strip_song( CHAR_DATA *ch );
 void    affect_strip_obj( OBJ_DATA *obj, int sn );
 void    custom_affect_strip( CHAR_DATA *ch, const char *tag );
-bool    is_affected args( ( CHAR_DATA *ch, int sn ) );
+bool    is_affected args( ( const CHAR_DATA *ch, int sn ) );
 void    affect_join args( ( CHAR_DATA *ch, const AFFECT_DATA *paf ) );
 void    affect_join_capped( CHAR_DATA *ch, const AFFECT_DATA *paf, int cap );
 bool    remove_from_room_list( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoom );
@@ -5392,7 +5392,7 @@ const char* spec_name_lookup( SPEC_FUN *function );
 bool is_wait_based( SPEC_FUN *function );
 
 /* stats.c */
-int get_curr_stat   args( ( CHAR_DATA *ch, int stat ) );
+int get_curr_stat   args( ( const CHAR_DATA *ch, int stat ) );
 int     get_max_train   args( ( CHAR_DATA *ch, int stat ) );
 int class_bonus     args( ( int clss, int stat ) );
 int ch_dex_tohit        args( (CHAR_DATA *ch) );
@@ -5421,7 +5421,7 @@ void update_perm_hp_mana_move args( (CHAR_DATA *ch ) );
 void update_flags( CHAR_DATA *ch );
 void calc_stats( CHAR_DATA *ch );
 void show_dice( CHAR_DATA *ch );
-struct race_type* get_morph_race_type( CHAR_DATA *ch );
+struct race_type* get_morph_race_type( const CHAR_DATA *ch );
 struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch );
 int get_encumberance( CHAR_DATA *ch );
 void get_hmm_softcap( CHAR_DATA *ch, int *hp_cap, int *mana_cap, int *move_cap );

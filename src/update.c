@@ -304,7 +304,6 @@ int gain_mod(int x)
  * Regeneration stuff.
  */
 
-struct race_type* get_morph_race_type( CHAR_DATA *ch );
 
 /* adjustments which are the same for hp/mana/move */
 int adjust_gain( CHAR_DATA *ch, int gain, int target )

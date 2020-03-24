@@ -1445,7 +1445,10 @@ DEF_DO_FUN(do_estimate)
     check_improve(ch, gsn_estimate, TRUE, 3);
 	
     /* some simple info */
-    snprintf( buf, sizeof(buf), "%s is %s.\n\r", victim->short_descr, char_look_info(victim) );
+    {
+        char lkbuf[MSL];
+        snprintf( buf, sizeof(buf), "%s is %s.\n\r", victim->short_descr, char_look_info(victim, lkbuf, sizeof(lkbuf)) );
+    }
     send_to_char( buf, ch );
 
     /* high level races are harder to judge */
@@ -2936,7 +2939,7 @@ DEF_DO_FUN(do_recall)
 }
 
 // maximum remort race you can morph into
-int morph_power( CHAR_DATA *ch )
+int morph_power( const CHAR_DATA *ch )
 {
     if ( IS_NPC(ch) )
         return -1;

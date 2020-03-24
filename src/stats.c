@@ -13,7 +13,7 @@ void take_default_stats args((CHAR_DATA *ch));
 void get_random_stats args((CHAR_DATA *ch));
 void roll_dice args((CHAR_DATA *ch, bool take_default));
 void do_help args((CHAR_DATA *ch, char *argument));
-struct race_type* get_morph_race_type( CHAR_DATA *ch );
+struct race_type* get_morph_race_type( const CHAR_DATA *ch );
 void show_pc_race_ratings( CHAR_DATA *ch, int race );
 
 // structure for storing stat values prior to finalizing them
@@ -24,7 +24,7 @@ struct min_max_rolled
 };
 
 /* command for retrieving stats */
-int get_curr_stat( CHAR_DATA *ch, int stat )
+int get_curr_stat( const CHAR_DATA *ch, int stat )
 {
     int bonus;
     const int step = 5;
@@ -1809,7 +1809,7 @@ void set_affect_flag( CHAR_DATA *ch, AFFECT_DATA *paf )
 
 /* get the race_type for a morphed char
  */
-struct race_type* get_morph_race_type( CHAR_DATA *ch )
+struct race_type* get_morph_race_type( const CHAR_DATA *ch )
 {
     if ( IS_NPC(ch) )
 	return &race_table[ch->race];
