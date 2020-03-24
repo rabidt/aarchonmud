@@ -154,10 +154,10 @@ void string_append( CHAR_DATA *ch, const char **pString )
 const char * string_replace( const char *orig, const char *old, const char *new )
 {
   char xbuf[MAX_STRING_LENGTH];
-  return string_replace_ext(orig, old, new, xbuf, MAX_STRING_LENGTH);
+  return string_replace_ext(orig, old, new, xbuf, sizeof(xbuf));
 }
 
-const char * string_replace_ext( const char * orig, const char * old, const char * new, char *xbuf, int xbuf_length )
+const char * string_replace_ext( const char * orig, const char * old, const char * new, char *xbuf, size_t xbuf_length )
 {
     int i;
 
@@ -168,12 +168,12 @@ const char * string_replace_ext( const char * orig, const char * old, const char
     if ( strstr( orig, old ) != NULL 
        && strlen( orig ) 
           - strlen( strstr( orig, old ) ) 
-          + strlen( new ) < (unsigned int)xbuf_length )
+          + strlen( new ) < xbuf_length )
     {
         i = strlen( orig ) - strlen( strstr( orig, old ) );
         xbuf[i] = '\0';
-        strcat( xbuf, new );
-        strcat( xbuf, &orig[i + (int)strlen( old )] );
+        strlcat( xbuf, new, xbuf_length );
+        strlcat( xbuf, &orig[i + (int)strlen( old )], xbuf_length );
         free_string( orig );
     }
 

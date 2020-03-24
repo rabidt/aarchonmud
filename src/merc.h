@@ -5441,7 +5441,7 @@ void take_default_stats( CHAR_DATA *ch );
 void string_edit( CHAR_DATA *ch, const char **pString );
 void string_append( CHAR_DATA *ch, const char **pString );
 const char * string_replace( const char *orig, const char *old, const char *new_str );
-const char * string_replace_ext( const char * orig, const char * old, const char * new_str, char *xbuf, int xbuf_length );
+const char * string_replace_ext( const char * orig, const char * old, const char * new_str, char *xbuf, size_t xbuf_length );
 void   string_add     args( ( CHAR_DATA *ch, const char *argument ) );
 const char * format_string( const char *oldstring /*, bool fSpace */ );
 const char *format_color_string( const char *argument, int width );
