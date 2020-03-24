@@ -41,8 +41,8 @@ DECLARE_DO_FUN(do_look      );
 DECLARE_DO_FUN(do_recall    );
 DECLARE_DO_FUN(do_stand     );
 DECLARE_DO_FUN(do_unlock    );
-bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
-void check_bleed( CHAR_DATA *ch, int dir );
+static bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in );
+static void check_bleed( CHAR_DATA *ch, int dir );
 static bool has_boat( CHAR_DATA *ch );
 static bool unlock_obj( CHAR_DATA *ch, OBJ_DATA *obj );
 static bool unlock_door( CHAR_DATA *ch, int door );
@@ -57,7 +57,7 @@ const char * const dir_abbr [MAX_DIR] =
    "n", "e", "s", "w", "u", "d", "ne", "se", "sw", "nw"
 };
 
-bool is_direction( const char* argument )
+static bool is_direction( const char* argument )
 {
     int i;
     for ( i = 0; i < MAX_DIR; i++ )
@@ -71,7 +71,7 @@ const   sh_int  rev_dir     []      =
    2, 3, 0, 1, 5, 4, 8, 9, 6, 7
 };
 
-const   sh_int  movement_loss   [SECT_MAX]  =
+static const   sh_int  movement_loss   [SECT_MAX]  =
 {
    1, 2, 2, 3, 4, 6, 4, 6, 6, 10, 6, 4
 };
@@ -228,10 +228,10 @@ int get_random_exit( CHAR_DATA *ch )
 /*
 * Local functions.
 */
-int find_door( CHAR_DATA *ch, const char *arg );
-bool    has_key     args( ( CHAR_DATA *ch, int key ) );
+static int find_door( CHAR_DATA *ch, const char *arg );
+static bool    has_key     args( ( CHAR_DATA *ch, int key ) );
 bool check_drown args((CHAR_DATA *ch));
-bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
+static bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room );
 
 /* returns the direction the char moved to or -1 if he didn't move */
 int move_char( CHAR_DATA *ch, int door, bool follow )
@@ -628,7 +628,7 @@ static bool has_boat( CHAR_DATA *ch )
     return FALSE;
 }
 
-bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
+static bool check_swim( CHAR_DATA *ch, ROOM_INDEX_DATA *to_room )
 {
     ROOM_INDEX_DATA *in_room = ch->in_room;
     int inwater = 0, towater = 0;
@@ -754,7 +754,7 @@ DEF_DO_FUN(do_northwest)
 }
 
 
-int find_door( CHAR_DATA *ch, const char *arg )
+static int find_door( CHAR_DATA *ch, const char *arg )
 {
    EXIT_DATA *pexit;
    int door;
@@ -1053,7 +1053,7 @@ DEF_DO_FUN(do_close)
 }
 
 
-OBJ_DATA *find_key( CHAR_DATA *ch, int key )
+static OBJ_DATA *find_key( CHAR_DATA *ch, int key )
 {
    OBJ_DATA *obj;
    
@@ -1065,7 +1065,7 @@ OBJ_DATA *find_key( CHAR_DATA *ch, int key )
    return NULL;
 }
 
-bool has_key( CHAR_DATA *ch, int key )
+static bool has_key( CHAR_DATA *ch, int key )
 {
    OBJ_DATA *obj=NULL;
    
@@ -3144,7 +3144,7 @@ void morph_update( CHAR_DATA *ch )
     update_perm_hp_mana_move( ch );
 }
 
-void trap_damage( CHAR_DATA *ch, bool can_behead )
+static void trap_damage( CHAR_DATA *ch, bool can_behead )
 {
     ROOM_INDEX_DATA *was_in_room = ch->in_room;
 
@@ -3194,10 +3194,8 @@ void trap_damage( CHAR_DATA *ch, bool can_behead )
     }
 }
 
-EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed );
-
 /* check if player is hit by an exit trap */
-bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in )
+static bool check_exit_trap_hit( CHAR_DATA *ch, int door, bool step_in )
 {
     EXIT_DATA *exit, *rev_exit;
     ROOM_INDEX_DATA *in_room;
@@ -3414,7 +3412,7 @@ DEF_DO_FUN(do_root)
 /* checks if a character loses blood */
 
 
-void check_bleed( CHAR_DATA *ch, int dir )
+static void check_bleed( CHAR_DATA *ch, int dir )
 {
     OBJ_DATA *blood;
     char buf[MSL];

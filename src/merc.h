@@ -5252,6 +5252,7 @@ int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
 int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
+EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed );
 
 /* obj_prog.c */
 bool op_move_trigger( CHAR_DATA *ch );
