@@ -49,7 +49,7 @@
 
 bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
 void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
-void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output );
+static void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output );
 void smash_beep_n_blink( char *str );
 void smash_reserved_colcodes( char *str );
 void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp );
@@ -2378,97 +2378,6 @@ DEF_DO_FUN(do_weather)
     return;
 }
 
-bool is_command( char *arg )
-{
-    int cmd;
-
-    for (cmd = 0; cmd_table[cmd].name[0] != '\0'; cmd++ )
-        if ( UPPER(arg[0]) == UPPER(cmd_table[cmd].name[0])
-                && is_exact_name( cmd_table[cmd].name, arg ) )
-            return TRUE;
-
-    return FALSE;
-}
-
-#if 0
-DEF_DO_FUN(do_help)
-{
-    HELP_DATA *pHelp;
-    BUFFER *output;
-    bool found = FALSE;
-    char argall[MAX_INPUT_LENGTH],argone[MAX_INPUT_LENGTH];
-    int level;
-    
-    output = new_buf();
-    
-    if ( argument[0] == '\0' )
-        argument = "summary";
-    
-    /* this parts handles help a b so that it returns help 'a b' */
-    argall[0] = '\0';
-    
-    while (argument[0] != '\0' )
-    {
-        argument = one_argument(argument,argone);
-        if (argall[0] != '\0')
-            strcat(argall," ");
-        strcat(argall,argone);
-    }
-    
-    for ( pHelp = help_first; pHelp != NULL; pHelp = pHelp->next )
-    {
-        level = (pHelp->level < 0) ? -1 * pHelp->level - 1 : pHelp->level;
-        
-        /* If a mortal has been granted access to an imm command, allow them to
-        view the associated help file.  Otherwise, the level rules apply. */
-        if ( level > get_trust( ch )
-            && ( ( level <  LEVEL_IMMORTAL && !is_granted_name(ch,pHelp->keyword) )
-            ||   ( level >= LEVEL_IMMORTAL && !is_command( pHelp->keyword ) ) ) )
-            continue;
-        
-        if ( level >= LEVEL_IMMORTAL 
-            && is_command( pHelp->keyword )
-            && !is_granted_name(ch, pHelp->keyword) ) 
-            continue;
-        
-        if ( is_name(argall, pHelp->keyword) && pHelp->delete == FALSE )
-        {
-            /* add seperator if found */
-            if (found)
-                add_buf(output,
-                "\n\r============================================================\n\r\n\r");
-            if ( pHelp->level >= 0 && str_cmp( argall, "imotd" ) )
-            {
-                add_buf(output,pHelp->keyword);
-                add_buf(output,"\n\r");
-            }
-            
-            /*
-            * Strip leading '.' to allow initial blanks.
-            */
-            if ( pHelp->text[0] == '.' )
-                add_buf(output,pHelp->text+1);
-            else
-                add_buf(output,pHelp->text);
-            found = TRUE;
-            
-            /* small hack :) */
-            if (ch->desc != NULL 
-                && ch->desc->connected != CON_PLAYING 
-                && !IS_WRITING_NOTE(ch->desc->connected) 
-                && ch->desc->connected != CON_GEN_GROUPS)
-                break;
-        }
-    }
-    
-    if (!found)
-        send_to_char( "No help on that word.\n\r", ch );
-    else
-        page_to_char(buf_string(output),ch);
-    free_buf(output);
-}
-#endif
-
 /* searches for a unique help_data
  * if not found or not unique prints info to output and returns NULL
  */
@@ -2797,7 +2706,7 @@ DEF_DO_FUN(do_whois)
 }
 
 // for sorting the who_array
-int who_compare( const void* a, const void* b )
+static int who_compare( const void* a, const void* b )
 {
     const CHAR_DATA *ch1 = *((const CHAR_DATA * const *) a);
     const CHAR_DATA *ch2 = *((const CHAR_DATA * const *) b);
@@ -2826,7 +2735,7 @@ int who_compare( const void* a, const void* b )
  * returns number of characters returned in who_array
  */
 #define MAX_WHO 64
-int create_who_array( CHAR_DATA **who_array )
+static int create_who_array( CHAR_DATA **who_array )
 {
     size_t who_count = 0;
     DESCRIPTOR_DATA *desc;
@@ -3055,7 +2964,7 @@ DEF_DO_FUN(do_who)
 }
 #undef MAX_WHO
 
-void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
+static void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output )
 {
     char buf[MAX_STRING_LENGTH];
     char clanbuf[MAX_STRING_LENGTH];
