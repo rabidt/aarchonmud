@@ -458,7 +458,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
+bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info, size_t infosz )
 {
     char buf[MIL] = "",
 	msg[MIL] = "";
@@ -484,19 +484,19 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	    obj_value = obj->cost;
 	match = (obj_value >= gd->value);
 	snprintf( buf, sizeof(buf), "(%d gold)", obj_value / 100 );
-	strcat( info, buf );
+	strlcat( info, buf, infosz );
 	break;
     case GREP_OBJ_WEIGHT:
         obj_value = obj->weight;
         match = (obj_value >= gd->value);
         snprintf( buf, sizeof(buf), "(%d dlbs)", obj_value );
-        strcat( info, buf );
+        strlcat( info, buf, infosz );
         break;
     case GREP_OBJ_OPS:
 	obj_value = get_obj_index_ops( obj );
 	match = (obj_value >= gd->value);
 	snprintf( buf, sizeof(buf), "(%d ops)", obj_value );
-	strcat( info, buf );
+	strlcat( info, buf, infosz );
 	break;
     case GREP_OBJ_LEVEL:
 	match = (obj->level >= gd->value);
@@ -518,7 +518,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	if ( msg[0] != '\0' )
 	{
 	    snprintf( buf, sizeof(buf), "(%s)", msg );
-	    strcat( info, buf );
+	    strlcat( info, buf, infosz );
 	}
 	break;
     case GREP_OBJ_HEAL:
@@ -527,7 +527,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	match = (obj->value[3] >= gd->value
 		 || obj->value[4] >= gd->value);
 	snprintf( buf, sizeof(buf), "(heal=%d/%d)", obj->value[3], obj->value[4] );
-	strcat( info, buf );
+	strlcat( info, buf, infosz );
 	break;
     case GREP_OBJ_ADDFLAG:
 	/* look for special affect */
@@ -536,7 +536,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	    {
 		match = TRUE;
 		snprintf( buf, sizeof(buf), "(%s)", to_bit_name(aff->where, aff->bitvector) );
-		strcat( info, buf );
+		strlcat( info, buf, infosz );
 		break;
 	    }
 	break;
@@ -545,7 +545,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	if ( msg[0] != '\0' )
 	{
 	    snprintf( buf, sizeof(buf), "(%s)", msg );
-	    strcat( info, buf );
+	    strlcat( info, buf, infosz );
 	}
 	break;
     case GREP_OBJ_BELOW_SPEC:
@@ -553,7 +553,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
         if ( msg[0] != '\0' )
         {
             snprintf( buf, sizeof(buf), "(%s)", msg );
-            strcat( info, buf );
+            strlcat( info, buf, infosz );
         }
         break;
     case GREP_OBJ_INGAME:
@@ -564,7 +564,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
         if (match)
         {
             snprintf( buf, sizeof(buf), "(combine=%d)", obj->combine_vnum );
-            strcat( info, buf );
+            strlcat( info, buf, infosz );
         }
         break;
     case GREP_OBJ_TRIGGER:
@@ -581,7 +581,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info )
 	match = !match;
 
     if ( match && gd->next != NULL )
-	match = match_grep_obj( gd->next, obj, info );
+	match = match_grep_obj( gd->next, obj, info, infosz );
     return match;
 }
 
@@ -612,7 +612,7 @@ void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 
 	/* did we find a match? */
 	info[0] = '\0';
-	if ( !match_grep_obj(gd, obj, info) )
+	if ( !match_grep_obj(gd, obj, info, sizeof(info)) )
 	    continue;
 	
 	/* to prevent mega-spam */
@@ -894,7 +894,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
+bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info, size_t infosz )
 {
     char buf[MIL] = "",
 	msg[MIL] = "";
@@ -913,7 +913,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	    snprintf( buf, sizeof(buf), "(%ld gold)", wealth / 100 );
 	else
 	    snprintf( buf, sizeof(buf), "(S %ld gold)", wealth / 100 );
-	strcat( info, buf );
+	strlcat( info, buf, infosz );
 	break;
     case GREP_MOB_AFF:
 	match = IS_SET( mob->affect_field, gd->value );
@@ -941,7 +941,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	if ( msg[0] != '\0' )
 	{
 	    snprintf( buf, sizeof(buf), "(%s)", msg );
-	    strcat( info, buf );
+	    strlcat( info, buf, infosz );
 	}
 	break;
     case GREP_MOB_INGAME:
@@ -969,7 +969,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
         if ( msg[0] != '\0' )
         {
             snprintf( buf, sizeof(buf), "(%s)", msg );
-            strcat( info, buf );
+            strlcat( info, buf, infosz );
         }    
     }
 
@@ -977,7 +977,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info )
 	match = !match;
 
     if ( match && gd->next != NULL )
-	match = match_grep_mob( gd->next, mob, info );
+	match = match_grep_mob( gd->next, mob, info, infosz );
     return match;
 }
 
@@ -1008,7 +1008,7 @@ void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 
 	/* did we find a match? */
 	info[0] = '\0';
-	if ( !match_grep_mob(gd, mob, info) )
+	if ( !match_grep_mob(gd, mob, info, sizeof(info)) )
 	    continue;
 	
 	/* to prevent mega-spam */
@@ -1143,7 +1143,7 @@ GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
+bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info, size_t infosz )
 {
     char buf[MIL] = "";
     bool match = FALSE;
@@ -1160,7 +1160,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
 	match = (room->heal_rate >= gd->value
 		 || room->mana_rate >= gd->value);
 	snprintf( buf, sizeof(buf), "(heal=%d/%d)", room->heal_rate, room->mana_rate );
-	strcat( info, buf );
+	strlcat( info, buf, infosz );
 	break;
     case GREP_ROOM_INGAME:
 	match = is_room_ingame( room );
@@ -1180,7 +1180,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
 	match = !match;
 
     if ( match && gd->next != NULL )
-	match = match_grep_room( gd->next, room, info );
+	match = match_grep_room( gd->next, room, info, infosz );
     return match;
 }
 
@@ -1207,7 +1207,7 @@ void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum 
 
 	/* did we find a match? */
 	info[0] = '\0';
-	if ( !match_grep_room(gd, room, info) )
+	if ( !match_grep_room(gd, room, info, sizeof(info)) )
 	    continue;
 	
 	/* to prevent mega-spam */
