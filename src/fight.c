@@ -1394,9 +1394,10 @@ bool combat_maneuver_check( CHAR_DATA *ch, CHAR_DATA *victim, int sn, int ch_sta
     if ( cfg_show_rolls )
     {
         char buf[MSL];
+        char nmbuf1[MIL], nmbuf2[MIL];
         snprintf( buf, sizeof(buf), "Combat maneuver roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
-                ch_name(ch), ch_rolled, ch_roll,
-                ch_name(victim), victim_rolled, victim_roll,
+                ch_name(ch, nmbuf1, sizeof(nmbuf1)), ch_rolled, ch_roll,
+                ch_name(victim, nmbuf2, sizeof(nmbuf2)), victim_rolled, victim_roll,
                 (success ? "success" : "failure"));
         send_to_char(buf, victim);
         send_to_char(buf, ch);
@@ -2956,9 +2957,10 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     if ( cfg_show_rolls )
     {
         char buf[MSL];
+        char nmbuf1[MIL], nmbuf2[MIL];
         snprintf( buf, sizeof(buf), "To-hit roll: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
-                ch_name(ch), ch_rolled, ch_roll,
-                ch_name(victim), victim_rolled, victim_roll,
+                ch_name(ch, nmbuf1, sizeof(nmbuf1)), ch_rolled, ch_roll,
+                ch_name(victim, nmbuf2, sizeof(nmbuf2)), victim_rolled, victim_roll,
                 (is_hit ? "hit" : "miss"));
         send_to_char(buf, victim);
         send_to_char(buf, ch);

@@ -407,7 +407,10 @@ DEF_DO_FUN(do_extract)
         return;
     }
 
-    logpf( "%s extracted %s", ch->name, remove_color(obj->short_descr));
+    {
+        char nmbuf[MIL];
+        logpf( "%s extracted %s", ch->name, remove_color(obj->short_descr, nmbuf, sizeof(nmbuf)));
+    }
 
     /* The materials you get are dependent on the level and rating of the object that you extract */
     if ( obj->level < 90)

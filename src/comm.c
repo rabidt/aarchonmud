@@ -2512,24 +2512,25 @@ bool colourconv( char *buf, size_t bufsz, const char *txt, const CHAR_DATA *ch, 
     return *point != '\0';
 }
 
-/* returns a string from text where the color flags are removed */
-char* remove_color( const char *txt )
+const char *remove_color( const char *txt, char *buf, size_t bufsz )
 {
-    int ti, bi; /* txt- and buffer index */
-    static char buffer[MSL];
+    const char *point;
+    const char *rtn = buf;
 
-    bi = 0;
-    for( ti = 0 ; txt[ti] != '\0'; ti++ )
+    for( point = txt ; *point && bufsz > 1; point++ )
     {
-        if( txt[ti] == '{' )
+        if( *point == '{' )
         {
-            ti++;
-            continue;
+            point++;
+            if ( *point != '{' )
+                continue;
         }
-        buffer[bi++] = txt[ti];
+        *buf = *point;
+        ++buf;
+        --bufsz;
     }
-    buffer[bi] = '\0';
-    return buffer;
+    *buf = '\0';
+    return rtn;
 }
 
 void logpf (const char * fmt, ...)

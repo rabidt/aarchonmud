@@ -335,3 +335,61 @@ void Test_colourconv(CuTest *tc)
         CuAssertStrEquals(tc, exp, outbuf);
     }
 }
+
+void Test_remove_color(CuTest *tc)
+{
+    {
+        // standard case
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey}";
+        char outbuf[128];
+
+        const char *rtn = remove_color(input, outbuf, sizeof(outbuf));
+        CuAssertStrEquals(tc, exp, outbuf);
+        CuAssertTrue(tc, &outbuf[0] == rtn);
+    }
+
+    {
+        // truncate case
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello w";
+        char outbuf[8];
+
+        const char *rtn = remove_color(input, outbuf, sizeof(outbuf));
+        CuAssertStrEquals(tc, exp, outbuf);
+        CuAssertTrue(tc, &outbuf[0] == rtn);
+    }
+
+    {
+        // no truncate. exact size
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey}";
+        char outbuf[21];
+
+        const char *rtn = remove_color(input, outbuf, sizeof(outbuf));
+        CuAssertStrEquals(tc, exp, outbuf);
+        CuAssertTrue(tc, &outbuf[0] == rtn);
+    }
+
+    {
+        // truncate 1 character
+        const char * const input = "{RHello {gworld {{{xdonkey}";
+        const char * const exp = "Hello world {donkey";
+        char outbuf[20];
+
+        const char *rtn = remove_color(input, outbuf, sizeof(outbuf));
+        CuAssertStrEquals(tc, exp, outbuf);
+        CuAssertTrue(tc, &outbuf[0] == rtn);
+    }
+
+    {
+        // truncate 1 character {
+        const char * const input = "{RHello {gworld {{{xdonkey{";
+        const char * const exp = "Hello world {donkey";
+        char outbuf[20];
+
+        const char *rtn = remove_color(input, outbuf, sizeof(outbuf));
+        CuAssertStrEquals(tc, exp, outbuf);
+        CuAssertTrue(tc, &outbuf[0] == rtn);
+    }
+}

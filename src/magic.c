@@ -491,9 +491,10 @@ static bool saves_magic( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_ty
         if ( cfg_show_rolls )
         {
             char buf[MSL];
+            char nmbuf1[MIL], nmbuf2[MIL];
             snprintf( buf, sizeof(buf), "Saving throw vs spell: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
-                    ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
-                    ch_name(victim), save_rolled, save_roll,
+                    ch ? ch_name(ch, nmbuf1, sizeof(nmbuf1)) : "attacker", hit_rolled, hit_roll,
+                    ch_name(victim, nmbuf2, sizeof(nmbuf2)), save_rolled, save_roll,
                     success ? "success" : "failure");
             send_to_char(buf, victim);
             if ( ch && ch != victim )
@@ -573,9 +574,10 @@ bool saves_physical( CHAR_DATA *victim, CHAR_DATA *ch, int level, int dam_type )
         if ( cfg_show_rolls )
         {
             char buf[MSL];
+            char nmbuf1[MIL], nmbuf2[MIL];
             snprintf( buf, sizeof(buf), "Saving throw vs physical: %s rolls %d / %d, %s rolls %d / %d => %s\n\r",
-                    ch ? ch_name(ch) : "attacker", hit_rolled, hit_roll,
-                    ch_name(victim), save_rolled, save_roll,
+                    ch ? ch_name(ch, nmbuf1, sizeof(nmbuf1)) : "attacker", hit_rolled, hit_roll,
+                    ch_name(victim, nmbuf2, sizeof(nmbuf2)), save_rolled, save_roll,
                     success ? "success" : "failure");
             send_to_char(buf, victim);
             if ( ch && ch != victim )

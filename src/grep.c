@@ -1167,7 +1167,10 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info )
 	break;
   /* We can find room names now */
     case GREP_ROOM_NAME:
-        match = is_name( gd->str_value, remove_color(room->name) );
+    {
+        char nmbuf[MIL];
+        match = is_name( gd->str_value, remove_color(room->name, nmbuf, sizeof(nmbuf)) );
+    }
 	break;
     default: 
 	break;

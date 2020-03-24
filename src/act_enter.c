@@ -552,6 +552,7 @@ void show_portal_names( CHAR_DATA *ch )
     PORTAL_DATA *portal;
     BUFFER *output;
     char buf[MSL];
+    char nmbuf[MIL];
 
     output = new_buf();
     add_buf( output, "The following portal locations exist:\n\r" );
@@ -561,7 +562,7 @@ void show_portal_names( CHAR_DATA *ch )
     {
         room = get_room_index( portal->vnum );
         snprintf( buf, sizeof(buf), "[%-27s] %s\n\r", 
-            remove_color(room == NULL ? "!!! no room !!!" : room->area->name),
+            remove_color(room == NULL ? "!!! no room !!!" : room->area->name, nmbuf, sizeof(nmbuf)),
 	    portal->name );
 	    add_buf( output, buf );
     }

@@ -2828,15 +2828,16 @@ ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argu
     int vnum, number, count = 0;
 
     if ( argument == NULL || argument[0] == '\0' )
-	return NULL;
+        return NULL;
 
     number = number_argument( argument, arg, sizeof(arg) );
 
     for ( vnum = min_vnum; vnum <= max_vnum; vnum++ )
     {
-	room = get_room_index( vnum );
-	if ( room == NULL || !is_either_name(arg, remove_color(room->name), exact) )
-	    continue;
+        char namebuf[MIL];
+        room = get_room_index( vnum );
+        if ( room == NULL || !is_either_name(arg, remove_color(room->name, namebuf, sizeof(namebuf)), exact) )
+            continue;
 
         if ( ++count == number )
             return room;

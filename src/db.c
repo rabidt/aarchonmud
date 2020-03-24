@@ -4632,8 +4632,9 @@ void do_areas( CHAR_DATA *ch )
 
     for (i=0; i != count; i++)
     {
+        char nmbuf[MIL];
         snprintf( buf, sizeof(buf),"%-26s  {w%-4d{x-  {c%-4d      {m%-4d{x   %-14s \n\r",
-            remove_color(sorted_areas[i]->name), /* Uses area_name without color */
+            remove_color(sorted_areas[i]->name, nmbuf, sizeof(nmbuf)), /* Uses area_name without color */
             sorted_areas[i]->minlevel,   /* The new min-level field */
             sorted_areas[i]->maxlevel,   /* The new max-level field */
             sorted_areas[i]->miniquests, /* The new miniquests field */

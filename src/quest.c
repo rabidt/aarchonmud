@@ -188,8 +188,9 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 	if ( *obj != NULL )
 	{
 	    ch->pcdata->questpoints -= qi->cost;
+        char buf[MSL];
 	    logpf( "%s bought %s for %dqp",
-	            ch->name, remove_color((*obj)->short_descr), qi->cost );
+	            ch->name, remove_color((*obj)->short_descr, buf, sizeof(buf)), qi->cost );
 	}
 	else
 	    bug( "create_quest_item: couldn't create obj %d", qi->vnum );
@@ -235,8 +236,11 @@ bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 	snprintf( buf, sizeof(buf), "$N gives you %dqp for $p.", qp_gain );
 	act( buf, ch, obj, quest_man, TO_CHAR );
 	ch->pcdata->questpoints += qp_gain;
-	logpf( "%s sold %s for %dqp",
-	       ch->name, remove_color(obj->short_descr), qp_gain );
+    {
+        char nmbuf[MSL];
+        logpf( "%s sold %s for %dqp",
+              ch->name, remove_color(obj->short_descr, nmbuf, sizeof(nmbuf)), qp_gain );
+    }
 	extract_obj(obj);
 	return TRUE;
     }

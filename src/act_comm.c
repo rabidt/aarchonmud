@@ -2154,11 +2154,21 @@ DEF_DO_FUN(do_order)
     return;
 }
 
-const char* ch_name( CHAR_DATA *ch )
+const char* ch_name( const CHAR_DATA *ch, char *buf, size_t bufsz )
 {
     if ( !ch )
-        return "";
-    return IS_NPC(ch) ? remove_color(ch->short_descr) : ch->name;
+    {
+        strlcpy(buf, "", bufsz);
+    }
+    else if IS_NPC(ch)
+    {
+        remove_color(ch->short_descr, buf, bufsz);
+    }
+    else
+    {
+        strlcpy(buf, ch->name, bufsz);
+    }
+    return buf;
 }
 
 void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
@@ -2190,11 +2200,12 @@ void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
     bool can_bless = get_skill(ch, gsn_bless) > 1 || (ch == gch && get_skill(ch, gsn_prayer) > 1);
     bool can_frenzy = get_skill(ch, gsn_frenzy) > 1 || (ch == gch && (get_skill(ch, gsn_berserk) > 1 || get_skill(ch, gsn_drunken_fury) > 1));
     
+    char nmbuf1[MIL], nmbuf2[MIL];
     snprintf( buf, sizeof(buf),
         "[%3d %.3s] %-18s {%c%5d{x/%-5d hp {%c%5d{x/%-5d mn {%c%5d{x/%-5d mv  %s%s%s%s%s%s%s%s %5d etl\n\r",
         gch->level,
-        !IS_NPC(gch) ? class_table[gch->clss].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader) : "Mob",
-        ch_name(gch),
+        !IS_NPC(gch) ? class_table[gch->clss].who_name : IS_AFFECTED(gch, AFF_CHARM) ? ch_name(gch->leader, nmbuf1, sizeof(nmbuf1)) : "Mob",
+        ch_name(gch, nmbuf2, sizeof(nmbuf2)),
         hp_col, gch->hit,   gch->max_hit,
         mn_col, gch->mana,  gch->max_mana,
         mv_col, gch->move,  gch->max_move,

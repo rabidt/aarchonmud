@@ -183,12 +183,13 @@ void check_reenchant_obj( OBJ_DATA *obj )
     
     if ( obj->carried_by )
     {
+        char sdbuf[MSL];
         // ensure stats on char are updated if obj is worn
         if ( obj->wear_loc != -1 )
             reset_char(obj->carried_by);
         act("$p glows brightly as new enchantments manifest.", obj->carried_by, obj, NULL, TO_CHAR);
         logpf("%s (#%d) carried by %s has been reenchanted (+%d OPs)",
-            remove_color(obj->short_descr),
+            remove_color(obj->short_descr, sdbuf, sizeof(sdbuf)),
             obj->pIndexData->vnum,
             obj->carried_by->name,
             ops_left);
