@@ -38,10 +38,10 @@ const char * get_line( const char *str, char *buf );
 const char * del_last_line( const char *string )
 {
   char xbuf[4*MAX_STRING_LENGTH]; 
-  return del_last_line_ext(string, xbuf);
+  return del_last_line_ext(string, xbuf, sizeof(xbuf));
 }
 
-const char * del_last_line_ext( const char *string, char *xbuf )
+const char * del_last_line_ext( const char *string, char *xbuf, size_t xbufsz )
 {
    int len;
    bool found = FALSE;
@@ -50,7 +50,7 @@ const char * del_last_line_ext( const char *string, char *xbuf )
    if (string == NULL || string[0] == '\0')
       return(str_dup(xbuf));
    
-   strcpy(xbuf, string);
+   strlcpy(xbuf, string, xbufsz);
    
    for (len = strlen(xbuf); len > 0; len--)
    {

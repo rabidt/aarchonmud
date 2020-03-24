@@ -1398,7 +1398,7 @@ void handle_con_note_text (DESCRIPTOR_DATA *d, const char * argument)
                     continue; /*for*/
                 }
 
-                ch->pcdata->in_progress->text = del_last_line_ext(ch->pcdata->in_progress->text, xbuf);
+                ch->pcdata->in_progress->text = del_last_line_ext(ch->pcdata->in_progress->text, xbuf, sizeof(xbuf));
                 printf_to_char( ch, "Line deleted.\n\r", arg2, arg3 );
                 continue; /*for*/
             }

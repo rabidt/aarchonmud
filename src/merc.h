@@ -5448,7 +5448,7 @@ const char *format_color_string( const char *argument, int width );
 const char *first_arg( const char *argument, char *arg_first, bool fCase );
 char * string_proper  args( ( char * argument ) );
 const char * del_last_line( const char *string );
-const char * del_last_line_ext( const char *string, char *xbuf );
+const char * del_last_line_ext( const char *string, char *xbuf, size_t xbufsz );
 char * force_wrap( const char *oldstring );
 int    strlen_color   args( ( const char * argument ) );
 const char * truncate_color_string( const char *argument, int limit );
