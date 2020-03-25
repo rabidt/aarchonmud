@@ -45,19 +45,22 @@
 extern WAR_DATA war;
 
 // track whether last attack made was parried
-bool last_attack_parried = FALSE;
+static bool last_attack_parried = FALSE;
 
-void reverse_char_list( void );
-void check_rescue( CHAR_DATA *ch );
-void check_jump_up( CHAR_DATA *ch );
-void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
-void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
-void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
-void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
-void handle_death( CHAR_DATA *ch, CHAR_DATA *victim );
-void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim );
-bool use_wrist_shield( CHAR_DATA *ch );
+static void reverse_char_list( void );
+static void check_rescue( CHAR_DATA *ch );
+static void check_jump_up( CHAR_DATA *ch );
+static void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
+static void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
+static void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
+static void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield );
+static void handle_death( CHAR_DATA *ch, CHAR_DATA *victim );
+static void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim );
+static bool use_wrist_shield( CHAR_DATA *ch );
 bool offhand_occupied( CHAR_DATA *ch );
+static bool is_calm( CHAR_DATA *ch );
+static void check_guard( CHAR_DATA *ch );
+static bool stop_damage( CHAR_DATA *ch, CHAR_DATA *victim );
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_fstat	    );
@@ -126,41 +129,39 @@ DECLARE_SPEC_FUN(   spec_guard          );
 /*
 * Local functions.
 */
-bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
+static bool check_critical  args( ( CHAR_DATA *ch, bool secondary ) );
 bool check_kill_trigger( CHAR_DATA *ch, CHAR_DATA *victim );
-bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
-bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
-bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
-bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
-bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
-bool blind_penalty( CHAR_DATA *ch );
-void  check_assist  args( ( CHAR_DATA *ch ) );
+static bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim );
+static bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim );
+static bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
+static bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
+static bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show );
+static bool blind_penalty( CHAR_DATA *ch );
+static void  check_assist  args( ( CHAR_DATA *ch ) );
 void  check_killer  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  death_cry     args( ( CHAR_DATA *ch ) );
-void  group_gain    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-int   xp_compute    args( ( CHAR_DATA *gch, CHAR_DATA *victim, int gain_align ) );
+static bool  check_parry   args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+static bool  check_shield_block  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+static bool  check_shield  args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+static void  death_cry     args( ( CHAR_DATA *ch ) );
+static void  group_gain    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
 bool  is_safe       args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  make_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
+static void  make_corpse   args( ( CHAR_DATA *ch, CHAR_DATA *killer, bool to_morgue ) );
 void  split_attack  args( ( CHAR_DATA *ch, int dt ) );
-void  mob_hit       args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
-void  check_stance  args( ( CHAR_DATA *ch ) );
+static bool  check_duck    args( ( CHAR_DATA *ch, CHAR_DATA *victim ) );
+static void  check_stance  args( ( CHAR_DATA *ch ) );
 void  warfare       args( ( char *argument ) );
 void  add_war_kills args( ( CHAR_DATA *ch ) );
 void  war_end       args( ( bool success ) );
 bool  check_lose_stance args( (CHAR_DATA *ch) );
-void  special_affect_update args( (CHAR_DATA *ch) );
-void  death_penalty  args( ( CHAR_DATA *ch ) );
-bool  check_mercy args( ( CHAR_DATA *ch ) );
-void  check_reset_stance args( ( CHAR_DATA *ch) );
-void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
-bool is_normal_hit( int dt );
-bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
-                    bool area, bool quiet, bool theory );
-bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
+static void  special_affect_update args( (CHAR_DATA *ch) );
+static void  death_penalty  args( ( CHAR_DATA *ch ) );
+static bool  check_mercy args( ( CHAR_DATA *ch ) );
+static void  check_reset_stance args( ( CHAR_DATA *ch) );
+static void  stance_hit    args( ( CHAR_DATA *ch, CHAR_DATA *victim, int dt ) );
+static bool is_normal_hit( int dt );
+static bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
+                           bool area, bool quiet, bool theory );
+static bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim );
 
 void wait_state( CHAR_DATA *ch, int npulse )
 {
@@ -175,7 +176,7 @@ void daze_state( CHAR_DATA *ch, int npulse )
 }
 
 // bonded blade skill effect, 0-100
-int get_bonded_blade( CHAR_DATA *ch )
+static int get_bonded_blade( CHAR_DATA *ch )
 {
     if ( !get_eq_char(ch, WEAR_WIELD) || get_eq_char(ch, WEAR_SECONDARY) || get_eq_char(ch, WEAR_SHIELD) )
         return 0;
@@ -197,7 +198,7 @@ int critical_chance(CHAR_DATA *ch, bool secondary)
     return chance;
 }
 
-bool check_critical(CHAR_DATA *ch, bool secondary)
+static bool check_critical(CHAR_DATA *ch, bool secondary)
 {
     // max chance is 5% critical skill + 5% critical mastery + 5% weapon mastery = max 15%
     // plus 10% for kensai with piercing blade = max 25%
@@ -455,7 +456,7 @@ void violence_update( void )
     PERF_PROF_EXIT( pr_ );
 }
 
-void reverse_char_list( void )
+static void reverse_char_list( void )
 {
     CHAR_DATA 
         *new_char_list = NULL,
@@ -513,7 +514,7 @@ void run_combat_action( DESCRIPTOR_DATA *d )
         WAIT_STATE( ch, PULSE_VIOLENCE/2 );
 }
 
-bool wants_to_rescue( CHAR_DATA *ch )
+static bool wants_to_rescue( CHAR_DATA *ch )
 {
     if ( is_wimpy(ch) )
         return FALSE;
@@ -554,7 +555,7 @@ void rescue_from( CHAR_DATA *ch, CHAR_DATA *attacker, bool lag )
 }
 
 /* check if character rescues someone */
-void check_rescue( CHAR_DATA *ch )
+static void check_rescue( CHAR_DATA *ch )
 {
     CHAR_DATA *attacker, *target = NULL;
 
@@ -647,7 +648,7 @@ void guard_against( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 // automatic lag-free guard attempts with mastery
-void check_guard( CHAR_DATA *ch )
+static void check_guard( CHAR_DATA *ch )
 {
     CHAR_DATA *victim;
     
@@ -666,7 +667,7 @@ void check_guard( CHAR_DATA *ch )
 }
 
 /* handle affects that do things each round */
-void special_affect_update(CHAR_DATA *ch)
+static void special_affect_update(CHAR_DATA *ch)
 {
     AFFECT_DATA *af1;
 	
@@ -902,7 +903,7 @@ bool check_fear( CHAR_DATA *ch )
 
 /* checks whether to reset a mob to its standard stance
  */
-void check_reset_stance(CHAR_DATA *ch)
+static void check_reset_stance(CHAR_DATA *ch)
 {
     int chance;
     
@@ -925,7 +926,7 @@ void check_reset_stance(CHAR_DATA *ch)
 
 /* checks whether to jump up during combat
  */
-void check_jump_up( CHAR_DATA *ch )
+static void check_jump_up( CHAR_DATA *ch )
 {
     int chance;
     
@@ -953,7 +954,7 @@ void check_jump_up( CHAR_DATA *ch )
 
 
 /* for auto assisting */
-void check_assist(CHAR_DATA *ch)
+static void check_assist(CHAR_DATA *ch)
 {
     CHAR_DATA *rch, *rch_next, *victim, *tank;
     ROOM_INDEX_DATA *room = ch->in_room;
@@ -1037,7 +1038,7 @@ void check_assist(CHAR_DATA *ch)
 
 /* performs combat actions due to stances for PCs and NPCs alike
  */
-void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
+static void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 {
     CHAR_DATA *vch, *vch_next;
     int tempest;
@@ -1237,7 +1238,7 @@ void stance_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt )
 }
 
 // dual_axe, dual_sword, etc. used, or 0
-int dual_weapon_sn( CHAR_DATA *ch )
+static int dual_weapon_sn( CHAR_DATA *ch )
 {
     OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
     OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
@@ -1258,7 +1259,7 @@ int dual_weapon_sn( CHAR_DATA *ch )
 /*
  * Effective skill for offhand weapon usage
  */
-int dual_wield_skill( CHAR_DATA *ch, bool improve )
+static int dual_wield_skill( CHAR_DATA *ch, bool improve )
 {
     OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
     OBJ_DATA *second = get_eq_char(ch, WEAR_SECONDARY);
@@ -1416,7 +1417,7 @@ int dodge_adjust_chance( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
 }
 
 // apply petrification effect (petrified or only slowed)
-void apply_petrify(CHAR_DATA *ch, bool full)
+static void apply_petrify(CHAR_DATA *ch, bool full)
 {
     AFFECT_DATA af;
     
@@ -1863,7 +1864,7 @@ int get_align_type( CHAR_DATA *ch )
         return ALIGN_NEUTRAL;
 }
 
-int get_weapon_damage( OBJ_DATA *wield )
+static int get_weapon_damage( OBJ_DATA *wield )
 {
     int weapon_dam;
 
@@ -2268,12 +2269,12 @@ bool is_ranged_weapon( OBJ_DATA *weapon )
         || weapon->value[0] == WEAPON_GUN;
 }
 
-bool is_calm( CHAR_DATA *ch )
+static bool is_calm( CHAR_DATA *ch )
 {
     return ch->calm == 100 || ch->move <= ch->max_move * ch->calm/100;
 }
 
-bool deduct_move_cost( CHAR_DATA *ch, int cost )
+static bool deduct_move_cost( CHAR_DATA *ch, int cost )
 {
     if ( ch->move < cost )
         return FALSE;
@@ -2291,7 +2292,7 @@ bool deduct_move_cost( CHAR_DATA *ch, int cost )
     return TRUE;
 }
 
-void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
+static void after_attack( CHAR_DATA *ch, CHAR_DATA *victim, int dt, bool hit, bool secondary )
 {
     /* prevent attack chains through re-retributions */
     static bool is_retribute = FALSE;
@@ -2969,7 +2970,7 @@ bool check_hit( CHAR_DATA *ch, CHAR_DATA *victim, int dt, int dam_type, int skil
     return is_hit;
 }
 
-void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
+static void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
     if ( !IS_AFFECTED(victim, AFF_ELEMENTAL_SHIELD) || is_ranged_weapon(wield) )
         return;
@@ -3027,7 +3028,7 @@ void aura_damage( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     full_dam(victim, ch, dam, aff_sn, dam_type, TRUE);
 }
 
-void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
+static void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
     int dam, dt = DAM_BASH;
 
@@ -3140,7 +3141,7 @@ void stance_after_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
     }
 } /* stance_after_hit */
 
-void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
+static void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
     int dam, flag;
 
@@ -3315,7 +3316,7 @@ void weapon_flag_hit( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 
 } /* weapon_flag_hit */
 
-void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
+static void check_behead( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield )
 {
     int chance = 0;
 
@@ -3502,7 +3503,7 @@ void check_assassinate( CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA *wield, int c
  * dam_type must not be a mixed damage type
  * also adjusts for forst_aura etc.
  */
-int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, bool pierce)
+static int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, bool pierce)
 {
     if ( IS_SET(ch->form, FORM_FROST) )
     {
@@ -3545,7 +3546,7 @@ int adjust_damage(CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dam_type, bool 
 /* returns wether dt = damage type indicates a 'normal' attack that
  * can be dodged etc.
  */
-bool is_normal_hit( int dt )
+static bool is_normal_hit( int dt )
 {
     return (dt >= TYPE_HIT)
      || (dt == gsn_riposte)
@@ -3666,7 +3667,7 @@ CHAR_DATA *get_local_leader( CHAR_DATA *ch )
     return ch;
 }
 
-bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
+static bool check_evasion( CHAR_DATA *ch, CHAR_DATA *victim, int sn, bool show )
 {
     int chance = get_skill(victim, gsn_evasion);
     
@@ -4385,7 +4386,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
 }
 
 /* previously part of method damage --Bobble */
-void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
+static void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     char buf[MSL];
     OBJ_DATA *corpse;
@@ -4724,7 +4725,7 @@ bool is_always_safe( CHAR_DATA *ch, CHAR_DATA *victim )
 
 /* mama function for is_safe and is_safe_spell --Bobble */
 #define PKILL_RANGE 6
-bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim, 
+static bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim, 
 		    bool area, bool quiet, bool theory )
 {
     bool ignore_safe =
@@ -4966,7 +4967,7 @@ bool is_safe_check( CHAR_DATA *ch, CHAR_DATA *victim,
     return FALSE;
 }
 
-bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_kill_steal( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     CHAR_DATA *vch;
     CHAR_DATA *vch_next;
@@ -5027,7 +5028,7 @@ int opponent_count( CHAR_DATA *ch )
 }
 
 /* get the ultimate master of a charmed char */
-CHAR_DATA* get_final_master( CHAR_DATA *ch )
+static CHAR_DATA* get_final_master( CHAR_DATA *ch )
 {
     while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
         ch = ch->master;
@@ -5138,7 +5139,7 @@ void check_killer( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 /* returns wether the character gets a penalty for fighting blind */
-bool blind_penalty( CHAR_DATA *ch )
+static bool blind_penalty( CHAR_DATA *ch )
 {
     int skill = get_skill( ch, gsn_blindfighting );
     if ( number_percent() < skill/2 )
@@ -5262,7 +5263,7 @@ int misfade_chance( CHAR_DATA *ch )
     return 0;
 }
 
-bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
+static bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
 {
     bool ch_fade, victim_fade;
 
@@ -5308,7 +5309,7 @@ bool check_fade( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
-bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
+static bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
 {
     AFFECT_DATA *aff;
     
@@ -5351,7 +5352,7 @@ bool check_mirror( CHAR_DATA *ch, CHAR_DATA *victim, bool show )
     return TRUE;
 }
 
-bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
+static bool check_phantasmal( CHAR_DATA *ch, CHAR_DATA *victim, bool show ) 
 {
     int dam;
     AFFECT_DATA *aff;
@@ -5478,7 +5479,7 @@ int parry_chance( CHAR_DATA *ch, CHAR_DATA *opp, bool improve )
 /*
 * Check for parry.
 */
-bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
     int ch_weapon, victim_weapon;
@@ -5563,7 +5564,7 @@ bool check_parry( CHAR_DATA *ch, CHAR_DATA *victim )
 /*
 * Check for duck!
 */
-bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     if ( !IS_AWAKE(victim) )
         return FALSE;
@@ -5608,7 +5609,7 @@ bool check_duck( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
-bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
 
@@ -5648,7 +5649,7 @@ bool check_outmaneuver( CHAR_DATA *ch, CHAR_DATA *victim )
     return TRUE;
 }
 
-bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_avoidance( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
 
@@ -5709,7 +5710,7 @@ bool offhand_occupied( CHAR_DATA *ch )
         || (wield && IS_WEAPON_STAT(wield, WEAPON_TWO_HANDS));
 }
 
-bool use_wrist_shield( CHAR_DATA *ch )
+static bool use_wrist_shield( CHAR_DATA *ch )
 {
     if ( get_eq_char(ch, WEAR_WIELD) )
         return offhand_occupied(ch);
@@ -5761,7 +5762,7 @@ int shield_block_chance( CHAR_DATA *ch, bool improve )
 /*
  * Check for shield block.
  */
-bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     int chance;
     
@@ -5795,7 +5796,7 @@ bool check_shield_block( CHAR_DATA *ch, CHAR_DATA *victim )
 /*
  * Check for shield affect
  */
-bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_shield( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     if ( !IS_AFFECTED(victim, AFF_SHIELD) )
         return FALSE;
@@ -6115,7 +6116,7 @@ bool stop_attack( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 /* returns wether damage should be canceled - remote damage is ok */
-bool stop_damage( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool stop_damage( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     return ch == NULL
     || victim == NULL
@@ -6150,7 +6151,7 @@ void extract_sticky_to_char( CHAR_DATA *ch, OBJ_DATA *obj )
 /*
 * Make a corpse out of a character.
 */
-void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
+static void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 {
     char buf[MAX_STRING_LENGTH];
     OBJ_DATA *corpse;
@@ -6327,7 +6328,7 @@ void make_corpse( CHAR_DATA *victim, CHAR_DATA *killer, bool go_morgue)
 /*
 * Improved Death_cry contributed by Diavolo.
 */
-void death_cry( CHAR_DATA *ch )
+static void death_cry( CHAR_DATA *ch )
 {
     ROOM_INDEX_DATA *was_in_room;
     const char *msg;
@@ -6518,7 +6519,7 @@ int mercy_chance( CHAR_DATA *ch )
 }
 
 /* check if the gods have mercy on a character */
-bool check_mercy( CHAR_DATA *ch )
+static bool check_mercy( CHAR_DATA *ch )
 {
     if ( has_subclass(ch, subclass_chosen) )
         return TRUE;
@@ -6526,7 +6527,7 @@ bool check_mercy( CHAR_DATA *ch )
 }
 
 /* penalize players if they die */
-void death_penalty( CHAR_DATA *ch )
+static void death_penalty( CHAR_DATA *ch )
 {
    
     int loss_choice;
@@ -6591,13 +6592,13 @@ void death_penalty( CHAR_DATA *ch )
         dragonborn_rebirth(ch);
 }
 
-float calculate_exp_factor( CHAR_DATA *gch );
-int calculate_base_exp( int power, CHAR_DATA *victim );
-int scale_exp( int base_exp );
-float get_vulnerability( CHAR_DATA *victim );
-void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
+static float calculate_exp_factor( CHAR_DATA *gch );
+static int calculate_base_exp( int power, CHAR_DATA *victim );
+static int scale_exp( int base_exp );
+static float get_vulnerability( CHAR_DATA *victim );
+static void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor );
 
-void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
+static void group_gain( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     MEM_DATA *m;
     CHAR_DATA *gch, *leader;
@@ -6748,7 +6749,7 @@ int level_power( CHAR_DATA *ch )
 }
 
 // compute baseline xp for character of given level_power killing victim
-int calculate_base_exp( int power, CHAR_DATA *victim )
+static int calculate_base_exp( int power, CHAR_DATA *victim )
 {
     float base_exp, vuln;
     int base_value, mob_value, stance, stance_bonus, off_bonus;
@@ -6897,7 +6898,7 @@ int calculate_base_exp( int power, CHAR_DATA *victim )
     return (int)base_exp;
 }
 
-int scale_exp( int base_exp )
+static int scale_exp( int base_exp )
 {
     if ( base_exp > 100 )
         return (int)(sqrt(base_exp) * 20 - 100);
@@ -6910,7 +6911,7 @@ int scale_exp( int base_exp )
  * Also adjust alignment of killer ( by gain_align percentage )
  * Edit this function to change xp computations.
  */
-float calculate_exp_factor( CHAR_DATA *gch )
+static float calculate_exp_factor( CHAR_DATA *gch )
 {
     float xp_factor = 1;
     int bonus = 0;
@@ -6972,7 +6973,7 @@ float calculate_exp_factor( CHAR_DATA *gch )
 }
 
 // returns "degree of of vulnerability" (0-1) - for xp calculation
-float get_vulnerability( CHAR_DATA *victim )
+static float get_vulnerability( CHAR_DATA *victim )
 {
     int vuln = 0;
     if (IS_SET(victim->vuln_flags, VULN_WEAPON))
@@ -7021,7 +7022,7 @@ float get_vulnerability( CHAR_DATA *victim )
     return vuln / 50.0;
 }
 
-void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor )
+static void adjust_alignment( CHAR_DATA *gch, CHAR_DATA *victim, int base_xp, float gain_factor )
 {
     int change;
 
@@ -7276,10 +7277,10 @@ bool in_pkill_battle( CHAR_DATA *ch )
     return FALSE;
 }
 
-bool check_lasso( CHAR_DATA *victim );
-void check_back_leap( CHAR_DATA *victim );
+static bool check_lasso( CHAR_DATA *victim );
+static void check_back_leap( CHAR_DATA *victim );
 
-int direction_lookup( char *arg1 )
+static int direction_lookup( char *arg1 )
 {
     if (!str_cmp(arg1, "n") || !str_cmp(arg1, "north")) return DIR_NORTH;
     if (!str_cmp(arg1, "e") || !str_cmp(arg1, "east"))  return DIR_EAST;
@@ -7296,7 +7297,7 @@ int direction_lookup( char *arg1 )
     
 }
 
-int get_exit_count( CHAR_DATA *ch )
+static int get_exit_count( CHAR_DATA *ch )
 {
     int d, count = 0;
     for ( d = 0; d < MAX_DIR; d++ )
@@ -7509,7 +7510,7 @@ DEF_DO_FUN(do_flee)
 }
 
 /* opponents can throw a lasso at fleeing player and prevent his fleeing */
-bool check_lasso( CHAR_DATA *victim )
+static bool check_lasso( CHAR_DATA *victim )
 {
     CHAR_DATA *opp, *next_opp;
     OBJ_DATA *lasso;
@@ -7578,7 +7579,7 @@ bool check_lasso( CHAR_DATA *victim )
 }
 
 /* opponents can leap on the victim and kill it */
-void check_back_leap( CHAR_DATA *victim )
+static void check_back_leap( CHAR_DATA *victim )
 {
     CHAR_DATA *opp, *next_opp;
     OBJ_DATA *wield, *offhand;
@@ -7957,7 +7958,7 @@ int stance_cost( CHAR_DATA *ch, int stance )
     return cost;
 }
 
-void check_stance(CHAR_DATA *ch)
+static void check_stance(CHAR_DATA *ch)
 {
     int cost;
 
@@ -8222,7 +8223,7 @@ void adjust_pkgrade( CHAR_DATA *killer, CHAR_DATA *victim, bool theft )
 	}
 }
 
-void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim )
+static void adjust_wargrade( CHAR_DATA *killer, CHAR_DATA *victim )
 {
 	int grade_level;
 

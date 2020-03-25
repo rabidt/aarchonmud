@@ -32,7 +32,6 @@ DECLARE_DO_FUN(do_nowar);
 void war_update( void );
 void warfare_to_all( const char *argument );
 void add_war_kills( CHAR_DATA *ch );
-void check_war_win( void );
 void war_remove( CHAR_DATA *ch, bool killed );
 bool is_same_team( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 void war_end( bool success );

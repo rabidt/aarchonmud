@@ -63,7 +63,7 @@ struct wear_location
    int item_wear_bit; /* required ITEM_WEAR_ bit set in the item */
 };
 
-const struct wear_location wear_locations [] =
+static const struct wear_location wear_locations [] =
 {
     { WEAR_FINGER_L,    ITEM_WEAR_FINGER },
     { WEAR_FINGER_R,    ITEM_WEAR_FINGER },
@@ -88,7 +88,7 @@ const struct wear_location wear_locations [] =
 
 // computes suitable WEAR_ location based on ITEM_WEAR_ flags
 // returns number of WEAR_ locations written into wear
-int get_wear_locs( const int item_wear_flag, int *wear_locs )
+static int get_wear_locs( const int item_wear_flag, int *wear_locs )
 {
     size_t i;
     int count = 0;

@@ -47,11 +47,12 @@ DECLARE_DO_FUN(do_quit  );
 DECLARE_DO_FUN(do_groups    );
 void war_remove( CHAR_DATA *ch, bool killed );
 void smash_beep_n_blink( char *str );
-void quit_char( CHAR_DATA *ch );
-void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
-void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
-void open_chat_tag( CHAR_DATA *ch );
-void close_chat_tag( CHAR_DATA *ch );
+static void quit_char( CHAR_DATA *ch );
+static void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim );
+static void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader );
+static void open_chat_tag( CHAR_DATA *ch );
+static void close_chat_tag( CHAR_DATA *ch );
+static const char * makedrunk (const char *string, CHAR_DATA * ch);
 
 #define ALTER_COLOUR( type ) \
 if( !str_prefix( argument, "red" ) ) {ch->pcdata->type[0] = NORMAL;ch->pcdata->type[1] = RED;} \
@@ -145,7 +146,7 @@ DEF_DO_FUN(do_delete)
 }
 
 
-void print_pub_chan( sh_int sn, CHAR_DATA *ch )
+static void print_pub_chan( sh_int sn, CHAR_DATA *ch )
 {
     const CHANNEL *chan = &(public_channel_table[sn]);
     BUFFER *outbuf = new_buf();
@@ -386,7 +387,7 @@ const char *parse_url( const char *argument )
 }
 
 /* RT chat replaced with ROM gossip */
-void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
+static void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argument )
 {
 	if ( chan == NULL )
 	{
@@ -1461,7 +1462,7 @@ struct  pose_table_type
     const char * const message[8];
 };
 
-const   struct  pose_table_type pose_table  [MAX_POSE]  =
+static const   struct  pose_table_type pose_table  [MAX_POSE]  =
 {
     {
         {
@@ -1749,14 +1750,6 @@ DEF_DO_FUN(do_pose)
     act(pose_table[pose].message[2*clas+1], ch, NULL, NULL, TO_ROOM );
 }
 
-void log_bugs(char *str)
-{
-    FILE * fp = fopen("buglog.txt", "a");
-
-    if(fp == NULL) 
-        return;
-}    
-
 DEF_DO_FUN(do_bug)
 {
     //append_file( ch, BUG_FILE, argument );
@@ -1823,7 +1816,7 @@ DEF_DO_FUN(do_quit)
     quit_char( ch );
 }
 
-void quit_char( CHAR_DATA *ch )
+static void quit_char( CHAR_DATA *ch )
 {
     DESCRIPTOR_DATA *d,*d_next;
     int id;
@@ -2171,7 +2164,7 @@ const char* ch_name( const CHAR_DATA *ch, char *buf, size_t bufsz )
     return buf;
 }
 
-void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
+static void show_group_member( CHAR_DATA *ch, CHAR_DATA *gch )
 {
     char buf[MAX_STRING_LENGTH];
     char hp_col, mn_col, mv_col;   /* Colours that vary depending on the group member's current hp/mana/mv */
@@ -2352,7 +2345,7 @@ DEF_DO_FUN(do_group)
     return;
 }
 
-void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
+static void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     if ( !ch )
     {
@@ -2384,7 +2377,7 @@ void try_set_leader( CHAR_DATA *ch, CHAR_DATA *victim )
     change_leader(ch, victim);
 }
 
-void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader )
+static void change_leader( CHAR_DATA *old_leader, CHAR_DATA *new_leader )
 {
     CHAR_DATA *gch;
     for ( gch = char_list; gch != NULL; gch = gch->next )
@@ -2584,7 +2577,7 @@ DEF_DO_FUN(do_gtell)
     return;
 }
 
-CHAR_DATA *ultimate_master( CHAR_DATA *ch )
+static CHAR_DATA *ultimate_master( CHAR_DATA *ch )
 {
     while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
     {
@@ -3098,7 +3091,7 @@ DEF_DO_FUN(do_bounty)
     return;
 }
 
-const char * makedrunk (const char *string, CHAR_DATA * ch)
+static const char * makedrunk (const char *string, CHAR_DATA * ch)
 {
     /* This structure defines all changes for a character */
     static const struct 
@@ -3258,7 +3251,7 @@ bool check_savant( CHAR_DATA *ch )
 }
 
 /* Gag code by Bobble */
-void print_gag(char* info_str, long value, CHAR_DATA *ch)
+static void print_gag(char* info_str, long value, CHAR_DATA *ch)
 {
     char buf[MAX_STRING_LENGTH];
     if (IS_SET(ch->gag, value))
@@ -3268,7 +3261,7 @@ void print_gag(char* info_str, long value, CHAR_DATA *ch)
     send_to_char(buf, ch);
 }
 
-bool check_gag_arg(const char* arg, const char* cmp_str, long value, CHAR_DATA *ch)
+static bool check_gag_arg(const char* arg, const char* cmp_str, long value, CHAR_DATA *ch)
 {
     if (!strcmp(arg, cmp_str))
     {
@@ -3481,12 +3474,12 @@ DEF_DO_FUN(do_noreply)
     }
 }
 
-void open_chat_window( CHAR_DATA *ch )
+static void open_chat_window( CHAR_DATA *ch )
 {
     ptc( ch, "\t<FRAME Name=\"Comm\" INTERNAL Align=\"right\">");
 }
 
-void close_chat_window( CHAR_DATA *ch )
+static void close_chat_window( CHAR_DATA *ch )
 {
     ptc( ch, "\t<FRAME Name=\"Comm\" Action=\"CLOSE\">");
 } 
@@ -3500,12 +3493,12 @@ void gui_login_setup( CHAR_DATA *ch )
     }
 }
 
-void open_chat_tag( CHAR_DATA *ch )
+static void open_chat_tag( CHAR_DATA *ch )
 {
     ptc( ch, "\t<DEST Comm>" );
 }
 
-void close_chat_tag( CHAR_DATA *ch )
+static void close_chat_tag( CHAR_DATA *ch )
 {
     ptc( ch, "\t</DEST>" );
 }

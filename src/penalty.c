@@ -17,23 +17,23 @@
 
 
 /* Local Prototypes */
-bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype );
-char *penalty_status_name(int status);
+static bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype );
+static char *penalty_status_name(int status);
 void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
-void show_penalty_type(CHAR_DATA *ch, const char *penname);
-void check_penlist( void );
+static void show_penalty_type(CHAR_DATA *ch, const char *penname);
+static void check_penlist( void );
 void load_crime_list(void);
-void save_crime_list(void);
+static void save_crime_list(void);
 
 
 /* Globals */
 PENALTY_DATA *penalty_list;
-CRIME_DATA *crime_list;
+static CRIME_DATA *crime_list;
 DECLARE_DO_FUN(do_look);
 
 
-char *penalty_status_name(int status)
+static char *penalty_status_name(int status)
 {
     static char buf[20];
 
@@ -119,7 +119,7 @@ DEF_DO_FUN(do_nonote)
 /* Check if another imm is already penalising victim to prevent
  * dealing out penalties twice --Bobble
  */
-bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *pentype )
+static bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *pentype )
 {
     DESCRIPTOR_DATA *d;
     CHAR_DATA *wch;
@@ -142,7 +142,7 @@ bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *pentype )
 
 /* Apply penalty to character.  
 If applied successfully return TRUE, else return FALSE. */
-bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
+static bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
 {
     sh_int pen;
     char arg[MIL];
@@ -335,7 +335,7 @@ bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype )
 }
 
 /* Display info about a type of penalty */
-void show_penalty_type(CHAR_DATA *ch, const char *penname)
+static void show_penalty_type(CHAR_DATA *ch, const char *penname)
 {
     int i, pen;
 
@@ -815,7 +815,7 @@ void penalty_confirm( DESCRIPTOR_DATA *d, const char *argument )
    }
 }
 
-bool can_remove_penalty( CHAR_DATA *ch, PENALTY_DATA *pen )
+static bool can_remove_penalty( CHAR_DATA *ch, PENALTY_DATA *pen )
 {
    /* only law imms can pardon/parole other imms' penalties */
    if ( strcmp(pen->imm_name, ch->name) && !IS_SET(ch->act, PLR_LAW) )
@@ -1285,7 +1285,7 @@ void penalty_update(CHAR_DATA *ch)
 }
 
 
-void check_penlist( void )
+static void check_penlist( void )
 {
     PENALTY_DATA *p, *np;
 
@@ -1300,7 +1300,7 @@ void check_penlist( void )
     save_penalties();
 }
 
-void save_crime_list(void)
+static void save_crime_list(void)
 {
     CRIME_DATA *pcrime;
     FILE *fp;
@@ -1426,7 +1426,7 @@ DEF_DO_FUN(do_crimelist)
         "crimelist delete <name>               - Delete a type from the list.\n\r", ch );
 }
 
-int get_crime_count( CHAR_DATA *ch, const char *crime_name, const char *imm_name )
+static int get_crime_count( CHAR_DATA *ch, const char *crime_name, const char *imm_name )
 {
     CRIME_DATA *cr;
     bool check_imm = imm_name[0] != '\0';
@@ -1707,9 +1707,3 @@ DEF_DO_FUN(do_forgive)
     send_to_char("Forgive successful.\n\r", ch);
     
 }
-
-
-
-
-
-

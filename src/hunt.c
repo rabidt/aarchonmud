@@ -102,7 +102,7 @@ void bzero(register char *sp,int len)
 
 
 
-void init_hash_table(struct hash_header *ht,int rec_size,size_t table_size)
+static void init_hash_table(struct hash_header *ht,int rec_size,size_t table_size)
 {
     ht->rec_size  = rec_size;
     ht->table_size= table_size;
@@ -111,7 +111,7 @@ void init_hash_table(struct hash_header *ht,int rec_size,size_t table_size)
     ht->klistlen  = 0;
 }
 
-void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
+static void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
 {
     int           i;
     struct hash_link  *scan,*temp;
@@ -128,7 +128,7 @@ void destroy_hash_table(struct hash_header *ht,void (*gman)(void *))
     free(ht->keylist);
 }
 
-void _hash_enter(struct hash_header *ht,int key,void *data)
+static void _hash_enter(struct hash_header *ht,int key,void *data)
 {
     /* precondition: there is no entry for <key> yet */
     struct hash_link  *temp;
@@ -156,7 +156,7 @@ void _hash_enter(struct hash_header *ht,int key,void *data)
     ht->klistlen++;
 }
 
-void *hash_find(struct hash_header *ht,int key)
+static void *hash_find(struct hash_header *ht,int key)
 {
     struct hash_link *scan;
     
@@ -168,7 +168,7 @@ void *hash_find(struct hash_header *ht,int key)
     return scan ? scan->data : NULL;
 }
 
-int hash_enter(struct hash_header *ht,int key,void *data)
+static int hash_enter(struct hash_header *ht,int key,void *data)
 {
     void *temp;
     
@@ -179,7 +179,8 @@ int hash_enter(struct hash_header *ht,int key,void *data)
     return 1;
 }
 
-void *hash_remove(struct hash_header *ht,int key)
+#if 0
+static void *hash_remove(struct hash_header *ht,int key)
 {
     struct hash_link **scan;
 
@@ -215,8 +216,7 @@ void *hash_remove(struct hash_header *ht,int key)
     return NULL;
 }
 
-#if 0
-void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
+static void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
 {
     int i;
     
@@ -237,7 +237,7 @@ void hash_iterate(struct hash_header *ht,void (*func)(),void *cdata)
 
 
 
-int exit_ok( EXIT_DATA *pexit )
+static int exit_ok( EXIT_DATA *pexit )
 {
     ROOM_INDEX_DATA *to_room;
     
@@ -248,7 +248,7 @@ int exit_ok( EXIT_DATA *pexit )
     return 1;
 }
 
-void donothing(void *data)
+static void donothing(void *data)
 {
     return;
 }
@@ -261,7 +261,7 @@ void donothing(void *data)
 #define MAX_BRANCH (MAX_DIR+10)
 
 // return direction indicating first edge of shortest path
-int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance )
+static int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth, int *distance )
 {
     struct room_q *tmp_q, *q_head, *q_tail;
     struct hash_header x_room;
@@ -382,7 +382,7 @@ int find_path( int in_room_vnum, int out_room_vnum, bool in_zone, int max_depth,
 }
 
 // formulas used for max distance & skill reduction by hunt, pathfinding, etc.
-int hunt_max_distance(int skill, int mastery)
+static int hunt_max_distance(int skill, int mastery)
 {
     if ( mastery >= 2 )
         return skill / 2;
@@ -390,7 +390,7 @@ int hunt_max_distance(int skill, int mastery)
         return skill / 3;
 }
 
-int hunt_fail_chance(int skill, int distance, int mastery)
+static int hunt_fail_chance(int skill, int distance, int mastery)
 {
     if ( mastery >= 1 )
         return (100-skill) + distance;
@@ -398,7 +398,7 @@ int hunt_fail_chance(int skill, int distance, int mastery)
         return (100-skill) + 2 * distance;
 }
 
-bool is_wilderness( int sector )
+static bool is_wilderness( int sector )
 {
     return sector != SECT_CITY
 	&& sector != SECT_INSIDE;

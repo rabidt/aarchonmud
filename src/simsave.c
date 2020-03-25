@@ -15,7 +15,7 @@
 #include "perfmon.h"
 
 
-bool boxtemp = FALSE;//track if there are temp box files needing to be moved
+static bool boxtemp = FALSE;//track if there are temp box files needing to be moved
 /* player files kept in memory
  */
 MEMFILE *player_quit_list = NULL;
@@ -31,11 +31,12 @@ MEMFILE *other_save_list = NULL;
 
 static int player_save_state = SAVE_STATE_SIMSAVE;
 static bool bootup_temp_clean_done = FALSE;
-bool ready_to_save( CHAR_DATA *ch );
-MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
-void sim_save_to_mem( void );
-void mem_sim_save_other( void );
-void sim_save_other( void );
+static bool ready_to_save( CHAR_DATA *ch );
+static MEMFILE *memfile_from_list( const char *filename, MEMFILE *list );
+static void sim_save_to_mem( void );
+static void mem_sim_save_other( void );
+static void sim_save_other( void );
+static bool remove_from_quit_list( const char *name );
 
 /* perform one step in the continious player autosave
  */
@@ -222,7 +223,7 @@ void final_player_save( void )
 /* save all players online to player_save_list and
  * move all files in player_quit_list to player_save_list
  */
-void sim_save_to_mem( void )
+static void sim_save_to_mem( void )
 {
   PERF_PROF_ENTER( pr_, "sim_save_to_mem" );
 
@@ -273,7 +274,7 @@ void sim_save_to_mem( void )
  * be careful not to skip any valid players, this would open
  * loopholes for duping
  */
-bool ready_to_save( CHAR_DATA *ch )
+static bool ready_to_save( CHAR_DATA *ch )
 {
     if ( IS_NPC(ch) )
 	return FALSE;
@@ -300,22 +301,6 @@ bool ready_to_save( CHAR_DATA *ch )
         return TRUE;
     else
         return FALSE;
-}
-
-bool pfile_exists( const char *name )
-{
-    char filename[MIL];
-    FILE *fp;
-
-    if ( name == NULL )
-	return FALSE;
-
-    snprintf( filename, sizeof(filename), "%s%s", PLAYER_DIR, capitalize(name) );
-    fp = fopen( filename, "r" );
-    if ( fp )
-	fclose( fp );
-    
-    return fp != NULL;
 }
 
 /*
@@ -564,7 +549,7 @@ void quit_save_char_obj( CHAR_DATA *ch )
  * removes a file from a list;
  * returns wether file was found and removed
  */
-bool remove_from_list( const char *name, MEMFILE **list )
+static bool remove_from_list( const char *name, MEMFILE **list )
 {
   MEMFILE *mf, *last_mf;
   char filename[MAX_INPUT_LENGTH];
@@ -628,7 +613,7 @@ bool remove_from_box_list( const char *name )
  * returns wether file was found and removed
  */
 
-bool remove_from_quit_list( const char *name )
+static bool remove_from_quit_list( const char *name )
 {
 #if defined(SIM_DEBUG)
   char log_buf[MSL];
@@ -652,28 +637,7 @@ bool remove_from_save_list( const char *name )
   return remove_from_list( name, &player_save_list );
 }
 
-/* returns wether a file of name <filename> is in <list>
- */
-bool memfile_in_list( const char *filename, MEMFILE *list )
-{
-  MEMFILE *mf;
-#if defined(SIM_DEBUG)
-   log_string("memfile_in_list: start");
-#endif
-  if (filename == NULL || filename[0] == '\0')
-  {
-    bug("memfile_in_list: invalid filename", 0);
-    return FALSE;
-  }
-
-  for (mf = list; mf != NULL; mf = mf->next)
-    if (!strcmp(mf->filename, filename))
-      return TRUE;
-
-  return FALSE;
-}
-
-MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
+static MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
 {
    MEMFILE *mf;
 #if defined(SIM_DEBUG)
@@ -694,7 +658,7 @@ MEMFILE *memfile_from_list( const char *filename, MEMFILE *list )
 
 /* save other data to memory for simultanious saving
  */
-void mem_sim_save_other( void )
+static void mem_sim_save_other( void )
 {
     PERF_PROF_ENTER( pr_, "mem_sim_save_other" );
 
@@ -751,7 +715,7 @@ void mem_sim_save_other( void )
 }
 
 /* save files in other_save_list to disk */
-void sim_save_other( void )
+static void sim_save_other( void )
 {
     PERF_PROF_ENTER( pr_, "sim_save_other" );
     MEMFILE *mf;

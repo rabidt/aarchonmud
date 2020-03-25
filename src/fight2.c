@@ -16,6 +16,8 @@ DECLARE_DO_FUN( do_disarm_trap );
 DECLARE_DO_FUN( do_ignite );
 DECLARE_DO_FUN( do_hide );
 
+static void mastery_adjusted_wait( CHAR_DATA *ch, int sn );
+
 /*
 * Disarm a creature.
 * Caller must check for successful attack.
@@ -638,7 +640,7 @@ DEF_DO_FUN(do_net)
 }
 
 // mama routine for burst, semi-auto and full-auto
-void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
+static void spray_attack( CHAR_DATA *ch, const char *argument, int sn )
 {
     CHAR_DATA *victim, *target, *next_target;
     OBJ_DATA *first, *second;
@@ -819,7 +821,7 @@ DEF_DO_FUN(do_hogtie)
 
 // checks whether character can let off a shot, returning accuracy < 100 if using offhand weapon
 // accuracy of 0 means can't shoot, error message has been sent
-int get_shot_accuracy( CHAR_DATA *ch )
+static int get_shot_accuracy( CHAR_DATA *ch )
 {
     OBJ_DATA *wield = get_eq_char(ch, WEAR_WIELD);
     OBJ_DATA *offhand = get_eq_char(ch, WEAR_SECONDARY);
@@ -854,7 +856,7 @@ int get_shot_accuracy( CHAR_DATA *ch )
 }
 
 /* parameters for aiming, must terminate with "" */
-const char* aim_targets[] = { "head", "hand", "foot", "" };
+const char* const aim_targets[] = { "head", "hand", "foot", "" };
 /* constants must be defined according to aim_targets */
 #define AIM_NORMAL -1
 #define AIM_HEAD    0
@@ -1166,7 +1168,7 @@ void snipe_char( CHAR_DATA *ch, CHAR_DATA *victim )
 }
 
 // uniform calculation for circle, slash throat, etc.
-int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+static int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
     int chance = 10 + get_skill_total(ch, sn, 0.2) / 2 + mastery_bonus(ch, sn, 12, 15);
     chance += (get_curr_stat(ch, STAT_DEX) - get_curr_stat(victim, STAT_AGI)) / 8;
@@ -1191,7 +1193,7 @@ int circle_chance( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
     return chance;
 }
 
-void circle_char( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
+static void circle_char( CHAR_DATA *ch, CHAR_DATA *victim, int chance )
 {
     if ( per_chance(chance) )
     {
@@ -1449,7 +1451,7 @@ DEF_DO_FUN(do_rescue)
     rescue_from(ch, fch, TRUE);
 }
 
-void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
+static void mastery_adjusted_wait( CHAR_DATA *ch, int sn )
 {
     int wait = skill_table[sn].beats;
     int bonus = mastery_bonus(ch, sn, 20, 25);
@@ -3257,7 +3259,7 @@ DEF_DO_FUN(do_puncture)
     check_improve(ch,gsn_puncture,TRUE,3);
 }
 
-int dice_argument (const char *argument, char *arg)
+static int dice_argument (const char *argument, char *arg)
 {
     const char *pdot = strchr(argument, 'd');
     // invalic argument - expect 3d6 or similar

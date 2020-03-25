@@ -1660,19 +1660,6 @@ bool has_god( CHAR_DATA *ch ) {
     return ch->pcdata && ch->pcdata->god_name[0] != '\0';
 }
 
-int get_faith( CHAR_DATA *ch )
-{
-
-#ifdef REL_DEBUG
-    log_string( "get_faith: start" );
-#endif
-
-    if ( ch->pcdata == NULL )
-        return 0;
-    else
-        return ch->pcdata->faith;
-}
-
 /*
 bool is_relic_obj( OBJ_DATA *obj )
 {
@@ -2469,7 +2456,7 @@ struct god_action
     const char *desc;
 };
 
-GOD_ACTION god_table[] =
+static const GOD_ACTION god_table[] =
 {
     /* name,        function,       negative,   description */
     { "confuse",    &god_confuse,   TRUE,       "insanity (short duration)" },
@@ -2488,7 +2475,7 @@ GOD_ACTION god_table[] =
     { NULL }
 };
 
-void show_god_syntax( CHAR_DATA *ch )
+static void show_god_syntax( CHAR_DATA *ch )
 {
     int i;
 

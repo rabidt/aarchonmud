@@ -150,7 +150,7 @@ void mob_interpret( CHAR_DATA *ch, const char *argument )
     bug( buf, 0 );
 }
 
-char *mprog_type_to_name( int type )
+const char *mprog_type_to_name( int type )
 {
     switch ( type )
     {
@@ -187,7 +187,7 @@ char *mprog_type_to_name( int type )
 /*
  * Allow wizi mobs to send messages with act
  */
-void act_non_wizi(const char *format, CHAR_DATA *ch, 
+static void act_non_wizi(const char *format, CHAR_DATA *ch, 
 		  const void *arg1, const void *arg2,
 		  int type)
 {
@@ -314,37 +314,6 @@ int r_atoi( CHAR_DATA *ch, const char *arg )
 	bugf( "r_atoi: relative vnum (%s) out of area on mob %d",
 	      arg, IS_NPC(ch) ? ch->pIndexData->vnum : 0 );
 	return nr;
-    }
-    return area->min_vnum + nr;
-}
-
-int r_atoi_obj( OBJ_DATA *obj, const char *arg )
-{
-    AREA_DATA *area;
-    char arg1[MIL];
-    int nr;
-
-    one_argument( arg, arg1 );
-    if ( arg1[0] != 'r' )
-    return atoi(arg1);
-
-    if ( obj == NULL )
-    {
-    bugf( "r_atoi_mob: NULL obj" );
-    return -1;
-    }
-
-    if ( (nr = atoi(arg1 + 1)) < 0 )
-    return nr;
-
-    area = obj->pIndexData->area;
-
-    /* check if the 'r' might be too much */
-    if ( area->min_vnum + nr > area->max_vnum )
-    {
-    bugf( "r_atoi: relative vnum (%s) out of area on obj %d",
-          arg, obj->pIndexData->vnum );
-    return nr;
     }
     return area->min_vnum + nr;
 }

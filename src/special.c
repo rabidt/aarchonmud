@@ -89,7 +89,7 @@ struct spell_type
 };*/
 
 #define NO_MAX 200
-const struct spell_type spell_list_cleric[] =
+static const struct spell_type spell_list_cleric[] =
 {
     { "dispel magic", 40, NO_MAX },
     { "blindness", 20, NO_MAX },
@@ -107,7 +107,7 @@ const struct spell_type spell_list_cleric[] =
     { NULL, 0, 0 }
 };
 
-const struct spell_type spell_list_mage[] = {
+static const struct spell_type spell_list_mage[] = {
     { "dispel magic", 20, NO_MAX },
     { "magic missile", 1, 40 },
     { "chill touch", 10, 80 },
@@ -122,7 +122,7 @@ const struct spell_type spell_list_mage[] = {
     { NULL, 0, 0 }
 };
 
-const struct spell_type spell_list_draconic[] = {
+static const struct spell_type spell_list_draconic[] = {
     { "acid breath", 1, NO_MAX },
     { "lightning breath", 1, NO_MAX },
     { "fire breath", 1, NO_MAX },
@@ -131,7 +131,7 @@ const struct spell_type spell_list_draconic[] = {
     { NULL, 0, 0 }
 };
 
-const struct spell_type spell_list_undead[] = {
+static const struct spell_type spell_list_undead[] = {
     { "curse", 1, NO_MAX },
     { "weaken", 1, NO_MAX },
     { "chill touch", 10, 80 },
@@ -443,7 +443,7 @@ bool spec_nasty( CHAR_DATA *ch )
 /*
  * Core procedure for dragons.
  */
-bool dragon( CHAR_DATA *ch, int sn )
+static bool dragon( CHAR_DATA *ch, int sn )
 {
     // we only breath ever 1d4 rounds on average
     if ( !ch->fighting || !per_chance(40) )
@@ -569,7 +569,7 @@ const struct spell_type* get_spell_list( CHAR_DATA *ch )
     return NULL;
 }
 
-bool spec_cast_any( CHAR_DATA *ch )
+static bool spec_cast_any( CHAR_DATA *ch )
 {
     if ( ch->position != POS_FIGHTING )
         return FALSE;

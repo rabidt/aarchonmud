@@ -30,18 +30,22 @@ DECLARE_DO_FUN(do_cmotd     );
 extern bool            wizlock;        /* Game is wizlocked        */
 extern bool            newlock;        /* Game is newlocked        */
 
-void show_races_to_d( DESCRIPTOR_DATA *d );
-void enter_game args((DESCRIPTOR_DATA *d));
-void take_rom_basics args((DESCRIPTOR_DATA *d));
-void take_class_defaults args((DESCRIPTOR_DATA *d));
-void take_default_weapon args((DESCRIPTOR_DATA *d));
-void newbie_alert args((DESCRIPTOR_DATA *d));
+static void show_races_to_d( DESCRIPTOR_DATA *d );
+static void enter_game args((DESCRIPTOR_DATA *d));
+static void take_rom_basics args((DESCRIPTOR_DATA *d));
+static void take_class_defaults args((DESCRIPTOR_DATA *d));
+static void take_default_weapon args((DESCRIPTOR_DATA *d));
+static void newbie_alert args((DESCRIPTOR_DATA *d));
 void take_default_stats args((CHAR_DATA *ch));
 void auto_assign_stats args((CHAR_DATA *ch));
 void skill_reimburse( CHAR_DATA *ch );
+static int creation_mode(DESCRIPTOR_DATA *d);
+static void set_creation_state(DESCRIPTOR_DATA *d, int cmode);
+static bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn );
+static bool check_playing( DESCRIPTOR_DATA *d, const char *name );
 
-#define DECLARE_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
-#define DEF_NANNY_FUN(func) bool func( DESCRIPTOR_DATA *d, const char *argument )
+#define DECLARE_NANNY_FUN(func) static bool func( DESCRIPTOR_DATA *d, const char *argument )
+#define DEF_NANNY_FUN(func) static bool func( DESCRIPTOR_DATA *d, const char *argument )
 
 DECLARE_NANNY_FUN(get_name);
 DECLARE_NANNY_FUN(get_old_password);
@@ -54,7 +58,6 @@ DECLARE_NANNY_FUN(get_new_sex);
 DECLARE_NANNY_FUN(get_new_class);
 DECLARE_NANNY_FUN(get_new_subclass);
 DECLARE_NANNY_FUN(get_alignment);
-DECLARE_NANNY_FUN(default_choice);
 DECLARE_NANNY_FUN(gen_groups);
 DECLARE_NANNY_FUN(pick_weapon);
 DECLARE_NANNY_FUN(read_imotd);
@@ -318,7 +321,7 @@ bool check_password( const char *argument, const char *pwd )
     return encrypted && (strcmp(encrypted, pwd) == 0);
 }
     
-bool is_reserved_name( const char *name )
+static bool is_reserved_name( const char *name )
 {
   RESERVED_DATA *res;
   
@@ -429,7 +432,7 @@ int con_state(DESCRIPTOR_DATA *d)
     return ( d->connected % MAX_CON_STATE );
 }
 
-int creation_mode(DESCRIPTOR_DATA *d)
+static int creation_mode(DESCRIPTOR_DATA *d)
 {
     return ( (d->connected - (d->connected%MAX_CON_STATE)) / MAX_CON_STATE );
 }
@@ -440,7 +443,7 @@ void set_con_state(DESCRIPTOR_DATA *d, int cstate)
     return;
 }
 
-void set_creation_state(DESCRIPTOR_DATA *d, int cmode)
+static void set_creation_state(DESCRIPTOR_DATA *d, int cmode)
 {
     d->connected = d->connected%MAX_CON_STATE + cmode*MAX_CON_STATE;
     return;
@@ -963,7 +966,7 @@ DEF_NANNY_FUN(get_new_race)
     return TRUE;
 }
 
-void show_races_to_d( DESCRIPTOR_DATA *d )
+static void show_races_to_d( DESCRIPTOR_DATA *d )
 {
 	int race;
 	char colour;
@@ -1402,7 +1405,7 @@ DEF_NANNY_FUN(get_alignment)
 }
 
 
-void take_rom_basics(DESCRIPTOR_DATA *d)
+static void take_rom_basics(DESCRIPTOR_DATA *d)
 {
 	CHAR_DATA *ch=d->character;
 
@@ -1412,14 +1415,14 @@ void take_rom_basics(DESCRIPTOR_DATA *d)
 }	
 
 
-void take_class_defaults(DESCRIPTOR_DATA *d)
+static void take_class_defaults(DESCRIPTOR_DATA *d)
 {
 	group_add(d->character,class_table[d->character->clss].default_group,TRUE);
 	return;
 }
 
 
-void take_default_weapon(DESCRIPTOR_DATA *d)
+static void take_default_weapon(DESCRIPTOR_DATA *d)
 {
 	int i;
 	char msg[MAX_STRING_LENGTH];
@@ -1446,7 +1449,7 @@ void take_default_weapon(DESCRIPTOR_DATA *d)
 }
 
 
-void newbie_alert(DESCRIPTOR_DATA *d)
+static void newbie_alert(DESCRIPTOR_DATA *d)
 {
     char buf[MAX_STRING_LENGTH];
     PENALTY_DATA *p;
@@ -1466,45 +1469,6 @@ void newbie_alert(DESCRIPTOR_DATA *d)
     wiznet(buf,NULL,NULL,WIZ_SITES,0,0);
     return;
 }
-
-
-DEF_NANNY_FUN(default_choice)
-{
-	char msg[MAX_STRING_LENGTH];
-	char buffer[MAX_STRING_LENGTH*2];
-
-	if (con_state(d) != CON_DEFAULT_CHOICE)
-	{
-		snprintf( msg, sizeof(msg), "Do you wish to customize this character?\n\r"
-			"Customization takes time, but allows a wider range of skills and abilities.\n\r"
-			"{CCustomize (Y/N)?{x " );
-		colourconv( buffer, sizeof(buffer), msg, d->character, FALSE ); 
-		write_to_buffer(d, buffer ,0);
-
-		set_con_state(d, CON_DEFAULT_CHOICE);
-		return FALSE;		
-	}
-
-	write_to_buffer(d,"\n\r",2);
-	switch ( argument[0] )
-	{
-	case 'y': case 'Y': 
-		return gen_groups(d, argument);
-	case 'n': case 'N':
-		take_class_defaults(d); 
-		return TRUE;
-	default:
-		snprintf( msg, sizeof(msg), "{CPlease answer yes/no (Y/N)?{x ");
-		colourconv( buffer, sizeof(buffer), msg, d->character, FALSE ); 
-		write_to_buffer(d, buffer ,0);
-		break;
-	}
-	
-	return FALSE;
-}
-
-
-
 
 DEF_NANNY_FUN(gen_groups)
 {
@@ -1778,7 +1742,7 @@ DEF_NANNY_FUN(break_connect)
 /*
  * Look for link-dead player to reconnect.
  */
-bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
+static bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
 {
     CHAR_DATA *ch;
     char buf[MAX_STRING_LENGTH];
@@ -1859,7 +1823,7 @@ bool check_reconnect( DESCRIPTOR_DATA *d, const char *name, bool fConn )
 /*
  * Check if already playing.
  */
-bool check_playing( DESCRIPTOR_DATA *d, const char *name )
+static bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 {
 	DESCRIPTOR_DATA *dold;
 
@@ -1880,61 +1844,8 @@ bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 	return FALSE;
 }
 
-struct quote_type
-{
-    const char * 	text;
-};
 
-static const struct quote_type quote_table[MAX_QUOTES] =
-{
-    { "{WYou will move and regenerate slower while encumbered (carrying too much weight).{x\n\r"            }, /* 1 */
-    { "{WMaledictions such as poison and plague will slow down your HP, mana, and move regeneration.{x\n\r" },
-    { "{WBeing affected by 'fly' reduces movement points used, and moves you faster between rooms.{x\n\r"   },
-    { "{WThe lemonade fountain 2N from Palace Square (recall) will satisfy thirst and hunger.{x\n\r"        },
-    { "{WDon't forget to eat and drink. Being hungry or thirsty reduces your regeneration rates.{x\n\r"     }, /* 5 */
-    { "{WYou can heal faster by sleeping or resting at the Palace Square or The Temple.{x\n\r"              },
-    { "{WBe sure to practice your new skills and spells after leveling up.{x\n\r"                           },
-    { "{WYou can earn extra gold by selling items that you don't need or have outgrown.{x\n\r"              },
-    { "{WDeposit your gold at the bank NW,W from Palace Square. It will stay safe in the bank.{x\n\r"       },
-    { "{WLenny the banker can exchange your silver for gold. (give <amount> silver lenny).{x\n\r"           }, /* 10 */
-    { "{WMost storage containers will reduce the effective weight of the items in your inventory.{x\n\r"    },
-    { "{WType AUTOLIST to see what commands you can automate (such as looting corpses with autoloot.{x\n\r" },
-    { "{WYou can automate a single combat command using ACTION. Read 'help action' for more info.{x\n\r"    },
-    { "{WThe CONSIDER command will give you a -rough- idea of how hard a fight may be.{x\n\r"               }, /* 15 */
-    { "{WThere are maps available on our website of many areas. http://www.aarchonmud.com{x "               }, 
-    { "{WThe Wandering Sages that roam Bastion will lore any item for you. Just hand it to them!{x\n\r"     },
-    { "{WIf you lose your newbie guide, you can buy another one at Herman the Gnome (SE,E){x\n\r"           },
-    { "{WTake time to explore. There are many mini-quests throughout Aarchon.{x\n\r"                        }, /* 20 */
-    { "{WField experience is EXP that you absorb over time. Read 'help field' for more info.{x\n\r"         },
-    { "{WDid you know, that if you type '!' it will repeat the last command you typed?{x\n\r"               },
-    { "{WTyping '&' will clear your command queue. Useful for when you spam too many commands!{x\n\r"       },
-    { "{WVisit the mystic NW of recall for a free god blessing. Read 'help god bless' for more info.{x\n\r" },
-    { "{WThe 'finger' command allows you to look up detailed information about players.{x\n\r"              },
-    { "{WWant to try out another class? You don't need to delete. Just make a second character!{x\n\r"      },
-    { "{WThe donation pit 'down' from recall often contains items you can use or sell for extra gold.{x\n\r"},
-    { "{WMercy the Healer at The Temple can spell you up for a fee. Type 'spellup' in her room for a list.{x\n\r"},
-    { "{WType 'identify <item name>' at any shop to have the shopkeeper lore the item for a nominal fee.{x\n\r"},
-    { "{WUse the 'gag' command to disable extraneous combat messages.{x\n\r"                                },
-    { "{WYou can disable these automated tips by typing 'nohelp', or see more by typing 'tips'.{x\n\r"      },
-    { "{WFind lights, containers, food, and drink at Herman's shop, SE, E from recall.{x\n\r"               },
-    { "{WThe 'dirs' command or 'help dirs' will give you a list of directions to all areas in the game.{x\n\r"}
-};
-
-
-
-void do_loginquote( CHAR_DATA *ch )
-{
-    char buf[MAX_STRING_LENGTH];
-    int number;
-
-    number = number_range( 1, MAX_QUOTES);
-
-    snprintf( buf, sizeof(buf), "\n\r%s\n\r", quote_table[number].text);
-    send_to_char ( buf, ch );
-    return;
-}
-
-void enter_game ( DESCRIPTOR_DATA *d )
+static void enter_game ( DESCRIPTOR_DATA *d )
 {
 	CHAR_DATA *ch = d->character;
 	char buf[MAX_STRING_LENGTH];

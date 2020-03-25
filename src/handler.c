@@ -48,62 +48,22 @@ DECLARE_DO_FUN(do_return    );
 /*
  * Local functions.
  */
-void    affect_modify   args( ( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd ) );
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact );
-bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim );
-bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact );
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact );
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
-CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible );
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
-CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
-
-/* friend stuff -- for NPC's mostly */
-bool is_friend(CHAR_DATA *ch,CHAR_DATA *victim)
-{
-    if (is_same_group(ch,victim))
-        return TRUE;
-    
-    if (!IS_NPC(ch))
-        return FALSE;
-    
-    if (!IS_NPC(victim))
-    {
-        if (IS_SET(ch->off_flags,ASSIST_PLAYERS))
-            return TRUE;
-        else
-            return FALSE;
-    }
-    
-    if (IS_AFFECTED(ch,AFF_CHARM))
-        return FALSE;
-    
-    if (IS_SET(ch->off_flags,ASSIST_ALL))
-        return TRUE;
-    
-    if (ch->group && ch->group == victim->group)
-        return TRUE;
-    
-    if (IS_SET(ch->off_flags,ASSIST_VNUM)
-        &&  ch->pIndexData == victim->pIndexData)
-        return TRUE;
-    
-    if (IS_SET(ch->off_flags,ASSIST_RACE) && ch->race == victim->race)
-        return TRUE;
-    
-    if (IS_SET(ch->off_flags,ASSIST_ALIGN)
-        &&  !IS_SET(ch->act,ACT_NOALIGN) && !IS_SET(victim->act,ACT_NOALIGN)
-        &&  ((IS_GOOD(ch) && IS_GOOD(victim))
-        ||   (IS_EVIL(ch) && IS_EVIL(victim))
-        ||   (IS_NEUTRAL(ch) && IS_NEUTRAL(victim))))
-        return TRUE;
-    
-    return FALSE;
-}
+static void    affect_modify   args( ( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd ) );
+static ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact );
+static bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim );
+static bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
+static OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+static OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact );
+static OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact );
+static OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer, int *number, bool exact );
+static OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+static CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact );
+static CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible );
+static OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, int *number, bool exact );
+static CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact );
+static AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf );
+static int apply_heavy_armor( OBJ_DATA *obj, int iWear );
+static int apply_ac( OBJ_DATA *obj, int iWear );
 
 /* returns number of people on an object */
 int count_users(OBJ_DATA *obj)
@@ -120,13 +80,6 @@ int count_users(OBJ_DATA *obj)
 
     return count;
 }
-	
-/* returns material number */
-int material_lookup (const char *name)
-{
-	return 0;
-}
-
 
 int weapon_lookup (const char *name)
 {
@@ -406,7 +359,7 @@ int get_base_sex(CHAR_DATA *ch)
     return ch->pcdata->true_sex;
 }
 
-void add_apply(CHAR_DATA *ch, int mod, int location)
+static void add_apply(CHAR_DATA *ch, int mod, int location)
 {
     int i;
 
@@ -758,7 +711,7 @@ MOB_INDEX_DATA* get_mimic( const CHAR_DATA *ch )
     return get_mob_index(aff->bitvector);
 }
 
-bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
+static bool is_ch_name( char *str, CHAR_DATA *ch, bool exact, CHAR_DATA *viewer )
 {
     PERF_PROF_ENTER( pr_, "is_ch_name" );
 
@@ -851,7 +804,7 @@ void affect_enchant(OBJ_DATA *obj)
 /*
  * Apply or remove an affect to a character.
  */
-void affect_modify( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd )
+static void affect_modify( CHAR_DATA *ch, AFFECT_DATA *paf, bool fAdd )
 {
     affect_modify_new( ch, paf, fAdd, TRUE );
 }
@@ -969,7 +922,7 @@ AFFECT_DATA *affect_find(AFFECT_DATA *paf, int sn)
     return NULL;
 }
 
-AFFECT_DATA* affect_find_check(AFFECT_DATA *paf, SKILL_CHECK_FUN *sn_check)
+static AFFECT_DATA* affect_find_check(AFFECT_DATA *paf, SKILL_CHECK_FUN *sn_check)
 {
     AFFECT_DATA *paf_find;
     
@@ -1012,24 +965,8 @@ AFFECT_DATA* affect_find_location(AFFECT_DATA *paf, int type, int location, int 
     return NULL;
 }
 
-/* return level of affect sn on ch or -1 if none found */
-int affect_level( CHAR_DATA *ch, int sn )
-{
-    AFFECT_DATA *aff;
-
-    if ( ch == NULL )
-	return -1;
-
-    aff = affect_find( ch->affected, sn );
-    
-    if ( aff == NULL )
-	return -1;
-    else
-	return aff->level;
-}
-
 /* fix object affects when removing one */
-void affect_check(CHAR_DATA *ch,int where,int vector)
+static void affect_check(CHAR_DATA *ch,int where,int vector)
 {
     AFFECT_DATA *paf;
     OBJ_DATA *obj;
@@ -1125,7 +1062,7 @@ void affect_to_char( CHAR_DATA *ch, const AFFECT_DATA *paf )
 }
 
 /* give an affect to an object */
-void affect_to_obj_tagsafe(OBJ_DATA *obj, const AFFECT_DATA *paf)
+static void affect_to_obj_tagsafe(OBJ_DATA *obj, const AFFECT_DATA *paf)
 {
     AFFECT_DATA *paf_new;
     
@@ -1171,7 +1108,7 @@ void affect_remove( CHAR_DATA *ch, AFFECT_DATA *paf )
 }
 
 // temporarily disable an affect on ch
-void affect_freeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+static void affect_freeze( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     // remove from ch->affected
     ch->affected = affect_remove_list(ch->affected, paf);
@@ -1183,7 +1120,7 @@ void affect_freeze( CHAR_DATA *ch, AFFECT_DATA *paf )
 }
 
 // reenable a previously frozen affect
-void affect_unfreeze( CHAR_DATA *ch, AFFECT_DATA *paf )
+static void affect_unfreeze( CHAR_DATA *ch, AFFECT_DATA *paf )
 {
     // remove from ch->aff_stasis
     ch->aff_stasis = affect_remove_list(ch->aff_stasis, paf);
@@ -1498,7 +1435,7 @@ void affect_renew( CHAR_DATA *ch, int sn, int level, int duration )
         }
 }
 
-const char* affect_name( AFFECT_DATA *paf )
+static const char* affect_name( AFFECT_DATA *paf )
 {
     if ( paf->type == gsn_custom_affect )
         return paf->tag;
@@ -1509,7 +1446,7 @@ const char* affect_name( AFFECT_DATA *paf )
 /*
  * Return -1, 0 or 1 depending on ordering of af1, af2
  */
-int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
+static int aff_cmp( AFFECT_DATA *af1, AFFECT_DATA *af2 )
 {
     // only use name for skill-based or custom affects
     // but not, e.g. for object affects (type = -1)
@@ -1555,7 +1492,7 @@ AFFECT_DATA* affect_insert( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
 /*
  * removes an affect from a given list, returning the new list
  */
-AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
+static AFFECT_DATA* affect_remove_list( AFFECT_DATA *affect_list, AFFECT_DATA *paf )
 {
     
     if ( affect_list == NULL || paf == NULL )
@@ -1997,12 +1934,12 @@ int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear )
 /*
  * Find the ac value of an obj, including position effect.
  */
-int apply_ac( OBJ_DATA *obj, int iWear )
+static int apply_ac( OBJ_DATA *obj, int iWear )
 {
     return predict_obj_ac(obj, wear_to_itemwear(iWear));
 }
 
-int apply_heavy_armor( OBJ_DATA *obj, int iWear )
+static int apply_heavy_armor( OBJ_DATA *obj, int iWear )
 {
     if ( IS_OBJ_STAT(obj, ITEM_HEAVY_ARMOR) )
         return itemwear_ac_factor(wear_to_itemwear(iWear));
@@ -2367,7 +2304,7 @@ void obj_from_obj( OBJ_DATA *obj )
     return;
 }
 
-void obj_from_world( OBJ_DATA *obj )
+static void obj_from_world( OBJ_DATA *obj )
 {
     if ( obj == NULL )
 	return;
@@ -2821,7 +2758,7 @@ ROOM_INDEX_DATA* get_room_world( const char *argument )
     return get_room_in_range( 1, top_vnum_room, argument, FALSE );
 }
 
-ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact )
+static ROOM_INDEX_DATA* get_room_in_range( int min_vnum, int max_vnum, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     ROOM_INDEX_DATA *room;
@@ -2914,7 +2851,7 @@ CHAR_DATA *get_victim_room( CHAR_DATA *ch, const char *argument )
     return rch;
 }
 
-bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_see_target( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     if ( IS_NPC(ch) || victim->position < POS_STANDING )
 	return can_see( ch, victim );
@@ -2977,7 +2914,7 @@ CHAR_DATA *get_char_room_ally( CHAR_DATA *ch, int sn )
     return ally;
 }
 
-CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible )
+static CHAR_DATA *get_char_room_new( CHAR_DATA *ch, const char *argument, bool exact, bool as_victim, bool visible )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *rch;
@@ -3080,7 +3017,7 @@ static char target_location(const char *argument, const char **nextarg)
     return 'x';    
 }
 
-CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
+static CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     PERF_PROF_ENTER( pr_, "get_char_new");
 
@@ -3198,7 +3135,7 @@ CHAR_DATA *get_char_new( CHAR_DATA *ch, const char *argument, bool area, bool ex
     return NULL;
 }
 
-CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
+static CHAR_DATA *get_char_group_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     PERF_PROF_ENTER( pr_, "get_char_group_new" );
 
@@ -3374,7 +3311,7 @@ OBJ_DATA *get_obj_list( CHAR_DATA *ch, const char *argument, OBJ_DATA *list )
 /* number is reduced for each match found
  * exact specifies wether to look for exact name matching
  */
-OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, 
+static OBJ_DATA *get_obj_list_new( CHAR_DATA *ch, const char *arg, OBJ_DATA *list, 
 			    int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -3417,7 +3354,7 @@ OBJ_DATA *get_obj_carry( CHAR_DATA *ch, const char *argument, CHAR_DATA *viewer 
     return obj;
 }
 
-OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer,
+static OBJ_DATA *get_obj_carry_new( CHAR_DATA *ch, const char *arg, CHAR_DATA *viewer,
 			     int *number, bool exact )
 {
     OBJ_DATA *obj;
@@ -3462,7 +3399,7 @@ OBJ_DATA *get_obj_wear( CHAR_DATA *ch, const char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact )
+static OBJ_DATA *get_obj_wear_new( CHAR_DATA *ch, const char *arg, int *number, bool exact )
 {
     OBJ_DATA *obj;
     
@@ -3499,7 +3436,7 @@ OBJ_DATA *get_obj_here( CHAR_DATA *ch, const char *argument )
     return obj;
 }
 
-OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
+static OBJ_DATA *get_obj_here_new( CHAR_DATA *ch, const char *argument, bool exact )
 {
     OBJ_DATA *obj;
     char arg[MIL], arg1[MIL];
@@ -3551,7 +3488,7 @@ OBJ_DATA *get_obj_area( CHAR_DATA *ch, const char *argument )
     return obj;    
 }
 
-OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
+static OBJ_DATA *get_obj_new( CHAR_DATA *ch, const char *argument, bool area, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     OBJ_DATA *obj;
@@ -3698,7 +3635,7 @@ bool has_money( CHAR_DATA *ch, int cost, bool bank )
     return money >= cost;
 }
 
-int money_weight( int silver, int gold )
+static int money_weight( int silver, int gold )
 {
     return (silver + 99) / 100 + (gold + 24) / 25;
 }
@@ -4014,7 +3951,7 @@ bool ignore_invisible = FALSE; // hunt etc.
  * to see victim (hide not checked!)
  */
 static int impl_can_see_new_( CHAR_DATA *ch, CHAR_DATA *victim, bool combat );
-int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
+static int can_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 {
     PERF_PROF_ENTER( pr_, "can_see_new" );
     int rtn = impl_can_see_new_(ch, victim, combat);
@@ -4152,7 +4089,7 @@ bool check_see_combat( CHAR_DATA *ch, CHAR_DATA *victim )
     return check_see_new(ch, victim, TRUE);
 }
 
-bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
+static bool check_see_new( CHAR_DATA *ch, CHAR_DATA *victim, bool combat )
 {
     int see_state = can_see_new(ch, victim, combat);
     int roll_ch;
@@ -4575,18 +4512,6 @@ ROOM_INDEX_DATA *get_obj_room(OBJ_DATA *obj)
     
     //bug("Get_obj_room: Unable to find room for object %d.", obj->pIndexData->vnum);
     return NULL;                       /* Scream and run in circles. */
-}
-
-/* Retrieve the char ultimately carrying an object. */
-CHAR_DATA* get_obj_char( OBJ_DATA *obj )
-{
-    if ( obj == NULL )
-	return NULL;
-
-    while ( obj->in_obj != NULL )
-	obj = obj->in_obj;
-
-    return obj->carried_by;
 }
 
 void default_colour( CHAR_DATA *ch )

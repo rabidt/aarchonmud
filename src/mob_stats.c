@@ -47,7 +47,7 @@ int mob_base_hp( MOB_INDEX_DATA *pMobIndex, int level )
 
 // mana
 
-int level_base_mana( int level )
+static int level_base_mana( int level )
 {
     return (5 + level) * (10 + level * 1/4);
 }
@@ -60,7 +60,7 @@ int mob_base_mana( MOB_INDEX_DATA *pMobIndex, int level )
 
 // moves
 
-int level_base_move( int level )
+static int level_base_move( int level )
 {
     return (5 + level) * (10 + level * 1/4);
 }
@@ -73,7 +73,7 @@ int mob_base_move( MOB_INDEX_DATA *pMobIndex, int level )
 
 // armor
 
-int level_base_ac( int level )
+static int level_base_ac( int level )
 {
     return level * -6;
 }
@@ -85,7 +85,7 @@ int mob_base_ac( MOB_INDEX_DATA *pMobIndex, int level )
 
 // saves
 
-int level_base_saves( int level )
+static int level_base_saves( int level )
 {
     return -level/2;
 }
@@ -98,7 +98,7 @@ int mob_base_saves( MOB_INDEX_DATA *pMobIndex, int level )
 
 // hitroll
 
-int level_base_hitroll( int level )
+static int level_base_hitroll( int level )
 {
     return level;
 }

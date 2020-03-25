@@ -55,11 +55,11 @@ DECLARE_DO_FUN(do_quit);
 DECLARE_DO_FUN(do_reserve);
 
 /* Local variables */
-AUTH_LIST *first_auth_name;
-AUTH_LIST *last_auth_name;
+static AUTH_LIST *first_auth_name;
+static AUTH_LIST *last_auth_name;
 
 /* stuff for auto-authing recreating chars */
-char last_delete_name[MIL] = "";
+static char last_delete_name[MIL] = "";
 
 void add_auto_auth( const char *name )
 {
@@ -107,7 +107,7 @@ bool exists_player( const char *name )
        return FALSE;
 }
 
-void clear_auth_list( void )
+static void clear_auth_list( void )
 {
     AUTH_LIST *auth, *nauth;
     
@@ -141,7 +141,7 @@ void clear_auth_list( void )
     save_auth_list();
 }
 
-void write_auth_file( FILE *fpout, AUTH_LIST *list )
+static void write_auth_file( FILE *fpout, AUTH_LIST *list )
 {
     rfprintf( fpout, "Name		%s~\n",	list->name );
     rfprintf( fpout, "State		%d\n", list->state );
@@ -168,7 +168,7 @@ void write_auth_file( FILE *fpout, AUTH_LIST *list )
 #define KEY( literal, field, value ) if ( !str_cmp( word, literal ) ) { field  = value; fMatch = TRUE; break; }
 
 
-void fread_auth( FILE *fp )
+static void fread_auth( FILE *fp )
 {
     AUTH_LIST *new_auth;
     bool fMatch;
@@ -510,7 +510,7 @@ void check_auth_state( CHAR_DATA *ch )
 }
 
 
-bool is_waiting_for_auth( CHAR_DATA *ch )
+static bool is_waiting_for_auth( CHAR_DATA *ch )
 {
     int state = get_auth_state( ch );
     return !IS_NPC(ch) && ch->desc
@@ -521,7 +521,7 @@ bool is_waiting_for_auth( CHAR_DATA *ch )
 /* 
  * Check if the name prefix uniquely identifies a char descriptor
  */ 
-CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, const char *name ) 
+static CHAR_DATA *get_waiting_desc( CHAR_DATA *ch, const char *name ) 
 { 
     DESCRIPTOR_DATA *d; 
     CHAR_DATA       *ret_char = NULL;
@@ -994,4 +994,3 @@ void auth_update( void )
 
     PERF_PROF_EXIT( pr_ );
 }
-

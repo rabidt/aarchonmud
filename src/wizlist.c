@@ -40,10 +40,10 @@
 #include "merc.h"
 #include "recycle.h"
 
-WIZ_DATA *wiz_list;
+static WIZ_DATA *wiz_list;
 
 /* Each of Your Immortal Tiers */
-const char *	const	wiz_titles	[] =
+static const char *	const	wiz_titles	[] =
 {
         "Implementors  ",
         "Archons       ",
@@ -60,10 +60,10 @@ const char *	const	wiz_titles	[] =
 /*
  * Local functions.
  */
-void change_wizlist  args( (CHAR_DATA *ch, bool add, int level, char *argument));
+static void change_wizlist  args( (CHAR_DATA *ch, bool add, int level, char *argument));
 
 
-void save_wizlist(void)
+static void save_wizlist(void)
 {
     WIZ_DATA *pwiz;
     FILE *fp;
@@ -332,7 +332,7 @@ void update_wizlist(CHAR_DATA *ch, int level)
     return;
 }
 
-void change_wizlist(CHAR_DATA *ch, bool add, int level, char *argument)
+static void change_wizlist(CHAR_DATA *ch, bool add, int level, char *argument)
 {
     char arg[MAX_INPUT_LENGTH];
     WIZ_DATA *prev;

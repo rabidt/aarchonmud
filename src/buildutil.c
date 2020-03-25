@@ -27,7 +27,7 @@ DECLARE_DO_FUN(do_cset      );
 DECLARE_DO_FUN(do_mfind     );
 DECLARE_DO_FUN(do_ofind     );
 DECLARE_DO_FUN(do_slookup   );
-const char* first_line( const char *str );
+static const char* first_line( const char *str );
 
 
 
@@ -333,7 +333,7 @@ DEF_DO_FUN(do_vlist)
 }
 
 /* returns the first line of given string */
-const char* first_line( const char* str )
+static const char* first_line( const char* str )
 {
     static char buf[MIL];
     int i = 0;
@@ -1844,9 +1844,9 @@ DEF_DO_FUN(do_sset)
 #define MSETNPCONLY 2
 #define MSETANY     3
 
-#define MSETFUN( field ) bool mset_ ## field ( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg3, int value )
+#define MSETFUN( field ) static bool mset_ ## field ( CHAR_DATA *ch, CHAR_DATA *victim, const char *arg3, int value )
 
-bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
+static bool mset_stat( CHAR_DATA *ch, CHAR_DATA *victim, int stat, int value )
 {
     int max_value = (IS_IMMORTAL(victim) || IS_NPC(victim)) ? MAX_CURRSTAT : pc_race_table[victim->race].max_stats[stat] + class_bonus(victim->clss, stat);
     if ( value < 1 || value > max_value )
@@ -2467,7 +2467,7 @@ MSETFUN( rrank )
 }
 
 
-struct
+static struct
 {
     const char *field;
     int status;
@@ -2914,4 +2914,3 @@ DEF_DO_FUN(do_frfind)
    	}
     }
 }
-

@@ -8,6 +8,11 @@
 #include <time.h>
 #include "merc.h"
 
+
+static void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration );
+static void enchant_obj_sn( OBJ_DATA *obj, int ops, int rand_type, int duration, int sn );
+
+
 struct enchantment_type
 {
     int apply;
@@ -16,7 +21,7 @@ struct enchantment_type
     int delta;
 };
 
-const struct enchantment_type enchantment_table[] =
+static const struct enchantment_type enchantment_table[] =
 {
     { APPLY_STR, 40, 0, 4 },
     { APPLY_CON, 40, 0, 4 },
@@ -39,7 +44,7 @@ const struct enchantment_type enchantment_table[] =
 };
 
 // returns random apply value based on rand_type
-int get_random_apply( int rand_type )
+static int get_random_apply( int rand_type )
 {
     int i, total_chance = 0;
     int apply = APPLY_HIT; // just some default, should always get overwritten
@@ -71,7 +76,7 @@ int get_random_apply( int rand_type )
 }
 
 // returns 1 OP worth of given apply
-int get_delta( int apply )
+static int get_delta( int apply )
 {
     int i;
     for ( i = 0; enchantment_table[i].apply; i++ )
@@ -81,7 +86,7 @@ int get_delta( int apply )
 }
 
 // chance for adding an additional enchantment (for enchant weapon/armor spell)
-int get_enchant_chance( OBJ_DATA *obj, int level )
+static int get_enchant_chance( OBJ_DATA *obj, int level )
 {
     int ops_left = get_obj_spec(obj) - get_obj_ops(obj);
     int level_diff = level - obj->level;
@@ -93,7 +98,7 @@ int get_enchant_chance( OBJ_DATA *obj, int level )
 /* get ops added by an enchantment
  * 0 indicates failure, -1, -2, .. indicate extreme failure
  */
-int get_enchant_ops( OBJ_DATA *obj, int level )
+static int get_enchant_ops( OBJ_DATA *obj, int level )
 {
     int ops_left, fail;
 
@@ -197,7 +202,7 @@ void check_reenchant_obj( OBJ_DATA *obj )
 }
 
 // to ensure we don't exceed stat hardcap
-int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
+static int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
 {
     AFFECT_DATA *aff;
     int bonus = 0;
@@ -212,12 +217,12 @@ int get_obj_stat_bonus( OBJ_DATA *obj, int stat )
     return bonus;
 }
 
-void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
+static void enchant_obj( OBJ_DATA *obj, int ops, int rand_type, int duration )
 {
     enchant_obj_sn(obj, ops, rand_type, duration, 0);
 }
 
-void enchant_obj_sn( OBJ_DATA *obj, int ops, int rand_type, int duration, int sn )
+static void enchant_obj_sn( OBJ_DATA *obj, int ops, int rand_type, int duration, int sn )
 {
     AFFECT_DATA af;
 
@@ -271,7 +276,7 @@ void add_enchant_affect( OBJ_DATA *obj, AFFECT_DATA *aff )
         affect_to_obj( obj, aff );
 }
 
-void disenchant_obj( OBJ_DATA *obj )
+static void disenchant_obj( OBJ_DATA *obj )
 {
     AFFECT_DATA *paf = obj->affected, *paf_prev = NULL;
     while ( paf )
@@ -302,7 +307,7 @@ void disenchant_obj( OBJ_DATA *obj )
 }
 
 // cost in gold of enchantment (for enchant weapon/armor spell)
-int get_enchant_cost( OBJ_DATA *obj )
+static int get_enchant_cost( OBJ_DATA *obj )
 {
     int current_ops = get_obj_ops(obj);
     if ( IS_OBJ_STAT(obj, ITEM_TRANSLUCENT_EX) )

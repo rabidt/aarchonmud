@@ -13,7 +13,7 @@
 #include "tables.h"
 #include "lookup.h"
 
-CLANWAR_DATA * clanwar_table;
+static CLANWAR_DATA * clanwar_table;
 
 CLANWAR_DATA *clanwar_lookup(sh_int clan_one, sh_int clan_two)
 {
@@ -137,7 +137,7 @@ void save_clanwars( void )
 }
 
 
-void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
+static void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
 {
    CLANWAR_DATA *p, *q;
    sh_int i;
@@ -219,7 +219,7 @@ void clanwar_status(CHAR_DATA *ch, sh_int clan_number)
 /* This is presently only called to add a WAR or TREATY record.
    TRUCE modifies an existing WAR record, and PEACE is the lack of
    any clanwar record. */
-void add_clanwar_node(CHAR_DATA *ch, sh_int other_clan, int status)
+static void add_clanwar_node(CHAR_DATA *ch, sh_int other_clan, int status)
 {
    CLANWAR_DATA *p;
    
@@ -238,7 +238,7 @@ void add_clanwar_node(CHAR_DATA *ch, sh_int other_clan, int status)
 
 
 
-int delete_clanwar_node(CLANWAR_DATA *node)
+static int delete_clanwar_node(CLANWAR_DATA *node)
 {
    if (node == clanwar_table)
    {

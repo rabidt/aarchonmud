@@ -47,15 +47,13 @@
 #include "tattoo.h"
 #include "songs.h"
 
-bool commen_wear_pos( tflag wear_flag1, tflag wear_flag2 );
-void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
+static void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
 static void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output );
 void smash_beep_n_blink( char *str );
-void smash_reserved_colcodes( char *str );
-void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp );
-void achievement_reward( CHAR_DATA *ch, int table_index);
-void print_ach_rewards(CHAR_DATA *ch);
-void print_stat_bars( CHAR_DATA *ch, BUFFER *output );
+static void smash_reserved_colcodes( char *str );
+static void achievement_reward( CHAR_DATA *ch, int table_index);
+static void print_ach_rewards(CHAR_DATA *ch);
+static void print_stat_bars( CHAR_DATA *ch, BUFFER *output );
 
 /* command procedures needed */
 DECLARE_DO_FUN( do_exits    );
@@ -2187,7 +2185,7 @@ void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, b
 
 
 /* displays the affects on ch to to_ch */
-void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all)
+static void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all)
 {
     AFFECT_DATA *paf, *paf_last = NULL;
     bool debuff_exists = FALSE;
@@ -3431,7 +3429,7 @@ void smash_beep_n_blink( char *str )
 /* Called ONLY from do_title, this prevents people from using the colour codes used
    by the channels .. mostly to prevent stray beeps from being annoying :P */
 
-void smash_reserved_colcodes( char *str )
+static void smash_reserved_colcodes( char *str )
 {
     for( ; *str != '\0'; str++ )
     {
@@ -5120,7 +5118,7 @@ DEF_DO_FUN(do_attributes)
 }
 
 /* Show Str..Luc bonuses as a bar graph -- Bobble 02/2013 */
-void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
+static void print_stat_bars( CHAR_DATA *ch, BUFFER *output )
 {
     const int MAX_COST = 8;
     char bar_buf[256], buf[MAX_STRING_LENGTH];
@@ -5322,84 +5320,6 @@ DEF_DO_FUN(do_helper)
         }
 }
 
-
-void print_affect( CHAR_DATA *ch, AFFECT_DATA *paf, FILE *fp )
-{
-  char buf[MSL];
-  bool say_it = FALSE;
-
-  if ( paf->location != APPLY_NONE && paf->modifier != 0 )
-    {
-      if ( paf->duration > -1)
-        fprintf( fp, "%s by %d for %d hours.",
-                 affect_loc_name( paf->location ), paf->modifier, paf->duration );
-      else
-        fprintf( fp, "%s\n\r%d",
-                 affect_loc_name( paf->location ), paf->modifier );
-      if (say_it)
-        do_say(ch, buf);
-      else
-      {
-        //send_to_char(buf, ch);
-        fprintf( fp, "\n\r");
-      }
-    }
-
-  if (paf->bitvector && paf->where != TO_SPECIAL)
-    {
-      switch(paf->where)
-        {
-        case TO_AFFECTS:
-          fprintf( fp, "Adds%s", affect_bit_name(paf->bitvector));
-          break;
-        case TO_OBJECT:
-          fprintf( fp, "It adds %s object flag.", extra_bit_name(paf->bitvector));
-          break;
-        case TO_WEAPON:
-          fprintf( fp, "It adds %s weapon flags.", weapon_bits_name(paf->bitvector));
-          break;
-        case TO_IMMUNE:
-          fprintf( fp, "It grants immunity to %s.", imm_bit_name(paf->bitvector));
-          break;
-        case TO_RESIST:
-          fprintf( fp, "It bestows resistance to %s.", imm_bit_name(paf->bitvector));
-          break;
-        case TO_VULN:
-          fprintf( fp, "It inflicts vulnerability to %s.", imm_bit_name(paf->bitvector));
-          break;
-        default:
-          fprintf( fp, "Unknown bit %d: %d\n\r", paf->where, paf->bitvector);
-          break;
-        }
-      if (say_it)
-        do_say(ch, buf);
-      else
-      {
-        //send_to_char(buf, ch);
-        fprintf( fp, "\n\r");
-      }
-    }
-}
-
-/*
-DEF_DO_FUN(do_combo)
-{
-    char buf[MAX_STRING_LENGTH];
-
-    if ( ch->combo_points > 0 )
-    {
-        snprintf( buf, sizeof(buf), "You have %d combo point(s).\n\r", ch->combo_points );
-        send_to_char( buf, ch );
-    }
-    else
-    {
-    send_to_char("You do not have any combo points at this time.\n\r", ch);
-    }
-
-    return;
-} 
-*/
-
 const char * const achievement_display [] =
 {
         "none",
@@ -5560,7 +5480,7 @@ DEF_DO_FUN(do_achievements)
     }
 }
 
-void print_ach_rewards(CHAR_DATA *ch)
+static void print_ach_rewards(CHAR_DATA *ch)
 {
 	BUFFER *output;
 	char header[MSL], buf[MSL];
@@ -5744,7 +5664,7 @@ void check_achievement( CHAR_DATA *ch )
     }
 }
 
-void achievement_reward( CHAR_DATA *ch, int table_index)
+static void achievement_reward( CHAR_DATA *ch, int table_index)
 {
    /* This function gives people rewards based on what table_index is given*/
 

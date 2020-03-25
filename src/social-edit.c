@@ -45,7 +45,7 @@ int maxSocial;
 #ifndef CONST_SOCIAL 
 struct social_type *social_table;	   /* and social table */
 
-void load_social (FILE *fp, struct social_type *social)
+static void load_social (FILE *fp, struct social_type *social)
 {
 	strlcpy(social->name, fread_string (fp), sizeof(social->name));
 	social->char_no_arg =   fread_string (fp);
@@ -94,7 +94,7 @@ void load_social_table ( void )
 
 #endif /* CONST_SOCIAL */
 
-void save_social (const struct social_type *s, FILE *fp)
+static void save_social (const struct social_type *s, FILE *fp)
 {
 	/* get rid of (null) */
 	rfprintf (fp, "%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n%s~\n\n",
@@ -110,7 +110,7 @@ void save_social (const struct social_type *s, FILE *fp)
 }
 
 
-void save_social_table( void )
+static void save_social_table( void )
 {
 	FILE *fp;
 	int i;
@@ -140,7 +140,7 @@ void save_social_table( void )
 
 
 /* Find a social based on name */ 
-int social_lookup (const char *name)
+static int social_lookup (const char *name)
 {
 	int i;
 	

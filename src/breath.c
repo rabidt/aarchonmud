@@ -19,16 +19,16 @@
 typedef void EFFECT_FUN ( void *vo, int level, int dam, int target );
 
 /* special effect functions */
-void slow_effect( void *vo, int level, int dam, int target );
-void ooze_effect( void *vo, int level, int dam, int target );
-void plague_effect( void *vo, int level, int dam, int target );
-void weak_effect( void *vo, int level, int dam, int target );
-void curse_effect( void *vo, int level, int dam, int target );
+static void slow_effect( void *vo, int level, int dam, int target );
+static void ooze_effect( void *vo, int level, int dam, int target );
+static void plague_effect( void *vo, int level, int dam, int target );
+static void weak_effect( void *vo, int level, int dam, int target );
+static void curse_effect( void *vo, int level, int dam, int target );
 
 /* the prototype for all breath spells
  * NULL victim is allowed for multi_target spells
  */
-void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, 
+static void proto_spell_breath( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim, 
 			 int dam_type, EFFECT_FUN *effect_fun, bool multi_target )
 {
   CHAR_DATA *vch, *vch_next;
@@ -208,7 +208,7 @@ DEF_SPELL_FUN(spell_zone_of_damnation)
 
 /* new effects for necromancer spells */
 
-void slow_effect( void *vo, int level, int dam, int target )
+static void slow_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
@@ -243,7 +243,7 @@ void slow_effect( void *vo, int level, int dam, int target )
   }
 }
 
-void ooze_effect( void *vo, int level, int dam, int target )
+static void ooze_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
@@ -268,7 +268,7 @@ void ooze_effect( void *vo, int level, int dam, int target )
   act_gag("$n begins to move around clumsily.", victim, NULL, NULL, TO_ROOM, GAG_EFFECT);
 }
 
-void plague_effect( void *vo, int level, int dam, int target )
+static void plague_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
@@ -295,7 +295,7 @@ void plague_effect( void *vo, int level, int dam, int target )
   }
 }
 
-void weak_effect( void *vo, int level, int dam, int target )
+static void weak_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;
@@ -322,7 +322,7 @@ void weak_effect( void *vo, int level, int dam, int target )
   }
 }
 
-void curse_effect( void *vo, int level, int dam, int target )
+static void curse_effect( void *vo, int level, int dam, int target )
 {
   CHAR_DATA *victim = (CHAR_DATA *) vo;
   AFFECT_DATA af;

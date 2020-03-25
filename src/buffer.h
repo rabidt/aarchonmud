@@ -25,7 +25,6 @@ void __buffer_strcat (DBUFFER *buffer, const char *text);
 
 void buffer_free (DBUFFER *buffer);
 void buffer_clear (DBUFFER *buffer);
-int find_mem_size (int min_size);
 int bprintf (DBUFFER *buffer, char *fmt, ...);
 int rfprintf(FILE *f, const char *fmt, ...);
 int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...);

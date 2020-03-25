@@ -18,9 +18,9 @@
 #include "simsave.h"
 
 /* Locals */
-void load_clan_file (const char *filename);
-void fread_clan( FILE *fp, int clannum );
-void fread_clan_rank( FILE *fp, int clannum, int ranknum );
+static void load_clan_file (const char *filename);
+static void fread_clan( FILE *fp, int clannum );
+static void fread_clan_rank( FILE *fp, int clannum, int ranknum );
 
 #if defined(KEY)
 #undef KEY
@@ -109,7 +109,7 @@ void load_clans( void )
 
 
 /* Load a specific clan file referenced in the clan list. -Rim 1/2000*/
-void load_clan_file(const char *filename)
+static void load_clan_file(const char *filename)
 {
     FILE *fp;
     char path[MAX_INPUT_LENGTH];
@@ -191,7 +191,7 @@ void load_clan_file(const char *filename)
 
 
 /* Read in a block of clan data from a clan file. -Rim 1/2000*/
-void fread_clan( FILE *fp, int clannum )
+static void fread_clan( FILE *fp, int clannum )
 {
     const char *word;
     bool fMatch;
@@ -288,7 +288,7 @@ void fread_clan( FILE *fp, int clannum )
 
 
 /* Read in a block of clan rank data from a clan file. -Rim 1/2000*/
-void fread_clan_rank( FILE *fp, int clannum, int ranknum )
+static void fread_clan_rank( FILE *fp, int clannum, int ranknum )
 {
     const char *word;
     bool fMatch;
@@ -1661,8 +1661,8 @@ DEF_DO_FUN(do_clan_dump)
 }
 */
 
-void clan_dump_obj(CHAR_DATA *ch, int clan);
-void clan_dump_room(CHAR_DATA *ch, int clan);
+static void clan_dump_obj(CHAR_DATA *ch, int clan);
+static void clan_dump_room(CHAR_DATA *ch, int clan);
 
 DEF_DO_FUN(do_clan_dump)
 {
@@ -1697,7 +1697,7 @@ DEF_DO_FUN(do_clan_dump)
 }
 
 
-void clan_dump_obj(CHAR_DATA *ch, int clan)
+static void clan_dump_obj(CHAR_DATA *ch, int clan)
 {
     OBJ_INDEX_DATA  *pObjIndex;
 	int vnum;
@@ -1726,7 +1726,7 @@ void clan_dump_obj(CHAR_DATA *ch, int clan)
 }
 
 
-void clan_dump_room(CHAR_DATA *ch, int clan)
+static void clan_dump_room(CHAR_DATA *ch, int clan)
 {
     ROOM_INDEX_DATA *pRoomIndex;
 	int vnum;
@@ -1798,4 +1798,3 @@ DEF_DO_FUN(do_cmotd)
 	}
     }
 }
-

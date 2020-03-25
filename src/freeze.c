@@ -11,7 +11,7 @@
    Set these VNUMs to the min/max room number to randomly locate players
    in the freeze tag zone.
  */
-const int ftag_table[4][2]=
+static const int ftag_table[4][2]=
 {
 	{32500,32548},
 	{17353,17380},
@@ -20,14 +20,14 @@ const int ftag_table[4][2]=
 };
 
 /* Local declarations. */
-void show_ftag_status( CHAR_DATA *ch, bool final );
-void give_ftag_reward(int team, int amount);
-void check_team_frozen ( CHAR_DATA *ch );
+static void show_ftag_status( CHAR_DATA *ch, bool final );
+static void give_ftag_reward(int team, int amount);
+static void check_team_frozen ( CHAR_DATA *ch );
 
-int ftag_reward = 0;
-int ftag_chamber=0;
-int ftag_next=0;
-bool going=FALSE;
+static int ftag_reward = 0;
+static int ftag_chamber=0;
+static int ftag_next=0;
+static bool going=FALSE;
 
 DECLARE_DO_FUN( do_transfer );
 DECLARE_DO_FUN( do_ftag );
@@ -107,7 +107,7 @@ DEF_DO_FUN(do_blue)
 }
 
 /* Added by Rimbol. */
-void give_ftag_reward(int team, int amount)
+static void give_ftag_reward(int team, int amount)
 {
     DESCRIPTOR_DATA *d;
     int value;
@@ -137,7 +137,7 @@ void give_ftag_reward(int team, int amount)
     }
 }
 
-void check_team_frozen ( CHAR_DATA *ch )
+static void check_team_frozen ( CHAR_DATA *ch )
 {
     DESCRIPTOR_DATA *d;
     char buf [MAX_STRING_LENGTH];
@@ -174,7 +174,7 @@ void check_team_frozen ( CHAR_DATA *ch )
 }
 
 /* Added by Rimbol. */
-void ftag_reset_player(CHAR_DATA *ch, char *argument)
+static void ftag_reset_player(CHAR_DATA *ch, char *argument)
 {
     CHAR_DATA *victim;
     char buf [MAX_STRING_LENGTH];
@@ -435,7 +435,7 @@ DEF_DO_FUN(do_ftag)
 }
 
 /* Added by Rimbol. */
-void show_ftag_status( CHAR_DATA *ch, bool final )
+static void show_ftag_status( CHAR_DATA *ch, bool final )
 {
     DESCRIPTOR_DATA *d;
     char buf [MAX_STRING_LENGTH];

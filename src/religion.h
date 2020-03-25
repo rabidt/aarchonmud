@@ -170,7 +170,6 @@ const char* get_ch_rank_name( CHAR_DATA *ch );
 void gain_faith( CHAR_DATA *ch, int gain );
 const char* get_god_name( CHAR_DATA *ch );
 bool has_god( CHAR_DATA *ch );
-int get_faith( CHAR_DATA *ch );
 //int get_favour( CHAR_DATA *ch );
 //bool is_relic_obj( OBJ_DATA *obj );
 //void free_relic( OBJ_DATA *obj );

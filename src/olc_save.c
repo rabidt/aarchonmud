@@ -34,11 +34,11 @@
 //#define DIF(a,b) (~((~a)|(b)))
 #define DIF(a,b,c) flag_copy(a,b); flag_remove_field(a,c)
 
-void save_helps( FILE *fp, HELP_AREA *ha );
-void save_other_helps( void );
+static void save_helps( FILE *fp, HELP_AREA *ha );
+static void save_other_helps( void );
 void save_skills( void );
-void reverse_mprog_order args( (MOB_INDEX_DATA *pMobIndex) );
-void reverse_affect_order args( (OBJ_INDEX_DATA *pObjIndex) );
+static void reverse_mprog_order args( (MOB_INDEX_DATA *pMobIndex) );
+static void reverse_affect_order args( (OBJ_INDEX_DATA *pObjIndex) );
 
 
 /*
@@ -53,7 +53,7 @@ void reverse_affect_order args( (OBJ_INDEX_DATA *pObjIndex) );
 Name:		fix_string
 Purpose:	Returns a string without \r and ~.
 ****************************************************************************/
-char *fix_string( const char *str )
+static char *fix_string( const char *str )
 {
     static char strfix[MAX_STRING_LENGTH * 3];
     int i;
@@ -84,7 +84,7 @@ char *fix_string( const char *str )
     return strfix;
 }
 
-bool must_save_area( AREA_DATA *area )
+static bool must_save_area( AREA_DATA *area )
 {
     return area->save && !IS_SET( area->area_flags, AREA_CLONE );
 }
@@ -94,7 +94,7 @@ Name:		save_area_list
 Purpose:	Saves the listing of files to be loaded at startup.
 Called by:	do_asave(olc_save.c).
 ****************************************************************************/
-void save_area_list( void )
+static void save_area_list( void )
 {
     FILE *fp;
     AREA_DATA *pArea;
@@ -171,7 +171,7 @@ char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf )
 
 /* reverses the order of the affect list of pObjIndex
  */
-void reverse_affect_order(OBJ_INDEX_DATA *pObjIndex)
+static void reverse_affect_order(OBJ_INDEX_DATA *pObjIndex)
 {
     AFFECT_DATA 
         *new_affect_list = NULL,
@@ -197,7 +197,7 @@ void reverse_affect_order(OBJ_INDEX_DATA *pObjIndex)
  * Purpose: fix bug that reverses order of mob mprogs as they save
  * Called by:  save_mobble
  *****************************************************************/
-void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
+static void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
 {
     PROG_LIST
         *new_mprog_list = NULL,
@@ -217,7 +217,7 @@ void reverse_mprog_order(MOB_INDEX_DATA *pMobIndex)
     pMobIndex->mprogs->next = new_mprog_list;
 }
 
-void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
+static void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
 {
     PROG_LIST
         *new_oprog_list = NULL,
@@ -237,7 +237,7 @@ void reverse_oprog_order(OBJ_INDEX_DATA *pObjIndex)
     pObjIndex->oprogs->next = new_oprog_list;
 }
 
-void reverse_aprog_order(AREA_DATA *pArea)
+static void reverse_aprog_order(AREA_DATA *pArea)
 {
     PROG_LIST
         *new_aprog_list = NULL,
@@ -257,7 +257,7 @@ void reverse_aprog_order(AREA_DATA *pArea)
     pArea->aprogs->next = new_aprog_list;
 }
 
-void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
+static void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
 {
     PROG_LIST
         *new_rprog_list = NULL,
@@ -277,7 +277,7 @@ void reverse_rprog_order(ROOM_INDEX_DATA *pRoom)
     pRoom->rprogs->next = new_rprog_list;
 }
 
-void save_mobprogs( FILE *fp, AREA_DATA *pArea )
+static void save_mobprogs( FILE *fp, AREA_DATA *pArea )
 {
     PROG_CODE *pMprog;
     int i;
@@ -300,7 +300,7 @@ void save_mobprogs( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
-void save_objprogs( FILE *fp, AREA_DATA *pArea )
+static void save_objprogs( FILE *fp, AREA_DATA *pArea )
 {
     PROG_CODE *pOprog;
     int i;
@@ -322,7 +322,7 @@ void save_objprogs( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
-void save_areaprogs( FILE *fp, AREA_DATA *pArea )
+static void save_areaprogs( FILE *fp, AREA_DATA *pArea )
 {
     PROG_CODE *pAprog;
     int i;
@@ -344,7 +344,7 @@ void save_areaprogs( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
-void save_roomprogs( FILE *fp, AREA_DATA *pArea )
+static void save_roomprogs( FILE *fp, AREA_DATA *pArea )
 {
     PROG_CODE *pRprog;
     int i;
@@ -378,7 +378,7 @@ Name:           save_mobble
 Purpose:        Save one mobile to file, extra-new format -- Bobble
 Called by:      save_mobbles (below).
 ****************************************************************************/
-void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
+static void save_mobble( FILE *fp, MOB_INDEX_DATA *pMobIndex )
 {
     sh_int race = pMobIndex->race;
     PROG_LIST *pMprog;
@@ -445,7 +445,7 @@ Name:           save_mobbles
 Purpose:        Save #MOBBLES secion of an area file.
 Called by:      save_area(olc_save.c).
 ****************************************************************************/
-void save_mobbles( FILE *fp, AREA_DATA *pArea )
+static void save_mobbles( FILE *fp, AREA_DATA *pArea )
 {
     int i;
     MOB_INDEX_DATA *pMob;
@@ -469,7 +469,7 @@ Purpose:	Save one object to file.
 new ROM format saving -- Hugin
 Called by:	save_objects (below).
 ****************************************************************************/
-void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
+static void save_object( FILE *fp, OBJ_INDEX_DATA *pObjIndex )
 {
     AFFECT_DATA *pAf;
     EXTRA_DESCR_DATA *pEd;
@@ -658,7 +658,7 @@ Purpose:	Save #OBJECTS section of an area file.
 Called by:	save_area(olc_save.c).
 Notes:         Changed for ROM OLC.
 ****************************************************************************/
-void save_objects( FILE *fp, AREA_DATA *pArea )
+static void save_objects( FILE *fp, AREA_DATA *pArea )
 {
     int i;
     OBJ_INDEX_DATA *pObj;
@@ -684,7 +684,7 @@ Name:		save_rooms
 Purpose:	Save #ROOMS section of an area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_rooms( FILE *fp, AREA_DATA *pArea )
+static void save_rooms( FILE *fp, AREA_DATA *pArea )
 {
     ROOM_INDEX_DATA *pRoomIndex;
     EXTRA_DESCR_DATA *pEd;
@@ -814,7 +814,7 @@ Name:		save_specials
 Purpose:	Save #SPECIALS section of area file.
 Called by:	save_area(olc_save.c).
 ****************************************************************************/
-void save_specials( FILE *fp, AREA_DATA *pArea )
+static void save_specials( FILE *fp, AREA_DATA *pArea )
 {
     int iHash;
     MOB_INDEX_DATA *pMobIndex;
@@ -844,66 +844,12 @@ void save_specials( FILE *fp, AREA_DATA *pArea )
 }
 
 
-
-/*
-* This function is obsolete.  It it not needed but has been left here
-* for historical reasons.  It is used currently for the same reason.
-*
-* I don't think it's obsolete in ROM -- Hugin.
-*
-* Yes, very obsolete. -- Vodur, Nov 2013
-*/
-void save_door_resets( FILE *fp, AREA_DATA *pArea )
-{
-    int iHash;
-    ROOM_INDEX_DATA *pRoomIndex;
-    EXIT_DATA *pExit;
-    int door;
-    
-    for( iHash = 0; iHash < MAX_KEY_HASH; iHash++ )
-    {
-        for( pRoomIndex = room_index_hash[iHash]; pRoomIndex; pRoomIndex = pRoomIndex->next )
-        {
-            if ( pRoomIndex->area == pArea )
-            {
-                for( door = 0; door < MAX_DIR; door++ )
-                {
-                    if ( ( pExit = pRoomIndex->exit[door] )
-                        && pExit->u1.to_room 
-                        && ( IS_SET( pExit->rs_flags, EX_CLOSED )
-                        || IS_SET( pExit->rs_flags, EX_LOCKED ) ) )
-#if defined( VERBOSE )
-                        fprintf( fp, "D 0 %d %d %d The %s door of %s is %s\n", 
-                        pRoomIndex->vnum,
-                        pExit->orig_door,
-                        IS_SET( pExit->rs_flags, EX_LOCKED) ? 2 : 1,
-                        dir_name[ pExit->orig_door ],
-                        pRoomIndex->name,
-                        IS_SET( pExit->rs_flags, EX_LOCKED) ? "closed and locked"
-                        : "closed" );
-#endif
-#if !defined( VERBOSE )
-                    fprintf( fp, "D 0 %d %d %d\n", 
-                        pRoomIndex->vnum,
-                        pExit->orig_door,
-                        IS_SET (pExit->rs_flags, EX_LOCKED) ? 2 : IS_SET (pExit->rs_flags, EX_HIDDEN) ? 5 :1);
-#endif
-                }
-            }
-        }
-    }
-    return;
-}
-
-
-
-
 /*****************************************************************************
 Name:		save_resets
 Purpose:	Saves the #RESETS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_resets( FILE *fp, AREA_DATA *pArea )
+static void save_resets( FILE *fp, AREA_DATA *pArea )
 {
     RESET_DATA *pReset;
     MOB_INDEX_DATA *pLastMob = NULL;
@@ -1068,7 +1014,7 @@ void save_resets( FILE *fp, AREA_DATA *pArea )
     return;
 }
 
-void save_bossachievements( FILE *fp, AREA_DATA *pArea )
+static void save_bossachievements( FILE *fp, AREA_DATA *pArea )
 {
     BOSSACHV *pBoss;
     MOB_INDEX_DATA *pMobIndex;
@@ -1104,7 +1050,7 @@ Name:		save_shops
 Purpose:	Saves the #SHOPS section of an area file.
 Called by:	save_area(olc_save.c)
 ****************************************************************************/
-void save_shops( FILE *fp, AREA_DATA *pArea )
+static void save_shops( FILE *fp, AREA_DATA *pArea )
 {
     SHOP_DATA *pShopIndex;
     MOB_INDEX_DATA *pMobIndex;
@@ -1148,7 +1094,7 @@ Name:		save_area
 Purpose:	Save an area, note that this format is new.
 Called by:	do_asave(olc_save.c).
 ****************************************************************************/
-void save_area( AREA_DATA *pArea )
+static void save_area( AREA_DATA *pArea )
 {
     struct stat st = {0};
     FILE *fp;
@@ -1462,7 +1408,7 @@ DEF_DO_FUN(do_asave)
 
 
 
-void save_helps( FILE *fp, HELP_AREA *ha )
+static void save_helps( FILE *fp, HELP_AREA *ha )
 {
     HELP_DATA *help = ha->first;
     
@@ -1482,7 +1428,7 @@ void save_helps( FILE *fp, HELP_AREA *ha )
     return;
 }
 
-void save_other_helps( void )
+static void save_other_helps( void )
 {
     extern HELP_AREA * had_list;
     HELP_AREA *ha;

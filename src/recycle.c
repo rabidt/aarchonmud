@@ -36,6 +36,9 @@
 #include "lua_main.h"
 #include "lua_arclib.h"
 
+
+static void free_pcdata(PC_DATA *pcdata);
+
 /* stuff for recyling notes */
 NOTE_DATA *note_free;
 
@@ -84,7 +87,7 @@ void free_note(NOTE_DATA *note)
 
 	
 /* stuff for recycling ban structures */
-BAN_DATA *ban_free;
+static BAN_DATA *ban_free;
 
 BAN_DATA *new_ban(void)
 {
@@ -171,7 +174,7 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 }
 
 /* stuff for recycling gen_data */
-GEN_DATA *gen_data_free;
+static GEN_DATA *gen_data_free;
 
 GEN_DATA *new_gen_data(void)
 {
@@ -500,7 +503,7 @@ PC_DATA *new_pcdata(void)
 }
 	
 
-void free_pcdata(PC_DATA *pcdata)
+static void free_pcdata(PC_DATA *pcdata)
 {
     int alias, i;
     GRANT_DATA *gran, *gran_next;
@@ -585,7 +588,7 @@ void free_pcdata(PC_DATA *pcdata)
 }
 
 /* stuff for recycling quests */
-QUEST_DATA *quest_free;
+static QUEST_DATA *quest_free;
 
 QUEST_DATA *new_quest(void)
 {
@@ -617,7 +620,7 @@ void free_quest(QUEST_DATA *quest)
 }
 
 /* stuff for recycling portals */
-PORTAL_DATA *portal_free;
+static PORTAL_DATA *portal_free;
 
 PORTAL_DATA *new_portal( void )
 {
@@ -651,8 +654,8 @@ void free_portal( PORTAL_DATA *portal )
 }
 
 /* stuff for setting ids */
-long    last_pc_id;
-long    last_mob_id;
+static long    last_pc_id;
+static long    last_mob_id;
 
 long get_pc_id(void)
 {
@@ -669,11 +672,7 @@ long get_mob_id(void)
 	return last_mob_id;
 }
 
-MEM_DATA *mem_data_free;
-
-/* procedures and constants needed for buffering */
-
-BUFFER *buf_free;
+static MEM_DATA *mem_data_free;
 
 MEM_DATA *new_mem_data(void)
 {
@@ -705,32 +704,6 @@ void free_mem_data(MEM_DATA *memory)
 	memory->next = mem_data_free;
 	mem_data_free = memory;
 	INVALIDATE(memory);
-}
-
-
-
-/* buffer sizes */
-/* Added 32767 on 12-21-12 - Astark. Not certain what affects this will
-   have on memory usage, but it allows a full output from the alist
-   command using the new formatting */
-const int buf_size[MAX_BUF_LIST] =
-{
-	16,32,64,128,256,1024,2048,4096,8192,16384,32767
-};
-
-/* local procedure for finding the next acceptable size */
-/* -1 indicates out-of-boundary error */
-int get_size (int val)
-{
-	int i;
-
-	for (i = 0; i < MAX_BUF_LIST; i++)
-	if (buf_size[i] >= val)
-	{
-		return buf_size[i];
-	}
-	
-	return -1;
 }
 
 PROG_LIST *new_mprog(void)
@@ -825,7 +798,7 @@ void free_rprog(PROG_LIST *rp)
     free_RTRIG( rp );
 }
 
-HELP_AREA * had_free;
+static HELP_AREA * had_free;
 
 HELP_AREA * new_had ( void )
 {
@@ -858,7 +831,7 @@ HELP_DATA * new_help ( void )
 }
 
 	
-SORT_TABLE *sort_free;
+static SORT_TABLE *sort_free;
 
 SORT_TABLE *new_sort(void)
 {
@@ -889,7 +862,7 @@ void free_sort(SORT_TABLE *sort)
 }
 
 /* stuff for recycling wizlist structures */
-WIZ_DATA *wiz_free;
+static WIZ_DATA *wiz_free;
 
 WIZ_DATA *new_wiz(void)
 {
@@ -924,7 +897,7 @@ void free_wiz(WIZ_DATA *wiz)
 
 
 /* Recycle crime list */
-CRIME_DATA *crime_free;
+static CRIME_DATA *crime_free;
 
 CRIME_DATA *new_crime(void)
 {

@@ -18,7 +18,7 @@
 extern bool exits_fixed;
 
 /* local functions */
-void shift_prog_list( PROG_LIST *list );
+static void shift_prog_list( PROG_LIST *list );
 
 /* variables indicating the vnum shift and vnum range to be shifted
  */
@@ -56,7 +56,7 @@ bool range_is_free( int min_vnum, int max_vnum )
 
 /* hash table updating */
 
-void hash_remove_room( ROOM_INDEX_DATA *target )
+static void hash_remove_room( ROOM_INDEX_DATA *target )
 {
     ROOM_INDEX_DATA *hash;
     int iHash;
@@ -78,7 +78,7 @@ void hash_remove_room( ROOM_INDEX_DATA *target )
     target->next = NULL;
 }
 
-void hash_add_room( ROOM_INDEX_DATA *target )
+static void hash_add_room( ROOM_INDEX_DATA *target )
 {
     int iHash;
 
@@ -90,7 +90,7 @@ void hash_add_room( ROOM_INDEX_DATA *target )
     room_index_hash[iHash] = target;
 }
 
-void hash_remove_mob( MOB_INDEX_DATA *target )
+static void hash_remove_mob( MOB_INDEX_DATA *target )
 {
     MOB_INDEX_DATA *hash;
     int iHash;
@@ -112,7 +112,7 @@ void hash_remove_mob( MOB_INDEX_DATA *target )
     target->next = NULL;
 }
 
-void hash_add_mob( MOB_INDEX_DATA *target )
+static void hash_add_mob( MOB_INDEX_DATA *target )
 {
     int iHash;
 
@@ -124,7 +124,7 @@ void hash_add_mob( MOB_INDEX_DATA *target )
     mob_index_hash[iHash]  = target;
 }
 
-void hash_remove_obj( OBJ_INDEX_DATA *target )
+static void hash_remove_obj( OBJ_INDEX_DATA *target )
 {
     OBJ_INDEX_DATA *hash;
     int iHash;
@@ -146,7 +146,7 @@ void hash_remove_obj( OBJ_INDEX_DATA *target )
     target->next = NULL;
 }
 
-void hash_add_obj( OBJ_INDEX_DATA *target )
+static void hash_add_obj( OBJ_INDEX_DATA *target )
 {
     int iHash;
 
@@ -162,7 +162,7 @@ void hash_add_obj( OBJ_INDEX_DATA *target )
 
 /***************************** AREA ************************/
 
-void shift_area_data( AREA_DATA *area )
+static void shift_area_data( AREA_DATA *area )
 {
     if ( area == NULL )
     {
@@ -177,7 +177,7 @@ void shift_area_data( AREA_DATA *area )
 
 /***************************** ROOM ************************/
 
-void shift_reset_list( RESET_DATA *reset )
+static void shift_reset_list( RESET_DATA *reset )
 {
     for ( ; reset != NULL; reset = reset->next )
 	switch ( reset->command )
@@ -197,7 +197,7 @@ void shift_reset_list( RESET_DATA *reset )
 	}
 }
 
-void shift_exit( EXIT_DATA *exit )
+static void shift_exit( EXIT_DATA *exit )
 {
     if ( exit != NULL )
     {
@@ -207,7 +207,7 @@ void shift_exit( EXIT_DATA *exit )
     }
 }
     
-void shift_room( ROOM_INDEX_DATA *room )
+static void shift_room( ROOM_INDEX_DATA *room )
 {
     int door;
 
@@ -235,19 +235,19 @@ void shift_room( ROOM_INDEX_DATA *room )
 
 /***************************** MOB *************************/
 
-void shift_shop( SHOP_DATA *shop )
+static void shift_shop( SHOP_DATA *shop )
 {
     if ( shop != NULL )
 	SHIFT(shop->keeper);
 }
 
-void shift_prog_list( PROG_LIST *list )
+static void shift_prog_list( PROG_LIST *list )
 {
     for ( ; list != NULL; list = list->next )
 	SHIFT( list->vnum );
 }
 
-void shift_mob( MOB_INDEX_DATA *mob )
+static void shift_mob( MOB_INDEX_DATA *mob )
 {
     if ( mob == NULL )
     {
@@ -269,7 +269,7 @@ void shift_mob( MOB_INDEX_DATA *mob )
 
 /***************************** OBJ *************************/
 
-void shift_obj( OBJ_INDEX_DATA *obj )
+static void shift_obj( OBJ_INDEX_DATA *obj )
 {
     if ( obj == NULL )
     {
@@ -297,7 +297,7 @@ void shift_obj( OBJ_INDEX_DATA *obj )
 
 /***************************** MPROGS **********************/
 
-void shift_prog_code( PROG_CODE *prog )
+static void shift_prog_code( PROG_CODE *prog )
 {
     if ( prog == NULL )
     {
@@ -445,7 +445,7 @@ DEF_DO_FUN(do_ashift)
 /* some stuff for changing absolute into relative vnums */
 
 /* replaces absolute vnums by relative vnums in given string */
-char* rel_string( const char *str, int min_vnum, int max_vnum )
+const char* rel_string( const char *str, int min_vnum, int max_vnum )
 {
     static char rel_str[MSL];
     char last_word[MIL], c;
@@ -505,9 +505,9 @@ char* rel_string( const char *str, int min_vnum, int max_vnum )
     return rel_str;
 }
 
-void rel_prog_list( PROG_LIST *list, int min_vnum, int max_vnum )
+static void rel_prog_list( PROG_LIST *list, int min_vnum, int max_vnum )
 {
-    char *rel;
+    const char *rel;
 
     while ( list != NULL )
     {
@@ -524,9 +524,9 @@ void rel_prog_list( PROG_LIST *list, int min_vnum, int max_vnum )
     }
 }
 
-void rel_prog_code( PROG_CODE *prog, int min_vnum, int max_vnum )
+static void rel_prog_code( PROG_CODE *prog, int min_vnum, int max_vnum )
 {
-    char *rel;
+    const char *rel;
 
     if ( prog == NULL )
 	return;
@@ -542,7 +542,7 @@ void rel_prog_code( PROG_CODE *prog, int min_vnum, int max_vnum )
     }
 }
 
-void rel_area( AREA_DATA *area )
+static void rel_area( AREA_DATA *area )
 {
     MOB_INDEX_DATA *mob;
     OBJ_INDEX_DATA *oid;
@@ -622,6 +622,3 @@ DEF_DO_FUN(do_rvnum)
     rel_area( area );
     send_to_char( "Done.\n\r", ch );
 }
-
-
-

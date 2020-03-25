@@ -12,7 +12,7 @@
 #define DURATION_PERMANENT   -1
 #define DURATION_REVOKED     -2
 
-const   struct  pair_type        pair_table       [] =
+static const   struct  pair_type        pair_table       [] =
 {
     {"switch", "return",FALSE},
     {"reboo", "reboot",FALSE},
@@ -21,7 +21,7 @@ const   struct  pair_type        pair_table       [] =
     {"", "",FALSE}
 };
 
-bool is_revoked( CHAR_DATA *ch, DO_FUN *do_fun)
+static bool is_revoked( CHAR_DATA *ch, DO_FUN *do_fun)
 {
     GRANT_DATA * gran;
 
@@ -72,7 +72,7 @@ bool is_granted_name( CHAR_DATA *ch, const char *name)
     return FALSE;
 }
 
-int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
+static int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
 {
     GRANT_DATA *gran;
     
@@ -101,7 +101,7 @@ int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
     return 0;
 }
 
-void grant_add(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, int duration, int level)
+static void grant_add(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, int duration, int level)
 {
     GRANT_DATA *gran;
     
@@ -129,7 +129,7 @@ void grant_add(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, int duration, in
     return;
 }
 
-void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
+static void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
 {
     GRANT_DATA *p,*gran;
     char buf[MAX_STRING_LENGTH];
@@ -167,7 +167,7 @@ void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
     return;
 }
 
-void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
+static void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
 {
     GRANT_DATA *gran;
     char buf[MAX_STRING_LENGTH];
@@ -202,7 +202,7 @@ void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool mshow)
     return;
 }
 
-void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
+static void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
 {
     int cmd;
 
@@ -220,7 +220,7 @@ void grant_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, int duration )
     return;
 }
 
-void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly )
+static void revoke_level( CHAR_DATA *ch, CHAR_DATA *victim, int level, bool removeOnly )
 {
     int cmd;
 
@@ -650,4 +650,3 @@ DEF_DO_FUN(do_gstat)
     free_buf(buffer);
     return;
 }
-

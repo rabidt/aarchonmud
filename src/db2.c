@@ -41,6 +41,8 @@
 #include "lua_arclib.h"
 
 
+static MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );
+
 #define FLAG_READ_SET(fp,flag,set_flag) fread_tflag(fp,flag); flag_set_field(flag,set_flag)
 
 /*
@@ -251,7 +253,7 @@ void load_mobiles( FILE *fp )
  */
 #define MCOPY(field) pMobIndex->field = pMobIndexOld->field
 #define MCOPY_FLAGS(field) flag_copy(pMobIndex->field, pMobIndexOld->field)
-MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
+static MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
 {
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
@@ -882,4 +884,3 @@ void load_objects( FILE *fp )
 
     return;
 }
-

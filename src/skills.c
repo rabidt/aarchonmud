@@ -44,25 +44,27 @@ DECLARE_DO_FUN(do_say       );
 
 DECLARE_DO_FUN(do_skills);
 bool train_stat(int trained, CHAR_DATA *ch);
-void show_groups( int skill, BUFFER *buffer );
-void show_races( int skill, BUFFER *buffer );
-void show_skill_subclasses( int skill, BUFFER *buffer );
-void show_class_skills( CHAR_DATA *ch, const char *argument );
-void show_skill_points( BUFFER *buffer );
-void show_mastery_groups( int skill, BUFFER *buffer );
-int get_injury_penalty( CHAR_DATA *ch );
-int get_sickness_penalty( CHAR_DATA *ch );
+static void show_groups( int skill, BUFFER *buffer );
+static void show_races( int skill, BUFFER *buffer );
+static void show_skill_subclasses( int skill, BUFFER *buffer );
+static void show_class_skills( CHAR_DATA *ch, const char *argument );
+static void show_skill_points( BUFFER *buffer );
+static void show_mastery_groups( int skill, BUFFER *buffer );
+static int get_injury_penalty( CHAR_DATA *ch );
+static int get_sickness_penalty( CHAR_DATA *ch );
 static int hprac_cost( CHAR_DATA *ch, int sn );
-int mob_get_skill( CHAR_DATA *ch, int sn );
-int pc_skill_level( CHAR_DATA *ch, int sn );
-int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level );
+static int mob_get_skill( CHAR_DATA *ch, int sn );
+static int pc_skill_level( CHAR_DATA *ch, int sn );
+static int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level );
+static void gn_remove( CHAR_DATA *ch, int gn);
+static void group_remove(CHAR_DATA *ch, const char *name);
 
 bool is_class_skill( int class, int sn )
 {
     return skill_table[sn].rating[class] > 0 && skill_table[sn].skill_level[class] < LEVEL_IMMORTAL;
 }
 
-bool can_gain_skill( CHAR_DATA *ch, int sn )
+static bool can_gain_skill( CHAR_DATA *ch, int sn )
 {
     return is_class_skill(ch->clss, sn);
 }
@@ -148,13 +150,13 @@ static int get_multi_skill_cost( int *skill_costs )
     return sum - UMAX(0,UMIN(max_rebate_by_count, max_rebate_by_cost));
 }
 
-int get_group_base_cost( int gn, int class )
+static int get_group_base_cost( int gn, int class )
 {
     return get_multi_skill_cost(get_group_skill_costs(gn, class));
 }
 
 // group cost is reduced for a character if they already know skills in the group
-int get_group_cost( CHAR_DATA *ch, int gn )
+static int get_group_cost( CHAR_DATA *ch, int gn )
 {
     int *skill_costs = get_group_skill_costs(gn, ch->clss);
     filter_known_skills( ch, skill_costs );
@@ -255,7 +257,7 @@ CHAR_DATA* find_trainer( CHAR_DATA *ch, int act_flag, bool *introspect )
     return NULL;
 }
 
-void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
+static void gain_skill(CHAR_DATA *ch, int sn, CHAR_DATA *trainer)
 {
     if ( ch->pcdata->learned[sn] )
     {
@@ -1086,7 +1088,7 @@ struct info_by_level
 };
 typedef struct info_by_level INFO_BY_LEVEL;
 
-void init_info_by_level(INFO_BY_LEVEL *ibl)
+static void init_info_by_level(INFO_BY_LEVEL *ibl)
 {
     int level;
     for ( level = 0; level < LEVEL_HERO + 1; level++ )
@@ -1096,7 +1098,7 @@ void init_info_by_level(INFO_BY_LEVEL *ibl)
     }
 }
 
-void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
+static void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
 {
     if ( ibl->info_count[level] == 0 )
     {
@@ -1111,7 +1113,7 @@ void add_info_by_level(INFO_BY_LEVEL *ibl, int level, const char *info)
     ibl->info_count[level] += 1;
 }
 
-void print_info_by_level(BUFFER *buffer, const INFO_BY_LEVEL *ibl)
+static void print_info_by_level(BUFFER *buffer, const INFO_BY_LEVEL *ibl)
 {
     int level;
     for (level = 0; level < LEVEL_HERO + 1; level++)
@@ -1122,7 +1124,7 @@ void print_info_by_level(BUFFER *buffer, const INFO_BY_LEVEL *ibl)
 
 /* combined function for showing skills/spells to player */
 
-void do_skills_or_spells( CHAR_DATA *ch, const char *argument, bool show_spells )
+static void do_skills_or_spells( CHAR_DATA *ch, const char *argument, bool show_spells )
 {
     BUFFER *buffer;
     char arg[MAX_INPUT_LENGTH];
@@ -1372,7 +1374,7 @@ void show_skills_npc( CHAR_DATA *ch, bool active, CHAR_DATA *viewer )
     free_buf(buffer);
 }
 
-void show_advanced_skills( CHAR_DATA *ch )
+static void show_advanced_skills( CHAR_DATA *ch )
 {
     int sn, counter = 0;
     
@@ -1421,7 +1423,7 @@ DEF_DO_FUN(do_skills)
     do_skills_or_spells(ch, argument, false);
 }
 
-void show_class_skills( CHAR_DATA *ch, const char *argument )
+static void show_class_skills( CHAR_DATA *ch, const char *argument )
 {
     int class = class_lookup( argument );
     if ( class == -1 )
@@ -1562,7 +1564,7 @@ void list_group_costs(CHAR_DATA *ch)
 }
 
 
-void list_group_chosen(CHAR_DATA *ch)
+static void list_group_chosen(CHAR_DATA *ch)
 {
 	char buf[100];
 	int gn,sn,col;
@@ -2039,7 +2041,7 @@ void gn_add( CHAR_DATA *ch, int gn)
 }
 
 /* recusively removes a group given its number -- uses group_remove */
-void gn_remove( CHAR_DATA *ch, int gn)
+static void gn_remove( CHAR_DATA *ch, int gn)
 {
 	int i;
 
@@ -2092,7 +2094,7 @@ void group_add( CHAR_DATA *ch, const char *name, bool deduct)
 
 /* used for processing a skill or group for deletion -- no points back! */
 
-void group_remove(CHAR_DATA *ch, const char *name)
+static void group_remove(CHAR_DATA *ch, const char *name)
 {
 	int sn, gn;
 	
@@ -2115,7 +2117,7 @@ void group_remove(CHAR_DATA *ch, const char *name)
 	}
 }
 
-int get_injury_penalty( CHAR_DATA *ch )
+static int get_injury_penalty( CHAR_DATA *ch )
 {
     int penalty = 1000 * (ch->max_hit - ch->hit) / UMAX(1, ch->max_hit) - 5 * get_curr_stat(ch,STAT_DIS);
     // check if further reduction is needed at all (for efficiency)
@@ -2130,7 +2132,7 @@ int get_injury_penalty( CHAR_DATA *ch )
     return URANGE(0, penalty / 20, 50);
 }
 
-int get_sickness_penalty( CHAR_DATA *ch )
+static int get_sickness_penalty( CHAR_DATA *ch )
 {
     int penalty = 0;
     if ( IS_AFFECTED(ch, AFF_POISON) )
@@ -2140,7 +2142,7 @@ int get_sickness_penalty( CHAR_DATA *ch )
     return penalty;
 }
 
-int mob_has_skill(CHAR_DATA *ch, int sn)
+static int mob_has_skill(CHAR_DATA *ch, int sn)
 {
     bool charmed;
 
@@ -2244,7 +2246,7 @@ int mob_has_skill(CHAR_DATA *ch, int sn)
     return FALSE;
 }
 
-int mob_get_skill(CHAR_DATA *ch, int sn)
+static int mob_get_skill(CHAR_DATA *ch, int sn)
 {
     int skill = 50 + ch->level / 4;
 
@@ -2262,7 +2264,7 @@ int mob_get_skill(CHAR_DATA *ch, int sn)
     return skill;
 }
 
-int get_race_skill( CHAR_DATA *ch, int sn )
+static int get_race_skill( CHAR_DATA *ch, int sn )
 {
     int i;
     struct pc_race_type *race;
@@ -2285,7 +2287,7 @@ int get_race_skill( CHAR_DATA *ch, int sn )
     return 0;
 }
 
-int get_skill_for_subclass( CHAR_DATA *ch, int sn, int subclass, int at_level )
+static int get_skill_for_subclass( CHAR_DATA *ch, int sn, int subclass, int at_level )
 {
     const struct subclass_type *sc = &subclass_table[subclass];
     int i;
@@ -2307,7 +2309,7 @@ int get_skill_for_subclass( CHAR_DATA *ch, int sn, int subclass, int at_level )
     return 0;
 }
 
-int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level )
+static int get_subclass_skill_at( CHAR_DATA *ch, int sn, int at_level )
 {
     if ( IS_NPC(ch) || !ch->pcdata->subclass )
         return 0;
@@ -2326,7 +2328,7 @@ int get_subclass_skill( CHAR_DATA *ch, int sn )
     return get_subclass_skill_at(ch, sn, ch->level);
 }
 
-int pc_skill_prac(CHAR_DATA *ch, int sn)
+static int pc_skill_prac(CHAR_DATA *ch, int sn)
 {
 	int skill;
 
@@ -2352,7 +2354,7 @@ int pc_skill_prac(CHAR_DATA *ch, int sn)
 }
 
 // level at which a pc gains a class skill
-int pc_skill_level( CHAR_DATA *ch, int sn )
+static int pc_skill_level( CHAR_DATA *ch, int sn )
 {
     int level = skill_table[sn].skill_level[ch->clss];
     if ( level > LEVEL_HERO )
@@ -2855,9 +2857,9 @@ DEF_DO_FUN(do_raceskills)
  ********************************************************/
 
 /* Color, group support, buffers and other tweaks by Rimbol, 10/99. */
-void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch);
-void show_skill_all(BUFFER *buffer);
-void show_skill_low(BUFFER *buffer, int threshold, int active_threshold);
+static void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch);
+static void show_skill_all(BUFFER *buffer);
+static void show_skill_low(BUFFER *buffer, int threshold, int active_threshold);
 DEF_DO_FUN(do_showskill)
 {
     char arg[MIL] = "";
@@ -2946,7 +2948,7 @@ DEF_DO_FUN(do_showskill)
     return;
 }
 
-bool is_in_group( int skill, int group )
+static bool is_in_group( int skill, int group )
 {
     int sn;
     for (sn = 0; sn < MAX_IN_GROUP; sn++)
@@ -2959,7 +2961,7 @@ bool is_in_group( int skill, int group )
     return FALSE;
 }
 
-void show_groups( int skill, BUFFER *buffer )
+static void show_groups( int skill, BUFFER *buffer )
 {
     char buf[MSL];
     int gn, col = 0;
@@ -2981,7 +2983,7 @@ void show_groups( int skill, BUFFER *buffer )
 	add_buf( buffer, "\n\r" );
 }
 
-void show_mastery_groups( int skill, BUFFER *buffer )
+static void show_mastery_groups( int skill, BUFFER *buffer )
 {
     char buf[MSL];
     int gn, col = 0;
@@ -3003,7 +3005,7 @@ void show_mastery_groups( int skill, BUFFER *buffer )
     add_buf( buffer, "\n\r" );
 }
 
-bool has_race_skill( int skill, int rn )
+static bool has_race_skill( int skill, int rn )
 {
     int i;
 
@@ -3020,7 +3022,7 @@ bool has_subclass( const CHAR_DATA *ch, int subclass )
     return ch && ch->pcdata && ch->pcdata->subclass == subclass;
 }
 
-bool has_subclass_skill( int skill, int subclass )
+static bool has_subclass_skill( int skill, int subclass )
 {
     int i;
     const struct subclass_type *sc = &subclass_table[subclass];
@@ -3035,7 +3037,7 @@ bool has_subclass_skill( int skill, int subclass )
     return FALSE;
 }
 
-void show_races( int skill, BUFFER *buffer )
+static void show_races( int skill, BUFFER *buffer )
 {
     char buf[MSL];
     int rn, col = 0;
@@ -3057,7 +3059,7 @@ void show_races( int skill, BUFFER *buffer )
 	add_buf( buffer, "\n\r" );
 }
 
-void show_skill_subclasses( int skill, BUFFER *buffer )
+static void show_skill_subclasses( int skill, BUFFER *buffer )
 {
     char buf[MSL];
     int subclass, col = 0;
@@ -3077,7 +3079,7 @@ void show_skill_subclasses( int skill, BUFFER *buffer )
     add_buf( buffer, "\n\r" );
 }
 
-void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
+static void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
 {
     int skill, cls = 0;
     int stance;
@@ -3183,7 +3185,7 @@ void show_skill(const char *argument, BUFFER *buffer, CHAR_DATA *ch)
     }
 }
 
-void show_skill_all(BUFFER *buffer)
+static void show_skill_all(BUFFER *buffer)
 {
     int skill;
 
@@ -3218,7 +3220,7 @@ void show_skill_all(BUFFER *buffer)
     }            
 }
 
-void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
+static void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
 {
     int skill, class;
 
@@ -3253,7 +3255,7 @@ void show_skill_low(BUFFER *buffer, int threshold, int active_threshold)
     }            
 }
 
-void show_skill_points(BUFFER *buffer)
+static void show_skill_points(BUFFER *buffer)
 {
     int skill, class;
 
@@ -3439,7 +3441,7 @@ DEF_DO_FUN(do_slookup)
     return;
 }
 
-void save_skill(FILE *f, int sn)
+static void save_skill(FILE *f, int sn)
 {
 	int i;
 
@@ -3488,7 +3490,7 @@ void save_skills( void )
 }
 
 
-void count_stat(FILE *f, int sn)
+static void count_stat(FILE *f, int sn)
 {
 	fprintf(f, "\n%d %s, ",sn, skill_table[sn].name);
 	fprintf(f, "%d, %d, %d\n", skill_table[sn].stat_prime,
@@ -3519,7 +3521,7 @@ void count_stats( void )
 
 
 
-void load_skill(FILE *f, int cnum, int version)
+static void load_skill(FILE *f, int cnum, int version)
 {
     char buf[81];
     char *s;

@@ -51,9 +51,10 @@ DECLARE_DO_FUN(do_cast      );
 /*
  * Local functions.
  */
-void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
+static void    say_spell   args( ( CHAR_DATA *ch, int sn ) );
 int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
+static bool is_healing_spell( int sn );
 
 /* imported functions */
 bool check_spell_disabled args( (const struct skill_type *command) );
@@ -181,7 +182,7 @@ int spell_lookup( const char *name )
 }
 
 // replace sn with "similar" spell for confused character
-int similar_spell( CHAR_DATA *ch, int spell )
+static int similar_spell( CHAR_DATA *ch, int spell )
 {
     int sn, new_spell = spell;
     int found = 0;
@@ -226,7 +227,7 @@ int similar_spell( CHAR_DATA *ch, int spell )
 
 // returns a known spell if one matches and desired, otherwise a matching spell if one exists
 // returning unknown spells (if no known match exists) is essential for wish casting
-int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred )
+static int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred )
 {
     /* finds a spell the character can cast if possible */
     int sn, found = -1;
@@ -265,7 +266,7 @@ int find_spell( CHAR_DATA *ch, const char *name, bool known_preferred )
 /*
  * Utter mystical words for an sn.
  */
-void say_spell( CHAR_DATA *ch, int sn )
+static void say_spell( CHAR_DATA *ch, int sn )
 {
     char buf  [MAX_STRING_LENGTH];
     char buf2 [MAX_STRING_LENGTH];
@@ -403,7 +404,7 @@ bool is_offensive( int sn )
         || target == TAR_IGNORE_OFF;
 }
 
-bool is_malediction( int sn )
+static bool is_malediction( int sn )
 {
     if ( !strcmp(skill_table[sn].name, "energy drain") )
         return TRUE;
@@ -667,7 +668,7 @@ static bool check_cancel( int dis_level, CHAR_DATA *victim, int sn )
 /* returns wether an affect can be dispelled or canceled 
  * called by spell_dispel_magic and spell_cancelation 
  */
-bool can_dispel(int sn)
+static bool can_dispel(int sn)
 {
     if (!IS_SPELL(sn))
         return FALSE;
@@ -698,7 +699,7 @@ bool check_dispel_magic(int level, CHAR_DATA *victim)
 }
 
 /* check whether one player is allowed to spell up another */
-bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
+static bool can_spellup( CHAR_DATA *ch, CHAR_DATA *victim, int sn )
 {
     CHAR_DATA *opp;
 
@@ -1142,12 +1143,12 @@ void* check_reflection( int sn, int level, CHAR_DATA *ch, void *vo, int target )
     return (void*)ch;
 }
 
-int concentration_power( CHAR_DATA *ch )
+static int concentration_power( CHAR_DATA *ch )
 {
     return 10 + ch->level;
 }
 
-int disruption_power( CHAR_DATA *ch )
+static int disruption_power( CHAR_DATA *ch )
 {
     int level = ch->level;
 
@@ -1158,7 +1159,7 @@ int disruption_power( CHAR_DATA *ch )
     return 10 + level;
 }
 
-bool check_concentration( CHAR_DATA *ch )
+static bool check_concentration( CHAR_DATA *ch )
 {
     CHAR_DATA *att;
     int ch_roll, att_roll;
@@ -1182,7 +1183,7 @@ bool check_concentration( CHAR_DATA *ch )
     return TRUE;
 }
 
-bool check_casting_failure( CHAR_DATA *ch, int sn, int chance )
+static bool check_casting_failure( CHAR_DATA *ch, int sn, int chance )
 {
     // 50% base chance to succeed
     if ( per_chance(50) || per_chance(chance) )
@@ -1201,7 +1202,7 @@ tflag meta_magic = {};
 // sometimes meta-magic skills are applied for free
 tflag free_meta_magic = {};
 
-int meta_magic_sn( int meta )
+static int meta_magic_sn( int meta )
 {
     switch ( meta )
     {
@@ -1215,7 +1216,7 @@ int meta_magic_sn( int meta )
 }
 
 // meta-magic casting functions
-void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument )
+static void meta_magic_cast( CHAR_DATA *ch, const char *meta_arg, const char *argument )
 {
     tflag meta_flag;
     size_t i;
@@ -1320,7 +1321,7 @@ int meta_magic_adjust_cost( CHAR_DATA *ch, int cost, bool base )
     return cost;
 }
 
-int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
+static int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
 {
     if ( !IS_SET(meta_magic, META_MAGIC_PERMANENT) )
         return 0;
@@ -1346,7 +1347,7 @@ int meta_magic_perm_cost( CHAR_DATA *ch, int sn )
     return mana;
 }
 
-int apply_perm_cost( CHAR_DATA *ch, int sn )
+static int apply_perm_cost( CHAR_DATA *ch, int sn )
 {
     int cost = meta_magic_perm_cost(ch, sn);
     if ( !cost )
@@ -1383,7 +1384,7 @@ int apply_perm_cost( CHAR_DATA *ch, int sn )
     return cost;
 }
 
-int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
+static int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
 {
     if ( IS_SET(meta_magic, META_MAGIC_CHAIN) )
         wait *= 2;
@@ -1399,7 +1400,7 @@ int meta_magic_adjust_wait( CHAR_DATA *ch, int wait )
     return wait;
 }
 
-double meta_magic_concentration_chance( CHAR_DATA *ch, bool improve )
+static double meta_magic_concentration_chance( CHAR_DATA *ch, bool improve )
 {
     double chance = 1;
     int flag;
@@ -1419,7 +1420,7 @@ double meta_magic_concentration_chance( CHAR_DATA *ch, bool improve )
     return chance;
 }
 
-bool meta_magic_concentration_check( CHAR_DATA *ch )
+static bool meta_magic_concentration_check( CHAR_DATA *ch )
 {
     int flag;
 
@@ -1445,14 +1446,14 @@ bool meta_magic_concentration_check( CHAR_DATA *ch )
     return TRUE;
 }
 
-bool can_extend(int sn)
+static bool can_extend(int sn)
 {
     int duration = skill_table[sn].duration;
     return (duration != DUR_SPECIAL) && (duration != DUR_NONE || sn == skill_lookup("renewal"));
 }
 
 // remove invalid meta-magic effects
-void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
+static void meta_magic_strip( CHAR_DATA *ch, int sn, int target_type, void *vo )
 {
     // can only extend spells with duration
     if ( IS_SET(meta_magic, META_MAGIC_EXTEND) )
@@ -1642,14 +1643,14 @@ int mastery_adjust_cost( int cost, int mastery )
     return cost;
 }
 
-int mastery_adjust_level( int level, int mastery )
+static int mastery_adjust_level( int level, int mastery )
 {
     if ( mastery > 0 )
         return level + (3 + mastery) * 2;
     return level;
 }
 
-void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
+static void chain_spell( int sn, int level, CHAR_DATA *ch, CHAR_DATA *victim )
 {
     CHAR_DATA *target, *next_target;
     bool offensive = is_offensive(sn);
@@ -1693,7 +1694,7 @@ const char *target_name = NULL;
 bool was_obj_cast = FALSE;
 bool was_wish_cast = FALSE;
 
-void cast_spell( CHAR_DATA *ch, int sn, int chance )
+static void cast_spell( CHAR_DATA *ch, int sn, int chance )
 {
     CHAR_DATA *victim;
     void *vo;
@@ -1989,7 +1990,7 @@ DEF_DO_FUN(do_cast)
     flag_clear(free_meta_magic);
 }
 
-bool can_wish_cast( int sn )
+static bool can_wish_cast( int sn )
 {
     if ( skill_table[sn].spell_fun == spell_null )
         return FALSE;
@@ -2013,7 +2014,7 @@ bool can_wish_cast( int sn )
     }
 }
 
-int wish_level( int sn )
+static int wish_level( int sn )
 {
     // find minimum level required to cast
     int class, min_level = LEVEL_IMMORTAL;
@@ -2023,7 +2024,7 @@ int wish_level( int sn )
 }
 
 // skill for wish-casting sn
-int wish_skill( CHAR_DATA *ch, int sn )
+static int wish_skill( CHAR_DATA *ch, int sn )
 {
     int skill = get_skill(ch, gsn_wish);
     if ( skill > 0 )
@@ -2042,7 +2043,7 @@ int wish_cast_adjust_cost( CHAR_DATA *ch, int mana, int sn, bool self )
     return UMAX(1, mana * factor * (1-rebate));
 }
 
-void show_wishes( CHAR_DATA *ch, bool all )
+static void show_wishes( CHAR_DATA *ch, bool all )
 {
     BUFFER *buffer;
     char buf[MAX_STRING_LENGTH];
@@ -2669,7 +2670,7 @@ DEF_SPELL_FUN(spell_call_lightning)
  * 1) all violent characters need to save or be calmed and stop fighting
  * 2) non-violent characters attacking non-violent characters stop fighting
  */
-bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
+static bool is_violent( CHAR_DATA *vch, CHAR_DATA *ch )
 {
     return !IS_AFFECTED(vch, AFF_CALM) && !is_same_group(vch, ch);
 }
@@ -2824,7 +2825,7 @@ DEF_SPELL_FUN(spell_cancellation)
     return TRUE;
 }
 
-CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
+static CHAR_DATA* get_next_victim( CHAR_DATA *ch, CHAR_DATA *start_victim )
 {
     CHAR_DATA *victim;
 
@@ -3367,7 +3368,7 @@ bool is_disease( int sn )
         || sn == gsn_decompose;
 }
 
-bool is_healing_spell( int sn )
+static bool is_healing_spell( int sn )
 {
     return sn == gsn_cure_light
         || sn == gsn_cure_serious

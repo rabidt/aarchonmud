@@ -23,6 +23,11 @@
 #include "interp.h"
 #include "songs.h"
 
+
+static void remove_bard_song(CHAR_DATA *ch);
+static bool deduct_song_cost( CHAR_DATA *ch );
+
+
 bool is_song( int sn )
 {
     int song;
@@ -37,7 +42,7 @@ bool is_song( int sn )
     return FALSE;
 }
 
-bool has_instrument( CHAR_DATA *ch )
+static bool has_instrument( CHAR_DATA *ch )
 {
     OBJ_DATA *instrument = get_eq_char(ch, WEAR_HOLD);
     return instrument && IS_OBJ_STAT(instrument, ITEM_INSTRUMENT);
@@ -451,7 +456,7 @@ DEF_DO_FUN(do_riff)
         full_dam(ch, victim, dam, gsn_riff, DAM_MENTAL, TRUE);
 }
 
-void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
+static void get_bard_level_and_song(CHAR_DATA *ch, int *level, int *song)
 {
     *level = 0;
     *song = 0;
@@ -564,7 +569,7 @@ void check_bard_song_group(CHAR_DATA *ch)
     }
 }
 
-void remove_bard_song(CHAR_DATA *ch)
+static void remove_bard_song(CHAR_DATA *ch)
 {
     affect_strip_song(ch);
 }
@@ -591,7 +596,7 @@ int song_cost( CHAR_DATA *ch, int song )
 }
 
 
-bool deduct_song_cost( CHAR_DATA *ch )
+static bool deduct_song_cost( CHAR_DATA *ch )
 {
     int cost = song_cost(ch, ch->song);
     if ( ch->mana < cost )

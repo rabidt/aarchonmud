@@ -53,7 +53,7 @@ struct remort_chamber
    need to up it again when we start testing remort 8 - Astark 12-21-12 */
 #define MAX_CHAMBER 26
 
-const struct remort_chamber chambers[] =
+static const struct remort_chamber chambers[] =
 {
     {"Remort: Eight Trials            ",   5350, R1+R2, FALSE},
     {"Remort: Eight Trials            ",   6600, R1+R2, FALSE},
@@ -88,8 +88,8 @@ const struct remort_chamber chambers[] =
 };
 
 
-REMORT_TABLE *chamber_list[MAX_CHAMBER];
-REMORT_TABLE *wait_list;
+static REMORT_TABLE *chamber_list[MAX_CHAMBER];
+static REMORT_TABLE *wait_list;
 
 const char *time_format(time_t t, char *b, size_t bsz)
 {
@@ -115,13 +115,13 @@ bool is_in_remort(CHAR_DATA *ch)
     return FALSE;
 }
 
-void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_enter args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
-void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, const char *arg) );
-void remort_save args( ( void ) );
+static void remort_signup args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+static void remort_cancel args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+static void remort_status args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+static void remort_enter args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+static void remort_speed args( (CHAR_DATA *ch, CHAR_DATA *adept) );
+static void remort_repeat args( (CHAR_DATA *ch, CHAR_DATA *adept, const char *arg) );
+static void remort_save args( ( void ) );
 
 DEF_DO_FUN(do_remort)
 {
@@ -196,7 +196,7 @@ DEF_DO_FUN(do_remort)
 }
 
 // remort is 1..10
-int remort_cost_gold(int remort)
+static int remort_cost_gold(int remort)
 {
 #ifdef TESTER
     return 1;
@@ -205,7 +205,7 @@ int remort_cost_gold(int remort)
 #endif
 }
 
-int remort_cost_qp(int remort)
+static int remort_cost_qp(int remort)
 {
 #ifdef TESTER
     return 1;
@@ -214,7 +214,7 @@ int remort_cost_qp(int remort)
 #endif
 }
 
-void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
+static void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
 {
     REMORT_TABLE *new; 
     REMORT_TABLE *i;
@@ -300,7 +300,7 @@ void remort_signup(CHAR_DATA *ch, CHAR_DATA *adept)
 }
 
 
-void remort_cancel(CHAR_DATA *ch, CHAR_DATA *adept)
+static void remort_cancel(CHAR_DATA *ch, CHAR_DATA *adept)
 {
     REMORT_TABLE *prev = NULL; 
     REMORT_TABLE *i;
@@ -354,7 +354,7 @@ void remort_cancel(CHAR_DATA *ch, CHAR_DATA *adept)
 }
 
 
-void remort_status(CHAR_DATA *ch, CHAR_DATA *adept)
+static void remort_status(CHAR_DATA *ch, CHAR_DATA *adept)
 {
     REMORT_TABLE *i;
     char buf[MAX_STRING_LENGTH];
@@ -397,7 +397,7 @@ void remort_status(CHAR_DATA *ch, CHAR_DATA *adept)
     }
 }
 
-void remort_reset_area( AREA_DATA *pArea )
+static void remort_reset_area( AREA_DATA *pArea )
 {
     int i;
     purge_area( pArea );
@@ -411,7 +411,7 @@ void remort_reset_area( AREA_DATA *pArea )
 	reset_area( pArea );
 }
 
-void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
+static void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
 {
     REMORT_TABLE *prev=NULL; 
     REMORT_TABLE *i;
@@ -500,7 +500,7 @@ void remort_enter(CHAR_DATA *ch, CHAR_DATA *adept)
 }
 
 
-void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
+static void remort_speed(CHAR_DATA *ch, CHAR_DATA *adept)
 {
     REMORT_TABLE *prev=NULL; 
     REMORT_TABLE *i;
@@ -828,7 +828,7 @@ void remort_load( void )
 /* toggle wether remort should be saved with next autosave
  */
 static bool remort_save_needed = FALSE;
-void remort_save( void )
+static void remort_save( void )
 {
     remort_save_needed = TRUE;
 }
@@ -1048,7 +1048,7 @@ void remort_complete(CHAR_DATA *ch)
     force_full_save();
 }
 
-void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
+static void remort_repeat( CHAR_DATA *ch, CHAR_DATA *adept, const char *arg )
 {
     char buf[MSL];
 

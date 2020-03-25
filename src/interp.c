@@ -36,7 +36,8 @@
 #include "interp.h"
 #include "songs.h"
 
-bool    check_disabled (const struct cmd_type *command);
+static bool    check_disabled (const struct cmd_type *command);
+static void save_disabled( void );
 DISABLED_DATA *disabled_first;
 
 #define END_MARKER   "END" /* for load_disabled() and save_disabled() */
@@ -68,6 +69,8 @@ int nAllocPerm;
 
 DECLARE_DO_FUN(do_tattoo);
 
+static bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact );
+
 
 /*
  * Command table.
@@ -90,7 +93,7 @@ const   struct  cmd_type    cmd_table   [] =
     { "ne",         do_northeast,   POS_STANDING,  0,  LOG_NEVER, 0, FALSE, TRUE  },
     { "nw",         do_northwest,   POS_STANDING,  0,  LOG_NEVER, 0, FALSE, TRUE  },
     
-{ "se",         do_southeast,   POS_STANDING,  0,  LOG_NEVER, 0, FALSE, TRUE  },
+    { "se",         do_southeast,   POS_STANDING,  0,  LOG_NEVER, 0, FALSE, TRUE  },
     { "sw",         do_southwest,   POS_STANDING,  0,  LOG_NEVER, 0, FALSE, TRUE  },
     
    /*
@@ -98,7 +101,7 @@ const   struct  cmd_type    cmd_table   [] =
     * Placed here so one and two letter abbreviations work.
     */
     
-	/*command      function name    position     level  log level  show olc charm */
+    /*command      function name    position     level  log level  show olc charm */
     { "as",         do_as,          POS_DEAD,       L2,  LOG_ALWAYS, 1, FALSE, FALSE },
     { "at",         do_at,          POS_DEAD,       L8,  LOG_NORMAL, 1, FALSE, FALSE  },
     { "attributes", do_attributes,  POS_DEAD,        0,  LOG_NORMAL, 1, FALSE, FALSE  },
@@ -721,7 +724,7 @@ bool can_order( const char *command, CHAR_DATA *victim )
     return TRUE;
 }
 
-bool is_either_str( const char *prefix, const char *str, bool exact )
+static bool is_either_str( const char *prefix, const char *str, bool exact )
 {
     if ( exact )
         return strcmp( prefix, str ) == 0;
@@ -729,7 +732,7 @@ bool is_either_str( const char *prefix, const char *str, bool exact )
         return !str_prefix( prefix, str );
 }
 
-int find_command( CHAR_DATA *ch, char *command, bool exact )
+static int find_command( CHAR_DATA *ch, char *command, bool exact )
 {
     int trust = get_trust( ch );
     int cmd;
@@ -968,7 +971,7 @@ bool check_social( CHAR_DATA *ch, const char *command, const char *argument )
     return check_social_new( ch, command, argument, FALSE );
 }
 
-bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact )
+static bool check_social_new( CHAR_DATA *ch, const char *command, const char *argument, bool exact )
 {
     char arg[MAX_INPUT_LENGTH];
     CHAR_DATA *victim;
@@ -1503,7 +1506,7 @@ DEF_DO_FUN(do_disable)
 Note that we check for equivalence of the do_fun pointers; this means
 that disabling 'chat' will also disable the '.' command
 */
-bool check_disabled (const struct cmd_type *command)
+static bool check_disabled (const struct cmd_type *command)
 {
     DISABLED_DATA *p;
 
@@ -1602,7 +1605,7 @@ void load_disabled( void )
 }
 
 /* Save disabled commands */
-void save_disabled( void )
+static void save_disabled( void )
 {
     FILE *fp;
     DISABLED_DATA *p;

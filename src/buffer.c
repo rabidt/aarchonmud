@@ -36,7 +36,7 @@
 extern const int rgSizeList [MAX_MEM_LIST];
 
 /* Find in rgSizeList a memory size at least this long */
-int find_mem_size (int min_size)
+static int find_mem_size (int min_size)
 {
 	int i;
 	
@@ -209,7 +209,7 @@ char* escape_ws(const char *s) {
  * not all strings require this treatment, only those followed by a '~' terminator in the format string
  * Example: reformat("%s~ %s~ %s", "Bobble", "^foo", "^bar") => "%s~ ^%s~ %s"
  */
-char* reformat(const char *fmt, va_list va)
+static char* reformat(const char *fmt, va_list va)
 {
     static char new_fmt[MSL];
     const char *next = fmt;

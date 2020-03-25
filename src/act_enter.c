@@ -36,7 +36,7 @@
 #include "lua_scripting.h"
 #include "recycle.h"
 
-ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
+static ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum);
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_look      );
@@ -59,7 +59,7 @@ ROOM_INDEX_DATA  *get_random_room(CHAR_DATA *ch)
 
 
 /* warroom random room generation procedure */
-ROOM_INDEX_DATA  *get_random_war_room(CHAR_DATA *ch)
+static ROOM_INDEX_DATA  *get_random_war_room(CHAR_DATA *ch)
 {
     return get_random_room_range( ch, WAR_ROOM_FIRST, WAR_ROOM_LAST );
 }
@@ -73,7 +73,7 @@ ROOM_INDEX_DATA  *get_random_room_area(CHAR_DATA *ch)
 				      ch->in_room->area->max_vnum );
 }
 
-ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum)
+static ROOM_INDEX_DATA  *get_random_room_range(CHAR_DATA *ch, int min_vnum, int max_vnum)
 {
     ROOM_INDEX_DATA *room;
     int i;
@@ -341,9 +341,9 @@ DEF_DO_FUN(do_enter)
 
 /* stuff for handling portal spell target locations */
 
-PORTAL_DATA *portal_list = NULL;
+static PORTAL_DATA *portal_list = NULL;
 
-void save_portal_list( void )
+static void save_portal_list( void )
 {
     PORTAL_DATA *portal;
     FILE *fp;

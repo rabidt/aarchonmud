@@ -3589,7 +3589,7 @@ DEF_SPELL_FUN(spell_haunt)
     return TRUE;
 }
 
-void renew_affect( CHAR_DATA *ch, int sn, int level )
+static void renew_affect( CHAR_DATA *ch, int sn, int level )
 {
     AFFECT_DATA *aff;
 

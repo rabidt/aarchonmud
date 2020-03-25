@@ -59,7 +59,4 @@ extern int	maxSocial; /* Max number of socials */
 void assign_area_vnum( int vnum );                    /* OLC */
 void index_mobile( MOB_INDEX_DATA *pMobIndex );
 
-/* from db2.c */
-MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );
-
 #endif // DB_H

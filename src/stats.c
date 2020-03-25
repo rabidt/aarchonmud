@@ -10,11 +10,10 @@
 #include "tables.h"
 
 void take_default_stats args((CHAR_DATA *ch));
-void get_random_stats args((CHAR_DATA *ch));
-void roll_dice args((CHAR_DATA *ch, bool take_default));
+static void roll_dice args((CHAR_DATA *ch, bool take_default));
 void do_help args((CHAR_DATA *ch, char *argument));
 struct race_type* get_morph_race_type( const CHAR_DATA *ch );
-void show_pc_race_ratings( CHAR_DATA *ch, int race );
+static void show_pc_race_ratings( CHAR_DATA *ch, int race );
 
 // structure for storing stat values prior to finalizing them
 typedef struct min_max_rolled MIN_MAX_ROLLED;
@@ -114,18 +113,7 @@ int dice_lookup(char *stat)
     return i;
 }
 
-int stat_lookup(char *stat)
-{
-    int i;
-
-    for (i=0; i<MAX_STATS; i++)
-        if (!str_prefix(stat, stat_table[i].name))
-            break;
-
-    return -1;
-}
-
-int remort_bonus (CHAR_DATA *ch, int stat )
+static int remort_bonus (CHAR_DATA *ch, int stat )
 {
     int r;
     
@@ -149,7 +137,7 @@ int class_bonus( int class, int stat )
 }
 
 /* command for returning max training score */
-int get_max_train( CHAR_DATA *ch, int stat )
+static int get_max_train( CHAR_DATA *ch, int stat )
 {
     int max;
     
@@ -169,29 +157,13 @@ int get_max_train( CHAR_DATA *ch, int stat )
     return UMIN(max,MAX_CURRSTAT);
 }
 
-int dex_app_tohit(int x)
-{
-    if ( x > 60 )
-	return ((x-60)/8);
-    else
-	return 0;
-};
-
-int str_app_todam(int x)
-{
-    if ( x > 60 )
-	return ((x-60)/6);
-    else
-	return 0;
-};
-
-int str_app_carry(int x)
+static int str_app_carry(int x)
 {
     if (x>100) return ((x-90)*((x*(x+40))/500));
     return ((x*(x+40))/50);
 };
 
-int str_app_wield(int x)
+static int str_app_wield(int x)
 {
     if (x<60) return (x*2);
     if (x<90) return (x*3-60);
@@ -204,17 +176,7 @@ int int_app_learn(int x)
     return (x+20);
 };
 
-int dis_app_practice(int x)
-{
-    /*return (x/16);*/
-    int base = x/16;
-    if ( number_range(0, 15) < (x % 16) )
-	return base + 1;
-    else
-	return base;
-};
-
-int agi_app_defensive(int x)
+static int agi_app_defensive(int x)
 {
     if ( x < 60 )
 	return 0;
@@ -222,42 +184,32 @@ int agi_app_defensive(int x)
 	return -2 * (x-60);
 };
 
-int dex_app_extrahit(int x)
+static int dex_app_extrahit(int x)
 {
     return x / 6;
 };
 
-int con_app_shock(int x)
-{
-    return (100 - ((160-x)*(160-x))/256);
-};
-
-int con_app_hitp(int x)
-{
-    return ((x-50)/8);
-};
-
-int cha_app_aggro(int x)
+static int cha_app_aggro(int x)
 {
     return ((x-60)/5);
 }
 
-int int_app_field(int x)
+static int int_app_field(int x)
 {
     return (x/3+2);
 }
 
-int wis_app_field(int x)
+static int wis_app_field(int x)
 {
     return (75-(5*x)/16);
 }
 
-int dis_app_field(int x)
+static int dis_app_field(int x)
 {
     return (x*10);  
 }
 
-int ch_dex_tohit(CHAR_DATA *ch)
+static int ch_dex_tohit(CHAR_DATA *ch)
 {
     int dex = get_curr_stat(ch, STAT_DEX);
     if ( dex < 60 )
@@ -266,7 +218,7 @@ int ch_dex_tohit(CHAR_DATA *ch)
         return (modified_level(ch) + 10) * (dex-60) / 200;
 };
 
-int ch_str_todam(CHAR_DATA *ch)
+static int ch_str_todam(CHAR_DATA *ch)
 {
     int str = get_curr_stat(ch, STAT_STR);
     if ( str < 60 )
@@ -290,16 +242,6 @@ int ch_int_learn(CHAR_DATA *ch)
     return (int_app_learn(get_curr_stat(ch, STAT_INT)));
 };
 
-/* Leaving this in tact, although it should not be called
-   by any code any longer. Practices are now calculated by
-   primary and secondary stats instead of just DIS - Astark 1-2-13 */
-
-int ch_dis_practice(CHAR_DATA *ch)
-{
-    return (dis_app_practice(get_curr_stat(ch, STAT_DIS)));
-};
-
-
 /* New function for pracitce calculations. Uses prime and secondary
    stats to determine the gains - Astark 1-2-13 */
 
@@ -312,7 +254,7 @@ int ch_prac_gains(CHAR_DATA *ch, int for_level)
     return x * (1 + UMAX(0, for_level - LEVEL_MIN_HERO));
 };
 
-int ch_agi_defensive(CHAR_DATA *ch)
+static int ch_agi_defensive(CHAR_DATA *ch)
 {
     return (modified_level(ch) + 10) * agi_app_defensive(get_curr_stat(ch, STAT_AGI)) / 100;
 };
@@ -320,16 +262,6 @@ int ch_agi_defensive(CHAR_DATA *ch)
 int ch_dex_extrahit(CHAR_DATA *ch)
 {
     return (dex_app_extrahit(get_curr_stat(ch, STAT_DEX)));
-};
-
-int ch_con_shock(CHAR_DATA *ch)
-{
-    return (con_app_shock(get_curr_stat(ch, STAT_CON)));
-};
-
-int ch_con_hitp(CHAR_DATA *ch)
-{
-    return (con_app_hitp(get_curr_stat(ch, STAT_CON)));
 };
 
 int ch_cha_aggro(CHAR_DATA *ch)
@@ -448,7 +380,7 @@ int get_spell_penetration( CHAR_DATA *ch, int level )
         return (level + 10) * 6/5;
 }
 
-int max_hmm_train_by_level( int level )
+static int max_hmm_train_by_level( int level )
 {
   int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
   int max_trained = (5 + level + hero_bonus * (hero_bonus + 1) / 2) * 2;
@@ -465,21 +397,8 @@ bool train_stat(int trained, CHAR_DATA *ch)
   return trained < max_hmm_train( ch );
 }
 
-int stat_gain(CHAR_DATA *ch, int stat)
-{
-    int rem;
-    
-    stat = ch->perm_stat[stat];
-    rem = stat%20;
-    stat = (stat-rem)/20;
-    
-    rem = (5*rem>number_percent()) ? 1 : 0;
-    
-    return (stat+rem+5);
-}
-
 /* returns how much one train would raise given stat */
-int train_stat_inc( CHAR_DATA *ch, int stat )
+static int train_stat_inc( CHAR_DATA *ch, int stat )
 {
     int max, inc;
 
@@ -509,7 +428,7 @@ int train_stat_inc( CHAR_DATA *ch, int stat )
     }
 }
 
-int construct_train_cost( int from, int to )
+static int construct_train_cost( int from, int to )
 {
     int total = 0;
     for ( ; from < to; from++ )
@@ -521,7 +440,7 @@ int construct_train_cost( int from, int to )
     return total;
 }
 
-void show_can_train( CHAR_DATA *ch )
+static void show_can_train( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
@@ -886,7 +805,7 @@ DEF_DO_FUN(do_stats)
 }
 
 /* called by do_showrace */
-void show_remort_bonus( CHAR_DATA *ch, int race )
+static void show_remort_bonus( CHAR_DATA *ch, int race )
 {
     char buf[MAX_STRING_LENGTH];
     int i;
@@ -1141,7 +1060,7 @@ DEF_DO_FUN(do_showrace)
     do_raceskills(ch, argument);
 }
 
-void show_pc_race_ratings( CHAR_DATA *ch, int race )
+static void show_pc_race_ratings( CHAR_DATA *ch, int race )
 {
     char buf[MIL];
     int stat;
@@ -1202,7 +1121,7 @@ DEF_DO_FUN(do_racelist)
     send_to_char("\n\r", ch);
 }
 
-void roll_dice (CHAR_DATA *ch, bool take_default)
+static void roll_dice (CHAR_DATA *ch, bool take_default)
 {
     int minimum_roll[15] = {85,85,85,85,85,80,80,75,70,60,50,40,30,15,0};
     int i, j, swap;
@@ -1234,7 +1153,7 @@ void roll_dice (CHAR_DATA *ch, bool take_default)
 }
 
 // calculate min, max and current stat for die allocation
-MIN_MAX_ROLLED* calc_min_max_rolled(CHAR_DATA *ch, int stat)
+static MIN_MAX_ROLLED* calc_min_max_rolled(CHAR_DATA *ch, int stat)
 {
     static MIN_MAX_ROLLED result;
 
@@ -1364,7 +1283,7 @@ void take_default_stats(CHAR_DATA *ch)
     return;
 }
 
-void insert_die(CHAR_DATA *ch, int die)
+static void insert_die(CHAR_DATA *ch, int die)
 {
     int i;
 
@@ -1540,7 +1459,7 @@ int modified_level( CHAR_DATA *ch )
     return URANGE(1, level, max);
 }
 
-int get_pc_hitdice( int level )
+static int get_pc_hitdice( int level )
 {
     int hero_bonus = UMAX(0, level - (LEVEL_HERO - 10));
     hero_bonus = hero_bonus * (hero_bonus + 1) / 2;
@@ -1555,7 +1474,7 @@ int get_hero_factor( int level )
     return 100 + hero_bonus;
 }
 
-int softcap_adjust( int trained, int cap )
+static int softcap_adjust( int trained, int cap )
 {
     if ( trained <= cap )
         return trained;
@@ -1887,7 +1806,7 @@ struct pc_race_type* get_morph_pc_race_type( CHAR_DATA *ch )
 
 /* class restriction stuff for ITEM_ALLOW_* */
 /* { Thf, War, Clr, Mag } */
-const bool class_group_table[MAX_CLASS][4] =
+static const bool class_group_table[MAX_CLASS][4] =
 {
     { 1, 0, 0, 0 }, // warrior
     { 0, 1, 0, 0 }, // thief
@@ -1907,7 +1826,7 @@ const bool class_group_table[MAX_CLASS][4] =
     { 1, 0, 0, 0 }  // bard
 };
 
-bool class_can_use( int class, tflag xtra_flags )
+static bool class_can_use( int class, tflag xtra_flags )
 {
     int group, flag;
     bool allow_found = FALSE;

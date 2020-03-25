@@ -35,7 +35,7 @@
 #include <time.h>
 
 int flag_lookup args( ( const char *name, const struct flag_type *flag_table) );
-void print_pkill_expire( CHAR_DATA *ch );
+static void print_pkill_expire( CHAR_DATA *ch );
 
 DEF_DO_FUN(do_flag)
 {
@@ -266,7 +266,7 @@ DEF_DO_FUN(do_flag)
     }
 }
 
-void print_pkill_grades( CHAR_DATA *ch )
+static void print_pkill_grades( CHAR_DATA *ch )
 {
     int i;
     char buf[MSL];
@@ -289,7 +289,7 @@ void print_pkill_grades( CHAR_DATA *ch )
     send_to_char( buf, ch );
 }
 
-void try_set_hardcore(CHAR_DATA *ch)
+static void try_set_hardcore(CHAR_DATA *ch)
 {
     if ( !IS_SET(ch->act, PLR_PERM_PKILL) )
     {
@@ -312,7 +312,7 @@ void try_set_hardcore(CHAR_DATA *ch)
 
 }
 
-void pkill_confirm(CHAR_DATA *ch, const char *arg)
+static void pkill_confirm(CHAR_DATA *ch, const char *arg)
 {
     if (ch->pcdata->confirm_pkill)
     {
@@ -369,7 +369,7 @@ void reset_pkill_expire( CHAR_DATA *ch)
     ch->pcdata->pkill_expire=mktime(timeinfo);
 }
 
-void try_set_pkill(CHAR_DATA *ch)
+static void try_set_pkill(CHAR_DATA *ch)
 {
     if ( IS_SET(ch->act, PLR_PERM_PKILL) )
     {
@@ -390,7 +390,7 @@ void try_set_pkill(CHAR_DATA *ch)
     }
 }
 
-void try_remove_pkill( CHAR_DATA *ch)
+static void try_remove_pkill( CHAR_DATA *ch)
 {
     if ( !IS_SET(ch->act, PLR_PERM_PKILL) )
     {
@@ -434,7 +434,7 @@ void try_remove_pkill( CHAR_DATA *ch)
 
 }
 
-void print_pkill_expire( CHAR_DATA *ch)
+static void print_pkill_expire( CHAR_DATA *ch)
 {
     if (ch->clss == class_lookup("assassin") )
     {

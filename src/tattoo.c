@@ -20,9 +20,14 @@
 #define NO_LOC(loc)        (loc < 0 || loc >= MAX_WEAR)
 #define NO_ID(ID)          (ID < 0 || ID >= MAX_TATTOO)
 
+
+static int tattoo_bonus_ID( CHAR_DATA *ch, int loc );
+static float get_tattoo_level( CHAR_DATA *ch, int loc, int level );
+
+
 /***************************** tattoo_list ***************************/
 
-void add_tattoo( tattoo_list tl, int loc, int ID )
+static void add_tattoo( tattoo_list tl, int loc, int ID )
 {
     if ( NO_LOC(loc) )
     {
@@ -33,7 +38,7 @@ void add_tattoo( tattoo_list tl, int loc, int ID )
     tl[loc] = ID;
 }
 
-void remove_tattoo( tattoo_list tl, int loc )
+static void remove_tattoo( tattoo_list tl, int loc )
 {
     if ( NO_LOC(loc) )
     {
@@ -44,7 +49,7 @@ void remove_tattoo( tattoo_list tl, int loc )
     tl[loc] = TATTOO_NONE;
 }
 
-int get_tattoo( tattoo_list tl, int loc )
+static int get_tattoo( tattoo_list tl, int loc )
 {
     if ( NO_LOC(loc) )
     {
@@ -74,7 +79,7 @@ void clear_tattoos( tattoo_list tl )
 	tl[i] = TATTOO_NONE;
 }
 
-char* print_tattoos( tattoo_list tl )
+const char* print_tattoos( tattoo_list tl )
 {
     static char buf[MSL];
     char nr_buf[10];
@@ -158,7 +163,7 @@ static const bool tattoo_wear[MAX_WEAR] =
     FALSE  // WEAR_SECONDARY
 };
 
-bool is_tattoo_loc( int loc )
+static bool is_tattoo_loc( int loc )
 {
     if ( NO_LOC(loc) )
     {
@@ -169,7 +174,7 @@ bool is_tattoo_loc( int loc )
     return tattoo_wear[loc];
 }
 
-OBJ_INDEX_DATA* tattoo_obj( int ID )
+static OBJ_INDEX_DATA* tattoo_obj( int ID )
 {
     if ( ID == TATTOO_NONE )
 	return NULL;
@@ -193,7 +198,7 @@ const char* tattoo_desc( int ID )
 	return obj->short_descr;
 }
 
-const char* tattoo_name( int ID )
+static const char* tattoo_name( int ID )
 {
     OBJ_INDEX_DATA *obj;
 
@@ -203,7 +208,7 @@ const char* tattoo_name( int ID )
 	return obj->name;
 }
 
-int tattoo_cost( int ID )
+static int tattoo_cost( int ID )
 {
     if ( NO_ID(ID) )
     {
@@ -214,7 +219,7 @@ int tattoo_cost( int ID )
     return tattoo_data_list[ID].cost;
 }
 
-int tattoo_id( const char *name )
+static int tattoo_id( const char *name )
 {
     OBJ_INDEX_DATA *obj;
     int ID;
@@ -238,7 +243,7 @@ float tattoo_bonus_factor( float level )
         return 1 + (level - 90) / 10;
 }
 
-AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
+static AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
 {
     static AFFECT_DATA taff;
     float factor;
@@ -265,7 +270,7 @@ AFFECT_DATA* tattoo_affect( AFFECT_DATA *aff, float level, bool basic )
     return &taff;
 }
 
-void tattoo_modify_ID( CHAR_DATA *ch, int ID, float level, bool fAdd, bool drop, bool basic )
+static void tattoo_modify_ID( CHAR_DATA *ch, int ID, float level, bool fAdd, bool drop, bool basic )
 {
     AFFECT_DATA *aff;
     OBJ_INDEX_DATA *obj;
@@ -304,7 +309,7 @@ void tattoo_modify_equip( CHAR_DATA *ch, int loc, bool fAdd, bool drop, bool bas
 }
 
 /* returns ID of tattoo of ch at loc provided it adds an affect */
-int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
+static int tattoo_bonus_ID( CHAR_DATA *ch, int loc )
 {
     OBJ_DATA *obj;
 
@@ -324,7 +329,7 @@ float get_obj_tattoo_level( int obj_level, int level )
     return UMIN(obj_level, level);
 }
 
-float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
+static float get_tattoo_level( CHAR_DATA *ch, int loc, int level )
 {
     OBJ_DATA *obj = get_eq_char(ch, loc);
     
@@ -388,7 +393,7 @@ int get_tattoo_ch( CHAR_DATA *ch, int loc )
 
 /***************************** do_functions **************************/
 
-void show_tattoos( CHAR_DATA *ch )
+static void show_tattoos( CHAR_DATA *ch )
 {
     OBJ_INDEX_DATA *obj;
     char buf[MSL];
@@ -406,7 +411,7 @@ void show_tattoos( CHAR_DATA *ch )
     }
 }
 
-void show_tattoo_syntax( CHAR_DATA *ch )
+static void show_tattoo_syntax( CHAR_DATA *ch )
 {
     send_to_char( "Syntax: tattoo list\n\r", ch );
     send_to_char( "        tattoo loc\n\r", ch );
@@ -416,7 +421,7 @@ void show_tattoo_syntax( CHAR_DATA *ch )
     send_to_char( "        tattoo refund\n\r", ch );
 }
 
-void show_tattoo_loc( CHAR_DATA *ch )
+static void show_tattoo_loc( CHAR_DATA *ch )
 {
     char buf[MSL];
     int loc;

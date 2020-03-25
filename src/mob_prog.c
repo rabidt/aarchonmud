@@ -50,12 +50,11 @@
 #include "lua_scripting.h"
 #include "interp.h"
 
-extern int flag_lookup( const char *word, const struct flag_type *flag_table );
 
-bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name );
-int cmd_eval( int vnum, const char *line, int check,
-        CHAR_DATA *mob, CHAR_DATA *ch,
-        const void *arg1, const void *arg2, CHAR_DATA *rch );
+static bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name );
+static int cmd_eval( int vnum, const char *line, int check,
+                     CHAR_DATA *mob, CHAR_DATA *ch,
+                     const void *arg1, const void *arg2, CHAR_DATA *rch );
 
 /* crash debugging */
 char last_mprog[MSL] = "";
@@ -303,7 +302,7 @@ const keyword_list fn_keyword =
     { "\n",		"Table terminator" }
 };
 
-const keyword_list fn_evals =
+static const keyword_list fn_evals =
 {
     { "==" },
     { ">=" },
@@ -317,7 +316,7 @@ const keyword_list fn_evals =
 /*
  * Return a valid keyword from a keyword table
  */
-int keyword_lookup( const keyword_list table, char *keyword )
+static int keyword_lookup( const keyword_list table, char *keyword )
 {
     register int i;
     for( i = 0; table[i][0][0] != '\n'; i++ )
@@ -330,7 +329,7 @@ int keyword_lookup( const keyword_list table, char *keyword )
  * Perform numeric evaluation.
  * Called by cmd_eval()
  */
-int num_eval( int lval, int oper, int rval )
+static int num_eval( int lval, int oper, int rval )
 {
     switch( oper )
     {
@@ -419,7 +418,7 @@ int count_people_room( CHAR_DATA *mob, int iFlag )
  * a room have the same trigger and you want only the first of them
  * to act 
  */
-int get_order( CHAR_DATA *ch )
+static int get_order( CHAR_DATA *ch )
 {
     CHAR_DATA *vch;
     int i;
@@ -494,7 +493,7 @@ bool has_item_in_container( CHAR_DATA *ch, int vnum, const char *obj_name )
     return FALSE;
 }
 
-bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name )
+static bool check_in_container( OBJ_DATA *container, int vnum, const char *obj_name )
 {
     OBJ_DATA *obj;
 
@@ -579,7 +578,7 @@ bool is_affected_parse( CHAR_DATA *ch, const char *arg )
  *
  *----------------------------------------------------------------------
  */
-int cmd_eval( int vnum, const char *line, int check,
+static int cmd_eval( int vnum, const char *line, int check,
 	CHAR_DATA *mob, CHAR_DATA *ch, 
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
 {
@@ -1020,7 +1019,7 @@ int cmd_eval( int vnum, const char *line, int check,
  * so that missing or invalid $-codes do not crash the server
  * ------------------------------------------------------------------------
  */
-void expand_arg( char *buf, 
+static void expand_arg( char *buf, 
 	const char *format, 
 	CHAR_DATA *mob, CHAR_DATA *ch, 
 	const void *arg1, const void *arg2, CHAR_DATA *rch )
@@ -1227,12 +1226,12 @@ void expand_arg( char *buf,
  */
 static int mprog_call_level = 0;
 
-int mprog_call_level_increase( void )
+static int mprog_call_level_increase( void )
 {
     return ++mprog_call_level;
 }
 
-int mprog_call_level_decrease( void )
+static int mprog_call_level_decrease( void )
 {
     if ( mprog_call_level == 0 )
     {

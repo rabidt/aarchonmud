@@ -24,10 +24,10 @@
 #include "olc.h"
 #include "lua_main.h"
 
-const char * string_linedel( const char *, int );
-const char * string_lineadd( const char *, const char *, int );
-const char * numlineas( const char * );
-const char * get_line( const char *str, char *buf );
+static const char * string_linedel( const char *, int );
+static const char * string_lineadd( const char *, const char *, int );
+static const char * numlineas( const char * );
+static const char * get_line( const char *str, char *buf );
 
 
 /*****************************************************************************
@@ -35,7 +35,7 @@ const char * get_line( const char *str, char *buf );
  Purpose:   Removes last line from string
  Called by: many
  ****************************************************************************/
-const char * del_last_line( const char *string )
+static const char * del_last_line( const char *string )
 {
   char xbuf[4*MAX_STRING_LENGTH]; 
   return del_last_line_ext(string, xbuf, sizeof(xbuf));
@@ -74,31 +74,6 @@ const char * del_last_line_ext( const char *string, char *xbuf, size_t xbufsz )
    free_string(string);
    return( str_dup(xbuf));
 }
-
-
-/*****************************************************************************
- Name:		string_edit
- Purpose:	Clears string and puts player into editing mode.
- Called by:	none
- ****************************************************************************/
-void string_edit( CHAR_DATA *ch, const char **pString )
-{
-    send_to_char( "-========- Entering EDIT Mode -=========-\n\r", ch );
-    send_to_char( "    Type .h on a new line for help\n\r", ch );
-    send_to_char( " Terminate with a ~ or @ on a blank line.\n\r", ch );
-    send_to_char( "-=======================================-\n\r", ch );
-
-    if ( *pString != NULL )
-        free_string(*pString);
-    
-    *pString = str_empty;
-
-    ch->desc->pString = pString;
-
-    return;
-}
-
-
 
 /*****************************************************************************
  Name:		string_append
@@ -670,7 +645,7 @@ const char *first_arg( const char *argument, char *arg_first, bool fCase )
     return argument;
 }
 
-const char *string_linedel( const char *string, int line )
+static const char *string_linedel( const char *string, int line )
 {
    const char *strtmp = string;
    char buf[MAX_STRING_LENGTH];
@@ -703,7 +678,7 @@ const char *string_linedel( const char *string, int line )
    return str_dup(buf);
 }
 
-const char *string_lineadd( const char *string, const char *newstr, int line )
+static const char *string_lineadd( const char *string, const char *newstr, int line )
 {
    const char *strtmp = string;
    int cnt = 1, tmp = 0;
@@ -744,7 +719,7 @@ const char *string_lineadd( const char *string, const char *newstr, int line )
 }
 
 /* buf queda con la linea sin \n\r */
-const char *get_line( const char *str, char *buf )
+static const char *get_line( const char *str, char *buf )
 {
    int tmp = 0;
    bool found = FALSE;
@@ -773,7 +748,7 @@ const char *get_line( const char *str, char *buf )
    return str;
 }
 
-const char* numlineas( const char *string )
+static const char* numlineas( const char *string )
 {
    int cnt = 1;
    static char buf[MAX_STRING_LENGTH*2];

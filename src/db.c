@@ -58,7 +58,6 @@
 #include "lua_arclib.h"
 #include "boot_checks.h"
 
-extern  int _filbuf     args( (FILE *) );
 
 #if !defined(OLD_RAND)
 void srandom(unsigned int);
@@ -78,13 +77,19 @@ extern  AFFECT_DATA *affect_free;
 static int STR_DUP_STRINGS = 0;
 static int HIGHEST_STR_DUP_STRINGS = 0;
 
-void format_init_flags( void );
-void format_race_flags( void );
-void load_area_file( FILE *fp, bool clone );
+static void format_init_flags( void );
+static void format_race_flags( void );
+static void load_area_file( FILE *fp, bool clone );
 void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description );
-void affect_spellup_mob( CHAR_DATA *mob );
+static void affect_spellup_mob( CHAR_DATA *mob );
 static void rand_test( int repeats );
 void verify_skills( void );
+
+static ROOM_INDEX_DATA *get_room_index_safe( int vnum );
+static MOB_INDEX_DATA *get_mob_index_safe( int vnum );
+static OBJ_INDEX_DATA *get_obj_index_safe( int vnum );
+static long flag_convert(char letter );
+static long number_mm( void );
 
 /*
 * Globals.
@@ -104,7 +109,6 @@ PROG_CODE *    oprog_list;
 PROG_CODE *    aprog_list;
 PROG_CODE *    rprog_list;
 
-char            bug_buf     [];
 CHAR_DATA *     char_list;
 const char *    help_greeting;
 char            log_buf     [];
@@ -571,15 +575,15 @@ sh_int cn_newbie;
 MOB_INDEX_DATA *    mob_index_hash      [MAX_KEY_HASH];
 OBJ_INDEX_DATA *    obj_index_hash      [MAX_KEY_HASH];
 ROOM_INDEX_DATA *   room_index_hash     [MAX_KEY_HASH];
-char *              string_hash     [MAX_KEY_HASH];
+static char *              string_hash     [MAX_KEY_HASH];
 
 AREA_DATA *     area_first;
 AREA_DATA *     area_last;
-AREA_DATA *     current_area;
+static AREA_DATA *     current_area;
 
 
-char *  string_space;
-char *  top_string;
+static char *  string_space;
+static char *  top_string;
 char    str_empty[1] = "";
 
 int  top_affect;
@@ -614,7 +618,7 @@ int  top_jail_room = -1;
 #define         MAX_PERM_BLOCK  262144
 /*#define         MAX_MEM_LIST    16*/
 
-void *          rgFreeList  [MAX_MEM_LIST];
+static void *   rgFreeList  [MAX_MEM_LIST];
 const int       rgSizeList  [MAX_MEM_LIST]  =
 {
     16, 32, 64, 128, 256, 1024, 2048, 4096, 8192, 16384, 32768, 65536,
@@ -622,9 +626,9 @@ const int       rgSizeList  [MAX_MEM_LIST]  =
 };
 
 extern int         nAllocString;
-int         sAllocString;
+static int         sAllocString;
 extern int         nAllocPerm;
-int         sAllocPerm;
+static int         sAllocPerm;
 
 int area_version = 0;
 
@@ -632,54 +636,52 @@ int area_version = 0;
 * Semi-locals.
 */
 bool            fBootDb;
-FILE *          fpArea;
-char            strArea[MAX_INPUT_LENGTH];
+static FILE *   fpArea;
+static char     strArea[MAX_INPUT_LENGTH];
 
 
 
 /*
 * Local booting procedures.
 */
-void    init_mm         args( ( void ) );
-void    load_area   args( ( FILE *fp ) );
-void    new_load_area   args( ( FILE *fp ) );   /* OLC */
+static void    init_mm         args( ( void ) );
+static void    load_area   args( ( FILE *fp ) );
+static void    new_load_area   args( ( FILE *fp ) );   /* OLC */
 /*void    load_helps  args( ( FILE *fp ) );*/
-void    load_helps  args( ( FILE *fp, char *fname ) );
+static void    load_helps  args( ( FILE *fp, char *fname ) );
 
 void    load_mobiles    args( ( FILE *fp ) );
 void    load_objects    args( ( FILE *fp ) );
-void    load_resets args( ( FILE *fp ) );
-void    load_rooms  args( ( FILE *fp ) );
-void    load_shops  args( ( FILE *fp ) );
-void    load_bossachievements args( ( FILE *fp ) );
-void    load_specials   args( ( FILE *fp ) );
-void    load_notes  args( ( void ) );
+static void    load_resets args( ( FILE *fp ) );
+static void    load_rooms  args( ( FILE *fp ) );
+static void    load_shops  args( ( FILE *fp ) );
+static void    load_bossachievements args( ( FILE *fp ) );
+static void    load_specials   args( ( FILE *fp ) );
 void    load_bans   args( ( void ) );
-void    load_mobprogs   args( ( FILE *fp ) );
-void    load_objprogs( FILE *fp );
-void    load_areaprogs( FILE *fp );
-void    load_roomprogs( FILE *fp );
+static void    load_mobprogs   args( ( FILE *fp ) );
+static void    load_objprogs( FILE *fp );
+static void    load_areaprogs( FILE *fp );
+static void    load_roomprogs( FILE *fp );
 void    load_wizlist    args( ( void ) );
 void    load_clans      args( ( void ) );
 void	load_skills( void );
 void    count_stats( void );
 
-void    fix_exits   args( ( void ) );
-void    fix_mobprogs    args( ( void ) );
-void    fix_objprogs( void );
-void    fix_areaprogs( void );
-void    fix_roomprogs( void );
+static void    fix_exits   args( ( void ) );
+static void    fix_mobprogs    args( ( void ) );
+static void    fix_objprogs( void );
+static void    fix_areaprogs( void );
+static void    fix_roomprogs( void );
 
 void    reset_area  args( ( AREA_DATA * pArea ) );
 void    load_clanwars args ( ( void ) );
 void    load_crime_list args ( ( void ) );
 void    load_penalties args ( ( void ) );
-void    load_reserved   args( ( void ) );
+static void    load_reserved   args( ( void ) );
 void    sort_reserved   args( ( RESERVED_DATA *pRes ) );
-void    channel_init( void );
-void    reset_str_dup( void );
-int     random_attack_type( void );
-void    dump_str_dup( void );
+static void    channel_init( void );
+static void    reset_str_dup( void );
+static int     random_attack_type( void );
 
 /*
 * Big mama top level function.
@@ -964,7 +966,7 @@ void boot_db( void )
 }
 
 
-void channel_init( void )
+static void channel_init( void )
 {
     int cn;
     for ( cn = 0; public_channel_table[cn].pcn != NULL; cn++ )
@@ -975,13 +977,13 @@ void channel_init( void )
 
 /* format all flags correctly --Bobble */
 
-void format_init_flags( void )
+static void format_init_flags( void )
 {
     log_string( "Formatting flags" );
     format_race_flags();
 }
 
-void format_race_flags( void )
+static void format_race_flags( void )
 {
     int i;
 
@@ -1010,7 +1012,7 @@ void format_race_flags( void )
     }
 }
 
-void load_area_file( FILE *fp, bool clone )
+static void load_area_file( FILE *fp, bool clone )
 {
     int clone_vnums[100];
     int shift, nr, clone_nr = 0;
@@ -1084,7 +1086,7 @@ void load_area_file( FILE *fp, bool clone )
 /*
 * Snarf an 'area' header line.
 */
-void load_area( FILE *fp )
+static void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
@@ -1155,7 +1157,7 @@ void load_area( FILE *fp )
 * Recall 3001
 * End
 */
-void new_load_area( FILE *fp )
+static void new_load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     const char *word;
@@ -1307,7 +1309,7 @@ void assign_area_vnum( int vnum )
 
 
 /* Reserved names, ported from Smaug by Rimbol 3/99. */
-void load_reserved( void )
+static void load_reserved( void )
 {
     RESERVED_DATA *res;
     FILE *fp;
@@ -1391,7 +1393,7 @@ void sort_reserved( RESERVED_DATA *pRes )
 /*
 * Snarf a help section.
 */
-void load_helps( FILE *fp, char *fname )
+static void load_helps( FILE *fp, char *fname )
 {
     HELP_DATA *pHelp;
     int level;
@@ -1482,7 +1484,8 @@ void index_mobile( MOB_INDEX_DATA *pMobIndex )
 /*
  * Debug: log state of mob_index_hash
  */
-void log_mob_index( void )
+#if 0
+static void log_mob_index( void )
 {
     int mob_count = 0;
     int max_bucket_size = 0;
@@ -1507,6 +1510,7 @@ void log_mob_index( void )
     logpf( "mob_index_hash: buckets = %d, mobs = %d, max_bucket_size = %d, ave_access = %.2f",
            MAX_KEY_HASH, mob_count, max_bucket_size, (float)(square_bucket_size) / mob_count );
 }
+#endif
 
 RESET_DATA* get_last_reset( RESET_DATA *reset_list )
 {
@@ -1547,7 +1551,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
  /*
  * Snarf a reset section.
  */
- void load_resets( FILE *fp )
+ static void load_resets( FILE *fp )
  {
      RESET_DATA *pReset;
      int rVnum = -1;
@@ -1619,7 +1623,7 @@ RESET_DATA* get_last_reset( RESET_DATA *reset_list )
  /*
  * Snarf a room section.
  */
-void load_rooms( FILE *fp )
+static void load_rooms( FILE *fp )
 {
     ROOM_INDEX_DATA *pRoomIndex;
 
@@ -1852,7 +1856,7 @@ void load_rooms( FILE *fp )
     return;
 }
 
-void load_bossachievements( FILE *fp )
+static void load_bossachievements( FILE *fp )
 {
     BOSSACHV *pBoss=NULL;
 
@@ -1881,7 +1885,7 @@ void load_bossachievements( FILE *fp )
 /*
 * Snarf a shop section.
 */
-void load_shops( FILE *fp )
+static void load_shops( FILE *fp )
 {
     SHOP_DATA *pShop;
     
@@ -1925,7 +1929,7 @@ void load_shops( FILE *fp )
 /*
 * Snarf spec proc declarations.
 */
-void load_specials( FILE *fp )
+static void load_specials( FILE *fp )
 {
     for ( ; ; )
     {
@@ -1960,7 +1964,7 @@ void load_specials( FILE *fp )
 }
 
 
-void fix_exits( void )
+static void fix_exits( void )
 {
     ROOM_INDEX_DATA *pRoomIndex;
     EXIT_DATA *pexit;
@@ -2058,7 +2062,7 @@ void fix_exits( void )
 /*
 * Load roomprogs section
 */
-void load_roomprogs( FILE *fp )
+static void load_roomprogs( FILE *fp )
 {
     PROG_CODE *pRprog;
 
@@ -2132,7 +2136,7 @@ void load_roomprogs( FILE *fp )
 /*
 * Load areaprogs section
 */
-void load_areaprogs( FILE *fp )
+static void load_areaprogs( FILE *fp )
 {
     PROG_CODE *pAprog;
 
@@ -2215,7 +2219,7 @@ void load_areaprogs( FILE *fp )
 /*
 * Load objprogs section
 */
-void load_objprogs( FILE *fp )
+static void load_objprogs( FILE *fp )
 {
     PROG_CODE *pOprog;
 
@@ -2297,7 +2301,7 @@ void load_objprogs( FILE *fp )
 /*
 * Load mobprogs section
 */
-void load_mobprogs( FILE *fp )
+static void load_mobprogs( FILE *fp )
 {
     PROG_CODE *pMprog;
     
@@ -2406,7 +2410,7 @@ void load_mobprogs( FILE *fp )
 /*
 *  Translate mobprog vnums pointers to real code
 */
-void fix_mobprogs( void )
+static void fix_mobprogs( void )
 {
     MOB_INDEX_DATA *pMobIndex;
     PROG_LIST        *list;
@@ -2439,7 +2443,7 @@ void fix_mobprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
-void fix_objprogs( void )
+static void fix_objprogs( void )
 {
     OBJ_INDEX_DATA *pObjIndex;
     PROG_LIST        *list;
@@ -2472,7 +2476,7 @@ void fix_objprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
-void fix_areaprogs( void )
+static void fix_areaprogs( void )
 {
     AREA_DATA *pArea;
     PROG_LIST        *list;
@@ -2503,7 +2507,7 @@ void fix_areaprogs( void )
     //logpf("Fix_mobprogs: %d mprogs fixed.", mprog_count);
 }
 
-void fix_roomprogs( void )
+static void fix_roomprogs( void )
 {
     ROOM_INDEX_DATA *pRoom;
     PROG_LIST        *list;
@@ -3085,7 +3089,7 @@ void rename_obj( OBJ_DATA *obj, char *name, char *short_descr, char *description
 }
 
 /* randomly choose an attack type */
-int random_attack_type( void )
+static int random_attack_type( void )
 {
     int i;
     
@@ -3266,7 +3270,7 @@ CHAR_DATA *create_mobile( MOB_INDEX_DATA *pMobIndex )
     return mob;
 }
 
-void check_affect_add( CHAR_DATA *mob, int affect, int sn )
+static void check_affect_add( CHAR_DATA *mob, int affect, int sn )
 {
     AFFECT_DATA af;
 
@@ -3286,7 +3290,7 @@ void check_affect_add( CHAR_DATA *mob, int affect, int sn )
     }
 }
 
-void affect_spellup_mob( CHAR_DATA *mob )
+static void affect_spellup_mob( CHAR_DATA *mob )
 {
     check_affect_add( mob, AFF_SANCTUARY,     skill_lookup("sanctuary") );
     check_affect_add( mob, AFF_HASTE,         skill_lookup("haste") );
@@ -3624,41 +3628,6 @@ void clone_object(OBJ_DATA *parent, OBJ_DATA *clone)
     
 }
 
-
-
-/*
-* Clear a new character.
-*/
-void clear_char( CHAR_DATA *ch )
-{
-    static CHAR_DATA ch_zero;
-    int i;
-    
-    *ch             = ch_zero;
-    ch->name            = &str_empty[0];
-    ch->short_descr     = &str_empty[0];
-    ch->long_descr      = &str_empty[0];
-    ch->description     = &str_empty[0];
-    ch->prompt                  = &str_empty[0];
-    ch->logon           = current_time;
-    ch->lines           = PAGELEN;
-    ch->armor           = 0;
-    ch->position        = POS_STANDING;
-    ch->hit         = 20;
-    ch->max_hit         = 20;
-    ch->mana            = 100;
-    ch->max_mana        = 100;
-    ch->move            = 100;
-    ch->max_move        = 100;
-    ch->on          = NULL;
-    for (i = 0; i < MAX_STATS; i ++)
-    {
-        ch->perm_stat[i] = 60; 
-        ch->mod_stat[i] = 60;
-    }
-    return;
-}
-
 /*
 * Get an extra description from a list.
 */
@@ -3672,7 +3641,7 @@ const char * get_extra_descr( const char *name, EXTRA_DESCR_DATA *ed )
     return NULL;
 }
 
-MOB_INDEX_DATA *get_mob_index_safe( int vnum )
+static MOB_INDEX_DATA *get_mob_index_safe( int vnum )
 {
     MOB_INDEX_DATA *index = get_mob_index(vnum);
     if ( !index )
@@ -3702,7 +3671,7 @@ MOB_INDEX_DATA *get_mob_index( int vnum )
     return NULL;
 }
 
-OBJ_INDEX_DATA *get_obj_index_safe( int vnum )
+static OBJ_INDEX_DATA *get_obj_index_safe( int vnum )
 {
     OBJ_INDEX_DATA *index = get_obj_index(vnum);
     if ( !index )
@@ -3732,7 +3701,7 @@ OBJ_INDEX_DATA *get_obj_index( int vnum )
     return NULL;
 }
 
-ROOM_INDEX_DATA *get_room_index_safe( int vnum )
+static ROOM_INDEX_DATA *get_room_index_safe( int vnum )
 {
     ROOM_INDEX_DATA *index = get_room_index(vnum);
     if ( !index )
@@ -3921,7 +3890,7 @@ long fread_flag( FILE *fp)
     return number;
 }
 
-long flag_convert(char letter )
+static long flag_convert(char letter )
 {
     long bitsum = 0;
     char i;
@@ -4067,7 +4036,7 @@ const char *fread_string( FILE *fp )
 }
 
 /* new slightly different, simpler and working version by Bobble */
-const char *fread_string_eol( FILE *fp )
+static const char *fread_string_eol( FILE *fp )
 {
     static char buf[MSL];
     char c;
@@ -4101,107 +4070,6 @@ const char *fread_string_eol( FILE *fp )
 	
     return buf;
 }
-
-/* seems buggy..*/
-const char *fread_string_eol_old( FILE *fp )
-{
-    static bool char_special[256-EOF];
-    char *plast;
-    char c;
-    
-    if ( char_special[EOF-EOF] != TRUE )
-    {
-        char_special[EOF -  EOF] = TRUE;
-        char_special['\n' - EOF] = TRUE;
-        char_special['\r' - EOF] = TRUE;
-    }
-    
-    plast = top_string + sizeof(char *);
-    if ( plast > &string_space[MAX_STRING - MAX_STRING_LENGTH] )
-    {
-        bug( "Fread_string: MAX_STRING %d exceeded.", MAX_STRING );
-        exit( 1 );
-    }
-    
-    /*
-    * Skip blanks.
-    * Read first char.
-    */
-    do
-    {
-        c = getc( fp );
-    }
-    while ( isspace(c) );
-    
-    if ( ( *plast++ = c ) == '\n')
-        return &str_empty[0];
-    
-    for ( ;; )
-    {
-        if ( !char_special[ ( *plast++ = getc( fp ) ) - EOF ] )
-            continue;
-        
-        switch ( plast[-1] )
-        {
-        default:
-            break;
-            
-        case EOF:
-	    /*
-            bug( "Fread_string_eol  EOF", 0 );
-            exit( 1 );
-            break;
-	    */
-            
-        case '\n':  case '\r':
-            {
-                union
-                {
-                    char *      pc;
-                    char        rgc[sizeof(char *)];
-                } u1;
-                size_t ic;
-                int iHash;
-                char *pHash;
-                char *pHashPrev;
-                char *pString;
-                
-                plast[-1] = '\0';
-                iHash     = UMIN( MAX_KEY_HASH - 1, plast - 1 - top_string );
-                for ( pHash = string_hash[iHash]; pHash; pHash = pHashPrev )
-                {
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        u1.rgc[ic] = pHash[ic];
-                    pHashPrev = u1.pc;
-                    pHash    += sizeof(char *);
-                    
-                    if ( top_string[sizeof(char *)] == pHash[0]
-                        &&   !strcmp( top_string+sizeof(char *)+1, pHash+1 ) )
-                        return pHash;
-                }
-                
-                if ( fBootDb )
-                {
-                    pString             = top_string;
-                    top_string          = plast;
-                    u1.pc               = string_hash[iHash];
-                    for ( ic = 0; ic < sizeof(char *); ic++ )
-                        pString[ic] = u1.rgc[ic];
-                    string_hash[iHash]  = pString;
-                    
-                    nAllocString += 1;
-                    sAllocString += top_string - pString;
-                    return pString + sizeof(char *);
-                }
-                else
-                {
-                    return str_dup( top_string + sizeof(char *) );
-                }
-            }
-        }
-    }
-}
-
 
 
 /*
@@ -4414,14 +4282,14 @@ void *alloc_perm( int sMem )
 static const char* str_dup_hash[MAX_STR_DUP_KEY];
 static bool str_dup_ready = FALSE;
 
-void reset_str_dup( void )
+static void reset_str_dup( void )
 {
     memset(str_dup_hash, 0, MAX_STR_DUP_KEY * sizeof(char*));
     str_dup_ready = TRUE;
     return;    
 }
 
-void remember_str_dup(const char *str)
+static void remember_str_dup(const char *str)
 {
     int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
     
@@ -4440,7 +4308,7 @@ void remember_str_dup(const char *str)
     return;
 }
 
-void forget_str_dup(const char *str)
+static void forget_str_dup(const char *str)
 {
     int key = ((unsigned long)str) % MAX_STR_DUP_KEY;
     
@@ -4450,7 +4318,8 @@ void forget_str_dup(const char *str)
     return;
 }
 
-void dump_str_dup( void )
+#if 0
+static void dump_str_dup( void )
 {
     int key;
     
@@ -4463,6 +4332,7 @@ void dump_str_dup( void )
     reset_str_dup();
     return;
 }
+#endif
 
 /*
 * Duplicate a string into dynamic memory.
@@ -4558,7 +4428,7 @@ const char *trim_realloc( const char *str )
    operators reversed so players can add arguments to the areas
    command and sort however they want */
 
-int compare_area (const void *v1, const void *v2)
+static int compare_area (const void *v1, const void *v2)
 {
 	const AREA_DATA *a1 = *(const AREA_DATA * const *)v1;
 	const AREA_DATA *a2 = *(const AREA_DATA * const *)v2;
@@ -4570,19 +4440,6 @@ int compare_area (const void *v1, const void *v2)
 	else
 		return 0;
 }
-
-int compare_area_max (const void *v1, const void *v2)
-{
-	const AREA_DATA *a1 = *(AREA_DATA * const *)v1;
-	const AREA_DATA *a2 = *(AREA_DATA * const *)v2;
-
-	if (a1->maxlevel > a2->maxlevel )
-		return -1; 
-	else if (a1->maxlevel < a2->maxlevel )
-		return +1;
-	else
-		return 0;
-} 
 
 #define MAX_AREAS 1000
 
@@ -4837,7 +4694,7 @@ define OLD_RAND to use the old system -- Alander */
 static  int     rgiState[2+55];
 #endif
 
-void init_mm( void )
+static void init_mm( void )
 {
 #if defined (OLD_RAND)
     int *piState;
@@ -4864,7 +4721,7 @@ void init_mm( void )
 
 
 
-long number_mm( void )
+static long number_mm( void )
 {
 #if defined (OLD_RAND)
     int *piState;
@@ -5289,7 +5146,7 @@ void bug_string( const char *str )
 }
 
 // return first (minimal) substring of s delimited by c_start and c_end
-char* substr_delim(const char *s, char c_start, char c_end)
+static char* substr_delim(const char *s, char c_start, char c_end)
 {
     static char ss_buf[MAX_STRING_LENGTH];
     int ss_next = 0;

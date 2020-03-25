@@ -13,10 +13,18 @@
 #include "lookup.h"
 #include "mob_stats.h"
 
-void show_grep_syntax( CHAR_DATA *ch );
-void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
-void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
-void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+static void show_grep_syntax( CHAR_DATA *ch );
+static void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+static void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+static void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum );
+static bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg, size_t msgsz );
+static bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz );
+static bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz );
+static bool has_mprog( MOB_INDEX_DATA *mob, int vnum );
+static bool has_oprog( OBJ_INDEX_DATA *obj, int vnum );
+static bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg, size_t msgsz );
+static bool has_spell( OBJ_INDEX_DATA *obj, int ID );
+static bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg, size_t msgsz );
 
 typedef struct grep_data GREP_DATA;
 struct grep_data
@@ -28,7 +36,7 @@ struct grep_data
     bool negate;
 };
 
-GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool negate )
+static GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool negate )
 {
     GREP_DATA *gd = alloc_mem( sizeof(GREP_DATA) );
 
@@ -49,13 +57,13 @@ GREP_DATA* new_grep_data( sh_int stat, int value, const char *str_value, bool ne
     return gd;
 }
 
-void free_grep_data( GREP_DATA *gd )
+static void free_grep_data( GREP_DATA *gd )
 {
     if ( gd != NULL )
 	free_mem( gd, sizeof(GREP_DATA) );
 }
 
-void free_grep_list( GREP_DATA *gd )
+static void free_grep_list( GREP_DATA *gd )
 {
     if ( gd != NULL )
     {
@@ -146,7 +154,7 @@ DEF_DO_FUN(do_grep)
 /* Have recently expanded on grep quite a bit. Newer flags include, obj nocost, 
    mob vuln, res, imm, shopmob, room name - Astark */
 
-void show_grep_syntax( CHAR_DATA *ch )
+static void show_grep_syntax( CHAR_DATA *ch )
 {
     send_to_char( "Syntax: grep [obj|mob|room] [area|world] <stat> .. <stat>\n\r", ch );
     send_to_char( "        each <stat> may be preceeded with 'not'\n\r", ch );
@@ -220,7 +228,7 @@ void show_grep_syntax( CHAR_DATA *ch )
 #define NO_SHORT_DESC "(no short description)"
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
+static GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -458,7 +466,7 @@ GREP_DATA* parse_obj_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info, size_t infosz )
+static bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info, size_t infosz )
 {
     char buf[MIL] = "",
 	msg[MIL] = "";
@@ -585,7 +593,7 @@ bool match_grep_obj( GREP_DATA *gd, OBJ_INDEX_DATA *obj, char *info, size_t info
     return match;
 }
 
-void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
+static void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -659,7 +667,7 @@ void grep_obj( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 #define GREP_MOB_RACE     16
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
+static GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -894,7 +902,7 @@ GREP_DATA* parse_mob_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info, size_t infosz )
+static bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info, size_t infosz )
 {
     char buf[MIL] = "",
 	msg[MIL] = "";
@@ -981,7 +989,7 @@ bool match_grep_mob( GREP_DATA *gd, MOB_INDEX_DATA *mob, char *info, size_t info
     return match;
 }
 
-void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
+static void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -1045,7 +1053,7 @@ void grep_mob( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 #define GREP_ROOM_NAME     4
 
 /* parses argument into a list of grep_data */
-GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
+static GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
 {
     GREP_DATA *gd;
     char arg1[MIL] = "";
@@ -1143,7 +1151,7 @@ GREP_DATA* parse_room_grep( CHAR_DATA *ch, const char *argument )
     return gd;
 }
 
-bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info, size_t infosz )
+static bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info, size_t infosz )
 {
     char buf[MIL] = "";
     bool match = FALSE;
@@ -1184,7 +1192,7 @@ bool match_grep_room( GREP_DATA *gd, ROOM_INDEX_DATA *room, char *info, size_t i
     return match;
 }
 
-void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
+static void grep_room( CHAR_DATA *ch, const char *argument, int min_vnum, int max_vnum )
 {
     char buf[MSL], info[MSL];
     BUFFER *buffer;
@@ -1260,7 +1268,7 @@ bool is_room_ingame( ROOM_INDEX_DATA *room )
     && is_area_ingame(room->area);
 }
 
-bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg, size_t msgsz )
+static bool is_mob_in_spec( MOB_INDEX_DATA *mob, char *msg, size_t msgsz )
 {
     /* remort has no specs */
     if ( IS_SET(mob->area->area_flags, AREA_REMORT) )
@@ -1338,7 +1346,7 @@ int get_affect_cap( int location, int level )
     }
 }
 
-bool is_basic_stat( int location )
+static bool is_basic_stat( int location )
 {
     switch ( location )
     {
@@ -1379,7 +1387,7 @@ bool is_affect_cap_hard( int location )
     }
 }
 
-float get_affect_ops( AFFECT_DATA *aff, int level )
+static float get_affect_ops( AFFECT_DATA *aff, int level )
 {
     float factor = 0;
     float result, max_ops;
@@ -1653,7 +1661,7 @@ int average_weapon_index_dam( OBJ_INDEX_DATA *obj )
     return obj->value[1] * (obj->value[2] + 1) / 2;
 }
 
-bool can_wear( OBJ_INDEX_DATA *obj )
+static bool can_wear( OBJ_INDEX_DATA *obj )
 {
     if (obj->item_type == ITEM_NO_CARRY)
         return FALSE;
@@ -1681,7 +1689,7 @@ bool can_wear( OBJ_INDEX_DATA *obj )
     return FALSE;
 }
 
-bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
+static bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
 {
     int value, spec;
     AFFECT_DATA *aff;
@@ -1779,7 +1787,7 @@ bool is_obj_in_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
     return TRUE;
 }
 
-bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
+static bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
 {
     int value, spec;
     AFFECT_DATA *aff;
@@ -1829,7 +1837,7 @@ bool is_obj_below_spec( OBJ_INDEX_DATA *obj, char *msg, size_t msgsz )
     return FALSE;
 }
 
-bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
+static bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
 {
     PROG_LIST *mprog;
 
@@ -1839,7 +1847,7 @@ bool has_mprog( MOB_INDEX_DATA *mob, int vnum )
     return FALSE;
 }
 
-bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
+static bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
 {
     PROG_LIST *oprog;
 
@@ -1849,7 +1857,7 @@ bool has_oprog( OBJ_INDEX_DATA *obj, int vnum )
     return FALSE;
 }
 
-bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg, size_t msgsz )
+static bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg, size_t msgsz )
 {
     const char *mob_spec_name = spec_name_lookup(mob->spec_fun);
 
@@ -1865,7 +1873,7 @@ bool has_special( MOB_INDEX_DATA *mob, char *spec_name, char *msg, size_t msgsz 
     return strcmp(spec_name, mob_spec_name) == 0;
 }
 
-bool has_spell( OBJ_INDEX_DATA *obj, int ID )
+static bool has_spell( OBJ_INDEX_DATA *obj, int ID )
 {
     if ( obj->item_type == ITEM_SCROLL
 	 || obj->item_type == ITEM_PILL
@@ -1885,7 +1893,7 @@ bool has_spell( OBJ_INDEX_DATA *obj, int ID )
 	return FALSE;
 }
 
-bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg, size_t msgsz )
+static bool has_affect( OBJ_INDEX_DATA *obj, int loc, char *msg, size_t msgsz )
 {
     AFFECT_DATA *aff;
 

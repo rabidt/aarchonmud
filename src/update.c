@@ -55,31 +55,31 @@ DECLARE_DO_FUN(do_stand     );
 /*
  * Local functions.
  */
-void affect_update( CHAR_DATA *ch );
-void qset_update( CHAR_DATA *ch );
+static void affect_update( CHAR_DATA *ch );
+static void qset_update( CHAR_DATA *ch );
 bool check_drown args((CHAR_DATA *ch));
 int hit_gain    args( ( CHAR_DATA *ch ) );
 int mana_gain   args( ( CHAR_DATA *ch ) );
 int move_gain   args( ( CHAR_DATA *ch ) );
-void    mobile_update   args( ( void ) );
-void    mobile_timer_update args( ( void ) );
-void    char_update args( ( void ) );
-void    obj_update  args( ( void ) );
-void    aggr_update args( ( void ) );
+static void    mobile_update   args( ( void ) );
+static void    mobile_timer_update args( ( void ) );
+static void    char_update args( ( void ) );
+static void    obj_update  args( ( void ) );
+static void    aggr_update args( ( void ) );
 void    quest_update    args( ( void ) ); /* Vassago - quest.c */
-void    sort_bounty   args( (SORT_TABLE *sort) );
+static void    sort_bounty   args( (SORT_TABLE *sort) );
 void penalty_update (CHAR_DATA *ch);
 ROOM_INDEX_DATA *find_jail_room(void);
-void    msdp_update args( ( void ) );
-void create_haunt( CHAR_DATA *ch );
-void check_beast_mastery( CHAR_DATA *ch );
-void check_shadow_companion( CHAR_DATA *ch );
-void validate_all( void );
-void check_clan_align( CHAR_DATA *gch );
+static void    msdp_update args( ( void ) );
+static void create_haunt( CHAR_DATA *ch );
+static void check_beast_mastery( CHAR_DATA *ch );
+static void validate_all( void );
+static void check_clan_align( CHAR_DATA *gch );
+static void check_equipment_worn( CHAR_DATA *ch );
 
 /* used for saving */
 
-int save_number = 0;
+static int save_number = 0;
 
 /* hp/mana/move caps */
 
@@ -269,7 +269,7 @@ void update_pc_level( CHAR_DATA *ch )
     return;
 }
 
-void update_field( CHAR_DATA *ch)
+static void update_field( CHAR_DATA *ch)
 {
     int gain,pos;
 
@@ -306,7 +306,7 @@ int gain_mod(int x)
 
 
 /* adjustments which are the same for hp/mana/move */
-int adjust_gain( CHAR_DATA *ch, int gain, int target )
+static int adjust_gain( CHAR_DATA *ch, int gain, int target )
 {
     if ( target == APPLY_MANA )
         switch ( ch->position )
@@ -497,7 +497,7 @@ int move_gain( CHAR_DATA *ch )
     return UMIN( gain / 100, move_cap(ch) - ch->move );
 }
 
-bool starvation_immune( CHAR_DATA *ch )
+static bool starvation_immune( CHAR_DATA *ch )
 {
     return IS_NPC(ch) || NOT_AUTHED(ch) || IS_HERO(ch) || IS_SET(ch->form, FORM_CONSTRUCT) || IS_AFFECTED(ch, AFF_ROOTS);
 }
@@ -552,7 +552,7 @@ void gain_condition( CHAR_DATA *ch, int iCond, int value )
     return;
 }
 
-void update_learning( CHAR_DATA *ch )
+static void update_learning( CHAR_DATA *ch )
 {
     if ( !ch || !ch->pcdata )
         return;
@@ -569,7 +569,7 @@ void update_learning( CHAR_DATA *ch )
 /* some mobiles need to update more often
  * could be cpu intensive..
  */
-void mobile_special_update( void )
+static void mobile_special_update( void )
 {
     PERF_PROF_ENTER( pr_, "mobile_special_update" );
 
@@ -605,7 +605,7 @@ void mobile_special_update( void )
  * This function takes 25% to 35% of ALL Merc cpu time.
  * -- Furey
  */
-void mobile_update( void )
+static void mobile_update( void )
 {
     PERF_PROF_ENTER( pr_, "mobile_update");
 
@@ -816,7 +816,7 @@ void mobile_update( void )
     return;
 }
 
-void mobile_timer_update( void )
+static void mobile_timer_update( void )
 {
     PERF_PROF_ENTER( pr_, "mobile_timer_update" );
 
@@ -836,7 +836,7 @@ void mobile_timer_update( void )
     return;
 }
 
-void time_update( void )
+static void time_update( void )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *d;
@@ -1023,7 +1023,7 @@ void weather_update( void )
 }
 
 /* makes sure that every victim is fighting */
-void update_fighting( void )
+static void update_fighting( void )
 {
     PERF_PROF_ENTER( pr_, "update_fighting" );
     CHAR_DATA *fch;
@@ -1060,7 +1060,7 @@ void update_room_fighting( ROOM_INDEX_DATA *room )
             set_fighting_new( fch->fighting, fch, FALSE );
 }
 
-bool is_pet_storage( ROOM_INDEX_DATA *room )
+static bool is_pet_storage( ROOM_INDEX_DATA *room )
 {
     ROOM_INDEX_DATA *shop_room;
     
@@ -1076,7 +1076,7 @@ bool is_pet_storage( ROOM_INDEX_DATA *room )
 /*
  * Update all chars, including mobs.
  */
-void char_update( void )
+static void char_update( void )
 {   
     static int curr_tick=0;
     CHAR_DATA *ch;
@@ -1495,7 +1495,7 @@ void char_update( void )
 }
 
 /* create a ghost that haunts the char */
-void create_haunt( CHAR_DATA *ch )
+static void create_haunt( CHAR_DATA *ch )
 {
     CHAR_DATA *mob;
     int level, rand, i;
@@ -1558,7 +1558,7 @@ send_to_char( msg, rch );
    the limit is reset. This means that each hour the timer is dropped by
    1 point. - Astark October 2012 */ 
 
-void qset_update( CHAR_DATA *ch )
+static void qset_update( CHAR_DATA *ch )
 {
     QUEST_DATA *qdata;
 
@@ -1586,7 +1586,7 @@ void qset_update( CHAR_DATA *ch )
 
 
 /* update the affects on a character */
-void affect_update( CHAR_DATA *ch )
+static void affect_update( CHAR_DATA *ch )
 {
     AFFECT_DATA *paf;
     AFFECT_DATA *paf_next;
@@ -1793,7 +1793,7 @@ void affect_update( CHAR_DATA *ch )
  * Update all objs.
  * This function is performance sensitive.
  */
-void obj_update( void )
+static void obj_update( void )
 {   
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
@@ -1995,7 +1995,7 @@ void obj_update( void )
  *
  * -- Furey
  */
-void aggr_update( void )
+static void aggr_update( void )
 {
     PERF_PROF_ENTER( pr_, "aggr_update" );
 
@@ -2135,7 +2135,7 @@ void aggr_update( void )
 }
 
 /* resets just_killed flag */
-void death_update( void )
+static void death_update( void )
 {
     PERF_PROF_ENTER( pr_, "death_update" );
     CHAR_DATA *ch;
@@ -2147,7 +2147,7 @@ void death_update( void )
 }
 
 /* delayed removal of purged chars */
-void extract_update( void )
+static void extract_update( void )
 {
     PERF_PROF_ENTER( pr_, "extract_update" );
 
@@ -2534,7 +2534,7 @@ void update_bounty(CHAR_DATA *ch)
     return;
 }
 
-void sort_bounty(SORT_TABLE * sort)
+static void sort_bounty(SORT_TABLE * sort)
 {
     SORT_TABLE * temp;
 
@@ -2684,7 +2684,7 @@ void drop_align( CHAR_DATA *ch )
     return;
 }
 
-void check_clan_align( CHAR_DATA *gch )
+static void check_clan_align( CHAR_DATA *gch )
 {
     if (!IS_NPC(gch) && !IS_IMMORTAL(gch) &&
             (  gch->alignment < clan_table[gch->clan].min_align 
@@ -2706,7 +2706,7 @@ void check_clan_align( CHAR_DATA *gch )
     return;
 }
 
-void check_equipment_worn( CHAR_DATA *ch )
+static void check_equipment_worn( CHAR_DATA *ch )
 {
     OBJ_DATA *obj;
     OBJ_DATA *obj_next;
@@ -2729,7 +2729,7 @@ void check_equipment_worn( CHAR_DATA *ch )
 }
 
 // chance to summon best pet with beast mastery
-void check_beast_mastery( CHAR_DATA *ch )
+static void check_beast_mastery( CHAR_DATA *ch )
 {
     AFFECT_DATA af;
     CHAR_DATA *mob;
@@ -2869,7 +2869,7 @@ void check_shadow_companion( CHAR_DATA *ch )
 }
 */
 
-void msdp_update( void )
+static void msdp_update( void )
 {
     PERF_PROF_ENTER( pr_, "msdp_update" );
 
@@ -3038,7 +3038,7 @@ bool is_mem_valid(void *p)
 
 // data consistency checks for detecting corruption early
 // extend as needed for debugging, but keep it fast
-void validate_all( void )
+static void validate_all( void )
 {
     PERF_PROF_ENTER( pr_, "validate_all" );
 

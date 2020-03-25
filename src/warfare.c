@@ -34,12 +34,13 @@ const char * const war_list[] =
 
 WAR_DATA war;
 
-long last_war_time = 0;
-long auto_war_time = 0;
+static long last_war_time = 0;
+static long auto_war_time = 0;
 
 static void warfare_to_char( CHAR_DATA *ch, const char *argument );
+static void check_war_win( void );
 
-int get_warfare_reward( bool win )
+static int get_warfare_reward( bool win )
 {
     int base = UMIN(10, 4 + war.total_combatants);
 
@@ -65,7 +66,7 @@ DEF_DO_FUN(do_startwar)
 /* Function that gets called during war_update, to start
    warfares automatically. Astark Nov 2012 */
 
-void auto_war(void)
+static void auto_war(void)
 {
     const int level_range = 30;
     char buf[MSL];
@@ -446,7 +447,7 @@ DEF_DO_FUN(do_combat)
 }
 
 // return ch to room stored in was_in_room, or to default if nothing stored
-void return_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *default_room )
+static void return_to_room( CHAR_DATA *ch, ROOM_INDEX_DATA *default_room )
 {
     if ( ch->was_in_room )
     {
@@ -924,7 +925,7 @@ void war_remove( CHAR_DATA *ch, bool killed )
     return;
 }
 
-void check_war_win( void )
+static void check_war_win( void )
 {
     CHAR_DATA *ch, *wch;
     char buf[MAX_STRING_LENGTH];

@@ -78,7 +78,7 @@ struct quest_item
 };
 typedef struct quest_item QUEST_ITEM;
 
-const QUEST_ITEM quest_item_table[] =
+static const QUEST_ITEM quest_item_table[] =
 {
     { QUEST_ITEM1,  2500, "sword kings" },
     { QUEST_ITEM2,  2000, "staff ancient" },
@@ -114,7 +114,7 @@ const QUEST_ITEM quest_item_table[] =
     { 0, 0, "" }
 };
 
-char* list_quest_items( void )
+static const char* list_quest_items( void )
 {
     static char list_buf[MSL];
     char buf[MIL];
@@ -165,7 +165,7 @@ char* list_quest_items( void )
     return list_buf;
 }
 
-bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
+static bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
 {
     const QUEST_ITEM *qi;
     int i;
@@ -199,7 +199,7 @@ bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
     return FALSE;
 }
 
-bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
+static bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 {
     const QUEST_ITEM *qi;
     int i, qp_gain;
@@ -261,17 +261,16 @@ into the world when a player receives an object quest. */
 
 /* Local functions */
 
-void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
+static void generate_quest args(( CHAR_DATA *ch, CHAR_DATA *questman ));
 void quest_update   args(( void ));
-bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
-bool chance     args(( int num ));
+static bool quest_level_diff   args(( CHAR_DATA *ch, int mlevel));
 
 /* Added for "hard" quest option -- Astark Feb2012 */
-void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
-bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
+static void generate_quest_hard args(( CHAR_DATA *ch, CHAR_DATA *questman ));
+static bool quest_level_diff_hard   args(( CHAR_DATA *ch, int mlevel));
 /* End of hard quests */
 
-int quest_timer;
+static int quest_timer;
 
 /* CHANCE function. I use this everywhere in my code, very handy :> */
 bool chance(int num)
@@ -307,7 +306,7 @@ int rand_div(int divident, int divisor)
         return (divident - adjust) / divisor;
 }
 
-void show_quest_syntax( CHAR_DATA *ch )
+static void show_quest_syntax( CHAR_DATA *ch )
 {
     send_to_char("QUEST commands: POINTS INFO TIME REQUEST REQUESTHARD COMPLETE GIVEUP LIST BUY SELL REFUND.\n\r",ch);
     send_to_char("For more information, type 'HELP QUEST'.\n\r",ch);
@@ -986,7 +985,7 @@ DEF_DO_FUN(do_quest)
         show_quest_syntax(ch);
 }
 
-bool is_guild_room( int vnum )
+static bool is_guild_room( int vnum )
 {
     int iClass, iGuild;
 
@@ -998,7 +997,7 @@ bool is_guild_room( int vnum )
     return FALSE;
 }
 
-void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
+static void generate_quest(CHAR_DATA *ch, CHAR_DATA *questman)
 {
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
@@ -1221,7 +1220,7 @@ receive. They also will be rewarded appropriately due to the QUESTORHARD
 flag they are assigned. Allows for invisible mobs and for mobs with the
 flag "ACT hard_quest", even if they're in a no_quest room/area  -- Astark Feb2012 */
 
-void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
+static void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
 {
     CHAR_DATA *victim;
     MOB_INDEX_DATA *vsearch;
@@ -1437,7 +1436,7 @@ void generate_quest_hard(CHAR_DATA *ch, CHAR_DATA *questman)
    levels, so you will want to tweak these greater or
    less than statements for yourself. - Vassago */
 
-bool quest_level_diff( CHAR_DATA *ch, int mlevel)
+static bool quest_level_diff( CHAR_DATA *ch, int mlevel)
 {
     int clevel = ch->level + 2 * ch->pcdata->remorts;
     int min_level = URANGE( 1, clevel - 20, 90 );
@@ -1445,7 +1444,7 @@ bool quest_level_diff( CHAR_DATA *ch, int mlevel)
     return IS_BETWEEN( min_level, mlevel, min_level + 30 );
 }
 
-bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
+static bool quest_level_diff_hard( CHAR_DATA *ch, int mlevel)
 {
     // mobs for hard quests are higher level by 10 + 33%
     // so e.g. a range of 90-120 goes up to 130-170
@@ -1587,7 +1586,7 @@ int qset_timer( CHAR_DATA *ch, int id )
 /* clear all quests in range
  * doesn't call set_quest_status to be faster
  */
-void clear_quests( CHAR_DATA *ch, int min_id, int max_id )
+static void clear_quests( CHAR_DATA *ch, int min_id, int max_id )
 {
     QUEST_DATA *qdata, *last;
 

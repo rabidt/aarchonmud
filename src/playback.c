@@ -20,9 +20,9 @@ for Aarchon MUD
 
 
 /* local functions */
-void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries );
-void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries );
-void playback_clear( COMM_HISTORY *history );
+static void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries );
+static void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries );
+static void playback_clear( COMM_HISTORY *history );
 
 #define MAX_COMM_HISTORY 300
 /* Default number of results, needs to  be <=MAX_COMM_HISTORY */
@@ -33,11 +33,11 @@ void playback_clear( COMM_HISTORY *history );
 
 
 /* declare the actual structures we will use*/
-COMM_HISTORY public_history={0, NULL, NULL};
-COMM_HISTORY immtalk_history={0, NULL, NULL};
-COMM_HISTORY savant_history={0, NULL, NULL};
+static COMM_HISTORY public_history={0, NULL, NULL};
+static COMM_HISTORY immtalk_history={0, NULL, NULL};
+static COMM_HISTORY savant_history={0, NULL, NULL};
 
-COMM_ENTRY *comm_entry_new( void )
+static COMM_ENTRY *comm_entry_new( void )
 {
 	COMM_ENTRY *entry=alloc_mem(sizeof(COMM_ENTRY));
 	entry->next=NULL;
@@ -46,7 +46,7 @@ COMM_ENTRY *comm_entry_new( void )
 	return entry;
 }
 
-PERS_ENTRY *pers_entry_new( void )
+static PERS_ENTRY *pers_entry_new( void )
 {
 	PERS_ENTRY *entry=alloc_mem(sizeof(PERS_ENTRY));
 	entry->next=NULL;
@@ -64,7 +64,7 @@ PERS_HISTORY *pers_history_new( void )
 	return history;
 }
 
-void comm_entry_free(COMM_ENTRY *entry)
+static void comm_entry_free(COMM_ENTRY *entry)
 {
 	free_string(entry->timestamp);
 	free_string(entry->text);
@@ -72,7 +72,7 @@ void comm_entry_free(COMM_ENTRY *entry)
 	free_mem(entry, sizeof(COMM_ENTRY) );
 }
 
-void pers_entry_free(PERS_ENTRY *entry)
+static void pers_entry_free(PERS_ENTRY *entry)
 {
 	free_string(entry->text);
 	free_mem(entry, sizeof(PERS_ENTRY) );
@@ -130,7 +130,7 @@ void log_pers( PERS_HISTORY *history, const char *text )
 		
 }
 
-void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry ) 
+static void add_to_comm_history ( COMM_HISTORY *history, COMM_ENTRY *entry ) 
 {
     if ( history->head == NULL )
     {
@@ -303,7 +303,7 @@ DEF_DO_FUN(do_playback)
     }
 }     
 
-void playback_clear( COMM_HISTORY *history)
+static void playback_clear( COMM_HISTORY *history)
 {
 	COMM_ENTRY *destroy=history->head;
 	if (destroy==NULL)
@@ -325,7 +325,7 @@ void playback_clear( COMM_HISTORY *history)
 }
 
 
-void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
+static void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
 {
 	if (history == NULL)
 	{
@@ -375,7 +375,7 @@ void playback_to_char( CHAR_DATA *ch, COMM_HISTORY *history, sh_int entries )
     free_buf(output);
 }
 
-void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries)
+static void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries)
 {
 	if (history==NULL)
 	{	
@@ -401,7 +401,7 @@ void playback_pers( CHAR_DATA *ch, PERS_HISTORY *history, sh_int entries)
 	}
 }
 
-void push_comm_history( lua_State *LS, COMM_HISTORY *history )
+static void push_comm_history( lua_State *LS, COMM_HISTORY *history )
 {
     lua_newtable( LS );
     int index=1;

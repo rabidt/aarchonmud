@@ -11,8 +11,8 @@
 #include "merc.h"
 #include "tables.h"
 
-void reset_herbs_area( AREA_DATA *pArea );
-void reset_herbs( ROOM_INDEX_DATA *room );
+static void reset_herbs_area( AREA_DATA *pArea );
+static void reset_herbs( ROOM_INDEX_DATA *room );
 
 DECLARE_SPELL_FUN( spell_blindness      );
 DECLARE_SPELL_FUN( spell_create_rose    );
@@ -27,7 +27,7 @@ struct herb_type
 /* alchemy area starting vnum */
 #define AAS 17900
 
-struct herb_type herb_table[] =
+static struct herb_type herb_table[] =
 {
     { AAS+0,  SECT_FIELD,         0, 0 }, // Cutleaf
     { AAS+1,  SECT_FOREST,        0, 0 }, // Alraune
@@ -66,7 +66,7 @@ void reset_herbs_world( void )
     PERF_PROF_EXIT( pr_ );
 }
 
-void reset_herbs_area( AREA_DATA *pArea )
+static void reset_herbs_area( AREA_DATA *pArea )
 {
     ROOM_INDEX_DATA *pRoom;
     int vnum;
@@ -77,7 +77,7 @@ void reset_herbs_area( AREA_DATA *pArea )
 }
 
 /* reset herbs in a room */
-void reset_herbs( ROOM_INDEX_DATA *room )
+static void reset_herbs( ROOM_INDEX_DATA *room )
 {
     PERF_PROF_ENTER( pr_, "reset_herbs" );
 
@@ -121,7 +121,7 @@ void reset_herbs( ROOM_INDEX_DATA *room )
 }
 
 /* rot herbs that haven't been picked up */
-int rot_herbs( int vnum )
+static int rot_herbs( int vnum )
 {
     OBJ_DATA *obj, *obj_next;
     int nr = 0;
@@ -219,7 +219,7 @@ struct recipe_type
     { AAS+11, SECT_MOUNTAIN,      5 }, // Wind Wisper (mottled)
 */
 
-const struct recipe_type recipe_table[] =
+static const struct recipe_type recipe_table[] =
 {
     { "energizing",  AAS+19, { AAS+11, AAS+6,  AAS+3 }, 80  },
     { "miracle",  AAS+20, { AAS+11, AAS+10, AAS+8 }, 80  },

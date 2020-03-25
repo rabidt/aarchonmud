@@ -74,10 +74,12 @@ DECLARE_DO_FUN(do_asave     );
 
 /* external functions */
 void war_remove( CHAR_DATA *ch, bool killed );
-bool flush_descriptor( DESCRIPTOR_DATA *d );
-bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 );
-void add_descriptor( DESCRIPTOR_DATA *d );
-void install_other_handlers ( void );
+static bool flush_descriptor( DESCRIPTOR_DATA *d );
+static bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 );
+static void add_descriptor( DESCRIPTOR_DATA *d );
+static void install_other_handlers ( void );
+static void copyover_recover ( void );
+static int write_to_descriptor( int desc, char *txt, int length, bool SGA);
 
 /*
  * Malloc debugging stuff.
@@ -117,7 +119,7 @@ int close       args( ( int fd ) );
  * Global variables.
  */
 DESCRIPTOR_DATA *   descriptor_list;    /* All open descriptors     */
-DESCRIPTOR_DATA *   g_d_next;     /* Next descriptor in loop  */
+static DESCRIPTOR_DATA *   g_d_next;     /* Next descriptor in loop  */
 bool            god;        /* All new chars are gods!  */
 bool            merc_down;      /* Shutdown         */
 bool            wizlock;        /* Game is wizlocked        */
@@ -130,19 +132,19 @@ bool            MOBtrigger = TRUE;  /* act() switch                 */
 /*
  * OS-dependent local functions.
  */
-void    game_loop_unix      args( ( int control ) );
-int   init_socket       args( ( u_short port ) );
-void    init_descriptor     args( ( int control ) );
-bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
+static void    game_loop_unix      args( ( int control ) );
+static int   init_socket       args( ( u_short port ) );
+static void    init_descriptor     args( ( int control ) );
+static bool    read_from_descriptor    args( ( DESCRIPTOR_DATA *d ) );
 
 /*
  * Other local functions (OS-independent).
  */
 int     main            args( ( int argc, char **argv ) );
-bool    process_output      args( ( DESCRIPTOR_DATA *d, bool fPrompt ) );
-void    read_from_buffer    args( ( DESCRIPTOR_DATA *d ) );
-void    stop_idling     args( ( CHAR_DATA *ch ) );
-void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
+static bool    process_output      args( ( DESCRIPTOR_DATA *d, bool fPrompt ) );
+static void    read_from_buffer    args( ( DESCRIPTOR_DATA *d ) );
+static void    stop_idling     args( ( CHAR_DATA *ch ) );
+static void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 
 /* Needs to be global because of do_copyover */
 static u_short s_port;
@@ -155,7 +157,7 @@ int main( int argc, char **argv )
     return 0;
 }
 
-int aarchon_main( int argc, char **argv )
+static int aarchon_main( int argc, char **argv )
 #else
 int main( int argc, char **argv )
 #endif
@@ -262,7 +264,7 @@ int main( int argc, char **argv )
     return 0;
 }
 
-int init_socket( u_short port )
+static int init_socket( u_short port )
 {
     static struct sockaddr_in sa_zero;
     struct sockaddr_in sa;
@@ -327,7 +329,7 @@ int init_socket( u_short port )
 }
 
 
-void game_loop_unix( int control )
+static void game_loop_unix( int control )
 {
     static struct timeval null_time;
     struct timeval last_time;
@@ -716,7 +718,7 @@ void game_loop_unix( int control )
     return;
 }
 
-void init_descriptor( int control )
+static void init_descriptor( int control )
 {
     char buf[MAX_STRING_LENGTH];
     DESCRIPTOR_DATA *dnew;
@@ -943,7 +945,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
 
 
 
-bool read_from_descriptor( DESCRIPTOR_DATA *d )
+static bool read_from_descriptor( DESCRIPTOR_DATA *d )
 {
     int iStart = 0;
     int lenInbuf, maxRead;
@@ -1033,7 +1035,7 @@ bool is_command_pending( DESCRIPTOR_DATA *d )
 /*
  * Transfer one line from input buffer to input line.
  */
-void read_from_buffer( DESCRIPTOR_DATA *d )
+static void read_from_buffer( DESCRIPTOR_DATA *d )
 {
     bool immortal=FALSE;
     int i, j, k;
@@ -1169,7 +1171,7 @@ void read_from_buffer( DESCRIPTOR_DATA *d )
     return;
 }
 
-void battle_prompt( DESCRIPTOR_DATA *d )
+static void battle_prompt( DESCRIPTOR_DATA *d )
 {
     CHAR_DATA *ch;
     CHAR_DATA *victim;
@@ -1252,7 +1254,7 @@ void battle_prompt( DESCRIPTOR_DATA *d )
 /*
  * Low level output function.
  */
-bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
+static bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 {
     extern bool merc_down;
 
@@ -1310,7 +1312,7 @@ bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 }
 
 /* flush the descriptor's buffered text */
-bool flush_descriptor( DESCRIPTOR_DATA *d )
+static bool flush_descriptor( DESCRIPTOR_DATA *d )
 {
     /* if nothing to write, return - otherwise write_to_descriptor tries
        to determin it's own string length */
@@ -1344,7 +1346,7 @@ bool flush_descriptor( DESCRIPTOR_DATA *d )
  * Bust a prompt (player settable prompt)
  * coded by Morgenes for Aldara Mud
  */
-void bust_a_prompt( CHAR_DATA *ch )
+static void bust_a_prompt( CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH];
     char buf2[MAX_STRING_LENGTH];
@@ -1766,7 +1768,7 @@ void write_to_buffer( DESCRIPTOR_DATA *d, const char *txt, int length )
  *   try lowering the max block size.
  */
 #define MAX_BLOCK_SIZE 32768 
-int write_to_descriptor( int desc, char *txt, int length, bool SGA)
+static int write_to_descriptor( int desc, char *txt, int length, bool SGA)
 {
     const char IAC_GA[] = { IAC, GA };
     static char outbuf[MAX_BLOCK_SIZE + sizeof(IAC_GA)];
@@ -1813,7 +1815,7 @@ int write_to_descriptor( int desc, char *txt, int length, bool SGA)
 }
 #undef MAX_BLOCK_SIZE
 
-void stop_idling( CHAR_DATA *ch )
+static void stop_idling( CHAR_DATA *ch )
 {
 
     if ( ch == NULL || ch->desc == NULL
@@ -2682,7 +2684,7 @@ static void copyover_mud( const char *argument )
 static TIMER_NODE *copyover_timer=NULL;
 static int copyover_countdown=0;
 
-void handle_copyover_timer( void )
+static void handle_copyover_timer( void )
 {
     copyover_timer=NULL;
     
@@ -2787,7 +2789,7 @@ DEF_DO_FUN( do_copyover )
 }
 
 /* Recover from a copyover - load players */
-void copyover_recover ( void )
+static void copyover_recover ( void )
 {
     DESCRIPTOR_DATA *d;
     FILE *fp;
@@ -2934,7 +2936,7 @@ bool is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 )
 }
 
 /* adds a descriptor to descriptor_list, sorted by IP */
-void add_descriptor( DESCRIPTOR_DATA *d )
+static void add_descriptor( DESCRIPTOR_DATA *d )
 {
     DESCRIPTOR_DATA *last_d;
 
@@ -2955,7 +2957,7 @@ void add_descriptor( DESCRIPTOR_DATA *d )
 }
 
 /* returns if d1 `<=` d2 */
-bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 )
+static bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 )
 {
     if ( d1 == NULL || d2 == NULL
             || d1->host == NULL || d2->host == NULL )
@@ -2973,7 +2975,7 @@ bool desc_cmp( DESCRIPTOR_DATA *d1, DESCRIPTOR_DATA *d2 )
  */
 
 /* Write last command */
-void write_last_command ( void )
+static void write_last_command ( void )
 {
     static bool log_done = FALSE;
 
@@ -3033,7 +3035,7 @@ void nasty_signal_handler (int no)
 }
 
 /* Call this before starting the game_loop */
-void install_other_handlers ( void )
+static void install_other_handlers ( void )
 {
     last_command[0] = '\0';
     last_mprog[0] = '\0';

@@ -27,7 +27,6 @@
 #include "lookup.h"
 #include "mob_stats.h"
 
-char * mprog_type_to_name ( int type );
 
 /*
 #define ALT_FLAGVALUE_SET( _blargh, _table, _arg )		\

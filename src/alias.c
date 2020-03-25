@@ -291,18 +291,3 @@ DEF_DO_FUN(do_unalias)
     if (!found)
         send_to_char("No alias of that name to remove.\n\r",ch);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

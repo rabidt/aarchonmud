@@ -423,7 +423,7 @@ void        free_boss_achieve   args ( ( BOSSACHV *pBoss ) );
 void		show_liqlist		args ( ( CHAR_DATA *ch ) );
 void		show_damlist		args ( ( CHAR_DATA *ch ) );
 
-char *		mprog_type_to_name	args ( ( int type ) );
+const char     *mprog_type_to_name	args ( ( int type ) );
 PROG_LIST      *new_mprog              args ( ( void ) );
 void            free_mprog              args ( ( PROG_LIST *mp ) );
 PROG_CODE	*new_mpcode		args ( (void) );

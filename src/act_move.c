@@ -3452,7 +3452,7 @@ static void check_bleed( CHAR_DATA *ch, int dir )
 
 
 
-bool explored_vnum(CHAR_DATA *ch, int vnum)
+static bool explored_vnum(CHAR_DATA *ch, int vnum)
 {	
 	int mask = vnum / 32; //Get which bucket the bit is in
 	int bit = vnum % 32; //Get which bit to set, 0 to 31
@@ -3482,7 +3482,7 @@ bool explored_vnum(CHAR_DATA *ch, int vnum)
 #endif
 }
 //Explore a vnum. Assume it's not explored and just set it.
-void explore_vnum(CHAR_DATA *ch, int vnum )
+static void explore_vnum(CHAR_DATA *ch, int vnum )
 {	int mask = vnum / 32; //Get which bucket it will be in
 	int bit = vnum % 32; // Get which bit to set, 0 to 31
 	EXPLORE_HOLDER *pExp; //The buckets bucket.

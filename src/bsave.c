@@ -47,41 +47,11 @@
 #include "lua_arclib.h"
 #include "perfmon.h"
 
-extern  int     _filbuf         args( (FILE *) );
 
 int fingertime;
 /*int rename(const char *oldfname, const char *newfname);*/
-void mem_save_storage_box( CHAR_DATA *ch );
-void save_quest( CHAR_DATA *ch, DBUFFER *buf );
-
-char *print_flags(int flag)
-{
-    int count, pos = 0;
-    static char buf[52];
-    
-    
-    for (count = 0; count < 32;  count++)
-    {
-        if (I_IS_SET(flag, 1<<count))
-        {
-            if (count < 26)
-                buf[pos] = 'A' + count;
-            else
-                buf[pos] = 'a' + (count - 26);
-            pos++;
-        }
-    }
-    
-    if (pos == 0)
-    {
-        buf[pos] = '0';
-        pos++;
-    }
-    
-    buf[pos] = '\0';
-    
-    return buf;
-}
+static void mem_save_storage_box( CHAR_DATA *ch );
+static void save_quest( CHAR_DATA *ch, DBUFFER *buf );
 
 static int count_objects( OBJ_DATA *obj_list )
 {
@@ -103,13 +73,13 @@ static  OBJ_DATA *  rgObjNest   [MAX_NEST];
 /*
  * Local functions.
  */
-void    bwrite_char args( ( CHAR_DATA *ch,  DBUFFER *buf ) );
-void    bwrite_obj  args( ( CHAR_DATA *ch,  OBJ_DATA  *obj,
-			    DBUFFER *buf, int iNest ) );
-void    bwrite_pet  args( ( CHAR_DATA *pet, DBUFFER *buf) );
-void    bread_char  args( ( CHAR_DATA *ch,  RBUFFER *buf ) );
-void    bread_pet   args( ( CHAR_DATA *ch,  RBUFFER *buf ) );
-void    bread_obj   args( ( CHAR_DATA *ch,  RBUFFER *buf, OBJ_DATA *storage_box ) );
+static void    bwrite_char args( ( CHAR_DATA *ch,  DBUFFER *buf ) );
+static void    bwrite_obj  args( ( CHAR_DATA *ch,  OBJ_DATA  *obj,
+			                       DBUFFER *buf, int iNest ) );
+static void    bwrite_pet  args( ( CHAR_DATA *pet, DBUFFER *buf) );
+static void    bread_char  args( ( CHAR_DATA *ch,  RBUFFER *buf ) );
+static void    bread_pet   args( ( CHAR_DATA *ch,  RBUFFER *buf ) );
+static void    bread_obj   args( ( CHAR_DATA *ch,  RBUFFER *buf, OBJ_DATA *storage_box ) );
 
 
 #define LOAD_COLOUR( field ) ch->pcdata->field[1] = bread_number( buf );if( ch->pcdata->field[1] == 0 ){ch->pcdata->field[1] = 8;} if( ch->pcdata->field[1] >= 100 ){ch->pcdata->field[1] -= 100;ch->pcdata->field[2] = 1;}else{ch->pcdata->field[2] = 0;}if ( ch->pcdata->field[1] >= 10 ){ch->pcdata->field[1] -= 10;ch->pcdata->field[0] = 1;}else{ch->pcdata->field[0] = 0;}
@@ -218,7 +188,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 }
 
 /* Saves storage box for char if any and adds to box_mf_list */
-void mem_save_storage_box( CHAR_DATA *ch )
+static void mem_save_storage_box( CHAR_DATA *ch )
 {
     char strsave[MAX_INPUT_LENGTH];
     MEMFILE *mf;
@@ -282,7 +252,7 @@ void mem_save_storage_box( CHAR_DATA *ch )
 /*
  * Write the char.
  */
-void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
+static void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 {
     AFFECT_DATA *paf;
     int sn, gn, pos, i;
@@ -919,7 +889,7 @@ void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
 }
 
 /* save a player's quest status */
-void save_quest( CHAR_DATA *ch, DBUFFER *buf )
+static void save_quest( CHAR_DATA *ch, DBUFFER *buf )
 {
     QUEST_DATA *qdata;
 
@@ -944,7 +914,7 @@ online. */
 }
 
 /* write a pet */
-void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
+static void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
 {
     AFFECT_DATA *paf;
     
@@ -1046,7 +1016,7 @@ void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
 /*
  * Write an object and its contents.
  */
-void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
+static void bwrite_obj( CHAR_DATA *ch, OBJ_DATA *obj, DBUFFER *buf, int iNest )
 {
     EXTRA_DESCR_DATA *ed;
     AFFECT_DATA *paf;
@@ -1452,7 +1422,7 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
 /* read and discard (gobble) old value */
 #define GOBBLE( literal, value ) if ( !str_cmp(word, literal) ) { value; fMatch = TRUE; break; }
 
-void bread_char( CHAR_DATA *ch, RBUFFER *buf )
+static void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 {
     char str_buf[MAX_STRING_LENGTH];
     char last_word[256] = {};
@@ -2462,7 +2432,7 @@ void bread_char( CHAR_DATA *ch, RBUFFER *buf )
 }
 
 /* load a pet from the forgotten reaches */
-void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
+static void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 {
     const char *word;
     CHAR_DATA *pet;
@@ -2730,7 +2700,7 @@ void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
 
 extern  OBJ_DATA    *obj_free;
 
-void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
+static void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 {
     OBJ_DATA *obj;
     const char *word;

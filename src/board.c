@@ -76,11 +76,11 @@ static void append_note (FILE *fp, NOTE_DATA *note);
 static void unlink_note (BOARD_DATA *board, NOTE_DATA *note);
 static void archive_note (BOARD_DATA *board, NOTE_DATA *pnote);
 
-int board_number (const BOARD_DATA *board);
+static int board_number (const BOARD_DATA *board);
 static NOTE_DATA* find_note (CHAR_DATA *ch, BOARD_DATA *board, int num);
 
 static void show_note_to_char (CHAR_DATA *ch, NOTE_DATA *note, int num);
-int unread_notes (CHAR_DATA *ch, BOARD_DATA *board);
+static int unread_notes (CHAR_DATA *ch, BOARD_DATA *board);
 static bool next_board (CHAR_DATA *ch);
 
 static void do_nwrite (CHAR_DATA *ch, const char *argument);
@@ -89,6 +89,9 @@ static void do_nremove (CHAR_DATA *ch, const char *argument);
 static void do_nlist (CHAR_DATA *ch, const char *argument);
 static void do_ncatchup (CHAR_DATA *ch, const char *argument);
 static void do_ncatchup_all (CHAR_DATA *ch);
+
+static bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note);
+static void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board );
 
 DECLARE_DO_FUN(do_note);
 DECLARE_DO_FUN(do_board);
@@ -104,9 +107,9 @@ DECLARE_DO_FUN( do_help );
 #define BOARD_PKILL 2
 
 /* The prompt that the character is given after finishing a note with ~ or END */
-const char * szFinishPrompt = "({+C{x)ontinue, ({+V{x)iew, ({+P{x)ost or ({+F{x)orget it?";
+static const char * const szFinishPrompt = "({+C{x)ontinue, ({+V{x)iew, ({+P{x)ost or ({+F{x)orget it?";
 
-long last_note_stamp = 0; /* To generate unique timestamps on notes */
+static long last_note_stamp = 0; /* To generate unique timestamps on notes */
 
 static bool next_board (CHAR_DATA *ch);
 static const char* note_line = 
@@ -185,7 +188,7 @@ static void archive_note (BOARD_DATA *board, NOTE_DATA *pnote)
 
 
 /* Find the number of a board */
-int board_number (const BOARD_DATA *board)
+static int board_number (const BOARD_DATA *board)
 {
     int i;
 
@@ -252,7 +255,7 @@ static void save_board (BOARD_DATA *board)
 }
 
 /* Save a note in a given board */
-void finish_note (BOARD_DATA *board, NOTE_DATA *note)
+static void finish_note (BOARD_DATA *board, NOTE_DATA *note)
 {
    FILE *fp;
    NOTE_DATA *p, *q;
@@ -445,7 +448,7 @@ void load_boards ( void )
 }
 
 /* Returns TRUE if the specified note is addressed to ch */
-bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note)
+static bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note)
 {
    if (IS_NPC(ch))
       return FALSE;
@@ -510,7 +513,7 @@ bool is_note_to (CHAR_DATA *ch, NOTE_DATA *note)
 
 /* Return the number of unread notes 'ch' has in 'board' */
 /* Returns BOARD_NOACCESS if ch has no access to board */
-int unread_notes (CHAR_DATA *ch, BOARD_DATA *board)
+static int unread_notes (CHAR_DATA *ch, BOARD_DATA *board)
 {
    NOTE_DATA *note;
    time_t last_read;
@@ -1002,12 +1005,6 @@ DEF_DO_FUN(do_board)
            ? "You can only read here"  
            : "You can both read and write here");
    send_to_char (buf,ch);
-}
-
-/* Send a note to someone on the personal board */
-void personal_message (const char *sender, const char *to, const char *subject, const int expire_days, const char *text)
-{
-   make_note ("Personal", sender, to, subject, expire_days, text);
 }
 
 void make_note (const char* board_name, const char *sender, const char *to, const char *subject, const int expire_days, const char *text)
@@ -1527,7 +1524,7 @@ void handle_con_note_finish (DESCRIPTOR_DATA *d, const char * argument)
 
 /* Announces new mail to online recipients.  Toggled off and on just like other
    INFO messages with COMM_NOINFO. -Rimbol */
-void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
+static void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
 {
    DESCRIPTOR_DATA *d;
    CHAR_DATA *recip;

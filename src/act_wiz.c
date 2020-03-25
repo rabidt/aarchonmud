@@ -1042,7 +1042,7 @@ bool obj_check (CHAR_DATA *ch, OBJ_DATA *obj)
 }
 
 /* for clone, to insure that cloning goes many levels deep */
-void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
+static void recursive_clone(CHAR_DATA *ch, OBJ_DATA *obj, OBJ_DATA *clone)
 {
     OBJ_DATA *c_obj, *t_obj;
     
@@ -2651,7 +2651,7 @@ RESERVED_DATA *first_reserved;
 RESERVED_DATA *last_reserved;
 
 /* Reserved names, ported from Smaug by Rimbol 3/99. */
-void save_reserved(void)
+static void save_reserved(void)
 {
     RESERVED_DATA *res;
     FILE *fp;

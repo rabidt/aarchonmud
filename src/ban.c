@@ -34,9 +34,9 @@
 #include "merc.h"
 #include "recycle.h"
 
-BAN_DATA *ban_list;
+static BAN_DATA *ban_list;
 
-void save_bans(void)
+static void save_bans(void)
 {
     BAN_DATA *pban;
     FILE *fp;
@@ -126,7 +126,7 @@ bool check_ban( const char *site, int type )
 }
 
 
-void ban_site(CHAR_DATA *ch, const char *argument, bool fPerm)
+static void ban_site(CHAR_DATA *ch, const char *argument, bool fPerm)
 {
     char buf[MAX_STRING_LENGTH],buf2[MAX_STRING_LENGTH];
     char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH];
@@ -299,5 +299,3 @@ DEF_DO_FUN(do_allow)
     send_to_char( "Site is not banned.\n\r", ch );
     return;
 }
-
-
