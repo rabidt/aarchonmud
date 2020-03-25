@@ -6103,7 +6103,7 @@ DEF_DO_FUN(do_showsubclass)
     }
 
     char arg1[MSL], arg2[MSL];
-    if ( split_string(argument, '/', arg1, arg2) )
+    if ( split_string(argument, '/', arg1, sizeof(arg1), arg2, sizeof(arg2)) )
     {
         int sc1 = subclass_lookup(arg1);
         int sc2 = subclass_lookup(arg2);

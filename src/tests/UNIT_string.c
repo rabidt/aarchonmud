@@ -76,3 +76,97 @@ void Test_strlcpy(CuTest *tc)
     CuAssertIntEquals(tc, 0, res);
     CuAssertIntEquals(tc, 0, strlen(buf));
 }
+
+void Test_split_string(CuTest *tc)
+{
+    {
+        /* no split */
+        char pf[8] = "abc";
+        char sf[8] = "def";
+
+        const char * const input = "hotdogs are not sandwiches, but hamburgers are";
+
+        bool res = split_string(input, '/', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, FALSE, res);
+        CuAssertStrEquals(tc, "abc", pf);
+        CuAssertStrEquals(tc, "def", sf);
+    }
+
+    {
+        /* split on ' ' and no truncate */
+        char pf[16] = "";
+        char sf[64] = "";
+
+        const char * const input = "hotdogs are not sandwiches, but hamburgers are";
+
+        bool res = split_string(input, ' ', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "hotdogs", pf);
+        CuAssertStrEquals(tc, "are not sandwiches, but hamburgers are", sf);   
+    }
+
+    {
+        /* split on ',' and no truncate */
+        char pf[32] = "";
+        char sf[32] = "";
+
+        const char * const input = "hotdogs are not sandwiches, but hamburgers are";
+
+        bool res = split_string(input, ',', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "hotdogs are not sandwiches", pf);
+        CuAssertStrEquals(tc, " but hamburgers are", sf);
+    }
+
+    {
+        /* no truncate. exact size */
+        char pf[27] = "";
+        char sf[20] = "";
+
+        const char * const input = "hotdogs are not sandwiches, but hamburgers are";
+
+        bool res = split_string(input, ',', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "hotdogs are not sandwiches", pf);
+        CuAssertStrEquals(tc, " but hamburgers are", sf);
+    }
+
+    {
+        /* truncate 1 character */
+        char pf[26] = "";
+        char sf[19] = "";
+
+        const char * const input = "hotdogs are not sandwiches, but hamburgers are";
+
+        bool res = split_string(input, ',', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "hotdogs are not sandwiche", pf);
+        CuAssertStrEquals(tc, " but hamburgers ar", sf);
+    }
+    
+    {
+        /* first char split */
+        char pf[4] = "abc";
+        char sf[32] = "";
+
+        const char * const input = ",first char split";
+
+        bool res = split_string(input, ',', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "", pf);
+        CuAssertStrEquals(tc, "first char split", sf);
+    }
+
+    {
+        /* last char split */
+        char pf[32] = "";
+        char sf[4] = "abc";
+
+        const char * const input = "last char split,";
+
+        bool res = split_string(input, ',', pf, sizeof(pf), sf, sizeof(sf));
+        CuAssertIntEquals(tc, TRUE, res);
+        CuAssertStrEquals(tc, "last char split", pf);
+        CuAssertStrEquals(tc, "", sf);
+    }
+}

@@ -5383,7 +5383,7 @@ const char* aan       args( ( const char *s ) );
 char prompt_color_code( const char *prompt, char var );
 bool is_empty_string( const char *s );
 bool is_alpha_string( const char *s );
-bool split_string( const char *s, char split_char, char *prefix, char *suffix );
+bool split_string( const char *s, char split_char, char *prefix, size_t presz, char *suffix, size_t sufsz );
 size_t strlcpy(char *buf, const char *src, size_t bufsz);
 size_t strlcat(char *buf, const char *src, size_t bufsz);
 

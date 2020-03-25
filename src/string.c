@@ -462,7 +462,7 @@ const char* format_string( const char *oldstring /*, bool fSpace */)
     }
   }
   xbuf[i]=0;
-  strcpy(xbuf2,xbuf);
+  strlcpy(xbuf2,xbuf,sizeof(xbuf2));
   
   rdesc=xbuf2;
   
@@ -1116,7 +1116,7 @@ char prompt_color_code( const char *prompt, char var )
 
 // returns true if s contains split_char
 // in that case, also splits s and returns parts in prefix and suffix
-bool split_string( const char *s, char split_char, char *prefix, char *suffix )
+bool split_string( const char *s, char split_char, char *prefix, size_t presz, char *suffix, size_t sufsz )
 {
     size_t split_pos;
 
@@ -1126,9 +1126,8 @@ bool split_string( const char *s, char split_char, char *prefix, char *suffix )
     if ( s[split_pos] == '\0' )
         return false;
 
-    strncpy(prefix, s, split_pos);
-    prefix[split_pos] = '\0';
-    strcpy(suffix, s + split_pos + 1);
+    strlcpy(prefix, s, UMIN(split_pos + 1, presz));
+    strlcpy(suffix, s + split_pos + 1, sufsz);
 
     return true;
 }
