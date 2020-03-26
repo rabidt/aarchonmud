@@ -259,7 +259,6 @@ bool is_nosac( OBJ_DATA *obj );
 #define MAX_LEVEL          110
 #define MAX_NPC_LEVEL      200
 #define MAX_STORAGE_BOX	   9
-#define MAX_QUOTES         50 /* This must equal the # of quotes you have */
 #define MAX_CP            100 // MAX_CP - creation points = trains new char starts with
 #define OPT_CP             80 // recommended ammount of creation points
 #define MAX_ARROWS 300
@@ -566,9 +565,6 @@ struct clanwar_data
 
 
 /* Clan data.  -Rim 1/2000 */
-
-#define CLAN_STATUS_INACTIVE 0
-#define CLAN_STATUS_ACTIVE   1
 
 struct clan_rank_data
 {
@@ -1078,7 +1074,6 @@ struct  kill_data
  * Defined in #MOBILES.
  */
 #define MOB_VNUM_FIDO          3090
-#define MOB_VNUM_CITYGUARD     3060
 #define MOB_VNUM_PATROLMAN     2106
 #define MOB_VNUM_ZOMBIE         1
 #define GROUP_VNUM_TROLLS      2100
@@ -2011,19 +2006,12 @@ struct  kill_data
  */
 
 #define ROOM_VNUM_LIMBO           2
-#define ROOM_VNUM_CHAT         1200
 #define ROOM_VNUM_TEMPLE       10280
-#define ROOM_VNUM_ALTAR        10280
 #define ROOM_VNUM_SCHOOL       18400
-#define ROOM_VNUM_BALANCE      4500
-#define ROOM_VNUM_CIRCLE       4400
-#define ROOM_VNUM_DEMISE       4201
-#define ROOM_VNUM_HONOR        4300
 #define ROOM_VNUM_MORGUE       10281
 #define ROOM_VNUM_RECALL       10204
 #define ROOM_VNUM_BANK         10286
 #define ROOM_VNUM_DONATION     10414
-#define ROOM_VNUM_EAGLE        26188
 #define ROOM_VNUM_AUTH_START   18400
 #define ROOM_VNUM_AUTH_END     18499
            
@@ -4336,7 +4324,6 @@ extern      TIME_INFO_DATA      time_info;
 extern      WEATHER_DATA        weather_info;
 extern      bool            MOBtrigger;
 extern  SORT_TABLE  *   bounty_table;
-extern      DISABLED_DATA     *   disabled_first; /* interp.c */
 
 extern      BOARD_DATA boards[MAX_BOARD];
 extern      PENALTY_DATA   * penalty_list;
@@ -4376,7 +4363,6 @@ extern      tflag meta_magic;
 
 #define PLAYER_DIR      "../player/"            /* Player files */
 #define GOD_DIR         "../gods/"          /* list of gods */
-#define TEMP_FILE   "../player/romtmp"
 #define NOTE_DIR    "../notes/"
 #define CLAN_DIR	"../clans/"
 #define LUA_DIR     "../../src/lua/"
@@ -4385,8 +4371,6 @@ extern      tflag meta_magic;
 
 #define AREA_LIST       "area.lst"  /* List of areas*/
 #define CLAN_LIST       "clan.lst"
-#define BUG_FILE        "../log/bugs.txt" /* For 'bug' and bug()*/
-#define TYPO_FILE       "../log/typos.txt" /* For 'typo'*/
 #define SHUTDOWN_FILE   "shutdown.txt"/* For 'shutdown'*/
 #define BAN_FILE    "ban.txt"
 #define DISABLED_FILE   "disabled.txt"  /* disabled commands */
@@ -4394,7 +4378,6 @@ extern      tflag meta_magic;
 #define REMORT_FILE    "remort.txt"
 #define SKILL_FILE		"skill.txt"
 #define STAT_FILE    "stat_count.txt"
-#define PENALTY_LOG_FILE   "../log/penlog.txt"
 #define PENALTY_FILE   "penalty.txt"
 #define CRIME_FILE     "crimes.txt"
 #define RESERVED_LIST  "reserved.txt"	/* List of reserved names	*/
@@ -4402,10 +4385,7 @@ extern      tflag meta_magic;
 #define WIZ_FILE       "wizlist.txt" 
 #define PLAYER_TEMP_DIR "../player/temp/"  /* for simultanious saves */
 #define PORTAL_FILE    "portal.txt"
-#define RELIGION_FILE  "religion.txt"
-#define LBOARD_FILE    "lboard.txt"
-#define LBOARD_RESULT_FILE "lboard_result.txt"
-#define CONFIG_FILE    "mudconfig.lua"
+// #define RELIGION_FILE  "religion.txt"
 #define CHEAT_LIST     "../log/cheatlog.txt"
 #define BOX_DIR	       "../box/"
 #define BOX_TEMP_DIR   "../box/temp/"
@@ -4442,7 +4422,6 @@ extern      tflag meta_magic;
 #define SF  SPEC_FUN
 
 /* act_comm.c */
-void    check_sex   args( ( CHAR_DATA *ch) );
 void    add_follower    args( ( CHAR_DATA *ch, CHAR_DATA *master ) );
 void    stop_follower   args( ( CHAR_DATA *ch ) );
 void    nuke_pets   args( ( CHAR_DATA *ch ) );
@@ -4455,14 +4434,11 @@ void    tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 void    act_tell_char( CHAR_DATA *ch, CHAR_DATA *victim, const char *argument );
 const char* ch_name( const CHAR_DATA *ch, char *buf, size_t bufsz );
 void    gui_login_setup( CHAR_DATA *ch );
-void    open_imagewin_tag( CHAR_DATA *ch );
-void    close_imagewin_tag( CHAR_DATA *ch );
 const char *parse_url( const char *txt );
 int parse_walk(const char *argument, char *cmd_buf, size_t cmd_buf_len, char *err_buf, size_t err_buf_len);
 
 /* act_enter.c */
 RID  *get_random_room   args ( (CHAR_DATA *ch) );
-RID  *get_random_warfare_room args ( (CHAR_DATA *ch) );
 RID  *get_random_room_area( CHAR_DATA *ch );
 RID  *get_portal_room( const char *name );
 void load_portal_list( void );
@@ -4585,9 +4561,6 @@ void clone_warning( CHAR_DATA *ch, AREA_DATA *area );
 
 /* clan.c */
 void check_clan_eq  args( ( CHAR_DATA *ch ) );
-void clan_update    args( ( void ) );
-void save_clan_file args( ( int clannum ) );
-void save_all_clans args( ( void ) );
 bool rank_available args( ( int clan, int current_rank, int new_rank ) );
 MEMFILE* mem_save_clan_file( int clannum );
 
@@ -4832,7 +4805,6 @@ bool is_obj_ingame( OBJ_INDEX_DATA *obj );
 bool is_mob_ingame( MOB_INDEX_DATA *mob );
 bool is_room_ingame( ROOM_INDEX_DATA *room );
 bool is_area_ingame( AREA_DATA *area );
-bool has_shop( MOB_INDEX_DATA *mob, int vnum );
 int get_affect_cap( int location, int level );
 bool is_affect_cap_hard( int location );
 int get_obj_index_ops( OBJ_INDEX_DATA *obj );
@@ -4882,7 +4854,6 @@ bool    is_in_room( CHAR_DATA *ch );
 bool    is_mimic( const CHAR_DATA *ch );
 MOB_INDEX_DATA* get_mimic( const CHAR_DATA *ch );
 const char* get_mimic_PERS( CHAR_DATA *ch, CHAR_DATA *looker );
-const char* get_mimic_PERS_new( CHAR_DATA *ch, CHAR_DATA *looker, long gagtype );
 void    affect_to_char  args( ( CHAR_DATA *ch, const AFFECT_DATA *paf ) );
 void    affect_to_char_tagsafe( CHAR_DATA *ch, const AFFECT_DATA *paf );
 void    affect_to_obj   args( ( OBJ_DATA *obj, const AFFECT_DATA *paf ) );
@@ -4912,7 +4883,6 @@ void    char_to_room    args( ( CHAR_DATA *ch, ROOM_INDEX_DATA *pRoomIndex ) );
 void    obj_to_char args( ( OBJ_DATA *obj, CHAR_DATA *ch ) );
 void    obj_from_char   args( ( OBJ_DATA *obj ) );
 int wear_to_itemwear( int iWear );
-int first_itemwear( OBJ_DATA *obj );
 int itemwear_ac_factor( int itemWear );
 int predict_obj_ac( OBJ_DATA *obj, int itemWear );
 int predict_obj_index_ac( OBJ_INDEX_DATA *obj, int itemWear );
@@ -4993,8 +4963,6 @@ const char *  extra_bit_name  args( ( int extra_flags ) );
 const char *  extra_bits_name( tflag flag );
 const char *  act_bits_name( tflag flag );
 const char *  wear_bit_name   args( ( int wear_flags ) );
-const char *  wear_bits_name( tflag flag );
-const char *  act_bit_name    args( ( int act_flags ) );
 const char *  off_bit_name    args( ( int off_flags ) );
 const char *  off_bits_name( tflag flag );
 const char *  imm_bit_name    args( ( int imm_flags ) );
@@ -5008,10 +4976,7 @@ const char *  weapon_bits_name( long flag );
 const char *  cont_bits_name( long flag );
 const char *  comm_bit_name   args( ( int comm_flags ) );
 const char *  comm_bits_name( tflag flag );
-const char *  togg_bit_name	args( ( int togg_flags ) );
-const char *  penalty_bit_name args( (int penalty_flags) );
 const char *  penalty_bits_name( tflag penalty_flags );
-const char *  cont_bit_name   args( ( int cont_flags) );
 const char *  to_bit_name( int where, int flag );
 const char *  flag_bit_name( const struct flag_type flag_table[], int flag );
 const char *  flag_bits_name( const struct flag_type flag_table[], tflag flag );
@@ -5044,6 +5009,7 @@ bool can_order( const char *command, CHAR_DATA *victim );
 bool check_spell_disabled (const struct skill_type *command);
 
 /* lua_main.c */
+void open_lua  ( void );
 void check_lua_stack( void );
 void update_bossachv_table( void );
 void load_mudconfig( void );
@@ -5051,7 +5017,6 @@ const char* save_luaconfig( CHAR_DATA *ch );
 void load_luaconfig( CHAR_DATA *ch, const char *text );
 const char* save_ptitles( CHAR_DATA *ch );
 void load_ptitles( CHAR_DATA *ch, const char *text );
-void show_image_to_char( CHAR_DATA *ch, const char *txt );
 void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
 void do_achievements_boss_reward( CHAR_DATA *ch );
 void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
@@ -5293,7 +5258,6 @@ bool is_class_skill( int clss, int sn );
 bool has_subclass( const CHAR_DATA *ch, int subclass );
 bool parse_gen_groups( CHAR_DATA *ch, const char *argument );
 void    list_group_costs args( ( CHAR_DATA *ch ) );
-void    list_group_known args( ( CHAR_DATA *ch ) );
 int     exp_per_level   args( ( CHAR_DATA *ch ) );
 void    check_improve( CHAR_DATA *ch, int sn, bool success, int chance_exp );
 int     group_lookup    args( (const char *name) );
@@ -5387,9 +5351,6 @@ bool split_string( const char *s, char split_char, char *prefix, size_t presz, c
 size_t strlcpy(char *buf, const char *src, size_t bufsz);
 size_t strlcat(char *buf, const char *src, size_t bufsz);
 
-/* teleport.c */
-RID *   room_by_name    args( ( char *target, int level, bool error) );
-
 /* tflag.c */
 void flag_set( tflag f, int bit );
 void flag_remove( tflag f, int bit );
@@ -5427,7 +5388,6 @@ bool chance(int num);
 bool per_chance(int num);
 int rand_div(int divident, int divisor);
 void quest_update   args(( void ));   
-void set_pre_title( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
 bool color_name( CHAR_DATA *ch, const char *argument, CHAR_DATA *victim );
 void show_quests( CHAR_DATA *ch, CHAR_DATA *to_ch );
 void show_luavals( CHAR_DATA *ch, CHAR_DATA *to_ch );
@@ -5508,7 +5468,6 @@ void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );
  */
 extern  const   char *  const dir_name [MAX_DIR];
 extern  const   sh_int  rev_dir         [];          /* sh_int - ROM OLC */
-extern  const   struct  spec_type   spec_table  [];
 
 /*
  * Global variables
@@ -5541,13 +5500,6 @@ extern      MOB_INDEX_DATA *    mob_index_hash  [MAX_KEY_HASH];
 extern      OBJ_INDEX_DATA *    obj_index_hash  [MAX_KEY_HASH];
 extern      ROOM_INDEX_DATA *   room_index_hash [MAX_KEY_HASH];
 
-
-/*
-    * Lua stuff (Nick Gammon)
-     */
-
-void open_lua  ( void );  /* set up Lua state */
-void close_lua (CHAR_DATA * ch);  /* close down Lua state, if it exists */
 
 #define ACT_ARG_UNDEFINED 0
 #define ACT_ARG_OBJ 1

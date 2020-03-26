@@ -1980,10 +1980,6 @@ static void enter_game ( DESCRIPTOR_DATA *d )
 	    else
 	        char_to_room( ch, ch->in_room );
 	}
-	else if ( IS_IMMORTAL(ch) )
-	{
-	    char_to_room( ch, get_room_index( ROOM_VNUM_CHAT ) );
-	}
 	else
 	{
 	    char_to_room( ch, get_room_index( ROOM_VNUM_TEMPLE ) );
