@@ -4483,6 +4483,7 @@ HELP_DATA* find_help_data( CHAR_DATA *ch, const char *argument, BUFFER *output )
 bool    can_take_subclass( int clss, int subclass );
 bool    ch_can_take_subclass( CHAR_DATA *ch, int subclass );
 bool    ch_can_take_dual_subclass( CHAR_DATA *ch, int dual_subclass );
+const char* wear_location_info( int pos );
 
 /* act_move.c */
 int get_hips_skill( CHAR_DATA *ch );
@@ -4689,9 +4690,9 @@ bool    str_cmp     args( ( const char *astr, const char *bstr ) );
 bool    str_prefix  args( ( const char *astr, const char *bstr ) );
 bool    str_infix   args( ( const char *astr, const char *bstr ) );
 bool    str_suffix  args( ( const char *astr, const char *bstr ) );
-char *  capitalize  args( ( const char *str ) );
-char *  capitalize_buf( const char *str, char *buf );
-char *  cap_all( const char* str );
+const char *  capitalize  args( ( const char *str ) );
+const char *  capitalize_buf( const char *str, char *buf );
+const char *  cap_all( const char* str );
 void    append_file args( ( CHAR_DATA *ch, const char *file, const char *str ) );
 void    bug     args( ( const char *str, int param ) );
 void    bug_string( const char *str );
@@ -5040,6 +5041,7 @@ void   load_disabled   args( ( void ) );
 bool    check_social( CHAR_DATA *ch, const char *command, const char *argument );
 void send_position_message( CHAR_DATA *ch );
 bool can_order( const char *command, CHAR_DATA *victim );
+bool check_spell_disabled (const struct skill_type *command);
 
 /* lua_main.c */
 void check_lua_stack( void );
@@ -5183,17 +5185,15 @@ void mudconfig_init( void );
 /* olc.c */
 bool    run_olc_argument  args( ( CHAR_DATA *ch, int editor, const char *argument) );
 bool    run_olc_editor    args( ( DESCRIPTOR_DATA *d ) );
-char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
-char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
+const char    *olc_ed_name      args( ( CHAR_DATA *ch ) );
+const char    *olc_ed_vnum      args( ( CHAR_DATA *ch ) );
 
 /* olc_act.c */
 void set_mob_level( CHAR_DATA *mob, int level );
 void set_weapon_dam( OBJ_DATA *pObj, int dam );
 bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj );
-bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj );
 int armor_class_by_level( int level );
 int average_roll( int nr, int type, int bonus );
-int average_mob_hp( int level );
 AREA_DATA *get_vnum_area( int vnum );
 EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed );
 
@@ -5372,7 +5372,7 @@ const char *format_color_string( const char *argument, int width );
 const char *first_arg( const char *argument, char *arg_first, bool fCase );
 char * string_proper  args( ( char * argument ) );
 const char * del_last_line_ext( const char *string, char *xbuf, size_t xbufsz );
-char * force_wrap( const char *oldstring );
+const char * force_wrap( const char *oldstring );
 int    strlen_color   args( ( const char * argument ) );
 const char * truncate_color_string( const char *argument, int limit );
 const char * center( const char *argument, int width, char fill );
@@ -5406,7 +5406,7 @@ void flag_remove_vector( tflag f, long vector );
 void flag_copy_vector( tflag f, long vector );
 void bit_list_to_tflag( tflag f );
 int flag_convert_old( long vector );
-char* print_tflag( const tflag f );
+const char* print_tflag( const tflag f );
 void fread_tflag( FILE *fp, tflag f );
 void bread_tflag( RBUFFER *rbuf, tflag f );
 

@@ -168,7 +168,7 @@ int flag_convert_old( long vector )
     return 0;
 }
 
-char* print_tflag( const tflag f )
+const char* print_tflag( const tflag f )
 {
     static char buf[MSL];
     char nr_buf[10];
@@ -180,7 +180,7 @@ char* print_tflag( const tflag f )
 	if ( flag_is_set( f, i ) )
 	{
 	    snprintf( nr_buf, sizeof(nr_buf), "%d|", i );
-	    strcat( buf, nr_buf );
+	    strlcat( buf, nr_buf, sizeof(buf) );
 	}
     /* delete last pipe */
     i = strlen( buf );

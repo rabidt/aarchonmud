@@ -87,7 +87,7 @@ bool run_olc_editor( DESCRIPTOR_DATA *d )
     return run_olc_argument( d->character, d->editor, d->incomm);    
 }
 
-char *olc_ed_name( CHAR_DATA *ch )
+const char *olc_ed_name( CHAR_DATA *ch )
 {
    static char buf[10];
    
@@ -130,7 +130,7 @@ char *olc_ed_name( CHAR_DATA *ch )
 
 
 
-char *olc_ed_vnum( CHAR_DATA *ch )
+const char *olc_ed_vnum( CHAR_DATA *ch )
 {
    AREA_DATA *pArea;
    ROOM_INDEX_DATA *pRoom;

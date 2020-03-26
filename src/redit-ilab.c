@@ -180,7 +180,7 @@ static int parse_door_state (const char *state)
 }
 
 /* Returns a ptr to a string describing state of the door */
-static char* door_reset_desc (int state)
+static const char* door_reset_desc (int state)
 {
 	switch (state)
 	{

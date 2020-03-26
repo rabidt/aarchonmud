@@ -37,8 +37,6 @@
 #include "religion.h"
 #include "mudconfig.h"
 
-bool check_spell_disabled args( (const struct skill_type *command) );
-
 int  hit_gain     args(( CHAR_DATA *ch ));
 int  mana_gain    args(( CHAR_DATA *ch ));
 int  move_gain    args(( CHAR_DATA *ch ));

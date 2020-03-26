@@ -18,7 +18,7 @@
 
 /* Local Prototypes */
 static bool process_penalty( CHAR_DATA *ch, const char *argument, const char *pentype );
-static char *penalty_status_name(int status);
+static const char *penalty_status_name(int status);
 void delete_penalty_node(PENALTY_DATA *node);
 PENALTY_DATA *new_penalty(CHAR_DATA *imm, CHAR_DATA *victim);
 static void show_penalty_type(CHAR_DATA *ch, const char *penname);
@@ -33,7 +33,7 @@ static CRIME_DATA *crime_list;
 DECLARE_DO_FUN(do_look);
 
 
-static char *penalty_status_name(int status)
+static const char *penalty_status_name(int status)
 {
     static char buf[20];
 

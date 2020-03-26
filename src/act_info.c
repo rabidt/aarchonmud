@@ -100,19 +100,19 @@ int max_on = 0;
 /*
 * Local functions.
 */
-char *  format_obj_to_char  args( ( OBJ_DATA *obj, CHAR_DATA *ch,
+static const char *  format_obj_to_char  args( ( OBJ_DATA *obj, CHAR_DATA *ch,
                                  bool fShort ) );
-void    show_list_to_char   args( ( OBJ_DATA *list, CHAR_DATA *ch,
+static void    show_list_to_char   args( ( OBJ_DATA *list, CHAR_DATA *ch,
                                  bool fShort, bool fShowNothing ) );
-void    show_char_to_char_0 args( ( CHAR_DATA *victim, CHAR_DATA *ch ) );
-void    show_char_to_char_1 args( ( CHAR_DATA *victim, CHAR_DATA *ch, bool glance ) );
-void    show_char_to_char   args( ( CHAR_DATA *list, CHAR_DATA *ch ) );
-bool    check_blind     args( ( CHAR_DATA *ch ) );
+static void    show_char_to_char_0 args( ( CHAR_DATA *victim, CHAR_DATA *ch ) );
+static void    show_char_to_char_1 args( ( CHAR_DATA *victim, CHAR_DATA *ch, bool glance ) );
+static void    show_char_to_char   args( ( CHAR_DATA *list, CHAR_DATA *ch ) );
+static bool    check_blind     args( ( CHAR_DATA *ch ) );
 char    get_pkflag          args( ( CHAR_DATA *ch, CHAR_DATA *wch ) );
 
 
 
-char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
+static const char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
 {
     static char buf[MAX_STRING_LENGTH];
     
@@ -215,13 +215,13 @@ char *format_obj_to_char( OBJ_DATA *obj, CHAR_DATA *ch, bool fShort )
 * Can coalesce duplicated items.
 */
 
-void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNothing )
+static void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNothing )
 {
     char buf[MAX_STRING_LENGTH];
     BUFFER *output;
     const char **prgpstrShow;
     int *prgnShow;
-    char *pstrShow;
+    const char *pstrShow;
     OBJ_DATA *obj;
     int nShow;
     int iShow;
@@ -332,7 +332,7 @@ void show_list_to_char( OBJ_DATA *list, CHAR_DATA *ch, bool fShort, bool fShowNo
 
 
 
-void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
+static void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
 {
     char buf[MAX_STRING_LENGTH],message[MAX_STRING_LENGTH];
     
@@ -535,10 +535,6 @@ void show_char_to_char_0( CHAR_DATA *victim, CHAR_DATA *ch )
    return;
 }
 
-/*
-char* get_disguise_name( CHAR_DATA *ch );
-*/
-
 const char *char_look_info( const CHAR_DATA *ch, char *buf, size_t bufsz )
 {
     static const char * const appear_str[] =
@@ -607,7 +603,7 @@ const char *char_look_info( const CHAR_DATA *ch, char *buf, size_t bufsz )
     return buf;
 }
 
-bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool show_all )
+static bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool show_all )
 {
     OBJ_DATA *obj = get_eq_char(victim, slot);
     int tattoo = get_tattoo_ch(victim, slot);
@@ -642,7 +638,7 @@ bool show_equipped_to_char( CHAR_DATA *victim, CHAR_DATA *ch, int slot, bool sho
     return FALSE;
 }
 
-void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
+static void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
 {
     char buf[MAX_STRING_LENGTH];
     int i, percent;
@@ -741,7 +737,7 @@ void show_char_to_char_1( CHAR_DATA *victim, CHAR_DATA *ch, bool glance )
     return;
 }
 
-bool check_see_eyes( CHAR_DATA *ch, CHAR_DATA *victim )
+static bool check_see_eyes( CHAR_DATA *ch, CHAR_DATA *victim )
 {
     bool success;
 
@@ -756,7 +752,7 @@ bool check_see_eyes( CHAR_DATA *ch, CHAR_DATA *victim )
     return success;
 }
 
-void show_char_to_char( CHAR_DATA *list, CHAR_DATA *ch )
+static void show_char_to_char( CHAR_DATA *list, CHAR_DATA *ch )
 {
     CHAR_DATA *rch;
     
@@ -781,7 +777,7 @@ void show_char_to_char( CHAR_DATA *list, CHAR_DATA *ch )
     return;
 } 
 
-bool check_blind( CHAR_DATA *ch )
+static bool check_blind( CHAR_DATA *ch )
 {
     
     if (!IS_NPC(ch) && IS_SET(ch->act,PLR_HOLYLIGHT))
@@ -1539,7 +1535,7 @@ DEF_DO_FUN(do_glance)
 }
 
 /* part of do_look: returns the object looked at if any */
-OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
+static OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
 {
     static char arg3[MSL];
     int number = number_argument(argument, arg3, sizeof(arg3));
@@ -1625,7 +1621,7 @@ OBJ_DATA* look_obj( CHAR_DATA *ch, char *argument )
     return NULL;
 }
 
-void show_content( CHAR_DATA *ch, OBJ_DATA *obj )
+static void show_content( CHAR_DATA *ch, OBJ_DATA *obj )
 {
     switch ( obj->item_type )
     {
@@ -2109,7 +2105,7 @@ DEF_DO_FUN(do_exits)
 }
 
 
-void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, bool show_long)
+static void display_affect(CHAR_DATA *to_ch, AFFECT_DATA *paf, AFFECT_DATA *paf_last, bool show_long)
 {
     bool show_spell_name = TRUE;
     if (paf_last != NULL && paf->type == paf_last->type
@@ -2300,13 +2296,13 @@ DEF_DO_FUN(do_leadership)
     printf_to_char(ch, "You control %d / %d levels worth of creatures (%d remaining).\n\r", charmed, max, max-charmed);
 }
 
-const char *  const   day_name    [] =
+static const char *  const   day_name    [] =
 {
     "the Moon", "the Bull", "Deception", "Thunder", "Freedom",
         "the Great Gods", "the Sun"
 };
 
-const char *  const   month_name  [] =
+static const char *  const   month_name  [] =
 {
     "Winter", "the Winter Wolf", "the Frost Giant", "the Old Forces",
         "the Grand Struggle", "the Spring", "Nature", "Futility", "the Dragon",
@@ -3872,7 +3868,7 @@ void say_basic_obj_data( CHAR_DATA *ch, OBJ_DATA *obj )
 }
 
 /* same stupid thingy AGAIN.. */
-void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
+static void say_basic_obj_index_data( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
     int c;
@@ -4311,7 +4307,7 @@ char* get_disguise_name( CHAR_DATA *ch )
 #define DISGUISE_MIN_VNUM 20
 #define DISGUISE_MAX_VNUM 29
 
-MOB_INDEX_DATA* get_disguise_vnum( char *name )
+static MOB_INDEX_DATA* get_disguise_vnum( char *name )
 {
     MOB_INDEX_DATA *mob;
     int vnum;
@@ -4329,7 +4325,7 @@ MOB_INDEX_DATA* get_disguise_vnum( char *name )
     return NULL;
 }
 
-void show_disguise_list( CHAR_DATA *ch )
+static void show_disguise_list( CHAR_DATA *ch )
 {
     MOB_INDEX_DATA *mob;
     int vnum;
@@ -5320,7 +5316,7 @@ DEF_DO_FUN(do_helper)
         }
 }
 
-const char * const achievement_display [] =
+static const char * const achievement_display [] =
 {
         "none",
         "Level",
@@ -5819,7 +5815,7 @@ struct newbie_data
     const char * area_name;
 };
 
-const struct newbie_data eq_data[] =
+static const struct newbie_data eq_data[] =
 {
     {  1, "The Initiation"                                                  },
     {  5, "The Pirates Lair or The Palace Square Shops"                     },

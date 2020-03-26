@@ -56,10 +56,6 @@ int get_obj_focus( CHAR_DATA *ch );
 int get_dagger_focus( CHAR_DATA *ch );
 static bool is_healing_spell( int sn );
 
-/* imported functions */
-bool check_spell_disabled args( (const struct skill_type *command) );
-char* wear_location_info( int pos );
-
 /*
  * Lookup a skill by name.
  */

@@ -420,9 +420,6 @@ BOSSACHV    *new_boss_achieve       args ( ( void ) );
 void        free_boss_achieve   args ( ( BOSSACHV *pBoss ) );
 #undef	ED
 
-void		show_liqlist		args ( ( CHAR_DATA *ch ) );
-void		show_damlist		args ( ( CHAR_DATA *ch ) );
-
 const char     *mprog_type_to_name	args ( ( int type ) );
 PROG_LIST      *new_mprog              args ( ( void ) );
 void            free_mprog              args ( ( PROG_LIST *mp ) );

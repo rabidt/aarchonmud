@@ -5,6 +5,6 @@ struct fwrite_flag_buf
 {
     char buf[33];
 };
-char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf );
+const char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf );
 
 #endif // OLC_SAVE_H_

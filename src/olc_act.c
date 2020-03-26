@@ -28,6 +28,9 @@
 #include "mob_stats.h"
 
 
+static void show_liqlist(CHAR_DATA *ch);
+static void show_damlist(CHAR_DATA *ch);
+
 /*
 #define ALT_FLAGVALUE_SET( _blargh, _table, _arg )		\
 {							\
@@ -42,12 +45,15 @@
 }
 */
 
-#define ALT_FLAGVALUE_SET( _blargh, _table, _arg ) \
+/*
+ #define ALT_FLAGVALUE_SET( _blargh, _table, _arg ) \
     _blargh = alt_flagvalue( _table, _arg )
+*/
 #define ALT_FLAGVALUE_TOGGLE( _blargh, _table, _arg ) \
     _blargh = alt_flagvalue_toggle( _blargh, _table, _arg )
 
-long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
+#if 0
+static long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 {
     long buf = 0;
     int flag;
@@ -62,8 +68,9 @@ long alt_flagvalue( const struct flag_type *flag_table, const char *argument )
 #endif
     return buf;
 }
+#endif
 
-long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, const char *argument )
+static long alt_flagvalue_toggle( long old_flag, const struct flag_type *flag_table, const char *argument )
 {
     long buf = old_flag;
     int flag;
@@ -121,7 +128,7 @@ bool show_version( CHAR_DATA *ch, const char *argument )
 * This table contains help commands and a brief description of each.
 * ------------------------------------------------------------------
 */
-const struct olc_help_type help_table[] =
+static const struct olc_help_type help_table[] =
 {
     {	"area",		area_flags,	 "Area attributes."		 },
     {	"room",		room_flags,	 "Room attributes."		 },
@@ -167,7 +174,7 @@ Name:		show_flag_cmds
 Purpose:	Displays settable flags and stats.
 Called by:	show_help(olc_act.c).
 ****************************************************************************/
-void show_flag_cmds( CHAR_DATA *ch, const struct flag_type *flag_table )
+static void show_flag_cmds( CHAR_DATA *ch, const struct flag_type *flag_table )
 {
     char buf  [ MAX_STRING_LENGTH ];
     char buf1 [ MAX_STRING_LENGTH ];
@@ -204,7 +211,7 @@ Could be improved by:
 (2) Adding a check for a level range.
 Called by:	show_help(olc_act.c).
 ****************************************************************************/
-void show_skill_cmds( CHAR_DATA *ch, int tar )
+static void show_skill_cmds( CHAR_DATA *ch, int tar )
 {
     char buf  [ MAX_STRING_LENGTH ];
     char buf1 [ MAX_STRING_LENGTH*2 ];
@@ -245,7 +252,7 @@ Name:		show_spec_cmds
 Purpose:	Displays settable special functions.
 Called by:	show_help(olc_act.c).
 ****************************************************************************/
-void show_spec_cmds( CHAR_DATA *ch )
+static void show_spec_cmds( CHAR_DATA *ch )
 {
     char buf  [ MAX_STRING_LENGTH ];
     char buf1 [ MAX_STRING_LENGTH ];
@@ -623,7 +630,7 @@ Name:		check_range( lower vnum, upper vnum )
 Purpose:	Ensures the range spans only one area.
 Called by:	aedit_vnum(olc_act.c).
 ****************************************************************************/
-bool check_range( int lower, int upper )
+static bool check_range( int lower, int upper )
 {
     AREA_DATA *pArea;
     int cnt = 0;
@@ -665,7 +672,7 @@ AREA_DATA *get_vnum_area( int vnum )
  * Purpose: fix bug that removes valid aprog flags
  * Called by: oedit_delaprog
  *****************************************************************/
-void update_aprog_flags( AREA_DATA *pArea )
+static void update_aprog_flags( AREA_DATA *pArea )
 {
     PROG_LIST *list;
 
@@ -1588,7 +1595,7 @@ AEDIT( aedit_uvnum )
  * Purpose: fix bug that removes valid aprog flags
  * Called by: oedit_delaprog
  *****************************************************************/
-void update_rprog_flags( ROOM_INDEX_DATA *pRoom )
+static void update_rprog_flags( ROOM_INDEX_DATA *pRoom )
 {
     PROG_LIST *list;
 
@@ -1928,7 +1935,7 @@ EXIT_DATA* get_revers_exit( ROOM_INDEX_DATA *pRoom, int door, bool changed )
 }
 
 /* Local function. */
-bool change_exit( CHAR_DATA *ch, const char *argument, int door )
+static bool change_exit( CHAR_DATA *ch, const char *argument, int door )
 {
     ROOM_INDEX_DATA *pRoom;
     EXIT_DATA *rev_exit;
@@ -2859,7 +2866,7 @@ struct wear_type
 
 
 
-const struct wear_type wear_table[] =
+static const struct wear_type wear_table[] =
 {
     {   WEAR_NONE,  ITEM_CARRY      },
     {	WEAR_LIGHT,	ITEM_LIGHT		},
@@ -2912,7 +2919,7 @@ Name:		wear_bit
 Purpose:	Converts a wear_loc into a bit.
 Called by:	redit_oreset(olc_act.c).
 ****************************************************************************/
-int wear_bit(int loc)
+static int wear_bit(int loc)
 {
     int flag;
     
@@ -3121,7 +3128,7 @@ REDIT( redit_oreset )
 /*
 * Object Editor Functions.
 */
-void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
+static void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 {
     char buf[MAX_STRING_LENGTH];
     
@@ -3315,7 +3322,7 @@ void show_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *obj )
 
 
 
-bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
+static bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const char *argument)
 {
     int value1;
 
@@ -3685,22 +3692,22 @@ bool set_obj_values( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, int value_num, const c
 }
 
 #define MAX_RATING 6
-char* get_rating_name( int rating )
+static const char* get_rating_name( int rating )
 {
-    static char rating_name[MAX_RATING][100] =
+    static const char * const rating_name[MAX_RATING] =
     {
-	"easy",
-	"normal",
-	"hard",
-	"very hard",
-	"extreme",
-	"..."
+        "easy",
+        "normal",
+        "hard",
+        "very hard",
+        "extreme",
+        "..."
     };
 
     if ( rating < 0 || rating >= MAX_RATING )
-	return "?";
+        return "?";
     else
-	return rating_name[rating];
+        return rating_name[rating];
 }
 
 /*****************************************************************
@@ -3708,7 +3715,7 @@ char* get_rating_name( int rating )
  * Purpose: fix bug that removes valid oprog flags
  * Called by: oedit_deloprog
  *****************************************************************/
-void update_oprog_flags( OBJ_INDEX_DATA *pObj )
+static void update_oprog_flags( OBJ_INDEX_DATA *pObj )
 {
     PROG_LIST *list;
 
@@ -4330,7 +4337,7 @@ OEDIT( oedit_comments)
     return FALSE;
 }
 
-bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, const char *argument, int value )
+static bool set_value( CHAR_DATA *ch, OBJ_INDEX_DATA *pObj, const char *argument, int value )
 {
     if ( argument[0] == '\0' )
     {
@@ -4351,7 +4358,7 @@ Name:		oedit_values
 Purpose:	Finds the object and sets its value.
 Called by:	The four valueX functions below. (now five -- Hugin )
 ****************************************************************************/
-bool oedit_values( CHAR_DATA *ch, const char *argument, int value )
+static bool oedit_values( CHAR_DATA *ch, const char *argument, int value )
 {
     OBJ_INDEX_DATA *pObj;
     
@@ -4483,7 +4490,7 @@ OEDIT( oedit_combine )
     return TRUE;
 }
 
-void show_ratings( CHAR_DATA *ch )
+static void show_ratings( CHAR_DATA *ch )
 {
     char buf[MSL];
     int i;
@@ -5082,7 +5089,7 @@ int armor_class_by_level( int level )
     return get_obj_ovalue(level)[OBJ_STAT_AC];
 }
 
-bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
+static bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
 {
     AFFECT_DATA *aff;
     bool found = FALSE;
@@ -5112,7 +5119,7 @@ bool apply_obj_hardcaps( OBJ_INDEX_DATA *obj )
     return found;
 }
 
-bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
+static bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
 {
     int weight, min_weight, max_weight;
 
@@ -5165,7 +5172,7 @@ bool adjust_obj_weight( OBJ_INDEX_DATA *obj )
 }
 
 // find a nice damage die to use to get to given average damage
-int nice_dam_die( int dam )
+static int nice_dam_die( int dam )
 {
     int i;
     // special case
@@ -5189,7 +5196,7 @@ void set_weapon_dam( OBJ_DATA *pObj, int dam )
     pObj->value[2] = die;
 }
 
-void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
+static void set_weapon_index_dam( OBJ_INDEX_DATA *pObj, int dam )
 {
     int die = nice_dam_die(dam);
     pObj->value[1] = (2*dam) / (die+1);
@@ -5213,7 +5220,7 @@ bool adjust_weapon_dam( OBJ_INDEX_DATA *pObj )
         return FALSE;
 }
 
-bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj )
+static bool adjust_bomb_dam( OBJ_INDEX_DATA *pObj )
 {
     // #dice
     pObj->value[0] = 2 * (25 + pObj->level * 3/4);
@@ -5736,160 +5743,6 @@ MEDIT( medit_spec )
     return FALSE;
 }
 
-#define LVL_STAT_HP_DICE_NUMBER  0
-#define LVL_STAT_HP_DICE_TYPE    1
-#define LVL_STAT_HP_DICE_BONUS   2
-#define LVL_STAT_DAM_DICE_NUMBER 3
-#define LVL_STAT_DAM_DICE_TYPE   4
-#define LVL_STAT_DAM_DICE_BONUS  5
-#define LVL_STAT_AC              6
-#define LVL_STAT_NR              7 
-
-/* values in above order, level_stats[i] = stats for level i+1
-*/
-static const int level_stats[][LVL_STAT_NR] = {
-    {  2,  6,    10,  1,  4,  0,   95 },
-    {  2,  7,    22,  1,  5,  0,   89 },
-    {  2,  6,    35,  1,  6,  0,   83 },
-    {  2,  7,    46,  1,  5,  1,   76 },
-    {  2,  6,    60,  1,  6,  1,   70 },
-    {  2,  7,    71,  1,  7,  1,   64 },
-    {  2,  6,    85,  1,  8,  1,   58 },
-    {  2,  7,    96,  1,  7,  2,   52 },
-    {  2,  6,   110,  1,  8,  2,   46 },
-    {  2,  7,   121,  2,  4,  2,   40 }, // 10
-    {  7,  3,   134,  2,  6,  0,   33 },
-    {  1, 18,   157,  4,  3,  0,   26 },
-    {  1, 20,   175,  4,  3,  1,   19 },
-    { 11,  3,   182,  3,  4,  2,   12 },
-    {  3,  9,   208,  2,  6,  3,    5 },
-    { 12,  3,   224,  2,  9,  0,   -1 },
-    { 12,  3,   249,  4,  3,  3,   -7 },
-    { 12,  3,   274,  1, 13,  5,  -13 },
-    { 12,  3,   299,  1, 13,  6,  -19 },
-    {  3,  9,   333,  2,  8,  5,  -25 }, // 20
-    {  7,  5,   373,  5,  4,  2,  -31 },
-    {  8,  5,   416,  5,  4,  3,  -37 },
-    {  1, 38,   466,  1, 18,  7,  -43 },
-    {  1, 42,   510,  1, 18,  8,  -49 },
-    {  5, 10,   550,  2, 10,  7,  -55 },
-    {  7,  8,   609,  9,  3,  1,  -62 },
-    {  1, 54,   676,  1, 20,  9,  -69 },
-    {  2, 30,   735,  1, 20, 10,  -76 },
-    {  2, 32,   796, 10,  3,  1,  -83 },
-    {  6, 12,   853,  4,  6,  8,  -90 }, // 30
-    {  1, 72,   948, 10,  3,  3,  -96 },
-    {  4, 20,  1035, 11,  3,  2, -102 },
-    { 10,  9,  1120, 11,  3,  3, -108 },
-    {  5, 18,  1215, 12,  3,  2, -114 },
-    { 10, 10,  1300,  4,  7, 11, -120 },
-    { 11, 10,  1420,  5,  6, 10, -126 },
-    { 12, 10,  1520,  5,  6, 11, -132 },
-    {  9, 14,  1634,  9,  4,  7, -138 },
-    {  9, 15,  1745,  9,  4,  8, -144 },
-    { 15, 10,  1850,  4,  8, 13, -150 }, // 40
-    {  9, 18,  2088,  7,  5, 11, -156 },
-    { 19, 10,  2310,  2, 14, 18, -162 },
-    {  9, 22,  2552,  2, 14, 19, -168 },
-    {  9, 24,  2784, 12,  3, 11, -174 },
-    { 25, 10,  3000,  8,  4, 16, -180 },
-    { 18, 16,  3312,  2, 14, 22, -187 },
-    { 15, 22,  3620,  7,  5, 17, -194 },
-    { 20, 19,  3920,  1, 32, 23, -201 },
-    { 15, 28,  4230, 11,  4, 13, -208 },
-    { 50, 10,  4500,  5,  8, 19, -215 }, // 50
-    { 50, 10,  5000,  2, 18, 24, -221 },
-    { 50, 10,  5500, 11,  4, 17, -227 },
-    { 50, 10,  6000,  8,  5, 21, -233 },
-    { 50, 10,  6500,  1, 32, 30, -239 },
-    { 50, 10,  7000, 10,  4, 23, -245 },
-    { 50, 10,  7500,  8,  5, 26, -251 },
-    { 50, 10,  8000,  2, 18, 32, -257 },
-    { 50, 10,  8500, 12,  4, 23, -263 },
-    { 50, 10,  9000,  2, 20, 33, -269 },
-    { 50, 10,  9500,  8,  6, 28, -275 }, // 60
-    { 53, 10,  9700,  7,  7, 28, -281 },
-    { 56, 10,  9900, 11,  5, 23, -287 },
-    { 59, 10, 10100, 11,  5, 23, -293 },
-    { 62, 10, 10300,  2, 24, 31, -299 },
-    { 65, 10, 10500,  8,  7, 24, -305 },
-    { 65, 10, 10700, 12,  5, 21, -312 },
-    { 65, 10, 10900, 12,  5, 22, -319 },
-    { 65, 10, 11100, 12,  5, 24, -326 },
-    { 65, 10, 11300, 12,  5, 25, -333 },
-    { 65, 10, 11500,  8,  7, 30, -340 }, // 70
-    { 65, 10, 11700, 12,  5, 27, -346 },
-    { 65, 10, 11900, 12,  5, 28, -352 },
-    { 65, 10, 12100, 10,  6, 30, -358 },
-    { 65, 10, 12300, 10,  6, 31, -364 },
-    { 65, 10, 12500, 10,  6, 32, -370 },
-    { 64, 10, 12700,  3, 18, 40, -376 },
-    { 63, 10, 12900,  4, 14, 39, -382 },
-    { 62, 10, 13100,  1, 54, 43, -388 },
-    { 61, 10, 13300,  9,  7, 35, -394 },
-    { 60, 10, 13500, 11,  6, 34, -400 }, // 80
-    { 60, 11, 13500,  8,  8, 37, -406 },
-    { 60, 12, 13500,  3, 20, 42, -412 },
-    { 60, 13, 13500,  2, 30, 44, -418 },
-    { 60, 14, 13500,  1, 60, 45, -424 },
-    { 60, 15, 13500, 12,  6, 34, -430 },
-    { 61, 15, 13700,  1, 60, 47, -436 },
-    { 62, 15, 13900,  2, 30, 48, -442 },
-    { 63, 15, 14100,  1, 60, 50, -448 },
-    { 64, 15, 14300,  2, 30, 51, -454 },
-    { 65, 15, 14500, 19,  4, 36, -460 }, // 90
-    { 65, 15, 14750, 12,  6, 42, -466 },
-    { 65, 15, 15000,  2, 32, 51, -472 },
-    { 65, 15, 15250,  5, 14, 47, -478 },
-    { 65, 15, 15500,  1, 68, 50, -484 },
-    { 65, 15, 15750, 10,  8, 40, -490 },
-    { 65, 15, 16200,  1, 72, 49, -497 },
-    { 65, 15, 16650, 12,  7, 38, -504 },
-    { 65, 15, 17100,  5, 16, 44, -511 },
-    { 65, 15, 17550,  4, 20, 45, -518 },
-    { 65, 15, 18000, 11,  8, 38, -525 }, // 100
-    { 65, 15, 18450, 11,  8, 39, -530 },
-    { 65, 15, 18900, 11,  8, 40, -535 },
-    { 65, 15, 19350, 11,  8, 42, -540 },
-    { 65, 15, 19800, 11,  8, 43, -545 },
-    { 65, 15, 20250, 11,  8, 44, -550 },
-    { 65, 15, 20650,  1, 80, 54, -556 },
-    { 65, 15, 21050, 10,  9, 45, -562 },
-    { 65, 15, 21450,  9, 10, 47, -568 },
-    { 65, 15, 21850,  2, 42, 54, -574 },
-    { 65, 15, 22500, 12,  8, 44, -580 }, // 110
-    { 65, 15, 22950, 12,  8, 45, -608 },
-    { 65, 15, 23400, 12,  8, 46, -636 },
-    { 65, 15, 23850, 12,  8, 48, -664 },
-    { 65, 15, 24300, 12,  8, 49, -692 },
-    { 65, 15, 24750, 12,  8, 50, -720 },
-    { 65, 15, 25200, 12,  8, 51, -726 },
-    { 65, 15, 25650, 12,  8, 52, -732 },
-    { 65, 15, 26100, 12,  8, 54, -738 },
-    { 65, 15, 26550, 12,  8, 55, -744 },
-    { 65, 15, 27000, 12,  8, 56, -750 } // 120
-};
-
-/* returns an array with the stats for that level */
-const int* get_level_stats( int level )
-{
-    static int stats[LVL_STAT_NR] = { 65, 15, 27000, 12,  8, 56, -750 };
-
-    level = UMAX( 1, level );
-
-    if ( level <= 120 )
-	return level_stats[level-1];
-    
-    /* extrapolate */
-    stats[LVL_STAT_HP_DICE_BONUS] = 27000 + (level-120) * 500;
-    stats[LVL_STAT_DAM_DICE_NUMBER] = (level+9)/10;
-    stats[LVL_STAT_DAM_DICE_TYPE] = (level+9)/10 - 4;
-    stats[LVL_STAT_DAM_DICE_BONUS] = 56 + 2 * (level-120);
-    stats[LVL_STAT_AC] = -30 - 6 * level;
-
-    return stats;
-}
-
 /*
 void set_mob_level( CHAR_DATA *mob, int level )
 {
@@ -5957,24 +5810,6 @@ void set_mob_level( CHAR_DATA *mob, int level )
 int average_roll( int nr, int type, int bonus )
 {
     return nr * (type + 1) / 2 + bonus;
-}
-
-int average_mob_hp( int level )
-{
-    const int *stats;
-
-    stats = get_level_stats( level );
-    return average_roll( stats[LVL_STAT_HP_DICE_NUMBER],
-			 stats[LVL_STAT_HP_DICE_TYPE],
-			 stats[LVL_STAT_HP_DICE_BONUS] );
-}
-
-int average_mob_damage( int level )
-{
-    const int *stats;
-
-    stats = get_level_stats( level );
-    return average_roll( stats[LVL_STAT_DAM_DICE_NUMBER], stats[LVL_STAT_DAM_DICE_TYPE], 0 ) + stats[LVL_STAT_DAM_DICE_BONUS] / 4;
 }
 
 MEDIT( medit_damtype )
@@ -6858,7 +6693,7 @@ MEDIT( medit_stance )
 }
 
 
-void show_liqlist(CHAR_DATA *ch)
+static void show_liqlist(CHAR_DATA *ch)
 {
     int liq;
     BUFFER *buffer;
@@ -6887,7 +6722,7 @@ void show_liqlist(CHAR_DATA *ch)
 
 /* needed for show_damlist --Bobble */
 #define MAX_DAM_TYPE 20
-static const char* basic_dam_names[MAX_DAM_TYPE] = 
+static const char* const basic_dam_names[MAX_DAM_TYPE] = 
 {
   "none",
   "bash",
@@ -6912,7 +6747,7 @@ static const char* basic_dam_names[MAX_DAM_TYPE] =
 };
 
 /* returns the name for the given damage type */
-const char* basic_dam_name( int dam_type )
+static const char* basic_dam_name( int dam_type )
 {
   if (dam_type < 0 || dam_type >= MAX_DAM_TYPE)
     return "?";
@@ -6920,7 +6755,7 @@ const char* basic_dam_name( int dam_type )
     return basic_dam_names[dam_type];
 }
 
-void show_damlist(CHAR_DATA *ch)
+static void show_damlist(CHAR_DATA *ch)
 {
     int att;
     BUFFER *buffer;
@@ -7087,7 +6922,7 @@ MEDIT ( medit_addmprog )
  * Purpose: fix bug that removes valid mprog flags
  * Called by: medit_delmprog
  *****************************************************************/
-void update_mprog_flags( MOB_INDEX_DATA *pMob )
+static void update_mprog_flags( MOB_INDEX_DATA *pMob )
 {
     PROG_LIST *list;
     
@@ -7335,7 +7170,7 @@ HEDIT( hedit_delete)
 /* percentage values */
 
 #define CMD(cmd) (strcmp(command, cmd)==0)
-bool medit_percent ( CHAR_DATA *ch, const char *argument, char* command)
+static bool medit_percent ( CHAR_DATA *ch, const char *argument, char* command)
 {
     MOB_INDEX_DATA *pMob;
     char arg[MAX_INPUT_LENGTH];
@@ -7431,4 +7266,3 @@ MEDIT( medit_wealth )
 {
     return medit_percent( ch, argument, "wealth" );
 }
-

@@ -53,7 +53,7 @@ static void reverse_affect_order args( (OBJ_INDEX_DATA *pObjIndex) );
 Name:		fix_string
 Purpose:	Returns a string without \r and ~.
 ****************************************************************************/
-static char *fix_string( const char *str )
+static const char *fix_string( const char *str )
 {
     static char strfix[MAX_STRING_LENGTH * 3];
     int i;
@@ -137,7 +137,7 @@ static void save_area_list( void )
 *
 * -- Hugin
 */
-char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf )
+const char *fwrite_flag( long flags, struct fwrite_flag_buf *stbuf )
 {
     char offset;
     char *cp;

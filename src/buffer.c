@@ -172,7 +172,7 @@ void buffer_clear (DBUFFER *buffer)
 
 // replace whitespace characters by their escape sequence
 #define MAX_CALL 3
-char* escape_ws(const char *s) {
+const char* escape_ws(const char *s) {
     static char escaped[MAX_CALL][MSL];
     static int call_id = 0;
     
@@ -209,7 +209,7 @@ char* escape_ws(const char *s) {
  * not all strings require this treatment, only those followed by a '~' terminator in the format string
  * Example: reformat("%s~ %s~ %s", "Bobble", "^foo", "^bar") => "%s~ ^%s~ %s"
  */
-static char* reformat(const char *fmt, va_list va)
+static const char* reformat(const char *fmt, va_list va)
 {
     static char new_fmt[MSL];
     const char *next = fmt;
@@ -285,7 +285,7 @@ int bprintf (DBUFFER *buffer, char *fmt, ...)
 	int res;
 	
     va_start (va, fmt);
-    char *new_fmt = reformat(fmt, va);
+    const char *new_fmt = reformat(fmt, va);
     va_end (va);
 
 	va_start (va, fmt);
@@ -313,7 +313,7 @@ int rfprintf(FILE *f, const char *fmt, ...)
     va_list va;
     
     va_start (va, fmt);
-    char *new_fmt = reformat(fmt, va);
+    const char *new_fmt = reformat(fmt, va);
     va_end (va);
 
     va_start (va, fmt);
@@ -329,7 +329,7 @@ int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...)
     va_list va;
     
     va_start (va, fmt);
-    char *new_fmt = reformat(fmt, va);
+    const char *new_fmt = reformat(fmt, va);
     va_end (va);
 
     va_start (va, fmt);

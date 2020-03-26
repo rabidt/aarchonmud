@@ -531,7 +531,7 @@ const char* format_string( const char *oldstring /*, bool fSpace */)
  Called by:	handle_con_note_text in board.c
  ****************************************************************************/
 /* improved version by Bobble */
-char *force_wrap( const char *old_string )
+const char *force_wrap( const char *old_string )
 {
    int i, i_old;
    int last_return, last_blank, colour_count;

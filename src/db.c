@@ -4943,7 +4943,7 @@ bool str_suffix( const char *astr, const char *bstr )
 /*
 * Returns an initial-capped string.
 */
-char *capitalize( const char *str )
+const char *capitalize( const char *str )
 {
     static SR_BUF sr_buf;
     char *strcap = next_sr_buf( &sr_buf );
@@ -4966,7 +4966,7 @@ char *capitalize( const char *str )
 * Copies str into buf, capitalizes the first char and returns buf
 * Same as capitalize, but give memory management control to caller
 */
-char *capitalize_buf( const char *str, char *buf )
+const char *capitalize_buf( const char *str, char *buf )
 {
     int i;
     
@@ -4983,41 +4983,8 @@ char *capitalize_buf( const char *str, char *buf )
     return buf;
 }
 
-/*
-* Returns a DIFFERENT initial-capped string than capitalize() does.
-*
-* This very foul hack was necessary because capitalize acts upon constant
-* data and returns a pointer to a static variable.  If it is desired to
-* capitalize two values in a single call to sprintf(), for example, the
-* second call to capitalize() will overwrite the value in strcap before
-* either value is printed.  Making strcap a local variable is an insufficient
-* answer, as the returned pointer would then refer to strcap after that
-* variable goes out of scope, and the contents of that memory would be
-* unreliable.  Sorry, I don't care for this either.  --Rimbol 9/13/97
-*/
-/* capitalize now uses ring buffer for return strings, thus capitalize_2
- * is no longer needed --Bobble
-char *capitalize_2( const char *str )
-{
-    static char strcap[MAX_STRING_LENGTH];
-    int i;
-    
-    if (str == NULL)
-    {
-        bug("NULL string passed to capitalize_2 function.", 0);
-        return NULL;
-    }
-    
-    for ( i = 0; str[i] != '\0'; i++ )
-        strcap[i] = LOWER(str[i]);
-    strcap[i] = '\0';
-    strcap[0] = UPPER(strcap[0]);
-    return strcap;
-}
-*/
-
 /* capitalizes all words in a string --Bobble */
-char* cap_all( const char* str )
+const char* cap_all( const char* str )
 {
     static SR_BUF sr_buf;
     char *buf = next_sr_buf( &sr_buf );
@@ -5146,7 +5113,7 @@ void bug_string( const char *str )
 }
 
 // return first (minimal) substring of s delimited by c_start and c_end
-static char* substr_delim(const char *s, char c_start, char c_end)
+static const char* substr_delim(const char *s, char c_start, char c_end)
 {
     static char ss_buf[MAX_STRING_LENGTH];
     int ss_next = 0;
