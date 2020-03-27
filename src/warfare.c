@@ -21,7 +21,7 @@
 DECLARE_DO_FUN(do_restore);
 DECLARE_DO_FUN(do_look);
 
-const char * const war_list[] =
+static const char * const war_list[] =
 {
     "{rArmageddon{6",
     "{cRace{6",
@@ -31,6 +31,8 @@ const char * const war_list[] =
     "{bReligion{6",
     "{DDuel{6"
 };
+
+_Static_assert(sizeof(war_list)/sizeof(war_list[0]) == WAR_TYPE_COUNT, "");
 
 WAR_DATA war;
 

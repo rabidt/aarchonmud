@@ -130,7 +130,7 @@ DEF_DO_FUN(do_wizlist)
     char title[MAX_STRING_LENGTH];
     BUFFER *buffer;
     int level;
-    WIZ_DATA *pwiz;
+    const WIZ_DATA *pwiz;
     int lngth;
     int amt;
     bool found;
@@ -216,6 +216,9 @@ DEF_DO_FUN(do_wizlist)
             continue;
         }
 
+        _Static_assert(
+            sizeof(wiz_titles)/sizeof(wiz_titles[0]) == ((IMPLEMENTOR - LEVEL_IMMORTAL) + 1),
+            "" );
         snprintf( buf, sizeof(buf),"{x    |_|{R%37s {B[%d]{x%26s|_|\n\r",
             wiz_titles[IMPLEMENTOR-level], level, " ");
         add_buf(buffer,buf);

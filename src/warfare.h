@@ -47,6 +47,7 @@ void proc_startduel( CHAR_DATA *ch, const char *argument);
 #define GENDER_WAR      4
 #define RELIGION_WAR    5
 #define DUEL_WAR        6
+#define WAR_TYPE_COUNT  7
 
 /* you can change these all to free vnum */
 #define WAR_ROOM_PREP   16299
