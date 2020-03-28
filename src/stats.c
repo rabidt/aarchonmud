@@ -1879,7 +1879,7 @@ int classes_can_use( tflag xtra_flags )
     int class;
     int count = 0;
     
-    for (class = 0; class <= MAX_CLASS; class++)
+    for (class = 0; class < MAX_CLASS; class++)
         if ( class_can_use(class, xtra_flags) )
             count++;
     return count;
