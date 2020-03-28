@@ -49,9 +49,6 @@ struct remort_chamber
 #define DAY (24*HOUR)
 #define WEEK (7*DAY)
 
-/* Changed this from 15 to 16 to accommodate remort 7. We'll likely
-   need to up it again when we start testing remort 8 - Astark 12-21-12 */
-#define MAX_CHAMBER 26
 
 static const struct remort_chamber chambers[] =
 {
@@ -87,6 +84,7 @@ static const struct remort_chamber chambers[] =
     {NULL,			0, 0}
 };
 
+#define MAX_CHAMBER ((sizeof(chambers)/sizeof(chambers[0])) - 1)
 
 static REMORT_TABLE *chamber_list[MAX_CHAMBER];
 static REMORT_TABLE *wait_list;
