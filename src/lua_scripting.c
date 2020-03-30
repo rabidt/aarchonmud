@@ -248,10 +248,10 @@ void lua_mob_program( lua_State *LS, const char *text, int pvnum, const char *so
         else
         {
             int ref_top = lua_gettop( LS );
-            push_ref( LS, REF_UNPACK);
+            push_luaref( LS, &REF_UNPACK);
             lua_pushvalue( LS, orig_top );
             lua_pushinteger( LS, 1 );
-            push_ref( LS, REF_TABLE_MAXN );
+            push_luaref( LS, &REF_TABLE_MAXN );
             lua_pushvalue( LS, orig_top );
             lua_call( LS, 1, 1); // call table.maxn
             lua_call( LS, 3, LUA_MULTRET ); // call unpack
@@ -382,10 +382,10 @@ bool lua_obj_program( lua_State *LS, const char *trigger, int pvnum, const char 
         else
         {
             int ref_top = lua_gettop( LS );
-            push_ref( LS, REF_UNPACK);
+            push_luaref( LS, &REF_UNPACK);
             lua_pushvalue( LS, orig_top );
             lua_pushinteger( LS, 1 );
-            push_ref( LS, REF_TABLE_MAXN );
+            push_luaref( LS, &REF_TABLE_MAXN );
             lua_pushvalue( LS, orig_top );
             lua_call( LS, 1, 1); // call table.maxn
             lua_call( LS, 3, LUA_MULTRET ); // call unpack
@@ -509,10 +509,10 @@ bool lua_area_program( lua_State *LS, const char *trigger, int pvnum, const char
         else
         {
             int ref_top = lua_gettop( LS );
-            push_ref( LS, REF_UNPACK);
+            push_luaref( LS, &REF_UNPACK);
             lua_pushvalue( LS, orig_top );
             lua_pushinteger( LS, 1 );
-            push_ref( LS, REF_TABLE_MAXN );
+            push_luaref( LS, &REF_TABLE_MAXN );
             lua_pushvalue( LS, orig_top );
             lua_call( LS, 1, 1); // call table.maxn
             lua_call( LS, 3, LUA_MULTRET ); // call unpack
@@ -623,10 +623,10 @@ bool lua_room_program( lua_State *LS, const char *trigger, int pvnum, const char
         else
         {
             int ref_top = lua_gettop( LS );
-            push_ref( LS, REF_UNPACK);
+            push_luaref( LS, &REF_UNPACK);
             lua_pushvalue( LS, orig_top );
             lua_pushinteger( LS, 1 );
-            push_ref( LS, REF_TABLE_MAXN );
+            push_luaref( LS, &REF_TABLE_MAXN );
             lua_pushvalue( LS, orig_top );
             lua_call( LS, 1, 1); // call table.maxn
             lua_call( LS, 3, LUA_MULTRET ); // call unpack

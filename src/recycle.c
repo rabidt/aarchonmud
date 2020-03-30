@@ -495,7 +495,7 @@ PC_DATA *new_pcdata(void)
     pcdata->faith = 0;
     pcdata->religion_rank = 0;
 
-    new_ref(&pcdata->ptitles);
+    pcdata->ptitles = new_luaref();
 
     VALIDATE(pcdata);
 
@@ -578,7 +578,7 @@ static void free_pcdata(PC_DATA *pcdata)
         free_crime(crime);
     }
 
-    free_ref(&pcdata->ptitles);
+    free_luaref(g_mud_LS, pcdata->ptitles);
 
     INVALIDATE(pcdata);
     pcdata->next = pcdata_free;

@@ -139,7 +139,7 @@ $(BIN_DIR)/arc_catch2: MODE_FLAGS += -DARC_CATCH2
 $(BIN_DIR)/arc_catch2: $(arc_catch2_OBJS)
 	rm -f $@
 	$(CC) -o $@ $^ $(L_FLAGS)
-	$@
+	TEST_BIN_PATH=`readlink -f $@` && cd ../data/area && $$TEST_BIN_PATH
 
 .PHONY: %.c@compile
 %.c@compile: $(OBJ_DIR)/%.o ;

@@ -1,8 +1,10 @@
+#include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "merc.h"
 #include "timer.h"
 #include "lsqlite3.h"
@@ -13,6 +15,12 @@
 #include "perfmon.h"
 #include "changelog.h"
 
+struct luaref
+{
+    int ind;
+};
+
+static void init_luaref( LUAREF *ref );
 
 lua_State *g_mud_LS = NULL;  /* Lua state for entire MUD */
 bool       g_LuaScriptInProgress=FALSE;
@@ -31,35 +39,49 @@ LUAREF REF_UNPACK;
 void register_LUAREFS( lua_State *LS)
 {
     /* initialize the variables */
-    new_ref( &REF_TABLE_INSERT );
-    new_ref( &REF_TABLE_MAXN);
-    new_ref( &REF_TABLE_CONCAT );
-    new_ref( &REF_STRING_FORMAT );
-    new_ref( &REF_UNPACK );
+    init_luaref( &REF_TABLE_INSERT );
+    init_luaref( &REF_TABLE_MAXN);
+    init_luaref( &REF_TABLE_CONCAT );
+    init_luaref( &REF_STRING_FORMAT );
+    init_luaref( &REF_UNPACK );
+
+    assert( 0 == lua_gettop(LS) );
 
     /* put stuff in the refs */
     lua_getglobal( LS, "table" );
+    assert( 0 == lua_isnil(LS, -1) );
 
     lua_getfield( LS, -1, "insert" );
-    save_ref( LS, -1, &REF_TABLE_INSERT );
+    assert( 0 == lua_isnil(LS, -1) );
+    save_luaref( LS, -1, &REF_TABLE_INSERT );
     lua_pop( LS, 1 ); /* insert */
 
     lua_getfield( LS, -1, "maxn" );
-    save_ref( LS, -1, &REF_TABLE_MAXN );
+    assert( 0 == lua_isnil(LS, -1) );
+    save_luaref( LS, -1, &REF_TABLE_MAXN );
     lua_pop( LS, 1 ); /* maxn */
 
     lua_getfield( LS, -1, "concat" );
-    save_ref( LS, -1, &REF_TABLE_CONCAT );
+    assert( 0 == lua_isnil(LS, -1) );
+    save_luaref( LS, -1, &REF_TABLE_CONCAT );
     lua_pop( LS, 2 ); /* concat and table */
 
+    assert( 0 == lua_gettop(LS) );
+
     lua_getglobal( LS, "string" );
+    assert( 0 == lua_isnil(LS, -1) );
     lua_getfield( LS, -1, "format" );
-    save_ref( LS, -1, &REF_STRING_FORMAT );
+    save_luaref( LS, -1, &REF_STRING_FORMAT );
     lua_pop( LS, 2 ); /* string and format */
 
+    assert( 0 == lua_gettop(LS) );
+
     lua_getglobal( LS, "unpack" );
-    save_ref( LS, -1, &REF_UNPACK );
+    assert( 0 == lua_isnil(LS, -1) );
+    save_luaref( LS, -1, &REF_UNPACK );
     lua_pop( LS, 1 );
+
+    assert( 0 == lua_gettop(LS) );
 }
 
 #define LUA_LOOP_CHECK_MAX_CNT 10000 /* give 1000000 instructions */
@@ -174,7 +196,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
     if ( (narg>1))
     {
-        push_ref( LS, REF_STRING_FORMAT );
+        push_luaref( LS, &REF_STRING_FORMAT );
         lua_insert( LS, index );
         lua_call( LS, narg, 1);
     }
@@ -184,7 +206,7 @@ const char *check_fstring( lua_State *LS, int index, size_t size)
 
 static void GetTracebackFunction (lua_State *LS)
 {
-    push_ref( LS, REF_TRACEBACK );
+    push_luaref( LS, &REF_TRACEBACK );
 }  /* end of GetTracebackFunction */
 
 int CallLuaWithTraceBack (lua_State *LS, const int iArguments, const int iReturn)
@@ -630,17 +652,12 @@ void open_lua ( void )
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
     g_mud_LS = LS;
-
-    if (g_mud_LS == NULL)
-    {
-        bugf("Cannot open Lua state");
-        return;  /* catastrophic failure */
-    }
+    ARCLUA_ASSERT( LS );
 
     luaL_openlibs (LS);    /* open all standard libraries */
 
     /* special little tweak to debug.traceback here before anything else */
-    new_ref( &REF_TRACEBACK );
+    init_luaref( &REF_TRACEBACK );
     int rtn = luaL_dostring(g_mud_LS, 
         "local traceback = debug.traceback \n"
         "debug.traceback = function(message, level) \n"
@@ -653,12 +670,13 @@ void open_lua ( void )
         "end \n"
         "return debug.traceback \n"
     );
+    ARCLUA_ASSERT(0 == rtn);
     if (rtn != 0)
     {
         bugf("Error setting traceback function");
         exit(1);
     }
-    save_ref(LS, -1, &REF_TRACEBACK);
+    save_luaref(LS, -1, &REF_TRACEBACK);
     lua_pop(LS, 1);
 
     lua_pushcfunction(LS, luaopen_lsqlite3);
@@ -676,10 +694,11 @@ void open_lua ( void )
         bugf ( "Error loading Lua startup file %s:\n %s", 
                 LUA_STARTUP,
                 lua_tostring(LS, -1));
+        exit(1);
     }
 
-    lua_settop (LS, 0);    /* get rid of stuff lying around */
-
+    ARCLUA_ASSERT(0 == lua_gettop(LS));
+    lua_settop (LS, 0);    /* get rid of stuff lying around just in case */
 }  /* end of open_lua */
 
 DEF_DO_FUN(do_scriptdump)
@@ -1127,56 +1146,55 @@ void load_changelog( void )
 
 
 /* LUAREF section */
-
-/* called as constructor */
-void new_ref( LUAREF *ref )
+static void init_luaref( LUAREF *ref )
 {
-    *ref=LUA_NOREF;
+    assert(ref);
+    ref->ind = LUA_NOREF;
 }
 
-/* called as destructor
-   only call this when the LUAREF's lifetime is ending,
-   otherwise use release_ref to release values */
-void free_ref( LUAREF *ref )
+LUAREF *new_luaref( void )
 {
-    if (*ref!=LUA_NOREF)
-    {
-        luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, *ref );
-        *ref=LUA_NOREF;
-    }
-
+    LUAREF *rtn = malloc(sizeof(*rtn));
+    init_luaref(rtn);
+    return rtn;
 }
 
-void save_ref( lua_State *LS, int index, LUAREF *ref )
+void free_luaref( lua_State *LS, LUAREF *ref )
 {
-    if ( *ref!=LUA_NOREF )
-    {
-        bugf( "Tried to save over existing ref.");
-        return;
-    }
+    assert(LS);
+    assert(ref);
+    release_luaref(LS, ref);
+    free(ref);
+}
+
+void save_luaref( lua_State *LS, int index, LUAREF *ref )
+{
+    assert(LS);
+    assert(ref);
+    release_luaref(LS, ref);
     lua_pushvalue(LS, index);
-    *ref = luaL_ref( LS, LUA_REGISTRYINDEX );
+    ref->ind = luaL_ref(LS, LUA_REGISTRYINDEX);
 }
 
-void release_ref( lua_State *LS,  LUAREF *ref )
+void release_luaref( lua_State *LS, LUAREF *ref )
 {
-    if ( *ref==LUA_NOREF )
-    {
-        bugf( "Tried to release bad ref.");
-        return;
-    }
-    luaL_unref( LS, LUA_REGISTRYINDEX, *ref ); 
-    *ref=LUA_NOREF;
+    assert(LS);
+    assert(ref);
+    luaL_unref(LS, LUA_REGISTRYINDEX, ref->ind); 
+    ref->ind = LUA_NOREF;
 }
 
-void push_ref( lua_State *LS, LUAREF ref )
+void push_luaref( lua_State *LS, LUAREF *ref )
 {
-    lua_rawgeti( LS, LUA_REGISTRYINDEX, ref );
+    assert(LS);
+    assert(ref);
+    lua_rawgeti(LS, LUA_REGISTRYINDEX, ref->ind);
 }
 
-bool is_set_ref( LUAREF ref )
+bool is_set_luaref( LUAREF *ref )
 {
-    return !(ref==LUA_NOREF);
+    assert(ref);
+    return (ref->ind != LUA_NOREF);
 }
 
 /* end LUAREF section */

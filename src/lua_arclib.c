@@ -576,7 +576,7 @@ static int glob_mudconfig (lua_State *LS)
 
 typedef struct
 {
-    LUAREF co_ref;
+    LUAREF *co_ref;
     lua_State *co_state;
     bool first_call;
 } LUA_CON_CB_DATA;
@@ -585,7 +585,8 @@ static void lua_con_cleanup( void *cb_data )
 {
     LUA_CON_CB_DATA *cbd = cb_data;
 
-    free_ref( &(cbd->co_ref) );
+    free_luaref( cbd->co_state, cbd->co_ref );
+    cbd->co_ref = NULL;
     cbd->co_state = NULL;
 
     free( cbd );
@@ -654,10 +655,10 @@ static int glob_start_con_handler( lua_State *LS)
 
     LUA_CON_CB_DATA *cbd = malloc(sizeof(*cbd));
 
-    new_ref( &(cbd->co_ref) );
+    cbd->co_ref = new_luaref();
     cbd->first_call = true;
     cbd->co_state = L_coroutine;
-    save_ref( LS, 2, &(cbd->co_ref) );
+    save_luaref( LS, 2, cbd->co_ref );
 
 
     start_con_cb( ud_desc, lua_con_callback, cbd, false, lua_con_cleanup, NULL );
@@ -1901,7 +1902,7 @@ static int L_rundelay( lua_State *LS)
     /* Check if any args are userdata that are not valid. Don't run if so */
     if ( !lua_isnil( LS, -1 ) )
     {
-        push_ref( LS, REF_TABLE_MAXN );
+        push_luaref( LS, &REF_TABLE_MAXN );
         lua_pushvalue( LS, -2 ); // args table
         lua_call( LS, 1, 1); // call table.maxn
         int args_cnt = luaL_checkinteger( LS, -1);
@@ -4627,7 +4628,7 @@ static int CH_get_ptitles( lua_State *LS)
         return luaL_error(LS, "Can't get 'ptitles' for NPC.");
     }
 
-    push_ref( LS, ud_ch->pcdata->ptitles );
+    push_luaref( LS, ud_ch->pcdata->ptitles );
     return 1;
 }
 
@@ -4642,7 +4643,7 @@ static int CH_set_ptitles( lua_State *LS)
 
     /* probably should check type and format of table in the future */
 
-    save_ref( LS, 2, &(ud_ch->pcdata->ptitles));
+    save_luaref( LS, 2, ud_ch->pcdata->ptitles);
     return 0;
 }
 

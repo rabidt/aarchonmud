@@ -3096,3 +3096,10 @@ void final_save_all( void )
     save_lboards();
     save_comm_histories();
 }
+
+#if !defined(ARC_CATCH2)
+void handle_arclua_assert(const char *cond, const char *func, const char *file, unsigned line)
+{
+    bugf("arclua assert failed [%s] %s::%s@%d", cond, file, func, line);
+}
+#endif

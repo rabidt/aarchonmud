@@ -33,6 +33,7 @@
 #include "protocol.h"
 #include "perfmon.h"
 #include "timer.h"
+#include "lua_main.h"
 
 #ifdef TESTER
 #define FSTAT
@@ -115,8 +116,6 @@ typedef struct  boss_achieve_record BOSSREC;
 // typedef struct religion_data RELIGION_DATA;
 /* from buffer_util.h, moved here: */
 typedef struct mem_file_type MEMFILE;
-
-typedef int LUAREF;
 
 /*
  * Function types.
@@ -2817,7 +2816,7 @@ struct  pc_data
     int smc_retrained;
 
 
-    LUAREF ptitles;
+    LUAREF *ptitles;
 };
 
 /* Data for special quests */
@@ -5007,25 +5006,6 @@ bool    check_social( CHAR_DATA *ch, const char *command, const char *argument )
 void send_position_message( CHAR_DATA *ch );
 bool can_order( const char *command, CHAR_DATA *victim );
 bool check_spell_disabled (const struct skill_type *command);
-
-/* lua_main.c */
-void open_lua  ( void );
-void check_lua_stack( void );
-void update_bossachv_table( void );
-void load_mudconfig( void );
-const char* save_luaconfig( CHAR_DATA *ch );
-void load_luaconfig( CHAR_DATA *ch, const char *text );
-const char* save_ptitles( CHAR_DATA *ch );
-void load_ptitles( CHAR_DATA *ch, const char *text );
-void do_achievements_boss( CHAR_DATA *ch, CHAR_DATA *vic );
-void do_achievements_boss_reward( CHAR_DATA *ch );
-void lua_con_handler( DESCRIPTOR_DATA *d, const char *argument );
-void load_changelog( void );
-void confirm_yes_no( DESCRIPTOR_DATA *d,
-        DO_FUN yes_callback,
-        const char *yes_argument,
-        DO_FUN no_callback,
-        const char *no_argument);
 
 /* magic.c */
 int     mana_cost   (CHAR_DATA *ch, int sn, int skill);
