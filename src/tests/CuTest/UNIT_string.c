@@ -2,7 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include "CuTest.h"
-#include "../merc.h"
+#include "../../merc.h"
 
 
 void Test_strlcat(CuTest *tc)

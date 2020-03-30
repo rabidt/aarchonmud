@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <time.h>
 #include "CuTest.h"
-#include "../merc.h"
+#include "../../merc.h"
 
 
 /* base function for number_argument and mult_argument */

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <time.h>
 #include "CuTest.h"
-#include "../merc.h"
+#include "../../merc.h"
 
 
 void Test_skill_lookup(CuTest *tc)

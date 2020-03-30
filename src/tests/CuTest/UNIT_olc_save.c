@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <time.h>
 #include "CuTest.h"
-#include "../merc.h"
-#include "../olc_save.h"
+#include "../../merc.h"
+#include "../../olc_save.h"
 
 
 void Test_fwrite_flag(CuTest *tc)

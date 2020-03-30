@@ -150,17 +150,8 @@ static void    bust_a_prompt           args( ( CHAR_DATA *ch ) );
 static u_short s_port;
 static int s_control;
 
-#ifdef UNITTEST
+#if !defined(ARC_CUTEST) && !defined(ARC_CATCH2)
 int main( int argc, char **argv )
-{
-    RunAllTests();
-    return 0;
-}
-
-static int aarchon_main( int argc, char **argv )
-#else
-int main( int argc, char **argv )
-#endif
 {
     struct timeval now_time;
     bool fCopyOver = FALSE;
@@ -242,9 +233,7 @@ int main( int argc, char **argv )
 
     /* check aprog boot triggers */
     ap_boot_trigger();
-#if defined(LIVETEST)
-    RunAllTests();
-#elif defined(DB_DUMP)
+#if defined(DB_DUMP)
     void db_dump_main( void );
 
     db_dump_main();
@@ -263,6 +252,7 @@ int main( int argc, char **argv )
     exit( 0 );
     return 0;
 }
+#endif // !defined(ARC_CUTEST) && !defined(ARC_CATCH2)
 
 static int init_socket( u_short port )
 {

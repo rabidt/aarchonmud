@@ -6,7 +6,7 @@
 # Author: Asim Jalis
 # Date: 01/08/2003
 
-if test $# -eq 0 ; then FILES=tests/UNIT_*.c ; else FILES=$* ; fi
+if test $# -eq 0 ; then FILES=tests/CuTest/UNIT_*.c ; else FILES=$* ; fi
 
 echo '
 
@@ -26,7 +26,7 @@ cat $FILES | grep '^void Test' |
 echo \
 '
 
-void RunAllTests(void) 
+int main( int argc, char **argv )
 {
     CuString *output = CuStringNew();
     CuSuite* suite = CuSuiteNew();
@@ -46,6 +46,8 @@ echo \
     printf("%s\n", output->buffer);
     CuStringDelete(output);
     CuSuiteDelete(suite);
+
+    return 0;
 }
 
 '

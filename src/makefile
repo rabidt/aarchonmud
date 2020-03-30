@@ -1,6 +1,5 @@
 BIN_DIR := ../bin
 OBJ_DIR := ../obj
-TESTS_DIR := ./tests
 
 CC      = gcc
 PROF    = -I$(AARCHON_INC) -L$(AARCHON_LIB) -O2
@@ -110,37 +109,37 @@ lint_headers: $(addsuffix @lint,$(wildcard *.hpp))
 	$(CC) -c -fsyntax-only -x c++ $(CPP_WARN) $<
 
 
-UNIT_SRCS_C := $(wildcard $(TESTS_DIR)/UNIT_*.c)
-UNIT_OBJS_C := $(patsubst $(TESTS_DIR)/%.c,$(OBJ_DIR)/%.o,$(UNIT_SRCS_C))
-unittest_OBJS := $(OBJ_DIR)/CuTest.o $(OBJ_DIR)/UnitTests.o $(UNIT_OBJS_C) $(aeaea_OBJS)
+CUTEST_TESTS_DIR := ./tests/CuTest
+CUTEST_OBJ_DIR := $(OBJ_DIR)/CuTest
+CUTEST_SRCS := $(wildcard $(CUTEST_TESTS_DIR)/UNIT_*.c)
+CUTEST_OBJS := $(patsubst $(CUTEST_TESTS_DIR)/%.c,$(CUTEST_OBJ_DIR)/%.o,$(CUTEST_SRCS))
+arc_cutest_OBJS := $(CUTEST_OBJ_DIR)/CuTest.o $(CUTEST_OBJ_DIR)/UnitTests.o $(CUTEST_OBJS) $(aeaea_OBJS)
 
-LIVE_SRCS_C := $(wildcard $(TESTS_DIR)/LIVE_*.c)
-LIVE_OBJS_C := $(patsubst $(TESTS_DIR)/%.c,$(OBJ_DIR)/%.o,$(LIVE_SRCS_C))
-livetest_OBJS := $(OBJ_DIR)/CuTest.o $(OBJ_DIR)/LiveTests.o $(LIVE_OBJS_C) $(aeaea_OBJS)
-
-# Compile live tests. The binary needs to be run from area directory as with normal startup
-.PHONY: livetest
-livetest: $(BIN_DIR)/aeaea_livetest
-$(BIN_DIR)/aeaea_livetest: MODE_FLAGS += -DLIVETEST
-$(BIN_DIR)/aeaea_livetest: $(livetest_OBJS)
-	rm -f $@
-	$(CC) -o $@ $^ $(L_FLAGS)
+CATCH2_TESTS_DIR := ./tests/catch2
+CATCH2_OBJ_DIR := $(OBJ_DIR)/catch2
+CATCH2_SRCS := $(wildcard $(CATCH2_TESTS_DIR)/*.cpp)
+CATCH2_OBJS := $(patsubst $(CATCH2_TESTS_DIR)/%.cpp,$(CATCH2_OBJ_DIR)/%.opp,$(CATCH2_SRCS))
+arc_catch2_OBJS := $(CATCH2_OBJS) $(aeaea_OBJS)
 
 # Compile with unit tests and run immediately
-.PHONY: unittest
-unittest: $(BIN_DIR)/aeaea_unittest
-$(BIN_DIR)/aeaea_unittest: MODE_FLAGS += -DUNITTEST
-$(BIN_DIR)/aeaea_unittest: $(unittest_OBJS)
+.PHONY: arc_cutest
+arc_cutest: $(BIN_DIR)/arc_cutest
+$(BIN_DIR)/arc_cutest: MODE_FLAGS += -DARC_CUTEST
+$(BIN_DIR)/arc_cutest: $(arc_cutest_OBJS)
 	rm -f $@
 	$(CC) -o $@ $^ $(L_FLAGS)
 	$@
 
-$(TESTS_DIR)/LiveTests.c: $(LIVE_SRCS_C)
-	$(TESTS_DIR)/make-live-tests.sh > $@
+$(CUTEST_TESTS_DIR)/UnitTests.c: $(CUTEST_SRCS)
+	$(CUTEST_TESTS_DIR)/make-unit-tests.sh > $@
 
-$(TESTS_DIR)/UnitTests.c: $(UNIT_SRCS_C)
-	$(TESTS_DIR)/make-unit-tests.sh > $@
-
+.PHONY: arc_catch2
+arc_catch2: $(BIN_DIR)/arc_catch2
+$(BIN_DIR)/arc_catch2: MODE_FLAGS += -DARC_CATCH2
+$(BIN_DIR)/arc_catch2: $(arc_catch2_OBJS)
+	rm -f $@
+	$(CC) -o $@ $^ $(L_FLAGS)
+	$@
 
 .PHONY: %.c@compile
 %.c@compile: $(OBJ_DIR)/%.o ;
@@ -156,18 +155,22 @@ $(TESTS_DIR)/UnitTests.c: $(UNIT_SRCS_C)
 %.cpp@clean:
 	rm -f $(patsubst %.cpp@clean,$(OBJ_DIR)/%.opp,$@)
 
-$(OBJ_DIR):
-	mkdir $(OBJ_DIR)
+$(OBJ_DIR) $(CATCH2_OBJ_DIR) $(CUTEST_OBJ_DIR):
+	mkdir -p $@
 
 $(OBJ_DIR)/%.o: %.c merc.h | $(OBJ_DIR)
 	$(CC) -c $(C_FLAGS_C) -o $@ $<
 
-$(OBJ_DIR)/%.o: tests/%.c | $(OBJ_DIR)
+$(CUTEST_OBJ_DIR)/%.o: $(CUTEST_TESTS_DIR)/%.c | $(CUTEST_OBJ_DIR)
 	$(CC) -c $(C_FLAGS_C) -o $@ $<
 
 $(OBJ_DIR)/%.opp: %.cpp merc.h | $(OBJ_DIR)
 	$(CC) -c $(C_FLAGS_CPP) -o $@ $<
 
+$(CATCH2_OBJ_DIR)/%.opp: $(CATCH2_TESTS_DIR)/%.cpp merc.h | $(CATCH2_OBJ_DIR)
+	$(CC) -c $(C_FLAGS_CPP) -I../3rdparty/catch2 -o $@ $<
+
 .PHONY: clean
 clean:
-	rm -f $(OBJ_DIR)/*.o $(OBJ_DIR)/*.opp $(TESTS_DIR)/LiveTests.c $(TESTS_DIR)/UnitTests.c
+	rm -rf $(OBJ_DIR)
+	rm -f $(TESTS_DIR)/UnitTests.c

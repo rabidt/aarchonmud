@@ -4,8 +4,7 @@ obj/
 data
 
 # generated files
-src/tests/LiveTests.c
-src/tests/UnitTests.c
+src/tests/CuTest/UnitTests.c
 
 # ctags tags file
 src/tags
