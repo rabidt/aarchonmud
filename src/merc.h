@@ -156,6 +156,38 @@ typedef struct comm_history_type COMM_HISTORY;
 typedef struct pers_comm_entry PERS_ENTRY;
 typedef struct pers_comm_history PERS_HISTORY;
 
+
+struct arc_obj_type
+{
+    unsigned long long ao_count;
+    const char * const name;
+};
+
+struct arc_obj
+{
+    unsigned char magic_id_[2];
+    struct arc_obj *ao_next;
+    struct arc_obj *ao_prev;
+    struct arc_obj_type *ao_type;
+};
+
+extern struct arc_obj all_arc_obj;
+
+#define AO_MAGIC_INIT_0 0xC6
+#define AO_MAGIC_INIT_1 0xA5
+#define AO_MAGIC_DEINIT_0 0x39
+#define AO_MAGIC_DEINIT_1 0x5A
+
+// Used on pointer to e.g. CHAR_DATA
+#define AO_VALID(ptr) ( \
+    ptr->ao_.magic_id_[0] == AO_MAGIC_INIT_0 && \
+    ptr->ao_.magic_id_[1] == AO_MAGIC_INIT_1 \
+)
+
+#define ARC_OBJ_HEAD \
+    struct arc_obj ao_;
+
+
 struct pers_comm_entry
 {
 	PERS_ENTRY *next;
@@ -744,11 +776,14 @@ typedef struct
 } CON_CB_DATA;
 
 
+extern struct arc_obj_type descriptor_data_type;
 /*
  * Descriptor (channel) structure.
  */
 struct  descriptor_data
 {
+    ARC_OBJ_HEAD
+
 	DESCRIPTOR_DATA *   next;
 	DESCRIPTOR_DATA *   snoop_by;
 	CHAR_DATA *     character;
@@ -1591,7 +1626,7 @@ struct  kill_data
 #define AFF_ELEMENTAL_SHIELD  42
 #define AFF_PROTECT_MAGIC     43
 #define AFF_FAERIE_FIRE       44
-#define AFF_NO_TRACE          45        
+#define AFF_NO_TRACE          45
 #define AFF_ENTANGLE          46
 #define AFF_INSANE            47
 #define AFF_LAUGH             48
@@ -1693,15 +1728,15 @@ struct  kill_data
 #define OBJ_VNUM_BOMB            28
 #define OBJ_VNUM_TRAILMIX        30
 #define OBJ_VNUM_TORCH           31
-#define OBJ_VNUM_DUMMY          32    
-#define OBJ_VNUM_FIRE           37       
-#define OBJ_VNUM_BIG_FIRE       38       
-#define OBJ_VNUM_HUGE_FIRE      39       
+#define OBJ_VNUM_DUMMY          32
+#define OBJ_VNUM_FIRE           37
+#define OBJ_VNUM_BIG_FIRE       38
+#define OBJ_VNUM_HUGE_FIRE      39
 #define OBJ_VNUM_FISH           40
 #define OBJ_VNUM_BIG_FISH       41
 #define OBJ_VNUM_HUGE_FISH      42
 #define OBJ_VNUM_BOOT           43
-#define OBJ_VNUM_RAFT           44    
+#define OBJ_VNUM_RAFT           44
 #define OBJ_VNUM_ROSE           45
 #define OBJ_VNUM_MOB_WEAPON     46
 #define OBJ_VNUM_BLOOD          47
@@ -1731,7 +1766,7 @@ struct  kill_data
 #define OBJ_VNUM_WHISTLE       2116
 #define OBJ_VNUM_SIVA_WEAPON    34
 #define OBJ_VNUM_GOODBERRY      35
-#define OBJ_VNUM_STORAGE_BOX    48	
+#define OBJ_VNUM_STORAGE_BOX    48
 
 /*
  * Item types.
@@ -1810,7 +1845,7 @@ struct  kill_data
 #define ITEM_BURN_PROOF     (Y)
 #define ITEM_NOUNCURSE      (Z)
 #define ITEM_STICKY         (aa)
-#define ITEM_JAMMED         (bb)        
+#define ITEM_JAMMED         (bb)
 #define ITEM_ONE_USE        (cc)
 #define ITEM_REMORT	        (dd)
 #define ITEM_TRAPPED        (ee)
@@ -1888,7 +1923,7 @@ struct  kill_data
 #define WEAPON_MACE         4
 #define WEAPON_AXE          5
 #define WEAPON_FLAIL        6
-#define WEAPON_WHIP         7   
+#define WEAPON_WHIP         7
 #define WEAPON_POLEARM      8
 #define WEAPON_GUN          9
 #define WEAPON_BOW         10
@@ -1905,7 +1940,7 @@ struct  kill_data
 #define WEAPON_MANASUCK     (I)
 #define WEAPON_MOVESUCK     (J)
 #define WEAPON_DUMB         (K)
-#define WEAPON_PUNCTURE     (L)  
+#define WEAPON_PUNCTURE     (L)
 #define WEAPON_PARALYSIS_POISON (M)
 #define WEAPON_STORMING     (N)
 
@@ -2483,13 +2518,15 @@ struct mem_data
     time_t  when;
 };
 
-
+extern struct arc_obj_type char_data_type;
 /*
  * One character (PC or NPC).
  * char data
  */
 struct  char_data
 {
+    ARC_OBJ_HEAD
+
 	CHAR_DATA *     next;
 	CHAR_DATA *     next_in_room;
 	CHAR_DATA *     master;
@@ -2617,13 +2654,15 @@ struct  char_data
 };
 
 
-
+extern struct arc_obj_type pc_data_type;
 /*
  * Data which only PC's have. 
  * Player character data, pc data
  */
 struct  pc_data
 {
+    ARC_OBJ_HEAD
+
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
     SORT_TABLE *    bounty_sort;
@@ -2915,11 +2954,15 @@ struct  obj_index_data
 
 
 struct lua_extra_val; /* defined in lua_arclib */
+
+extern struct arc_obj_type obj_data_type;
 /*
  * One object.
  */
 struct  obj_data
 {
+    ARC_OBJ_HEAD
+
 	OBJ_DATA *      next;
 	OBJ_DATA *      next_content;
 	OBJ_DATA *      contains;
@@ -5409,6 +5452,9 @@ bool range_is_free( int min_vnum, int max_vnum );
 /* wizlist.c */
 void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );     
 
+/* mem.c */
+void arc_obj_init(struct arc_obj *ao, struct arc_obj_type *ao_type);
+void arc_obj_deinit(struct arc_obj *ao);
 
 #undef  CD
 #undef  MID

@@ -4546,6 +4546,12 @@ void print_memory(BUFFER *output)
     addf_buf( output, "Lua environments: %d\n\r", GetLuaEnvironmentCount());
 
     addf_buf( output, "\n\r");
+    addf_buf( output, "%s: %llu\n\r", char_data_type.name, char_data_type.ao_count);
+    addf_buf( output, "%s: %llu\n\r", pc_data_type.name, pc_data_type.ao_count);
+    addf_buf( output, "%s: %llu\n\r", descriptor_data_type.name, descriptor_data_type.ao_count);
+    addf_buf( output, "%s: %llu\n\r", obj_data_type.name, obj_data_type.ao_count);
+
+    addf_buf( output, "\n\r");
     addf_buf( output, "BINARY INFO%s\n\r", bin_info_string );
 }
 
