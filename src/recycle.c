@@ -142,6 +142,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	d->editor   = 0;            /* OLC */
 	d->outbuf   = alloc_mem( d->outsize );
     d->pProtocol= ProtocolCreate();
+    d->host_proxied = FALSE;
 
     d->con_cb_data = NULL;
 

@@ -790,6 +790,8 @@ struct  descriptor_data
 	CHAR_DATA *     original;
 	bool        valid;
     const char* host;
+    /* True if the host is not the actual client host, but end user host provided by the client */
+    bool        host_proxied; 
 	sh_int      descriptor;
 	sh_int      connected;
 	bool        fcommand;

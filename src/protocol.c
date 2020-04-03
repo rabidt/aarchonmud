@@ -2112,6 +2112,7 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                    {
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(&(pClientName[7]));
+                       apDescriptor->host_proxied = true;
                    }
 
                    pProtocol->bMXPchat = true;
@@ -2124,6 +2125,7 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                    {
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(pClientName);
+                       apDescriptor->host_proxied = true;
                    }
 
                    pProtocol->bMXPchat = true;
@@ -2135,6 +2137,7 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                    {
                        free_string(apDescriptor->host);
                        apDescriptor->host = str_dup(pClientName);
+                       apDescriptor->host_proxied = true;
                    }                  
                }
             }
