@@ -493,15 +493,12 @@ bool load_storage_boxes(CHAR_DATA *ch )
 #endif
   if (mf == NULL)
   {
-    /* load default character */
-    mf = memfile_wrap_buffer( filename, NULL );
-//    mem_load_storage_box( ch, mf );
-    bug("no storage box found in memory or file",0);
-    memfile_wrap_free( mf );
+    /* no box file found.
+       Expected condition for first time using box room after buying first box. */
     return FALSE;
   }
   
-  /* box file found, now try to load player from it */
+  /* box file found, now try to load boxes from it */
   mem_load_storage_box( ch, mf );
   if (!found_in_mem)
     memfile_free( mf );
