@@ -1453,15 +1453,19 @@ static void newbie_alert(DESCRIPTOR_DATA *d)
 {
     char buf[MAX_STRING_LENGTH];
     PENALTY_DATA *p;
+    PENALTY_DATA *p_next;
 
     /* If there are any residual penalties from a previous use of this player
        name, remove them */
-    for (p = penalty_list; p ; p = p->next)
+    for (p = penalty_list; p ; p = p_next)
+    {
+        p_next = p->next;
         if (!str_cmp(d->character->name, p->victim_name))
         {
             delete_penalty_node(p);
             save_penalties();
         }
+    }
 
     snprintf( buf, sizeof(buf), "%s@%s new player.", d->character->name, d->host );
     log_string( buf );
