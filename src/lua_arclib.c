@@ -31,6 +31,8 @@ struct lua_obj_type
     const struct lua_prop_type * const set_table;
     const struct lua_prop_type * const method_table;
 
+    void (* const check_check)(lua_State *, int, void *);
+
     int count;
 };
 
@@ -8244,7 +8246,7 @@ struct arclib_metadata
 bool arclib_valid( void *ud )
 {
     bool rtn;
-    lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );
+    lua_getglobal( g_mud_LS, "validuds" );
     lua_pushlightuserdata( g_mud_LS, ud );
     lua_gettable( g_mud_LS, -2 );
     if (lua_isnil( g_mud_LS, -1 ))
@@ -8257,7 +8259,12 @@ bool arclib_valid( void *ud )
 
 void * arclib_check( LUA_OBJ_TYPE *type, lua_State *LS, int index )
 {
-    return luaL_checkudata( LS, index, type->type_name );
+    void *ud = luaL_checkudata( LS, index, type->type_name );
+    if (type->check_check)
+    {
+        type->check_check( LS, index, ud);
+    }
+    return ud;
 }
 
 bool arclib_is( LUA_OBJ_TYPE *type, lua_State *LS, int index )
@@ -8532,6 +8539,42 @@ const char *arclib_type_name( LUA_OBJ_TYPE *type )
     return type->type_name;
 }
 
+static void CH_check_check(lua_State *LS, int index, void *ud)
+{
+    CHAR_DATA *ch = (CHAR_DATA *)ud;
+
+    if (!ch)
+    {
+        luaL_argerror(LS, index, "NULL CHAR_DATA pointer");
+    }
+    if (!ch->valid)
+    {
+        luaL_argerror(LS, index, "CHAR_DATA not valid");
+    }
+    if (ch->must_extract)
+    {
+        luaL_argerror(LS, index, "CHAR_DATA is destroyed");
+    }
+}
+
+static void OBJ_check_check(lua_State *LS, int index, void *ud)
+{
+    OBJ_DATA *obj = (OBJ_DATA *)ud;
+
+    if (!obj)
+    {
+        luaL_argerror(LS, index, "NULL OBJ_DATA pointer");
+    }
+    if (!obj->valid)
+    {
+        luaL_argerror(LS, index, "OBJ_DATA not valid");
+    }
+    if (obj->must_extract)
+    {
+        luaL_argerror(LS, index, "OBJ_DATA is destroyed");
+    }
+}
+
 /* Type definitions */
 
 static LUA_OBJ_TYPE CH_type =
@@ -8542,9 +8585,9 @@ static LUA_OBJ_TYPE CH_type =
     .get_table     = CH_get_table,
     .set_table     = CH_set_table,
     .method_table  = CH_method_table,
+    .check_check   = CH_check_check,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE OBJ_type =
 {
     .type_name     = "OBJ",
@@ -8553,9 +8596,9 @@ static LUA_OBJ_TYPE OBJ_type =
     .get_table     = OBJ_get_table,
     .set_table     = OBJ_set_table,
     .method_table  = OBJ_method_table,
+    .check_check   = OBJ_check_check,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE AREA_type =
 {
     .type_name     = "AREA",
@@ -8564,9 +8607,9 @@ static LUA_OBJ_TYPE AREA_type =
     .get_table     = AREA_get_table,
     .set_table     = AREA_set_table,
     .method_table  = AREA_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE ROOM_type =
 {
     .type_name     = "ROOM",
@@ -8575,9 +8618,9 @@ static LUA_OBJ_TYPE ROOM_type =
     .get_table     = ROOM_get_table,
     .set_table     = ROOM_set_table,
     .method_table  = ROOM_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE EXIT_type =
 {
     .type_name     = "EXIT",
@@ -8586,9 +8629,9 @@ static LUA_OBJ_TYPE EXIT_type =
     .get_table     = EXIT_get_table,
     .set_table     = EXIT_set_table,
     .method_table  = EXIT_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE RESET_type =
 {
     .type_name     = "RESET",
@@ -8597,9 +8640,9 @@ static LUA_OBJ_TYPE RESET_type =
     .get_table     = RESET_get_table,
     .set_table     = RESET_set_table,
     .method_table  = RESET_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE MOBPROTO_type =
 {
     .type_name     = "MOBPROTO",
@@ -8608,9 +8651,9 @@ static LUA_OBJ_TYPE MOBPROTO_type =
     .get_table     = MOBPROTO_get_table,
     .set_table     = MOBPROTO_set_table,
     .method_table  = MOBPROTO_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE OBJPROTO_type =
 {
     .type_name     = "OBJPROTO",
@@ -8619,9 +8662,9 @@ static LUA_OBJ_TYPE OBJPROTO_type =
     .get_table     = OBJPROTO_get_table,
     .set_table     = OBJPROTO_set_table,
     .method_table  = OBJPROTO_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE PROG_type =
 {
     .type_name     = "PROG",
@@ -8630,9 +8673,9 @@ static LUA_OBJ_TYPE PROG_type =
     .get_table     = PROG_get_table,
     .set_table     = PROG_set_table,
     .method_table  = PROG_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE MTRIG_type =
 {
     .type_name     = "MTRIG",
@@ -8641,9 +8684,9 @@ static LUA_OBJ_TYPE MTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE OTRIG_type =
 {
     .type_name     = "OTRIG",
@@ -8652,9 +8695,9 @@ static LUA_OBJ_TYPE OTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE ATRIG_type =
 {
     .type_name     = "ATRIG",
@@ -8663,9 +8706,9 @@ static LUA_OBJ_TYPE ATRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE RTRIG_type =
 {
     .type_name     = "RTRIG",
@@ -8674,9 +8717,9 @@ static LUA_OBJ_TYPE RTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE SHOP_type =
 {
     .type_name     = "SHOP",
@@ -8685,9 +8728,9 @@ static LUA_OBJ_TYPE SHOP_type =
     .get_table     = SHOP_get_table,
     .set_table     = SHOP_set_table,
     .method_table  = SHOP_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE AFFECT_type =
 {
     .type_name     = "AFFECT",
@@ -8696,9 +8739,9 @@ static LUA_OBJ_TYPE AFFECT_type =
     .get_table     = AFFECT_get_table,
     .set_table     = AFFECT_set_table,
     .method_table  = AFFECT_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE HELP_type =
 {
     .type_name     = "HELP",
@@ -8707,9 +8750,9 @@ static LUA_OBJ_TYPE HELP_type =
     .get_table     = HELP_get_table,
     .set_table     = HELP_set_table,
     .method_table  = HELP_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE DESCRIPTOR_type =
 {
     .type_name     = "DESCRIPTOR",
@@ -8718,9 +8761,9 @@ static LUA_OBJ_TYPE DESCRIPTOR_type =
     .get_table     = DESCRIPTOR_get_table,
     .set_table     = DESCRIPTOR_set_table,
     .method_table  = DESCRIPTOR_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE BOSSACHV_type =
 {
     .type_name     = "BOSSACHV",
@@ -8729,9 +8772,9 @@ static LUA_OBJ_TYPE BOSSACHV_type =
     .get_table     = BOSSACHV_get_table,
     .set_table     = BOSSACHV_set_table,
     .method_table  = BOSSACHV_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
-
 static LUA_OBJ_TYPE BOSSREC_type =
 {
     .type_name     = "BOSSREC",
@@ -8740,6 +8783,7 @@ static LUA_OBJ_TYPE BOSSREC_type =
     .get_table     = BOSSREC_get_table,
     .set_table     = BOSSREC_set_table,
     .method_table  = BOSSREC_method_table,
+    .check_check   = NULL,
     .count         = 0
 };
 
