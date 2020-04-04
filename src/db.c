@@ -68,11 +68,7 @@ time_t time(time_t *tloc);
 
 
 /* externals for counting purposes */
-extern  OBJ_DATA    *obj_free;
-extern  CHAR_DATA   *char_free;
-extern  DESCRIPTOR_DATA *descriptor_free;
 extern  PC_DATA     *pcdata_free;
-extern  AFFECT_DATA *affect_free;
 
 static int STR_DUP_STRINGS = 0;
 static int HIGHEST_STR_DUP_STRINGS = 0;

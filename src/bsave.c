@@ -2698,8 +2698,6 @@ static void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
     }
 }
 
-extern  OBJ_DATA    *obj_free;
-
 static void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 {
     OBJ_DATA *obj;
