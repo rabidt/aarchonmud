@@ -57,6 +57,7 @@
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "boot_checks.h"
+#include "mem.h"
 
 
 #if !defined(OLD_RAND)

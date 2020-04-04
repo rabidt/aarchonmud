@@ -39,6 +39,7 @@
 #include "lookup.h"
 #include "mob_stats.h"
 #include "lua_arclib.h"
+#include "mem.h"
 
 
 static MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld );

@@ -35,6 +35,7 @@
 #include "recycle.h"
 #include "lua_main.h"
 #include "lua_arclib.h"
+#include "mem.h"
 
 
 static void free_pcdata(PC_DATA *pcdata);

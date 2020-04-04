@@ -1,5 +1,5 @@
 #!/usr/bin/env python2.7
-TYPE_PAIRS = (
+TYPE_PAIRS_ARC = (
     # ltype, ctype, cname, tblprefix
     ("CH", "CHAR_DATA", None, None),
     ("OBJ", "OBJ_DATA", None, None),
@@ -22,7 +22,20 @@ TYPE_PAIRS = (
     ("BOSSREC", "BOSSREC", None, None)
 )
 
+
+TYPE_PAIRS_TEST = (
+    (None, "Test1", None, None),
+    (None, "Test2", None, None)
+)
+
 def main():
+    import sys
+    is_test = len(sys.argv) > 1 and sys.argv[1] == "test"
+    if is_test:
+        TYPE_PAIRS = TYPE_PAIRS_TEST
+    else:
+        TYPE_PAIRS = TYPE_PAIRS_ARC
+
     print "/* alloc and dealloc prototypes */"
     for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
         if cname is None:
@@ -32,6 +45,19 @@ def main():
             ctype=ctype, cname=cname)
         print "void dealloc_{cname}({ctype} *ptr);".format(
             ctype=ctype, cname=cname)
+
+
+    print ""
+    print "/* arc_obj_type definitions */"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print ("static struct arc_obj_type {ctype}_type = "
+               "{{ .ao_count = 0, .name = \"{ctype}\" }};").format(ctype=ctype)
 
     print ""
     print "/* wrap structs */"
@@ -45,12 +71,27 @@ def main():
 
         print "struct {ctype}_wrap".format(ctype=ctype)
         print "{"
+        print "    struct arc_obj aoh;"
         print "    {ctype} wrapped;".format(ctype=ctype)
-        print "    struct lua_arclib_obj lao;"
+        print "    struct arc_obj aot;"
+        if ltype:
+            print "    struct lua_arclib_obj lao;"
         print "};"
 
     print ""
     print "/* lao offset definitions */"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if not ltype:
+            continue
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print "const size_t {ctype}_lao_offset = offsetof(struct {ctype}_wrap, lao) - offsetof(struct {ctype}_wrap, wrapped);".format(ctype=ctype)
+
+
     ctype_seen = set()
     for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
         
@@ -59,8 +100,12 @@ def main():
         else:
             ctype_seen.add(ctype)
 
-        print "const size_t {ctype}_lao_offset = offsetof(struct {ctype}_wrap, lao);".format(ctype=ctype)
-
+        print """
+static struct {ctype}_wrap *{ctype}_get_wrap({ctype} *p)
+{{
+    struct {ctype}_wrap *wr = (struct {ctype}_wrap *)((uintptr_t)p - offsetof(struct {ctype}_wrap, wrapped));
+    return wr;
+}}""".format(ctype=ctype)
 
     print ""
     print ""
@@ -72,14 +117,18 @@ def main():
         print "{ctype} *alloc_{cname}(void)".format(ctype=ctype, cname=cname)
         print "{"
         print "    struct {ctype}_wrap *wr = calloc(1, sizeof(*wr));".format(ctype=ctype)
-        print "    lua_init_{ltype}(&wr->wrapped);".format(ltype=ltype)
+        print "    arc_obj_init(&{ctype}_type, &wr->aoh, &wr->aot);".format(ctype=ctype)
+        if ltype:
+            print "    lua_init_{ltype}(&wr->wrapped);".format(ltype=ltype)
         print "    return &wr->wrapped;"
         print "}"
         print ""
         print "void dealloc_{cname}({ctype} *p)".format(ctype=ctype, cname=cname)
         print "{"
-        print "    struct {ctype}_wrap *wr = (struct {ctype}_wrap *)p;".format(ctype=ctype)
-        print "    lua_deinit_{ltype}(&wr->wrapped);".format(ltype=ltype)
+        print "    struct {ctype}_wrap *wr = {ctype}_get_wrap(p);".format(ctype=ctype)
+        if ltype:
+            print "    lua_deinit_{ltype}(&wr->wrapped);".format(ltype=ltype)
+        print "    arc_obj_deinit(&{ctype}_type, &wr->aoh, &wr->aot);".format(ctype=ctype)
         print "    free(wr);"
         print "}"
         print ""

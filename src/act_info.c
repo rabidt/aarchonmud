@@ -46,6 +46,7 @@
 #include "lua_scripting.h"
 #include "tattoo.h"
 #include "songs.h"
+#include "mem.h"
 
 static void show_affects(CHAR_DATA *ch, CHAR_DATA *to_ch, bool show_long, bool show_all);
 static void who_show_char( CHAR_DATA *ch, CHAR_DATA *wch, BUFFER *output );

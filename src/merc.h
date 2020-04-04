@@ -5412,45 +5412,6 @@ bool range_is_free( int min_vnum, int max_vnum );
 void    update_wizlist  args( ( CHAR_DATA *ch, int level ) );     
 
 
-CHAR_DATA *alloc_CHAR_DATA(void);
-void dealloc_CHAR_DATA(CHAR_DATA *ptr);
-OBJ_DATA *alloc_OBJ_DATA(void);
-void dealloc_OBJ_DATA(OBJ_DATA *ptr);
-AREA_DATA *alloc_AREA_DATA(void);
-void dealloc_AREA_DATA(AREA_DATA *ptr);
-ROOM_INDEX_DATA *alloc_ROOM_INDEX_DATA(void);
-void dealloc_ROOM_INDEX_DATA(ROOM_INDEX_DATA *ptr);
-EXIT_DATA *alloc_EXIT_DATA(void);
-void dealloc_EXIT_DATA(EXIT_DATA *ptr);
-RESET_DATA *alloc_RESET_DATA(void);
-void dealloc_RESET_DATA(RESET_DATA *ptr);
-MOB_INDEX_DATA *alloc_MOB_INDEX_DATA(void);
-void dealloc_MOB_INDEX_DATA(MOB_INDEX_DATA *ptr);
-OBJ_INDEX_DATA *alloc_OBJ_INDEX_DATA(void);
-void dealloc_OBJ_INDEX_DATA(OBJ_INDEX_DATA *ptr);
-PROG_CODE *alloc_PROG_CODE(void);
-void dealloc_PROG_CODE(PROG_CODE *ptr);
-PROG_LIST *alloc_MPROG_LIST(void);
-void dealloc_MPROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_OPROG_LIST(void);
-void dealloc_OPROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_APROG_LIST(void);
-void dealloc_APROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_RPROG_LIST(void);
-void dealloc_RPROG_LIST(PROG_LIST *ptr);
-SHOP_DATA *alloc_SHOP_DATA(void);
-void dealloc_SHOP_DATA(SHOP_DATA *ptr);
-AFFECT_DATA *alloc_AFFECT_DATA(void);
-void dealloc_AFFECT_DATA(AFFECT_DATA *ptr);
-HELP_DATA *alloc_HELP_DATA(void);
-void dealloc_HELP_DATA(HELP_DATA *ptr);
-DESCRIPTOR_DATA *alloc_DESCRIPTOR_DATA(void);
-void dealloc_DESCRIPTOR_DATA(DESCRIPTOR_DATA *ptr);
-BOSSACHV *alloc_BOSSACHV(void);
-void dealloc_BOSSACHV(BOSSACHV *ptr);
-BOSSREC *alloc_BOSSREC(void);
-void dealloc_BOSSREC(BOSSREC *ptr);
-
 #undef  CD
 #undef  MID
 #undef  OD

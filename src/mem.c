@@ -19,8 +19,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
+#include <assert.h>
 #include "merc.h"
 #include "lua_arclib.h"
+#define MEM_C_
+#include "mem.h"
+#undef MEM_C_
 
 /*
  * Globals
@@ -504,370 +509,673 @@ void free_rpcode(PROG_CODE *pRcode)
     return;
 }
 
+AO_STATIC struct arc_obj all_aoh =
+{
+    .ao_next = &all_aoh,
+    .ao_prev = &all_aoh,
+};
+
+AO_STATIC struct arc_obj all_aot =
+{
+    .ao_next = &all_aot,
+    .ao_prev = &all_aot,
+};
+
+static void add_ao_list(struct arc_obj *list, struct arc_obj *ao)
+{
+    assert(list);
+    assert(ao);
+    ao->ao_next = list->ao_next;
+    ao->ao_prev = list;
+    assert(list->ao_next);
+    list->ao_next->ao_prev = ao;
+    list->ao_next = ao;
+}
+
+static void rem_ao_list(struct arc_obj *ao)
+{
+    assert(ao);
+    assert(ao->ao_next);
+    ao->ao_next->ao_prev = ao->ao_prev;
+    assert(ao->ao_prev);
+    ao->ao_prev->ao_next = ao->ao_next;
+    ao->ao_next = NULL;
+    ao->ao_prev = NULL;
+}
+
+AO_STATIC void arc_obj_init(struct arc_obj_type *ao_type, struct arc_obj *aoh, struct arc_obj *aot)
+{
+    assert(ao_type);
+    assert(aoh);
+    assert(aot);
+
+    add_ao_list(&all_aoh, aoh);
+    add_ao_list(&all_aot, aot);
+    aoh->ao_type = ao_type;
+    aot->ao_type = ao_type;
+    ++ao_type->ao_count;
+
+    // mark as initialized
+    aoh->magic_id[0] = AO_MAGIC_INIT_0;
+    aoh->magic_id[1] = AO_MAGIC_INIT_1;
+
+    aot->magic_id[0] = AO_MAGIC_INIT_0;
+    aot->magic_id[1] = AO_MAGIC_INIT_1;
+}
+
+AO_STATIC void arc_obj_deinit(struct arc_obj_type *ao_type, struct arc_obj *aoh, struct arc_obj *aot)
+{
+    assert(ao_type);
+    assert(aoh);
+    assert(aot);
+    assert(aoh->magic_id[0] == AO_MAGIC_INIT_0);
+    assert(aoh->magic_id[1] == AO_MAGIC_INIT_1);
+    assert(aot->magic_id[0] == AO_MAGIC_INIT_0);
+    assert(aot->magic_id[1] == AO_MAGIC_INIT_1);
+
+    rem_ao_list(aoh);
+    rem_ao_list(aot);
+    assert(ao_type == aoh->ao_type);
+    assert(ao_type == aot->ao_type);
+    --ao_type->ao_count;
+    aoh->ao_type = NULL;
+    aot->ao_type = NULL;
+
+    // mark as uninitialized
+    aoh->magic_id[0] = AO_MAGIC_DEINIT_0;
+    aoh->magic_id[1] = AO_MAGIC_DEINIT_1;
+    aot->magic_id[0] = AO_MAGIC_DEINIT_0;
+    aot->magic_id[1] = AO_MAGIC_DEINIT_1;
+}
+
+/* alloc and dealloc prototypes */
+CHAR_DATA *alloc_CHAR_DATA(void);
+void dealloc_CHAR_DATA(CHAR_DATA *ptr);
+OBJ_DATA *alloc_OBJ_DATA(void);
+void dealloc_OBJ_DATA(OBJ_DATA *ptr);
+AREA_DATA *alloc_AREA_DATA(void);
+void dealloc_AREA_DATA(AREA_DATA *ptr);
+ROOM_INDEX_DATA *alloc_ROOM_INDEX_DATA(void);
+void dealloc_ROOM_INDEX_DATA(ROOM_INDEX_DATA *ptr);
+EXIT_DATA *alloc_EXIT_DATA(void);
+void dealloc_EXIT_DATA(EXIT_DATA *ptr);
+RESET_DATA *alloc_RESET_DATA(void);
+void dealloc_RESET_DATA(RESET_DATA *ptr);
+MOB_INDEX_DATA *alloc_MOB_INDEX_DATA(void);
+void dealloc_MOB_INDEX_DATA(MOB_INDEX_DATA *ptr);
+OBJ_INDEX_DATA *alloc_OBJ_INDEX_DATA(void);
+void dealloc_OBJ_INDEX_DATA(OBJ_INDEX_DATA *ptr);
+PROG_CODE *alloc_PROG_CODE(void);
+void dealloc_PROG_CODE(PROG_CODE *ptr);
+PROG_LIST *alloc_MPROG_LIST(void);
+void dealloc_MPROG_LIST(PROG_LIST *ptr);
+PROG_LIST *alloc_OPROG_LIST(void);
+void dealloc_OPROG_LIST(PROG_LIST *ptr);
+PROG_LIST *alloc_APROG_LIST(void);
+void dealloc_APROG_LIST(PROG_LIST *ptr);
+PROG_LIST *alloc_RPROG_LIST(void);
+void dealloc_RPROG_LIST(PROG_LIST *ptr);
+SHOP_DATA *alloc_SHOP_DATA(void);
+void dealloc_SHOP_DATA(SHOP_DATA *ptr);
+AFFECT_DATA *alloc_AFFECT_DATA(void);
+void dealloc_AFFECT_DATA(AFFECT_DATA *ptr);
+HELP_DATA *alloc_HELP_DATA(void);
+void dealloc_HELP_DATA(HELP_DATA *ptr);
+DESCRIPTOR_DATA *alloc_DESCRIPTOR_DATA(void);
+void dealloc_DESCRIPTOR_DATA(DESCRIPTOR_DATA *ptr);
+BOSSACHV *alloc_BOSSACHV(void);
+void dealloc_BOSSACHV(BOSSACHV *ptr);
+BOSSREC *alloc_BOSSREC(void);
+void dealloc_BOSSREC(BOSSREC *ptr);
+
+/* arc_obj_type definitions */
+static struct arc_obj_type CHAR_DATA_type = { .ao_count = 0, .name = "CHAR_DATA" };
+static struct arc_obj_type OBJ_DATA_type = { .ao_count = 0, .name = "OBJ_DATA" };
+static struct arc_obj_type AREA_DATA_type = { .ao_count = 0, .name = "AREA_DATA" };
+static struct arc_obj_type ROOM_INDEX_DATA_type = { .ao_count = 0, .name = "ROOM_INDEX_DATA" };
+static struct arc_obj_type EXIT_DATA_type = { .ao_count = 0, .name = "EXIT_DATA" };
+static struct arc_obj_type RESET_DATA_type = { .ao_count = 0, .name = "RESET_DATA" };
+static struct arc_obj_type MOB_INDEX_DATA_type = { .ao_count = 0, .name = "MOB_INDEX_DATA" };
+static struct arc_obj_type OBJ_INDEX_DATA_type = { .ao_count = 0, .name = "OBJ_INDEX_DATA" };
+static struct arc_obj_type PROG_CODE_type = { .ao_count = 0, .name = "PROG_CODE" };
+static struct arc_obj_type PROG_LIST_type = { .ao_count = 0, .name = "PROG_LIST" };
+static struct arc_obj_type SHOP_DATA_type = { .ao_count = 0, .name = "SHOP_DATA" };
+static struct arc_obj_type AFFECT_DATA_type = { .ao_count = 0, .name = "AFFECT_DATA" };
+static struct arc_obj_type HELP_DATA_type = { .ao_count = 0, .name = "HELP_DATA" };
+static struct arc_obj_type DESCRIPTOR_DATA_type = { .ao_count = 0, .name = "DESCRIPTOR_DATA" };
+static struct arc_obj_type BOSSACHV_type = { .ao_count = 0, .name = "BOSSACHV" };
+static struct arc_obj_type BOSSREC_type = { .ao_count = 0, .name = "BOSSREC" };
+
 /* wrap structs */
 struct CHAR_DATA_wrap
 {
+    struct arc_obj aoh;
     CHAR_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct OBJ_DATA_wrap
 {
+    struct arc_obj aoh;
     OBJ_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct AREA_DATA_wrap
 {
+    struct arc_obj aoh;
     AREA_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct ROOM_INDEX_DATA_wrap
 {
+    struct arc_obj aoh;
     ROOM_INDEX_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct EXIT_DATA_wrap
 {
+    struct arc_obj aoh;
     EXIT_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct RESET_DATA_wrap
 {
+    struct arc_obj aoh;
     RESET_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct MOB_INDEX_DATA_wrap
 {
+    struct arc_obj aoh;
     MOB_INDEX_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct OBJ_INDEX_DATA_wrap
 {
+    struct arc_obj aoh;
     OBJ_INDEX_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct PROG_CODE_wrap
 {
+    struct arc_obj aoh;
     PROG_CODE wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct PROG_LIST_wrap
 {
+    struct arc_obj aoh;
     PROG_LIST wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct SHOP_DATA_wrap
 {
+    struct arc_obj aoh;
     SHOP_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct AFFECT_DATA_wrap
 {
+    struct arc_obj aoh;
     AFFECT_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct HELP_DATA_wrap
 {
+    struct arc_obj aoh;
     HELP_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct DESCRIPTOR_DATA_wrap
 {
+    struct arc_obj aoh;
     DESCRIPTOR_DATA wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct BOSSACHV_wrap
 {
+    struct arc_obj aoh;
     BOSSACHV wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 struct BOSSREC_wrap
 {
+    struct arc_obj aoh;
     BOSSREC wrapped;
+    struct arc_obj aot;
     struct lua_arclib_obj lao;
 };
 
 /* lao offset definitions */
-const size_t CHAR_DATA_lao_offset = offsetof(struct CHAR_DATA_wrap, lao);
-const size_t OBJ_DATA_lao_offset = offsetof(struct OBJ_DATA_wrap, lao);
-const size_t AREA_DATA_lao_offset = offsetof(struct AREA_DATA_wrap, lao);
-const size_t ROOM_INDEX_DATA_lao_offset = offsetof(struct ROOM_INDEX_DATA_wrap, lao);
-const size_t EXIT_DATA_lao_offset = offsetof(struct EXIT_DATA_wrap, lao);
-const size_t RESET_DATA_lao_offset = offsetof(struct RESET_DATA_wrap, lao);
-const size_t MOB_INDEX_DATA_lao_offset = offsetof(struct MOB_INDEX_DATA_wrap, lao);
-const size_t OBJ_INDEX_DATA_lao_offset = offsetof(struct OBJ_INDEX_DATA_wrap, lao);
-const size_t PROG_CODE_lao_offset = offsetof(struct PROG_CODE_wrap, lao);
-const size_t PROG_LIST_lao_offset = offsetof(struct PROG_LIST_wrap, lao);
-const size_t SHOP_DATA_lao_offset = offsetof(struct SHOP_DATA_wrap, lao);
-const size_t AFFECT_DATA_lao_offset = offsetof(struct AFFECT_DATA_wrap, lao);
-const size_t HELP_DATA_lao_offset = offsetof(struct HELP_DATA_wrap, lao);
-const size_t DESCRIPTOR_DATA_lao_offset = offsetof(struct DESCRIPTOR_DATA_wrap, lao);
-const size_t BOSSACHV_lao_offset = offsetof(struct BOSSACHV_wrap, lao);
-const size_t BOSSREC_lao_offset = offsetof(struct BOSSREC_wrap, lao);
+const size_t CHAR_DATA_lao_offset = offsetof(struct CHAR_DATA_wrap, lao) - offsetof(struct CHAR_DATA_wrap, wrapped);
+const size_t OBJ_DATA_lao_offset = offsetof(struct OBJ_DATA_wrap, lao) - offsetof(struct OBJ_DATA_wrap, wrapped);
+const size_t AREA_DATA_lao_offset = offsetof(struct AREA_DATA_wrap, lao) - offsetof(struct AREA_DATA_wrap, wrapped);
+const size_t ROOM_INDEX_DATA_lao_offset = offsetof(struct ROOM_INDEX_DATA_wrap, lao) - offsetof(struct ROOM_INDEX_DATA_wrap, wrapped);
+const size_t EXIT_DATA_lao_offset = offsetof(struct EXIT_DATA_wrap, lao) - offsetof(struct EXIT_DATA_wrap, wrapped);
+const size_t RESET_DATA_lao_offset = offsetof(struct RESET_DATA_wrap, lao) - offsetof(struct RESET_DATA_wrap, wrapped);
+const size_t MOB_INDEX_DATA_lao_offset = offsetof(struct MOB_INDEX_DATA_wrap, lao) - offsetof(struct MOB_INDEX_DATA_wrap, wrapped);
+const size_t OBJ_INDEX_DATA_lao_offset = offsetof(struct OBJ_INDEX_DATA_wrap, lao) - offsetof(struct OBJ_INDEX_DATA_wrap, wrapped);
+const size_t PROG_CODE_lao_offset = offsetof(struct PROG_CODE_wrap, lao) - offsetof(struct PROG_CODE_wrap, wrapped);
+const size_t PROG_LIST_lao_offset = offsetof(struct PROG_LIST_wrap, lao) - offsetof(struct PROG_LIST_wrap, wrapped);
+const size_t SHOP_DATA_lao_offset = offsetof(struct SHOP_DATA_wrap, lao) - offsetof(struct SHOP_DATA_wrap, wrapped);
+const size_t AFFECT_DATA_lao_offset = offsetof(struct AFFECT_DATA_wrap, lao) - offsetof(struct AFFECT_DATA_wrap, wrapped);
+const size_t HELP_DATA_lao_offset = offsetof(struct HELP_DATA_wrap, lao) - offsetof(struct HELP_DATA_wrap, wrapped);
+const size_t DESCRIPTOR_DATA_lao_offset = offsetof(struct DESCRIPTOR_DATA_wrap, lao) - offsetof(struct DESCRIPTOR_DATA_wrap, wrapped);
+const size_t BOSSACHV_lao_offset = offsetof(struct BOSSACHV_wrap, lao) - offsetof(struct BOSSACHV_wrap, wrapped);
+const size_t BOSSREC_lao_offset = offsetof(struct BOSSREC_wrap, lao) - offsetof(struct BOSSREC_wrap, wrapped);
+
+static struct CHAR_DATA_wrap *CHAR_DATA_get_wrap(CHAR_DATA *p)
+{
+    struct CHAR_DATA_wrap *wr = (struct CHAR_DATA_wrap *)((uintptr_t)p - offsetof(struct CHAR_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct OBJ_DATA_wrap *OBJ_DATA_get_wrap(OBJ_DATA *p)
+{
+    struct OBJ_DATA_wrap *wr = (struct OBJ_DATA_wrap *)((uintptr_t)p - offsetof(struct OBJ_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct AREA_DATA_wrap *AREA_DATA_get_wrap(AREA_DATA *p)
+{
+    struct AREA_DATA_wrap *wr = (struct AREA_DATA_wrap *)((uintptr_t)p - offsetof(struct AREA_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct ROOM_INDEX_DATA_wrap *ROOM_INDEX_DATA_get_wrap(ROOM_INDEX_DATA *p)
+{
+    struct ROOM_INDEX_DATA_wrap *wr = (struct ROOM_INDEX_DATA_wrap *)((uintptr_t)p - offsetof(struct ROOM_INDEX_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct EXIT_DATA_wrap *EXIT_DATA_get_wrap(EXIT_DATA *p)
+{
+    struct EXIT_DATA_wrap *wr = (struct EXIT_DATA_wrap *)((uintptr_t)p - offsetof(struct EXIT_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct RESET_DATA_wrap *RESET_DATA_get_wrap(RESET_DATA *p)
+{
+    struct RESET_DATA_wrap *wr = (struct RESET_DATA_wrap *)((uintptr_t)p - offsetof(struct RESET_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct MOB_INDEX_DATA_wrap *MOB_INDEX_DATA_get_wrap(MOB_INDEX_DATA *p)
+{
+    struct MOB_INDEX_DATA_wrap *wr = (struct MOB_INDEX_DATA_wrap *)((uintptr_t)p - offsetof(struct MOB_INDEX_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct OBJ_INDEX_DATA_wrap *OBJ_INDEX_DATA_get_wrap(OBJ_INDEX_DATA *p)
+{
+    struct OBJ_INDEX_DATA_wrap *wr = (struct OBJ_INDEX_DATA_wrap *)((uintptr_t)p - offsetof(struct OBJ_INDEX_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct PROG_CODE_wrap *PROG_CODE_get_wrap(PROG_CODE *p)
+{
+    struct PROG_CODE_wrap *wr = (struct PROG_CODE_wrap *)((uintptr_t)p - offsetof(struct PROG_CODE_wrap, wrapped));
+    return wr;
+}
+
+static struct PROG_LIST_wrap *PROG_LIST_get_wrap(PROG_LIST *p)
+{
+    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)((uintptr_t)p - offsetof(struct PROG_LIST_wrap, wrapped));
+    return wr;
+}
+
+static struct SHOP_DATA_wrap *SHOP_DATA_get_wrap(SHOP_DATA *p)
+{
+    struct SHOP_DATA_wrap *wr = (struct SHOP_DATA_wrap *)((uintptr_t)p - offsetof(struct SHOP_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct AFFECT_DATA_wrap *AFFECT_DATA_get_wrap(AFFECT_DATA *p)
+{
+    struct AFFECT_DATA_wrap *wr = (struct AFFECT_DATA_wrap *)((uintptr_t)p - offsetof(struct AFFECT_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct HELP_DATA_wrap *HELP_DATA_get_wrap(HELP_DATA *p)
+{
+    struct HELP_DATA_wrap *wr = (struct HELP_DATA_wrap *)((uintptr_t)p - offsetof(struct HELP_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct DESCRIPTOR_DATA_wrap *DESCRIPTOR_DATA_get_wrap(DESCRIPTOR_DATA *p)
+{
+    struct DESCRIPTOR_DATA_wrap *wr = (struct DESCRIPTOR_DATA_wrap *)((uintptr_t)p - offsetof(struct DESCRIPTOR_DATA_wrap, wrapped));
+    return wr;
+}
+
+static struct BOSSACHV_wrap *BOSSACHV_get_wrap(BOSSACHV *p)
+{
+    struct BOSSACHV_wrap *wr = (struct BOSSACHV_wrap *)((uintptr_t)p - offsetof(struct BOSSACHV_wrap, wrapped));
+    return wr;
+}
+
+static struct BOSSREC_wrap *BOSSREC_get_wrap(BOSSREC *p)
+{
+    struct BOSSREC_wrap *wr = (struct BOSSREC_wrap *)((uintptr_t)p - offsetof(struct BOSSREC_wrap, wrapped));
+    return wr;
+}
 
 
 /* alloc and dealloc definitions */
 CHAR_DATA *alloc_CHAR_DATA(void)
 {
     struct CHAR_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&CHAR_DATA_type, &wr->aoh, &wr->aot);
     lua_init_CH(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_CHAR_DATA(CHAR_DATA *p)
 {
-    struct CHAR_DATA_wrap *wr = (struct CHAR_DATA_wrap *)p;
+    struct CHAR_DATA_wrap *wr = CHAR_DATA_get_wrap(p);
     lua_deinit_CH(&wr->wrapped);
+    arc_obj_deinit(&CHAR_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 OBJ_DATA *alloc_OBJ_DATA(void)
 {
     struct OBJ_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&OBJ_DATA_type, &wr->aoh, &wr->aot);
     lua_init_OBJ(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_OBJ_DATA(OBJ_DATA *p)
 {
-    struct OBJ_DATA_wrap *wr = (struct OBJ_DATA_wrap *)p;
+    struct OBJ_DATA_wrap *wr = OBJ_DATA_get_wrap(p);
     lua_deinit_OBJ(&wr->wrapped);
+    arc_obj_deinit(&OBJ_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 AREA_DATA *alloc_AREA_DATA(void)
 {
     struct AREA_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&AREA_DATA_type, &wr->aoh, &wr->aot);
     lua_init_AREA(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_AREA_DATA(AREA_DATA *p)
 {
-    struct AREA_DATA_wrap *wr = (struct AREA_DATA_wrap *)p;
+    struct AREA_DATA_wrap *wr = AREA_DATA_get_wrap(p);
     lua_deinit_AREA(&wr->wrapped);
+    arc_obj_deinit(&AREA_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 ROOM_INDEX_DATA *alloc_ROOM_INDEX_DATA(void)
 {
     struct ROOM_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&ROOM_INDEX_DATA_type, &wr->aoh, &wr->aot);
     lua_init_ROOM(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_ROOM_INDEX_DATA(ROOM_INDEX_DATA *p)
 {
-    struct ROOM_INDEX_DATA_wrap *wr = (struct ROOM_INDEX_DATA_wrap *)p;
+    struct ROOM_INDEX_DATA_wrap *wr = ROOM_INDEX_DATA_get_wrap(p);
     lua_deinit_ROOM(&wr->wrapped);
+    arc_obj_deinit(&ROOM_INDEX_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 EXIT_DATA *alloc_EXIT_DATA(void)
 {
     struct EXIT_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&EXIT_DATA_type, &wr->aoh, &wr->aot);
     lua_init_EXIT(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_EXIT_DATA(EXIT_DATA *p)
 {
-    struct EXIT_DATA_wrap *wr = (struct EXIT_DATA_wrap *)p;
+    struct EXIT_DATA_wrap *wr = EXIT_DATA_get_wrap(p);
     lua_deinit_EXIT(&wr->wrapped);
+    arc_obj_deinit(&EXIT_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 RESET_DATA *alloc_RESET_DATA(void)
 {
     struct RESET_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&RESET_DATA_type, &wr->aoh, &wr->aot);
     lua_init_RESET(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_RESET_DATA(RESET_DATA *p)
 {
-    struct RESET_DATA_wrap *wr = (struct RESET_DATA_wrap *)p;
+    struct RESET_DATA_wrap *wr = RESET_DATA_get_wrap(p);
     lua_deinit_RESET(&wr->wrapped);
+    arc_obj_deinit(&RESET_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 MOB_INDEX_DATA *alloc_MOB_INDEX_DATA(void)
 {
     struct MOB_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&MOB_INDEX_DATA_type, &wr->aoh, &wr->aot);
     lua_init_MOBPROTO(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_MOB_INDEX_DATA(MOB_INDEX_DATA *p)
 {
-    struct MOB_INDEX_DATA_wrap *wr = (struct MOB_INDEX_DATA_wrap *)p;
+    struct MOB_INDEX_DATA_wrap *wr = MOB_INDEX_DATA_get_wrap(p);
     lua_deinit_MOBPROTO(&wr->wrapped);
+    arc_obj_deinit(&MOB_INDEX_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 OBJ_INDEX_DATA *alloc_OBJ_INDEX_DATA(void)
 {
     struct OBJ_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&OBJ_INDEX_DATA_type, &wr->aoh, &wr->aot);
     lua_init_OBJPROTO(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_OBJ_INDEX_DATA(OBJ_INDEX_DATA *p)
 {
-    struct OBJ_INDEX_DATA_wrap *wr = (struct OBJ_INDEX_DATA_wrap *)p;
+    struct OBJ_INDEX_DATA_wrap *wr = OBJ_INDEX_DATA_get_wrap(p);
     lua_deinit_OBJPROTO(&wr->wrapped);
+    arc_obj_deinit(&OBJ_INDEX_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 PROG_CODE *alloc_PROG_CODE(void)
 {
     struct PROG_CODE_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&PROG_CODE_type, &wr->aoh, &wr->aot);
     lua_init_PROG(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_PROG_CODE(PROG_CODE *p)
 {
-    struct PROG_CODE_wrap *wr = (struct PROG_CODE_wrap *)p;
+    struct PROG_CODE_wrap *wr = PROG_CODE_get_wrap(p);
     lua_deinit_PROG(&wr->wrapped);
+    arc_obj_deinit(&PROG_CODE_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 PROG_LIST *alloc_MPROG_LIST(void)
 {
     struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&PROG_LIST_type, &wr->aoh, &wr->aot);
     lua_init_MTRIG(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_MPROG_LIST(PROG_LIST *p)
 {
-    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    struct PROG_LIST_wrap *wr = PROG_LIST_get_wrap(p);
     lua_deinit_MTRIG(&wr->wrapped);
+    arc_obj_deinit(&PROG_LIST_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 PROG_LIST *alloc_OPROG_LIST(void)
 {
     struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&PROG_LIST_type, &wr->aoh, &wr->aot);
     lua_init_OTRIG(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_OPROG_LIST(PROG_LIST *p)
 {
-    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    struct PROG_LIST_wrap *wr = PROG_LIST_get_wrap(p);
     lua_deinit_OTRIG(&wr->wrapped);
+    arc_obj_deinit(&PROG_LIST_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 PROG_LIST *alloc_APROG_LIST(void)
 {
     struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&PROG_LIST_type, &wr->aoh, &wr->aot);
     lua_init_ATRIG(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_APROG_LIST(PROG_LIST *p)
 {
-    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    struct PROG_LIST_wrap *wr = PROG_LIST_get_wrap(p);
     lua_deinit_ATRIG(&wr->wrapped);
+    arc_obj_deinit(&PROG_LIST_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 PROG_LIST *alloc_RPROG_LIST(void)
 {
     struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&PROG_LIST_type, &wr->aoh, &wr->aot);
     lua_init_RTRIG(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_RPROG_LIST(PROG_LIST *p)
 {
-    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    struct PROG_LIST_wrap *wr = PROG_LIST_get_wrap(p);
     lua_deinit_RTRIG(&wr->wrapped);
+    arc_obj_deinit(&PROG_LIST_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 SHOP_DATA *alloc_SHOP_DATA(void)
 {
     struct SHOP_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&SHOP_DATA_type, &wr->aoh, &wr->aot);
     lua_init_SHOP(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_SHOP_DATA(SHOP_DATA *p)
 {
-    struct SHOP_DATA_wrap *wr = (struct SHOP_DATA_wrap *)p;
+    struct SHOP_DATA_wrap *wr = SHOP_DATA_get_wrap(p);
     lua_deinit_SHOP(&wr->wrapped);
+    arc_obj_deinit(&SHOP_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 AFFECT_DATA *alloc_AFFECT_DATA(void)
 {
     struct AFFECT_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&AFFECT_DATA_type, &wr->aoh, &wr->aot);
     lua_init_AFFECT(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_AFFECT_DATA(AFFECT_DATA *p)
 {
-    struct AFFECT_DATA_wrap *wr = (struct AFFECT_DATA_wrap *)p;
+    struct AFFECT_DATA_wrap *wr = AFFECT_DATA_get_wrap(p);
     lua_deinit_AFFECT(&wr->wrapped);
+    arc_obj_deinit(&AFFECT_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 HELP_DATA *alloc_HELP_DATA(void)
 {
     struct HELP_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&HELP_DATA_type, &wr->aoh, &wr->aot);
     lua_init_HELP(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_HELP_DATA(HELP_DATA *p)
 {
-    struct HELP_DATA_wrap *wr = (struct HELP_DATA_wrap *)p;
+    struct HELP_DATA_wrap *wr = HELP_DATA_get_wrap(p);
     lua_deinit_HELP(&wr->wrapped);
+    arc_obj_deinit(&HELP_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 DESCRIPTOR_DATA *alloc_DESCRIPTOR_DATA(void)
 {
     struct DESCRIPTOR_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&DESCRIPTOR_DATA_type, &wr->aoh, &wr->aot);
     lua_init_DESCRIPTOR(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_DESCRIPTOR_DATA(DESCRIPTOR_DATA *p)
 {
-    struct DESCRIPTOR_DATA_wrap *wr = (struct DESCRIPTOR_DATA_wrap *)p;
+    struct DESCRIPTOR_DATA_wrap *wr = DESCRIPTOR_DATA_get_wrap(p);
     lua_deinit_DESCRIPTOR(&wr->wrapped);
+    arc_obj_deinit(&DESCRIPTOR_DATA_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 BOSSACHV *alloc_BOSSACHV(void)
 {
     struct BOSSACHV_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&BOSSACHV_type, &wr->aoh, &wr->aot);
     lua_init_BOSSACHV(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_BOSSACHV(BOSSACHV *p)
 {
-    struct BOSSACHV_wrap *wr = (struct BOSSACHV_wrap *)p;
+    struct BOSSACHV_wrap *wr = BOSSACHV_get_wrap(p);
     lua_deinit_BOSSACHV(&wr->wrapped);
+    arc_obj_deinit(&BOSSACHV_type, &wr->aoh, &wr->aot);
     free(wr);
 }
 
 BOSSREC *alloc_BOSSREC(void)
 {
     struct BOSSREC_wrap *wr = calloc(1, sizeof(*wr));
+    arc_obj_init(&BOSSREC_type, &wr->aoh, &wr->aot);
     lua_init_BOSSREC(&wr->wrapped);
     return &wr->wrapped;
 }
 
 void dealloc_BOSSREC(BOSSREC *p)
 {
-    struct BOSSREC_wrap *wr = (struct BOSSREC_wrap *)p;
+    struct BOSSREC_wrap *wr = BOSSREC_get_wrap(p);
     lua_deinit_BOSSREC(&wr->wrapped);
+    arc_obj_deinit(&BOSSREC_type, &wr->aoh, &wr->aot);
     free(wr);
 }

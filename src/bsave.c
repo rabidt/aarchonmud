@@ -46,6 +46,7 @@
 #include "lua_main.h"
 #include "lua_arclib.h"
 #include "perfmon.h"
+#include "mem.h"
 
 
 int fingertime;
