@@ -120,6 +120,9 @@ bool check_ban( const char *site, int type )
 	if (IS_SET(pban->ban_flags,BAN_SUFFIX)
 	&&  !str_prefix(pban->name,host))
 	    return TRUE;
+
+        if (!strcmp(pban->name, host))
+            return TRUE;
     }
 
     return FALSE;

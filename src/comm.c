@@ -418,6 +418,8 @@ static void game_loop_unix( int control )
 
             if ( FD_ISSET( d->descriptor, &in_set ) )
             {
+                bool host_proxied = d->host_proxied;
+
                 if ( d->character != NULL )
                     d->character->timer = 0;
                 if ( !read_from_descriptor( d ) )
@@ -427,6 +429,19 @@ static void game_loop_unix( int control )
                     close_socket( d );
                     continue;
                 }
+
+                /* Transition from original to proxied host will happen in read_from_descriptor.
+                   Need to check the new host for bans in that case. */
+                if (host_proxied != d->host_proxied)
+                {
+                    if ( check_ban(d->host, BAN_ALL) )
+                    {
+                        write_to_buffer(d, "Your site has been banned from this mud.\n\r", 0);
+                        close_socket(d);
+                        continue;
+                    }
+                }
+
             }
 
             if (!IS_PLAYING(d->connected) && (d->inactive>4800))
