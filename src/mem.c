@@ -48,7 +48,7 @@ RESET_DATA *new_reset_data( void )
 {
     RESET_DATA *pReset;
 
-    pReset          =   alloc_RESET();
+    pReset          =   alloc_RESET_DATA();
     top_reset++;
 
     pReset->next        =   NULL;
@@ -66,7 +66,7 @@ RESET_DATA *new_reset_data( void )
 void free_reset_data( RESET_DATA *pReset )
 {
     pReset->next            = NULL;
-    free_RESET( pReset );
+    dealloc_RESET_DATA( pReset );
     top_reset--;
     return;
 }
@@ -79,7 +79,7 @@ AREA_DATA *new_area( void )
     char buf[MAX_INPUT_LENGTH];
     int i;
 
-    pArea   =   alloc_AREA();
+    pArea   =   alloc_AREA_DATA();
     top_area++;
 
     pArea->next             =   NULL;
@@ -119,7 +119,7 @@ void free_area( AREA_DATA *pArea )
     free_string( pArea->comments );
 
     pArea->next         =   NULL;
-    free_AREA( pArea );
+    dealloc_AREA_DATA( pArea );
     return;
 }
 
@@ -129,7 +129,7 @@ EXIT_DATA *new_exit( void )
 {
     EXIT_DATA *pExit;
 
-    pExit           =   alloc_EXIT();
+    pExit           =   alloc_EXIT_DATA();
     top_exit++;
 
     pExit->u1.to_room   =   NULL;                  /* ROM OLC */
@@ -153,7 +153,7 @@ void free_exit( EXIT_DATA *pExit )
     top_exit--;
 
     pExit->next         =   NULL;
-    free_EXIT( pExit );
+    dealloc_EXIT_DATA( pExit );
     return;
 }
 
@@ -163,7 +163,7 @@ ROOM_INDEX_DATA *new_room_index( void )
     ROOM_INDEX_DATA *pRoom;
     int door;
 
-    pRoom           =   alloc_ROOM();
+    pRoom           =   alloc_ROOM_INDEX_DATA();
     top_room++;
 
     pRoom->next             =   NULL;
@@ -222,7 +222,7 @@ void free_room_index( ROOM_INDEX_DATA *pRoom )
     top_room--;
 
     pRoom->next     =   NULL;
-    free_ROOM( pRoom );
+    dealloc_ROOM_INDEX_DATA( pRoom );
     return;
 }
 
@@ -231,7 +231,7 @@ SHOP_DATA *new_shop( void )
     SHOP_DATA *pShop;
     int buy;
 
-    pShop           =   alloc_SHOP();
+    pShop           =   alloc_SHOP_DATA();
     top_shop++;
 
     pShop->next         =   NULL;
@@ -251,7 +251,7 @@ SHOP_DATA *new_shop( void )
 void free_shop( SHOP_DATA *pShop )
 {
     pShop->next = NULL;
-    free_SHOP( pShop );
+    dealloc_SHOP_DATA( pShop );
     return;
 }
 
@@ -271,7 +271,7 @@ BOSSACHV *new_boss_achieve( void )
 
 void free_boss_achieve( BOSSACHV *pBoss )
 {
-    free_BOSSACHV( pBoss );
+    dealloc_BOSSACHV( pBoss );
 } 
 
 
@@ -280,7 +280,7 @@ OBJ_INDEX_DATA *new_obj_index( void )
     OBJ_INDEX_DATA *pObj;
     int value;
 
-    pObj           =   alloc_OBJPROTO();
+    pObj           =   alloc_OBJ_INDEX_DATA();
     top_obj_index++;
 
     pObj->next          =   NULL;
@@ -336,7 +336,7 @@ void free_obj_index( OBJ_INDEX_DATA *pObj )
     top_obj_index--;
 
     pObj->next              = NULL;
-    free_OBJPROTO( pObj );
+    dealloc_OBJ_INDEX_DATA( pObj );
     return;
 }
 
@@ -344,7 +344,7 @@ MOB_INDEX_DATA *new_mob_index( void )
 {
     MOB_INDEX_DATA *pMob;
 
-    pMob           =   alloc_MOBPROTO();
+    pMob           =   alloc_MOB_INDEX_DATA();
     top_mob_index++;
 
     pMob->next          =   NULL;
@@ -404,7 +404,7 @@ void free_mob_index( MOB_INDEX_DATA *pMob )
     top_mob_index--;
 
     pMob->next              = NULL;
-    free_MOBPROTO( pMob );
+    dealloc_MOB_INDEX_DATA( pMob );
     return;
 }
 
@@ -412,7 +412,7 @@ PROG_CODE *new_mpcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = alloc_PROG();
+     NewCode = alloc_PROG_CODE();
      top_mprog_index++;
 
      NewCode->security = 0;
@@ -428,7 +428,7 @@ void free_mpcode(PROG_CODE *pMcode)
 {
     free_string(pMcode->code);
     pMcode->next = NULL;
-    free_PROG( pMcode );
+    dealloc_PROG_CODE( pMcode );
     return;
 }
 
@@ -436,7 +436,7 @@ PROG_CODE *new_opcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = alloc_PROG();
+     NewCode = alloc_PROG_CODE();
      top_oprog_index++;
 
      NewCode->vnum    = 0;
@@ -452,7 +452,7 @@ void free_opcode(PROG_CODE *pOcode)
 {
     free_string(pOcode->code);
     pOcode->next = NULL;
-    free_PROG( pOcode );
+    dealloc_PROG_CODE( pOcode );
     return;
 }
 
@@ -460,7 +460,7 @@ PROG_CODE *new_apcode(void)
 {
      PROG_CODE *NewCode;
 
-     NewCode = alloc_PROG();
+     NewCode = alloc_PROG_CODE();
      top_aprog_index++;
 
      NewCode->vnum    = 0;
@@ -476,7 +476,7 @@ void free_apcode(PROG_CODE *pAcode)
 {
     free_string(pAcode->code);
     pAcode->next = NULL;
-    free_PROG( pAcode );
+    dealloc_PROG_CODE( pAcode );
     return;
 }
 
@@ -484,7 +484,7 @@ PROG_CODE *new_rpcode(void)
 {
     PROG_CODE *NewCode;
 
-    NewCode = alloc_PROG();
+    NewCode = alloc_PROG_CODE();
     top_rprog_index++;
 
     NewCode->vnum = 0;
@@ -500,25 +500,374 @@ void free_rpcode(PROG_CODE *pRcode)
 {
     free_string(pRcode->code);
     pRcode->next = NULL;
-    free_PROG( pRcode );
+    dealloc_PROG_CODE( pRcode );
     return;
 }
 
-
-/* Help Editor - kermit 1/98 */
-/*
-HELP_DATA *new_help(void)
+/* wrap structs */
+struct CHAR_DATA_wrap
 {
-     HELP_DATA *NewHelp;
+    CHAR_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct OBJ_DATA_wrap
+{
+    OBJ_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct AREA_DATA_wrap
+{
+    AREA_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct ROOM_INDEX_DATA_wrap
+{
+    ROOM_INDEX_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct EXIT_DATA_wrap
+{
+    EXIT_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct RESET_DATA_wrap
+{
+    RESET_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct MOB_INDEX_DATA_wrap
+{
+    MOB_INDEX_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct OBJ_INDEX_DATA_wrap
+{
+    OBJ_INDEX_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct PROG_CODE_wrap
+{
+    PROG_CODE wrapped;
+    struct lua_arclib_obj lao;
+};
+struct PROG_LIST_wrap
+{
+    PROG_LIST wrapped;
+    struct lua_arclib_obj lao;
+};
+struct SHOP_DATA_wrap
+{
+    SHOP_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct AFFECT_DATA_wrap
+{
+    AFFECT_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct HELP_DATA_wrap
+{
+    HELP_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct DESCRIPTOR_DATA_wrap
+{
+    DESCRIPTOR_DATA wrapped;
+    struct lua_arclib_obj lao;
+};
+struct BOSSACHV_wrap
+{
+    BOSSACHV wrapped;
+    struct lua_arclib_obj lao;
+};
+struct BOSSREC_wrap
+{
+    BOSSREC wrapped;
+    struct lua_arclib_obj lao;
+};
 
-     NewHelp = alloc_perm(sizeof(*NewHelp) );
+/* lao offset definitions */
+const size_t CHAR_DATA_lao_offset = offsetof(struct CHAR_DATA_wrap, lao);
+const size_t OBJ_DATA_lao_offset = offsetof(struct OBJ_DATA_wrap, lao);
+const size_t AREA_DATA_lao_offset = offsetof(struct AREA_DATA_wrap, lao);
+const size_t ROOM_INDEX_DATA_lao_offset = offsetof(struct ROOM_INDEX_DATA_wrap, lao);
+const size_t EXIT_DATA_lao_offset = offsetof(struct EXIT_DATA_wrap, lao);
+const size_t RESET_DATA_lao_offset = offsetof(struct RESET_DATA_wrap, lao);
+const size_t MOB_INDEX_DATA_lao_offset = offsetof(struct MOB_INDEX_DATA_wrap, lao);
+const size_t OBJ_INDEX_DATA_lao_offset = offsetof(struct OBJ_INDEX_DATA_wrap, lao);
+const size_t PROG_CODE_lao_offset = offsetof(struct PROG_CODE_wrap, lao);
+const size_t PROG_LIST_lao_offset = offsetof(struct PROG_LIST_wrap, lao);
+const size_t SHOP_DATA_lao_offset = offsetof(struct SHOP_DATA_wrap, lao);
+const size_t AFFECT_DATA_lao_offset = offsetof(struct AFFECT_DATA_wrap, lao);
+const size_t HELP_DATA_lao_offset = offsetof(struct HELP_DATA_wrap, lao);
+const size_t DESCRIPTOR_DATA_lao_offset = offsetof(struct DESCRIPTOR_DATA_wrap, lao);
+const size_t BOSSACHV_lao_offset = offsetof(struct BOSSACHV_wrap, lao);
+const size_t BOSSREC_lao_offset = offsetof(struct BOSSREC_wrap, lao);
 
-     NewHelp->level   = 0;
-     NewHelp->keyword = str_dup("");
-     NewHelp->text    = str_dup("");
-     NewHelp->next    = NULL;
 
-     return NewHelp;
+/* alloc and dealloc definitions */
+CHAR_DATA *alloc_CHAR_DATA(void)
+{
+    struct CHAR_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_CH(&wr->wrapped);
+    return &wr->wrapped;
 }
-*/
 
+void dealloc_CHAR_DATA(CHAR_DATA *p)
+{
+    struct CHAR_DATA_wrap *wr = (struct CHAR_DATA_wrap *)p;
+    lua_deinit_CH(&wr->wrapped);
+    free(wr);
+}
+
+OBJ_DATA *alloc_OBJ_DATA(void)
+{
+    struct OBJ_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_OBJ(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_OBJ_DATA(OBJ_DATA *p)
+{
+    struct OBJ_DATA_wrap *wr = (struct OBJ_DATA_wrap *)p;
+    lua_deinit_OBJ(&wr->wrapped);
+    free(wr);
+}
+
+AREA_DATA *alloc_AREA_DATA(void)
+{
+    struct AREA_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_AREA(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_AREA_DATA(AREA_DATA *p)
+{
+    struct AREA_DATA_wrap *wr = (struct AREA_DATA_wrap *)p;
+    lua_deinit_AREA(&wr->wrapped);
+    free(wr);
+}
+
+ROOM_INDEX_DATA *alloc_ROOM_INDEX_DATA(void)
+{
+    struct ROOM_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_ROOM(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_ROOM_INDEX_DATA(ROOM_INDEX_DATA *p)
+{
+    struct ROOM_INDEX_DATA_wrap *wr = (struct ROOM_INDEX_DATA_wrap *)p;
+    lua_deinit_ROOM(&wr->wrapped);
+    free(wr);
+}
+
+EXIT_DATA *alloc_EXIT_DATA(void)
+{
+    struct EXIT_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_EXIT(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_EXIT_DATA(EXIT_DATA *p)
+{
+    struct EXIT_DATA_wrap *wr = (struct EXIT_DATA_wrap *)p;
+    lua_deinit_EXIT(&wr->wrapped);
+    free(wr);
+}
+
+RESET_DATA *alloc_RESET_DATA(void)
+{
+    struct RESET_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_RESET(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_RESET_DATA(RESET_DATA *p)
+{
+    struct RESET_DATA_wrap *wr = (struct RESET_DATA_wrap *)p;
+    lua_deinit_RESET(&wr->wrapped);
+    free(wr);
+}
+
+MOB_INDEX_DATA *alloc_MOB_INDEX_DATA(void)
+{
+    struct MOB_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_MOBPROTO(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_MOB_INDEX_DATA(MOB_INDEX_DATA *p)
+{
+    struct MOB_INDEX_DATA_wrap *wr = (struct MOB_INDEX_DATA_wrap *)p;
+    lua_deinit_MOBPROTO(&wr->wrapped);
+    free(wr);
+}
+
+OBJ_INDEX_DATA *alloc_OBJ_INDEX_DATA(void)
+{
+    struct OBJ_INDEX_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_OBJPROTO(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_OBJ_INDEX_DATA(OBJ_INDEX_DATA *p)
+{
+    struct OBJ_INDEX_DATA_wrap *wr = (struct OBJ_INDEX_DATA_wrap *)p;
+    lua_deinit_OBJPROTO(&wr->wrapped);
+    free(wr);
+}
+
+PROG_CODE *alloc_PROG_CODE(void)
+{
+    struct PROG_CODE_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_PROG(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_PROG_CODE(PROG_CODE *p)
+{
+    struct PROG_CODE_wrap *wr = (struct PROG_CODE_wrap *)p;
+    lua_deinit_PROG(&wr->wrapped);
+    free(wr);
+}
+
+PROG_LIST *alloc_MPROG_LIST(void)
+{
+    struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_MTRIG(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_MPROG_LIST(PROG_LIST *p)
+{
+    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    lua_deinit_MTRIG(&wr->wrapped);
+    free(wr);
+}
+
+PROG_LIST *alloc_OPROG_LIST(void)
+{
+    struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_OTRIG(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_OPROG_LIST(PROG_LIST *p)
+{
+    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    lua_deinit_OTRIG(&wr->wrapped);
+    free(wr);
+}
+
+PROG_LIST *alloc_APROG_LIST(void)
+{
+    struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_ATRIG(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_APROG_LIST(PROG_LIST *p)
+{
+    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    lua_deinit_ATRIG(&wr->wrapped);
+    free(wr);
+}
+
+PROG_LIST *alloc_RPROG_LIST(void)
+{
+    struct PROG_LIST_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_RTRIG(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_RPROG_LIST(PROG_LIST *p)
+{
+    struct PROG_LIST_wrap *wr = (struct PROG_LIST_wrap *)p;
+    lua_deinit_RTRIG(&wr->wrapped);
+    free(wr);
+}
+
+SHOP_DATA *alloc_SHOP_DATA(void)
+{
+    struct SHOP_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_SHOP(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_SHOP_DATA(SHOP_DATA *p)
+{
+    struct SHOP_DATA_wrap *wr = (struct SHOP_DATA_wrap *)p;
+    lua_deinit_SHOP(&wr->wrapped);
+    free(wr);
+}
+
+AFFECT_DATA *alloc_AFFECT_DATA(void)
+{
+    struct AFFECT_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_AFFECT(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_AFFECT_DATA(AFFECT_DATA *p)
+{
+    struct AFFECT_DATA_wrap *wr = (struct AFFECT_DATA_wrap *)p;
+    lua_deinit_AFFECT(&wr->wrapped);
+    free(wr);
+}
+
+HELP_DATA *alloc_HELP_DATA(void)
+{
+    struct HELP_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_HELP(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_HELP_DATA(HELP_DATA *p)
+{
+    struct HELP_DATA_wrap *wr = (struct HELP_DATA_wrap *)p;
+    lua_deinit_HELP(&wr->wrapped);
+    free(wr);
+}
+
+DESCRIPTOR_DATA *alloc_DESCRIPTOR_DATA(void)
+{
+    struct DESCRIPTOR_DATA_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_DESCRIPTOR(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_DESCRIPTOR_DATA(DESCRIPTOR_DATA *p)
+{
+    struct DESCRIPTOR_DATA_wrap *wr = (struct DESCRIPTOR_DATA_wrap *)p;
+    lua_deinit_DESCRIPTOR(&wr->wrapped);
+    free(wr);
+}
+
+BOSSACHV *alloc_BOSSACHV(void)
+{
+    struct BOSSACHV_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_BOSSACHV(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_BOSSACHV(BOSSACHV *p)
+{
+    struct BOSSACHV_wrap *wr = (struct BOSSACHV_wrap *)p;
+    lua_deinit_BOSSACHV(&wr->wrapped);
+    free(wr);
+}
+
+BOSSREC *alloc_BOSSREC(void)
+{
+    struct BOSSREC_wrap *wr = calloc(1, sizeof(*wr));
+    lua_init_BOSSREC(&wr->wrapped);
+    return &wr->wrapped;
+}
+
+void dealloc_BOSSREC(BOSSREC *p)
+{
+    struct BOSSREC_wrap *wr = (struct BOSSREC_wrap *)p;
+    lua_deinit_BOSSREC(&wr->wrapped);
+    free(wr);
+}

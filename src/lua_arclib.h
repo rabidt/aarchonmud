@@ -1,7 +1,11 @@
 #ifndef LUA_ARCLIB_H
 #define LUA_ARCLIB_H
 
-#include "merc.h"
+struct lua_arclib_obj
+{
+    unsigned char magic_id_[2];
+    int ref_;
+};
 
 typedef struct lua_extra_val
 {
@@ -56,31 +60,31 @@ void run_delayed_function( TIMER_NODE *tmr );
 #define DECLARETYPEFUNCS( LTYPE, CTYPE ) \
     CTYPE * check_ ## LTYPE ( lua_State *LS, int index ); \
     bool    is_ ## LTYPE ( lua_State *LS, int index ); \
-    bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud );\
-    CTYPE * alloc_ ## LTYPE (void) ;\
-    void    free_ ## LTYPE ( CTYPE * ud );\
+    bool    push_ ## LTYPE ( lua_State *LS, CTYPE *ud ); \
+    void    lua_init_ ## LTYPE ( CTYPE *p ); \
+    void    lua_deinit_ ## LTYPE ( CTYPE *p ); \
     bool    valid_ ## LTYPE ( CTYPE *ud );\
     int     count_ ## LTYPE ( void )
 
-DECLARETYPEFUNCS(CH, CHAR_DATA);
-DECLARETYPEFUNCS(OBJ, OBJ_DATA);
-DECLARETYPEFUNCS(AREA, AREA_DATA);
-DECLARETYPEFUNCS(ROOM, ROOM_INDEX_DATA);
-DECLARETYPEFUNCS(EXIT, EXIT_DATA);
-DECLARETYPEFUNCS(RESET, RESET_DATA);
-DECLARETYPEFUNCS(MOBPROTO, MOB_INDEX_DATA);
-DECLARETYPEFUNCS(OBJPROTO, OBJ_INDEX_DATA);
-DECLARETYPEFUNCS(PROG, PROG_CODE);
-DECLARETYPEFUNCS(MTRIG, PROG_LIST);
-DECLARETYPEFUNCS(OTRIG, PROG_LIST);
-DECLARETYPEFUNCS(ATRIG, PROG_LIST);
-DECLARETYPEFUNCS(RTRIG, PROG_LIST);
-DECLARETYPEFUNCS(SHOP, SHOP_DATA);
-DECLARETYPEFUNCS(AFFECT, AFFECT_DATA);
-DECLARETYPEFUNCS(HELP, HELP_DATA);
-DECLARETYPEFUNCS(DESCRIPTOR, DESCRIPTOR_DATA);
-DECLARETYPEFUNCS(BOSSACHV, BOSSACHV);
-DECLARETYPEFUNCS(BOSSREC, BOSSREC);
+DECLARETYPEFUNCS(CH, struct char_data);
+DECLARETYPEFUNCS(OBJ, struct obj_data);
+DECLARETYPEFUNCS(AREA, struct area_data);
+DECLARETYPEFUNCS(ROOM, struct room_index_data);
+DECLARETYPEFUNCS(EXIT, struct exit_data);
+DECLARETYPEFUNCS(RESET, struct reset_data);
+DECLARETYPEFUNCS(MOBPROTO, struct mob_index_data);
+DECLARETYPEFUNCS(OBJPROTO, struct obj_index_data);
+DECLARETYPEFUNCS(PROG, struct prog_code);
+DECLARETYPEFUNCS(MTRIG, struct prog_list);
+DECLARETYPEFUNCS(OTRIG, struct prog_list);
+DECLARETYPEFUNCS(ATRIG, struct prog_list);
+DECLARETYPEFUNCS(RTRIG, struct prog_list);
+DECLARETYPEFUNCS(SHOP, struct shop_data);
+DECLARETYPEFUNCS(AFFECT, struct affect_data);
+DECLARETYPEFUNCS(HELP, struct help_data);
+DECLARETYPEFUNCS(DESCRIPTOR, struct descriptor_data);
+DECLARETYPEFUNCS(BOSSACHV, struct boss_achieve_entry);
+DECLARETYPEFUNCS(BOSSREC, struct boss_achieve_record);
 #undef DECLARETYPEFUNCS
 
 

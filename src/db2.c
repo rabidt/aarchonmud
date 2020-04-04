@@ -204,7 +204,7 @@ void load_mobiles( FILE *fp )
                 const char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_MTRIG();
+                pMprog              = alloc_MPROG_LIST();
                 word   		    = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -258,7 +258,7 @@ static MOB_INDEX_DATA* convert_to_mobble ( MOB_INDEX_DATA_OLD *pMobIndexOld )
     MOB_INDEX_DATA *pMobIndex;
     long actual, spec, base;
 
-    pMobIndex = alloc_MOBPROTO();
+    pMobIndex = alloc_MOB_INDEX_DATA();
 
     // identical fields, just copy
     MCOPY(vnum);
@@ -375,7 +375,7 @@ void load_mobbles( FILE *fp )
             exit( 1 );
         }
 
-        pMobIndex                       = alloc_MOBPROTO();
+        pMobIndex                       = alloc_MOB_INDEX_DATA();
         pMobIndex->vnum                 = vnum;
         pMobIndex->area                 = area_last;
         pMobIndex->pShop                = NULL;
@@ -509,7 +509,7 @@ void load_mobbles( FILE *fp )
                 const char *word;
                 int trigger = 0;
 
-                pMprog              = alloc_MTRIG();
+                pMprog              = alloc_MPROG_LIST();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, mprog_flags )) == NO_FLAG )
                 {
@@ -580,7 +580,7 @@ void load_objects( FILE *fp )
             exit( 1 );
         }
 
-        pObjIndex                       = alloc_OBJPROTO();
+        pObjIndex                       = alloc_OBJ_INDEX_DATA();
         pObjIndex->vnum                 = vnum;
         pObjIndex->area                 = area_last;            /* OLC */
         pObjIndex->reset_num		= 0;
@@ -846,7 +846,7 @@ void load_objects( FILE *fp )
                 const char *word;
                 int trigger = 0;
 
-                pOprog              = alloc_OTRIG();
+                pOprog              = alloc_OPROG_LIST();
                 word                = fread_word( fp );
                 if ( (trigger = flag_lookup( word, oprog_flags )) == NO_FLAG )
                 {

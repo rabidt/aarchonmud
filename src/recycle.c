@@ -127,7 +127,7 @@ DESCRIPTOR_DATA *new_descriptor(void)
 {
 	DESCRIPTOR_DATA *d;
 
-	d = alloc_DESCRIPTOR();
+	d = alloc_DESCRIPTOR_DATA();
 	
     VALIDATE(d);
 	
@@ -171,7 +171,7 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 
     INVALIDATE(d);
     d->next = NULL;
-    free_DESCRIPTOR( d );
+    dealloc_DESCRIPTOR_DATA( d );
 }
 
 /* stuff for recycling gen_data */
@@ -244,7 +244,7 @@ AFFECT_DATA *new_affect(void)
 {
 	AFFECT_DATA *af;
 
-	af = alloc_AFFECT();
+	af = alloc_AFFECT_DATA();
 
 	VALIDATE(af);
 	af->next = NULL;
@@ -260,14 +260,14 @@ void free_affect(AFFECT_DATA *af)
 
 	INVALIDATE(af);
 	af->next = NULL;
-    free_AFFECT( af );
+    dealloc_AFFECT_DATA( af );
 }
 
 OBJ_DATA *new_obj(void)
 {
 	OBJ_DATA *obj;
 
-	obj = alloc_OBJ();
+	obj = alloc_OBJ_DATA();
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
@@ -317,7 +317,7 @@ void free_obj(OBJ_DATA *obj)
 	INVALIDATE(obj);
 
 	obj->next   = NULL;
-    free_OBJ( obj );
+    dealloc_OBJ_DATA( obj );
 }
 
 
@@ -326,7 +326,7 @@ CHAR_DATA *new_char (void)
 	CHAR_DATA *ch;
 	int i;
 
-	ch = alloc_CH();
+	ch = alloc_CHAR_DATA();
 
 	VALIDATE(ch);
 	ch->name                    = &str_empty[0];
@@ -424,7 +424,7 @@ void free_char (CHAR_DATA *ch)
 
 	INVALIDATE(ch);
 
-    free_CH( ch );
+    dealloc_CHAR_DATA( ch );
 	return;
 }
 
@@ -565,7 +565,7 @@ static void free_pcdata(PC_DATA *pcdata)
     for ( rec = pcdata->boss_achievements ; rec ; rec=rec_next )
     {
         rec_next=rec->next;
-        free_BOSSREC( rec );
+        dealloc_BOSSREC( rec );
     }
 
     pers_history_free(pcdata->gtell_history);
@@ -711,7 +711,7 @@ PROG_LIST *new_mprog(void)
 {
    PROG_LIST *mp;
 
-   mp = alloc_MTRIG();
+   mp = alloc_MPROG_LIST();
    
    mp->vnum             = 0;
    mp->trig_type        = 0;
@@ -727,14 +727,14 @@ void free_mprog(PROG_LIST *mp)
 
    INVALIDATE(mp);
    mp->next = NULL;
-   free_MTRIG( mp );
+   dealloc_MPROG_LIST( mp );
 }
 
 PROG_LIST *new_oprog(void)
 {
    PROG_LIST *op;
 
-   op = alloc_OTRIG();
+   op = alloc_OPROG_LIST();
    
    op->vnum             = 0;
    op->trig_type        = 0;
@@ -750,14 +750,14 @@ void free_oprog(PROG_LIST *op)
 
    INVALIDATE(op);
    op->next = NULL; 
-   free_OTRIG( op );
+   dealloc_OPROG_LIST( op );
 }
 
 PROG_LIST *new_aprog(void)
 {
    PROG_LIST *ap;
 
-   ap = alloc_ATRIG(); 
+   ap = alloc_APROG_LIST(); 
 
    ap->vnum             = 0;
    ap->trig_type        = 0;
@@ -773,14 +773,14 @@ void free_aprog(PROG_LIST *ap)
 
    INVALIDATE(ap);
    ap->next = NULL;
-   free_ATRIG( ap );
+   dealloc_APROG_LIST( ap );
 }
 
 PROG_LIST *new_rprog(void)
 {
     PROG_LIST *rp;
     
-    rp = alloc_RTRIG(); 
+    rp = alloc_RPROG_LIST(); 
 
     rp->vnum        = 0;
     rp->trig_type   = 0;
@@ -796,7 +796,7 @@ void free_rprog(PROG_LIST *rp)
 
     INVALIDATE(rp);
     rp->next = NULL;
-    free_RTRIG( rp );
+    dealloc_RPROG_LIST( rp );
 }
 
 static HELP_AREA * had_free;
@@ -820,7 +820,7 @@ HELP_DATA * new_help ( void )
 {
    HELP_DATA * help;
    
-   help       = alloc_HELP();
+   help       = alloc_HELP_DATA();
 
    help->level   = 0;
    help->keyword = str_dup("");

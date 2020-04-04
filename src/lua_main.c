@@ -164,6 +164,10 @@ void stackDump (lua_State *LS) {
                 logpf("%g", lua_tonumber(LS, i));
                 break;
 
+            case LUA_TUSERDATA:
+                logpf("%s", lua_tostring(LS, i));
+                break;
+
             default:  /* other values */
                 logpf("%s", lua_typename(LS, t));
                 break;
@@ -648,9 +652,17 @@ static int RegisterLuaRoutines (lua_State *LS)
 
 }  /* end of RegisterLuaRoutines */
 
+static int atpanic(lua_State *LS)
+{
+    bugf("lua panic error: %s", lua_tostring(LS, -1));
+    abort();
+    return 0;
+}
+
 void open_lua ( void )
 {
     lua_State *LS = luaL_newstate ();   /* opens Lua */
+    lua_atpanic(LS, atpanic);
     g_mud_LS = LS;
     ARCLUA_ASSERT( LS );
 
@@ -1051,6 +1063,7 @@ void check_lua_stack( void )
     if ( top > 0 )
     {
         bugf("%d items left on Lua stack. Clearing.", top );
+        stackDump( g_mud_LS );
         lua_settop( g_mud_LS, 0);
     }
 }

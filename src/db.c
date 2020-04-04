@@ -1090,7 +1090,7 @@ static void load_area( FILE *fp )
 {
     AREA_DATA *pArea;
     
-    pArea               = alloc_AREA();
+    pArea               = alloc_AREA_DATA();
     pArea->file_name    = fread_string(fp);
     
     flag_clear( pArea->area_flags );
@@ -1163,7 +1163,7 @@ static void new_load_area( FILE *fp )
     const char *word;
     bool      fMatch;
     
-    pArea               = alloc_AREA();
+    pArea               = alloc_AREA_DATA();
     pArea->age          = 15;
     pArea->nplayer      = 0;
     pArea->reset_time   = 15;
@@ -1197,7 +1197,7 @@ static void new_load_area( FILE *fp )
                 const char *word1;
                 int trigger = 0;
 
-                pAprog              = alloc_ATRIG();
+                pAprog              = alloc_APROG_LIST();
                 word1                = fread_word( fp );
                 if ( (trigger = flag_lookup( word1, aprog_flags )) == NO_FLAG )
                 {   
@@ -1666,7 +1666,7 @@ static void load_rooms( FILE *fp )
             exit( 1 );
         }
 
-        pRoomIndex          = alloc_ROOM();
+        pRoomIndex          = alloc_ROOM_INDEX_DATA();
         pRoomIndex->owner       = str_dup("");
         pRoomIndex->people      = NULL;
         pRoomIndex->contents    = NULL;
@@ -1743,7 +1743,7 @@ static void load_rooms( FILE *fp )
                     exit( 1 );
                 }
 
-                pexit           = alloc_EXIT();
+                pexit           = alloc_EXIT_DATA();
                 pexit->description  = fread_string( fp );
                 pexit->keyword      = fread_string( fp );
 
@@ -1818,7 +1818,7 @@ static void load_rooms( FILE *fp )
                 const char *word;
                 int trigger=0;
 
-                pRprog = alloc_RTRIG();
+                pRprog = alloc_RPROG_LIST();
                 word=fread_word( fp );
                 if ( ( trigger=flag_lookup( word, rprog_flags)) == NO_FLAG)
                 {
@@ -1899,7 +1899,7 @@ static void load_shops( FILE *fp )
         if ( keeper == 0 )
             break;
         
-        pShop           = alloc_SHOP(); 
+        pShop           = alloc_SHOP_DATA(); 
         pShop->keeper       = keeper;
 
         for ( iTrade = 0; iTrade < MAX_TRADE; iTrade++ )
@@ -2094,7 +2094,7 @@ static void load_roomprogs( FILE *fp )
             exit( 1 );
         }
 
-        pRprog      = alloc_PROG();
+        pRprog      = alloc_PROG_CODE();
         pRprog->vnum    = vnum;
 
         const char *word;
@@ -2168,7 +2168,7 @@ static void load_areaprogs( FILE *fp )
             exit( 1 );
         }
 
-        pAprog      = alloc_PROG();
+        pAprog      = alloc_PROG_CODE();
         pAprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2251,7 +2251,7 @@ static void load_objprogs( FILE *fp )
             exit( 1 );
         }
 
-        pOprog      = alloc_PROG();
+        pOprog      = alloc_PROG_CODE();
         pOprog->vnum    = vnum;
 
         if ( area_version < VER_NEW_PROG_FORMAT )
@@ -2333,7 +2333,7 @@ static void load_mobprogs( FILE *fp )
             exit( 1 );
         }
         
-        pMprog      = alloc_PROG();
+        pMprog      = alloc_PROG_CODE();
         pMprog->vnum    = vnum;
         pMprog->is_lua  = FALSE; /* new progs default to true but
                                     when loading we need to default to false */
