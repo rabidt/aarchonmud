@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <lua.h>
 #include "merc.h"
 #include "recycle.h"
@@ -129,7 +128,6 @@ DESCRIPTOR_DATA *new_descriptor(void)
 	DESCRIPTOR_DATA *d;
 
 	d = alloc_DESCRIPTOR();
-    arc_obj_init(&d->ao_, &descriptor_data_type);
 	
     VALIDATE(d);
 	
@@ -158,9 +156,6 @@ DESCRIPTOR_DATA *new_descriptor(void)
 
 void free_descriptor(DESCRIPTOR_DATA *d)
 {
-    assert(d);
-    arc_obj_deinit(&d->ao_);
-
 	if (!IS_VALID(d))
 	return;
     lua_unregister_desc(d);
@@ -273,7 +268,6 @@ OBJ_DATA *new_obj(void)
 	OBJ_DATA *obj;
 
 	obj = alloc_OBJ();
-    arc_obj_init(&obj->ao_, &obj_data_type);
 	VALIDATE(obj);
     obj->must_extract=FALSE;
     obj->otrig_timer=NULL;
@@ -287,8 +281,6 @@ void free_obj(OBJ_DATA *obj)
 	AFFECT_DATA *paf, *paf_next;
 	EXTRA_DESCR_DATA *ed, *ed_next;
 
-    assert(obj);
-    arc_obj_deinit(&obj->ao_);
 	if (!IS_VALID(obj))
 	return;
 
@@ -335,7 +327,6 @@ CHAR_DATA *new_char (void)
 	int i;
 
 	ch = alloc_CH();
-    arc_obj_init(&ch->ao_, &char_data_type);
 
 	VALIDATE(ch);
 	ch->name                    = &str_empty[0];
@@ -380,9 +371,6 @@ void free_char (CHAR_DATA *ch)
 	AFFECT_DATA *paf;
 	AFFECT_DATA *paf_next;
 
-    assert(ch);
-
-    arc_obj_deinit(&ch->ao_);
 
 	if (!IS_VALID(ch))
 	    return;
@@ -458,7 +446,6 @@ PC_DATA *new_pcdata(void)
     }
     
     *pcdata = pcdata_zero;
-    arc_obj_init(&pcdata->ao_, &pc_data_type);
     
     for (alias = 0; alias < MAX_ALIAS; alias++)
     {
@@ -522,10 +509,6 @@ static void free_pcdata(PC_DATA *pcdata)
     int alias, i;
     GRANT_DATA *gran, *gran_next;
     QUEST_DATA *qdata;
-
-    assert(pcdata);
-
-    arc_obj_deinit(&pcdata->ao_);
     
     if (!IS_VALID(pcdata))
         return;
@@ -955,3 +938,4 @@ void free_crime(CRIME_DATA *crime)
     crime->next = crime_free;
     crime_free = crime;
 }
+

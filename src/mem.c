@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <assert.h>
 #include "merc.h"
 #include "lua_arclib.h"
 
@@ -505,63 +504,21 @@ void free_rpcode(PROG_CODE *pRcode)
     return;
 }
 
-struct arc_obj all_arc_obj =
-{
-    .ao_next = &all_arc_obj,
-    .ao_prev = &all_arc_obj,
-};
 
-static void add_all_obj(struct arc_obj *ao)
+/* Help Editor - kermit 1/98 */
+/*
+HELP_DATA *new_help(void)
 {
-    assert(ao);
-    ao->ao_next = all_arc_obj.ao_next;
-    ao->ao_prev = &all_arc_obj;
-    assert(all_arc_obj.ao_next);
-    all_arc_obj.ao_next->ao_prev = ao;
-    all_arc_obj.ao_next = ao;
+     HELP_DATA *NewHelp;
+
+     NewHelp = alloc_perm(sizeof(*NewHelp) );
+
+     NewHelp->level   = 0;
+     NewHelp->keyword = str_dup("");
+     NewHelp->text    = str_dup("");
+     NewHelp->next    = NULL;
+
+     return NewHelp;
 }
+*/
 
-static void rem_all_obj(struct arc_obj *ao)
-{
-    assert(ao);
-    assert(ao->ao_next);
-    ao->ao_next->ao_prev = ao->ao_prev;
-    assert(ao->ao_prev);
-    ao->ao_prev->ao_next = ao->ao_next;
-    ao->ao_next = NULL;
-    ao->ao_prev = NULL;
-}
-
-void arc_obj_init(struct arc_obj *ao, struct arc_obj_type *ao_type)
-{
-    assert(ao);
-
-    add_all_obj(ao);
-    ao->ao_type = ao_type;
-    ++ao_type->ao_count;
-
-    // mark as initialized
-    ao->magic_id_[0] = AO_MAGIC_INIT_0;
-    ao->magic_id_[1] = AO_MAGIC_INIT_1;
-}
-
-void arc_obj_deinit(struct arc_obj *ao)
-{
-    assert(ao);
-    assert(ao->magic_id_[0] == AO_MAGIC_INIT_0);
-    assert(ao->magic_id_[1] == AO_MAGIC_INIT_1);
-
-    rem_all_obj(ao);
-    assert(ao->ao_type);
-    --ao->ao_type->ao_count;
-    ao->ao_type = NULL;
-
-    // mark as uninitialized
-    ao->magic_id_[0] = AO_MAGIC_DEINIT_0;
-    ao->magic_id_[1] = AO_MAGIC_DEINIT_1;
-}
-
-struct arc_obj_type char_data_type = { .ao_count = 0, .name = "char_data" };
-struct arc_obj_type pc_data_type = { .ao_count = 0, .name = "pc_data" };
-struct arc_obj_type descriptor_data_type = { .ao_count = 0, .name = "descriptor_data" };
-struct arc_obj_type obj_data_type = { .ao_count = 0, .name = "obj_data" };
