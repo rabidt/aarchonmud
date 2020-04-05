@@ -40,8 +40,6 @@ extern      int         top_oprog_index;
 extern      int         top_aprog_index;
 extern      int         top_rprog_index;
 
-EXTRA_DESCR_DATA	*	extra_descr_free;
-
 HELP_DATA		*	help_last;
 
 void	free_extra_descr	args( ( EXTRA_DESCR_DATA *pExtra ) );

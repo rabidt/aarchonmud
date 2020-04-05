@@ -890,7 +890,7 @@ DEF_DO_FUN(do_snoop)
     {
         for ( d = ch->desc->snoop_by; d != NULL; d = d->snoop_by )
         {
-            if ( d->character == victim || d->original == victim )
+            if ( d->character == victim )
             {
                 send_to_char( "No snoop loops.\n\r", ch );
                 return;
@@ -910,121 +910,6 @@ DEF_DO_FUN(do_snoop)
         (IS_NPC(ch) ? victim->short_descr : victim->name));
     wiznet(buf,ch,NULL,WIZ_SNOOPS,WIZ_SECURE,get_trust(ch));
     send_to_char( "Ok.\n\r", ch );
-    return;
-}
-
-
-
-DEF_DO_FUN(do_switch)
-{
-    char arg[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
-    CHAR_DATA *victim;
-    
-    one_argument( argument, arg );
-    
-    if ( arg[0] == '\0' )
-    {
-        send_to_char( "Switch into whom?\n\r", ch );
-        return;
-    }
-    
-    if ( ch->desc == NULL )
-        return;
-    
-    if ( ch->desc->original != NULL )
-    {
-        send_to_char( "You are already switched.\n\r", ch );
-        return;
-    }
-    
-    if ( ( victim = get_char_world( ch, arg ) ) == NULL )
-    {
-        send_to_char( "They aren't here.\n\r", ch );
-        return;
-    }
-    
-    if ( victim == ch )
-    {
-        send_to_char( "Ok.\n\r", ch );
-        return;
-    }
-    
-    if (!IS_NPC(victim))
-    {
-        send_to_char("You can only switch into mobiles.\n\r",ch);
-        return;
-    }
-    
-    if (!is_room_owner(ch,victim->in_room) && ch->in_room != victim->in_room 
-        &&  room_is_private(victim->in_room) && !IS_TRUSTED(ch,IMPLEMENTOR))
-    {
-        send_to_char("That character is in a private room.\n\r",ch);
-        return;
-    }
-    
-    if ( victim->desc != NULL )
-    {
-        send_to_char( "Character in use.\n\r", ch );
-        return;
-    }
-    
-    if (IS_SET(victim->penalty, PENALTY_FREEZE))
-    {
-        send_to_char("Character is frozen. Switch aborted to avoid trapping you.\n\r",ch);
-        return;
-    }
-    
-    snprintf( buf, sizeof(buf),"$N switches into %s",victim->short_descr);
-    wiznet(buf,ch,NULL,WIZ_SWITCHES,WIZ_SECURE,get_trust(ch));
-    
-	if (!IS_NPC(ch))
-		REMOVE_BIT(ch->pcdata->tag_flags, TAG_PLAYING);
-    ch->desc->character = victim;
-    ch->desc->original  = ch;
-    victim->desc        = ch->desc;
-    ch->desc            = NULL;
-    /* change communications to match */
-    if (ch->prompt != NULL)
-        victim->prompt = str_dup(ch->prompt);
-    flag_copy( victim->comm, ch->comm );
-    victim->lines = ch->lines;
-    send_to_char( "Ok.\n\r", victim );
-    return;
-}
-
-
-
-DEF_DO_FUN(do_return)
-{
-    char buf[MAX_STRING_LENGTH];
-    
-    if ( ch->desc == NULL )
-        return;
-    
-    if ( ch->desc->original == NULL )
-    {
-        send_to_char( "You aren't switched.\n\r", ch );
-        return;
-    }
-    
-    send_to_char( "You return to your original body.\n\r", ch );
-    if (ch->prompt != NULL)
-    {
-        free_string(ch->prompt);
-        ch->prompt = NULL;
-    }
-    
-    if ( ch->desc->original->pcdata->new_tells)
-        send_to_char( "Type 'playback tell' to see missed tells.\n\r", ch );
-    
-    
-    snprintf( buf, sizeof(buf),"$N returns from %s.",ch->short_descr);
-    wiznet(buf,ch->desc->original,0,WIZ_SWITCHES,WIZ_SECURE,get_trust(ch));
-    ch->desc->character       = ch->desc->original;
-    ch->desc->original        = NULL;
-    ch->desc->character->desc = ch->desc; 
-    ch->desc                  = NULL;
-    
     return;
 }
 
@@ -2369,7 +2254,7 @@ DEF_DO_FUN(do_omni)
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        CHAR_DATA *wch = ( d->original != NULL ) ? d->original : d->character;
+        CHAR_DATA *wch = d->character;
         
         if ( wch == NULL || !can_see(ch, wch) )
             continue;

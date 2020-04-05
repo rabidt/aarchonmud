@@ -752,7 +752,6 @@ struct  descriptor_data
 	DESCRIPTOR_DATA *   next;
 	DESCRIPTOR_DATA *   snoop_by;
 	CHAR_DATA *     character;
-	CHAR_DATA *     original;
 	bool        valid;
     const char* host;
     /* True if the host is not the actual client host, but end user host provided by the client */
@@ -4106,8 +4105,7 @@ struct boss_achieve_record
 #define HAS_OTRIG(obj,trig)     (IS_SET((obj)->pIndexData->oprog_flags,(trig)))
 #define HAS_ATRIG(area,trig)    (IS_SET((area)->aprog_flags,(trig)))
 #define HAS_RTRIG(room,trig)    (IS_SET((room)->rprog_flags,(trig)))
-#define IS_SWITCHED( ch )       ( ch->desc && ch->desc->original )
-#define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && !IS_SWITCHED( ch ) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
+#define IS_BUILDER(ch, Area)    ( !IS_NPC(ch) && (ch->pcdata->security >= Area->security || strstr( Area->builders, ch->name ) || strstr( Area->builders, "All" ) ) )
 #define IS_REMORT(ch)			(!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_REMORT)) 
 #define IS_NOHIDE(ch)           (!IS_NPC(ch) && IS_SET(ch->in_room->area->area_flags, AREA_NOHIDE))
 
@@ -4115,7 +4113,6 @@ struct boss_achieve_record
             || (con >= CON_PENALTY_SEVERITY && con <= CON_PENALTY_FINISH) \
             ) ? TRUE : FALSE)
 #define IS_PLAYING(con)         (con == CON_PLAYING || IS_WRITING_NOTE(con) || con == CON_CB_HANDLER)
-#define DESC_PC(desc)         (desc->original ? desc->original : desc->character)
 
 #define NOT_AUTHED(ch)   (!IS_NPC(ch) && get_auth_state( ch ) != AUTH_AUTHED && IS_SET(ch->act, PLR_UNAUTHED) )
 
@@ -4595,7 +4592,6 @@ void    nt_act( const char *format, CHAR_DATA *ch, const void *arg1, const void 
 void    act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void *arg2, int type );
 const char *remove_color( const char *txt, char *buf, size_t bufsz );
 bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
-CHAR_DATA* original_char( CHAR_DATA *ch );
 bool is_command_pending( DESCRIPTOR_DATA *d );
 void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... );
 void    printf_to_wiznet( CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ... );

@@ -931,7 +931,7 @@ void close_socket( DESCRIPTOR_DATA *dclose )
             }
 
             //unregister_lua( ch );
-            free_char(dclose->original ? dclose->original : dclose->character );
+            free_char( dclose->character );
         }
     }
 
@@ -1287,7 +1287,7 @@ static bool process_output( DESCRIPTOR_DATA *d, bool fPrompt )
 
             battle_prompt(d);
 
-            ch = d->original ? d->original : d->character;
+            ch = d->character;
             if (!IS_SET(ch->comm, COMM_COMPACT) )
                 write_to_buffer( d, "\n\r", 2 );
 
@@ -2588,7 +2588,7 @@ void printf_to_wiznet(CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, i
     wiznet (buf, ch, obj, flag, flag_skip, min_level);
 }
 
-#define CH(descriptor)  ((descriptor)->original ? (descriptor)->original : (descriptor)->character)
+#define CH(descriptor)  ((descriptor)->character)
 
 /* This file holds the copyover data */
 #define COPYOVER_FILE "copyover.data"
@@ -2638,7 +2638,7 @@ static void copyover_mud( const char *argument )
     for (d = descriptor_list; d; d = d_next)
     {
         CHAR_DATA *curr;
-        curr = d->original ? d->original : d->character;
+        curr = d->character;
         d_next = d->next;	/* Nice and safe, we go.. */
         if( curr && curr->pcdata && curr->pcdata->countdown != 0 )
         {
@@ -2910,21 +2910,6 @@ static void copyover_recover ( void )
 
     }
     fclose (fp);
-}
-
-/* returns the original char for switched chars */
-CHAR_DATA* original_char( CHAR_DATA *ch )
-{
-    if ( ch == NULL )
-    {
-        bug( "original_char: NULL pointer given", 0 );
-        return NULL;
-    }
-
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-        return ch->desc->original;
-    else
-        return ch;
 }
 
 /* returns whether two chars have the same IP */

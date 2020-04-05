@@ -510,9 +510,6 @@ void reset_char(CHAR_DATA *ch)
  */
 int get_trust( CHAR_DATA *ch )
 {
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-        ch = ch->desc->original;
-    
     if (ch->trust)
         return ch->trust;
     
@@ -2695,12 +2692,6 @@ bool extract_char_new( CHAR_DATA *ch, bool fPull, bool extract_objects)
     if ( IS_NPC(ch) )
         --ch->pIndexData->count;
 
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-    {
-        do_return( ch, "" );
-        ch->desc = NULL;
-    }
-
     for ( wch = char_list; wch != NULL; wch = wch->next )
     {
         if ( wch->reply == ch )
@@ -2794,7 +2785,7 @@ CHAR_DATA* get_player( const char *name )
     for ( d = descriptor_list; d != NULL; d = d->next )
 	if ( IS_PLAYING(d->connected) )
 	{
-	    ch = original_char( d->character );
+	    ch = d->character;
 
 	    if ( ch != NULL && !strcmp(ch->name, name) )
 		return ch;

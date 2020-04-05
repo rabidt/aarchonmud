@@ -217,7 +217,7 @@ void nanny( DESCRIPTOR_DATA *d, const char *argument )
 			    take_rom_basics(d);
 			    take_class_defaults(d);
 			    take_default_weapon(d);
-			    take_default_stats(d->original ? d->original : d->character);
+			    take_default_stats(d->character);
 			    set_creation_state(d, CREATION_UNKNOWN);
 			    read_imotd(d, argument);
 			}
@@ -1711,8 +1711,7 @@ DEF_NANNY_FUN(break_connect)
 		if (d_old == d || d_old->character == NULL)
 			continue;
 
-		if (str_cmp(d->character->name,d_old->original ?
-			d_old->original->name : d_old->character->name))
+		if (str_cmp(d->character->name,d_old->character->name))
 			continue;
 
 		close_socket(d_old);
@@ -1837,8 +1836,7 @@ static bool check_playing( DESCRIPTOR_DATA *d, const char *name )
 	&&   dold->character != NULL
 	&&   dold->connected != CON_GET_NAME
 	&&   dold->connected != CON_GET_OLD_PASSWORD
-	&&   !str_cmp( name, dold->original
-			 ? dold->original->name : dold->character->name ) )
+	&&   !str_cmp( name, dold->character->name ) )
 	{
 		break_connect(d, "");
 		return TRUE;

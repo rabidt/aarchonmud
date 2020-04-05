@@ -107,9 +107,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("mem_save_char_obj: start");
 #endif
-    
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-        ch = ch->desc->original;
 
     if ( IS_NPC(ch) )
         return NULL;    
@@ -2698,8 +2695,6 @@ static void bread_pet( CHAR_DATA *ch, RBUFFER *buf )
         }
     }
 }
-
-extern  OBJ_DATA    *obj_free;
 
 static void bread_obj( CHAR_DATA *ch, RBUFFER *buf,OBJ_DATA *storage_box )
 {

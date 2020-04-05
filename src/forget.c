@@ -19,10 +19,7 @@ DEF_DO_FUN(do_forget)
     int pos;
     bool found = FALSE;
     
-    if (ch->desc == NULL)
-        rch = ch;
-    else
-        rch = ch->desc->original ? ch->desc->original : ch;
+    rch = ch;
     
     if (IS_NPC(rch))
         return;
@@ -68,7 +65,7 @@ DEF_DO_FUN(do_forget)
         if (!IS_PLAYING(d->connected) || !can_see(ch,d->character))
             continue;
         
-        wch = ( d->original != NULL ) ? d->original : d->character;
+        wch = d->character;
         
         if (!can_see(ch,wch))
             continue;
@@ -119,10 +116,7 @@ DEF_DO_FUN(do_remember)
     int pos;
     bool found = FALSE;
     
-    if (ch->desc == NULL)
-        rch = ch;
-    else
-        rch = ch->desc->original ? ch->desc->original : ch;
+    rch = ch;
     
     if (IS_NPC(rch))
         return;

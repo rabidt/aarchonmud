@@ -35,7 +35,7 @@
 static CHAR_DATA *active_char = NULL;
 void anti_spam_interpret( CHAR_DATA *ch, const char *argument )
 {
-    active_char = original_char(ch);
+    active_char = ch;
     interpret( ch, argument );
     active_char = NULL;
 }
@@ -56,7 +56,7 @@ void substitute_alias(DESCRIPTOR_DATA *d, const char *argument)
     const char *point;
     int alias;
     
-    ch = d->original ? d->original : d->character;
+    ch = d->character;
     
     /* charmed chars can't act on their own behalf */
     if ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL && !IS_IMMORTAL(ch) )
@@ -142,10 +142,7 @@ DEF_DO_FUN(do_alias)
     
     argument = smash_tilde_cc(argument);
     
-    if (ch->desc == NULL)
-        rch = ch;
-    else
-        rch = ch->desc->original ? ch->desc->original : ch;
+    rch = ch;
     
     if (IS_NPC(rch))
         return;
@@ -247,10 +244,7 @@ DEF_DO_FUN(do_unalias)
     int pos;
     bool found = FALSE;
     
-    if (ch->desc == NULL)
-        rch = ch;
-    else
-        rch = ch->desc->original ? ch->desc->original : ch;
+    rch = ch;
     
     if (IS_NPC(rch))
         return;

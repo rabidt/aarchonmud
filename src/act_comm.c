@@ -476,7 +476,7 @@ static void public_channel( const CHANNEL *chan, CHAR_DATA *ch, const char *argu
         {
             CHAR_DATA *victim;
             
-            victim = d->original ? d->original : d->character;
+            victim = d->character;
             
             if ( (IS_PLAYING(d->connected)) &&
                 d->character != ch &&
@@ -558,7 +558,7 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-        victim = d->original ? d->original : d->character;
+        victim = d->character;
         if ( !victim )
             continue;
 
@@ -1019,7 +1019,7 @@ DEF_DO_FUN(do_shout)
     {
         CHAR_DATA *victim;
         
-        victim = d->original ? d->original : d->character;
+        victim = d->character;
         
         if ((IS_PLAYING(d->connected)) &&
             d->character != ch &&
@@ -1886,7 +1886,7 @@ static void quit_char( CHAR_DATA *ch )
         CHAR_DATA *tch;
         
         d_next = d->next;
-        tch = d->original ? d->original : d->character;
+        tch = d->character;
         if (tch && tch->id == id)
         {
             bugf("quit_char: %s still referenced via descriptor", tch->name);

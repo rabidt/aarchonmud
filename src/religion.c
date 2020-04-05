@@ -2551,7 +2551,7 @@ DEF_DO_FUN(do_god)
     for ( d = descriptor_list; d != NULL; d = d->next )
         if ( IS_PLAYING(d->connected) )
         {
-            victim = original_char( d->character );
+            victim = d->character;
 
             if ( victim == NULL
                 || IS_NPC(victim)

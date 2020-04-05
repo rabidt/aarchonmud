@@ -126,7 +126,7 @@ static bool penalty_handled( CHAR_DATA *ch, CHAR_DATA *victim, const char *penty
     
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
-	wch = d->original != NULL ? d->original : d->character;
+	wch = d->character;
 	if ( wch != NULL 
 	     && wch->pcdata != NULL 
 	     && wch->pcdata->new_penalty != NULL

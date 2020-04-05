@@ -25,8 +25,6 @@ static bool is_revoked( CHAR_DATA *ch, DO_FUN *do_fun)
 {
     GRANT_DATA * gran;
 
-    ch = original_char( ch );
-
     for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
     {
         if (do_fun == gran->do_fun)
@@ -42,8 +40,6 @@ bool is_granted( CHAR_DATA *ch, DO_FUN *do_fun)
 {
     GRANT_DATA *gran;
     
-    ch = original_char( ch );
-    
     for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
     {
         if (do_fun == gran->do_fun)
@@ -58,9 +54,7 @@ bool is_granted( CHAR_DATA *ch, DO_FUN *do_fun)
 bool is_granted_name( CHAR_DATA *ch, const char *name)
 {
     GRANT_DATA *gran;
-    
-    ch = original_char( ch );
-    
+     
     for (gran = ch->pcdata->granted; gran != NULL; gran = gran->next)
     {
         if (is_exact_name(gran->name,name))
@@ -75,8 +69,6 @@ bool is_granted_name( CHAR_DATA *ch, const char *name)
 static int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
 {
     GRANT_DATA *gran;
-    
-    ch = original_char( ch );
     
     /*  Replace the x's in the line below with the name of
         a character that is allowed to grant commands to
@@ -104,8 +96,6 @@ static int grant_duration(CHAR_DATA *ch, DO_FUN *do_fun)
 static void grant_add(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, int duration, int level)
 {
     GRANT_DATA *gran;
-    
-    ch = original_char( ch );
     
     gran = ch->pcdata->granted;
 
@@ -135,7 +125,7 @@ static void grant_remove(CHAR_DATA *ch, DO_FUN *do_fun, bool mshow)
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *rch;
     
-    rch = original_char( ch );
+    rch = ch;
 
     p = NULL;
     gran = rch->pcdata->granted;
@@ -173,7 +163,7 @@ static void grant_revoke(CHAR_DATA *ch, const char *name, DO_FUN *do_fun, bool m
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *rch;
     
-    rch = original_char( ch );
+    rch = ch;
     gran = rch->pcdata->granted;
 
     while (gran && gran->do_fun != do_fun)
@@ -277,7 +267,7 @@ DEF_DO_FUN(do_grant)
     one_argument(argument,arg3);
     
 
-    rch = original_char( ch );
+    rch = ch;
     
     if (arg1[0] == '\0')
     {
@@ -304,7 +294,7 @@ DEF_DO_FUN(do_grant)
         return;
     }
 
-    rvictim = original_char( victim );
+    rvictim = victim;
     
     if (arg2[0] == '\0')
     {
@@ -471,7 +461,7 @@ DEF_DO_FUN(do_revoke)
         return;
     }
     
-    rvictim = original_char( victim );
+    rvictim = victim;
 
     had_return = is_granted_name(victim,"return");
     
