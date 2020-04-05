@@ -2389,7 +2389,6 @@ void update_handler( void )
         show_violence_summary();
         death_update();
         extract_update();
-        cleanup_uds();
         validate_all();
     }
 

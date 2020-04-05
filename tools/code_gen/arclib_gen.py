@@ -25,7 +25,7 @@ def main():
     
     print "/* lao offset declarations */"
     ctype_seen = set()
-    for ltype, ctype, tblprefix in TYPE_PAIRS:
+    for ltype, ctype, tblprefix, _ in TYPE_PAIRS:
         
 
         if ctype in ctype_seen:
@@ -50,11 +50,11 @@ def main():
     .get_table     = {tblprefix}_get_table,
     .set_table     = {tblprefix}_set_table,
     .method_table  = {tblprefix}_method_table,
-    .check_check   = {check_check},
+    .valid_check   = {valid_check},
     .count         = 0
 }};""".format(
     ctype=ctype, ltype=ltype, tblprefix=tblprefix,
-    check_check=(ltype + "_check_check") if check else "NULL")
+    valid_check=(ltype + "_valid_check") if check else "NULL")
 
     print "/* typesafe wrappers */\n"
     for ltype, ctype, _, _ in TYPE_PAIRS:
@@ -63,7 +63,7 @@ bool is_{ltype}( lua_State *LS, int index) {{ return arclib_is( p_{ltype}_type, 
 bool push_{ltype}( lua_State *LS, {ctype} *ud ) {{ return arclib_push( p_{ltype}_type, LS, ud ); }}
 void lua_init_{ltype}( {ctype} *p ) {{ lua_arclib_obj_init( p_{ltype}_type, p ); }}
 void lua_deinit_{ltype}( {ctype} *p ) {{ lua_arclib_obj_deinit( p_{ltype}_type, p ); }}
-bool valid_{ltype}( {ctype} *ud ) {{ return arclib_valid( ud ); }}
+bool valid_{ltype}( {ctype} *ud ) {{ return arclib_valid( p_{ltype}_type, ud ); }}
 int count_{ltype}( void ) {{ return arclib_count_type( p_{ltype}_type ); }}
 """.format(ctype=ctype, ltype=ltype)
 

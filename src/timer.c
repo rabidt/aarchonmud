@@ -443,10 +443,24 @@ void print_timer_list( char * const buf, const size_t bufsz )
             unregcnt++;
             continue;
         }
-        else if ( tmr->tm_type == TM_PROG && !arclib_valid( tmr->game_obj ) )
+        else if ( tmr->tm_type == TM_PROG )
         {
-            bugf("Invalid game_obj in print_timer_list.");
-            continue;
+            bool valid;
+            switch (tmr->go_type)
+            {
+                case GO_TYPE_CH: valid = valid_CH(tmr->game_obj); break;
+                case GO_TYPE_OBJ: valid = valid_OBJ(tmr->game_obj); break;
+                case GO_TYPE_AREA: valid = valid_AREA(tmr->game_obj); break;
+                case GO_TYPE_ROOM: valid = valid_ROOM(tmr->game_obj); break;
+                default:
+                    bugf("Unexpected go_type in %s: %d", __func__, tmr->go_type);
+                    valid = FALSE;
+            }
+            if (!valid)
+            {
+                bugf("Invalid game_obj in print_timer_list.");
+                continue;
+            }
         }
 
         rc = snprintf(buf + buf_i, bufsz - buf_i, "\n\r%d %s %d %s", i,

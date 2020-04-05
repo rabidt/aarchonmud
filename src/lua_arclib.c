@@ -38,7 +38,7 @@ struct lua_obj_type
     const struct lua_prop_type * const set_table;
     const struct lua_prop_type * const method_table;
 
-    void (* const check_check)(lua_State *, int, void *);
+    bool (* const valid_check)(void *);
 
     int count;
 };
@@ -1991,6 +1991,7 @@ void run_delayed_function( TIMER_NODE *tmr )
     {
         bugf ( "Error running delayed function:\n %s",
                 lua_tostring(g_mud_LS, -1));
+        lua_pop(g_mud_LS, 1);
         return;
     }
 
@@ -8233,25 +8234,18 @@ void arclib_type_init( lua_State *LS)
     }
 }
 
-void cleanup_uds( void )
-{
-    PERF_PROF_ENTER( pr_, "cleanup_uds" );
-    lua_newtable( g_mud_LS );
-    lua_setglobal( g_mud_LS, "cleanup" );
-    PERF_PROF_EXIT( pr_ );
-} 
-
-
 #define REF_FREED -1
 
-bool arclib_valid( void *ud )
+/* This is ONLY the check for "arclib" validity and shouldn't include the type
+   specific struct check (valid_check) */
+bool arclib_valid( LUA_OBJ_TYPE *type, void *gobj )
 {
-    if (!ud)
+    if (!gobj)
         return FALSE;
 
     bool rtn;
     lua_getglobal( g_mud_LS, "validuds" );
-    lua_pushlightuserdata( g_mud_LS, ud );
+    lua_pushlightuserdata( g_mud_LS, gobj );
     lua_gettable( g_mud_LS, -2 );
     if (lua_isnil( g_mud_LS, -1 ))
         rtn = FALSE;
@@ -8267,11 +8261,18 @@ void * arclib_check( LUA_OBJ_TYPE *type, lua_State *LS, int index )
     void *p = *((void **)ud);
     if (!p)
     {
-        luaL_argerror(LS, index, "freed object");
+        bugf("Unexpected null pointer in %s", __func__);
+        luaL_argerror(LS, index, "null pointer");
     }
-    if (type->check_check)
+    if (type->valid_check)
     {
-        type->check_check( LS, index, p );
+        if (!type->valid_check( p ))
+        {
+            /* important distinction. The C struct is considered "invalid" 
+               but would not have been freed yet */
+            lua_pushfstring(LS, "invalid %s", type->C_type_name);
+            luaL_argerror(LS, index, lua_tostring(LS, -1));
+        }
     }
     return p;
 }
@@ -8285,19 +8286,25 @@ bool arclib_is( LUA_OBJ_TYPE *type, lua_State *LS, int index )
     return result;
 }
 
-bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud )
+bool arclib_push( LUA_OBJ_TYPE *ltype, lua_State *LS, void *gobj )
 {
-    if (!ud)
+    if (!gobj)
     {
-        bugf( "NULL ud passed to arclib_push, type: %s", type->type_name );
+        bugf( "NULL gobj passed to arclib_push, type: %s", ltype->type_name );
         return FALSE;
     }
-    if ( !arclib_valid( ud ) )
+    if ( !arclib_valid( ltype, gobj ) )
     {
-        bugf( "Invalid %s in arclib_push", type->C_type_name );
+        bugf( "Invalid %s in arclib_push", ltype->type_name );
         return FALSE;
     }
-    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)ud + *type->p_lao_offset);
+    if ( ltype->valid_check && !ltype->valid_check(gobj) )
+    {
+        bugf( "Invalid %s in arclib_push", ltype->C_type_name );
+        return FALSE;
+    }
+
+    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)gobj + *ltype->p_lao_offset);
     int ref = lao->ref_;
     if (ref == REF_FREED)
         return FALSE;
@@ -8307,18 +8314,18 @@ bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud )
     return TRUE;
 }
 
-void lua_arclib_obj_init( LUA_OBJ_TYPE *lua_type, void *p)
+void lua_arclib_obj_init( LUA_OBJ_TYPE *ltype, void *p)
 {
-    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)p + *lua_type->p_lao_offset);
+    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)p + *ltype->p_lao_offset);
     void *ud = lua_newuserdata( g_mud_LS, sizeof(void*));
     *((void **)ud) = p;
 
-    luaL_getmetatable( g_mud_LS, lua_type->type_name );
+    luaL_getmetatable( g_mud_LS, ltype->type_name );
     lua_setmetatable( g_mud_LS, -2 );
     lao->magic_id_[0] = LAO_MAGIC_INIT_0;
     lao->magic_id_[1] = LAO_MAGIC_INIT_1;
     lao->ref_ = luaL_ref( g_mud_LS, LUA_REGISTRYINDEX );
-    ++lua_type->count;
+    ++ltype->count;
 
     /* register in validuds table for valid checks later on */
     lua_getglobal( g_mud_LS, "validuds" );
@@ -8328,46 +8335,47 @@ void lua_arclib_obj_init( LUA_OBJ_TYPE *lua_type, void *p)
     lua_pop( g_mud_LS, 1 );
 }
 
-void lua_arclib_obj_deinit( LUA_OBJ_TYPE *lua_type, void *p)
+void lua_arclib_obj_deinit( LUA_OBJ_TYPE *ltype, void *p)
 {
-    if ( !arclib_valid( p ) )
+    if ( !arclib_valid( ltype, p ) )
     {
-        bugf( "Invalid %s in lua_arclib_obj_deinit", lua_type->C_type_name );
+        bugf( "Invalid %s in lua_arclib_obj_deinit", ltype->C_type_name );
         return;
     }
-    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)p + *lua_type->p_lao_offset);
+    struct lua_arclib_obj *lao = (struct lua_arclib_obj *)((uintptr_t)p + *ltype->p_lao_offset);
     assert(lao->magic_id_[0] == LAO_MAGIC_INIT_0);
     assert(lao->magic_id_[1] == LAO_MAGIC_INIT_1);
     int ref = lao->ref_;
     if ( ref == REF_FREED )
     {
-        bugf( "Tried to free already freed %s", lua_type->type_name );
+        bugf( "Tried to free already freed %s", ltype->type_name );
         return;
     }
+
+    lua_rawgeti( g_mud_LS, LUA_REGISTRYINDEX, ref );
+
     /* destroy env */
     lua_getglobal( g_mud_LS, "envtbl" );
-    arclib_push( lua_type, g_mud_LS, p );
+    lua_pushvalue( g_mud_LS, -2 );
     lua_pushnil( g_mud_LS );
     lua_settable( g_mud_LS, -3 );
     lua_pop( g_mud_LS, 1 ); /* pop envtbl */
-    
-    /* move to cleanup table */
-    lua_getglobal( g_mud_LS, "cleanup" );
-    arclib_push( lua_type, g_mud_LS, p );
-    luaL_ref( g_mud_LS, -2 );
-    lua_pop( g_mud_LS, 1 ); /* pop cleanup */
-    
+       
     /* Set the actual ud pointer value to NULL */
-    arclib_push( lua_type, g_mud_LS, p );
     void *ud = lua_touserdata( g_mud_LS, -1 );
     *((void **)ud) = NULL;
-    lua_pop( g_mud_LS, 1);
+
+    /* set the INVALID metatable */
+    lua_pushfstring(g_mud_LS, "INVALID %s", ltype->type_name);
+    luaL_getmetatable(g_mud_LS, lua_tostring(g_mud_LS, -1));
+    lua_setmetatable(g_mud_LS, -3);
+    lua_pop(g_mud_LS, 2); // pop object and fstring
 
     lao->magic_id_[0] = LAO_MAGIC_DEINIT_0;
     lao->magic_id_[1] = LAO_MAGIC_DEINIT_1;
     lao->ref_ = REF_FREED;
     luaL_unref( g_mud_LS, LUA_REGISTRYINDEX, ref );
-    --lua_type->count;
+    --ltype->count;
     /* unregister from validuds table */
     lua_getfield( g_mud_LS, LUA_GLOBALSINDEX, "validuds" );
     lua_pushlightuserdata( g_mud_LS, ud );
@@ -8401,19 +8409,19 @@ int arclib_count_type( LUA_OBJ_TYPE *type )
     return count;
 }
 
-static int arclib_newindex( LUA_OBJ_TYPE *type, lua_State *LS )
+static int arclib_newindex( LUA_OBJ_TYPE *ltype, lua_State *LS )
 {
-    void *gobj = arclib_check( type, LS, 1 );
+    void *gobj = arclib_check( ltype, LS, 1 );
     const char *arg=check_string( LS, 2, MIL );
     
-    if (! arclib_valid( gobj ) )
+    if (! arclib_valid( ltype, gobj ) )
     {
-        luaL_error( LS, "Tried to index invalid %s.", type->type_name );
+        luaL_error( LS, "Tried to index invalid %s.", ltype->type_name );
     }
     
     lua_remove(LS, 2);
     
-    const LUA_PROP_TYPE *set = type->set_table ;
+    const LUA_PROP_TYPE *set = ltype->set_table ;
     
     int i;
     for (i=0 ; set[i].field ; i++ )
@@ -8435,41 +8443,63 @@ static int arclib_newindex( LUA_OBJ_TYPE *type, lua_State *LS )
             else
             {
                 bugf("No function entry for %s %s.",
-                        type->type_name , arg );
+                        ltype->type_name , arg );
                 luaL_error(LS, "No function found.");
             }
         }
     }
     
     luaL_error(LS, "Can't set field '%s' for type %s.",
-            arg, type->type_name );
+            arg, ltype->type_name );
     
     return 0;
 }
 
-static int arclib_index( LUA_OBJ_TYPE *type, lua_State *LS )
+static int arclib_index( LUA_OBJ_TYPE *ltype, lua_State *LS )
 {
-    void *gobj = arclib_check( type, LS, 1 );
+    /* If the object was already deinited then we would never enter this function since the metatable
+       was changed to the INVALID one. However, for the case where object was not deinited yet but
+       the struct would not pass the type specific valid_check, we want to support checking
+       .isarclibobject and .valid without triggering an error, so we can't use arclib_check here. */
     const char *arg = luaL_checkstring( LS, 2 );
-    const LUA_PROP_TYPE *get = type->get_table;
-    
     if (!strcmp("isarclibobject", arg))
     {
         lua_pushboolean( LS, TRUE );
         return 1;
     }
-    bool valid = arclib_valid( gobj );
+
+    void *ud = luaL_checkudata( LS, 1, ltype->type_name );
+    void *gobj = *((void **)ud);
+    if (!gobj)
+    {
+        bugf("Unexpected null pointer in %s", __func__);
+        luaL_argerror(LS, 1, "null pointer");
+    }
+    
+    bool lua_valid = arclib_valid( ltype, gobj );
+    bool struct_valid = lua_valid;
+    if ( lua_valid && ltype->valid_check )
+    {
+        struct_valid = ltype->valid_check(gobj);
+    }
+    
     if (!strcmp("valid", arg))
     {
-        lua_pushboolean( LS, valid );
+        lua_pushboolean( LS, lua_valid && struct_valid );
         return 1;
     }
-    
-    if (!valid)
+
+    if (!lua_valid)
     {
-        luaL_error( LS, "Tried to index invalid %s.", type->type_name );
+        luaL_error( LS, "Tried to index invalid %s.", ltype->type_name );
     }
-    
+    if (!struct_valid)
+    {
+        luaL_error( LS, "Tried to index invalid %s.", ltype->C_type_name );
+    }
+
+    const LUA_PROP_TYPE *get = ltype->get_table;
+
     int i;
     for (i=0; get[i].field; i++ )
     {
@@ -8489,13 +8519,13 @@ static int arclib_index( LUA_OBJ_TYPE *type, lua_State *LS )
             else
             {
                 bugf("No function entry for %s %s.",
-                        type->type_name, arg );
+                        ltype->type_name, arg );
                 luaL_error(LS, "No function found.");
             }
         }
     }
     
-    const LUA_PROP_TYPE *method = type->method_table ;
+    const LUA_PROP_TYPE *method = ltype->method_table ;
     
     for (i=0; method[i].field; i++ )
     {
@@ -8520,10 +8550,35 @@ static int L_arclib_index( lua_State *LS )
     return arclib_index( type, LS );
 }
 
+static int L_arclib_index_invalid( lua_State *LS )
+{
+    const char *arg = luaL_checkstring(LS, 2);
+    if (!strcmp(arg, "isarclibobject"))
+    {
+        lua_pushboolean(LS, 1);
+        return 1;
+    }
+    if (!strcmp(arg, "valid"))
+    {
+        lua_pushboolean(LS, 0);
+        return 1;
+    }
+
+    const char *type_name = lua_tostring(LS, lua_upvalueindex(1));
+
+    return luaL_error(LS, "Tried to index invalid %s.", type_name);
+}
+
 static int L_arclib_newindex( lua_State *LS )
 {
     LUA_OBJ_TYPE *type = lua_touserdata( LS, lua_upvalueindex( 1 ) );
     return arclib_newindex( type, LS );
+}
+
+static int L_arclib_newindex_invalid( lua_State *LS )
+{
+    const char *type_name = lua_tostring(LS, lua_upvalueindex(1));
+    return luaL_error(LS, "Tried to set value on invalid %s.", type_name);
 }
 
 static int L_arclib_tostring( lua_State *LS )
@@ -8531,6 +8586,13 @@ static int L_arclib_tostring( lua_State *LS )
     LUA_OBJ_TYPE *type = lua_touserdata( LS, lua_upvalueindex( 1 ) );
     lua_pushstring( LS, type->type_name );
 
+    return 1;
+}
+
+static int L_arclib_tostring_invalid( lua_State *LS )
+{
+    const char *type_name = lua_tostring(LS, lua_upvalueindex(1));
+    lua_pushfstring(LS, "INVALID %s", type_name);
     return 1;
 }
 
@@ -8554,6 +8616,25 @@ static void register_arclib_type( LUA_OBJ_TYPE *type, lua_State *LS )
     lua_setfield( LS, -2, "TYPE" );
     
     lua_pop( LS, 1 );
+
+    /* Also add an INVALID metatable for each type */
+    lua_pushfstring( LS, "INVALID %s", type->type_name);
+    luaL_newmetatable( LS, lua_tostring(LS, -1) );
+    lua_remove(LS, -2); // remove fstring
+
+    lua_pushstring( LS, type->type_name );
+    lua_pushcclosure( LS, L_arclib_index_invalid, 1 );
+    lua_setfield( LS, -2, "__index");
+
+    lua_pushstring( LS, type->type_name );
+    lua_pushcclosure( LS, L_arclib_newindex_invalid, 1 );
+    lua_setfield( LS, -2, "__newindex");
+
+    lua_pushstring( LS, type->type_name );
+    lua_pushcclosure( LS, L_arclib_tostring_invalid, 1 );
+    lua_setfield( LS, -2, "__tostring");
+
+    lua_pop( LS, 1 );
 }
 
 const char *arclib_type_name( LUA_OBJ_TYPE *type )
@@ -8561,42 +8642,19 @@ const char *arclib_type_name( LUA_OBJ_TYPE *type )
     return type->type_name;
 }
 
-static void CH_check_check(lua_State *LS, int index, void *ud)
+static bool CH_valid_check(void *gobj)
 {
-    CHAR_DATA *ch = (CHAR_DATA *)ud;
-
-    if (!ch)
-    {
-        luaL_argerror(LS, index, "NULL CHAR_DATA pointer");
-    }
-    if (!ch->valid)
-    {
-        luaL_argerror(LS, index, "CHAR_DATA not valid");
-    }
-    if (ch->must_extract)
-    {
-        luaL_argerror(LS, index, "CHAR_DATA is destroyed");
-    }
+    CHAR_DATA *ch = (CHAR_DATA *)gobj;
+    return ch && ch->valid && !ch->must_extract;
 }
 
-static void OBJ_check_check(lua_State *LS, int index, void *ud)
+static bool OBJ_valid_check(void *gobj)
 {
-    OBJ_DATA *obj = (OBJ_DATA *)ud;
-
-    if (!obj)
-    {
-        luaL_argerror(LS, index, "NULL OBJ_DATA pointer");
-    }
-    if (!obj->valid)
-    {
-        luaL_argerror(LS, index, "OBJ_DATA not valid");
-    }
-    if (obj->must_extract)
-    {
-        luaL_argerror(LS, index, "OBJ_DATA is destroyed");
-    }
+    OBJ_DATA *obj = (OBJ_DATA *)gobj;
+    return obj && obj->valid && !obj->must_extract;
 }
 
+/* lao offset declarations */
 extern const size_t CHAR_DATA_lao_offset;
 extern const size_t OBJ_DATA_lao_offset;
 extern const size_t AREA_DATA_lao_offset;
@@ -8624,7 +8682,7 @@ static LUA_OBJ_TYPE CH_type =
     .get_table     = CH_get_table,
     .set_table     = CH_set_table,
     .method_table  = CH_method_table,
-    .check_check   = CH_check_check,
+    .valid_check   = CH_valid_check,
     .count         = 0
 };
 static LUA_OBJ_TYPE OBJ_type =
@@ -8635,7 +8693,7 @@ static LUA_OBJ_TYPE OBJ_type =
     .get_table     = OBJ_get_table,
     .set_table     = OBJ_set_table,
     .method_table  = OBJ_method_table,
-    .check_check   = OBJ_check_check,
+    .valid_check   = OBJ_valid_check,
     .count         = 0
 };
 static LUA_OBJ_TYPE AREA_type =
@@ -8646,7 +8704,7 @@ static LUA_OBJ_TYPE AREA_type =
     .get_table     = AREA_get_table,
     .set_table     = AREA_set_table,
     .method_table  = AREA_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE ROOM_type =
@@ -8657,7 +8715,7 @@ static LUA_OBJ_TYPE ROOM_type =
     .get_table     = ROOM_get_table,
     .set_table     = ROOM_set_table,
     .method_table  = ROOM_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE EXIT_type =
@@ -8668,7 +8726,7 @@ static LUA_OBJ_TYPE EXIT_type =
     .get_table     = EXIT_get_table,
     .set_table     = EXIT_set_table,
     .method_table  = EXIT_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE RESET_type =
@@ -8679,7 +8737,7 @@ static LUA_OBJ_TYPE RESET_type =
     .get_table     = RESET_get_table,
     .set_table     = RESET_set_table,
     .method_table  = RESET_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE MOBPROTO_type =
@@ -8690,7 +8748,7 @@ static LUA_OBJ_TYPE MOBPROTO_type =
     .get_table     = MOBPROTO_get_table,
     .set_table     = MOBPROTO_set_table,
     .method_table  = MOBPROTO_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE OBJPROTO_type =
@@ -8701,7 +8759,7 @@ static LUA_OBJ_TYPE OBJPROTO_type =
     .get_table     = OBJPROTO_get_table,
     .set_table     = OBJPROTO_set_table,
     .method_table  = OBJPROTO_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE PROG_type =
@@ -8712,7 +8770,7 @@ static LUA_OBJ_TYPE PROG_type =
     .get_table     = PROG_get_table,
     .set_table     = PROG_set_table,
     .method_table  = PROG_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE MTRIG_type =
@@ -8723,7 +8781,7 @@ static LUA_OBJ_TYPE MTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE OTRIG_type =
@@ -8734,7 +8792,7 @@ static LUA_OBJ_TYPE OTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE ATRIG_type =
@@ -8745,7 +8803,7 @@ static LUA_OBJ_TYPE ATRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE RTRIG_type =
@@ -8756,7 +8814,7 @@ static LUA_OBJ_TYPE RTRIG_type =
     .get_table     = TRIG_get_table,
     .set_table     = TRIG_set_table,
     .method_table  = TRIG_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE SHOP_type =
@@ -8767,7 +8825,7 @@ static LUA_OBJ_TYPE SHOP_type =
     .get_table     = SHOP_get_table,
     .set_table     = SHOP_set_table,
     .method_table  = SHOP_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE AFFECT_type =
@@ -8778,7 +8836,7 @@ static LUA_OBJ_TYPE AFFECT_type =
     .get_table     = AFFECT_get_table,
     .set_table     = AFFECT_set_table,
     .method_table  = AFFECT_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE HELP_type =
@@ -8789,7 +8847,7 @@ static LUA_OBJ_TYPE HELP_type =
     .get_table     = HELP_get_table,
     .set_table     = HELP_set_table,
     .method_table  = HELP_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE DESCRIPTOR_type =
@@ -8800,7 +8858,7 @@ static LUA_OBJ_TYPE DESCRIPTOR_type =
     .get_table     = DESCRIPTOR_get_table,
     .set_table     = DESCRIPTOR_set_table,
     .method_table  = DESCRIPTOR_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE BOSSACHV_type =
@@ -8811,7 +8869,7 @@ static LUA_OBJ_TYPE BOSSACHV_type =
     .get_table     = BOSSACHV_get_table,
     .set_table     = BOSSACHV_set_table,
     .method_table  = BOSSACHV_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
 static LUA_OBJ_TYPE BOSSREC_type =
@@ -8822,10 +8880,9 @@ static LUA_OBJ_TYPE BOSSREC_type =
     .get_table     = BOSSREC_get_table,
     .set_table     = BOSSREC_set_table,
     .method_table  = BOSSREC_method_table,
-    .check_check   = NULL,
+    .valid_check   = NULL,
     .count         = 0
 };
-
 /* typesafe wrappers */
 
 CHAR_DATA *check_CH( lua_State *LS, int index ) { return arclib_check( p_CH_type, LS, index ); }
@@ -8833,7 +8890,7 @@ bool is_CH( lua_State *LS, int index) { return arclib_is( p_CH_type, LS, index )
 bool push_CH( lua_State *LS, CHAR_DATA *ud ) { return arclib_push( p_CH_type, LS, ud ); }
 void lua_init_CH( CHAR_DATA *p ) { lua_arclib_obj_init( p_CH_type, p ); }
 void lua_deinit_CH( CHAR_DATA *p ) { lua_arclib_obj_deinit( p_CH_type, p ); }
-bool valid_CH( CHAR_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_CH( CHAR_DATA *ud ) { return arclib_valid( p_CH_type, ud ); }
 int count_CH( void ) { return arclib_count_type( p_CH_type ); }
 
 OBJ_DATA *check_OBJ( lua_State *LS, int index ) { return arclib_check( p_OBJ_type, LS, index ); }
@@ -8841,7 +8898,7 @@ bool is_OBJ( lua_State *LS, int index) { return arclib_is( p_OBJ_type, LS, index
 bool push_OBJ( lua_State *LS, OBJ_DATA *ud ) { return arclib_push( p_OBJ_type, LS, ud ); }
 void lua_init_OBJ( OBJ_DATA *p ) { lua_arclib_obj_init( p_OBJ_type, p ); }
 void lua_deinit_OBJ( OBJ_DATA *p ) { lua_arclib_obj_deinit( p_OBJ_type, p ); }
-bool valid_OBJ( OBJ_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_OBJ( OBJ_DATA *ud ) { return arclib_valid( p_OBJ_type, ud ); }
 int count_OBJ( void ) { return arclib_count_type( p_OBJ_type ); }
 
 AREA_DATA *check_AREA( lua_State *LS, int index ) { return arclib_check( p_AREA_type, LS, index ); }
@@ -8849,7 +8906,7 @@ bool is_AREA( lua_State *LS, int index) { return arclib_is( p_AREA_type, LS, ind
 bool push_AREA( lua_State *LS, AREA_DATA *ud ) { return arclib_push( p_AREA_type, LS, ud ); }
 void lua_init_AREA( AREA_DATA *p ) { lua_arclib_obj_init( p_AREA_type, p ); }
 void lua_deinit_AREA( AREA_DATA *p ) { lua_arclib_obj_deinit( p_AREA_type, p ); }
-bool valid_AREA( AREA_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_AREA( AREA_DATA *ud ) { return arclib_valid( p_AREA_type, ud ); }
 int count_AREA( void ) { return arclib_count_type( p_AREA_type ); }
 
 ROOM_INDEX_DATA *check_ROOM( lua_State *LS, int index ) { return arclib_check( p_ROOM_type, LS, index ); }
@@ -8857,7 +8914,7 @@ bool is_ROOM( lua_State *LS, int index) { return arclib_is( p_ROOM_type, LS, ind
 bool push_ROOM( lua_State *LS, ROOM_INDEX_DATA *ud ) { return arclib_push( p_ROOM_type, LS, ud ); }
 void lua_init_ROOM( ROOM_INDEX_DATA *p ) { lua_arclib_obj_init( p_ROOM_type, p ); }
 void lua_deinit_ROOM( ROOM_INDEX_DATA *p ) { lua_arclib_obj_deinit( p_ROOM_type, p ); }
-bool valid_ROOM( ROOM_INDEX_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_ROOM( ROOM_INDEX_DATA *ud ) { return arclib_valid( p_ROOM_type, ud ); }
 int count_ROOM( void ) { return arclib_count_type( p_ROOM_type ); }
 
 EXIT_DATA *check_EXIT( lua_State *LS, int index ) { return arclib_check( p_EXIT_type, LS, index ); }
@@ -8865,7 +8922,7 @@ bool is_EXIT( lua_State *LS, int index) { return arclib_is( p_EXIT_type, LS, ind
 bool push_EXIT( lua_State *LS, EXIT_DATA *ud ) { return arclib_push( p_EXIT_type, LS, ud ); }
 void lua_init_EXIT( EXIT_DATA *p ) { lua_arclib_obj_init( p_EXIT_type, p ); }
 void lua_deinit_EXIT( EXIT_DATA *p ) { lua_arclib_obj_deinit( p_EXIT_type, p ); }
-bool valid_EXIT( EXIT_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_EXIT( EXIT_DATA *ud ) { return arclib_valid( p_EXIT_type, ud ); }
 int count_EXIT( void ) { return arclib_count_type( p_EXIT_type ); }
 
 RESET_DATA *check_RESET( lua_State *LS, int index ) { return arclib_check( p_RESET_type, LS, index ); }
@@ -8873,7 +8930,7 @@ bool is_RESET( lua_State *LS, int index) { return arclib_is( p_RESET_type, LS, i
 bool push_RESET( lua_State *LS, RESET_DATA *ud ) { return arclib_push( p_RESET_type, LS, ud ); }
 void lua_init_RESET( RESET_DATA *p ) { lua_arclib_obj_init( p_RESET_type, p ); }
 void lua_deinit_RESET( RESET_DATA *p ) { lua_arclib_obj_deinit( p_RESET_type, p ); }
-bool valid_RESET( RESET_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_RESET( RESET_DATA *ud ) { return arclib_valid( p_RESET_type, ud ); }
 int count_RESET( void ) { return arclib_count_type( p_RESET_type ); }
 
 MOB_INDEX_DATA *check_MOBPROTO( lua_State *LS, int index ) { return arclib_check( p_MOBPROTO_type, LS, index ); }
@@ -8881,7 +8938,7 @@ bool is_MOBPROTO( lua_State *LS, int index) { return arclib_is( p_MOBPROTO_type,
 bool push_MOBPROTO( lua_State *LS, MOB_INDEX_DATA *ud ) { return arclib_push( p_MOBPROTO_type, LS, ud ); }
 void lua_init_MOBPROTO( MOB_INDEX_DATA *p ) { lua_arclib_obj_init( p_MOBPROTO_type, p ); }
 void lua_deinit_MOBPROTO( MOB_INDEX_DATA *p ) { lua_arclib_obj_deinit( p_MOBPROTO_type, p ); }
-bool valid_MOBPROTO( MOB_INDEX_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_MOBPROTO( MOB_INDEX_DATA *ud ) { return arclib_valid( p_MOBPROTO_type, ud ); }
 int count_MOBPROTO( void ) { return arclib_count_type( p_MOBPROTO_type ); }
 
 OBJ_INDEX_DATA *check_OBJPROTO( lua_State *LS, int index ) { return arclib_check( p_OBJPROTO_type, LS, index ); }
@@ -8889,7 +8946,7 @@ bool is_OBJPROTO( lua_State *LS, int index) { return arclib_is( p_OBJPROTO_type,
 bool push_OBJPROTO( lua_State *LS, OBJ_INDEX_DATA *ud ) { return arclib_push( p_OBJPROTO_type, LS, ud ); }
 void lua_init_OBJPROTO( OBJ_INDEX_DATA *p ) { lua_arclib_obj_init( p_OBJPROTO_type, p ); }
 void lua_deinit_OBJPROTO( OBJ_INDEX_DATA *p ) { lua_arclib_obj_deinit( p_OBJPROTO_type, p ); }
-bool valid_OBJPROTO( OBJ_INDEX_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_OBJPROTO( OBJ_INDEX_DATA *ud ) { return arclib_valid( p_OBJPROTO_type, ud ); }
 int count_OBJPROTO( void ) { return arclib_count_type( p_OBJPROTO_type ); }
 
 PROG_CODE *check_PROG( lua_State *LS, int index ) { return arclib_check( p_PROG_type, LS, index ); }
@@ -8897,7 +8954,7 @@ bool is_PROG( lua_State *LS, int index) { return arclib_is( p_PROG_type, LS, ind
 bool push_PROG( lua_State *LS, PROG_CODE *ud ) { return arclib_push( p_PROG_type, LS, ud ); }
 void lua_init_PROG( PROG_CODE *p ) { lua_arclib_obj_init( p_PROG_type, p ); }
 void lua_deinit_PROG( PROG_CODE *p ) { lua_arclib_obj_deinit( p_PROG_type, p ); }
-bool valid_PROG( PROG_CODE *ud ) { return arclib_valid( ud ); }
+bool valid_PROG( PROG_CODE *ud ) { return arclib_valid( p_PROG_type, ud ); }
 int count_PROG( void ) { return arclib_count_type( p_PROG_type ); }
 
 PROG_LIST *check_MTRIG( lua_State *LS, int index ) { return arclib_check( p_MTRIG_type, LS, index ); }
@@ -8905,7 +8962,7 @@ bool is_MTRIG( lua_State *LS, int index) { return arclib_is( p_MTRIG_type, LS, i
 bool push_MTRIG( lua_State *LS, PROG_LIST *ud ) { return arclib_push( p_MTRIG_type, LS, ud ); }
 void lua_init_MTRIG( PROG_LIST *p ) { lua_arclib_obj_init( p_MTRIG_type, p ); }
 void lua_deinit_MTRIG( PROG_LIST *p ) { lua_arclib_obj_deinit( p_MTRIG_type, p ); }
-bool valid_MTRIG( PROG_LIST *ud ) { return arclib_valid( ud ); }
+bool valid_MTRIG( PROG_LIST *ud ) { return arclib_valid( p_MTRIG_type, ud ); }
 int count_MTRIG( void ) { return arclib_count_type( p_MTRIG_type ); }
 
 PROG_LIST *check_OTRIG( lua_State *LS, int index ) { return arclib_check( p_OTRIG_type, LS, index ); }
@@ -8913,7 +8970,7 @@ bool is_OTRIG( lua_State *LS, int index) { return arclib_is( p_OTRIG_type, LS, i
 bool push_OTRIG( lua_State *LS, PROG_LIST *ud ) { return arclib_push( p_OTRIG_type, LS, ud ); }
 void lua_init_OTRIG( PROG_LIST *p ) { lua_arclib_obj_init( p_OTRIG_type, p ); }
 void lua_deinit_OTRIG( PROG_LIST *p ) { lua_arclib_obj_deinit( p_OTRIG_type, p ); }
-bool valid_OTRIG( PROG_LIST *ud ) { return arclib_valid( ud ); }
+bool valid_OTRIG( PROG_LIST *ud ) { return arclib_valid( p_OTRIG_type, ud ); }
 int count_OTRIG( void ) { return arclib_count_type( p_OTRIG_type ); }
 
 PROG_LIST *check_ATRIG( lua_State *LS, int index ) { return arclib_check( p_ATRIG_type, LS, index ); }
@@ -8921,7 +8978,7 @@ bool is_ATRIG( lua_State *LS, int index) { return arclib_is( p_ATRIG_type, LS, i
 bool push_ATRIG( lua_State *LS, PROG_LIST *ud ) { return arclib_push( p_ATRIG_type, LS, ud ); }
 void lua_init_ATRIG( PROG_LIST *p ) { lua_arclib_obj_init( p_ATRIG_type, p ); }
 void lua_deinit_ATRIG( PROG_LIST *p ) { lua_arclib_obj_deinit( p_ATRIG_type, p ); }
-bool valid_ATRIG( PROG_LIST *ud ) { return arclib_valid( ud ); }
+bool valid_ATRIG( PROG_LIST *ud ) { return arclib_valid( p_ATRIG_type, ud ); }
 int count_ATRIG( void ) { return arclib_count_type( p_ATRIG_type ); }
 
 PROG_LIST *check_RTRIG( lua_State *LS, int index ) { return arclib_check( p_RTRIG_type, LS, index ); }
@@ -8929,7 +8986,7 @@ bool is_RTRIG( lua_State *LS, int index) { return arclib_is( p_RTRIG_type, LS, i
 bool push_RTRIG( lua_State *LS, PROG_LIST *ud ) { return arclib_push( p_RTRIG_type, LS, ud ); }
 void lua_init_RTRIG( PROG_LIST *p ) { lua_arclib_obj_init( p_RTRIG_type, p ); }
 void lua_deinit_RTRIG( PROG_LIST *p ) { lua_arclib_obj_deinit( p_RTRIG_type, p ); }
-bool valid_RTRIG( PROG_LIST *ud ) { return arclib_valid( ud ); }
+bool valid_RTRIG( PROG_LIST *ud ) { return arclib_valid( p_RTRIG_type, ud ); }
 int count_RTRIG( void ) { return arclib_count_type( p_RTRIG_type ); }
 
 SHOP_DATA *check_SHOP( lua_State *LS, int index ) { return arclib_check( p_SHOP_type, LS, index ); }
@@ -8937,7 +8994,7 @@ bool is_SHOP( lua_State *LS, int index) { return arclib_is( p_SHOP_type, LS, ind
 bool push_SHOP( lua_State *LS, SHOP_DATA *ud ) { return arclib_push( p_SHOP_type, LS, ud ); }
 void lua_init_SHOP( SHOP_DATA *p ) { lua_arclib_obj_init( p_SHOP_type, p ); }
 void lua_deinit_SHOP( SHOP_DATA *p ) { lua_arclib_obj_deinit( p_SHOP_type, p ); }
-bool valid_SHOP( SHOP_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_SHOP( SHOP_DATA *ud ) { return arclib_valid( p_SHOP_type, ud ); }
 int count_SHOP( void ) { return arclib_count_type( p_SHOP_type ); }
 
 AFFECT_DATA *check_AFFECT( lua_State *LS, int index ) { return arclib_check( p_AFFECT_type, LS, index ); }
@@ -8945,7 +9002,7 @@ bool is_AFFECT( lua_State *LS, int index) { return arclib_is( p_AFFECT_type, LS,
 bool push_AFFECT( lua_State *LS, AFFECT_DATA *ud ) { return arclib_push( p_AFFECT_type, LS, ud ); }
 void lua_init_AFFECT( AFFECT_DATA *p ) { lua_arclib_obj_init( p_AFFECT_type, p ); }
 void lua_deinit_AFFECT( AFFECT_DATA *p ) { lua_arclib_obj_deinit( p_AFFECT_type, p ); }
-bool valid_AFFECT( AFFECT_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_AFFECT( AFFECT_DATA *ud ) { return arclib_valid( p_AFFECT_type, ud ); }
 int count_AFFECT( void ) { return arclib_count_type( p_AFFECT_type ); }
 
 HELP_DATA *check_HELP( lua_State *LS, int index ) { return arclib_check( p_HELP_type, LS, index ); }
@@ -8953,7 +9010,7 @@ bool is_HELP( lua_State *LS, int index) { return arclib_is( p_HELP_type, LS, ind
 bool push_HELP( lua_State *LS, HELP_DATA *ud ) { return arclib_push( p_HELP_type, LS, ud ); }
 void lua_init_HELP( HELP_DATA *p ) { lua_arclib_obj_init( p_HELP_type, p ); }
 void lua_deinit_HELP( HELP_DATA *p ) { lua_arclib_obj_deinit( p_HELP_type, p ); }
-bool valid_HELP( HELP_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_HELP( HELP_DATA *ud ) { return arclib_valid( p_HELP_type, ud ); }
 int count_HELP( void ) { return arclib_count_type( p_HELP_type ); }
 
 DESCRIPTOR_DATA *check_DESCRIPTOR( lua_State *LS, int index ) { return arclib_check( p_DESCRIPTOR_type, LS, index ); }
@@ -8961,7 +9018,7 @@ bool is_DESCRIPTOR( lua_State *LS, int index) { return arclib_is( p_DESCRIPTOR_t
 bool push_DESCRIPTOR( lua_State *LS, DESCRIPTOR_DATA *ud ) { return arclib_push( p_DESCRIPTOR_type, LS, ud ); }
 void lua_init_DESCRIPTOR( DESCRIPTOR_DATA *p ) { lua_arclib_obj_init( p_DESCRIPTOR_type, p ); }
 void lua_deinit_DESCRIPTOR( DESCRIPTOR_DATA *p ) { lua_arclib_obj_deinit( p_DESCRIPTOR_type, p ); }
-bool valid_DESCRIPTOR( DESCRIPTOR_DATA *ud ) { return arclib_valid( ud ); }
+bool valid_DESCRIPTOR( DESCRIPTOR_DATA *ud ) { return arclib_valid( p_DESCRIPTOR_type, ud ); }
 int count_DESCRIPTOR( void ) { return arclib_count_type( p_DESCRIPTOR_type ); }
 
 BOSSACHV *check_BOSSACHV( lua_State *LS, int index ) { return arclib_check( p_BOSSACHV_type, LS, index ); }
@@ -8969,7 +9026,7 @@ bool is_BOSSACHV( lua_State *LS, int index) { return arclib_is( p_BOSSACHV_type,
 bool push_BOSSACHV( lua_State *LS, BOSSACHV *ud ) { return arclib_push( p_BOSSACHV_type, LS, ud ); }
 void lua_init_BOSSACHV( BOSSACHV *p ) { lua_arclib_obj_init( p_BOSSACHV_type, p ); }
 void lua_deinit_BOSSACHV( BOSSACHV *p ) { lua_arclib_obj_deinit( p_BOSSACHV_type, p ); }
-bool valid_BOSSACHV( BOSSACHV *ud ) { return arclib_valid( ud ); }
+bool valid_BOSSACHV( BOSSACHV *ud ) { return arclib_valid( p_BOSSACHV_type, ud ); }
 int count_BOSSACHV( void ) { return arclib_count_type( p_BOSSACHV_type ); }
 
 BOSSREC *check_BOSSREC( lua_State *LS, int index ) { return arclib_check( p_BOSSREC_type, LS, index ); }
@@ -8977,5 +9034,5 @@ bool is_BOSSREC( lua_State *LS, int index) { return arclib_is( p_BOSSREC_type, L
 bool push_BOSSREC( lua_State *LS, BOSSREC *ud ) { return arclib_push( p_BOSSREC_type, LS, ud ); }
 void lua_init_BOSSREC( BOSSREC *p ) { lua_arclib_obj_init( p_BOSSREC_type, p ); }
 void lua_deinit_BOSSREC( BOSSREC *p ) { lua_arclib_obj_deinit( p_BOSSREC_type, p ); }
-bool valid_BOSSREC( BOSSREC *ud ) { return arclib_valid( ud ); }
+bool valid_BOSSREC( BOSSREC *ud ) { return arclib_valid( p_BOSSREC_type, ud ); }
 int count_BOSSREC( void ) { return arclib_count_type( p_BOSSREC_type ); }

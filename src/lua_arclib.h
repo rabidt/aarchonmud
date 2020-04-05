@@ -43,17 +43,16 @@ extern LUA_OBJ_TYPE * const p_DESCRIPTOR_type;
 extern LUA_OBJ_TYPE * const p_BOSSACHV_type;
 extern LUA_OBJ_TYPE * const p_BOSSREC_type;
 
-const char * arclib_type_name( LUA_OBJ_TYPE *type );
-bool arclib_push( LUA_OBJ_TYPE *type, lua_State *LS, void *ud );
-void * arclib_check( LUA_OBJ_TYPE *type, lua_State *LS, int index );
-bool arclib_valid( void * );
+const char * arclib_type_name( LUA_OBJ_TYPE *ltype );
+bool arclib_push( LUA_OBJ_TYPE *ltype, lua_State *LS, void *ud );
+void * arclib_check( LUA_OBJ_TYPE *ltype, lua_State *LS, int index );
+bool arclib_valid( LUA_OBJ_TYPE *ltype, void * );
 
 void init_script_db( void );
 void close_script_db( void );
 void register_globals( lua_State *LS );
 LUA_EXTRA_VAL *new_luaval( int type, const char *name, const char *val, bool persist );
 void free_luaval( LUA_EXTRA_VAL *luaval );
-void cleanup_uds( void );
 
 void run_delayed_function( TIMER_NODE *tmr );
 
