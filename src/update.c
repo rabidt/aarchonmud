@@ -45,6 +45,7 @@
 #include "special.h"
 #include "songs.h"
 #include "perfmon.h"
+#include "mem.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2360,6 +2361,20 @@ void update_handler( void )
                 char perf_buf[MSL * 12];
                 PERF_repr(perf_buf, sizeof(perf_buf));
                 log_string(perf_buf);
+            }
+
+            {
+                BUFFER *output = new_buf();
+                add_buf(output, "arc_obj_diag result: ");
+                if (TRUE == arc_obj_diag(output))
+                {
+                    bug_string( buf_string(output) );
+                }
+                else
+                {
+                    log_string( buf_string(output) );
+                }
+                free_buf(output);
             }
         }
         hour_update = FALSE;

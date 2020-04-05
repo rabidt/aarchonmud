@@ -507,6 +507,82 @@ void free_rpcode(PROG_CODE *pRcode)
     return;
 }
 
+static struct arc_obj_type *all_arc_obj_types[];
+
+static void *aoh_get_wrapped(struct arc_obj *aoh)
+{
+    assert(aoh);
+    assert(aoh->ao_type);
+    uintptr_t offset = aoh->ao_type->wrapped_offset - aoh->ao_type->aoh_offset;
+    uintptr_t v = (uintptr_t)aoh + offset;
+    return (void *)v;
+}
+
+static void *aot_get_wrapped(struct arc_obj *aot)
+{
+    assert(aot);
+    assert(aot->ao_type);
+    uintptr_t offset = aot->ao_type->aot_offset - aot->ao_type->wrapped_offset;
+    uintptr_t v = (uintptr_t)aot - offset;
+    return (void *)v;
+}
+
+/* Returns true if any error */
+bool arc_obj_diag(BUFFER *output)
+{
+    bool rtn = FALSE;
+
+    struct arc_obj *aoh;
+    struct arc_obj *aot;
+
+    unsigned long long ao_counted = 0;
+
+    for ( aoh = all_aoh.ao_next, aot = all_aot.ao_next;
+          aoh != &all_aoh && aot != &all_aot;
+          aoh = aoh->ao_next, aot = aot->ao_next )
+    {
+        if ( aoh->magic_id[0] != AO_MAGIC_INIT_0 ||
+             aoh->magic_id[1] != AO_MAGIC_INIT_1 )
+        {
+
+            add_buf(output, "Found invalid obj.");
+            rtn = TRUE;
+            /* All bets are off. Should not continue to iterate or dereference. */
+            break;
+        }
+        if (aoh_get_wrapped(aoh) != aot_get_wrapped(aot))
+        {
+            add_buf(output, "Discrepancy in all_aoh and all_aot lists.");
+            rtn = TRUE;
+            /* All bets are off. Should not continue to iterate or dereference. */
+            break;
+        }
+        ++ao_counted;
+    }
+
+    
+    unsigned long long ao_summed = 0;    
+    for (unsigned i = 0; all_arc_obj_types[i]; ++i)
+    {
+        const struct arc_obj_type *t = all_arc_obj_types[i];
+        ao_summed += t->ao_count;
+    }
+
+    if (ao_counted != ao_summed)
+    {
+        rtn = TRUE;
+        addf_buf(output, "ao_counted(%llu) != ao_summed(%llu).", ao_counted, ao_summed);
+    }
+
+    if (FALSE == rtn)
+    {
+        add_buf(output, "No issues found.");
+    }
+
+    return rtn;
+}
+
+
 AO_STATIC struct arc_obj all_aoh =
 {
     .ao_next = &all_aoh,
@@ -585,64 +661,6 @@ AO_STATIC void arc_obj_deinit(struct arc_obj_type *ao_type, struct arc_obj *aoh,
     aot->magic_id[0] = AO_MAGIC_DEINIT_0;
     aot->magic_id[1] = AO_MAGIC_DEINIT_1;
 }
-
-/* alloc and dealloc prototypes */
-CHAR_DATA *alloc_CHAR_DATA(void);
-void dealloc_CHAR_DATA(CHAR_DATA *ptr);
-OBJ_DATA *alloc_OBJ_DATA(void);
-void dealloc_OBJ_DATA(OBJ_DATA *ptr);
-AREA_DATA *alloc_AREA_DATA(void);
-void dealloc_AREA_DATA(AREA_DATA *ptr);
-ROOM_INDEX_DATA *alloc_ROOM_INDEX_DATA(void);
-void dealloc_ROOM_INDEX_DATA(ROOM_INDEX_DATA *ptr);
-EXIT_DATA *alloc_EXIT_DATA(void);
-void dealloc_EXIT_DATA(EXIT_DATA *ptr);
-RESET_DATA *alloc_RESET_DATA(void);
-void dealloc_RESET_DATA(RESET_DATA *ptr);
-MOB_INDEX_DATA *alloc_MOB_INDEX_DATA(void);
-void dealloc_MOB_INDEX_DATA(MOB_INDEX_DATA *ptr);
-OBJ_INDEX_DATA *alloc_OBJ_INDEX_DATA(void);
-void dealloc_OBJ_INDEX_DATA(OBJ_INDEX_DATA *ptr);
-PROG_CODE *alloc_PROG_CODE(void);
-void dealloc_PROG_CODE(PROG_CODE *ptr);
-PROG_LIST *alloc_MPROG_LIST(void);
-void dealloc_MPROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_OPROG_LIST(void);
-void dealloc_OPROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_APROG_LIST(void);
-void dealloc_APROG_LIST(PROG_LIST *ptr);
-PROG_LIST *alloc_RPROG_LIST(void);
-void dealloc_RPROG_LIST(PROG_LIST *ptr);
-SHOP_DATA *alloc_SHOP_DATA(void);
-void dealloc_SHOP_DATA(SHOP_DATA *ptr);
-AFFECT_DATA *alloc_AFFECT_DATA(void);
-void dealloc_AFFECT_DATA(AFFECT_DATA *ptr);
-HELP_DATA *alloc_HELP_DATA(void);
-void dealloc_HELP_DATA(HELP_DATA *ptr);
-DESCRIPTOR_DATA *alloc_DESCRIPTOR_DATA(void);
-void dealloc_DESCRIPTOR_DATA(DESCRIPTOR_DATA *ptr);
-BOSSACHV *alloc_BOSSACHV(void);
-void dealloc_BOSSACHV(BOSSACHV *ptr);
-BOSSREC *alloc_BOSSREC(void);
-void dealloc_BOSSREC(BOSSREC *ptr);
-
-/* arc_obj_type definitions */
-static struct arc_obj_type CHAR_DATA_type = { .ao_count = 0, .name = "CHAR_DATA" };
-static struct arc_obj_type OBJ_DATA_type = { .ao_count = 0, .name = "OBJ_DATA" };
-static struct arc_obj_type AREA_DATA_type = { .ao_count = 0, .name = "AREA_DATA" };
-static struct arc_obj_type ROOM_INDEX_DATA_type = { .ao_count = 0, .name = "ROOM_INDEX_DATA" };
-static struct arc_obj_type EXIT_DATA_type = { .ao_count = 0, .name = "EXIT_DATA" };
-static struct arc_obj_type RESET_DATA_type = { .ao_count = 0, .name = "RESET_DATA" };
-static struct arc_obj_type MOB_INDEX_DATA_type = { .ao_count = 0, .name = "MOB_INDEX_DATA" };
-static struct arc_obj_type OBJ_INDEX_DATA_type = { .ao_count = 0, .name = "OBJ_INDEX_DATA" };
-static struct arc_obj_type PROG_CODE_type = { .ao_count = 0, .name = "PROG_CODE" };
-static struct arc_obj_type PROG_LIST_type = { .ao_count = 0, .name = "PROG_LIST" };
-static struct arc_obj_type SHOP_DATA_type = { .ao_count = 0, .name = "SHOP_DATA" };
-static struct arc_obj_type AFFECT_DATA_type = { .ao_count = 0, .name = "AFFECT_DATA" };
-static struct arc_obj_type HELP_DATA_type = { .ao_count = 0, .name = "HELP_DATA" };
-static struct arc_obj_type DESCRIPTOR_DATA_type = { .ao_count = 0, .name = "DESCRIPTOR_DATA" };
-static struct arc_obj_type BOSSACHV_type = { .ao_count = 0, .name = "BOSSACHV" };
-static struct arc_obj_type BOSSREC_type = { .ao_count = 0, .name = "BOSSREC" };
 
 /* wrap structs */
 struct CHAR_DATA_wrap
@@ -756,6 +774,157 @@ struct BOSSREC_wrap
     BOSSREC wrapped;
     struct arc_obj aot;
     struct lua_arclib_obj lao;
+};
+
+/* arc_obj_type definitions */
+static struct arc_obj_type CHAR_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "CHAR_DATA",
+    .aoh_offset = offsetof(struct CHAR_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct CHAR_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct CHAR_DATA_wrap, aot),
+};
+static struct arc_obj_type OBJ_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "OBJ_DATA",
+    .aoh_offset = offsetof(struct OBJ_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct OBJ_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct OBJ_DATA_wrap, aot),
+};
+static struct arc_obj_type AREA_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "AREA_DATA",
+    .aoh_offset = offsetof(struct AREA_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct AREA_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct AREA_DATA_wrap, aot),
+};
+static struct arc_obj_type ROOM_INDEX_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "ROOM_INDEX_DATA",
+    .aoh_offset = offsetof(struct ROOM_INDEX_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct ROOM_INDEX_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct ROOM_INDEX_DATA_wrap, aot),
+};
+static struct arc_obj_type EXIT_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "EXIT_DATA",
+    .aoh_offset = offsetof(struct EXIT_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct EXIT_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct EXIT_DATA_wrap, aot),
+};
+static struct arc_obj_type RESET_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "RESET_DATA",
+    .aoh_offset = offsetof(struct RESET_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct RESET_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct RESET_DATA_wrap, aot),
+};
+static struct arc_obj_type MOB_INDEX_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "MOB_INDEX_DATA",
+    .aoh_offset = offsetof(struct MOB_INDEX_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct MOB_INDEX_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct MOB_INDEX_DATA_wrap, aot),
+};
+static struct arc_obj_type OBJ_INDEX_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "OBJ_INDEX_DATA",
+    .aoh_offset = offsetof(struct OBJ_INDEX_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct OBJ_INDEX_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct OBJ_INDEX_DATA_wrap, aot),
+};
+static struct arc_obj_type PROG_CODE_type = 
+{
+    .ao_count = 0,
+    .name = "PROG_CODE",
+    .aoh_offset = offsetof(struct PROG_CODE_wrap, aoh),
+    .wrapped_offset = offsetof(struct PROG_CODE_wrap, wrapped),
+    .aot_offset = offsetof(struct PROG_CODE_wrap, aot),
+};
+static struct arc_obj_type PROG_LIST_type = 
+{
+    .ao_count = 0,
+    .name = "PROG_LIST",
+    .aoh_offset = offsetof(struct PROG_LIST_wrap, aoh),
+    .wrapped_offset = offsetof(struct PROG_LIST_wrap, wrapped),
+    .aot_offset = offsetof(struct PROG_LIST_wrap, aot),
+};
+static struct arc_obj_type SHOP_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "SHOP_DATA",
+    .aoh_offset = offsetof(struct SHOP_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct SHOP_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct SHOP_DATA_wrap, aot),
+};
+static struct arc_obj_type AFFECT_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "AFFECT_DATA",
+    .aoh_offset = offsetof(struct AFFECT_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct AFFECT_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct AFFECT_DATA_wrap, aot),
+};
+static struct arc_obj_type HELP_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "HELP_DATA",
+    .aoh_offset = offsetof(struct HELP_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct HELP_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct HELP_DATA_wrap, aot),
+};
+static struct arc_obj_type DESCRIPTOR_DATA_type = 
+{
+    .ao_count = 0,
+    .name = "DESCRIPTOR_DATA",
+    .aoh_offset = offsetof(struct DESCRIPTOR_DATA_wrap, aoh),
+    .wrapped_offset = offsetof(struct DESCRIPTOR_DATA_wrap, wrapped),
+    .aot_offset = offsetof(struct DESCRIPTOR_DATA_wrap, aot),
+};
+static struct arc_obj_type BOSSACHV_type = 
+{
+    .ao_count = 0,
+    .name = "BOSSACHV",
+    .aoh_offset = offsetof(struct BOSSACHV_wrap, aoh),
+    .wrapped_offset = offsetof(struct BOSSACHV_wrap, wrapped),
+    .aot_offset = offsetof(struct BOSSACHV_wrap, aot),
+};
+static struct arc_obj_type BOSSREC_type = 
+{
+    .ao_count = 0,
+    .name = "BOSSREC",
+    .aoh_offset = offsetof(struct BOSSREC_wrap, aoh),
+    .wrapped_offset = offsetof(struct BOSSREC_wrap, wrapped),
+    .aot_offset = offsetof(struct BOSSREC_wrap, aot),
+};
+
+static struct arc_obj_type *all_arc_obj_types[] =
+{
+    &CHAR_DATA_type,
+    &OBJ_DATA_type,
+    &AREA_DATA_type,
+    &ROOM_INDEX_DATA_type,
+    &EXIT_DATA_type,
+    &RESET_DATA_type,
+    &MOB_INDEX_DATA_type,
+    &OBJ_INDEX_DATA_type,
+    &PROG_CODE_type,
+    &PROG_LIST_type,
+    &SHOP_DATA_type,
+    &AFFECT_DATA_type,
+    &HELP_DATA_type,
+    &DESCRIPTOR_DATA_type,
+    &BOSSACHV_type,
+    &BOSSREC_type,
+    NULL
 };
 
 /* lao offset definitions */

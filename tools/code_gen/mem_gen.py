@@ -46,19 +46,6 @@ def main():
         print "void dealloc_{cname}({ctype} *ptr);".format(
             ctype=ctype, cname=cname)
 
-
-    print ""
-    print "/* arc_obj_type definitions */"
-    ctype_seen = set()
-    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
-        if ctype in ctype_seen:
-            continue
-        else:
-            ctype_seen.add(ctype)
-
-        print ("static struct arc_obj_type {ctype}_type = "
-               "{{ .ao_count = 0, .name = \"{ctype}\" }};").format(ctype=ctype)
-
     print ""
     print "/* wrap structs */"
     ctype_seen = set()
@@ -77,6 +64,39 @@ def main():
         if ltype:
             print "    struct lua_arclib_obj lao;"
         print "};"
+
+    print ""
+    print "/* arc_obj_type definitions */"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print "static struct arc_obj_type {ctype}_type = ".format(ctype=ctype)
+        print "{"
+        print "    .ao_count = 0,"
+        print "    .name = \"{ctype}\",".format(ctype=ctype)
+        print "    .aoh_offset = offsetof(struct {ctype}_wrap, aoh),".format(ctype=ctype)
+        print "    .wrapped_offset = offsetof(struct {ctype}_wrap, wrapped),".format(ctype=ctype)
+        print "    .aot_offset = offsetof(struct {ctype}_wrap, aot),".format(ctype=ctype)
+        print "};"
+    
+    print ""
+    print "static struct arc_obj_type *all_arc_obj_types[] ="
+    print "{"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print "    &{ctype}_type,".format(ctype=ctype)
+    print "    NULL"
+    print "};"
+
 
     print ""
     print "/* lao offset definitions */"

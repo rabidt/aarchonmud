@@ -1,6 +1,11 @@
 #ifndef MEM_H_
 #define MEM_H_
 
+#include "str_buf.h"
+
+
+bool arc_obj_diag(BUFFER *output);
+
 struct char_data;
 struct obj_data;
 struct area_data;
@@ -72,6 +77,9 @@ struct arc_obj_type
 {
     unsigned long long ao_count;
     const char * const name;
+    const size_t aoh_offset;
+    const size_t wrapped_offset;
+    const size_t aot_offset;
 };
 
 #define AO_MAGIC_INIT_0 0xC6

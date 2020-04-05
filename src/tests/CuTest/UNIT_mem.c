@@ -22,10 +22,6 @@ typedef struct
     char vals[256];
 } Test2;
 
-/* arc_obj_type definitions */
-static struct arc_obj_type Test1_type = { .ao_count = 0, .name = "Test1" };
-static struct arc_obj_type Test2_type = { .ao_count = 0, .name = "Test2" };
-
 /* wrap structs */
 struct Test1_wrap
 {
@@ -38,6 +34,31 @@ struct Test2_wrap
     struct arc_obj aoh;
     Test2 wrapped;
     struct arc_obj aot;
+};
+
+/* arc_obj_type definitions */
+static struct arc_obj_type Test1_type = 
+{
+    .ao_count = 0,
+    .name = "Test1",
+    .aoh_offset = offsetof(struct Test1_wrap, aoh),
+    .wrapped_offset = offsetof(struct Test1_wrap, wrapped),
+    .aot_offset = offsetof(struct Test1_wrap, aot),
+};
+static struct arc_obj_type Test2_type = 
+{
+    .ao_count = 0,
+    .name = "Test2",
+    .aoh_offset = offsetof(struct Test2_wrap, aoh),
+    .wrapped_offset = offsetof(struct Test2_wrap, wrapped),
+    .aot_offset = offsetof(struct Test2_wrap, aot),
+};
+
+static struct arc_obj_type *all_arc_obj_types[] =
+{
+    &Test1_type,
+    &Test2_type,
+    NULL
 };
 
 /* lao offset definitions */
