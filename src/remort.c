@@ -612,7 +612,7 @@ void remort_update( void )
 
             for ( d = descriptor_list; d != NULL; d = d->next )
             {
-                ch = d->original ? d->original : d->character;
+                ch = d->character;
                 if ((IS_PLAYING(d->connected)) 
                         && !str_cmp(ch->name, chamber_list[j]->name))
                 {

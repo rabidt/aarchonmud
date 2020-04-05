@@ -1533,7 +1533,7 @@ static void mail_notify( CHAR_DATA *ch, NOTE_DATA *pnote, BOARD_DATA *board )
    snprintf( buf, sizeof(buf), "{1[INFO]{2: Mail time! %s has sent you a new note on the %s board.{x", ch->name, capitalize(board->short_name));
    for ( d = descriptor_list; d != NULL; d = d->next )
    {
-      recip = d->original ? d->original : d->character;
+      recip = d->character;
       
       if (!recip)
          continue;

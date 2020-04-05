@@ -106,9 +106,6 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
 #if defined(SIM_DEBUG)
    log_string("mem_save_char_obj: start");
 #endif
-    
-    if ( ch->desc != NULL && ch->desc->original != NULL )
-        ch = ch->desc->original;
 
     if ( IS_NPC(ch) )
         return NULL;    

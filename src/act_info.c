@@ -2676,7 +2676,7 @@ DEF_DO_FUN(do_whois)
         if ( !(IS_PLAYING(d->connected)) )
             continue;
         
-        wch = ( d->original != NULL ) ? d->original : d->character;
+        wch = d->character;
         
         if ( !can_see(ch,wch) && !IS_ACTIVE_HELPER(wch) )
             continue;
@@ -2739,7 +2739,7 @@ static int create_who_array( CHAR_DATA **who_array )
     {
         if ( IS_PLAYING(desc->connected) && desc->character != NULL )
         {
-            who_array[who_count++] = DESC_PC(desc);
+            who_array[who_count++] = desc->character;
         }
     }
     // now sort it

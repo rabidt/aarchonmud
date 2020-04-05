@@ -86,7 +86,7 @@ bool exists_player( const char *name )
     
    for ( d = descriptor_list; d != NULL; d = d->next )
    {
-	  victim = d->original ? d->original : d->character;
+	  victim = d->character;
 
       if (!victim)
           continue;

@@ -8098,8 +8098,7 @@ static int DESCRIPTOR_get_character( lua_State *LS )
     if (!ud_d->character)
         return 0;
 
-    if ( push_CH( LS,
-                ud_d->original ? ud_d->original : ud_d->character ) )
+    if ( push_CH( LS, ud_d->character ) )
         return 1;
     else
         return 0;

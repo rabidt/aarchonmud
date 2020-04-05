@@ -1660,12 +1660,7 @@ DEF_DO_FUN(do_mwhere)
 		{
 		victim = d->character;
 		count++;
-		if (d->original != NULL)
-			snprintf( buf, sizeof(buf),"%3d) %s (in the body of %s) is in %s [%d]\n\r",
-			count, d->original->name,victim->short_descr,
-			victim->in_room->name,victim->in_room->vnum);
-		else
-			snprintf( buf, sizeof(buf),"%3d) %s is in %s [%d]\n\r",
+		snprintf( buf, sizeof(buf),"%3d) %s is in %s [%d]\n\r",
 			count, victim->name,victim->in_room->name,
 			victim->in_room->vnum);
 		add_buf(buffer,buf);
