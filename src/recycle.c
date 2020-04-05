@@ -155,6 +155,11 @@ void free_descriptor(DESCRIPTOR_DATA *d)
 {
 	if (!IS_VALID(d))
 	return;
+    
+    if (d->character)
+    {
+        d->character->desc = NULL;
+    }
     lua_unregister_desc(d);
 	free_string( d->host );
 	free_mem( d->outbuf, d->outsize );
@@ -371,6 +376,11 @@ void free_char (CHAR_DATA *ch)
 
 	if (!IS_VALID(ch))
 	    return;
+
+    if (ch->desc)
+    {
+        ch->desc->character = NULL;
+    }
 
 	if (IS_NPC(ch))
     {
