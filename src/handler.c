@@ -2317,6 +2317,7 @@ static void obj_from_world( OBJ_DATA *obj )
 
 void obj_from_object_list( OBJ_DATA *obj )
 {
+    PERF_PROF_ENTER( pr_, "obj_from_object_list" );
     if ( object_list == obj )
     {
         object_list = obj->next;
@@ -2337,9 +2338,11 @@ void obj_from_object_list( OBJ_DATA *obj )
         if ( prev == NULL )
         {
             bug( "obj_from_object_list: obj %d not found.", obj->pIndexData->vnum );
+            PERF_PROF_EXIT( pr_ );
             return;
         }
     }
+    PERF_PROF_EXIT( pr_ );
 }
 
 /*
@@ -2595,6 +2598,7 @@ CHAR_DATA* char_list_next_char( CHAR_DATA *ch )
 
 void char_from_char_list( CHAR_DATA *ch )
 {
+    PERF_PROF_ENTER( pr_, "char_from_char_list" );
     if ( ch == char_list )
     {
         char_list = ch->next;
@@ -2615,9 +2619,11 @@ void char_from_char_list( CHAR_DATA *ch )
         if ( prev == NULL )
         {
             bug( "char_from_char_list: char not found.", 0 );
+            PERF_PROF_EXIT( pr_ );
             return;
         }
     }
+    PERF_PROF_EXIT( pr_ );
 }
 
 CHAR_DATA* char_list_find( char *name )
