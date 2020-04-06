@@ -1,3 +1,4 @@
+#include <climits>
 #include <sys/time.h>
 #include <sys/utsname.h>
 #include <gnu/libc-version.h>
@@ -43,6 +44,16 @@ DEF_DO_FUN( do_version )
 #endif
     ptc(ch, "GCC:       %s\n\r", __VERSION__);
     ptc(ch, "GLIBC:     %s %s\n\r", gnu_get_libc_version(), gnu_get_libc_release());
+
+    ptc(ch, "\n"
+            "SHRT_MAX:   %hd (%zd bytes)\n\r"
+            "INT_MAX:    %d (%zd bytes)\n\r"
+            "LONG_MAX:   %ld (%zd bytes)\n\r"
+            "LLONG_MAX:  %lld (%zd bytes)\n\r",
+            SHRT_MAX, sizeof(short),
+            INT_MAX, sizeof(int),
+            LONG_MAX, sizeof(long),
+            LLONG_MAX, sizeof(long long));
 
     send_to_char(bin_info_string, ch);
 }
