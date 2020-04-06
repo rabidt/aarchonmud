@@ -4818,7 +4818,7 @@ int average_weapon_index_dam( OBJ_INDEX_DATA *obj );
 /* handler.c */
 AFFECT_DATA      *affect_find args( (AFFECT_DATA *paf, int sn));
 int count_users args( (OBJ_DATA *obj) );
-void    deduct_cost args( (CHAR_DATA *ch, int cost) );
+void    deduct_cost args( (CHAR_DATA *ch, long cost) );
 bool has_money( CHAR_DATA *ch, int cost, bool bank );
 int     check_immune    args( (CHAR_DATA *ch, int dam_type) );
 int weapon_lookup   args( ( const char *name) );
