@@ -1,0 +1,4 @@
+export ARC_PYTEST_IMM_CHAR=Mychar
+export ARC_PYTEST_IMM_CHAR_PW=somepassword
+export ARC_PYTEST_TEST_HOST=pogo.rooflez.com
+export ARC_PYTEST_TEST_PORT=7101
