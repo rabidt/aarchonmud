@@ -2351,19 +2351,26 @@ void update_handler( void )
             */
 
             {
+                PERF_PROF_ENTER( pr_prmem_, "update print_memory");
                 BUFFER *output = new_buf();
                 print_memory(output);
                 log_string( buf_string(output) );
                 free_buf(output);
+                PERF_PROF_EXIT( pr_prmem_ );
             }
 
             {
+                PERF_PROF_ENTER( pr_perf_, "update perf dump");
                 char perf_buf[MSL * 12];
                 PERF_repr(perf_buf, sizeof(perf_buf));
                 log_string(perf_buf);
+                PERF_prof_repr_total(perf_buf, sizeof(perf_buf));
+                log_string(perf_buf);
+                PERF_PROF_EXIT( pr_perf_ );
             }
 
             {
+                PERF_PROF_ENTER( pr_aod_, "update arc_obj_diag");
                 BUFFER *output = new_buf();
                 add_buf(output, "arc_obj_diag result: ");
                 if (TRUE == arc_obj_diag(output))
@@ -2375,6 +2382,7 @@ void update_handler( void )
                     log_string( buf_string(output) );
                 }
                 free_buf(output);
+                PERF_PROF_EXIT( pr_aod_ );
             }
         }
         hour_update = FALSE;
