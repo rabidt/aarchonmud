@@ -3563,9 +3563,9 @@ void add_money( CHAR_DATA *ch, int gold, int silver, CHAR_DATA *source )
 }
 
 /* deduct cost from a character */
-void deduct_cost(CHAR_DATA *ch, int cost)
+void deduct_cost(CHAR_DATA *ch, long cost)
 {
-    int silver = 0, gold = 0, bank = 0;
+    long silver = 0, gold = 0, bank = 0;
     char buf[MSL];
     
     silver = UMIN(ch->silver,cost);

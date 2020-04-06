@@ -2623,7 +2623,12 @@ DEF_DO_FUN(do_sacrifice)
     silver = UMAX(1,obj->level * 3);
 
     if (obj->item_type != ITEM_CORPSE_NPC && obj->item_type != ITEM_CORPSE_PC)
-        silver = UMIN(silver,obj->cost);
+    {
+        if (obj->cost > 0)
+        {
+            silver = UMIN(silver, obj->cost);
+        }
+    }
 
     if (silver == 1)
     {
@@ -3440,7 +3445,7 @@ DEF_DO_FUN(do_buy)
         {
             int cost = 5000000; //50k gold 
             int qpcost= 250;
-            int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+            long money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
             if ( (money < cost) ||
                     (ch->pcdata->questpoints < qpcost) )
             {
@@ -3509,7 +3514,7 @@ DEF_DO_FUN(do_buy)
 
         cost1 = 10 * pet->level * pet->level;
         cost1 = haggle_cost( ch, cost1, cost1/2 );
-        int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+        long money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
 
         if ( money < cost1 )
         {
@@ -3595,7 +3600,7 @@ DEF_DO_FUN(do_buy)
 
         cost1 = haggle_cost( ch, cost1, obj->cost );
 
-        int money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
+        long money = ch->silver + 100*ch->gold + 100*ch->pcdata->bank; //Player's total money in gold
         if (money < cost1 * number )
         {
             if (number > 1)
