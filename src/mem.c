@@ -662,6 +662,24 @@ AO_STATIC void arc_obj_deinit(struct arc_obj_type *ao_type, struct arc_obj *aoh,
     aot->magic_id[1] = AO_MAGIC_DEINIT_1;
 }
 
+static bool is_valid_arc_obj(struct arc_obj_type *ao_type, void *p)
+{
+    assert(ao_type);
+    assert(p);
+
+    uintptr_t aoh_p_off = ao_type->wrapped_offset - ao_type->aoh_offset;
+    uintptr_t p_aot_off = ao_type->aot_offset - ao_type->wrapped_offset;
+
+
+    const struct arc_obj *aoh = (struct arc_obj *)((uintptr_t)p - aoh_p_off);
+    const struct arc_obj *aot = (struct arc_obj *)((uintptr_t)p + p_aot_off);
+
+    return  aoh->magic_id[0] == AO_MAGIC_INIT_0 &&
+            aoh->magic_id[1] == AO_MAGIC_INIT_1 &&
+            aot->magic_id[0] == AO_MAGIC_INIT_0 &&
+            aot->magic_id[1] == AO_MAGIC_INIT_1;
+}
+
 /* wrap structs */
 struct CHAR_DATA_wrap
 {
@@ -1346,3 +1364,21 @@ void dealloc_BOSSREC(BOSSREC *p)
     arc_obj_deinit(&BOSSREC_type, &wr->aoh, &wr->aot);
     free(wr);
 }
+
+/* is_valid struct definitions */
+bool is_valid_CHAR_DATA(CHAR_DATA *p) { return is_valid_arc_obj(&CHAR_DATA_type, p); }
+bool is_valid_OBJ_DATA(OBJ_DATA *p) { return is_valid_arc_obj(&OBJ_DATA_type, p); }
+bool is_valid_AREA_DATA(AREA_DATA *p) { return is_valid_arc_obj(&AREA_DATA_type, p); }
+bool is_valid_ROOM_INDEX_DATA(ROOM_INDEX_DATA *p) { return is_valid_arc_obj(&ROOM_INDEX_DATA_type, p); }
+bool is_valid_EXIT_DATA(EXIT_DATA *p) { return is_valid_arc_obj(&EXIT_DATA_type, p); }
+bool is_valid_RESET_DATA(RESET_DATA *p) { return is_valid_arc_obj(&RESET_DATA_type, p); }
+bool is_valid_MOB_INDEX_DATA(MOB_INDEX_DATA *p) { return is_valid_arc_obj(&MOB_INDEX_DATA_type, p); }
+bool is_valid_OBJ_INDEX_DATA(OBJ_INDEX_DATA *p) { return is_valid_arc_obj(&OBJ_INDEX_DATA_type, p); }
+bool is_valid_PROG_CODE(PROG_CODE *p) { return is_valid_arc_obj(&PROG_CODE_type, p); }
+bool is_valid_PROG_LIST(PROG_LIST *p) { return is_valid_arc_obj(&PROG_LIST_type, p); }
+bool is_valid_SHOP_DATA(SHOP_DATA *p) { return is_valid_arc_obj(&SHOP_DATA_type, p); }
+bool is_valid_AFFECT_DATA(AFFECT_DATA *p) { return is_valid_arc_obj(&AFFECT_DATA_type, p); }
+bool is_valid_HELP_DATA(HELP_DATA *p) { return is_valid_arc_obj(&HELP_DATA_type, p); }
+bool is_valid_DESCRIPTOR_DATA(DESCRIPTOR_DATA *p) { return is_valid_arc_obj(&DESCRIPTOR_DATA_type, p); }
+bool is_valid_BOSSACHV(BOSSACHV *p) { return is_valid_arc_obj(&BOSSACHV_type, p); }
+bool is_valid_BOSSREC(BOSSREC *p) { return is_valid_arc_obj(&BOSSREC_type, p); }

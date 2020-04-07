@@ -44,6 +44,7 @@
 #include "dxport.h"
 #include "perfmon.h"
 #include "lua_arclib.h"
+#include "mem.h"
 
 int     execl           args( ( const char *path, const char *arg, ... ) );
 int close       args( ( int fd ) );
@@ -3013,7 +3014,7 @@ DEF_DO_FUN(do_repeat)
     {
         interpret(ch, argument);
         // saveguard against repeated quitting and other bright ideas
-        if ( !valid_CH(ch) || ch->must_extract )
+        if ( !is_valid_CHAR_DATA(ch) || ch->must_extract )
             return;
     }
     ch->wait = 0;

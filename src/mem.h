@@ -62,6 +62,22 @@ void dealloc_BOSSACHV(struct boss_achieve_entry *ptr);
 struct boss_achieve_record *alloc_BOSSREC(void);
 void dealloc_BOSSREC(struct boss_achieve_record *ptr);
 
+bool is_valid_CHAR_DATA(struct char_data *p);
+bool is_valid_OBJ_DATA(struct obj_data *p);
+bool is_valid_AREA_DATA(struct area_data *p);
+bool is_valid_ROOM_INDEX_DATA(struct room_index_data *p);
+bool is_valid_EXIT_DATA(struct exit_data *p);
+bool is_valid_RESET_DATA(struct reset_data *p);
+bool is_valid_MOB_INDEX_DATA(struct mob_index_data *p);
+bool is_valid_OBJ_INDEX_DATA(struct obj_index_data *p);
+bool is_valid_PROG_CODE(struct prog_code *p);
+bool is_valid_PROG_LIST(struct prog_list *p);
+bool is_valid_SHOP_DATA(struct shop_data *p);
+bool is_valid_AFFECT_DATA(struct affect_data *p);
+bool is_valid_HELP_DATA(struct help_data *p);
+bool is_valid_DESCRIPTOR_DATA(struct descriptor_data *p);
+bool is_valid_BOSSACHV(struct boss_achieve_entry *p);
+bool is_valid_BOSSREC(struct boss_achieve_record *p);
 
 #ifdef MEM_C_
 

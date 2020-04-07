@@ -41,6 +41,7 @@
 #include "lookup.h"
 #include "simsave.h"
 #include "songs.h"
+#include "mem.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_return    );
@@ -2584,9 +2585,9 @@ CHAR_DATA* char_list_next_char( CHAR_DATA *ch )
     
     ch = ch->next;
     // skip characters marked for extraction and look for invalid ones
-    while ( ch && (!valid_CH(ch) || ch->must_extract) )
+    while ( ch && (!is_valid_CHAR_DATA(ch) || ch->must_extract) )
     {
-        if ( !valid_CH(ch) )
+        if ( !is_valid_CHAR_DATA(ch) )
         {
             bugf("char_list_next_char: invalid character");
             return NULL;
