@@ -199,7 +199,6 @@ static bool create_quest_item( CHAR_DATA *ch, char *name, OBJ_DATA **obj )
     return FALSE;
 }
 
-#if 0
 static bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man )
 {
     const QUEST_ITEM *qi;
@@ -248,7 +247,6 @@ static bool sell_quest_item( CHAR_DATA *ch, OBJ_DATA *obj, CHAR_DATA *quest_man 
     act( "$p is not a quest item.", ch, obj, ch, TO_CHAR );
     return FALSE;
 }
-#endif
 
 /* Object vnums for object quest 'tokens'. In Moongate, the tokens are
 things like 'the Shield of Moongate', 'the Sceptre of Moongate'. These
@@ -532,15 +530,13 @@ DEF_DO_FUN(do_quest)
             send_to_char("To sell a quest item, type 'QUEST SELL <item>'.\n\r",ch);
             return;
         }
-        if ( (obj = get_obj_carry(ch, arg2, ch)) == NULL )
+	if ( (obj = get_obj_carry(ch, arg2, ch)) == NULL )
         {
             send_to_char("You don't have that object.\n\r",ch);
             return;
         }
-
-        send_to_char("Sorry, selling is temporarily disabled.\n\r", ch);
-        // sell_quest_item(ch, obj, questman);
-        return;
+	sell_quest_item(ch, obj, questman);
+	return;
       }
     else if (!strcmp(arg1, "buy"))
     {
