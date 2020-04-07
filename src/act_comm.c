@@ -41,6 +41,7 @@
 #include "warfare.h"
 #include "songs.h"
 #include "lua_arclib.h"
+#include "mem.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -2582,7 +2583,7 @@ static CHAR_DATA *ultimate_master( CHAR_DATA *ch )
     while ( IS_AFFECTED(ch, AFF_CHARM) && ch->master != NULL )
     {
         // safety net since we're getting crashes
-        if ( !valid_CH(ch->master) || ch->master->must_extract )
+        if ( !is_valid_CHAR_DATA(ch->master) || ch->master->must_extract )
         {
             bugf("ultimate_master: invalid master for %s", IS_NPC(ch) ? ch->short_descr : ch->name);
             ch->master = NULL;
@@ -2613,7 +2614,7 @@ static bool impl_is_same_group_( CHAR_DATA *ach, CHAR_DATA *bch )
         return FALSE;
     
     // safety net
-    if ( !valid_CH(ach) || !valid_CH(bch) || ach->must_extract || bch->must_extract )
+    if ( !is_valid_CHAR_DATA(ach) || !is_valid_CHAR_DATA(bch) || ach->must_extract || bch->must_extract )
         return FALSE;
 
     if ( IS_NPC(ach) && IS_NPC(bch)

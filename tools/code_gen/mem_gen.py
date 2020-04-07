@@ -47,6 +47,18 @@ def main():
             ctype=ctype, cname=cname)
 
     print ""
+    print "/* valid struct prototypes */"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print "bool is_valid_{ctype}({ctype} *p);".format(ctype=ctype)
+
+
+    print ""
     print "/* wrap structs */"
     ctype_seen = set()
     for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
@@ -152,6 +164,18 @@ static struct {ctype}_wrap *{ctype}_get_wrap({ctype} *p)
         print "    free(wr);"
         print "}"
         print ""
+
+    print ""
+    print "/* is_valid struct definitions */"
+    ctype_seen = set()
+    for ltype, ctype, cname, tblprefix in TYPE_PAIRS:
+        if ctype in ctype_seen:
+            continue
+        else:
+            ctype_seen.add(ctype)
+
+        print "bool is_valid_{ctype}({ctype} *p) {{ return is_valid_arc_obj(&{ctype}_type, p); }}".format(ctype=ctype)
+
 
 
 if __name__ == "__main__":

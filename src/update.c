@@ -1094,7 +1094,7 @@ static void char_update( void )
 
     for ( ch = char_list; ch != NULL; ch = ch->next )
     {
-        if ( !valid_CH(ch) )
+        if ( !is_valid_CHAR_DATA(ch) )
         {
             bugf("Invalid ch in char_update (%d). Removing from list.",
                     ch->pIndexData ? ch->pIndexData->vnum : 0 );
@@ -1804,7 +1804,7 @@ static void obj_update( void )
     {
         obj_next = obj->next;
 
-        if ( !valid_OBJ(obj) )
+        if ( !is_valid_OBJ_DATA(obj) )
         {
             bugf("Invalid obj in obj_update (%d). Removing from list.", obj->pIndexData->vnum);
             /* invalid should mean already freed, just kill it from the list */
@@ -2157,7 +2157,7 @@ static void extract_update( void )
     CHAR_DATA *ch = char_list;
     while ( ch )
     {
-        if ( !valid_CH(ch) )
+        if ( !is_valid_CHAR_DATA(ch) )
         {
             bugf("Invalid ch in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
@@ -2179,7 +2179,7 @@ static void extract_update( void )
     OBJ_DATA *obj = object_list;
     while ( obj )
     {  
-        if ( !valid_OBJ(obj) )
+        if ( !is_valid_OBJ_DATA(obj) )
         {
             bugf("Invalid obj in extract_update" );
             /* invalid should mean already freed, just kill it from the list */
@@ -3074,19 +3074,19 @@ static void validate_all( void )
     for ( ch = char_list; ch; ch = ch_next )
     {
         ch_next = ch->next;
-        if ( !valid_CH(ch) )
+        if ( !is_valid_CHAR_DATA(ch) )
         {
             bugf("validate_all: invalid ch in char_list (%s)", ch->name);
             char_from_char_list(ch);
             continue;
         }
-        if ( ch->master && !valid_CH(ch->master) )
+        if ( ch->master && !is_valid_CHAR_DATA(ch->master) )
         {
             bugf("validate_all: invalid ch->master (%s)", ch->name);
             ch->master = NULL;
             continue;
         }
-        if ( ch->leader && !valid_CH(ch->leader) )
+        if ( ch->leader && !is_valid_CHAR_DATA(ch->leader) )
         {
             bugf("validate_all: invalid ch->leader (%s)", ch->name);
             ch->leader = NULL;
@@ -3094,7 +3094,7 @@ static void validate_all( void )
         }
         if ( ch->pet )
         {
-            if ( !valid_CH(ch->pet) )
+            if ( !is_valid_CHAR_DATA(ch->pet) )
             {
                 bugf("validate_all: invalid ch->pet (%s)", ch->name);
                 ch->pet = NULL;
@@ -3103,7 +3103,7 @@ static void validate_all( void )
             lch = ch->pet->leader;
             if ( ch != lch )
             {
-                bugf("validate_all: ch != ch->pet->leader (%s != %s)", ch->name, !lch ? "NULL" : !valid_CH(lch) ? "invalid" : lch->name);
+                bugf("validate_all: ch != ch->pet->leader (%s != %s)", ch->name, !lch ? "NULL" : !is_valid_CHAR_DATA(lch) ? "invalid" : lch->name);
                 ch->pet->leader = NULL;
                 ch->pet = NULL;
                 continue;
@@ -3111,7 +3111,7 @@ static void validate_all( void )
         }
         if ( ch->desc )
         {
-            if ( !valid_DESCRIPTOR(ch->desc) )
+            if ( !is_valid_DESCRIPTOR_DATA(ch->desc) )
             {
                 bugf("validate_all: invalid ch->desc (%s)", ch->name);
                 ch->desc = NULL;
@@ -3120,13 +3120,13 @@ static void validate_all( void )
             dch = ch->desc->character;
             if ( ch != dch )
             {
-                bugf("validate_all: ch != ch->desc->ch (%s != %s)", ch->name, !dch ? "NULL" : !valid_CH(dch) ? "invalid" : dch->name);
+                bugf("validate_all: ch != ch->desc->ch (%s != %s)", ch->name, !dch ? "NULL" : !is_valid_CHAR_DATA(dch) ? "invalid" : dch->name);
                 ch->desc->character = NULL;
                 ch->desc = NULL;
                 continue;
             }
         }
-        if ( ch->in_room && !valid_ROOM(ch->in_room) )
+        if ( ch->in_room && !is_valid_ROOM_INDEX_DATA(ch->in_room) )
         {
             bugf("validate_all: ch (%s) has invalid in_room field", ch->name);
             ch->in_room = NULL;
@@ -3143,7 +3143,7 @@ static void validate_all( void )
     for ( desc = descriptor_list; desc; desc = desc_next )
     {
         desc_next = desc->next;
-        if ( !valid_DESCRIPTOR(desc) )
+        if ( !is_valid_DESCRIPTOR_DATA(desc) )
         {
             bugf("validate_all: invalid desc in descriptor_list (%s)", desc->host);
             desc_from_descriptor_list(desc);
@@ -3151,7 +3151,7 @@ static void validate_all( void )
         }
         if ( (dch = desc->character) )
         {
-            if ( !valid_CH(dch) )
+            if ( !is_valid_CHAR_DATA(dch) )
             {
                 bugf("validate_all: invalid desc->character (%s, %s)", desc->host, dch->name);
                 desc->character = NULL;
@@ -3159,7 +3159,7 @@ static void validate_all( void )
             }
             if ( desc != dch->desc )
             {
-                bugf("validate_all: desc != desc->character->desc (%s, %s != %s)", dch->name, desc->host, !dch->desc ? "NULL" : !valid_DESCRIPTOR(dch->desc) ? "invalid" : dch->desc->host);
+                bugf("validate_all: desc != desc->character->desc (%s, %s != %s)", dch->name, desc->host, !dch->desc ? "NULL" : !is_valid_DESCRIPTOR_DATA(dch->desc) ? "invalid" : dch->desc->host);
                 desc->character->desc = NULL;
                 desc->character = NULL;
                 continue;
@@ -3201,31 +3201,31 @@ static void validate_all( void )
     for ( pObj = object_list; pObj != NULL; pObj = pObj_next )
     {
         pObj_next = pObj->next;
-        if ( !valid_OBJ(pObj) )
+        if ( !is_valid_OBJ_DATA(pObj) )
         {
             bugf("validate_all: invalid obj in object_list (%d)", pObj->pIndexData->vnum);
             obj_from_object_list(pObj);
             continue;
         }
-        if ( pObj->in_room && !valid_ROOM(pObj->in_room) )
+        if ( pObj->in_room && !is_valid_ROOM_INDEX_DATA(pObj->in_room) )
         {
             bugf("validate_all: obj (%d) has invalid in_room field", pObj->pIndexData->vnum);
             pObj->in_room = NULL;
             continue;
         }
-        if ( pObj->carried_by && !valid_CH(pObj->carried_by) )
+        if ( pObj->carried_by && !is_valid_CHAR_DATA(pObj->carried_by) )
         {
             bugf("validate_all: obj (%d) has invalid carried_by field", pObj->pIndexData->vnum);
             pObj->carried_by = NULL;
             continue;
         }
-        if ( pObj->on && !valid_OBJ(pObj->on) )
+        if ( pObj->on && !is_valid_OBJ_DATA(pObj->on) )
         {
             bugf("validate_all: obj (%d) has invalid on field", pObj->pIndexData->vnum);
             pObj->on = NULL;
             continue;
         }
-        if ( pObj->in_obj && !valid_OBJ(pObj->in_obj) )
+        if ( pObj->in_obj && !is_valid_OBJ_DATA(pObj->in_obj) )
         {
             bugf("validate_all: obj (%d) has invalid in_obj field", pObj->pIndexData->vnum);
             pObj->in_obj = NULL;
