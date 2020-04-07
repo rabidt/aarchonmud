@@ -282,11 +282,11 @@ class Server(object):
 
             connection.set_inheritable(True)
 
-            msg = b''
+            msg = ''
             try:
                 while True:
                     data = connection.recv(_BUF_SIZE)
-                    if data == '':
+                    if data == b'':
                         break
 
                     for v in data:
