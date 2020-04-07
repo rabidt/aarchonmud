@@ -10,8 +10,12 @@ LOG = logging.getLogger()
 
 
 def main():
-    logging.basicConfig(stream=sys.stdout, level=getattr(logging, config.LOG_LEVEL))
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=getattr(logging, config.LOG_LEVEL),
+        format="%(asctime)s::" + logging.BASIC_FORMAT)
     LOG.debug("main running.")
+    LOG.info("Starting APP_VERSION: " + config.APP_VERSION)
 
     stat_db = StatDb(config.DB_PATH)
 

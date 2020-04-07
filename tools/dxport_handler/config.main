@@ -1,3 +1,4 @@
 export DX_DB_PATH=/home/m256ada/website_proj/flask_app/instance/dxport.sqlite3
 export DX_SOCK_PATH=/home/m256ada/aeaea/data/area/.DXPORT
 export DX_LOG_LEVEL=INFO
+export DX_APP_VERSION=`git rev-parse HEAD`
