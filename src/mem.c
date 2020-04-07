@@ -677,7 +677,9 @@ static bool is_valid_arc_obj(struct arc_obj_type *ao_type, void *p)
     return  aoh->magic_id[0] == AO_MAGIC_INIT_0 &&
             aoh->magic_id[1] == AO_MAGIC_INIT_1 &&
             aot->magic_id[0] == AO_MAGIC_INIT_0 &&
-            aot->magic_id[1] == AO_MAGIC_INIT_1;
+            aot->magic_id[1] == AO_MAGIC_INIT_1 &&
+            aoh->ao_type == ao_type &&
+            aot->ao_type == ao_type;
 }
 
 /* wrap structs */
