@@ -3784,15 +3784,15 @@ extern sh_int  gsn_custom_affect;
 
 struct achievement_entry
 {
-   //char type[MSL];
    int type;
-   int limit;      
-   int quest_reward; 
-   int exp_reward;   
-   int gold_reward; 
-   int ach_reward; 
-   int obj_reward;   
+   int limit;
+   int quest_reward;
+   int exp_reward;
+   int gold_reward;
+   int ach_reward;
+   int obj_reward;
    int bit_vector;
+   int min_remort;
 };
 
 struct boss_achieve_entry

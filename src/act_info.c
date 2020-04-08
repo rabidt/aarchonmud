@@ -5436,7 +5436,15 @@ DEF_DO_FUN(do_achievements)
         add_buf(output,"{w----------------------------\n\r");
         for (i = 0; achievement_table[i].bit_vector != 0; i++)
         {
-            snprintf( buf, sizeof(buf), "{w%-10s %6d: ", achievement_display[achievement_table[i].type], achievement_table[i].limit);
+            char tbuf[17];
+            strlcpy(tbuf, achievement_display[achievement_table[i].type], sizeof(tbuf));
+            if (achievement_table[i].min_remort)
+            {
+                char rbuf[7];
+                snprintf(rbuf, sizeof(rbuf), "[r%d+]", achievement_table[i].min_remort);
+                strlcat(tbuf, rbuf, sizeof(tbuf));
+            }
+            snprintf( buf, sizeof(buf), "{w%-17s %6d: ", tbuf, achievement_table[i].limit);
             add_buf(output, buf);
             totalach += 1;
 
@@ -5577,60 +5585,64 @@ void check_boss_achieve( CHAR_DATA *ch, CHAR_DATA *victim )
 
 void check_achievement( CHAR_DATA *ch )
 {
+    if (!ch->pcdata)
+    {
+        bugf("%s: no pcdata for %s", __func__, ch->name);
+        return;
+    }
+
     int i;
-    int current;
 
-/*loop through the whole achievement table starting from index 0 and keep going
-  until the type is NULL (this will always be the last entry)*/
-
-   for (i = 0; achievement_table[i].bit_vector != 0; i++)
-    {	
+    /*loop through the whole achievement table starting from index 0 and keep going
+      until the type is NULL (this will always be the last entry)*/
+    for (i = 0; achievement_table[i].bit_vector != 0; i++)
+    {    
         /* Recommendation from Vodur to make the check more efficient. No point in checking
            that in which we've already earned. Added 1-15-13 */
         if (IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector)) 
             continue;
 
-	/*for whatever index we're on, is the type "level"? if so, we check limit vs ch-> level. We'll have other if checks for other types
-          so we'll know what to check the 'limit' against*/
-	current=0;//so numbers don't carry over from previous loops
-	switch (achievement_table[i].type)
-	{
-	    case ACHV_LEVEL:
-		current = ch->level;
-		break;
-	    case ACHV_MKILL:
-		current = ch->pcdata->mob_kills;
-		break;
-	    case ACHV_REMORT:
-		current = ch->pcdata->remorts;
-		break;
-	    case ACHV_QCOMP:
-		current = ch->pcdata->quest_success;
-		break;
-	    case ACHV_WKILL:
-		current = ch->pcdata->war_kills;
-		break;
-	    case ACHV_WWIN:
-		current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won + ch->pcdata->duel_won;
-		break;
-	    case ACHV_BEHEAD:
-		current = ch->pcdata->behead_cnt;
-		break;
-	    case ACHV_PKILL:
-		current = ch->pcdata->pkill_count;
-		break;
-	    case ACHV_AGE:
-		current = get_age(ch);
-		break;
-	    case ACHV_MAXHP:
-		current = ch->max_hit;
-		break;
-	    case ACHV_MAXMN:
-		current = ch->max_mana;
-		break;
-	    case ACHV_MAXMV:
-		current = ch->max_move;
-		break;
+        /*for whatever index we're on, is the type "level"? if so, we check limit vs ch-> level. We'll have other if checks for other types
+              so we'll know what to check the 'limit' against*/
+        int current = 0;
+        switch (achievement_table[i].type)
+        {
+            case ACHV_LEVEL:
+                current = ch->level;
+                break;
+            case ACHV_MKILL:
+                current = ch->pcdata->mob_kills;
+                break;
+            case ACHV_REMORT:
+                current = ch->pcdata->remorts;
+                break;
+            case ACHV_QCOMP:
+                current = ch->pcdata->quest_success;
+                break;
+            case ACHV_WKILL:
+                current = ch->pcdata->war_kills;
+                break;
+            case ACHV_WWIN:
+                current = ch->pcdata->armageddon_won + ch->pcdata->clan_won + ch->pcdata->class_won + ch->pcdata->race_won + ch->pcdata->religion_won + ch->pcdata->gender_won + ch->pcdata->duel_won;
+                break;
+            case ACHV_BEHEAD:
+                current = ch->pcdata->behead_cnt;
+                break;
+            case ACHV_PKILL:
+                current = ch->pcdata->pkill_count;
+                break;
+            case ACHV_AGE:
+                current = get_age(ch);
+                break;
+            case ACHV_MAXHP:
+                current = ch->max_hit;
+                break;
+            case ACHV_MAXMN:
+                current = ch->max_mana;
+                break;
+            case ACHV_MAXMV:
+                current = ch->max_move;
+                break;
             case ACHV_EXPLORED:
                 current = ch->pcdata->explored->set;
                 break;
@@ -5649,15 +5661,27 @@ void check_achievement( CHAR_DATA *ch )
             case ACHV_ASCENSION:
                 current = ch->pcdata->ascents;
                 break;
-	    default:
-		bug("Invalid achievement entry. Check achievement type", 0);
-		//bug message here
-    	}
-    	
+            default:
+                bugf("Invalid achievement type %d: ", achievement_table[i].type);
+                continue;
+        }
+
         if ( current >= achievement_table[i].limit)
-          if (!IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector))
-            achievement_reward(ch, i); 
-       
+        {
+            if (achievement_table[i].min_remort)
+            {
+                if ( ch->pcdata->remorts < achievement_table[i].min_remort && 
+                     ch->pcdata->ascents < 1 )
+                {
+                    continue;
+                }
+            }
+
+            if (!IS_SET(ch->pcdata->achievements, achievement_table[i].bit_vector))
+            {
+                achievement_reward(ch, i);
+            }
+        }
     }
 }
 
