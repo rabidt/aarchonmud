@@ -1,5 +1,5 @@
 /**************************************************************
-                         playback.c
+                         playback.cpp
 
 Written by Clayton Richey (Odoth/Vodur) <clayton.richey@gmail.com>
 for Aarchon MUD
@@ -30,7 +30,7 @@ struct pers_comm_history
     pers_comm_history()
         : entries()
     { }
-    std::list< const std::string > entries;
+    std::list< std::string > entries;
 };
     
 struct COMM_ENTRY
