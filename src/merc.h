@@ -112,6 +112,8 @@ typedef struct  portal_data      PORTAL_DATA;
 typedef struct  achievement_entry ACHIEVEMENT;
 typedef struct  boss_achieve_entry BOSSACHV;
 typedef struct  boss_achieve_record BOSSREC;
+
+struct pers_comm_history;
 /* religion */
 // typedef struct religion_data RELIGION_DATA;
 /* from buffer_util.h, moved here: */
@@ -150,44 +152,6 @@ typedef bool SPELL_FUN  args( ( int sn, int level, CHAR_DATA *ch, void *vo, int 
 /* for object and affect locating in handler.c */
 typedef bool OBJ_CHECK_FUN( OBJ_DATA *obj );
 typedef bool SKILL_CHECK_FUN( int sn );
-
-typedef struct comm_history_entry COMM_ENTRY;
-typedef struct comm_history_type COMM_HISTORY;
-typedef struct pers_comm_entry PERS_ENTRY;
-typedef struct pers_comm_history PERS_HISTORY;
-
-struct pers_comm_entry
-{
-	PERS_ENTRY *next;
-	PERS_ENTRY *prev;
-	const char *text;
-};
-
-struct pers_comm_history
-{
-	sh_int size;
-	PERS_ENTRY *head;
-	PERS_ENTRY *tail;
-};
-	
-struct comm_history_entry
-{
-    COMM_ENTRY *next;
-    COMM_ENTRY *prev;
-
-    const char *timestamp;
-    sh_int channel;
-    const char *text;
-    const char *name;
-};
-
-struct comm_history_type
-{
-    sh_int size;
-    COMM_ENTRY *head; /* most recent */
-    COMM_ENTRY *tail; /* oldest */
-};
-
 
 typedef bool CHAN_CHECK args( ( CHAR_DATA *ch) );
 typedef struct channel_type
@@ -2648,9 +2612,9 @@ struct  pc_data
 
     BOSSREC *boss_achievements;
 
-    PERS_HISTORY *gtell_history;
-    PERS_HISTORY *tell_history;
-    PERS_HISTORY *clan_history;
+    struct pers_comm_history *gtell_history;
+    struct pers_comm_history *tell_history;
+    struct pers_comm_history *clan_history;
 
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
@@ -5194,12 +5158,12 @@ void start_con_cb(
     const char *argument);
 void run_con_cb( DESCRIPTOR_DATA *desc, const char *argument );
 
-/* playback.c */
+/* playback.cpp */
 void log_chan( CHAR_DATA * ch, const char *text , sh_int channel );
-void log_pers( PERS_HISTORY *history, const char *text );
+void log_pers( struct pers_comm_history *history, const char *text );
 void load_comm_histories( void );
-PERS_HISTORY* pers_history_new( void );
-void pers_history_free( PERS_HISTORY *history );
+struct pers_comm_history * pers_history_new( void );
+void pers_history_free( struct pers_comm_history *history );
 void save_comm_histories( void );
 
 /* remort.c */
