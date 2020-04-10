@@ -3070,6 +3070,7 @@ static void validate_all( void )
     ROOM_INDEX_DATA *pRoom;
     OBJ_DATA *pObj, *pObj_next;
     
+    PERF_PROF_ENTER( prchar_, "validate_all char" );
     // characters
     for ( ch = char_list; ch; ch = ch_next )
     {
@@ -3139,6 +3140,8 @@ static void validate_all( void )
             continue;
         }
     }
+    PERF_PROF_EXIT( prchar_ );
+    PERF_PROF_ENTER( prdesc_, "validate_all desc" );
     // descriptors
     for ( desc = descriptor_list; desc; desc = desc_next )
     {
@@ -3166,6 +3169,8 @@ static void validate_all( void )
             }
         }
     }
+    PERF_PROF_EXIT( prdesc_ );
+    PERF_PROF_ENTER( prarea_, "validate_all area" );
     // areas and rooms
     for ( pArea = area_first; pArea != NULL; pArea = pArea->next )
     {
@@ -3197,6 +3202,8 @@ static void validate_all( void )
             pArea->nplayer = player_count;
         }
     }
+    PERF_PROF_EXIT( prarea_ );
+    PERF_PROF_ENTER( probj_, "validate_all obj" );
     // objects
     for ( pObj = object_list; pObj != NULL; pObj = pObj_next )
     {
@@ -3232,6 +3239,7 @@ static void validate_all( void )
             continue;
         }
     }
+    PERF_PROF_EXIT( probj_ );
 
     PERF_PROF_EXIT( pr_ );
 }
