@@ -115,6 +115,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
     /* create god log */
     if (IS_IMMORTAL(ch) || ch->level >= LEVEL_IMMORTAL)
     {
+        PERF_PROF_ENTER( prgod_, "save godfile" );
         FILE *fp;
         snprintf( strsave, sizeof(strsave), "%s%s",GOD_DIR, capitalize(ch->name));
         if ((fp = fopen(strsave,"w")) == NULL)
@@ -128,6 +129,7 @@ MEMFILE* mem_save_char_obj( CHAR_DATA *ch )
                     ch->level, get_trust(ch), ch->name, ch->pcdata->title);
             fclose( fp );
         }
+        PERF_PROF_EXIT( prgod_ );
     }
 #endif
     
