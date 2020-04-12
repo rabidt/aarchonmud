@@ -15,7 +15,10 @@ def main():
         level=getattr(logging, config.LOG_LEVEL),
         format="%(asctime)s::" + logging.BASIC_FORMAT)
     LOG.debug("main running.")
-    LOG.info("Starting APP_VERSION: " + config.APP_VERSION)
+
+    app_version = os.popen("git rev-parse HEAD").read()
+
+    LOG.info("Starting app_version: " + app_version)
 
     stat_db = StatDb(config.DB_PATH)
 
