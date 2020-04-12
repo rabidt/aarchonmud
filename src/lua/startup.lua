@@ -414,20 +414,6 @@ function run_lua_interpret(env, str )
     return 0
 end
 
-function list_files ( path )
-    local f=assert(io.popen('find ../player -type f -printf "%f\n"', 'r'))
-    
-    local txt=f:read("*all")
-    f:close()
-    
-    local rtn={}
-    for nm in string.gmatch( txt, "(%a+)\n") do
-        table.insert(rtn, nm)
-    end
-
-    return rtn
-end
-
 -- Dijkstra style shortest path algorithm
 function findpath( start, finish )
     local dist={}

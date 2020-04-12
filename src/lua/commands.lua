@@ -2452,6 +2452,11 @@ function do_ptitle( ch, argument)
             return
         end
 
+        if not args[2] then
+            sendtochar(ch, "Set ptitle to what?\n\r")
+            return
+        end
+
         for k,v in pairs(ch.ptitles) do
             if args[2]:lower()==v:lower() then
                 ch.ptitle=v.." "
