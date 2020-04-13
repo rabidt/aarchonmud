@@ -64,7 +64,7 @@ bool push_{ltype}( lua_State *LS, {ctype} *ud ) {{ return arclib_push( p_{ltype}
 void lua_init_{ltype}( {ctype} *p ) {{ lua_arclib_obj_init( p_{ltype}_type, p ); }}
 void lua_deinit_{ltype}( {ctype} *p ) {{ lua_arclib_obj_deinit( p_{ltype}_type, p ); }}
 bool valid_{ltype}( {ctype} *ud ) {{ return arclib_valid( p_{ltype}_type, ud ); }}
-int count_{ltype}( void ) {{ return arclib_count_type( p_{ltype}_type ); }}
+int count_{ltype}( void ) {{ return {ltype}_type.count; }}
 """.format(ctype=ctype, ltype=ltype)
 
 if __name__ == "__main__":

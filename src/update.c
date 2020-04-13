@@ -2384,6 +2384,22 @@ void update_handler( void )
                 free_buf(output);
                 PERF_PROF_EXIT( pr_aod_ );
             }
+
+            {
+                PERF_PROF_ENTER( pr_lad_, "update lua_arclib_diag");
+                BUFFER *output = new_buf();
+                add_buf(output, "lua_arclib_diag result: ");
+                if (TRUE == lua_arclib_diag(output))
+                {
+                    bug_string( buf_string(output) );
+                }
+                else
+                {
+                    log_string( buf_string(output) );
+                }
+                free_buf(output);
+                PERF_PROF_EXIT( pr_lad_ );
+            }
         }
         hour_update = FALSE;
     }

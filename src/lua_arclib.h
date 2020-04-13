@@ -48,6 +48,10 @@ bool arclib_push( LUA_OBJ_TYPE *ltype, lua_State *LS, void *ud );
 void * arclib_check( LUA_OBJ_TYPE *ltype, lua_State *LS, int index );
 bool arclib_valid( LUA_OBJ_TYPE *ltype, void * );
 
+bool lua_arclib_diag(BUFFER *output);
+
+int GetLuaGameObjectCount( void );
+
 void init_script_db( void );
 void close_script_db( void );
 void register_globals( lua_State *LS );

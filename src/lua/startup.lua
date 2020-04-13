@@ -15,27 +15,6 @@ delaytbl={} -- used on the C side mostly
 validuds={}
 shared_tbls={}
 
-function UdCnt()
-    local reg=debug.getregistry()
-
-    local cnt=0
-    for k,v in pairs(reg) do
-        if type(v)=="userdata" then
-            cnt=cnt+1
-        end
-    end
-
-    return cnt
-end
-
-function EnvCnt()
-    local cnt=0
-    for k,v in pairs(envtbl) do
-        cnt=cnt+1
-    end
-    return cnt
-end
-
 function UnregisterDesc(desc)
     for k,v in pairs(interptbl) do
         if v.desc==desc then

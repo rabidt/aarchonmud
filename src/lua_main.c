@@ -93,36 +93,30 @@ int GetLuaMemoryUsage( void )
     return lua_gc( g_mud_LS, LUA_GCCOUNT, 0);
 }
 
-int GetLuaGameObjectCount( void )
-{
-    lua_getglobal( g_mud_LS, "UdCnt");
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
-    {
-        bugf ( "Error with UdCnt:\n %s",
-                lua_tostring(g_mud_LS, -1));
-        lua_pop(g_mud_LS, 1);
-        return -1;
-    }
-
-    int rtn=luaL_checkinteger( g_mud_LS, -1 );
-    lua_pop( g_mud_LS, 1 );
-    return rtn;
-}
-
 int GetLuaEnvironmentCount( void )
 {
-    lua_getglobal( g_mud_LS, "EnvCnt");  
-    if (CallLuaWithTraceBack( g_mud_LS, 0, 1) )
+    lua_getglobal(g_mud_LS, "envtbl");
+    if (!lua_istable(g_mud_LS, -1))
     {
-        bugf ( "Error with EnvCnt:\n %s",
-                lua_tostring(g_mud_LS, -1));
+        bugf("%s@%u: expected table but got %s",
+            __func__, __LINE__,
+            lua_typename(g_mud_LS, lua_type(g_mud_LS, -1))
+        );
         lua_pop(g_mud_LS, 1);
         return -1;
     }
 
-    int rtn=luaL_checkinteger( g_mud_LS, -1 );
-    lua_pop( g_mud_LS, 1 );
-    return rtn;
+    int count = 0;
+    
+    lua_pushnil(g_mud_LS);
+    while (lua_next(g_mud_LS, -2))
+    {
+        ++count;
+        lua_pop(g_mud_LS, 1);
+    }
+    lua_pop(g_mud_LS, 1);
+  
+    return count;
 }
 
 static void infinite_loop_check_hook( lua_State *LS, lua_Debug *ar)

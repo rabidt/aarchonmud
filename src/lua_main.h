@@ -53,7 +53,6 @@ void stackDump (lua_State *LS);
 void dump_prog(struct char_data *ch, const char *prog, bool numberlines);
 
 int GetLuaMemoryUsage( void );
-int GetLuaGameObjectCount( void );
 int GetLuaEnvironmentCount( void );
 
 
