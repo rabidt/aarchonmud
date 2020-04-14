@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include <lua.h>
 #include "merc.h"
 #include "recycle.h"
@@ -222,14 +223,23 @@ static void mem_save_storage_box( CHAR_DATA *ch )
       return;
     }
 
-/*  loop from 1 to ch->pcdata->storage_boxes
-    write identifying stuff for box
-*/
-    for (i=1;i<=ch->pcdata->storage_boxes;i++)
+    assert(ch->pcdata->storage_boxes < MAX_STORAGE_BOX);
+    for ( i = 1; i <= ch->pcdata->storage_boxes; i++)
     {
+        OBJ_DATA *box = ch->pcdata->box_data[ i - 1];
         bprintf( mf->buf, "#BOX %d\n", i );
-	if (ch->pcdata->box_data[i-1]->contains != NULL)
-          bwrite_obj(ch,ch->pcdata->box_data[i-1]->contains, mf->buf, 0);
+        if (strcmp( box->name, box->pIndexData->name))
+        {
+            bprintf( mf->buf, "#NAME %s~\n", box->name);
+        }
+        if (strcmp( box->description, box->pIndexData->description))
+        {
+            bprintf( mf->buf, "#DESC %s~\n", box->description);
+        }
+        if ( box->contains != NULL )
+        {
+            bwrite_obj( ch, box->contains, mf->buf, 0 );
+        }
     }
     bprintf( mf->buf, "#END\n" );
 
@@ -1358,45 +1368,80 @@ void mem_load_storage_box( CHAR_DATA *ch, MEMFILE *mf )
     buf = read_wrap_buffer(mf->buf);
 
 
-        for ( iNest = 0; iNest < MAX_NEST; iNest++ )
-            rgObjNest[iNest] = NULL;
+    for ( iNest = 0; iNest < MAX_NEST; iNest++ )
+        rgObjNest[iNest] = NULL;
 
-        for ( ; ; )
+    for ( ; ; )
+    {
+        char letter;
+        const char *word;
+
+        letter = bread_letter( buf );
+        if ( letter == '*' )
         {
-            char letter;
-            const char *word;
+            bread_to_eol( buf );
+            continue;
+        }
 
-            letter = bread_letter( buf );
-            if ( letter == '*' )
+        if ( letter != '#' )
+        {
+            bug( "mem_load_storage_box: # not found.", 0 );
+            break;
+        }
+
+        word = bread_word( buf );
+        if (!str_cmp( word, "BOX") )
+        {
+            box_number = bread_number(buf);
+        }
+        else if ( !str_cmp( word, "NAME" ) )
+        {
+            const char *name = bread_string(buf);
+            OBJ_DATA *box = ch->pcdata->box_data[box_number - 1];
+            if (!box)
             {
-                bread_to_eol( buf );
+                bugf("%s@%d: No object for box %d",
+                    __func__, __LINE__, box_number);
+                free_string(name);
                 continue;
             }
 
-            if ( letter != '#' )
-            {
-                bug( "mem_load_storage_box: # not found.", 0 );
-                break;
-            }
-
-            word = bread_word( buf );
-	    if (!str_cmp( word, "BOX") ) 
-              box_number = bread_number(buf);
-
-            else if ( !str_cmp( word, "OBJECT" ) ) 
-	      bread_obj( ch, buf,ch->pcdata->box_data[box_number-1]);
-
-            else if ( !str_cmp( word, "O"      ) ) 
-	      bread_obj  ( ch, buf,ch->pcdata->box_data[box_number-1]);
-
-            else if ( !str_cmp( word, "END"    ) ) break;
-            else
-            {
-                bug( "mem_load_storage_box: bad section.", 0 );
-                break;
-            }
+            free_string(box->name);
+            box->name = name;
         }
+        else if ( !str_cmp( word, "DESC" ) )
+        {
+            const char *desc = bread_string(buf);
+            OBJ_DATA *box = ch->pcdata->box_data[box_number - 1];
+            if (!box)
+            {
+                bugf("%s@%d: No object for box %d",
+                    __func__, __LINE__, box_number);
+                free_string(desc);
+                continue;
+            }
 
+            free_string(box->description);
+            box->description = desc;
+        }
+        else if ( !str_cmp( word, "OBJECT" ) )
+        {
+            bread_obj( ch, buf, ch->pcdata->box_data[box_number-1]);
+        }
+        else if ( !str_cmp( word, "O"      ) )
+        {
+            bread_obj  ( ch, buf, ch->pcdata->box_data[box_number-1]);
+        }
+        else if ( !str_cmp( word, "END"    ) )
+        {
+            break;
+        }
+        else
+        {
+            bug( "mem_load_storage_box: bad section.", 0 );
+            break;
+        }
+    }
 }
 
 /*

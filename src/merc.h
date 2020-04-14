@@ -2618,8 +2618,10 @@ struct  pc_data
 
     int             achpoints; /* Astark September 2012*/
     sh_int          behead_cnt;
-    sh_int	    storage_boxes; /*Number of storage boxes the player has*/
-    OBJ_DATA *	box_data[MAX_STORAGE_BOX];/*So we know if boxes are loaded and have easy access to them for saving purposes*/
+    /* Number of storage boxes the player has bought */
+    sh_int	    storage_boxes; 
+    /* Pointers to actual box objects (when loaded) */
+    OBJ_DATA *	box_data[MAX_STORAGE_BOX];
 
     sh_int      trained_hit;
     sh_int      trained_mana;
