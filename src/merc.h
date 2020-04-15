@@ -2756,8 +2756,6 @@ struct  pc_data
     int                 duel_kills;
 	int                 mob_kills;
 	int                 mob_deaths;
-  int                 mob_deaths_remort; /* mob deaths this remort */
-  int                 mob_deaths_ascent; /* mob deaths this ascent */
 	int                 quest_failed;
 	int                 quest_success;
         int                 quest_hard_success;
@@ -2768,12 +2766,6 @@ struct  pc_data
 	int                 religion_won;
 	int                 religion_lost;
 	int                 religion_kills;
-    /* 'survivor' counts: # of remorts or ascents a player survives without mob death */
-    struct
-    {
-        int remort;
-        int ascent;
-    } survivor;
     QUEST_DATA *qdata;
     tattoo_list tattoos;
     //FOLLOWER_DATA *ch_rel;
@@ -3807,9 +3799,6 @@ struct boss_achieve_record
 #define ACHV_RETRAINED  16
 #define ACHV_QHCOMP     17
 #define ACHV_ASCENSION  18
-#define ACHV_RSURVIVE   19
-#define ACHV_ASURVIVE   20
-#define ACHV_MAX        21
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3951,27 +3940,26 @@ struct boss_achieve_record
 #define    ACHIEVE_ASCENSION_8 134
 #define    ACHIEVE_ASCENSION_9 135
 #define    ACHIEVE_ASCENSION_10 136
-#define    ACHIEVE_RSURVIVE_1   137
-#define    ACHIEVE_RSURVIVE_2   138
-#define    ACHIEVE_RSURVIVE_3   139
-#define    ACHIEVE_RSURVIVE_4   140
-#define    ACHIEVE_RSURVIVE_5   141
-#define    ACHIEVE_RSURVIVE_6   142
-#define    ACHIEVE_RSURVIVE_7   143
-#define    ACHIEVE_RSURVIVE_8   144
-#define    ACHIEVE_RSURVIVE_9   145
-#define    ACHIEVE_RSURVIVE_10  146
-#define    ACHIEVE_ASURVIVE_1   147
-#define    ACHIEVE_ASURVIVE_2   148
-#define    ACHIEVE_ASURVIVE_3   149
-#define    ACHIEVE_ASURVIVE_4   150
-#define    ACHIEVE_ASURVIVE_5   151
-#define    ACHIEVE_ASURVIVE_6   152
-#define    ACHIEVE_ASURVIVE_7   153
-#define    ACHIEVE_ASURVIVE_8   154
-#define    ACHIEVE_ASURVIVE_9   155
-#define    ACHIEVE_ASURVIVE_10  156
-/* remember, tflag max bits is 256 */
+
+
+
+/*
+#define ACHIEVE_LEVEL_1    A
+#define ACHIEVE_LEVEL_2    B
+#define ACHIEVE_LEVEL_3    D
+#define ACHIEVE_LEVEL_4    E
+#define ACHIEVE_LEVEL_5    F
+#define ACHIEVE_LEVEL_6    G
+#define ACHIEVE_LEVEL_7    H
+#define ACHIEVE_LEVEL_8    I
+#define ACHIEVE_LEVEL_9    J
+#define ACHIEVE_LEVEL_10   K
+#define ACHIEVE_MKILL_1    L
+#define ACHIEVE_MKILL_2    M
+#define ACHIEVE_MKILL_3    N
+#define ACHIEVE_MKILL_4    O
+*/
+
 
 
 /*

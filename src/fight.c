@@ -4312,11 +4312,7 @@ bool deal_damage( CHAR_DATA *ch, CHAR_DATA *victim, int dam, int dt, int dam_typ
             {
                 CHAR_DATA *killer = get_local_leader(ch);
                 if ( IS_NPC(killer) || killer == victim )
-                {
                     victim->pcdata->mob_deaths++;
-                    victim->pcdata->mob_deaths_remort++;
-                    victim->pcdata->mob_deaths_ascent++;
-                }
                 else
                     victim->pcdata->pkill_deaths++;
             }
