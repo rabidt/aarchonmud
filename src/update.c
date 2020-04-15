@@ -190,7 +190,7 @@ void advance_level( CHAR_DATA *ch, bool hide )
         if (ch->pcdata->mob_deaths_remort == 0)
         {
             snprintf(buf, sizeof(buf), "%s is a survivor!", ch->name);
-            info_message_new(ch, buf, FALSE, FALSE);
+            info_message_new(ch, buf, TRUE, FALSE);
             ch->pcdata->survivor.remort++;
             check_achievement(ch);
         }
