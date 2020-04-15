@@ -2756,6 +2756,7 @@ struct  pc_data
     int                 duel_kills;
 	int                 mob_kills;
 	int                 mob_deaths;
+  int                 mob_deaths_remort; /* mob deaths this remort */
 	int                 quest_failed;
 	int                 quest_success;
         int                 quest_hard_success;
@@ -2766,6 +2767,11 @@ struct  pc_data
 	int                 religion_won;
 	int                 religion_lost;
 	int                 religion_kills;
+    /* 'survivor' count: # of times a player levels 1 to HERO without dying to mobs */
+    struct
+    {
+        int remort;
+    } survivor;
     QUEST_DATA *qdata;
     tattoo_list tattoos;
     //FOLLOWER_DATA *ch_rel;
@@ -3799,6 +3805,8 @@ struct boss_achieve_record
 #define ACHV_RETRAINED  16
 #define ACHV_QHCOMP     17
 #define ACHV_ASCENSION  18
+#define ACHV_RSURVIVE   19
+#define ACHV_MAX        20
 
 /*bitvector for achievement tflag*/
 #define    ACHIEVE_LEVEL_1 1
@@ -3940,26 +3948,17 @@ struct boss_achieve_record
 #define    ACHIEVE_ASCENSION_8 134
 #define    ACHIEVE_ASCENSION_9 135
 #define    ACHIEVE_ASCENSION_10 136
-
-
-
-/*
-#define ACHIEVE_LEVEL_1    A
-#define ACHIEVE_LEVEL_2    B
-#define ACHIEVE_LEVEL_3    D
-#define ACHIEVE_LEVEL_4    E
-#define ACHIEVE_LEVEL_5    F
-#define ACHIEVE_LEVEL_6    G
-#define ACHIEVE_LEVEL_7    H
-#define ACHIEVE_LEVEL_8    I
-#define ACHIEVE_LEVEL_9    J
-#define ACHIEVE_LEVEL_10   K
-#define ACHIEVE_MKILL_1    L
-#define ACHIEVE_MKILL_2    M
-#define ACHIEVE_MKILL_3    N
-#define ACHIEVE_MKILL_4    O
-*/
-
+#define    ACHIEVE_RSURVIVE_1   137
+#define    ACHIEVE_RSURVIVE_2   138
+#define    ACHIEVE_RSURVIVE_3   139
+#define    ACHIEVE_RSURVIVE_4   140
+#define    ACHIEVE_RSURVIVE_5   141
+#define    ACHIEVE_RSURVIVE_6   142
+#define    ACHIEVE_RSURVIVE_7   143
+#define    ACHIEVE_RSURVIVE_8   144
+#define    ACHIEVE_RSURVIVE_9   145
+#define    ACHIEVE_RSURVIVE_10  146
+/* remember, tflag max bits is 256 */
 
 
 /*

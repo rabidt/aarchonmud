@@ -984,6 +984,8 @@ void remort_complete(CHAR_DATA *ch)
     ch->silver = 0;
     ch->pcdata->points = 50;
     ch->exp = exp_per_level(ch);
+    
+    ch->pcdata->mob_deaths_remort = 0;
 
     ch->train    = ch->train/2 + 2;
     ch->practice = ch->practice/2 + 10;

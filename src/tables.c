@@ -1591,6 +1591,18 @@ const ACHIEVEMENT achievement_table [] =
 	{ ACHV_ASCENSION,   8,2000,   25,200000,   800,       0, ACHIEVE_ASCENSION_8, 0},
 	{ ACHV_ASCENSION,   9,2250,   25,225000,   900,       0, ACHIEVE_ASCENSION_9, 0},
 	{ ACHV_ASCENSION,  10,2500,   25,250000,  1000,       0, ACHIEVE_ASCENSION_10, 0},
+
+    { ACHV_RSURVIVE,     1,   50,  0,  10000,   20,      0,  ACHIEVE_RSURVIVE_1, 0},
+    { ACHV_RSURVIVE,     2,  100,  0,  20000,   40,      0,  ACHIEVE_RSURVIVE_2, 0},
+    { ACHV_RSURVIVE,     3,  150,  0,  30000,   60,      0,  ACHIEVE_RSURVIVE_3, 0},
+    { ACHV_RSURVIVE,     5,  250,  0,  50000,  100,      0,  ACHIEVE_RSURVIVE_4, 0},
+    { ACHV_RSURVIVE,    10,  500,  0, 100000,  200,      0,  ACHIEVE_RSURVIVE_5, 0},
+    { ACHV_RSURVIVE,    15,  750,  0, 150000,  300,      0,  ACHIEVE_RSURVIVE_6, 0},
+    { ACHV_RSURVIVE,    20, 1000,  0, 200000,  400,      0,  ACHIEVE_RSURVIVE_7, 0},
+    { ACHV_RSURVIVE,    30, 1500,  0, 300000,  600,      0,  ACHIEVE_RSURVIVE_8, 0},
+    { ACHV_RSURVIVE,    40, 2000,  0, 400000,  800,      0,  ACHIEVE_RSURVIVE_9, 0},
+    { ACHV_RSURVIVE,    50, 2500,  0, 500000, 1000,      0,  ACHIEVE_RSURVIVE_10, 0},
+
     { 0,                0,   0,    0,     0,     0,       0,                  0}
 };
 /*          type,   limit, qps,  exp,  gold, achpoints, obj,    bit_vector */

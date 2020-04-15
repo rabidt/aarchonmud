@@ -488,6 +488,7 @@ PC_DATA *new_pcdata(void)
     pcdata->warpoints               = 0;
     pcdata->mob_kills               = 0;
     pcdata->mob_deaths              = 0;
+    pcdata->mob_deaths_remort       = 0;
     pcdata->quest_failed            = 0;
     pcdata->quest_success           = 0;
     pcdata->quest_hard_success      = 0;

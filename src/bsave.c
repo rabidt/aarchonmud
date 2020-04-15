@@ -855,11 +855,13 @@ static void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "WarDuelLost %d\n", ch->pcdata->duel_lost );
     bprintf( buf, "MobKills %d\n", ch->pcdata->mob_kills );
     bprintf( buf, "MobDeaths %d\n", ch->pcdata->mob_deaths );
+    bprintf( buf, "MobDeathsR %d\n", ch->pcdata->mob_deaths_remort );
     bprintf( buf, "QuestsFailed %d\n", ch->pcdata->quest_failed );
     bprintf( buf, "QuestsSuccess %d\n", ch->pcdata->quest_success );
     bprintf( buf, "QuestsHardSuccess %d\n", ch->pcdata->quest_hard_success );
     bprintf( buf, "QuestsHardFailed %d\n", ch->pcdata->quest_hard_failed );
     bprintf( buf, "PkillDeaths %d\n", ch->pcdata->pkill_deaths );
+    bprintf( buf, "Survivor %d %d\n", ch->pcdata->survivor.remort );
 
     save_quest( ch, buf );
 
@@ -2160,6 +2162,7 @@ static void bread_char( CHAR_DATA *ch, RBUFFER *buf )
     case 'M':
         KEY( "MobKills",ch->pcdata->mob_kills,  bread_number( buf ) );
         KEY( "MobDeaths",ch->pcdata->mob_deaths,         bread_number( buf ) );
+        KEY( "MobDeathsR",ch->pcdata->mob_deaths_remort, bread_number( buf ) );
         if ( !str_cmp(word, "Morph") )
         {
             const char *temp=bread_string(buf);
@@ -2373,6 +2376,13 @@ static void bread_char( CHAR_DATA *ch, RBUFFER *buf )
             ch->pcdata->subclass2 = subclass_lookup(temp2);
             free_string(temp);
             free_string(temp2);
+            fMatch = TRUE;
+            break;
+        }
+
+        if (!str_cmp(word, "Survivor" ) )
+        {
+            ch->pcdata->survivor.remort = bread_number(buf);
             fMatch = TRUE;
             break;
         }

@@ -186,6 +186,12 @@ void advance_level( CHAR_DATA *ch, bool hide )
         ch->pcdata->condition[COND_HUNGER] = -1;
         if (!hide)
             send_to_char("A bolt of energy from the gods has removed your hunger and thirst!\n\r",ch);
+
+        if (ch->pcdata->mob_deaths_remort == 0)
+        {
+            ch->pcdata->survivor.remort++;
+            check_achievement(ch);
+        }
     }
 
     if (!hide)

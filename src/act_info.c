@@ -4743,7 +4743,8 @@ DEF_DO_FUN(do_score)
 
 
     /* Call the alignbuf here to show alignment */
-    snprintf( buf, sizeof(buf), "{D|{x Alignment:   %s", alignbuf );
+    snprintf( buf, sizeof(buf), "{D|{x Alignment:   %s                 Mob Kills:  %6d",
+        alignbuf, ch->pcdata->mob_kills );
 
     for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
@@ -4781,10 +4782,10 @@ DEF_DO_FUN(do_score)
 
 
     /* Mob kills, mob deaths, beheads */
-    snprintf( buf, sizeof(buf), "{D|{x Mob Kills:  %6d        Mob Deaths:   %5d        Behead Count: %4d",
-        ch->pcdata->mob_kills, 
-        ch->pcdata->mob_deaths, 
-        ch->pcdata->behead_cnt);
+    snprintf( buf, sizeof(buf), "{D|{x Mob Deaths:  %5d        [ %4d this remort ]       Survivor:    %5d", 
+        ch->pcdata->mob_deaths,
+        ch->pcdata->mob_deaths_remort,
+        ch->pcdata->survivor.remort);
 
     for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
@@ -4803,9 +4804,10 @@ DEF_DO_FUN(do_score)
 
 
     /* Pkills and Pkill Deaths */
-    snprintf( buf, sizeof(buf), "{D|{x PKills:     %6d        PKill Deaths: %5d",
+    snprintf( buf, sizeof(buf), "{D|{x PKills:     %6d        PKill Deaths: %5d        Behead Count: %4d",
         ch->pcdata->pkill_count, 
-        ch->pcdata->pkill_deaths);
+        ch->pcdata->pkill_deaths,
+        ch->pcdata->behead_cnt);
 
     for ( ; strlen_color(buf) <= LENGTH; strlcat( buf, " ", sizeof(buf) ))
         ; 
@@ -5337,8 +5339,11 @@ static const char * const achievement_display [] =
         "GM Skills",
         "Retrain",
         "Hard Qsts",
-        "Ascension"
+        "Ascension",
+        "R.Survive"
 };
+
+_Static_assert( sizeof(achievement_display)/sizeof(achievement_display[0]) == ACHV_MAX, "");
 
 DEF_DO_FUN(do_achievements)
 {
@@ -5660,6 +5665,9 @@ void check_achievement( CHAR_DATA *ch )
                 break;
             case ACHV_ASCENSION:
                 current = ch->pcdata->ascents;
+                break;
+            case ACHV_RSURVIVE:
+                current = ch->pcdata->survivor.remort;
                 break;
             default:
                 bugf("Invalid achievement type %d: ", achievement_table[i].type);
