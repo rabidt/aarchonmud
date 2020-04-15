@@ -223,7 +223,7 @@ static void mem_save_storage_box( CHAR_DATA *ch )
       return;
     }
 
-    assert(ch->pcdata->storage_boxes < MAX_STORAGE_BOX);
+    assert(ch->pcdata->storage_boxes <= MAX_STORAGE_BOX);
     for ( i = 1; i <= ch->pcdata->storage_boxes; i++)
     {
         OBJ_DATA *box = ch->pcdata->box_data[ i - 1];
@@ -861,7 +861,7 @@ static void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     bprintf( buf, "QuestsHardSuccess %d\n", ch->pcdata->quest_hard_success );
     bprintf( buf, "QuestsHardFailed %d\n", ch->pcdata->quest_hard_failed );
     bprintf( buf, "PkillDeaths %d\n", ch->pcdata->pkill_deaths );
-    bprintf( buf, "Survivor %d %d\n", ch->pcdata->survivor.remort );
+    bprintf( buf, "Survivor %d\n", ch->pcdata->survivor.remort );
 
     save_quest( ch, buf );
 
