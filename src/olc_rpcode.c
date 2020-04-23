@@ -410,7 +410,7 @@ RPEDIT(rpedit_security)
         }
         else
         {
-            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            ptc(ch, "Bad argument: %s. Must be a number.\n\r", argument);
             return FALSE;
         }
     }

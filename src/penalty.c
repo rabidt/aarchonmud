@@ -364,7 +364,7 @@ static void show_penalty_type(CHAR_DATA *ch, const char *penname)
             printf_to_char(ch, "Hours: {c%.1f{x\n\r", (float)penalty_table[pen].sev_duration[i]/3600.0);
     }
 
-    printf_to_char(ch, "{+Choose a %s severity:  {x\n\r", penname, i);
+    printf_to_char(ch, "{+Choose a %s severity:  {x\n\r", penname);
 }
 
 

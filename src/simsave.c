@@ -422,7 +422,7 @@ bool load_storage_boxes(CHAR_DATA *ch )
 
  if (IS_NPC(ch))
  {
-     bugf("load_storage_boxes called on NPC",0);
+     bugf("load_storage_boxes called on NPC");
      return FALSE;
  }
 

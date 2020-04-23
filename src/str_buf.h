@@ -15,8 +15,8 @@ void free_buf(BUFFER *buffer);
 bool add_buf(BUFFER *buffer, const char *string );
 void clear_buf(BUFFER *buffer);
 const char *buf_string(BUFFER *buffer);
-bool addf_buf(BUFFER *buffer, const char *fmt, ...);
-bool addf_buf_pad(BUFFER *buffer, int pad_length, const char *fmt, ...);
+bool addf_buf(BUFFER *buffer, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+bool addf_buf_pad(BUFFER *buffer, int pad_length, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 
 #endif // STR_BUF_H_

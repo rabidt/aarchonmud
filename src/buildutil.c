@@ -1075,7 +1075,7 @@ DEF_DO_FUN(do_mstat)
         IS_NPC(victim) ? "None" : subclass_table[victim->pcdata->subclass2].name);
 
     ptc(ch, "Align: %d  Gold: %ld  Silver: %ld\n\r",
-        victim->alignment, victim->gold, victim->silver, victim->exp );
+        victim->alignment, victim->gold, victim->silver );
 
     ptc(ch, "Armor: %d  Heavy Armor: %d\n\r", GET_AC(victim), victim->heavy_armor);
 

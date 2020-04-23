@@ -25,9 +25,9 @@ void __buffer_strcat (DBUFFER *buffer, const char *text);
 
 void buffer_free (DBUFFER *buffer);
 void buffer_clear (DBUFFER *buffer);
-int bprintf (DBUFFER *buffer, char *fmt, ...);
-int rfprintf(FILE *f, const char *fmt, ...);
-int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...);
+int bprintf (DBUFFER *buffer, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+int rfprintf(FILE *f, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
+int rsnprintf(char *buf, size_t bufsz, const char *fmt, ...) __attribute__ ((format (printf, 3, 4)));
 
 char* next_sr_buf( SR_BUF *sr_buf );
 

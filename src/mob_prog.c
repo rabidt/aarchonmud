@@ -89,7 +89,7 @@ void log_mprog_history( void )
     for ( i = 0 ; i < mprog_history.index ; ++i )
     {
 
-        logpf("%5d. MOB: %6d, MPROG: %6d, ROOM: %6d", 
+        logpf("%5zu. MOB: %6d, MPROG: %6d, ROOM: %6d", 
             i,
             mprog_history.entries[i].mob_vnum,
             mprog_history.entries[i].mprog_vnum,

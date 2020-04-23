@@ -846,7 +846,7 @@ DEF_DO_FUN(do_master)
         }
         if ( !ch->pcdata->mastered[sn] )
         {
-            printf_to_char(ch, "Seems you forgot about it already.\n\r", arg2);
+            printf_to_char(ch, "Seems you forgot about it already.\n\r");
             return;
         }
         // ok, reduce mastery level
@@ -930,7 +930,7 @@ DEF_DO_FUN(do_master)
             if ( trainer )
                 act("$N tells you 'Come back after you practice some more.'", ch, NULL, trainer, TO_CHAR);
             else
-                printf_to_char(ch, "You don't feel skilled enough yet.\n\r", skill_table[sn].name);
+                printf_to_char(ch, "You don't feel skilled enough yet.\n\r");
             return;            
         }
 
@@ -940,7 +940,7 @@ DEF_DO_FUN(do_master)
             if ( trainer )
                 act("$N tells you 'You cannot master that many skills.'", ch, NULL,trainer, TO_CHAR);
             else
-                printf_to_char(ch, "You feel like your head would explode.\n\r", skill_table[sn].name);
+                printf_to_char(ch, "You feel like your head would explode.\n\r");
             return;
         }
         if ( ch->train < cost )
@@ -948,7 +948,7 @@ DEF_DO_FUN(do_master)
             if ( trainer )
                 act("$N tells you 'You are not yet ready to master that skill.'", ch, NULL,trainer, TO_CHAR);
             else
-                printf_to_char(ch, "You don't feel ready yet.\n\r", skill_table[sn].name);
+                printf_to_char(ch, "You don't feel ready yet.\n\r");
             return;
         }
 

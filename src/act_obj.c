@@ -3381,7 +3381,7 @@ static int get_cost( CHAR_DATA *keeper, OBJ_DATA *obj, bool fBuy )
     }
 
     if ( (cost < 0 || (cost == 0 && fBuy)) && keeper->in_room )
-        bugf("get_cost(%d@%d, %d, %s) = %d", keeper->pIndexData->vnum, keeper->in_room->vnum, obj->pIndexData->vnum, fBuy ? "T" : "F", cost);
+        bugf("get_cost(%d@%d, %d, %s) = %ld", keeper->pIndexData->vnum, keeper->in_room->vnum, obj->pIndexData->vnum, fBuy ? "T" : "F", cost);
     
     return cost;
 }

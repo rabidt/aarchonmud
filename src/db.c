@@ -1125,7 +1125,7 @@ static void load_area( FILE *fp )
 
     top_area++;
 
-    logpf("Loading area: %s\t\t%Min: %ld  Max: %ld  Sec: %d  Credits: %s",
+    logpf("Loading area: %s\t\tMin: %d  Max: %d  Sec: %d  Credits: %s",
         pArea->name, pArea->min_vnum, pArea->max_vnum, pArea->security, pArea->credits);
     return;
 }
@@ -4756,7 +4756,7 @@ static void rand_test( int repeats )
             count++;
     }
     count /= repeats;
-    logpf("Average / expected number of rolls to get default: %d / 1797", count);
+    logpf("Average / expected number of rolls to get default: %ld / 1797", count);
 }
 
 /*

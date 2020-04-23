@@ -3634,7 +3634,7 @@ DEF_DO_FUN( do_channel )
         af.modifier = -100;
         af.bitvector = 0;
         affect_join_capped(ch, &af, -100);
-        ptc(ch, "You channel your own divine energy.\n\r", ch);
+        ptc(ch, "You channel your own divine energy.\n\r");
         return;
     }
     

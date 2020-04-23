@@ -152,7 +152,7 @@ DEF_DO_FUN(do_oprun)
     else if ( obj->carried_by )
         ptc( ch, " in %s's inventory", obj->carried_by->name );
     else if ( obj->in_obj )
-        ptc( ch, " in %s(%d)", obj->in_obj, obj->in_obj->pIndexData->vnum );
+        ptc( ch, " in %s(%d)", obj->in_obj->name, obj->in_obj->pIndexData->vnum );
 
     ptc( ch, " with %s as ch1\n\r", ch->name);
 
@@ -410,7 +410,7 @@ OPEDIT(opedit_security)
         }
         else
         {
-            ptc(ch, "Bad argument: . Must be a number.\n\r", argument);
+            ptc(ch, "Bad argument: %s. Must be a number.\n\r", argument);
             return FALSE;
         }
     }

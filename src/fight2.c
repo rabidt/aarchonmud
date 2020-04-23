@@ -2772,7 +2772,7 @@ DEF_DO_FUN(do_mug)
                 ptc(ch, "Bingo!  You got %d silver and %d gold coins.\n\r", silver_gain, gold_gain);
             
             if ( IS_IMMORTAL(ch) )
-                ptc(ch, "Mugging bonus is %d silver and %d gold.\n\r", bonus % 100, bonus / 100);
+                ptc(ch, "Mugging bonus is %ld silver and %ld gold.\n\r", bonus % 100, bonus / 100);
                 
             if( !IS_NPC(ch) && !IS_NPC(victim) )
                 adjust_pkgrade( ch, victim, TRUE ); /* True means it's a theft */

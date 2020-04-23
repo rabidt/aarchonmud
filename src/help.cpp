@@ -363,10 +363,10 @@ void help_search(CHAR_DATA *ch, const char *argument)
     }
     else
     {
-        ptc(ch, "%d results found. ", resultCnt);
+        ptc(ch, "%zu results found. ", resultCnt);
         if (resultCnt > result.size())
         {
-            ptc(ch, "Showing first %d.", result.size());
+            ptc(ch, "Showing first %zu.", result.size());
         }
         send_to_char("\n\r", ch);
 

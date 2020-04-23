@@ -420,7 +420,7 @@ static void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     if (ch->train != 0)
         bprintf( buf, "Trai %d\n",   ch->train   );
     
-    bprintf( buf, "Field %d\n",  ch->pcdata->field);
+    bprintf( buf, "Field %ld\n",  ch->pcdata->field);
     
     if (ch->saving_throw != 0)
         bprintf( buf, "Save  %d\n",  ch->saving_throw);
@@ -733,7 +733,7 @@ static void bwrite_char( CHAR_DATA *ch, DBUFFER *buf )
     struct boss_achieve_record *rec;
     for ( rec = ch->pcdata->boss_achievements ; rec; rec=rec->next )
     {
-        bprintf( buf, "BAch %d %d\n", rec->vnum, rec->timestamp );
+        bprintf( buf, "BAch %d %ld\n", rec->vnum, rec->timestamp );
     }
 
 
@@ -1005,7 +1005,7 @@ static void bwrite_pet( CHAR_DATA *pet, DBUFFER *buf)
 
         if (paf->type == gsn_custom_affect)
         {
-            bprintf(buf, "AffCust %s~ %3d %3d %3d %3d %10d\n",
+            bprintf(buf, "AffCust %s~ %3d %3d %3d %3d %3d %10d\n",
                     paf->tag,
                     paf->where, paf->level, paf->duration, paf->modifier,
                     paf->location, paf->bitvector);

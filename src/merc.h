@@ -4558,10 +4558,10 @@ void    act_see( const char *format, CHAR_DATA *ch, const void *arg1, const void
 const char *remove_color( const char *txt, char *buf, size_t bufsz );
 bool    is_same_player( CHAR_DATA *ch1, CHAR_DATA *ch2 );
 bool is_command_pending( DESCRIPTOR_DATA *d );
-void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... );
-void    printf_to_wiznet( CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ... );
-void    logpf( const char *fmt, ... );
-void    bugf( const char *fmt, ... );
+void    printf_to_char( CHAR_DATA *ch, const char *fmt, ... ) __attribute__ ((format (printf, 2, 3)));
+void    printf_to_wiznet( CHAR_DATA *ch, OBJ_DATA *obj, long flag, long flag_skip, int min_level, const char *fmt, ... ) __attribute__ ((format (printf, 6, 7)));
+void    logpf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
+void    bugf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void    final_save_all( void );
 
 /* const.c */

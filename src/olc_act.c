@@ -2777,7 +2777,7 @@ REDIT( redit_clan_rank )
     if ( pRoom->clan_rank == 0 )
         ptc( ch, "Clan Rank set to none.\n\r" );
     else
-        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pRoom->clan].rank_list[pRoom->clan_rank] );  
+        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pRoom->clan].rank_list[pRoom->clan_rank].name );  
     return TRUE;
 }
 
@@ -4296,7 +4296,7 @@ OEDIT( oedit_rank )
     if ( pObj->rank == 0 )
         ptc( ch, "Clan Rank set to none.\n\r" );
     else
-        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pObj->clan].rank_list[pObj->rank] );
+        ptc( ch, "Clan Rank set to %s.\n\r", clan_table[pObj->clan].rank_list[pObj->rank].name );
     return TRUE;
 }
 
