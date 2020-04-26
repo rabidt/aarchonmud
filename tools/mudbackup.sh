@@ -10,6 +10,9 @@ function backup()
 {
     backup_dir=/home/m256ada/backup
     data_dir=/home/m256ada/aeaea/data
+    cores_dir=/home/m256ada/cores
+
+    mv $data_dir/area/core.* $cores_dir/
 
     DOW=$(date +%-u) # day of week
     DOM=$(date +%-d) # day of month
