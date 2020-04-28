@@ -1,4 +1,5 @@
 #ifndef PERFMON_H
+#define PERFMON_H
 
 
 void PERF_log_pulse(double val);
