@@ -590,6 +590,15 @@ DEF_DO_FUN(do_authorize)
 
     if ( arg1[0] == '\0' )
     {
+        send_to_char("wait_for_auth: ", ch);
+        switch (wait_for_auth)
+        {
+            case AUTH_STATUS_DISABLED: send_to_char("AUTH_STATUS_DISABLED", ch); break;
+            case AUTH_STATUS_ENABLED: send_to_char("AUTH_STATUS_ENABLED", ch); break;
+            case AUTH_STATUS_IMM_ON: send_to_char("AUTH_STATUS_IMM_ON", ch); break;
+        }
+        send_to_char("\n\r", ch);
+
         send_to_char( "Approve a waiting character:                 auth <name>\n\r", ch );
         send_to_char( "Deny a waiting character (destroys pfile):   auth <name> deny\n\r", ch );
         send_to_char( "Ask a waiting character to change names:     auth <name> name\n\r", ch );

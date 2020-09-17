@@ -4293,7 +4293,7 @@ extern      PENALTY_DATA   * penalty_list;
 extern      int             jail_room_list[MAX_JAIL_ROOM];
 extern      RESERVED_DATA  * first_reserved;
 extern      RESERVED_DATA  * last_reserved;
-extern      bool           wait_for_auth;
+extern      int            wait_for_auth;
 extern      const   int     weapon_base_damage[];
 extern      bool           global_immediate_flush;
 extern      bool           helper_visible;
