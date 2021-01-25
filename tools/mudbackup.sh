@@ -8,9 +8,9 @@ TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function backup()
 {
-    backup_dir=/home/m256ada/backup
-    data_dir=/home/m256ada/aeaea/data
-    cores_dir=/home/m256ada/cores
+    backup_dir=/home/aarchon/backup
+    data_dir=/home/aarchon/aeaea/data
+    cores_dir=/home/aarchon/cores
 
     mv $data_dir/area/core.* $cores_dir/
 
@@ -61,7 +61,7 @@ function backup()
     fi
 
     # now sync to remote sites
-    rsync -aAvzH --delete $backup_dir/snapshots m256ada@rooflez.com:
+    rsync -aAvzH --delete $backup_dir/snapshots aarchon@mudslinger.net:
 }
 
 backup > $TOOLS_DIR/backuplogfile.log 2>&1
