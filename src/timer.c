@@ -42,6 +42,7 @@ static TIMER_NODE *first_timer=NULL;
 static void add_timer( TIMER_NODE *tmr);
 static void free_timer_node( TIMER_NODE *tmr);
 static TIMER_NODE *new_timer_node( void *gobj, void (*func)( void ), int go_type, int tm_type, int max, const char *tag );
+static bool is_in_timer_list( TIMER_NODE *tmr );
 
 
 void unregister_timer_node( TIMER_NODE *tmr )
@@ -265,16 +266,28 @@ static void timer_debug( void )
         if (!IS_NPC(ch))
             continue;
 
+        if (ch->trig_timer && !is_in_timer_list(ch->trig_timer))
+        {
+            bugf("timer_debug: mob %d trig_timer not in list", ch->pIndexData->vnum);
+            ch->trig_timer = NULL;
+        }
+
         if (HAS_TRIGGER(ch, TRIG_TIMER) && !ch->must_extract && !ch->trig_timer)
         {
             bugf("timer_debug: no timer running for mob %d, re-initializing", 
-                    ch->pIndexData->vnum ); 
+                    ch->pIndexData->vnum );
             mprog_timer_init(ch);
         }
     }
 
     for ( obj=object_list ; obj ; obj=obj->next )
     {
+        if (obj->otrig_timer && !is_in_timer_list(obj->otrig_timer))
+        {
+            bugf("timer_debug: obj %d otrig_timer not in list", obj->pIndexData->vnum);
+            obj->otrig_timer = NULL;
+        }
+
         if (HAS_OTRIG(obj, OTRIG_TIMER) && !obj->must_extract && !obj->otrig_timer)
         {
             bugf("timer_debug: no timer running for obj %d, re-initializing",
@@ -285,6 +298,12 @@ static void timer_debug( void )
 
     for ( area=area_first ; area ; area=area->next )
     {
+        if (area->atrig_timer && !is_in_timer_list(area->atrig_timer))
+        {
+            bugf("timer_debug: area %s atrig_timer not in list", area->name);
+            area->atrig_timer = NULL;
+        }
+
         if (HAS_ATRIG(area, ATRIG_TIMER) && !area->atrig_timer)
         {
             bugf("timer_debug: no timer running for area %s, re-initializing",
@@ -512,4 +531,19 @@ void print_timer_list( char * const buf, const size_t bufsz )
         bugf("%s: buffer overflow", __FUNCTION__);
         return;
     }
+}
+
+static bool is_in_timer_list( TIMER_NODE *tmr )
+{
+    TIMER_NODE *ptr;
+
+    for (ptr = first_timer; ptr; ptr = ptr->next)
+    {
+        if (ptr == tmr)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
