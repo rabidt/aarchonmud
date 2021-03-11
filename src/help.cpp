@@ -411,9 +411,17 @@ void help_all(CHAR_DATA *ch, const char *argument)
         }
     }
 
-    // Reserve lines of space for top and bottom messages.
-    int chLines = (ch->lines >= 5) ? (ch->lines - 5) : 0;
-
+    int chLines;
+    if (ch->lines == 0)
+    {
+        // paging disabled, default to 30
+        chLines = 30;
+    }
+    else
+    {
+        chLines = UMAX(1, ch->lines);
+    }
+    
     unsigned startInd = ( pageNum - 1 ) * static_cast<unsigned>(chLines);
     unsigned endInd = startInd + static_cast<unsigned>(chLines);
     endInd = UMIN( endInd, sSortedHelpKeywords.size() );
