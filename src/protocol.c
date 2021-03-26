@@ -2140,6 +2140,18 @@ static void PerformSubnegotiation( descriptor_t *apDescriptor, char aCmd, char *
                        apDescriptor->host_proxied = true;
                    }                  
                }
+               else if (PrefixString("ArcSlinger", pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString))
+               {
+                   /* Check if long enough to be a valid IPv4 address. If not, just ignore. */
+                   if ( strlen(pClientName) >= 7 )
+                   {
+                       free_string(apDescriptor->host);
+                       apDescriptor->host = str_dup(pClientName);
+                       apDescriptor->host_proxied = true;
+                   }
+
+                   pProtocol->bMXPchat = true;                  
+               }
             }
 
             if ( PrefixString("Mudlet", pClientName) )
