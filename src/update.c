@@ -46,6 +46,7 @@
 #include "songs.h"
 #include "perfmon.h"
 #include "mem.h"
+#include "dxport.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit      );
@@ -2356,6 +2357,28 @@ void update_handler( void )
                 all_religions( &religion_restore_relic );
             }
             */
+
+            {
+                PERF_PROF_ENTER( pr_prdx_, "update check dxport");
+
+                if (DXPORT_status() == eDXPORT_OPENED)
+                {
+                    log_string("DXPORT hourly check: DXPORT is open");
+                }
+                else
+                {
+                    if (DXPORT_init() != eDXPORT_SUCCESS)
+                    {
+                        bugf("DXPORT hourly check: DXPORT is closed and can't open");
+                    }
+                    else
+                    {
+                        log_string("DXPORT hourly check: DXPORT was closed but now open");
+                    }
+                }
+
+                PERF_PROF_EXIT( pr_prdx_ );
+            }
 
             {
                 PERF_PROF_ENTER( pr_prmem_, "update print_memory");
