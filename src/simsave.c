@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
+#include <errno.h>
 #include "merc.h"
 #include "buffer_util.h"
 #include "lua_arclib.h"
@@ -133,6 +134,7 @@ void handle_player_save( void )
     if ( system(command) == -1 )
     {
         bugf("handle_player_save: failed to execute command '%s'", command);
+        bugf("err: %d, %s", errno, strerror(errno));
         exit(1);
     }
     PERF_PROF_EXIT( pr_tc1_ );
