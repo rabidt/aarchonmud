@@ -4566,7 +4566,6 @@ static void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             send_to_char(buf, ch);
             ch->gold += victim->pcdata->bounty;
             victim->pcdata->bounty = 0;
-            update_bounty(victim);
         }
         /* If a non-pkill player is killed by an NPC bounty hunter */
         else if (IS_NPC(ch) && (ch->spec_fun == spec_bounty_hunter)
@@ -4582,7 +4581,6 @@ static void handle_death( CHAR_DATA *ch, CHAR_DATA *victim )
             amount = victim->silver / 10;
             ch->silver += amount;
             victim->silver -= amount;
-            update_bounty(victim);      
         }
     }
 

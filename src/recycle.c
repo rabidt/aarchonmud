@@ -840,37 +840,6 @@ HELP_DATA * new_help ( void )
    return help;
 }
 
-	
-static SORT_TABLE *sort_free;
-
-SORT_TABLE *new_sort(void)
-{
-   static SORT_TABLE *sort;
-
-   if (sort_free == NULL) 
-	  sort = alloc_perm(sizeof(*sort));
-   else
-   {
-	  sort = sort_free;
-	  sort_free = sort_free->next;
-   }
-   
-   VALIDATE(sort);
-   
-   return sort;
-}
-
-void free_sort(SORT_TABLE *sort)
-{
-	if (!IS_VALID(sort))
-	return;
-
-	INVALIDATE(sort);
-
-	sort->next  = sort_free;
-	sort_free      = sort;
-}
-
 /* stuff for recycling wizlist structures */
 static WIZ_DATA *wiz_free;
 

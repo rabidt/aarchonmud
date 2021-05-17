@@ -1987,8 +1987,6 @@ static void enter_game ( DESCRIPTOR_DATA *d )
 	    char_to_room( ch, get_room_index( ROOM_VNUM_TEMPLE ) );
 	}
 	
-	update_bounty(ch);
-
 	wiznet("$N has left real life behind.",ch,NULL,
 	       WIZ_LOGINS,WIZ_SITES,get_trust(ch));
 

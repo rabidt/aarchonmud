@@ -95,7 +95,6 @@ typedef struct  time_info_data   TIME_INFO_DATA;
 typedef struct  weather_data     WEATHER_DATA;
 typedef struct  prog_list        PROG_LIST;
 typedef struct  prog_code        PROG_CODE;
-typedef struct  sort_table       SORT_TABLE;
 typedef struct  disabled_data    DISABLED_DATA;
 typedef struct  clanwar_data     CLANWAR_DATA;
 typedef struct  board_data       BOARD_DATA;
@@ -406,16 +405,6 @@ struct buffer_type
 	int size;	/* The allocated size of data */
 	
 	bool overflowed; /* Is the buffer overflowed? */
-};
-
-
-struct sort_table
-{
-	SORT_TABLE *    prev;
-	SORT_TABLE *    next;
-	CHAR_DATA  *    owner;
-	int         score;
-	bool            valid;
 };
 
 /* ring-buffer for methods returning pointers to local static strings
@@ -2591,7 +2580,6 @@ struct  pc_data
 {
     PC_DATA *       next;
 	bool	new_tells; /* whether there are unread tells */
-    SORT_TABLE *    bounty_sort;
     bool        valid;
     const char* pwd;
     const char* bamfin;
@@ -4286,7 +4274,6 @@ extern      char            log_buf     [2*MAX_INPUT_LENGTH];
 extern      TIME_INFO_DATA      time_info;
 extern      WEATHER_DATA        weather_info;
 extern      bool            MOBtrigger;
-extern  SORT_TABLE  *   bounty_table;
 
 extern      BOARD_DATA boards[MAX_BOARD];
 extern      PENALTY_DATA   * penalty_list;
@@ -5350,8 +5337,6 @@ void    gain_condition  args( ( CHAR_DATA *ch, int iCond, int value ) );
 void    core_tick( void );
 void    update_handler  args( ( void ) );
 void    explode  args( ( OBJ_DATA *obj ) );
-void      update_bounty args( ( CHAR_DATA *ch ) );
-void      remove_bounty args( ( CHAR_DATA *ch ) );
 void    change_align    args( (CHAR_DATA *ch, int change_by) );
 void    drop_align( CHAR_DATA *ch );
 void    update_room_fighting( ROOM_INDEX_DATA *room );

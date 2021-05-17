@@ -2808,8 +2808,6 @@ static void copyover_recover ( void )
 
     fp = fopen (COPYOVER_FILE, "r");
 
-    bounty_table = NULL;
-
     if (!fp) /* there are some descriptors open which will hang forever then ? */
     {
         log_error ("copyover_recover:fopen");
@@ -2885,7 +2883,6 @@ static void copyover_recover ( void )
             do_look (d->character, "auto");
             act ("$n materializes!", d->character, NULL, NULL, TO_ROOM);
             d->connected = CON_PLAYING;
-            update_bounty(d->character);
             reset_char(d->character);
 
             if (d->character->pet != NULL)

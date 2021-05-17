@@ -113,7 +113,6 @@ KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
 TIME_INFO_DATA  time_info;
 WEATHER_DATA    weather_info;
-SORT_TABLE *    bounty_table;
 int             jail_room_list[MAX_JAIL_ROOM];
 /* bool            wait_for_auth = AUTH_STATUS_IMM_ON; */
 int             wait_for_auth = AUTH_STATUS_DISABLED;
@@ -748,8 +747,6 @@ void boot_db( void )
         else                                  weather_info.sky = SKY_CLOUDLESS;
         
     }
-    
-    bounty_table = NULL;
 
     format_init_flags();
 

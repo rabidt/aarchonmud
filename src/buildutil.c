@@ -2066,7 +2066,6 @@ MSETFUN( silver )
 MSETFUN( bounty )
 {
     victim->pcdata->bounty = value;
-    update_bounty(victim);
     return TRUE;
 }
 

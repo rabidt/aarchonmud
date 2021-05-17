@@ -68,7 +68,6 @@ static void    char_update args( ( void ) );
 static void    obj_update  args( ( void ) );
 static void    aggr_update args( ( void ) );
 void    quest_update    args( ( void ) ); /* Vassago - quest.c */
-static void    sort_bounty   args( (SORT_TABLE *sort) );
 void penalty_update (CHAR_DATA *ch);
 ROOM_INDEX_DATA *find_jail_room(void);
 static void    msdp_update args( ( void ) );
@@ -2533,107 +2532,6 @@ void explode(OBJ_DATA *obj)
             continue;
         deal_bomb_damage(owner, rch, dam);
     }
-}
-
-void update_bounty(CHAR_DATA *ch)
-{
-    SORT_TABLE *sort;   
-
-    if ((sort = ch->pcdata->bounty_sort) == NULL)
-    {
-        if (ch->pcdata->bounty == 0)
-            return;
-
-        ch->pcdata->bounty_sort = new_sort();
-        sort = ch->pcdata->bounty_sort;
-        sort->score = ch->pcdata->bounty;
-        sort->owner = ch;
-        if (bounty_table == NULL)
-        {
-            sort->next = sort;
-            sort->prev = sort;
-            bounty_table = sort;
-            return;
-        }
-        else
-        {
-            sort->next = bounty_table;
-            sort->prev = bounty_table->prev;
-            sort->prev->next = sort;
-            bounty_table->prev = sort;
-        }
-
-    }
-    else
-    {
-        if ( (ch->pcdata->bounty == 0) || !IS_SET(ch->act, PLR_PERM_PKILL) )
-        {
-            remove_bounty(ch);
-            return;
-        }
-
-        sort->score = ch->pcdata->bounty;
-    }
-
-    sort_bounty(sort);
-
-    return;
-}
-
-static void sort_bounty(SORT_TABLE * sort)
-{
-    SORT_TABLE * temp;
-
-    if ((sort->prev->score < sort->score)&&(sort!=bounty_table))
-    {
-        temp=sort->prev;
-        if (temp != sort->next)
-        {
-            sort->prev = temp->prev;
-            temp->next = sort->next;
-            sort->next->prev = temp;
-            sort->next = temp;
-            temp->prev->next = sort;
-            temp->prev = sort;
-        }
-        if (bounty_table == temp)
-            bounty_table = sort;
-        sort_bounty(sort);
-    }
-    else if ((sort->next->score > sort->score)&&(sort->next != bounty_table))
-    {
-        temp=sort->next;
-        sort->next = temp->next;
-        temp->prev = sort->prev;
-        sort->prev = temp;
-        temp->next = sort;
-        if (bounty_table == sort)
-            bounty_table = temp;
-        sort_bounty(sort);
-    }
-
-    return;
-}
-
-void remove_bounty(CHAR_DATA *ch)
-{
-    SORT_TABLE *sort = ch->pcdata->bounty_sort;
-    if (sort == NULL) return;
-
-    if (bounty_table == sort)
-    {
-        bounty_table = sort->next;
-        if (bounty_table == sort)
-            bounty_table = NULL;
-    }
-
-    sort->prev->next = sort->next;
-    sort->next->prev = sort->prev;
-
-    free_sort(sort);
-    ch->pcdata->bounty_sort = NULL;
-
-    return;
 }
 
 void change_align (CHAR_DATA *ch, int change_by)

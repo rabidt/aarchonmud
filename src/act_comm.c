@@ -1872,7 +1872,6 @@ static void quit_char( CHAR_DATA *ch )
        char_to_room( ch, get_room_index( ROOM_VNUM_RECALL ));
     }
 
-    remove_bounty(ch);
     id = ch->id;
     d = ch->desc;
     extract_char( ch, TRUE );
@@ -2901,7 +2900,6 @@ DEF_DO_FUN(do_bounty)
     char buf[MAX_STRING_LENGTH];
     CHAR_DATA *victim;
     CHAR_DATA *hunter;
-    SORT_TABLE *entry;
     
     if ( ch == NULL || ch->in_room == NULL )
 	return;
@@ -2943,26 +2941,25 @@ DEF_DO_FUN(do_bounty)
     
     if ( !str_cmp( arg1, "list" ) )
     {
-        if ( bounty_table == NULL )
+        DESCRIPTOR_DATA *d;
+        bool found = FALSE;
+
+        for ( d = descriptor_list; d != NULL; d = d->next )
+        {
+            if ( IS_PLAYING(d->connected) && d->character && d->character->pcdata && d->character->pcdata->bounty )
+            {
+                snprintf( buf, sizeof(buf), "%s has a bounty of %d gold.\n\r",
+                    d->character->name, d->character->pcdata->bounty);
+                send_to_char(buf, ch);
+                found = TRUE;
+            }   
+        }
+
+        if (!found)
         {
             send_to_char("Nobody online has a bounty.\n\r",ch);
-            return;
         }
-        for (entry = bounty_table; entry != NULL; entry = entry->next)
-        {
-	    if ( entry->owner == NULL || entry->owner->pcdata == NULL )
-	    {
-		bugf( "bounty list: NULL owner or pcdata" );
-		return;
-	    }
-
-            snprintf( buf, sizeof(buf), "%s has a bounty of %d gold.\n\r",
-		    entry->owner->name, entry->owner->pcdata->bounty);
-            send_to_char(buf, ch);
-
-            if (entry->next == bounty_table) 
-                return;
-        }
+        return;
     }
     
     if ( IS_REMORT(ch) )
@@ -3004,7 +3001,6 @@ DEF_DO_FUN(do_bounty)
                 do_say(hunter, "That person doesn't have a bounty." );
 
             victim->pcdata->bounty = 0;
-            update_bounty( victim );
             return;
         }
 
@@ -3021,7 +3017,6 @@ DEF_DO_FUN(do_bounty)
         ch->gold -= victim->pcdata->bounty;
         victim->pcdata->bounty = 0;
         snprintf( buf, sizeof(buf), "%s's bounty was paid off.", victim->name);
-        update_bounty( victim );
         info_message(ch, buf, TRUE);
         return;
     }
@@ -3085,8 +3080,6 @@ DEF_DO_FUN(do_bounty)
                ch->name, victim->name, old_bounty, old_bounty+amount);
         
         info_message(ch, buf, FALSE);
-        
-        update_bounty(victim);
     }
     
     return;

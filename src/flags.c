@@ -348,8 +348,6 @@ static void pkill_confirm(CHAR_DATA *ch, const char *arg)
         if ( ch->pcdata != NULL )
             ch->pcdata->pkill_timer = -10 * PULSE_VIOLENCE;
 
-        update_bounty(ch);
-
     }
     else
         send_to_char("Pkill activation was aborted.\n\r",ch);
@@ -557,6 +555,5 @@ DEF_DO_FUN(do_roleplay)
             ch->name, (ch->sex == SEX_FEMALE) ? "her" : "him");
     info_message(ch, log_buf, TRUE);
     wiznet("$N has turned on $S roleplay flag.", ch, NULL, WIZ_FLAGS, 0, 0);
-    update_bounty(ch);
     send_to_char( "Ok, you're a roleplayer now. Have fun. :)\n\r", ch );
 }

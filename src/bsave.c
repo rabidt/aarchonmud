@@ -1253,7 +1253,6 @@ void mem_load_char_obj( DESCRIPTOR_DATA *d, MEMFILE *mf, bool char_only )
     ch->pcdata->demerit_points  = 0;
     ch->slow_move = 0;
 
-    ch->pcdata->bounty_sort         = NULL;
     ch->pcdata->condition[COND_THIRST]  = 72; 
     ch->pcdata->condition[COND_FULL]    = 72;
     ch->pcdata->condition[COND_HUNGER]  = 72;
