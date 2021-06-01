@@ -1010,7 +1010,7 @@ void update_memory(CHAR_DATA *ch)
 			for (d = descriptor_list; d && !ch->hunting; d = d->next)
 				if ((victim=d->character) && !IS_NPC(victim) &&
 						(victim->id == m->id) &&
-						(victim->in_room->area == ch->in_room->area) &&
+						(victim->in_room && ch->in_room && victim->in_room->area == ch->in_room->area) &&
 						can_see(ch, victim))
 					set_hunting(ch, victim);
 
