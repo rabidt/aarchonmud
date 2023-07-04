@@ -48,7 +48,7 @@ L_FLAGS =  $(PROF) -lstdc++ -ldl -lcrypt -lm -lsqlite3 $(ARC_L_FLAGS)
 
 SRC_FILES_C := $(wildcard *.c) 
 O_FILES := $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_FILES_C))
-SRC_FILES_CPP := act_wiz.cpp changelog.cpp help.cpp perfmon.cpp str_buf.cpp boot_checks.cpp playback.cpp
+SRC_FILES_CPP := act_wiz.cpp changelog.cpp help.cpp perfmon.cpp str_buf.cpp boot_checks.cpp playback.cpp discord.cpp
 OPP_FILES := $(patsubst %.cpp,$(OBJ_DIR)/%.opp,$(SRC_FILES_CPP))
 
 aeaea_OBJS := $(OPP_FILES) $(O_FILES)

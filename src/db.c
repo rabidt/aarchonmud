@@ -58,6 +58,7 @@
 #include "lua_arclib.h"
 #include "boot_checks.h"
 #include "mem.h"
+#include "discord.h"
 
 
 #if !defined(OLD_RAND)
@@ -833,6 +834,9 @@ void boot_db( void )
 
     log_string("Loading mudconfig." );
     load_mudconfig();
+
+    log_string("Discord init.");
+    discord_init();
 
     log_string( "Loading areas" );
     /*
@@ -5187,9 +5191,7 @@ void log_string( const char *str )
     return;
 }
 
-
-
-
+void discord_error( const char * str ) { log_error(str); }
 
 void log_error( const char *str )
 {

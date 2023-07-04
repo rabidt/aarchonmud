@@ -42,6 +42,7 @@
 #include "songs.h"
 #include "lua_arclib.h"
 #include "mem.h"
+#include "discord.h"
 
 /* command procedures needed */
 DECLARE_DO_FUN(do_quit  );
@@ -556,6 +557,12 @@ void info_message_new( CHAR_DATA *ch, const char *argument, bool show_to_char, b
     snprintf( buf, sizeof(buf), "{1[INFO]{2: %s{x", argument);
     if ( playback )
         log_chan(NULL, buf, cn_info);
+
+    {
+        char buf_disc[MAX_STRING_LENGTH];
+        remove_color(buf, buf_disc, sizeof(buf_disc));
+        discord_info(buf_disc);
+    }
 
     for ( d = descriptor_list; d != NULL; d = d->next )
     {
