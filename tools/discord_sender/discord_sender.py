@@ -29,8 +29,8 @@ def main():
 
             res = cur.execute(f"DELETE FROM info_messages WHERE rowid = {row[0]};")
             con.commit()
-
-        time.sleep(10)
+        else:
+            time.sleep(10)
 
 
 
