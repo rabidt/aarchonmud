@@ -1,6 +1,6 @@
 /* Countdown timers for progs */
 /* Written by Vodur for Aarchon MUD
-   Clayton Richey, clayton.richey@gmail.com
+   dr.vodur@gmail.com
    */
 #include <time.h>
 #include <stdio.h>

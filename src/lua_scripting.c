@@ -30,7 +30,7 @@ http://www.gammon.com.au/forum/?id=8015
 
  ****************************************
  Highly modified and adapted for Aarchon MUD by
- Clayton Richey, May 2013
+ Vodur, May 2013
 
  */
 

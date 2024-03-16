@@ -1,7 +1,7 @@
 /**************************************************************
                          playback.cpp
 
-Written by Clayton Richey (Odoth/Vodur) <clayton.richey@gmail.com>
+Written by Vodur <dr.vodur@gmail.com>
 for Aarchon MUD
 (aarchonmud.com:7000).
 **************************************************************/
