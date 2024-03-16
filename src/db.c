@@ -108,7 +108,8 @@ PROG_CODE *    aprog_list;
 PROG_CODE *    rprog_list;
 
 CHAR_DATA *     char_list;
-const char *    help_greeting;
+// This pointer should be reassigned when helps are loaded
+const char *    help_greeting = "UNINITIALIZED HELP GREETING";
 char            log_buf     [];
 KILL_DATA       kill_table  [MAX_LEVEL];
 OBJ_DATA *      object_list;
