@@ -8985,12 +8985,44 @@ const struct mastery_group_type mastery_group_table[] =
     { NULL }
 };
 
+struct sn_level
+{
+    size_t sn;
+    sh_int level;
+};
 
 #define SKILL_TABLE_SIZE (sizeof(skill_table) / sizeof(skill_table[0]))
 #define GROUP_TABLE_SIZE (sizeof(group_table) / sizeof(group_table[0]))
 
 static size_t sorted_skill_table_seq[SKILL_TABLE_SIZE];
 static size_t sorted_group_table_seq[GROUP_TABLE_SIZE];
+static size_t level_sorted_skill_table_seq[MAX_CLASS][SKILL_TABLE_SIZE];
+
+
+bool level_sorted_skill_table(size_t cls, size_t seq, int *ind)
+{
+    if (cls >= MAX_CLASS)
+    {
+        bugf("level_sorted_skill_table: Invalid class %zu", cls);
+        return FALSE;
+    }
+
+    if (seq >= SKILL_TABLE_SIZE)
+    {
+        return FALSE;
+    }
+
+    size_t i = level_sorted_skill_table_seq[cls][seq];
+
+    if (i >= SKILL_TABLE_SIZE)
+    {
+        return FALSE;
+    }
+
+    *ind = i;
+    return TRUE;
+}
+
 
 bool name_sorted_group_table(size_t seq, int *ind)
 {
@@ -9050,9 +9082,17 @@ static int group_name_cmp(const void *a, const void *b)
     return strcmp(group_table[ai].name, group_table[bi].name);
 }
 
+static int sn_level_cmp(const void *a, const void *b)
+{
+    const struct sn_level *pa = (const struct sn_level *)a;
+    const struct sn_level *pb = (const struct sn_level *)b;
+    
+    return pa->level - pb->level;
+}
+
 void sorted_table_init( void )
 {
-    size_t i;
+    size_t i, j;
 
     for (i = 0 ; i < SKILL_TABLE_SIZE ; ++i )
     {
@@ -9075,4 +9115,33 @@ void sorted_table_init( void )
         GROUP_TABLE_SIZE, 
         sizeof(sorted_group_table_seq[0]), 
         group_name_cmp);
+
+    for (i = 0 ; i < MAX_CLASS ; ++i)
+    {
+        size_t it;
+        struct sn_level tbl[SKILL_TABLE_SIZE];
+        for (j = 0, it = 0 ; j < SKILL_TABLE_SIZE ; ++j)
+        {
+            // Skip null sentry at end of skill table
+            if (!skill_table[j].name) continue;
+
+            tbl[it].sn = j;
+            tbl[it].level = skill_table[j].skill_level[i];
+            ++it;
+        }
+        qsort(
+            tbl,
+            it,
+            sizeof(tbl[0]),
+            sn_level_cmp);
+        for (j = 0; j < it; ++j)
+        {
+            level_sorted_skill_table_seq[i][j] = tbl[j].sn;
+        }
+        if (it < SKILL_TABLE_SIZE)
+        {
+            // This should be true. `it` should be one less due to skipping null sentry
+            level_sorted_skill_table_seq[i][it] = SKILL_TABLE_SIZE;
+        }
+    }
 }

@@ -1425,32 +1425,32 @@ DEF_DO_FUN(do_skills)
 
 static void show_class_skills( CHAR_DATA *ch, const char *argument )
 {
-    int class = class_lookup( argument );
-    if ( class == -1 )
+    int class = class_lookup(argument);
+    if ( class < 0 )
     {
         send_to_char("Invalid class.\n\r", ch);
         return;
     }
 
-    BUFFER *buffer=new_buf();
-    int i=0;
-
+    BUFFER *buffer = new_buf();
+    int sn = 0;
+    size_t seq;
     char buf[MSL];
-    snprintf( buf, sizeof(buf), "\n\r%-20s %5s    %3s    %3s{x\n\r", "Skill", "Lvl", "Rtg", "Max");
-    add_buf( buffer, buf );
-    for ( i=0; skill_table[i].name != NULL ; i++ )
+    snprintf(buf, sizeof(buf), "\n\r%-20s %5s    %3s    %3s{x\n\r", "Skill", "Lvl", "Rtg", "Max");
+    add_buf(buffer, buf);
+    for (seq = 0; level_sorted_skill_table((size_t)class, seq, &sn); ++seq) 
     {
-        if ( skill_table[i].skill_level[class] <= HERO )
+        if ( skill_table[sn].skill_level[class] <= HERO )
         {
            snprintf( buf, sizeof(buf), "%-20s {g%5d    %3d    %3d{x\n\r",
-                         capitalize( skill_table[i].name ),
-                         skill_table[i].skill_level[class],
-                         skill_table[i].rating[class],
-                         skill_table[i].cap[class] );
-           add_buf( buffer, buf );
+                         capitalize(skill_table[sn].name),
+                         skill_table[sn].skill_level[class],
+                         skill_table[sn].rating[class],
+                         skill_table[sn].cap[class] );
+           add_buf(buffer, buf);
         }
     }
-    page_to_char( buf_string(buffer), ch );
+    page_to_char(buf_string(buffer), ch);
     free_buf(buffer);
 }
 

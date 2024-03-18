@@ -4555,6 +4555,7 @@ void    final_save_all( void );
 void sorted_table_init( void );
 bool name_sorted_group_table( size_t seq, int *ind );
 bool name_sorted_skill_table( size_t seq, int *ind );
+bool level_sorted_skill_table( size_t seq, size_t cls, int *ind );
 
 
 /*
